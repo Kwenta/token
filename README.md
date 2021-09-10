@@ -1,15 +1,19 @@
-# Basic Sample Hardhat Project
+# Kwenta Tokenomics Repo
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, a sample script that deploys that contract, and an example of a task implementation, which simply lists the available accounts.
+This is the main repository for the Kwenta token and respective system contracts (staking, airdrop, bridge, buyback & burn, etc..). 
 
-Try running some of the following tasks:
+The following architecture diagram is still in flux, but provides a general overview of the system.
 
-```shell
-npx hardhat accounts
-npx hardhat compile
-npx hardhat clean
+![Kwenta Token System Architecture Diagram](img/architecture-diagram.png)
+
+## Testing
+
+```
 npx hardhat test
-npx hardhat node
-node scripts/sample-script.js
-npx hardhat help
+```
+
+## Deployment
+
+```
+npx hardhat run ./scripts/deploy-kwenta.ts
 ```
