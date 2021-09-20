@@ -8,7 +8,7 @@ contract Pausable is Owned {
     uint public lastPauseTime;
     bool public paused;
 
-    constructor() internal {
+    constructor() Owned(owner) {
         // This contract is abstract, and thus cannot be instantiated directly
         require(owner != address(0), "Owner must be set");
         // Paused will be false, and lastPauseTime will be 0 upon initialisation
@@ -29,7 +29,7 @@ contract Pausable is Owned {
 
         // If applicable, set the last pause time.
         if (paused) {
-            lastPauseTime = now;
+            lastPauseTime = block.timestamp;
         }
 
         // Let everyone know that our pause state has changed.
