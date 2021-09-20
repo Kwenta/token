@@ -1,12 +1,23 @@
+const { toBN, toWei } = require('web3-utils');
+
 const StakingRewards = artifacts.require("StakingRewards");
+
+const toUnit = amount => toBN(toWei(amount.toString(), 'ether'));
+const currentTime = async () => {
+		const { timestamp } = await web3.eth.getBlock('latest');
+		return timestamp;
+	};
 
 require("chai")
 	.use(require("chai-as-promised"))
+	.use(require("chai-bn-equal"))
 	.should();
 
 contract('StakingRewards_KWENTA', ([owner, rewardsDistribution, rewardsToken, stakingToken, staker1, staker2]) => {
 	console.log("Start tests");
 	let stakingRewards;
+	const DAY = 86400;
+	const ZERO_BN = toBN(0);
 
 	before(async() => {
 		stakingRewards = await StakingRewards.new(owner,
@@ -87,6 +98,26 @@ contract('StakingRewards_KWENTA', ([owner, rewardsDistribution, rewardsToken, st
 			assert.equal(ts2, expected);
 		})
 	});
+
+	describe('lastTimeRewardApplicable()', () => {
+		it('should return 0', async () => {
+			assert.equal(await stakingRewards.lastTimeRewardApplicable(), 0);
+		});
+
+		describe('when updated', () => {
+			it('should equal current timestamp', async () => {
+				await stakingRewards.notifyRewardAmount(toUnit(1.0), {
+					from: rewardsDistribution,
+				});
+
+				const cur = await currentTime();
+				const lastTimeReward = await stakingRewards.lastTimeRewardApplicable();
+
+				assert.equal(cur.toString(), lastTimeReward.toString());
+			});
+		});
+	});
+
 		/*
 	describe("rewards", async() => {
 		it("updates calculates rewards correctly", async() => {
