@@ -22,15 +22,20 @@ contract StakingRewards is IStakingRewards, RewardsDistributionRecipient, Reentr
     IERC20 public stakingToken;
     uint256 public periodFinish = 0;
     uint256 public rewardRate = 0;
-    uint256 public rewardsDuration = 7 days;
+    uint256 public rewardsDuration = 70 days;
     uint256 public lastUpdateTime;
-    uint256 public rewardPerTokenStored;
+    uint256 public rewardPerRewardScoreStored;
 
-    mapping(address => uint256) public userRewardPerTokenPaid;
+    mapping(address => uint256) public userRewardPerRewardScorePaid;
     mapping(address => uint256) public rewards;
 
     uint256 private _totalSupply;
+    uint256 private _totalRewardScore;
     mapping(address => uint256) private _balances;
+
+    mapping (address => uint256) private _stakingScores;
+    mapping (address => uint256) private _tradingScores;
+    mapping (address => uint256) private _rewardScores;
 
     /* ========== CONSTRUCTOR ========== */
 
@@ -59,18 +64,18 @@ contract StakingRewards is IStakingRewards, RewardsDistributionRecipient, Reentr
         return Math.min(block.timestamp, periodFinish);
     }
 
-    function rewardPerToken() public view returns (uint256) {
+    function rewardPerRewardScore() public view returns (uint256) {
         if (_totalSupply == 0) {
-            return rewardPerTokenStored;
+            return rewardPerRewardScoreStored;
         }
         return
-            rewardPerTokenStored.add(
-                lastTimeRewardApplicable().sub(lastUpdateTime).mul(rewardRate).mul(1e18).div(_totalSupply)
+            rewardPerRewardScoreStored.add(
+                lastTimeRewardApplicable().sub(lastUpdateTime).mul(rewardRate).mul(1e18).div(_totalRewardScore)
             );
     }
 
     function earned(address account) public view returns (uint256) {
-        return _balances[account].mul(rewardPerToken().sub(userRewardPerTokenPaid[account])).div(1e18).add(rewards[account]);
+        return _rewardScores[account].mul(rewardPerRewardScore().sub(userRewardPerRewardScorePaid[account])).div(1e18).add(rewards[account]);
     }
 
     function getRewardForDuration() external view returns (uint256) {
@@ -79,10 +84,25 @@ contract StakingRewards is IStakingRewards, RewardsDistributionRecipient, Reentr
 
     /* ========== MUTATIVE FUNCTIONS ========== */
 
+    function updateTraderScore(address _trader, uint256 _feesPaid) external updateReward(_trader) {
+        _totalRewardScore = _totalRewardScore.sub(_rewardScores[_trader]);
+        _tradingScores[_trader] = _tradingScores[_trader].add(_feesPaid.mul(70).div(100));
+        _totalRewardScore = _totalRewardScore.add(_rewardScores[_trader]);
+        updateRewardScore(_trader);
+    }
+
+    function updateRewardScore(address _account) private {
+        _rewardScores[_account] = (_stakingScores[_account].mul(70).div(100)).add(_tradingScores[_account].mul(30).div(100));
+    }
+
     function stake(uint256 amount) external nonReentrant notPaused updateReward(msg.sender) {
         require(amount > 0, "Cannot stake 0");
         _totalSupply = _totalSupply.add(amount);
+        _totalRewardScore = _totalRewardScore.sub(_rewardScores[msg.sender]);
         _balances[msg.sender] = _balances[msg.sender].add(amount);
+        _stakingScores[msg.sender] = _balances[msg.sender].div(_totalSupply);
+        updateRewardScore(msg.sender);
+        _totalRewardScore = _totalRewardScore.add(_rewardScores[msg.sender]);
         stakingToken.safeTransferFrom(msg.sender, address(this), amount);
         emit Staked(msg.sender, amount);
     }
@@ -90,7 +110,11 @@ contract StakingRewards is IStakingRewards, RewardsDistributionRecipient, Reentr
     function withdraw(uint256 amount) public nonReentrant updateReward(msg.sender) {
         require(amount > 0, "Cannot withdraw 0");
         _totalSupply = _totalSupply.sub(amount);
+        _totalRewardScore = _totalRewardScore.sub(_rewardScores[msg.sender]);
         _balances[msg.sender] = _balances[msg.sender].sub(amount);
+        _stakingScores[msg.sender] = _balances[msg.sender].div(_totalSupply);
+        updateRewardScore(msg.sender);
+        _totalRewardScore = _totalRewardScore.add(_rewardScores[msg.sender]);
         stakingToken.safeTransfer(msg.sender, amount);
         emit Withdrawn(msg.sender, amount);
     }
@@ -151,11 +175,11 @@ contract StakingRewards is IStakingRewards, RewardsDistributionRecipient, Reentr
     /* ========== MODIFIERS ========== */
 
     modifier updateReward(address account) {
-        rewardPerTokenStored = rewardPerToken();
+        rewardPerRewardScoreStored = rewardPerRewardScore();
         lastUpdateTime = lastTimeRewardApplicable();
         if (account != address(0)) {
             rewards[account] = earned(account);
-            userRewardPerTokenPaid[account] = rewardPerTokenStored;
+            userRewardPerRewardScorePaid[account] = rewardPerRewardScoreStored;
         }
         _;
     }
