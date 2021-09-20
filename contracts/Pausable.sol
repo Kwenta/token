@@ -1,4 +1,4 @@
-pragma solidity ^0.8.0;
+pragma solidity ^0.5.16;
 
 // Inheritance
 import "./Owned.sol";
@@ -8,7 +8,7 @@ contract Pausable is Owned {
     uint public lastPauseTime;
     bool public paused;
 
-    constructor() Owned(owner) {
+    constructor() internal {
         // This contract is abstract, and thus cannot be instantiated directly
         require(owner != address(0), "Owner must be set");
         // Paused will be false, and lastPauseTime will be 0 upon initialisation
@@ -29,7 +29,7 @@ contract Pausable is Owned {
 
         // If applicable, set the last pause time.
         if (paused) {
-            lastPauseTime = block.timestamp;
+            lastPauseTime = now;
         }
 
         // Let everyone know that our pause state has changed.

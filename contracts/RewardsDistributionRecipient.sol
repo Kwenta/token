@@ -1,4 +1,4 @@
-pragma solidity ^0.8.0;
+pragma solidity ^0.5.16;
 
 // Inheritance
 import "./Owned.sol";
@@ -7,9 +7,7 @@ import "./Owned.sol";
 contract RewardsDistributionRecipient is Owned {
     address public rewardsDistribution;
 
-    function notifyRewardAmount(uint256 reward) external {
-
-    }
+    function notifyRewardAmount(uint256 reward) external;
 
     modifier onlyRewardsDistribution() {
         require(msg.sender == rewardsDistribution, "Caller is not RewardsDistribution contract");
@@ -18,9 +16,5 @@ contract RewardsDistributionRecipient is Owned {
 
     function setRewardsDistribution(address _rewardsDistribution) external onlyOwner {
         rewardsDistribution = _rewardsDistribution;
-    }
-
-    constructor() Owned(owner) {
-
     }
 }

@@ -1,10 +1,8 @@
-pragma solidity ^0.8.0;
+pragma solidity ^0.5.16;
 
 // Import math & SafeMath for safe math operations
-import "@openzeppelin/contracts/utils/math/Math.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-//import "openzeppelin-solidity-2.3.0/contracts/math/Math.sol";
-//import "openzeppelin-solidity-2.3.0/contracts/math/SafeMath.sol";
+import "openzeppelin-solidity-2.3.0/contracts/math/Math.sol";
+import "openzeppelin-solidity-2.3.0/contracts/math/SafeMath.sol";
 
 contract StakingRewards_KWENTA {
 	/*
