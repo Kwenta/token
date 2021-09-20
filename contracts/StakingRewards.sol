@@ -12,7 +12,7 @@ import "./RewardsDistributionRecipient.sol";
 import "./Pausable.sol";
 
 // https://docs.synthetix.io/contracts/source/contracts/stakingrewards
-contract StakingRewards is IStakingRewards, RewardsDistributionRecipient, ReentrancyGuard, Pausable {
+contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausable {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
@@ -33,9 +33,9 @@ contract StakingRewards is IStakingRewards, RewardsDistributionRecipient, Reentr
     uint256 private _totalRewardScore;
     mapping(address => uint256) private _balances;
 
-    mapping (address => uint256) private _stakingScores;
-    mapping (address => uint256) private _tradingScores;
-    mapping (address => uint256) private _rewardScores;
+    mapping (address => uint256) public _stakingScores;
+    mapping (address => uint256) public _tradingScores;
+    mapping (address => uint256) public _rewardScores;
 
     /* ========== CONSTRUCTOR ========== */
 
@@ -56,6 +56,10 @@ contract StakingRewards is IStakingRewards, RewardsDistributionRecipient, Reentr
         return _totalSupply;
     }
 
+    function totalRewardScore() external view returns (uint256) {
+        return _totalRewardScore;
+    }
+
     function balanceOf(address account) external view returns (uint256) {
         return _balances[account];
     }
@@ -65,7 +69,7 @@ contract StakingRewards is IStakingRewards, RewardsDistributionRecipient, Reentr
     }
 
     function rewardPerRewardScore() public view returns (uint256) {
-        if (_totalSupply == 0) {
+        if (_totalRewardScore == 0) {
             return rewardPerRewardScoreStored;
         }
         return
@@ -103,7 +107,7 @@ contract StakingRewards is IStakingRewards, RewardsDistributionRecipient, Reentr
         _stakingScores[msg.sender] = _balances[msg.sender].div(_totalSupply);
         updateRewardScore(msg.sender);
         _totalRewardScore = _totalRewardScore.add(_rewardScores[msg.sender]);
-        stakingToken.safeTransferFrom(msg.sender, address(this), amount);
+        //stakingToken.safeTransferFrom(msg.sender, address(this), amount);
         emit Staked(msg.sender, amount);
     }
 
@@ -112,10 +116,15 @@ contract StakingRewards is IStakingRewards, RewardsDistributionRecipient, Reentr
         _totalSupply = _totalSupply.sub(amount);
         _totalRewardScore = _totalRewardScore.sub(_rewardScores[msg.sender]);
         _balances[msg.sender] = _balances[msg.sender].sub(amount);
-        _stakingScores[msg.sender] = _balances[msg.sender].div(_totalSupply);
+        if(_totalSupply > 0){
+            _stakingScores[msg.sender] = _balances[msg.sender].div(_totalSupply);    
+        } else {
+            _stakingScores[msg.sender] = 0;    
+        }
+        
         updateRewardScore(msg.sender);
         _totalRewardScore = _totalRewardScore.add(_rewardScores[msg.sender]);
-        stakingToken.safeTransfer(msg.sender, amount);
+        //stakingToken.safeTransfer(msg.sender, amount);
         emit Withdrawn(msg.sender, amount);
     }
 
