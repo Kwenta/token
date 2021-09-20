@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.7;
 
-import './ERC20.sol';
+import './utils/ERC20.sol';
 import './interfaces/ISupplySchedule.sol';
 import './interfaces/IRewardsDistribution.sol';
 
@@ -31,7 +31,7 @@ contract Kwenta is ERC20 {
     }
 
     // Mints inflationary supply
-    function mint() external override returns (bool) {
+    function mint() external returns (bool) {
         require(rewardsDistribution != address(0), "RewardsDistribution not set");
 
         ISupplySchedule _supplySchedule = ISupplySchedule(supplySchedule);

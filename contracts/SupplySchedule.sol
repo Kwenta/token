@@ -1,15 +1,15 @@
 pragma solidity ^0.5.16;
 
 // Inheritance
-import "./Owned.sol";
+import "./utils/Owned.sol";
 import "./interfaces/ISupplySchedule.sol";
 
 // Libraries
-import "./SafeDecimalMath.sol";
-import "./Math.sol";
+import "./libraries/SafeDecimalMath.sol";
+import "./libraries/Math.sol";
 
 // Internal references
-import "./Proxy.sol";
+// import "./Proxy.sol";
 import "./interfaces/ISynthetix.sol";
 import "./interfaces/IERC20.sol";
 
@@ -42,7 +42,7 @@ contract SupplySchedule is Owned, ISupplySchedule {
     // How long each inflation period is before mint can be called
     uint public constant MINT_PERIOD_DURATION = 1 weeks;
 
-    uint public immutable INFLATION_START_DATE;
+    uint public INFLATION_START_DATE;
     uint public constant MINT_BUFFER = 1 days;
     uint8 public constant SUPPLY_DECAY_START = 0; // Start first week
     uint8 public constant SUPPLY_DECAY_END = 208; // Inclusive of SUPPLY_DECAY_END week.
@@ -209,7 +209,7 @@ contract SupplySchedule is Owned, ISupplySchedule {
      * */
     modifier onlySynthetix() {
         require(
-            msg.sender == address(Proxy(address(synthetixProxy)).target()),
+            msg.sender == address(synthetixProxy),
             "Only the synthetix contract can perform this action"
         );
         _;
