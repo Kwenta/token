@@ -124,8 +124,8 @@ contract('StakingRewards_KWENTA', ([owner, rewardsDistribution, rewardsToken, st
 
 	describe("traderScore()", async() => {
 		it("initializes updatesTraderScore correctly", async() => {
-			let ts1 = await stakingRewards._tradingScores(staker1);
-			let ts2 = await stakingRewards._tradingScores(staker2);
+			let ts1 = await stakingRewards._feesPaid(staker1);
+			let ts2 = await stakingRewards._feesPaid(staker2);
 			assert.equal(ts1, 0);
 			assert.equal(ts2, 0);
 		})
@@ -134,13 +134,13 @@ contract('StakingRewards_KWENTA', ([owner, rewardsDistribution, rewardsToken, st
 			await stakingRewards.updateTraderScore(staker1, 5);
 			await stakingRewards.updateTraderScore(staker2, 4);
 
-			let ts1 = await stakingRewards._tradingScores(staker1);
-			let expected = 5 * 70;
+			let ts1 = await stakingRewards._feesPaid(staker1);
+			let expected = 5;
 			
 			assert.equal(ts1, expected);
 
-			let ts2 = await stakingRewards._tradingScores(staker2);
-			expected = 4 * 70;
+			let ts2 = await stakingRewards._feesPaid(staker2);
+			expected = 4;
 
 			assert.equal(ts2, expected);
 		})
