@@ -117,7 +117,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         }
         return
             rewardPerRewardScoreStored.add(
-                lastTimeRewardApplicable().sub(lastUpdateTime).mul(rewardRate).mul(1e18)
+                lastTimeRewardApplicable().sub(lastUpdateTime).mul(rewardRate).mul(1e18).div(calculateTotalRewardScore())
             );
     }
 
@@ -140,6 +140,27 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         return rewardRate.mul(rewardsDuration);
     }
 
+    function calculateTotalRewardScore() private view returns(uint256) {
+    /*
+    Function calculating the total rewardScore to use for rewardRatePerrewardScore calculations.
+    The total rewards score should be:
+    - 0 if no staking or trading activity
+    - 0.7 if staking activity but no trading activity
+    - 0.3 if no staking activity but trading activity
+    - 1 if both
+    returns: uint256 containing the rewardSCore
+    */
+
+    if (_totalSupply > 0 && _totalTradingScores == 0) {
+        return _weightStakingScore;
+    } else if (_totalSupply == 0 && _totalTradingScores > 0) {
+        return _weightTradingScore;
+    } else {
+        return _weightStakingScore.add(_weightTradingScore);
+    }
+
+    }
+
 
     function calculateRewardScore(address _account) private view returns(uint256) {
     /*
@@ -153,7 +174,8 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         // Handle cases where no staking or trading has yet taken place
         if(_totalSupply > 0) {
             stakingReward = (_balances[_account].div(_totalSupply).mul(_weightStakingScore));
-        } else if (_totalTradingScores > 0) {
+        }
+        if (_totalTradingScores > 0) {
             tradingReward = (_feesPaid[_account].mul(_weightFees).div(_totalTradingScores).mul(_weightTradingScore));
         }
 
