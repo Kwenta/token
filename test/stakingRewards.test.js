@@ -1,4 +1,19 @@
 const { toBN, toWei } = require('web3-utils');
+const hardhat = require('hardhat');
+
+const send = payload => {
+		if (!payload.jsonrpc) payload.jsonrpc = '2.0';
+		if (!payload.id) payload.id = new Date().getTime();
+
+		return new Promise((resolve, reject) => {
+			web3.currentProvider.send(payload, (error, result) => {
+				if (error) return reject(error);
+
+				return resolve(result);
+			});
+		});
+	};
+const mineBlock = () => send({ method: 'evm_mine' });
 
 const StakingRewards = artifacts.require("StakingRewards");
 
@@ -7,6 +22,38 @@ const currentTime = async () => {
 		const { timestamp } = await web3.eth.getBlock('latest');
 		return timestamp;
 	};
+const fastForward = async seconds => {
+		// It's handy to be able to be able to pass big numbers in as we can just
+		// query them from the contract, then send them back. If not changed to
+		// a number, this causes much larger fast forwards than expected without error.
+		if (BN.isBN(seconds)) seconds = seconds.toNumber();
+
+		// And same with strings.
+		if (typeof seconds === 'string') seconds = parseFloat(seconds);
+
+		let params = {
+			method: 'evm_increaseTime',
+			params: [seconds],
+		};
+
+		if (hardhat.ovm) {
+			params = {
+				method: 'evm_setNextBlockTimestamp',
+				params: [(await currentTime()) + seconds],
+			};
+		}
+
+		await send(params);
+
+		await mineBlock();
+	};
+const assertBNGreaterThan = (aBN, bBN) => {
+	assert.ok(aBN.gt(bBN), `${aBN.toString()} is not greater than ${bBN.toString()}`);
+};
+const assertBNEqual = (actualBN, expectedBN, context) => {
+		assert.strictEqual(actualBN.toString(), expectedBN.toString(), context);
+	};
+const BN = require('bn.js');
 
 require("chai")
 	.use(require("chai-as-promised"))
@@ -88,12 +135,12 @@ contract('StakingRewards_KWENTA', ([owner, rewardsDistribution, rewardsToken, st
 			await stakingRewards.updateTraderScore(staker2, 4);
 
 			let ts1 = await stakingRewards._tradingScores(staker1);
-			let expected = 3;
+			let expected = 5 * 70;
 			
 			assert.equal(ts1, expected);
 
 			let ts2 = await stakingRewards._tradingScores(staker2);
-			expected = 2;
+			expected = 4 * 70;
 
 			assert.equal(ts2, expected);
 		})
@@ -118,51 +165,90 @@ contract('StakingRewards_KWENTA', ([owner, rewardsDistribution, rewardsToken, st
 		});
 	});
 
-		/*
-	describe("rewards", async() => {
-		it("updates calculates rewards correctly", async() => {
-			// Nacho stakes 5
-			await stakingRewards.stake(5, {from: staker1});
-			await stakingRewards.updateTraderScore(20, 3, staker1);
-			let tsN = await stakingRewards._tradingScores(staker1);
-			assert.equal(tsN, 3600);
-			await stakingRewards.updateStakerScore(staker1);
-			let ssN = await stakingRewards.stakerScores(staker1);
-			assert.equal(ssN, 1);
-			var crN = await stakingRewards.calculateRewardScore(staker1);
-			assert.equal(crN, 1*1000000);
-			
-			await stakingRewards.stake(10, {from: staker2});
-			await stakingRewards.updateTraderScore(2, 3, staker1);
-			tsN = await stakingRewards._tradingScores(staker1);
-			assert.equal(tsN, 36);
+	describe('rewardPerToken()', () => {
+		it('should return 0', async () => {
+			assert.equal(await stakingRewards.rewardPerRewardScore(), 0);
+		});
 
-			await stakingRewards.updateTraderScore(3, 5, staker2);
-			let tsJ = await stakingRewards._tradingScores(staker2);
-			assert.equal(tsJ, 225);
+		it('should be > 0', async () => {
+			const totalToStake = toUnit('100');
+			//await stakingToken.transfer(staker1, totalToStake, { from: owner });
+			//await stakingToken.approve(stakingRewards.address, totalToStake, { from: staker1 });
+			await stakingRewards.stake(totalToStake, { from: staker1 });
 
-			crN = await stakingRewards.calculateRewardScore(staker1);
-			assert.equal(crN, 12638);
-			//console.log("Reward score is, ", crN);
+			const totalSupply = await stakingRewards.totalSupply();
+			assertBNGreaterThan(totalSupply, 0);
 
-			crJ = await stakingRewards.calculateRewardScore(staker2);
-			assert.equal(crJ, 987361);
-			//console.log("Reward score is, ", crJ);
+			const rewardValue = toUnit(50.0);
+			//await rewardsToken.transfer(stakingRewards.address, rewardValue, { from: owner });
+			await stakingRewards.notifyRewardAmount(rewardValue, {
+				from: rewardsDistribution,
+			});
 
-			await stakingRewards.stake(20, {from: staker3});
-			await stakingRewards.updateTraderScore(5, 1, staker1);
-			await stakingRewards.updateTraderScore(4, 5, staker2);
-			await stakingRewards.updateTraderScore(4, 10, staker3);
+			await fastForward(DAY);
 
-			crN = await stakingRewards.calculateRewardScore(staker1);
-			assert.equal(crN, 59);
-			crJ = await stakingRewards.calculateRewardScore(staker2);
-			assert.equal(crJ, 30301);
-			crA = await stakingRewards.calculateRewardScore(staker3);
-			assert.equal(crA, 969639);
+			const rewardPerRewardScore = await stakingRewards.rewardPerRewardScore();
+			assertBNGreaterThan(rewardPerRewardScore, 0);
+		});
+	});
 
-		})
-	})
-		*/
+	describe('earned()', () => {
+
+		it('should be > 0 when staking', async () => {
+			const totalToStake = toUnit('1');
+			//await stakingToken.transfer(staker1, totalToStake, { from: owner });
+			//await stakingToken.approve(stakingRewards.address, totalToStake, { from: staker1 });
+
+			await stakingRewards.stake(totalToStake, { from: staker1 });
+
+			const rewardValue = toUnit(5000.0);
+			//await rewardsToken.transfer(stakingRewards.address, rewardValue, { from: owner });
+			await stakingRewards.notifyRewardAmount(rewardValue, {
+				from: rewardsDistribution,
+			});
+
+			await fastForward(DAY);
+
+			const earned = await stakingRewards.earned(staker1);
+
+			assertBNGreaterThan(earned, ZERO_BN);
+		});
+
+		it('rewardRate should increase if new rewards come before DURATION ends', async () => {
+			const totalToDistribute = toUnit('5000');
+
+			//await rewardsToken.transfer(stakingRewards.address, totalToDistribute, { from: owner });
+			await stakingRewards.notifyRewardAmount(totalToDistribute, {
+				from: rewardsDistribution,
+			});
+
+			const rewardRateInitial = await stakingRewards.rewardRate();
+
+			//await rewardsToken.transfer(stakingRewards.address, totalToDistribute, { from: owner });
+			await stakingRewards.notifyRewardAmount(totalToDistribute, {
+				from: rewardsDistribution,
+			});
+
+			const rewardRateLater = await stakingRewards.rewardRate();
+
+			assertBNGreaterThan(rewardRateInitial, ZERO_BN);
+			assertBNGreaterThan(rewardRateLater, rewardRateInitial);
+		});
+		
+		describe('notifyRewardAmount()', () => {
+		
+
+		it('Reverts if the provided reward is greater than the balance.', async () => {
+			const rewardValue = toUnit(100000000);
+			//await rewardsToken.transfer(localStakingRewards.address, rewardValue, { from: owner });
+			await (
+				stakingRewards.notifyRewardAmount(rewardValue.add(toUnit(0.1)), {
+					from: rewardsDistribution,
+				})).should.be.rejected;;
+		});
+
+		
+	});
+	});
 	
 })
