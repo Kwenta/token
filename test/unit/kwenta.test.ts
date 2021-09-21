@@ -20,7 +20,7 @@ describe("KWENTA Token", function () {
             ethers.constants.AddressZero
         );
         await kwenta.deployed();
-        console.log(kwenta.address)
+        
         return kwenta;
     });
 
@@ -29,7 +29,7 @@ describe("KWENTA Token", function () {
         expect(await kwenta.symbol()).to.equal(SYMBOL);
     });
 
-    it('Total supply should be at 60%', async function () {
+    it('Total supply should be at 60% on construction', async function () {
         // This is because we only mint into the treasury for now
         expect(await kwenta.totalSupply()).to.equal(INITIAL_SUPPLY.mul(60).div(100));
     });

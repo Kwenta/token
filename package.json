@@ -1,6 +1,8 @@
 {
   "scripts": {    
-    "test": "npx hardhat test"  
+    "test": "npx hardhat test",
+    "test:unit": "npx hardhat test test/unit/*",
+    "test:integration": "npx hardhat test test/integration/*"
   }, 
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.2",
