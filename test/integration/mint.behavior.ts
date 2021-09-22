@@ -7,12 +7,19 @@ describe("Mint", () => {
     const SYMBOL = "KWENTA";
     const INITIAL_SUPPLY = ethers.utils.parseUnits("313373");
     const TREASURY_DAO_ADDRESS = "0x0000000000000000000000000000000000000001";
-    const REWARDS_DISTRIBUTION_ADDRESS =
-        "0x0000000000000000000000000000000000000002";
 
-    let safeDecimalMath, supplySchedule, kwenta: Contract;
+    let safeDecimalMath,
+        supplySchedule,
+        kwenta: Contract,
+        mockRewardsDistribution: Contract;
     before(async () => {
         const [owner] = await ethers.getSigners();
+
+        const MockRewardsDistribution = await ethers.getContractFactory(
+            "MockRewardsDistribution"
+        );
+        mockRewardsDistribution = await MockRewardsDistribution.deploy();
+        await mockRewardsDistribution.deployed();
 
         const SafeDecimalMath = await ethers.getContractFactory(
             "SafeDecimalMath"
@@ -37,25 +44,33 @@ describe("Mint", () => {
             SYMBOL,
             INITIAL_SUPPLY,
             TREASURY_DAO_ADDRESS,
-            REWARDS_DISTRIBUTION_ADDRESS,
+            mockRewardsDistribution.address,
             supplySchedule.address
         );
         await kwenta.deployed();
+
+        await supplySchedule.setSynthetixProxy(kwenta.address);
+
         return kwenta;
     });
 
     it("No inflationary supply to mint", async () => {
         await expect(kwenta.mint()).to.be.revertedWith("No supply is mintable");
-        expect(await kwenta.balanceOf(REWARDS_DISTRIBUTION_ADDRESS)).to.equal(
-            0
-        );
+        expect(
+            await kwenta.balanceOf(mockRewardsDistribution.address)
+        ).to.equal(0);
     });
 
-    it.skip("Mint inflationary supply 1 week later", async () => {
+    it("Mint inflationary supply 1 week later", async () => {
         const [owner] = await ethers.getSigners();
 
         expect(await kwenta.balanceOf(owner.address)).to.equal(0);
         await network.provider.send("evm_increaseTime", [604800]);
-        await kwenta.mint(); // TODO: look into 'SafeMath: subtraction overflow'
+        await kwenta.mint();
+
+        // Make sure this is equivalent to first week distribution
+        expect(
+            await kwenta.balanceOf(mockRewardsDistribution.address)
+        ).to.equal(ethers.BigNumber.from("3405584163065384615383"));
     });
 });
