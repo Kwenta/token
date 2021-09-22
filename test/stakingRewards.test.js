@@ -1,4 +1,4 @@
-const { toBN, toWei } = require('web3-utils');
+const { toBN, toWei, fromWei} = require('web3-utils');
 const hardhat = require('hardhat');
 
 const send = payload => {
@@ -235,6 +235,8 @@ contract('StakingRewards_KWENTA', ([owner, rewardsDistribution, rewardsToken, st
 			assertBNGreaterThan(rewardRateLater, rewardRateInitial);
 		});
 		
+
+		});
 		describe('notifyRewardAmount()', () => {
 		
 
@@ -249,6 +251,196 @@ contract('StakingRewards_KWENTA', ([owner, rewardsDistribution, rewardsToken, st
 
 		
 	});
+
+	describe("Implementation test", () => {
+		it("calculates rewards correctly", async() => {
+
+			const wait = s => {
+			  const milliseconds = s * 1000
+			  return new Promise(resolve => setTimeout(resolve, milliseconds))
+			}
+
+			stakingRewards = await StakingRewards.new(owner,
+			rewardsDistribution,
+			rewardsToken,
+			stakingToken
+			);
+
+			let bal1 = await stakingRewards.balanceOf(staker1);	
+			let bal2 = await stakingRewards.balanceOf(staker2);	
+			
+			assert.equal(bal1, 0);
+			assert.equal(bal2, 0);
+
+			let fees1 = await stakingRewards._feesPaid(staker1);	
+			let fees2 = await stakingRewards._feesPaid(staker2);	
+			
+			assert.equal(fees1, 0);
+			assert.equal(fees2, 0);
+
+			let totalSupply = await stakingRewards.totalSupply();	
+			let totaltrading = await stakingRewards.totalTradingScores();	
+			
+			assert.equal(totalSupply, 0);
+			assert.equal(totaltrading, 0);
+
+			await stakingRewards.updateTraderScore(staker1, toUnit(25));
+			await stakingRewards.updateTraderScore(staker2, toUnit(50));
+
+			console.log("------------------- Testing first leg -------------------");
+
+			rr = await stakingRewards.rewardPerRewardScore();
+			console.log(rr.toString());
+			rr = await stakingRewards.lastTimeRewardApplicable();
+			console.log(rr.toString());
+			rr = await stakingRewards.periodFinish();
+			console.log(rr.toString());
+			rr = await stakingRewards.lastUpdateTime();
+			console.log(rr.toString());
+			rr = await stakingRewards.rewardRate();
+			console.log(rr.toString());
+			rr = await stakingRewards.calculateTotalRewardScore();
+			console.log(rr.toString());
+
+			let rewardValue = toUnit(60);
+
+			await stakingRewards.notifyRewardAmount(rewardValue, {
+				from: rewardsDistribution,
+			});
+
+			await fastForward(61);
+
+			rr = await stakingRewards.earned(staker1);
+			console.log("Staker1 has earned: ", fromWei(rr.toString()));
+
+			rr = await stakingRewards.earned(staker2);
+			console.log("Staker2 has earned: ", fromWei(rr.toString()));
+
+			rr = await stakingRewards.rewardPerRewardScore();
+			console.log(rr.toString());
+			rr = await stakingRewards.lastTimeRewardApplicable();
+			console.log(rr.toString());
+			rr = await stakingRewards.periodFinish();
+			console.log(rr.toString());
+			rr = await stakingRewards.lastUpdateTime();
+			console.log(rr.toString());
+			rr = await stakingRewards.rewardRate();
+			console.log(rr.toString());
+			rr = await stakingRewards.calculateTotalRewardScore();
+			console.log(rr.toString());
+
+			console.log("------------------- Testing second leg -------------------");
+
+			await stakingRewards.stake(toUnit(40), {from: staker1});
+
+			await stakingRewards.notifyRewardAmount(rewardValue, {
+				from: rewardsDistribution,
+			});
+
+			await fastForward(61);
+
+			rr = await stakingRewards.earned(staker1);
+			console.log("Staker1 has earned: ", fromWei(rr.toString()));
+
+			rr = await stakingRewards.earned(staker2);
+			console.log("Staker2 has earned: ", fromWei(rr.toString()));
+
+			rr = await stakingRewards.rewardPerRewardScore();
+			console.log(rr.toString());
+			rr = await stakingRewards.lastTimeRewardApplicable();
+			console.log(rr.toString());
+			rr = await stakingRewards.periodFinish();
+			console.log(rr.toString());
+			rr = await stakingRewards.lastUpdateTime();
+			console.log(rr.toString());
+			rr = await stakingRewards.rewardRate();
+			console.log(rr.toString());
+			rr = await stakingRewards.calculateTotalRewardScore();
+			console.log(rr.toString());
+
+			console.log("------------------- Testing third leg -------------------");
+
+			await stakingRewards.setRewardsDuration(30, {from: owner});
+
+			await stakingRewards.updateTraderScore(staker2, toUnit(70));
+
+			rewardValue = toUnit(30);
+
+			await stakingRewards.notifyRewardAmount(rewardValue, {
+				from: rewardsDistribution,
+			});
+
+			await fastForward(31);
+
+			rr = await stakingRewards.earned(staker1);
+			console.log("Staker1 has earned: ", fromWei(rr.toString()));
+
+			rr = await stakingRewards.earned(staker2);
+			console.log("Staker2 has earned: ", fromWei(rr.toString()));
+
+			rr = await stakingRewards.userRewardPerRewardScorePaid(staker1);
+			console.log(rr.toString());
+			rr = await stakingRewards.rewardPerRewardScore();
+			console.log(rr.toString());
+			rr = await stakingRewards.calculateRewardScore(staker2);
+			console.log(rr.toString());
+			rr = await stakingRewards.lastTimeRewardApplicable();
+			console.log(rr.toString());
+			rr = await stakingRewards.periodFinish();
+			console.log(rr.toString());
+			rr = await stakingRewards.lastUpdateTime();
+			console.log(rr.toString());
+			rr = await stakingRewards.rewardRate();
+			console.log(rr.toString());
+			rr = await stakingRewards.calculateTotalRewardScore();
+			console.log(rr.toString());
+			
+
+			console.log("------------------- Testing fourth leg -------------------");
+
+
+
+
+
+			
+			
+			
+
+			await stakingRewards.stake(20, {from: staker2});
+
+			await fastForward(70);
+			
+			await stakingRewards.withdraw(10, {from: staker1});
+
+			await fastForward(30);
+			
+			await stakingRewards.updateTraderScore(staker1, 125);
+
+			await fastForward(50);
+
+			// rr = await stakingRewards.earned(staker1);
+			// console.log(fromWei(rr.toString()));
+
+			// rr = await stakingRewards.earned(staker2);
+			// console.log(fromWei(rr.toString()));
+
+			// await stakingRewards.withdraw(30, {from: staker1});
+			// await stakingRewards.withdraw(20, {from: staker2});
+
+			// rr = await stakingRewards.rewards(staker1);
+			// console.log(fromWei(rr.toString()));
+
+			// rr = await stakingRewards.rewards(staker2);
+			// console.log(fromWei(rr.toString()));
+
+			// cur2 = await currentTime();
+			// lastUpdate2 = await stakingRewards.lastUpdateTime();
+			// console.log("Cur2 is ", cur2.toString());
+			// console.log("lastUpdate2 is ", lastUpdate2.toString());
+
+		});
 	});
+
+	
 	
 })

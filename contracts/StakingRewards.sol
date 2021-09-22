@@ -35,7 +35,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
     // Reward rate per second for next epoch
     uint256 public rewardRate = 0;
     // Epoch default duration
-    uint256 public rewardsDuration = 7 days;
+    uint256 public rewardsDuration = 1 minutes;
     // Last time an event altering the reward distribution ocurred (staking, withdrawing, updating trader scores, notifyreward)
     uint256 public lastUpdateTime;
     // Last rewardRate per unit of rewardScore
@@ -57,9 +57,9 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
     // Mapping containing total fees paid
     mapping (address => uint256) public _feesPaid;
     
-    uint256 private _maxBPS = 10000;
-    uint256 private _weightFees = 70;
-    uint256 private _weightTradingScore = 30;
+    uint256 private constant MAX_BPS = 10000;
+    uint256 public _weightFees = 70;
+    uint256 public _weightTradingScore = 30;
     uint256 private _weightStakingScore = 70;
 
     /* ========== CONSTRUCTOR ========== */
@@ -77,9 +77,9 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         stakingToken = IERC20(_stakingToken);
         rewardsDistribution = _rewardsDistribution;
 
-        _weightFees = _weightFees.mul(_maxBPS).div(100);
-        _weightTradingScore = _weightFees.mul(_maxBPS).div(100);
-        _weightStakingScore = _weightFees.mul(_maxBPS).div(100);
+        _weightFees = _weightFees.mul(MAX_BPS).div(100);
+        _weightTradingScore = _weightTradingScore.mul(MAX_BPS).div(100);
+        _weightStakingScore = _weightStakingScore.mul(MAX_BPS).div(100);
     }
 
     /* ========== VIEWS ========== */
@@ -89,6 +89,13 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
     Getter funtion for the state variable _totalSupply
     */
         return _totalSupply;
+    }
+
+    function totalTradingScores() external view returns (uint256) {
+    /*
+    Getter funtion for the state variable _totalTradingScores
+    */
+        return _totalTradingScores;
     }
 
     function balanceOf(address account) external view returns (uint256) {
@@ -117,7 +124,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         }
         return
             rewardPerRewardScoreStored.add(
-                lastTimeRewardApplicable().sub(lastUpdateTime).mul(rewardRate).mul(1e18).div(calculateTotalRewardScore())
+                lastTimeRewardApplicable().sub(lastUpdateTime).mul(rewardRate).mul(MAX_BPS).div(calculateTotalRewardScore())
             );
     }
 
@@ -140,7 +147,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         return rewardRate.mul(rewardsDuration);
     }
 
-    function calculateTotalRewardScore() private view returns(uint256) {
+    function calculateTotalRewardScore() public view returns(uint256) {
     /*
     Function calculating the total rewardScore to use for rewardRatePerrewardScore calculations.
     The total rewards score should be:
@@ -152,17 +159,17 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
     */
 
     if (_totalSupply > 0 && _totalTradingScores == 0) {
-        return _weightStakingScore;
+        return (_weightStakingScore);
     } else if (_totalSupply == 0 && _totalTradingScores > 0) {
-        return _weightTradingScore;
+        return (_weightTradingScore);
     } else {
-        return _weightStakingScore.add(_weightTradingScore);
+        return (_weightStakingScore.add(_weightTradingScore));
     }
 
     }
 
 
-    function calculateRewardScore(address _account) private view returns(uint256) {
+    function calculateRewardScore(address _account) public view returns(uint256) {
     /*
     Function calculating the rewardScore for the specified account as:
     (weight_staking * Ntokens / Ntotal_tokens) + (weight_trading * weight_fees * fees_paid / Total_trading_score)
@@ -173,10 +180,10 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
 
         // Handle cases where no staking or trading has yet taken place
         if(_totalSupply > 0) {
-            stakingReward = (_balances[_account].div(_totalSupply).mul(_weightStakingScore));
+            stakingReward = (_balances[_account].mul(1e14).mul(_weightStakingScore).div(_totalSupply));
         }
         if (_totalTradingScores > 0) {
-            tradingReward = (_feesPaid[_account].mul(_weightFees).div(_totalTradingScores).mul(_weightTradingScore));
+            tradingReward = (_feesPaid[_account].mul(1e10).mul(_weightFees).mul(_weightTradingScore).div(_totalTradingScores));
         }
 
         return (stakingReward).add(tradingReward);
@@ -195,7 +202,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         returns: NA, updates the state mapping _traderScore
         */
 
-        _totalTradingScores = _totalTradingScores.sub(_feesPaid[_trader].mul(_weightFees)).add(_newFeesPaid.mul(_weightFees));
+        _totalTradingScores = _totalTradingScores.sub(_feesPaid[_trader].mul(_weightFees).div(MAX_BPS)).add(_newFeesPaid.mul(_weightFees).div(MAX_BPS));
         _feesPaid[_trader] = _newFeesPaid;        
 
     }
@@ -239,7 +246,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         uint256 reward = rewards[msg.sender];
         if (reward > 0) {
             rewards[msg.sender] = 0;
-            rewardsToken.safeTransfer(msg.sender, reward);
+            //rewardsToken.safeTransfer(msg.sender, reward);
             emit RewardPaid(msg.sender, reward);
         }
     }
