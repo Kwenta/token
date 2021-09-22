@@ -58,7 +58,9 @@ async function getL2Snapshot(minBlock, maxBlock) {
     if (totalBalance[address]) {
       totalBalance[address] = totalBalance[address].sub(value);
     } else {
-      //totalBalance[address] = value;
+      throw new Error(
+        `a: unexepected l2 transfer error from address ${address}`
+      );
     }
   }
 
@@ -77,7 +79,9 @@ async function getL2Snapshot(minBlock, maxBlock) {
     if (totalBalance[address]) {
       totalBalance[address] = totalBalance[address].sub(value);
     } else {
-      //totalBalance[address] = value;
+      throw new Error(
+        `b: unexepected l2 transfer error from address ${address}`
+      );
     }
   }
 

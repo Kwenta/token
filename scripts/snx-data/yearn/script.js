@@ -44,7 +44,9 @@ async function getYearnData(minBlock, maxBlock) {
     if (totalBalance[address]) {
       totalBalance[address] = totalBalance[address].sub(value);
     } else {
-      //totalBalance[address] = value;
+      throw new Error(
+        `a: unexepected yearn transfer error from address ${address}`
+      );
     }
   }
 

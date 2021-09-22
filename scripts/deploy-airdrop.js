@@ -59,13 +59,12 @@ async function deploy_airdrop() {
 
     if (duplicateCheckerSet.has(address)) {
       console.log(
-        "which address listed twice - need to fix script so this never happens:",
+        "duplicate found - this should never happens",
         "address",
         address,
         "skipped stakingScore",
         stakingScore
       );
-      // dont airdrop same address more than once
       throw new Error(
         "duplicate entry found - should not happen or need to update script"
       );
