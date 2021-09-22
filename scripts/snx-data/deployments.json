@@ -1,0 +1,22 @@
+{
+  "mainnet": {
+    "Airdrop": "",
+    "Kwenta": ""
+  },
+  "ropsten": {
+    "Airdrop": "",
+    "Kwenta": ""
+  },
+  "kovan": {
+    "Airdrop": "",
+    "Kwenta": ""
+  },
+  "goerli": {
+    "Airdrop": "",
+    "Kwenta": ""
+  },
+  "localhost": {
+    "Airdrop": "",
+    "Kwenta": ""
+  }
+}
