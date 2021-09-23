@@ -4,6 +4,7 @@
 // When running the script with `npx hardhat run <script>` you'll find the Hardhat
 // Runtime Environment's members available in the global scope.
 import { ethers } from "hardhat";
+const { setTargetAddress } = require("./snx-data/utils.js");
 
 async function main() {
   // Hardhat always runs the compile task when running scripts with its command
@@ -14,10 +15,15 @@ async function main() {
   // await hre.run('compile');
 
   // We get the contract to deploy
+  const networkObj = await ethers.provider.getNetwork();
+  const network = networkObj.name;
+
   const ERC20 = await ethers.getContractFactory("ERC20");
   const kwenta = await ERC20.deploy("Kwenta", "KWENTA");
 
   await kwenta.deployed();
+  // update deployments.json file for the airdrop
+  setTargetAddress("Kwenta", network, kwenta.address);
 
   console.log("KWENTA token deployed to:", kwenta.address);
 }

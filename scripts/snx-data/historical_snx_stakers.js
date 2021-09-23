@@ -12,6 +12,7 @@ const { getL2Snapshot } = require("./l2/script.js");
 const PROXY_FEE_POOL_ADDRESS = "0xb440dd674e1243644791a4adfe3a2abb0a92d309";
 const XSNX_ADMIN_PROXY = 0x7cd5e2d0056a7a7f09cbb86e540ef4f6dccc97dd;
 const YEARN_STAKING_ADDRESS = 0xc9a62e09834cedcff8c136f33d0ae3406aea66bd;
+const EST_L2_REWARDS_APY = 0.2;
 
 let txCount = 0;
 let totalScores = 0;
@@ -32,7 +33,7 @@ async function getBlocks() {
     topics: [ethers.utils.id("FeePeriodClosed(uint256)")],
   };
   const logs = await provider.getLogs(filter);
-  for (let key in logs) {
+  for (const key in logs) {
     blocks.push(logs[key].blockNumber);
   }
   return blocks;
@@ -41,7 +42,7 @@ async function getBlocks() {
 async function fetchData() {
   const blocks = await getBlocks();
 
-  for (let i = 0; i < blocks.length; i++) {
+  for (const i = 0; i < blocks.length; i++) {
     if (!blocks[i + 1]) break;
 
     const result = await feesClaimed(blocks[i], blocks[i + 1]);
@@ -50,27 +51,32 @@ async function fetchData() {
 
     let data = [],
       dataL2 = [];
-    let weeklyReward = 0,
+    let weeklyRewardL1 = 0,
       weeklyRewardL2 = 0;
-    for (var element in result) {
-      weeklyReward += result[element].rewards;
+    for (const element in result) {
+      weeklyRewardL1 += result[element].rewards;
       data.push({
         account: result[element].account.toLowerCase(),
         rewards: result[element].rewards,
       });
     }
 
-    for (let [key, value] of Object.entries(resultL2)) {
-      weeklyRewardL2 += value / 1e18;
-      dataL2.push({ account: key.toLowerCase(), rewards: value / 1e18 });
+    for (const [address, holdings] of Object.entries(resultL2)) {
+      weeklyRewardL2 += (holdings / 1e18) * (EST_L2_REWARDS_APY / 52);
+      dataL2.push({ account: address.toLowerCase(), rewards: weeklyRewardL2 });
     }
+    console.log("L1 rewards for week " + (i + 1) + " - ", weeklyRewardL1);
+    console.log("L1 stakers for week " + (i + 1) + " - ", result.length);
+    console.log("L2 rewards for week " + (i + 1) + " - ", weeklyRewardL2);
+    console.log("L2 stakers for week " + (i + 1) + " - ", resultL2.length);
 
     if (dataL2.length) {
-      // distribute 95% of weekly rewards to L1 and 5% to L2
-      getWeeklyData(data, 95, weeklyReward);
-      getWeeklyData(dataL2, 5, weeklyRewardL2);
+      updateAccountAndTotalsWeekly(
+        [...data, ...dataL2],
+        weeklyRewardL1 + weeklyRewardL2
+      );
     } else {
-      getWeeklyData(data, 100, weeklyReward);
+      updateAccountAndTotalsWeekly(data, weeklyReward);
     }
 
     console.log("total scores", totalScores);
@@ -87,47 +93,61 @@ async function fetchData() {
   }
 
   // xSNX & Yearn snapshot
-  for (let [key, value] of Object.entries(accountsScores)) {
+  for (const [key, value] of Object.entries(accountsScores)) {
     if (key == XSNX_ADMIN_PROXY) {
       console.log("XSNX_ADMIN_PROXY score", value);
 
-      let finalValue = 0;
+      let xSNXTotal = 0;
       //const snapshot = await getXSNXSnapshot(value, blocks[blocks.length - 1]);
       const snapshot = await getXSNXSnapshot(value, 13118314);
-      for (let [snapshotKey, snapshotValue] of Object.entries(snapshot)) {
+      for (const [snapshotKey, snapshotValue] of Object.entries(snapshot)) {
         if (accountsScores[snapshotKey.toLowerCase()]) {
+          console.log(
+            "current value pre xSNX",
+            accountsScores[snapshotKey.toLowerCase()]
+          );
+          console.log("xSNX snapshot value", snapshotValue);
           accountsScores[snapshotKey.toLowerCase()] += snapshotValue;
         } else {
           accountsScores[snapshotKey.toLowerCase()] = snapshotValue;
         }
-        finalValue += snapshotValue;
+        xSNXTotal += snapshotValue;
       }
 
       // should be roughly the same value as XSNX_ADMIN_PROXY score
-      console.log("finalValue", finalValue);
+      console.log("xSNXTotal", xSNXTotal);
 
+      // don't give any score to the xSNX proxy
       accountsScores[key] = 0;
     } else if (key == YEARN_STAKING_ADDRESS) {
       console.log("YEARN_STAKING_ADDRESS score", value);
 
-      let finalValueYearn = 0;
+      let yearnTotal = 0;
       const yearnSnapshot = await getYearnSnapshot(
         value,
         0,
         blocks[blocks.length - 1]
       );
-      for (let [snapshotKey, snapshotValue] of Object.entries(yearnSnapshot)) {
+      for (const [snapshotKey, snapshotValue] of Object.entries(
+        yearnSnapshot
+      )) {
         if (accountsScores[snapshotKey.toLowerCase()]) {
+          console.log(
+            "current value pre yearn",
+            accountsScores[snapshotKey.toLowerCase()]
+          );
+          console.log("yearn snapshot value", snapshotValue);
           accountsScores[snapshotKey.toLowerCase()] += snapshotValue;
         } else {
           accountsScores[snapshotKey.toLowerCase()] = snapshotValue;
         }
-        finalValueYearn += snapshotValue;
+        yearnTotal += snapshotValue;
       }
 
       // should be roughly the same value as YEARN_STAKING_ADDRESS score
-      console.log("finalValue yearn", finalValueYearn);
+      console.log("yearnTotal", yearnTotal);
 
+      // don't give any score to the main yearn staking address
       accountsScores[key] = 0;
     }
   }
@@ -135,14 +155,14 @@ async function fetchData() {
   return accountsScores;
 }
 
-function getWeeklyData(data, percent, weeklyReward) {
-  Object.keys(data).map(function (key, index) {
-    const weeklyPercent = (data[index].rewards * percent) / weeklyReward;
+function updateAccountAndTotalsWeekly(allUserData, weeklyReward) {
+  Object.keys(allUserData).map((userData) => {
+    const weeklyPercent = userData.rewards / weeklyReward;
 
-    if (accountsScores[data[index].account]) {
-      accountsScores[data[index].account] += weeklyPercent;
+    if (accountsScores[userData.account]) {
+      accountsScores[userData.account] += weeklyPercent;
     } else {
-      accountsScores[data[index].account] = weeklyPercent;
+      accountsScores[userData.account] = weeklyPercent;
     }
 
     totalScores += weeklyPercent;

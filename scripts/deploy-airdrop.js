@@ -33,14 +33,14 @@ async function deploy_airdrop() {
   const AIRDROP_AMOUNT = totalSupply.mul(PERCENT_TO_STAKERS);
   const BASE_AMOUNT = new ethers.BigNumber.from(1);
   const historicalSnapshotData = Object.entries(historicalSnapshot);
+  // the pro rata amount is calculated after everyone has received the base amount
   const PRO_RATA_AMOUNT = AIRDROP_AMOUNT.sub(
     BASE_AMOUNT.mul(historicalSnapshotData.length)
   );
 
   const userBalanceAndHashes = [];
   const userBalanceHashes = [];
-  let i = 0;
-  let totalStakingScore = historicalSnapshotData.reduce(
+  const totalStakingScore = historicalSnapshotData.reduce(
     (acc, [, stakingScore]) => acc.add(stakingScore),
     new ethers.BigNumber.from(0)
   );
@@ -49,6 +49,7 @@ async function deploy_airdrop() {
   // get list of leaves for the merkle trees using index, address and token balance
   // encode user address and balance using web3 encodePacked
   let duplicateCheckerSet = new Set();
+  let i = 0;
   for (const [address, stakingScore] of historicalSnapshotData) {
     // new value is BASE_AMOUNT + stakingScore / totalStakingScore * PRO_RATA_AMOUNT
     const newValue = stakingScore
@@ -90,7 +91,7 @@ async function deploy_airdrop() {
     sortPairs: true,
   });
 
-  for (let ubh in userBalanceAndHashes) {
+  for (const ubh in userBalanceAndHashes) {
     userBalanceAndHashes[ubh].proof = merkleTree.getHexProof(
       userBalanceAndHashes[ubh].hash
     );

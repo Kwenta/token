@@ -47,13 +47,13 @@ const getXSNXSnapshot = async (xsnxScore, blockNumber) => {
   const snapshot = await getSnapshot(blockNumber);
 
   let totalValue = 0;
-  for (let [key, value] of Object.entries(snapshot)) {
+  for (const [key, value] of Object.entries(snapshot)) {
     snapshot[key] = value / 1e18;
     totalValue += value / 1e18;
   }
 
   const data = {};
-  for (let [key, value] of Object.entries(snapshot)) {
+  for (const [key, value] of Object.entries(snapshot)) {
     data[key] = (value / totalValue) * xsnxScore;
   }
 
@@ -64,13 +64,13 @@ const getYearnSnapshot = async (yearnScore, minBlockNumber, maxBlockNumber) => {
   const snapshot = await getYearnData(minBlockNumber, maxBlockNumber);
 
   let totalValue = 0;
-  for (let [key, value] of Object.entries(snapshot)) {
+  for (const [key, value] of Object.entries(snapshot)) {
     snapshot[key] = value / 1e18;
     totalValue += value / 1e18;
   }
 
   const data = {};
-  for (let [key, value] of Object.entries(snapshot)) {
+  for (const [key, value] of Object.entries(snapshot)) {
     data[key] = (value / totalValue) * yearnScore;
   }
 
