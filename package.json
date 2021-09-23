@@ -1,4 +1,16 @@
 {
+  "name": "kwenta-contracts",
+  "version": "0.0.1",
+  "license": "MIT",
+  "author": "Kwenta",
+  "description": "Kwenta smart contracts",
+  "scripts": {
+    "deploy-kwenta": "hardhat run ./scrips/deploy-kwenta  --network mainnet",
+    "deploy-kwenta:kovan": "hardhat run ./scrips/deploy-kwenta  --network kovan",
+    "deploy-airdrop": "hardhat run ./scrips/deploy-kwenta  --network mainnet",
+    "deploy-airdrop:kovan": "hardhat run ./scrips/deploy-kwenta  --network kovan",
+    "take-snapshot": "node ./scripts/snx-data/historical-snx-stakers.js"
+  },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "2.0.2",
     "@nomiclabs/hardhat-waffle": "2.0.1",
