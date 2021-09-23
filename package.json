@@ -9,7 +9,7 @@
     "deploy-kwenta:kovan": "hardhat run ./scrips/deploy-kwenta  --network kovan",
     "deploy-airdrop": "hardhat run ./scrips/deploy-kwenta  --network mainnet",
     "deploy-airdrop:kovan": "hardhat run ./scrips/deploy-kwenta  --network kovan",
-    "take-snapshot": "node ./scripts/snx-data/historical-snx-stakers.js"
+    "take-snapshot": "hardhat run ./scripts/snx-data/historical-snx-stakers.js"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "2.0.2",

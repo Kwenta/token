@@ -1,7 +1,7 @@
 const fs = require("fs");
 const { MerkleTree } = require("merkletreejs");
 const keccak256 = require("keccak256");
-const { web3 } = require("hardhat");
+const { web3, ethers } = require("hardhat");
 
 const { getTargetAddress, setTargetAddress } = require("./snx-data/utils.js");
 const historicalSnapshot = require("./snx-data/historical_snx.json");

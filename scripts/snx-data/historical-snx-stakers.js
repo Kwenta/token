@@ -1,7 +1,7 @@
 "use strict";
 
 const fs = require("fs");
-const ethers = require("ethers");
+const { ethers } = require("hardhat");
 const {
   feesClaimed,
   getXSNXSnapshot,

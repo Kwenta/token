@@ -1,6 +1,8 @@
 import { task } from "hardhat/config";
 import { NetworksUserConfig } from "hardhat/types";
+
 import "@nomiclabs/hardhat-waffle";
+import "@nomiclabs/hardhat-ethers";
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -31,6 +33,18 @@ if (
  * @type import('hardhat/config').HardhatUserConfig
  */
 export default {
-  solidity: "0.8.7",
+  solidity: {
+    compilers: [
+      {
+        version: "0.5.0",
+      },
+      {
+        version: "0.5.16",
+      },
+      {
+        version: "0.8.7",
+      },
+    ],
+  },
   networks,
 };
