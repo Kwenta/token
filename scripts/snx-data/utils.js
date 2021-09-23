@@ -100,7 +100,6 @@ module.exports = {
   getTargetAddress,
   setTargetAddress,
   feesClaimed,
-  issued,
   getXSNXSnapshot,
   getYearnSnapshot,
 };
