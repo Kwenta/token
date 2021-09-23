@@ -1,6 +1,5 @@
 "use strict";
 
-const { gray, green, yellow, bgCyan, black } = require("chalk");
 const fs = require("fs");
 const Big = require("big.js");
 const snxData = require("synthetix-data");
@@ -43,8 +42,8 @@ const feesClaimed = async (minBlock, maxBlock) => {
     .catch((err) => console.error(err));
 };
 
-const getXSNXSnapshot = async (xsnxScore, blockNumber) => {
-  const snapshot = await getSnapshot(blockNumber);
+const getXSNXSnapshot = async (xsnxScore, blockNumber, provider) => {
+  const snapshot = await getSnapshot(blockNumber, provider);
 
   let totalValue = 0;
   for (const [key, value] of Object.entries(snapshot)) {
@@ -60,8 +59,13 @@ const getXSNXSnapshot = async (xsnxScore, blockNumber) => {
   return data;
 };
 
-const getYearnSnapshot = async (yearnScore, minBlockNumber, maxBlockNumber) => {
-  const snapshot = await getYearnData(minBlockNumber, maxBlockNumber);
+const getYearnSnapshot = async (
+  yearnScore,
+  minBlockNumber,
+  maxBlockNumber,
+  provider
+) => {
+  const snapshot = await getYearnData(minBlockNumber, maxBlockNumber, provider);
 
   let totalValue = 0;
   for (const [key, value] of Object.entries(snapshot)) {

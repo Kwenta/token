@@ -1,5 +1,5 @@
-const { Web3 } = require("hardhat");
 // const fs = require("fs");
+const { ethers } = require("hardhat");
 const { getNumberNoDecimals, bn } = require("../xsnx-snapshot/helpers");
 
 const SNX_ADDRESS = "0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f";
@@ -7,21 +7,15 @@ const SNX_YEARN_VAULT = "0xF29AE508698bDeF169B89834F76704C3B205aedf";
 
 const SNX = require("../SNX.json");
 
-const web3 = new Web3(
-  new Web3.providers.HttpProvider(
-    `https://${process.env.ARCHIVE_NODE_USER}:${process.env.ARCHIVE_NODE_PASS}@${process.env.ARCHIVE_NODE_URL}`
-  )
-);
+async function getYearnData(minBlock, maxBlock, provider) {
+  const snx = new ethers.Contract(SNX_ADDRESS, SNX.abi, provider);
 
-const snx = new web3.eth.Contract(SNX.abi, SNX_ADDRESS);
-
-async function getYearnData(minBlock, maxBlock) {
-  const transfersIn = await getSNXTransfers(minBlock, maxBlock, {
+  const transfersIn = await getSNXTransfers(snx, minBlock, maxBlock, {
     to: SNX_YEARN_VAULT,
   });
   console.log("[new bridge] transfers in count", transfersIn.length);
 
-  const transfersOut = await getSNXTransfers(minBlock, maxBlock, {
+  const transfersOut = await getSNXTransfers(snx, minBlock, maxBlock, {
     from: SNX_YEARN_VAULT,
   });
   console.log("[new bridge] transfers out count", transfersOut.length);
@@ -68,7 +62,7 @@ async function getYearnData(minBlock, maxBlock) {
   return totalBalance;
 }
 
-async function getSNXTransfers(fromBlock, toBlock, filter) {
+async function getSNXTransfers(snx, fromBlock, toBlock, filter) {
   let transferEvents = await snx.getPastEvents("Transfer", {
     fromBlock,
     toBlock,

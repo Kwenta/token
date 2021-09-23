@@ -1,41 +1,34 @@
-const fs = require("fs");
-const { Web3 } = require("hardhat");
+// const fs = require("fs");
+const { ethers } = require("hardhat");
 const {
   getNumberNoDecimals,
   bn,
 } = require("../../snx-data/xsnx-snapshot/helpers");
+const SNX = require("../SNX.json");
 
 const SNX_ADDRESS = "0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f";
 const L2_NEW_BRIDGE = "0x5fd79d46eba7f351fe49bff9e87cdea6c821ef9f";
 const L2_OLD_BRIDGE = "0x045e507925d2e05D114534D0810a1abD94aca8d6";
 
-const SNX = require("../SNX.json");
+async function getL2Snapshot(minBlock, maxBlock, provider) {
+  const snx = new ethers.Contract(SNX_ADDRESS, SNX.abi, provider);
 
-const web3 = new Web3(
-  new Web3.providers.HttpProvider(
-    `https://${process.env.ARCHIVE_NODE_USER}:${process.env.ARCHIVE_NODE_PASS}@${process.env.ARCHIVE_NODE_URL}`
-  )
-);
-
-const snx = new web3.eth.Contract(SNX.abi, SNX_ADDRESS);
-
-async function getL2Snapshot(minBlock, maxBlock) {
-  const transfersInNew = await getSNXTransfers(minBlock, maxBlock, {
+  const transfersInNew = await getSNXTransfers(snx, minBlock, maxBlock, {
     to: L2_NEW_BRIDGE,
   });
   //console.log('[new bridge] transfers in count', transfersInNew.length);
 
-  const transfersOutNew = await getSNXTransfers(minBlock, maxBlock, {
+  const transfersOutNew = await getSNXTransfers(snx, minBlock, maxBlock, {
     from: L2_NEW_BRIDGE,
   });
   //console.log('[new bridge] transfers out count', transfersOutNew.length);
 
-  const transfersInOld = await getSNXTransfers(minBlock, maxBlock, {
+  const transfersInOld = await getSNXTransfers(snx, minBlock, maxBlock, {
     to: L2_OLD_BRIDGE,
   });
   //console.log('[old bridge] transfers in count', transfersInOld.length);
 
-  const transfersOutOld = await getSNXTransfers(minBlock, maxBlock, {
+  const transfersOutOld = await getSNXTransfers(snx, minBlock, maxBlock, {
     from: L2_OLD_BRIDGE,
   });
   //console.log('[old bridge] transfers out count', transfersOutOld.length);
@@ -43,7 +36,7 @@ async function getL2Snapshot(minBlock, maxBlock) {
   // add and subtract balance for addresses for each transfer
   let totalBalance = {};
 
-  for (let i = 0; i < transfersInNew.length; ++i) {
+  for (const i = 0; i < transfersInNew.length; ++i) {
     let address = transfersInNew[i].from;
     let value = bn(transfersInNew[i].value);
     if (totalBalance[address]) {
@@ -52,7 +45,7 @@ async function getL2Snapshot(minBlock, maxBlock) {
       totalBalance[address] = value;
     }
   }
-  for (let i = 0; i < transfersOutNew.length; ++i) {
+  for (const i = 0; i < transfersOutNew.length; ++i) {
     let address = transfersOutNew[i].from;
     let value = bn(transfersOutNew[i].value);
     if (totalBalance[address]) {
@@ -64,7 +57,7 @@ async function getL2Snapshot(minBlock, maxBlock) {
     }
   }
 
-  for (let i = 0; i < transfersInOld.length; ++i) {
+  for (const i = 0; i < transfersInOld.length; ++i) {
     let address = transfersInOld[i].from;
     let value = bn(transfersInOld[i].value);
     if (totalBalance[address]) {
@@ -73,7 +66,7 @@ async function getL2Snapshot(minBlock, maxBlock) {
       totalBalance[address] = value;
     }
   }
-  for (let i = 0; i < transfersOutOld.length; ++i) {
+  for (const i = 0; i < transfersOutOld.length; ++i) {
     let address = transfersOutOld[i].from;
     let value = bn(transfersOutOld[i].value);
     if (totalBalance[address]) {
@@ -87,7 +80,7 @@ async function getL2Snapshot(minBlock, maxBlock) {
 
   let balanceSum = bn(0);
   let addressCount = 0;
-  for (let address of Object.keys(totalBalance)) {
+  for (const address of Object.keys(totalBalance)) {
     // remove 0 balance addresses and address 0x0 which is < 0 balance
     if (totalBalance[address] <= 0) {
       delete totalBalance[address];
@@ -103,7 +96,7 @@ async function getL2Snapshot(minBlock, maxBlock) {
   return totalBalance;
 }
 
-async function getSNXTransfers(fromBlock, toBlock, filter) {
+async function getSNXTransfers(snx, fromBlock, toBlock, filter) {
   let transferEvents = await snx.getPastEvents("Transfer", {
     fromBlock,
     toBlock,
@@ -111,7 +104,7 @@ async function getSNXTransfers(fromBlock, toBlock, filter) {
   });
   let transfers = [];
 
-  for (let i = 0; i < transferEvents.length; ++i) {
+  for (const i = 0; i < transferEvents.length; ++i) {
     let values = transferEvents[i].returnValues;
     transfers.push(values);
   }

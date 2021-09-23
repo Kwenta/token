@@ -18,14 +18,8 @@ let txCount = 0;
 let totalScores = 0;
 let accountsScores = {};
 
-async function getBlocks() {
+async function getBlocks(provider) {
   const blocks = [];
-
-  const provider = new ethers.providers.JsonRpcProvider({
-    url: process.env.ARCHIVE_NODE_URL,
-    user: process.env.ARCHIVE_NODE_USER,
-    password: process.env.ARCHIVE_NODE_PASS,
-  });
 
   const filter = {
     address: PROXY_FEE_POOL_ADDRESS,
@@ -40,7 +34,20 @@ async function getBlocks() {
 }
 
 async function fetchData() {
-  const blocks = await getBlocks();
+  if (
+    process.env.ARCHIVE_NODE_URL == null ||
+    process.env.ARCHIVE_NODE_PASS == null ||
+    process.env.ARCHIVE_NODE_USER == null
+  ) {
+    throw new Error("need credentials to access archive node for script");
+  }
+  const provider = new ethers.providers.JsonRpcProvider({
+    url: process.env.ARCHIVE_NODE_URL,
+    user: process.env.ARCHIVE_NODE_USER,
+    password: process.env.ARCHIVE_NODE_PASS,
+  });
+
+  const blocks = await getBlocks(provider);
 
   for (const i = 0; i < blocks.length; i++) {
     if (!blocks[i + 1]) break;
@@ -98,8 +105,8 @@ async function fetchData() {
       console.log("XSNX_ADMIN_PROXY score", value);
 
       let xSNXTotal = 0;
-      //const snapshot = await getXSNXSnapshot(value, blocks[blocks.length - 1]);
-      const snapshot = await getXSNXSnapshot(value, 13118314);
+      //const snapshot = await getXSNXSnapshot(value, blocks[blocks.length - 1], provider);
+      const snapshot = await getXSNXSnapshot(value, 13118314, provider);
       for (const [snapshotKey, snapshotValue] of Object.entries(snapshot)) {
         if (accountsScores[snapshotKey.toLowerCase()]) {
           console.log(
@@ -126,7 +133,8 @@ async function fetchData() {
       const yearnSnapshot = await getYearnSnapshot(
         value,
         0,
-        blocks[blocks.length - 1]
+        blocks[blocks.length - 1],
+        provider
       );
       for (const [snapshotKey, snapshotValue] of Object.entries(
         yearnSnapshot
