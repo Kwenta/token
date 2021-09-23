@@ -34,15 +34,21 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
     uint256 public periodFinish = 0;
     // Reward rate per second for next epoch
     uint256 public rewardRate = 0;
+    uint256 public rewardRateToken = 0;
+    uint256 public rewardRateFees = 0;
     // Epoch default duration
     uint256 public rewardsDuration = 1 minutes;
     // Last time an event altering the reward distribution ocurred (staking, withdrawing, updating trader scores, notifyreward)
     uint256 public lastUpdateTime;
+    uint256 public lastUpdateTimeFees;
     // Last rewardRate per unit of rewardScore
-    uint256 public rewardPerRewardScoreStored;
+    uint256 public rewardPerTokenStored;
+    // Last rewardRate per unit of rewardScore
+    uint256 public rewardPerFeePaid;
 
     // Save the latest reward per unit of rewardScore applicable for each address
-    mapping(address => uint256) public userRewardPerRewardScorePaid;
+    mapping(address => uint256) public userRewardPerTokenPaid;
+    mapping(address => uint256) public userRewardPerFeePaid;
     // Rewards due to each account
     mapping(address => uint256) public rewards;
 
@@ -50,9 +56,9 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
     uint256 private _totalSupply;
     
     // Number containing total trading scores
-    uint256 private _totalTradingScores;
+    uint256 private _totalFeesPaid;
     // Tokens stoked for each address
-    mapping(address => uint256) private _balances;
+    mapping(address => uint256) public _balances;
 
     // Mapping containing total fees paid
     mapping (address => uint256) public _feesPaid;
@@ -91,11 +97,11 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         return _totalSupply;
     }
 
-    function totalTradingScores() external view returns (uint256) {
+    function totalFeesPaid() external view returns (uint256) {
     /*
-    Getter funtion for the state variable _totalTradingScores
+    Getter funtion for the state variable _totalFeesPaid
     */
-        return _totalTradingScores;
+        return _totalFeesPaid;
     }
 
     function balanceOf(address account) external view returns (uint256) {
@@ -112,31 +118,56 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         return Math.min(block.timestamp, periodFinish);
     }
 
-    function rewardPerRewardScore() public view returns (uint256) {
+    function rewardPerToken() public view returns (uint256) {
     /*
     Function calculating the state of reward to be delivered per unit of rewardScore to all acounts before the new change
-    takes place. Saved in userRewardPerRewardScorePaid and used later in function earned() to calculate the extra rewards
+    takes place. Saved in userRewardPerTokenPaid and used later in function earned() to calculate the extra rewards
     to add taking into account the reward conditions of the latest change and the current earned() context
     returns: uint256 containing the new reward per unit of reward score 
     */
-        if (_totalSupply == 0 && _totalTradingScores == 0) {
-            return rewardPerRewardScoreStored;
+        if (_totalSupply == 0) {
+            return rewardPerTokenStored;
         }
         return
-            rewardPerRewardScoreStored.add(
-                lastTimeRewardApplicable().sub(lastUpdateTime).mul(rewardRate).mul(MAX_BPS).div(calculateTotalRewardScore())
+            rewardPerTokenStored.add(
+                lastTimeRewardApplicable().sub(lastUpdateTime).mul(rewardRateToken).mul(MAX_BPS).div(_totalSupply)
             );
     }
 
-    function earned(address account) public view returns (uint256) {
+    function rewardPerFee() public view returns (uint256) {
+    /*
+    Function calculating the state of reward to be delivered per unit of rewardScore to all acounts before the new change
+    takes place. Saved in userRewardPerTokenPaid and used later in function earned() to calculate the extra rewards
+    to add taking into account the reward conditions of the latest change and the current earned() context
+    returns: uint256 containing the new reward per unit of reward score 
+    */
+        if (_totalFeesPaid == 0) {
+            return rewardPerFeePaid;
+        }
+        return
+            rewardPerFeePaid.add(
+                lastTimeRewardApplicable().sub(lastUpdateTimeFees).mul(rewardRateFees).mul(MAX_BPS).div(_totalFeesPaid)
+            );
+    }
+
+    function earned(address account, uint256 tokenFees) public view returns (uint256) {
     /*
     Function calculating the rewards earned by an account between the current call moment and the latest change in the
     account rewardScore. The function divides the current rewardScore by the accumulated total totalrewardScore (via the
-    variable rewardPerRewardScoreStored) between now and the last changes (deducting userRewardPerRewardScorePaid) and 
+    variable rewardPerTokenStored) between now and the last changes (deducting userRewardPerTokenPaid) and 
     adds the result to the existing rewards balance of the account
     returns: uint256 containing the total rewards due to account
     */
-        return calculateRewardScore(account).mul(rewardPerRewardScore().sub(userRewardPerRewardScorePaid[account])).div(1e18).add(rewards[account]);
+    uint256 staking = 0;
+    uint256 trading = 0;
+    if(tokenFees >= 1){
+        staking = _balances[account].mul(rewardPerToken().sub(userRewardPerTokenPaid[account])).div(MAX_BPS);    
+    }
+    if (tokenFees <= 1){
+        trading = _feesPaid[account].mul(rewardPerFee().sub(userRewardPerFeePaid[account])).div(MAX_BPS);
+    }
+    
+    return ((staking.add(trading)).add(rewards[account]));
     }
 
     function getRewardForDuration() external view returns (uint256) {
@@ -147,51 +178,9 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         return rewardRate.mul(rewardsDuration);
     }
 
-    function calculateTotalRewardScore() public view returns(uint256) {
-    /*
-    Function calculating the total rewardScore to use for rewardRatePerrewardScore calculations.
-    The total rewards score should be:
-    - 0 if no staking or trading activity
-    - 0.7 if staking activity but no trading activity
-    - 0.3 if no staking activity but trading activity
-    - 1 if both
-    returns: uint256 containing the rewardSCore
-    */
-
-    if (_totalSupply > 0 && _totalTradingScores == 0) {
-        return (_weightStakingScore);
-    } else if (_totalSupply == 0 && _totalTradingScores > 0) {
-        return (_weightTradingScore);
-    } else {
-        return (_weightStakingScore.add(_weightTradingScore));
-    }
-
-    }
-
-
-    function calculateRewardScore(address _account) public view returns(uint256) {
-    /*
-    Function calculating the rewardScore for the specified account as:
-    (weight_staking * Ntokens / Ntotal_tokens) + (weight_trading * weight_fees * fees_paid / Total_trading_score)
-    returns: uint256 containing the rewardSCore
-    */
-        uint256 stakingReward = 0;
-        uint256 tradingReward = 0;
-
-        // Handle cases where no staking or trading has yet taken place
-        if(_totalSupply > 0) {
-            stakingReward = (_balances[_account].mul(1e14).mul(_weightStakingScore).div(_totalSupply));
-        }
-        if (_totalTradingScores > 0) {
-            tradingReward = (_feesPaid[_account].mul(1e10).mul(_weightFees).mul(_weightTradingScore).div(_totalTradingScores));
-        }
-
-        return (stakingReward).add(tradingReward);
-    }
-
     /* ========== MUTATIVE FUNCTIONS ========== */
 
-    function updateTraderScore(address _trader, uint256 _newFeesPaid) external updateReward(_trader) {
+    function updateTraderScore(address _trader, uint256 _newFeesPaid) external updateReward(_trader, 0) {
         /*
         Function called by the ExchangerProxy updating the trader score of a specific address using the
         formula: (fees*70%)
@@ -202,13 +191,13 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         returns: NA, updates the state mapping _traderScore
         */
 
-        _totalTradingScores = _totalTradingScores.sub(_feesPaid[_trader].mul(_weightFees).div(MAX_BPS)).add(_newFeesPaid.mul(_weightFees).div(MAX_BPS));
-        _feesPaid[_trader] = _newFeesPaid;        
+        _totalFeesPaid = _totalFeesPaid.sub(_feesPaid[_trader]).add(_newFeesPaid);
+        _feesPaid[_trader] = _newFeesPaid;
 
     }
 
 
-    function stake(uint256 amount) external nonReentrant notPaused updateReward(msg.sender) {
+    function stake(uint256 amount) external nonReentrant notPaused updateReward(msg.sender, 2) {
     /*
     Function staking the requested tokens by the user.
     _amount: uint256, containing the number of tokens to stake
@@ -223,7 +212,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         emit Staked(msg.sender, amount);
     }
 
-    function withdraw(uint256 amount) public nonReentrant updateReward(msg.sender) {
+    function withdraw(uint256 amount) public nonReentrant updateReward(msg.sender, 2) {
     /*
     Function withdrawing the requested tokens by the user.
     _amount: uint256, containing the number of tokens to stake
@@ -238,7 +227,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         emit Withdrawn(msg.sender, amount);
     }
 
-    function getReward() public nonReentrant updateReward(msg.sender) {
+    function getReward() public nonReentrant updateReward(msg.sender, 0) {
     /*
     Function transferring the accumulated rewards for the caller address and updating the state mapping 
     containing the current rewards
@@ -263,7 +252,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
 
     /* ========== RESTRICTED FUNCTIONS ========== */
 
-    function notifyRewardAmount(uint256 reward) external onlyRewardsDistribution updateReward(address(0)) {
+    function notifyRewardAmount(uint256 reward) external onlyRewardsDistribution updateReward(address(0), 1) {
     /*
     Function called to initialize a new reward distribution epoch, taking into account rewards still to be 
     delivered from a previous epoch and updating the lastUpdate and periodFinish state variables
@@ -283,6 +272,9 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
             rewardRate = reward.add(leftover).div(rewardsDuration);
         }
 
+        rewardRateToken = rewardRate.mul(_weightStakingScore).div(MAX_BPS);
+        rewardRateFees = rewardRate.mul(_weightTradingScore).div(MAX_BPS);
+
         // Ensure the provided reward amount is not more than the balance in the contract.
         // This keeps the reward rate in the right range, preventing overflows due to
         // very high values of rewardRate in the earned and rewardsPerToken functions;
@@ -293,6 +285,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
 
         // Time updates
         lastUpdateTime = block.timestamp;
+        lastUpdateTimeFees = block.timestamp;
         periodFinish = block.timestamp.add(rewardsDuration);
         emit RewardAdded(reward);
     }
@@ -318,7 +311,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
 
     /* ========== MODIFIERS ========== */
 
-    modifier updateReward(address account) {
+    modifier updateReward(address account, uint256 tokenFees) {
     /*
     Modifier called each time an event changing the rewardScore is called:
     - stake
@@ -328,16 +321,31 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
     The modifier saves the state of the reward rate per unit of reward score until this point for the specific address
     to be able to calculate the marginal contribution to rewards afterwards and adds the accumulated rewards since the 
     last change to ther account rewards
-    */
-        // Calculate the reward per unit of reward score applicable to the last stint of account
-        rewardPerRewardScoreStored = rewardPerRewardScore();
-        // Calculate if the epoch is finished or not
-        lastUpdateTime = lastTimeRewardApplicable();
+    */  
+        if(tokenFees >= 1) {
+            // Calculate the reward per unit of reward score applicable to the last stint of account
+            rewardPerTokenStored = rewardPerToken();
+            // Calculate if the epoch is finished or not
+            lastUpdateTime = lastTimeRewardApplicable();
+        }
+        if (tokenFees <= 1) {
+            // Calculate the reward per unit of reward score applicable to the last stint of account
+            rewardPerFeePaid = rewardPerFee();
+            // Calculate if the epoch is finished or not
+            lastUpdateTimeFees = lastTimeRewardApplicable();
+        }
+        
         if (account != address(0)) {
             // Add the rewards added during the last stint
-            rewards[account] = earned(account);
-            // Update the latest conditions of account for next stint calculations
-            userRewardPerRewardScorePaid[account] = rewardPerRewardScoreStored;
+            if(tokenFees >= 1) {
+                rewards[account] = earned(account, tokenFees);
+                // Update the latest conditions of account for next stint calculations
+                userRewardPerTokenPaid[account] = rewardPerTokenStored;
+            }
+            if(tokenFees<=1) {
+                rewards[account] = earned(account, tokenFees);
+                userRewardPerFeePaid[account] = rewardPerFeePaid;   
+            }
         }
         _;
     }
