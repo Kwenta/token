@@ -44,7 +44,7 @@ contract SupplySchedule is Owned, ISupplySchedule {
 
     uint public INFLATION_START_DATE;
     uint public constant MINT_BUFFER = 1 days;
-    uint8 public constant SUPPLY_DECAY_START = 1; // Start first week
+    uint8 public constant SUPPLY_DECAY_START = 2; // Supply decay starts on the 2nd week of rewards
     uint8 public constant SUPPLY_DECAY_END = 208; // Inclusive of SUPPLY_DECAY_END week.
 
     // Weekly percentage decay of inflationary supply

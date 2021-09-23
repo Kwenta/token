@@ -9,7 +9,7 @@ describe("Mint", () => {
     const TREASURY_DAO_ADDRESS = "0x0000000000000000000000000000000000000001";
 
     let safeDecimalMath,
-        supplySchedule,
+        supplySchedule: Contract,
         kwenta: Contract,
         mockRewardsDistribution: Contract;
     before(async () => {
@@ -63,6 +63,7 @@ describe("Mint", () => {
 
     it("Mint inflationary supply 1 week later", async () => {
         const [owner] = await ethers.getSigners();
+        const MINTER_REWARD = ethers.utils.parseUnits("200");
 
         expect(await kwenta.balanceOf(owner.address)).to.equal(0);
         await network.provider.send("evm_increaseTime", [604800]);
@@ -71,6 +72,6 @@ describe("Mint", () => {
         // Make sure this is equivalent to first week distribution
         expect(
             await kwenta.balanceOf(mockRewardsDistribution.address)
-        ).to.equal(ethers.BigNumber.from("3405584163065384615383"));
+        ).to.equal(INITIAL_SUPPLY.mul(60).div(100).div(52).sub(MINTER_REWARD));
     });
 });
