@@ -22,7 +22,6 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
     - Calculating and notifying rewards
     */
     using SafeMath for uint256;
-    using SafeERC20 for IERC20;
 
     /* ========== STATE VARIABLES ========== */
 
@@ -109,6 +108,13 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
     Getter funtion for the state variable _balances
     */
         return _balances[account];
+    }
+
+    function feesOf(address account) external view returns (uint256) {
+    /*
+    Getter funtion for the state variable _balances
+    */
+        return _feesPaid[account];
     }
 
     function lastTimeRewardApplicable() public view returns (uint256) {
@@ -205,7 +211,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         _totalSupply = _totalSupply.add(amount);
         // Update caller balance
         _balances[msg.sender] = _balances[msg.sender].add(amount);
-        stakingToken.safeTransferFrom(msg.sender, address(this), amount);
+        stakingToken.transferFrom(msg.sender, address(this), amount);
         emit Staked(msg.sender, amount);
     }
 
@@ -220,7 +226,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         _totalSupply = _totalSupply.sub(amount);
         // Update caller balance
         _balances[msg.sender] = _balances[msg.sender].sub(amount);
-        stakingToken.safeTransfer(msg.sender, amount);
+        stakingToken.transfer(msg.sender, amount);
         emit Withdrawn(msg.sender, amount);
     }
 
@@ -232,11 +238,12 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         uint256 reward = rewards[msg.sender];
         if (reward > 0) {
             rewards[msg.sender] = 0;
-            rewardsToken.safeTransfer(msg.sender, reward);
+            rewardsToken.transfer(msg.sender, reward);
             emit RewardPaid(msg.sender, reward);
         }
     }
 
+    // TODO: Copied from SNX, not sure it works as in withdraw, msg.sender is not the caller anymore
     function exit() external {
     /*
     Function handling the exit of the protocol of the caller:
@@ -290,7 +297,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
     // Added to support recovering LP Rewards from other systems such as BAL to be distributed to holders
     function recoverERC20(address tokenAddress, uint256 tokenAmount) external onlyOwner {
         require(tokenAddress != address(stakingToken), "Cannot withdraw the staking token");
-        IERC20(tokenAddress).safeTransfer(owner, tokenAmount);
+        IERC20(tokenAddress).transfer(owner, tokenAmount);
         emit Recovered(tokenAddress, tokenAmount);
     }
 
@@ -310,7 +317,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
 
     modifier updateReward(address account, uint256 tokenFees) {
     /*
-    Modifier called each time an event changing the rewardScore is called:
+    Modifier called each time an event changing the is called:
     - stake
     - withdraw
     - update trader score
