@@ -1,26 +1,19 @@
-const { ethers, Web3 } = require("hardhat");
+const { ethers } = require("hardhat");
 const fs = require("fs");
 const { getNumberNoDecimals } = require("../helpers");
-
 const XSNX = require("../xSNX.json");
-
-const web3 = new Web3(
-  new Web3.providers.HttpProvider(
-    `https://${process.env.ARCHIVE_NODE_USER}:${process.env.ARCHIVE_NODE_PASS}@${process.env.ARCHIVE_NODE_URL}`
-  )
-);
-
-const xsnx = new web3.eth.Contract(
-  XSNX.abi,
-  "0x1cf0f3aabe4d12106b27ab44df5473974279c524"
-);
 
 /**
  * Get snapshot of all addresses holding xSNXa
  * Need to run with mainnet forking enabled
  */
-async function getHoldersSnapshot(blockNumber) {
+async function getHoldersSnapshot(blockNumber, provider) {
   console.log("---Get Holders Snapshot---");
+  const xsnx = new ethers.Contract(
+    "0x1cf0f3aabe4d12106b27ab44df5473974279c524",
+    XSNX.abi,
+    provider
+  );
   let balancerVault = "0xBA12222222228d8Ba445958a75a0704d566BF2C8"; // balancer vault which holds xsnx tokens
   let transferEvents = await xsnx.getPastEvents("Transfer", {
     fromBlock: 0,

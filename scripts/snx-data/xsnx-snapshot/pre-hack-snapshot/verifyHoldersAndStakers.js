@@ -1,16 +1,17 @@
-const { Web3 } = require("hardhat");
+const { ethers } = require("hardhat");
 const { bn, getNumberNoDecimals } = require("../helpers");
 
 const XSNX = require("./xSNX.json");
 
-const web3 = new Web3(
-  new Web3.providers.HttpProvider(
-    `https://${process.env.ARCHIVE_NODE_USER}:${process.env.ARCHIVE_NODE_PASS}@${process.env.ARCHIVE_NODE_URL}`
-  )
-);
-const xsnx = new web3.eth.Contract(
+const provider = new ethers.providers.JsonRpcProvider({
+  url: process.env.ARCHIVE_NODE_URL,
+  user: process.env.ARCHIVE_NODE_USER,
+  password: process.env.ARCHIVE_NODE_PASS,
+});
+const xsnx = new ethers.Contract(
+  "0x2367012ab9c3da91290f71590d5ce217721eefe4",
   XSNX.abi,
-  "0x2367012ab9c3da91290f71590d5ce217721eefe4"
+  provider
 );
 let balancerXsnxPool = "0xE3f9cF7D44488715361581DD8B3a15379953eB4C"; // balancer pool address
 

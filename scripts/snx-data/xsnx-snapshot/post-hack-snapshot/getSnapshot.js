@@ -1,12 +1,11 @@
-const { getHoldersSnapshot } = require('./getHoldersSnapshot');
-const { getStakersSnapshot } = require('./getStakersSnapshot');
-const { getFinalSnapshot } = require('./getFinalSnapshot');
+const { getHoldersSnapshot } = require("./getHoldersSnapshot");
+const { getStakersSnapshot } = require("./getStakersSnapshot");
+const { getFinalSnapshot } = require("./getFinalSnapshot");
 
-
-async function getPostHackSnapshot(blockNumber) {
-    let holdersSnapshot = await getHoldersSnapshot(blockNumber);
-    let stakersSnapshot = await getStakersSnapshot(blockNumber);
-    return await getFinalSnapshot(holdersSnapshot, stakersSnapshot);
+async function getPostHackSnapshot(blockNumber, provider) {
+  let holdersSnapshot = await getHoldersSnapshot(blockNumber, provider);
+  let stakersSnapshot = await getStakersSnapshot(blockNumber, provider);
+  return await getFinalSnapshot(holdersSnapshot, stakersSnapshot);
 }
 
-module.exports = { getPostHackSnapshot }
+module.exports = { getPostHackSnapshot };

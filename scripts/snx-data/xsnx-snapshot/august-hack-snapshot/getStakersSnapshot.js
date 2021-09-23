@@ -1,30 +1,25 @@
-const { Web3, ethers } = require("hardhat");
+const { ethers } = require("hardhat");
 const fs = require("fs");
 
 const { getStakingRewardsStakers } = require("./getStakingRewardsStakers");
-
 const XSNX = require("./xSNX.json");
-
-const web3 = new Web3(
-  new Web3.providers.HttpProvider(
-    `https://${process.env.ARCHIVE_NODE_USER}:${process.env.ARCHIVE_NODE_PASS}@${process.env.ARCHIVE_NODE_URL}`
-  )
-);
-const xsnx = new web3.eth.Contract(
-  XSNX.abi,
-  "0x1cf0f3aabe4d12106b27ab44df5473974279c524"
-);
-const bpt = new web3.eth.Contract(
-  XSNX.abi,
-  "0xEA39581977325C0833694D51656316Ef8A926a62"
-);
 
 /**
  * Get snapshot of all addresses staking xSNX in xSNX Pool at a block before the xToken hack occurred
  * Need to run with mainnet forking enabled pinned at block 13118314 (6 blocks before the hack)
  */
-async function getStakersSnapshot() {
+async function getStakersSnapshot(provider) {
   console.log("---Get Stakers Snapshot---");
+  const xsnx = new ethers.Contract(
+    "0x1cf0f3aabe4d12106b27ab44df5473974279c524",
+    XSNX.abi,
+    provider
+  );
+  const bpt = new ethers.Contract(
+    "0xEA39581977325C0833694D51656316Ef8A926a62",
+    XSNX.abi,
+    provider
+  );
   const balancerVault = "0xBA12222222228d8Ba445958a75a0704d566BF2C8"; // balancer vault address
   const stakingRewardsContract = "0x9AA731A7302117A16e008754A8254fEDE2C35f8D"; // staking rewards address
   let transferEvents = await bpt.getPastEvents("Transfer", {
@@ -63,7 +58,7 @@ async function getStakersSnapshot() {
   delete totalBalance[balancerVault]; // remove balancer pool from snapshot
   delete totalBalance[stakingRewardsContract]; // remove staking rewards contract from snapshot
 
-  let stakingRewardsStakers = await getStakingRewardsStakers();
+  let stakingRewardsStakers = await getStakingRewardsStakers(provider);
 
   // merge the two snapshots
   for (let [address, amount] of Object.entries(stakingRewardsStakers)) {

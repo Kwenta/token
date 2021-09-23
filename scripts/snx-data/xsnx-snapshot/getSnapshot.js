@@ -10,8 +10,9 @@ const { getPreHackSnapshot } = require("./pre-hack-snapshot/getSnapshot");
 async function getSnapshot(blockNumber, provider) {
   let snapshot;
   if (blockNumber < 12419918) {
-    snapshot = await getPreHackSnapshot(provider);
+    snapshot = await getPreHackSnapshot(blockNumber, provider);
   } else if (blockNumber == 13118314) {
+    // uses block number 13118314
     snapshot = await getAugustHackSnapshot(provider);
   } else if (blockNumber >= 12649601) {
     snapshot = await getPostHackSnapshot(provider);

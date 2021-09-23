@@ -1,28 +1,23 @@
-const { Web3 } = require("hardhat");
+const { ethers } = require("hardhat");
 const fs = require("fs");
 const { bn } = require("../helpers");
 const XSNX = require("./xSNX.json");
-
-const web3 = new Web3(
-  new Web3.providers.HttpProvider(
-    `https://${process.env.ARCHIVE_NODE_USER}:${process.env.ARCHIVE_NODE_PASS}@${process.env.ARCHIVE_NODE_URL}`
-  )
-);
-const bpt = new web3.eth.Contract(
-  XSNX.abi,
-  "0xEA39581977325C0833694D51656316Ef8A926a62"
-);
-
 const merkleClaimSnapshot = require("./pre-hack-snapshot.json");
-const xsnx = new web3.eth.Contract(
-  XSNX.abi,
-  "0x1cf0f3aabe4d12106b27ab44df5473974279c524"
-);
 
 /**
  * Get snapshot of all addresses which haven't claimed xSNXa from Merkle Claim contract
  */
-async function getUnclaimedXSNXaMerkleClaim() {
+async function getUnclaimedXSNXaMerkleClaim(provider) {
+  const bpt = new ethers.Contract(
+    "0xEA39581977325C0833694D51656316Ef8A926a62",
+    XSNX.abi,
+    provider
+  );
+  const xsnx = new ethers.Contract(
+    "0x1cf0f3aabe4d12106b27ab44df5473974279c524",
+    XSNX.abi,
+    provider
+  );
   const merkleClaimsContract = "0x1de6Cd47Dfe2dF0d72bff4354d04a79195cABB1C";
   let transferEvents = await xsnx.getPastEvents("Transfer", {
     fromBlock: 0,

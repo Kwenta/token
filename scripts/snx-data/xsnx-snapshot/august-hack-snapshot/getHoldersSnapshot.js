@@ -1,26 +1,21 @@
-const { Web3, ethers } = require("hardhat");
+const { ethers } = require("hardhat");
 const fs = require("fs");
 const { getNumberNoDecimals } = require("../helpers");
 
 const XSNX = require("./xSNX.json");
 const { getUnclaimedXSNXaMerkleClaim } = require("./getxSNXMerkleClaim");
 
-const web3 = new Web3(
-  new Web3.providers.HttpProvider(
-    `https://${process.env.ARCHIVE_NODE_USER}:${process.env.ARCHIVE_NODE_PASS}@${process.env.ARCHIVE_NODE_URL}`
-  )
-);
-const xsnx = new web3.eth.Contract(
-  XSNX.abi,
-  "0x1cf0f3aabe4d12106b27ab44df5473974279c524"
-);
-
 /**
  * Get snapshot of all addresses holding xSNX at a block before the xSNX hack occurred
  * Need to run with mainnet forking enabled pinned at block 13118314 (6 blocks before the hack)
  */
-async function getHoldersSnapshot() {
+async function getHoldersSnapshot(provider) {
   console.log("---Get Holders Snapshot---");
+  const xsnx = new ethers.Contract(
+    "0x1cf0f3aabe4d12106b27ab44df5473974279c524",
+    XSNX.abi,
+    provider
+  );
   let balancerXsnxVault = "0xBA12222222228d8Ba445958a75a0704d566BF2C8"; // balancer vault address
   let merkleClaimXSNXa = "0x1de6Cd47Dfe2dF0d72bff4354d04a79195cABB1C"; // xSNXa Merkle Claim contract
   let transferEvents = await xsnx.getPastEvents("Transfer", {
@@ -59,7 +54,7 @@ async function getHoldersSnapshot() {
   delete totalBalance[balancerXsnxVault]; // remove balancer vault from snapshot
   delete totalBalance[merkleClaimXSNXa]; // remove merkle claim xSNXa from snapshot
 
-  let merkleClaimSnapshot = await getUnclaimedXSNXaMerkleClaim();
+  let merkleClaimSnapshot = await getUnclaimedXSNXaMerkleClaim(provider);
 
   // merge the two snapshots
   for (let [address, amount] of Object.entries(merkleClaimSnapshot)) {

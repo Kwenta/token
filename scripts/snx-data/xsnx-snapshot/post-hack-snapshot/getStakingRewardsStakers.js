@@ -1,22 +1,18 @@
-const { Web3 } = require("hardhat");
+const { ethers } = require("hardhat");
 const { bn } = require("../helpers");
 const XSNX = require("../xSNX.json");
-const web3 = new Web3(
-  new Web3.providers.HttpProvider(
-    `https://${process.env.ARCHIVE_NODE_USER}:${process.env.ARCHIVE_NODE_PASS}@${process.env.ARCHIVE_NODE_URL}`
-  )
-);
-const bpt = new web3.eth.Contract(
-  XSNX.abi,
-  "0xEA39581977325C0833694D51656316Ef8A926a62"
-);
 
 /**
  * Get snapshot of all addresses staking xSNX Balancer Pool Token in Staking Rewards contract
  * Used in getStakersSnapshot to retrieve the total xSNX value of LP Stakers
  */
-async function getStakingRewardsStakers(blockNumber) {
+async function getStakingRewardsStakers(blockNumber, provider) {
   console.log("---Get Staking Rewards LP Stakers Snapshot---");
+  const bpt = new ethers.Contract(
+    "0xEA39581977325C0833694D51656316Ef8A926a62",
+    XSNX.abi,
+    provider
+  );
   const stakingRewardsContract = "0x9AA731A7302117A16e008754A8254fEDE2C35f8D";
   let transferEvents = await bpt.getPastEvents("Transfer", {
     fromBlock: 0,

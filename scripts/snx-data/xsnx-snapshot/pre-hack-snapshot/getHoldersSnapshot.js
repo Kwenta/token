@@ -1,25 +1,19 @@
-const { Web3, ethers } = require("hardhat");
 const fs = require("fs");
-const { getNumberNoDecimals } = require("../helpers");
-
+const { ethers } = require("hardhat");
 const XSNX = require("./xSNX.json");
-const web3 = new Web3(
-  new Web3.providers.HttpProvider(
-    `https://${process.env.ARCHIVE_NODE_USER}:${process.env.ARCHIVE_NODE_PASS}@${process.env.ARCHIVE_NODE_URL}`
-  )
-);
-
-const xsnx = new web3.eth.Contract(
-  XSNX.abi,
-  "0x2367012ab9c3da91290f71590d5ce217721eefe4"
-);
+const { getNumberNoDecimals } = require("../helpers");
 
 /**
  * Get snapshot of all addresses holding xSNX at a block before the xToken hack occurred
  * Need to run with mainnet forking enabled pinned at block 12419912
  */
-async function getHoldersSnapshot(blockNumber) {
+async function getHoldersSnapshot(blockNumber, provider) {
   console.log("---Get Holders Snapshot---");
+  const xsnx = new ethers.contract(
+    "0x2367012ab9c3da91290f71590d5ce217721eefe4",
+    XSNX.abi,
+    provider
+  );
   let balancerXsnxPool = "0xE3f9cF7D44488715361581DD8B3a15379953eB4C"; // balancer pool address
   let balancerXsnxPoolSecondary = "0x4939e1557613B6e84b92bf4C5D2db4061bD1A7c7"; // balancer AAVE-LINK-xSNX pool address
   let transferEvents = await xsnx.getPastEvents("Transfer", {
