@@ -18,21 +18,24 @@ let txCount = 0;
 let totalScores = 0;
 let accountsScores = {};
 
-async function getBlocks(provider) {
-  const blocks = [];
+async function getBlocksInChunks(provider, fromBlock, storedBlocks) {
+  const blocks = [...storedBlocks];
+  const toBlock = fromBlock + 500000;
 
   const filter = {
     address: PROXY_FEE_POOL_ADDRESS,
-    fromBlock: 6834822,
+    fromBlock,
+    toBlock,
     topics: [ethers.utils.id("FeePeriodClosed(uint256)")],
   };
-  console.log("getting logs");
   const logs = await provider.getLogs(filter);
-  console.log("logs", logs);
+  if (logs.length === 0) {
+    return blocks;
+  }
   for (const key in logs) {
     blocks.push(logs[key].blockNumber);
   }
-  return blocks;
+  return getBlocksInChunks(provider, toBlock + 1, blocks);
 }
 
 async function fetchData() {
@@ -51,19 +54,22 @@ async function fetchData() {
     },
     1
   );
-  console.log("provider", provider);
-  console.log("connecting to the provider");
   await provider.ready;
-  console.log("connected to the provider");
+  // const contractStartBlock = 6834822;
+  // const blocks = await getBlocksInChunks(provider, contractStartBlock, []);
+  // console.log("blocks", blocks);
+  // TODO remove this - just for testing
+  const blocks = [
+    12823540, 12868207, 12912866, 12957072, 13002303, 13047648, 13092917,
+    13138392, 13183697, 13228907, 13274218,
+  ];
 
-  const blocks = await getBlocks(provider);
-
-  for (const i = 0; i < blocks.length; i++) {
+  for (let i = 0; i < blocks.length; i++) {
     if (!blocks[i + 1]) break;
 
     const result = await feesClaimed(blocks[i], blocks[i + 1]);
 
-    const resultL2 = await getL2Snapshot(blocks[i], blocks[i + 1]);
+    const resultL2 = await getL2Snapshot(blocks[i], blocks[i + 1], provider);
 
     let data = [],
       dataL2 = [];
@@ -84,7 +90,10 @@ async function fetchData() {
     console.log("L1 rewards for week " + (i + 1) + " - ", weeklyRewardL1);
     console.log("L1 stakers for week " + (i + 1) + " - ", result.length);
     console.log("L2 rewards for week " + (i + 1) + " - ", weeklyRewardL2);
-    console.log("L2 stakers for week " + (i + 1) + " - ", resultL2.length);
+    console.log(
+      "L2 stakers for week " + (i + 1) + " - ",
+      Object.keys(resultL2).length
+    );
 
     if (dataL2.length) {
       updateAccountAndTotalsWeekly(
@@ -92,7 +101,7 @@ async function fetchData() {
         weeklyRewardL1 + weeklyRewardL2
       );
     } else {
-      updateAccountAndTotalsWeekly(data, weeklyReward);
+      updateAccountAndTotalsWeekly(data, weeklyRewardL1);
     }
 
     console.log("total scores", totalScores);
