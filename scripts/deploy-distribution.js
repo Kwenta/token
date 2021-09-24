@@ -6,7 +6,7 @@ const { web3, ethers } = require("hardhat");
 const { getTargetAddress, setTargetAddress } = require("./snx-data/utils.js");
 const historicalSnapshot = require("./snx-data/historical_snx.json");
 
-async function deploy_airdrop() {
+async function deploy_distribution() {
   const accounts = await ethers.getSigners();
   const networkObj = await ethers.provider.getNetwork();
   const network = networkObj.name;
@@ -30,11 +30,11 @@ async function deploy_airdrop() {
   console.log("kwenta token total supply", totalSupply);
 
   const PERCENT_TO_STAKERS = 0.3;
-  const AIRDROP_AMOUNT = totalSupply.mul(PERCENT_TO_STAKERS);
+  const DISTRIBUTION_AMOUNT = totalSupply.mul(PERCENT_TO_STAKERS);
   const BASE_AMOUNT = new ethers.BigNumber.from(1);
   const historicalSnapshotData = Object.entries(historicalSnapshot);
   // the pro rata amount is calculated after everyone has received the base amount
-  const PRO_RATA_AMOUNT = AIRDROP_AMOUNT.sub(
+  const PRO_RATA_AMOUNT = DISTRIBUTION_AMOUNT.sub(
     BASE_AMOUNT.mul(historicalSnapshotData.length)
   );
 
@@ -97,7 +97,7 @@ async function deploy_airdrop() {
     );
   }
   fs.writeFileSync(
-    `scripts/snx-data/${network}/airdrop-hashes.json`,
+    `scripts/snx-data/${network}/distribution-hashes.json`,
     JSON.stringify(userBalanceAndHashes),
     function (err) {
       if (err) return console.log(err);
@@ -111,24 +111,28 @@ async function deploy_airdrop() {
   const kwentaAddress = getTargetAddress("Kwenta", network);
   console.log("kwenta address:", kwentaAddress);
 
-  // deploy Airdrop contract
-  const Airdrop = await ethers.getContractFactory("Airdrop");
-  const airdrop = await Airdrop.deploy(owner.address, kwentaAddress, root);
-  await airdrop.deployed();
+  // deploy Distribution contract
+  const Distribution = await ethers.getContractFactory("Distribution");
+  const distribution = await Distribution.deploy(
+    owner.address,
+    kwentaAddress,
+    root
+  );
+  await distribution.deployed();
 
-  await kwenta.transfer(airdrop.address, totalStakingScore);
+  await kwenta.transfer(distribution.address, totalStakingScore);
 
-  console.log("airdrop deployed at", airdrop.address);
+  console.log("distribution deployed at", distribution.address);
   // update deployments.json file
-  setTargetAddress("Airdrop", network, airdrop.address);
+  setTargetAddress("Distribution", network, distribution.address);
 
   await hre.run("verify:verify", {
-    address: airdrop.address,
+    address: distribution.address,
     constructorArguments: [owner.address, kwentaAddress, root],
   });
 }
 
-deploy_airdrop()
+deploy_distribution()
   .then(() => process.exit(0))
   .catch((error) => {
     console.error(error);

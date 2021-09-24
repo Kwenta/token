@@ -6,10 +6,10 @@ import "openzeppelin-solidity-2.3.0/contracts/cryptography/MerkleProof.sol";
 import "synthetix-2.43.1/contracts/Pausable.sol";
 
 /**
- * Contract which implements a merkle airdrop for a given token
+ * Contract which implements a merkle distribution for a given token
  * Based on an account balance snapshot stored in a merkle tree
  */
-contract Airdrop is Owned, Pausable {
+contract Distribution is Owned, Pausable {
     IERC20 public token;
 
     bytes32 public root; // merkle tree root
@@ -42,7 +42,7 @@ contract Airdrop is Owned, Pausable {
         return ((claimedBlock & claimedMask) == 0);
     }
 
-    // Get airdrop tokens assigned to address
+    // Get distributed tokens assigned to address
     // Requires sending merkle proof to the function
     function claim(
         uint256 index,

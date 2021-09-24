@@ -7,8 +7,8 @@
   "scripts": {
     "deploy-kwenta": "hardhat run ./scrips/deploy-kwenta  --network mainnet",
     "deploy-kwenta:kovan": "hardhat run ./scrips/deploy-kwenta  --network kovan",
-    "deploy-airdrop": "hardhat run ./scrips/deploy-kwenta  --network mainnet",
-    "deploy-airdrop:kovan": "hardhat run ./scrips/deploy-kwenta  --network kovan",
+    "deploy-distribution": "hardhat run ./scrips/deploy-distribution  --network mainnet",
+    "deploy-distribution:kovan": "hardhat run ./scrips/deploy-distribution  --network kovan",
     "take-snapshot": "hardhat run ./scripts/snx-data/historical-snx-stakers.js"
   },
   "devDependencies": {

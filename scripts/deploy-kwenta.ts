@@ -22,7 +22,7 @@ async function main() {
   const kwenta = await ERC20.deploy("Kwenta", "KWENTA");
 
   await kwenta.deployed();
-  // update deployments.json file for the airdrop
+  // update deployments.json file for the distribution
   setTargetAddress("Kwenta", network, kwenta.address);
 
   console.log("KWENTA token deployed to:", kwenta.address);

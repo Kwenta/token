@@ -20,18 +20,18 @@ async function getFinalSnapshot(xsnxHoldersSnapshot, xsnxStakersSnapshot) {
   }
 
   let totalXSNXTValue = bn(0);
-  let airdropCount = 0;
+  let distributionCount = 0;
   for (let [address, amount] of Object.entries(finalSnapshot)) {
     if (bn(amount).lt(bnDecimal(1))) {
       delete finalSnapshot[address];
     } else {
       totalXSNXTValue = totalXSNXTValue.add(amount);
-      airdropCount++;
+      distributionCount++;
       finalSnapshot[address] = finalSnapshot[address].toString();
     }
   }
   console.log("total xsnx to be distributed:", totalXSNXTValue.toString());
-  console.log("airdrop count:", airdropCount);
+  console.log("distribution count:", distributionCount);
   fs.writeFileSync(
     "scripts/snx-data/xsnx-snapshot/august-hack-snapshot/snapshotFinal.json",
     JSON.stringify(finalSnapshot)

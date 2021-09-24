@@ -23,10 +23,12 @@ async function getBlocks(provider) {
 
   const filter = {
     address: PROXY_FEE_POOL_ADDRESS,
-    fromBlock: 0,
+    fromBlock: 6834822,
     topics: [ethers.utils.id("FeePeriodClosed(uint256)")],
   };
+  console.log("getting logs");
   const logs = await provider.getLogs(filter);
+  console.log("logs", logs);
   for (const key in logs) {
     blocks.push(logs[key].blockNumber);
   }
@@ -41,11 +43,18 @@ async function fetchData() {
   ) {
     throw new Error("need credentials to access archive node for script");
   }
-  const provider = new ethers.providers.JsonRpcProvider({
-    url: process.env.ARCHIVE_NODE_URL,
-    user: process.env.ARCHIVE_NODE_USER,
-    password: process.env.ARCHIVE_NODE_PASS,
-  });
+  const provider = new ethers.providers.JsonRpcProvider(
+    {
+      url: process.env.ARCHIVE_NODE_URL,
+      user: process.env.ARCHIVE_NODE_USER,
+      password: process.env.ARCHIVE_NODE_PASS,
+    },
+    1
+  );
+  console.log("provider", provider);
+  console.log("connecting to the provider");
+  await provider.ready;
+  console.log("connected to the provider");
 
   const blocks = await getBlocks(provider);
 
