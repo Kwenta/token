@@ -18,10 +18,11 @@ async function getHoldersSnapshot(provider) {
   );
   let balancerXsnxVault = "0xBA12222222228d8Ba445958a75a0704d566BF2C8"; // balancer vault address
   let merkleClaimXSNXa = "0x1de6Cd47Dfe2dF0d72bff4354d04a79195cABB1C"; // xSNXa Merkle Claim contract
-  let transferEvents = await xsnx.getPastEvents("Transfer", {
-    fromBlock: 0,
-    toBlock: "13118314",
-  });
+  let transferEvents = await xsnx.queryFilter(
+    xsnx.filters.Transfer(),
+    0,
+    13118314
+  );
   let transfers = [];
 
   for (let i = 0; i < transferEvents.length; ++i) {

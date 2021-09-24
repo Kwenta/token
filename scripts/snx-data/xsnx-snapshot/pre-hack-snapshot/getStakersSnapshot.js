@@ -22,10 +22,11 @@ async function getStakersSnapshot(blockNumber, provider) {
   );
   let balancerXsnxPool = "0xE3f9cF7D44488715361581DD8B3a15379953eB4C"; // balancer pool address
   const stakingRewardsContract = "0x1c65b1763eEE90fca83E65F14bB1d63c5280c651"; // staking rewards address
-  let transferEvents = await bpt.getPastEvents("Transfer", {
-    fromBlock: 0,
-    toBlock: blockNumber,
-  });
+  let transferEvents = await bpt.queryFilter(
+    bpt.filters.Transfer(),
+    0,
+    blockNumber
+  );
   console.log("total bpt transfers:", transferEvents.length);
   let transfers = [];
 

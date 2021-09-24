@@ -22,10 +22,11 @@ async function getStakersSnapshot(blockNumber, provider) {
   );
   let balancerVault = "0xBA12222222228d8Ba445958a75a0704d566BF2C8"; // balancer vault which holds xsnx tokens
   const stakingRewardsContract = "0x9AA731A7302117A16e008754A8254fEDE2C35f8D"; // staking rewards address
-  let transferEvents = await bpt.getPastEvents("Transfer", {
-    fromBlock: 0,
-    toBlock: blockNumber,
-  });
+  let transferEvents = await bpt.queryFilter(
+    bpt.filters.Transfer(),
+    0,
+    blockNumber
+  );
   console.log("total bpt transfers:", transferEvents.length);
   let transfers = [];
 

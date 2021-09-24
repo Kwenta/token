@@ -15,10 +15,11 @@ async function getHoldersSnapshot(blockNumber, provider) {
     provider
   );
   let balancerVault = "0xBA12222222228d8Ba445958a75a0704d566BF2C8"; // balancer vault which holds xsnx tokens
-  let transferEvents = await xsnx.getPastEvents("Transfer", {
-    fromBlock: 0,
-    toBlock: blockNumber,
-  });
+  let transferEvents = await xsnx.queryFilter(
+    xsnx.filters.Transfer(),
+    0,
+    blockNumber
+  );
   let transfers = [];
 
   for (let i = 0; i < transferEvents.length; ++i) {

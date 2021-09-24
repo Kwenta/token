@@ -16,10 +16,11 @@ async function getHoldersSnapshot(blockNumber, provider) {
   );
   let balancerXsnxPool = "0xE3f9cF7D44488715361581DD8B3a15379953eB4C"; // balancer pool address
   let balancerXsnxPoolSecondary = "0x4939e1557613B6e84b92bf4C5D2db4061bD1A7c7"; // balancer AAVE-LINK-xSNX pool address
-  let transferEvents = await xsnx.getPastEvents("Transfer", {
-    fromBlock: 0,
-    toBlock: blockNumber,
-  });
+  let transferEvents = await xsnx.queryFilter(
+    xsnx.filters.Transfer(),
+    0,
+    blockNumber
+  );
   let transfers = [];
 
   for (let i = 0; i < transferEvents.length; ++i) {

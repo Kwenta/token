@@ -21,10 +21,11 @@ async function getStakersInOtherPool(blockNumber, provider) {
     provider
   );
   let balancerXsnxPool = "0x4939e1557613b6e84b92bf4c5d2db4061bd1a7c7"; // balancer pool address
-  let transferEvents = await bpt.getPastEvents("Transfer", {
-    fromBlock: 0,
-    toBlock: blockNumber,
-  });
+  let transferEvents = await bpt.queryFilter(
+    bpt.filters.Transfer(),
+    0,
+    blockNumber
+  );
   console.log("total bpt transfers:", transferEvents.length);
   let transfers = [];
 

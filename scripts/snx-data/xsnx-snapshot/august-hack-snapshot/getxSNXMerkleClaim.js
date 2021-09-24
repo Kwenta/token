@@ -19,10 +19,11 @@ async function getUnclaimedXSNXaMerkleClaim(provider) {
     provider
   );
   const merkleClaimsContract = "0x1de6Cd47Dfe2dF0d72bff4354d04a79195cABB1C";
-  let transferEvents = await xsnx.getPastEvents("Transfer", {
-    fromBlock: 0,
-    toBlock: "13118314",
-  });
+  let transferEvents = await xsnx.queryFilter(
+    xsnx.filters.Transfer(),
+    0,
+    13118314
+  );
   let totalBalance = merkleClaimSnapshot;
 
   // Remove all addresses which have redeemed their xSNXa from xSNXaMerkleClaim Contract

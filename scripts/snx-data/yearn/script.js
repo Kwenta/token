@@ -9,15 +9,17 @@ const SNX = require("../SNX.json");
 
 async function getYearnData(minBlock, maxBlock, provider) {
   const snx = new ethers.Contract(SNX_ADDRESS, SNX.abi, provider);
-
-  const transfersIn = await getSNXTransfers(snx, minBlock, maxBlock, {
-    to: SNX_YEARN_VAULT,
-  });
+  const filterTo = snx.filters.Transfer(null, SNX_YEARN_VAULT);
+  const filterFrom = snx.filters.Transfer(SNX_YEARN_VAULT);
+  const transfersIn = await getSNXTransfers(snx, minBlock, maxBlock, filterTo);
   console.log("[new bridge] transfers in count", transfersIn.length);
 
-  const transfersOut = await getSNXTransfers(snx, minBlock, maxBlock, {
-    from: SNX_YEARN_VAULT,
-  });
+  const transfersOut = await getSNXTransfers(
+    snx,
+    minBlock,
+    maxBlock,
+    filterFrom
+  );
   console.log("[new bridge] transfers out count", transfersOut.length);
 
   // add and subtract balance for addresses for each transfer
@@ -63,11 +65,7 @@ async function getYearnData(minBlock, maxBlock, provider) {
 }
 
 async function getSNXTransfers(snx, fromBlock, toBlock, filter) {
-  let transferEvents = await snx.getPastEvents("Transfer", {
-    fromBlock,
-    toBlock,
-    filter,
-  });
+  let transferEvents = await snx.queryFilter(filter, fromBlock, toBlock);
   let transfers = [];
 
   for (let i = 0; i < transferEvents.length; ++i) {

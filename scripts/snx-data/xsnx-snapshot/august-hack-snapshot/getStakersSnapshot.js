@@ -22,10 +22,11 @@ async function getStakersSnapshot(provider) {
   );
   const balancerVault = "0xBA12222222228d8Ba445958a75a0704d566BF2C8"; // balancer vault address
   const stakingRewardsContract = "0x9AA731A7302117A16e008754A8254fEDE2C35f8D"; // staking rewards address
-  let transferEvents = await bpt.getPastEvents("Transfer", {
-    fromBlock: 0,
-    toBlock: "13118314",
-  });
+  let transferEvents = await bpt.queryFilter(
+    bpt.filters.Transfer(),
+    0,
+    13118314
+  );
   console.log("total bpt transfers:", transferEvents.length);
   let transfers = [];
 

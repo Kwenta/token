@@ -13,10 +13,11 @@ async function getStakingRewardsStakers(provider) {
     provider
   );
   const stakingRewardsContract = "0x9AA731A7302117A16e008754A8254fEDE2C35f8D";
-  let transferEvents = await bpt.getPastEvents("Transfer", {
-    fromBlock: 0,
-    toBlock: "13118314",
-  });
+  let transferEvents = await bpt.queryFilter(
+    bpt.filters.Transfer(),
+    0,
+    13118314
+  );
   let transferToStakingRewards = [];
   let transferFromStakingRewards = [];
 
