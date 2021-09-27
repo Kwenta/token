@@ -232,6 +232,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
     returns: NA
     */
         require(amount > 0, "Cannot withdraw 0");
+        require(_balances[msg.sender] >= amount, "Amount required too high");
         // Update total supply of tokens
         _totalSupply = _totalSupply.sub(amount);
         // Update caller balance
