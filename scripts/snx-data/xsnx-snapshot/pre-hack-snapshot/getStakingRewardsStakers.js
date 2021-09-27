@@ -75,7 +75,10 @@ async function getStakingRewardsStakers(provider) {
     "total xsnx pre hack staking rewards stakers count:",
     addressCount
   );
-  console.log("total staked in rewards contract:", totalAllocated.toString());
+  console.log(
+    "total staked in rewards contract:",
+    ethers.utils.formatEther(totalAllocated)
+  );
 
   return totalBalance;
 }

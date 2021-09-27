@@ -1,7 +1,6 @@
 const fs = require("fs");
 const { ethers } = require("hardhat");
 const XSNX = require("./xSNX.json");
-const { getNumberNoDecimals } = require("../helpers");
 const { PRE_HACK_END } = require("./blocks");
 
 /**
@@ -71,17 +70,26 @@ async function getHoldersSnapshot(provider) {
     addressCount++;
   }
   console.log("total addresses in snapshot count:", addressCount);
-  console.log("calculated pool balance:", getNumberNoDecimals(poolBalance));
-  console.log("calculated holders balance:", getNumberNoDecimals(balanceSum));
+  console.log(
+    "calculated pool balance:",
+    ethers.utils.formatEther(poolBalance)
+  );
+  console.log(
+    "calculated holders balance:",
+    ethers.utils.formatEther(balanceSum)
+  );
   console.log(
     "pool balance + holders balance:",
-    getNumberNoDecimals(poolBalance) + getNumberNoDecimals(balanceSum)
+    ethers.utils.formatEther(poolBalance) + ethers.utils.formatEther(balanceSum)
   );
   let xsnxTotalSupply = await xsnx.totalSupply();
   let xsnxBalanceInPool = await xsnx.balanceOf(balancerXsnxPool);
 
-  console.log("xsnx total supply:", getNumberNoDecimals(xsnxTotalSupply));
-  console.log("xsnx balance in pool:", getNumberNoDecimals(xsnxBalanceInPool));
+  console.log("xsnx total supply:", ethers.utils.formatEther(xsnxTotalSupply));
+  console.log(
+    "xsnx balance in pool:",
+    ethers.utils.formatEther(xsnxBalanceInPool)
+  );
 
   fs.writeFileSync(
     "scripts/snx-data/xsnx-snapshot/pre-hack-snapshot/snapshotHolders.json",

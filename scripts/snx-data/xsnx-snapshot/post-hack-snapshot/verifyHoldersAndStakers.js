@@ -1,5 +1,4 @@
 const { ethers } = require("hardhat");
-const { bn, getNumberNoDecimals } = require("../../../helpers");
 
 const XSNX = require("../xSNX.json");
 const provider = new ethers.providers.JsonRpcProvider({
@@ -22,29 +21,29 @@ let stakers = require("./snapshotPoolStakers.json");
  * Verify the numbers in both holders and stakers snapshot match
  */
 async function verify() {
-  let holdersTotal = bn(0);
+  let holdersTotal = new ethers.BigNumber.from(0);
   for (let amount of Object.values(holders)) {
     holdersTotal = holdersTotal.add(amount);
   }
 
-  let stakersTotal = bn(0);
+  let stakersTotal = new ethers.BigNumber.from(0);
   for (let amount of Object.values(stakers)) {
     stakersTotal = stakersTotal.add(amount);
   }
 
-  let totalSupply = await xsnx.methods.totalSupply().call();
-  let poolValue = await xsnx.methods.balanceOf(balancerVault).call();
+  let totalSupply = await xsnx.totalSupply();
+  let poolValue = await xsnx.balanceOf(balancerVault);
 
   console.log(
     "holders snapshot total value:",
-    getNumberNoDecimals(holdersTotal)
+    ethers.utils.formatEther(holdersTotal)
   );
   console.log(
     "stakers snapshot total value:",
-    getNumberNoDecimals(stakersTotal)
+    ethers.utils.formatEther(stakersTotal)
   );
-  console.log("total value of pool:", getNumberNoDecimals(bn(poolValue)));
-  console.log("total supply of xsnx:", getNumberNoDecimals(bn(totalSupply)));
+  console.log("total value of pool:", ethers.utils.formatEther(poolValue));
+  console.log("total supply of xsnx:", ethers.utils.formatEther(totalSupply));
 }
 
 verify();

@@ -7,17 +7,27 @@ const { getPreHackSnapshot } = require("./pre-hack-snapshot/getSnapshot");
  * Get snapshot of xsnx holders + LP stakers either pre-hack or post-hack
  */
 async function getSnapshot(provider) {
-  let snapshot;
-  if (blockNumber < 12419918) {
-    snapshot = await getPreHackSnapshot(provider);
-  } else if (blockNumber == 13118314) {
-    snapshot = await getAugustHackSnapshot(provider);
-  } else if (blockNumber >= 12649601) {
-    snapshot = await getPostHackSnapshot(provider);
-  } else {
-    console.log(`blocks from 12419918 to 12649601 are between hack and 
-                    xsnx second token pool deployment ;
-                    cannot retrieve snapshot between these blocks`);
+  const preHackSnapshot = await getPreHackSnapshot(provider);
+  const augustHackSnapshot = await getAugustHackSnapshot(provider);
+  const postHackSnapshot = await getPostHackSnapshot(provider);
+
+  const snapshot = {};
+  for (let [address, amount] of Object.entries(preHackSnapshot)) {
+    snapshot[address] = bn(amount);
+  }
+  for (let [address, amount] of Object.entries(augustHackSnapshot)) {
+    if (snapshot[address]) {
+      snapshot[address] = snapshot[address].add(amount);
+    } else {
+      snapshot[address] = amount;
+    }
+  }
+  for (let [address, amount] of Object.entries(postHackSnapshot)) {
+    if (snapshot[address]) {
+      snapshot[address] = snapshot[address].add(amount);
+    } else {
+      snapshot[address] = amount;
+    }
   }
   fs.writeFileSync(
     "scripts/snx-data/xsnx-snapshot/snapshot.json",

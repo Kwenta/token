@@ -92,10 +92,13 @@ async function getStakersSnapshot(provider) {
 
   console.log("total address balances count:", addressCount);
 
-  console.log("sum of all bpt token holders:", balanceSum.toString());
-  console.log("total bpt supply:", bptTotalSupply.toString());
-  console.log("total xsnx in pool:", xsnxInPool.toString());
-  console.log("xsnx per 1 bpt:", xsnxPer1BPT.div(100000000));
+  console.log(
+    "sum of all bpt token holders:",
+    ethers.utils.formatEther(balanceSum)
+  );
+  console.log("total bpt supply:", ethers.utils.formatEther(bptTotalSupply));
+  console.log("total xsnx in pool:", ethers.utils.formatEther(xsnxInPool));
+  console.log("xsnx per 1 bpt:", xsnxPer1BPT / 100000000);
 
   let totalxSNXBalance = bn(0);
   // Convert BPT to xSNX balance
@@ -105,8 +108,14 @@ async function getStakersSnapshot(provider) {
     totalxSNXBalance = totalxSNXBalance.add(totalBalance[address]);
   }
 
-  console.log("total xSNX balance of snapshot:", totalxSNXBalance.toString());
-  console.log("total xsnx in primary pool:", xsnxInPool.toString());
+  console.log(
+    "total xSNX balance of snapshot:",
+    ethers.utils.formatEther(totalxSNXBalance)
+  );
+  console.log(
+    "total xsnx in primary pool:",
+    ethers.utils.formatEther(xsnxInPool)
+  );
 
   fs.writeFileSync(
     "scripts/snx-data/xsnx-snapshot/pre-hack-snapshot/snapshotPoolStakers.json",

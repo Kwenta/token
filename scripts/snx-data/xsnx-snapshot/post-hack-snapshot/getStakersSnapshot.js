@@ -3,6 +3,7 @@ const fs = require("fs");
 
 const { getStakingRewardsStakers } = require("./getStakingRewardsStakers");
 const XSNX = require("../xSNX.json");
+const { POST_HACK_START, AUGUST_SNAP } = require("./blocks");
 
 /**
  * Get snapshot of all addresses staking xSNX in xSNXa-WETH Balancer Pool
@@ -20,19 +21,23 @@ async function getStakersSnapshot(blockNumber, provider) {
     XSNX.abi,
     provider
   );
-  let balancerVault = "0xBA12222222228d8Ba445958a75a0704d566BF2C8"; // balancer vault which holds xsnx tokens
+  const balancerVault = "0xBA12222222228d8Ba445958a75a0704d566BF2C8"; // balancer vault which holds xsnx tokens
   const stakingRewardsContract = "0x9AA731A7302117A16e008754A8254fEDE2C35f8D"; // staking rewards address
-  let transferEvents = await bpt.queryFilter(
+  const transferEvents = await bpt.queryFilter(
     bpt.filters.Transfer(),
-    0,
-    blockNumber
+    POST_HACK_START,
+    AUGUST_SNAP - 1
   );
   console.log("total bpt transfers:", transferEvents.length);
-  let transfers = [];
+  const transfers = [];
 
   for (let i = 0; i < transferEvents.length; ++i) {
-    let values = transferEvents[i].returnValues;
-    transfers.push(values);
+    const data = {
+      value: transferEvents[i].args.value,
+      from: transferEvents[i].args.from,
+      to: transferEvents[i].args.to,
+    };
+    transfers.push(data);
   }
 
   // add and subtract balance for addresses for each transfer
@@ -40,7 +45,7 @@ async function getStakersSnapshot(blockNumber, provider) {
 
   for (let i = 0; i < transfers.length; ++i) {
     let address = transfers[i].to;
-    let value = bn(transfers[i].value);
+    let value = transfers[i].value;
     if (totalBalance[address]) {
       totalBalance[address] = totalBalance[address].add(value);
     } else {
@@ -49,7 +54,7 @@ async function getStakersSnapshot(blockNumber, provider) {
   }
   for (let i = 0; i < transfers.length; ++i) {
     let address = transfers[i].from;
-    let value = bn(transfers[i].value);
+    let value = transfers[i].value;
     if (totalBalance[address]) {
       totalBalance[address] = totalBalance[address].sub(value);
     } else {
@@ -58,7 +63,7 @@ async function getStakersSnapshot(blockNumber, provider) {
   }
   console.log(
     "balance of staking rewards contract:",
-    totalBalance[stakingRewardsContract].div(bn(10).pow(18)).toString()
+    ethers.utils.formatEther(totalBalance[stakingRewardsContract])
   );
 
   delete totalBalance[balancerVault]; // remove balancer vault from snapshot
@@ -72,7 +77,7 @@ async function getStakersSnapshot(blockNumber, provider) {
   // merge two snapshots
   totalBalance = { ...totalBalance, ...stakingRewardsStakers };
 
-  let balanceSum = bn(0);
+  let balanceSum = new ethers.BigNumber.from(0);
   let addressCount = 0;
   for (let address of Object.keys(totalBalance)) {
     // remove 0 balance addresses and address 0x0 which is < 0 balance
@@ -84,61 +89,39 @@ async function getStakersSnapshot(blockNumber, provider) {
     balanceSum = balanceSum.add(totalBalance[address]);
     addressCount++;
   }
-  let bptTotalSupply = await bpt.methods.totalSupply().call();
-  let xsnxInPool = await xsnx.methods.balanceOf(balancerVault).call();
-  let xsnxPer1BPT = bn(xsnxInPool)
-    .mul(100000000)
-    .div(bn(bptTotalSupply))
-    .toNumber(); // mul by 100M for precision
+  let bptTotalSupply = await bpt.totalSupply();
+  let xsnxInPool = await xsnx.balanceOf(balancerVault);
+  let xsnxPer1BPT = xsnxInPool.mul(100000000).div(bptTotalSupply).toNumber(); // mul by 100M for precision
 
   console.log("total address balances count:", addressCount);
 
   console.log(
     "sum of all bpt token holders:",
-    balanceSum.div(bn(10).pow(18)).toString()
+    ethers.utils.formatEther(balanceSum)
   );
-  console.log(
-    "total bpt supply:",
-    bn(bptTotalSupply).div(bn(10).pow(18)).toString()
-  );
-  console.log(
-    "total xsnx in pool:",
-    bn(xsnxInPool).div(bn(10).pow(18)).toString()
-  );
+  console.log("total bpt supply:", ethers.utils.formatEther(bptTotalSupply));
+  console.log("total xsnx in pool:", ethers.utils.formatEther(xsnxInPool));
   console.log("xsnx per 1 bpt:", xsnxPer1BPT / 100000000);
 
-  let totalxSNXBalance = bn(0);
+  let totalxSNXBalance = new ethers.BigNumber.from(0);
   // Convert BPT to xSNX balance
   for (let address of Object.keys(totalBalance)) {
-    let balance = totalBalance[address];
-    totalBalance[address] = bn(balance)
-      .mul(xsnxPer1BPT)
-      .div(100000000)
-      .toString();
+    const balance = totalBalance[address];
+    totalBalance[address] = balance.mul(xsnxPer1BPT).div(100000000).toString();
     totalxSNXBalance = totalxSNXBalance.add(totalBalance[address]);
   }
 
   console.log(
     "total xSNX balance of snapshot:",
-    totalxSNXBalance.div(bn(10).pow(18)).toString()
+    ethers.utils.formatEther(totalxSNXBalance)
   );
-  console.log(
-    "total xsnx in pool:",
-    bn(xsnxInPool).div(bn(10).pow(18)).toString()
-  );
+  console.log("total xsnx in pool:", ethers.utils.formatEther(xsnxInPool));
 
   fs.writeFileSync(
     "scripts/snx-data/xsnx-snapshot/post-hack-snapshot/snapshotPoolStakers.json",
     JSON.stringify(totalBalance)
   );
   return totalBalance;
-}
-
-/**
- * Return BigNumber
- */
-function bn(amount) {
-  return new ethers.BigNumber.from(amount);
 }
 
 module.exports = { getStakersSnapshot };
