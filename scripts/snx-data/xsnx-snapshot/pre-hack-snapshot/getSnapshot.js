@@ -4,10 +4,10 @@ const { getStakersInOtherPool } = require("./getStakersInOtherPool");
 const { mergeTwoPoolSnapshots } = require("./mergeTwoPoolSnaps");
 const { getFinalSnapshot } = require("./getFinalSnapshot");
 
-async function getPreHackSnapshot(blockNumber, provider) {
-  let holdersSnapshot = await getHoldersSnapshot(blockNumber, provider);
-  let stakers1Snapshot = await getStakersSnapshot(blockNumber, provider);
-  let stakers2Snapshot = await getStakersInOtherPool(blockNumber, provider);
+async function getPreHackSnapshot(provider) {
+  let holdersSnapshot = await getHoldersSnapshot(provider);
+  let stakers1Snapshot = await getStakersSnapshot(provider);
+  let stakers2Snapshot = await getStakersInOtherPool(provider);
   let stakersSnapshot = await mergeTwoPoolSnapshots(
     stakers1Snapshot,
     stakers2Snapshot

@@ -1,12 +1,12 @@
 const { ethers } = require("hardhat");
-const { bn } = require("../helpers");
 const XSNX = require("./xSNX.json");
+const { PRE_HACK_END } = require("./blocks");
 
 /**
  * Get snapshot of all addresses staking Balancer Pool Token in Staking Rewards contract pre-hack
  * Used in getStakersSnapshot to retrieve the total xSNX value of LP Stakers at pre-hack time
  */
-async function getStakingRewardsStakers(blockNumber, provider) {
+async function getStakingRewardsStakers(provider) {
   console.log("---Get Staking Rewards LP Stakers Snapshot---");
   const bpt = new ethers.Contract(
     "0xe3f9cf7d44488715361581dd8b3a15379953eb4c",
@@ -18,20 +18,23 @@ async function getStakingRewardsStakers(blockNumber, provider) {
   let transferEvents = await bpt.queryFilter(
     bpt.filters.Transfer(),
     0,
-    blockNumber
+    PRE_HACK_END
   );
   let transferToStakingRewards = [];
   let transferFromStakingRewards = [];
 
   // record all transfers to and from pool (all go through balancer pool)
   for (let i = 0; i < transferEvents.length; ++i) {
-    let values = transferEvents[i].returnValues;
-    values.txid = transferEvents[i].transactionHash;
-    if (values.from == stakingRewardsContract) {
-      transferFromStakingRewards.push(values);
+    let data = {
+      value: transferEvents[i].args.value,
+      from: transferEvents[i].args.from,
+      to: transferEvents[i].args.to,
+    };
+    if (data.from == stakingRewardsContract) {
+      transferFromStakingRewards.push(data);
     }
-    if (values.to == stakingRewardsContract) {
-      transferToStakingRewards.push(values);
+    if (data.to == stakingRewardsContract) {
+      transferToStakingRewards.push(data);
     }
   }
 
@@ -41,7 +44,7 @@ async function getStakingRewardsStakers(blockNumber, provider) {
 
   for (let i = 0; i < transferToStakingRewards.length; ++i) {
     let address = transferToStakingRewards[i].from;
-    let value = bn(transferToStakingRewards[i].value);
+    let value = transferToStakingRewards[i].value;
     if (totalBalance[address]) {
       totalBalance[address] = totalBalance[address].add(value);
     } else {
@@ -50,13 +53,13 @@ async function getStakingRewardsStakers(blockNumber, provider) {
   }
   for (let i = 0; i < transferFromStakingRewards.length; ++i) {
     let address = transferFromStakingRewards[i].to;
-    let value = bn(transferFromStakingRewards[i].value);
+    let value = transferFromStakingRewards[i].value;
     if (totalBalance[address]) {
       totalBalance[address] = totalBalance[address].sub(value);
     }
   }
 
-  let totalAllocated = bn(0);
+  let totalAllocated = new ethers.BigNumber.from(0);
   let addressCount = 0;
   for (let address of Object.keys(totalBalance)) {
     // remove 0 balance addresses and address 0x0 which is < 0 balance
@@ -68,11 +71,11 @@ async function getStakingRewardsStakers(blockNumber, provider) {
     totalAllocated = totalAllocated.add(totalBalance[address]);
     addressCount++;
   }
-  console.log("total staking rewards stakers count:", addressCount);
   console.log(
-    "total staked in rewards contract:",
-    totalAllocated.div(bn(10).pow(18)).toString()
+    "total xsnx pre hack staking rewards stakers count:",
+    addressCount
   );
+  console.log("total staked in rewards contract:", totalAllocated.toString());
 
   return totalBalance;
 }

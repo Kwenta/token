@@ -119,7 +119,7 @@ async function getSNXTransfers(snx, fromBlock, toBlock, filter) {
   let transferEvents = await snx.queryFilter(filter, fromBlock, toBlock);
   let transfers = [];
   for (let i = 0; i < transferEvents.length; i++) {
-    let data = {
+    const data = {
       value: transferEvents[i].args.value,
       from: transferEvents[i].args.from,
     };

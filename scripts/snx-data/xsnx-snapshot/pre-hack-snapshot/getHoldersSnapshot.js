@@ -2,12 +2,13 @@ const fs = require("fs");
 const { ethers } = require("hardhat");
 const XSNX = require("./xSNX.json");
 const { getNumberNoDecimals } = require("../helpers");
+const { PRE_HACK_END } = require("./blocks");
 
 /**
  * Get snapshot of all addresses holding xSNX at a block before the xToken hack occurred
  * Need to run with mainnet forking enabled pinned at block 12419912
  */
-async function getHoldersSnapshot(blockNumber, provider) {
+async function getHoldersSnapshot(provider) {
   console.log("---Get Holders Snapshot---");
   const xsnx = new ethers.contract(
     "0x2367012ab9c3da91290f71590d5ce217721eefe4",
@@ -19,13 +20,17 @@ async function getHoldersSnapshot(blockNumber, provider) {
   let transferEvents = await xsnx.queryFilter(
     xsnx.filters.Transfer(),
     0,
-    blockNumber
+    PRE_HACK_END
   );
   let transfers = [];
 
   for (let i = 0; i < transferEvents.length; ++i) {
-    let values = transferEvents[i].returnValues;
-    transfers.push(values);
+    const data = {
+      value: transferEvents[i].args.value,
+      from: transferEvents[i].args.from,
+      to: transferEvents[i].args.to,
+    };
+    transfers.push(data);
   }
 
   // add and subtract balance for addresses for each transfer
@@ -33,7 +38,7 @@ async function getHoldersSnapshot(blockNumber, provider) {
 
   for (let i = 0; i < transfers.length; ++i) {
     let address = transfers[i].to;
-    let value = bn(transfers[i].value);
+    let value = transfers[i].value;
     if (totalBalance[address]) {
       totalBalance[address] = totalBalance[address].add(value);
     } else {
@@ -42,7 +47,7 @@ async function getHoldersSnapshot(blockNumber, provider) {
   }
   for (let i = 0; i < transfers.length; ++i) {
     let address = transfers[i].from;
-    let value = bn(transfers[i].value);
+    let value = transfers[i].value;
     if (totalBalance[address]) {
       totalBalance[address] = totalBalance[address].sub(value);
     } else {
@@ -72,27 +77,17 @@ async function getHoldersSnapshot(blockNumber, provider) {
     "pool balance + holders balance:",
     getNumberNoDecimals(poolBalance) + getNumberNoDecimals(balanceSum)
   );
-  let xsnxTotalSupply = await xsnx.methods.totalSupply().call();
-  let xsnxBalanceInPool = await xsnx.methods.balanceOf(balancerXsnxPool).call();
+  let xsnxTotalSupply = await xsnx.totalSupply();
+  let xsnxBalanceInPool = await xsnx.balanceOf(balancerXsnxPool);
 
-  console.log("xsnx total supply:", getNumberNoDecimals(bn(xsnxTotalSupply)));
-  console.log(
-    "xsnx balance in pool:",
-    getNumberNoDecimals(bn(xsnxBalanceInPool))
-  );
+  console.log("xsnx total supply:", getNumberNoDecimals(xsnxTotalSupply));
+  console.log("xsnx balance in pool:", getNumberNoDecimals(xsnxBalanceInPool));
 
   fs.writeFileSync(
     "scripts/snx-data/xsnx-snapshot/pre-hack-snapshot/snapshotHolders.json",
     JSON.stringify(totalBalance)
   );
   return totalBalance;
-}
-
-/**
- * Return BigNumber
- */
-function bn(amount) {
-  return new ethers.BigNumber.from(amount);
 }
 
 module.exports = { getHoldersSnapshot };

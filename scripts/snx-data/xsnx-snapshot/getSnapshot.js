@@ -5,14 +5,12 @@ const { getPreHackSnapshot } = require("./pre-hack-snapshot/getSnapshot");
 
 /**
  * Get snapshot of xsnx holders + LP stakers either pre-hack or post-hack
- * @param {Number} blockNumber which block number to get snapshot from
  */
-async function getSnapshot(blockNumber, provider) {
+async function getSnapshot(provider) {
   let snapshot;
   if (blockNumber < 12419918) {
-    snapshot = await getPreHackSnapshot(blockNumber, provider);
+    snapshot = await getPreHackSnapshot(provider);
   } else if (blockNumber == 13118314) {
-    // uses block number 13118314
     snapshot = await getAugustHackSnapshot(provider);
   } else if (blockNumber >= 12649601) {
     snapshot = await getPostHackSnapshot(provider);

@@ -42,8 +42,8 @@ const feesClaimed = async (minBlock, maxBlock) => {
     .catch((err) => console.error(err));
 };
 
-const getXSNXSnapshot = async (xsnxScore, blockNumber, provider) => {
-  const snapshot = await getSnapshot(blockNumber, provider);
+const getXSNXSnapshot = async (xsnxScore, provider) => {
+  const snapshot = await getSnapshot(provider);
 
   let totalValue = 0;
   for (const [key, value] of Object.entries(snapshot)) {

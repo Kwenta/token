@@ -1,0 +1,5 @@
+module.exports = {
+  PRE_HACK_END: 2419917,
+  POST_HACK_START: 12649601,
+  AUGUST_SNAP: 13118314,
+};
