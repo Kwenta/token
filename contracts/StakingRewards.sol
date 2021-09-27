@@ -12,6 +12,8 @@ import "openzeppelin-solidity-2.3.0/contracts/utils/ReentrancyGuard.sol";
 import "./RewardsDistributionRecipient.sol";
 import "./Pausable.sol";
 
+import "./RewardEscrow.sol";
+
 
 contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausable {
     /*
@@ -24,6 +26,9 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
     using SafeMath for uint256;
 
     /* ========== STATE VARIABLES ========== */
+
+    // Reward Escrow
+    RewardEscrow public rewardEscrow;
 
     // Tokens to stake and reward
     IERC20 public rewardsToken;
@@ -62,6 +67,8 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
     uint256 private _totalFeesPaid;
     // Tokens stoked for each address
     mapping(address => uint256) private _balances;
+    // Save the latest total token to account for rewards (staked + escrowed rewards)
+    mapping(address => uint256) public _totalBalances;
 
     // Mapping containing total fees paid
     mapping (address => uint256) private _feesPaid;
@@ -77,7 +84,8 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         address _owner,
         address _rewardsDistribution,
         address _rewardsToken,
-        address _stakingToken
+        address _stakingToken,
+        RewardEscrow _rewardEscrow
     ) public Owned(_owner) {
     /*
     Setup the owner, rewards distribution and token addresses
@@ -85,6 +93,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         rewardsToken = IERC20(_rewardsToken);
         stakingToken = IERC20(_stakingToken);
         rewardsDistribution = _rewardsDistribution;
+        rewardEscrow = _rewardEscrow;
     }
 
     /* ========== VIEWS ========== */
@@ -167,7 +176,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
     uint256 staking = 0;
     uint256 trading = 0;
     if(tokenFees >= 1){
-        staking = _balances[account].mul(rewardPerToken().sub(userRewardPerTokenPaid[account])).div(MAX_BPS);    
+        staking = _totalBalances[account].mul(rewardPerToken().sub(userRewardPerTokenPaid[account])).div(MAX_BPS);    
     }
     if (tokenFees <= 1){
         trading = _feesPaid[account].mul(rewardPerFee().sub(userRewardPerFeePaid[account])).div(MAX_BPS);
@@ -211,6 +220,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         _totalSupply = _totalSupply.add(amount);
         // Update caller balance
         _balances[msg.sender] = _balances[msg.sender].add(amount);
+        _totalBalances[msg.sender] = _totalBalances[msg.sender].add(amount);
         stakingToken.transferFrom(msg.sender, address(this), amount);
         emit Staked(msg.sender, amount);
     }
@@ -226,7 +236,9 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         _totalSupply = _totalSupply.sub(amount);
         // Update caller balance
         _balances[msg.sender] = _balances[msg.sender].sub(amount);
+        _totalBalances[msg.sender] = _totalBalances[msg.sender].sub(amount);
         stakingToken.transfer(msg.sender, amount);
+        emit Sender(msg.sender);
         emit Withdrawn(msg.sender, amount);
     }
 
@@ -238,12 +250,12 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         uint256 reward = rewards[msg.sender];
         if (reward > 0) {
             rewards[msg.sender] = 0;
-            rewardsToken.transfer(msg.sender, reward);
+            //rewardsToken.transfer(msg.sender, reward);
+            rewardEscrow.appendVestingEntry(msg.sender, reward);
             emit RewardPaid(msg.sender, reward);
         }
     }
 
-    // TODO: Copied from SNX, not sure it works as in withdraw, msg.sender is not the caller anymore
     function exit() external {
     /*
     Function handling the exit of the protocol of the caller:
@@ -252,6 +264,21 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
     */
         withdraw(_balances[msg.sender]);
         getReward();
+    }
+
+    // TODO: Modifier for onlyRewardEscrow
+    function stakeEscrow(address _account, uint256 _amount) public nonReentrant {
+        _totalBalances[_account] = _totalBalances[_account].add(_amount);
+        _totalSupply = _totalSupply.add(_amount);
+        emit EscrowStaked(_account, _amount);
+    }
+
+    // TODO: Modifier for onlyRewardEscrow
+    function unstakeEscrow(address _account, uint256 _amount) public nonReentrant {
+        require(_totalBalances[_account] >= _amount, "Amount required too large");
+        _totalBalances[_account] = _totalBalances[_account].sub(_amount);
+        _totalSupply = _totalSupply.sub(_amount);
+        emit EscrowUnstaked(_account, _amount);
     }
 
     /* ========== RESTRICTED FUNCTIONS ========== */
@@ -362,4 +389,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
     event RewardPaid(address indexed user, uint256 reward);
     event RewardsDurationUpdated(uint256 newDuration);
     event Recovered(address token, uint256 amount);
+    event EscrowStaked(address account, uint256 amount);
+    event EscrowUnstaked(address account, uint256 amount);
+    event Sender(address snd);
 }

@@ -3,12 +3,14 @@ pragma solidity ^0.5.16;
 // Inheritance
 import "./Owned.sol";
 import "./interfaces/IRewardEscrow.sol";
+import "openzeppelin-solidity-2.3.0/contracts/token/ERC20/SafeERC20.sol";
 
 // Libraries
 import "./SafeDecimalMath.sol";
+import "./StakingRewards.sol";
 
 // Internal references
-import "./interfaces/IERC20.sol";
+//import "./interfaces/IERC20.sol";
 import "./interfaces/IFeePool.sol";
 import "./interfaces/ISynthetix.sol";
 
@@ -20,6 +22,8 @@ contract RewardEscrow is Owned, IRewardEscrow {
     ISynthetix public synthetix;
 
     IFeePool public feePool;
+
+    StakingRewards public stakingRewards;
 
     /* Lists of (timestamp, quantity) pairs per account, sorted in ascending time order.
      * These are the times at which each given quantity of SNX vests. */
@@ -46,10 +50,12 @@ contract RewardEscrow is Owned, IRewardEscrow {
     constructor(
         address _owner,
         ISynthetix _synthetix,
-        IFeePool _feePool
+        IFeePool _feePool,
+        StakingRewards _stakingRewards
     ) public Owned(_owner) {
         synthetix = _synthetix;
         feePool = _feePool;
+        stakingRewards = _stakingRewards;
     }
 
     /* ========== SETTERS ========== */
@@ -216,6 +222,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
      */
     function appendVestingEntry(address account, uint quantity) external onlyFeePool {
         _appendVestingEntry(account, quantity);
+        stakingRewards.stakeEscrow(account, quantity);
     }
 
     /**
@@ -242,6 +249,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
             totalEscrowedAccountBalance[msg.sender] = totalEscrowedAccountBalance[msg.sender].sub(total);
             totalVestedAccountBalance[msg.sender] = totalVestedAccountBalance[msg.sender].add(total);
             IERC20(address(synthetix)).transfer(msg.sender, total);
+            stakingRewards.unstakeEscrow(msg.sender, total);
             emit Vested(msg.sender, now, total);
         }
     }
