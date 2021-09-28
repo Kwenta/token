@@ -65,14 +65,16 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
     
     // Number containing total Fees
     uint256 private _totalFeesPaid;
-    // Tokens stoked for each address
-    mapping(address => uint256) private _balances;
+    // Tokens escrowed for each address
+    mapping(address => uint256) private _escrowedBalances;
     // Save the latest total token to account for rewards (staked + escrowed rewards)
-    mapping(address => uint256) public _totalBalances;
+    mapping(address => uint256) private _totalBalances;
 
     // Mapping containing total fees paid
     mapping (address => uint256) private _feesPaid;
     
+    uint256 private constant MIN_STAKE = 0;
+
     uint256 private constant MAX_BPS = 10000;
     uint256 public _weightFees = 7_000;
     uint256 public _weightTradingScore = 3_000;
@@ -84,8 +86,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         address _owner,
         address _rewardsDistribution,
         address _rewardsToken,
-        address _stakingToken,
-        RewardEscrow _rewardEscrow
+        address _stakingToken
     ) public Owned(_owner) {
     /*
     Setup the owner, rewards distribution and token addresses
@@ -93,7 +94,6 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         rewardsToken = IERC20(_rewardsToken);
         stakingToken = IERC20(_stakingToken);
         rewardsDistribution = _rewardsDistribution;
-        rewardEscrow = _rewardEscrow;
     }
 
     /* ========== VIEWS ========== */
@@ -112,16 +112,23 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         return _totalFeesPaid;
     }
 
-    function balanceOf(address account) external view returns (uint256) {
+    function balanceOf(address account) public view returns (uint256) {
     /*
-    Getter funtion for the state variable _balances
+    Getter funtion for the staked balance of an account
     */
-        return _balances[account];
+        return _totalBalances[account].sub(_escrowedBalances[account]);
+    }
+
+    function totalBalanceOf(address account) external view returns (uint256) {
+    /*
+    Getter funtion for the total balances of an account (staked`+ escrowed rewards)
+    */
+        return _totalBalances[account];
     }
 
     function feesOf(address account) external view returns (uint256) {
     /*
-    Getter funtion for the state variable _balances
+    Getter funtion for the state variable _feesPaid
     */
         return _feesPaid[account];
     }
@@ -165,24 +172,40 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
             );
     }
 
-    function earned(address account, uint256 tokenFees) public view returns (uint256) {
+    function earnedFromTrading(address account) public view returns (uint256) {
     /*
-    Function calculating the rewards earned by an account between the current call moment and the latest change in the
-    account balance or fees paid. The function divides the current balance by the total supply and the fees paid by
-    total fees, accounts for the changes between now and the last changes (deducting userRewardPerTokenPaid and 
-    userRewardPerFeePaid) and adds the result to the existing rewards balance of the account
+    Function calculating the rewards earned by an account between the current call moment and the latest change in
+    fees paid. The function divides the fees paid by total fees, accounts for the changes between now and the 
+    last changes (deducting userRewardPerFeePaid) and adds the result to the existing rewards balance of the account
     returns: uint256 containing the total rewards due to account
     */
-    uint256 staking = 0;
-    uint256 trading = 0;
-    if(tokenFees >= 1){
-        staking = _totalBalances[account].mul(rewardPerToken().sub(userRewardPerTokenPaid[account])).div(MAX_BPS);    
-    }
-    if (tokenFees <= 1){
-        trading = _feesPaid[account].mul(rewardPerFee().sub(userRewardPerFeePaid[account])).div(MAX_BPS);
+    
+    uint256 trading = _feesPaid[account].mul(rewardPerFee().sub(userRewardPerFeePaid[account])).div(MAX_BPS);
+
+    return trading;
     }
 
-    return ((staking.add(trading)).add(rewards[account]));
+    function earnedFromStaking(address account) public view returns (uint256) {
+    /*
+    Function calculating the rewards earned by an account between the current call moment and the latest change in the
+    account balance. The function divides the current balance by the total supply , accounts for the changes between 
+    now and the last changes (deducting userRewardPerTokenPaid) and adds the result to the existing rewards balance
+    of the account
+    returns: uint256 containing the total rewards due to account
+    */
+    uint256 staking = _totalBalances[account].mul(rewardPerToken().sub(userRewardPerTokenPaid[account])).div(MAX_BPS);    
+
+    return staking;
+    }
+
+    function earnedTotal(address account) public view returns (uint256) {
+    /*
+    Function calculating the total rewards earned by an account adding staking and trading rewards
+    returns: uint256 containing the total rewards due to account
+    */
+    uint256 totalEarned = earnedFromStaking(account).add(earnedFromTrading(account)).add(rewards[account]);
+
+    return totalEarned;
     }
 
     function getRewardForDuration() external view returns (uint256) {
@@ -195,21 +218,22 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
 
     /* ========== MUTATIVE FUNCTIONS ========== */
 
-    function updateTraderScore(address _trader, uint256 _newFeesPaid) external updateReward(_trader, 0) {
+    function updateTraderScore(address _trader, uint256 _newFeesPaid) external updateTradingRewards(_trader) {
         /*
         Function called by the ExchangerProxy updating the fees paid by each account
         _trader: address, for which to update the score
         _feesPaid: uint256, total fees paid in this period
         returns: NA, updates the state mapping _traderScore
         */
-
-        _totalFeesPaid = _totalFeesPaid.sub(_feesPaid[_trader]).add(_newFeesPaid);
-        _feesPaid[_trader] = _newFeesPaid;
-
+        if(balanceOf(_trader) > MIN_STAKE){
+            _totalFeesPaid = _totalFeesPaid.add(_newFeesPaid);
+            _feesPaid[_trader] = _feesPaid[_trader].add(_newFeesPaid);
+        }
+        
     }
 
 
-    function stake(uint256 amount) external nonReentrant notPaused updateReward(msg.sender, 2) {
+    function stake(uint256 amount) external nonReentrant notPaused updateStakingRewards(msg.sender) {
     /*
     Function staking the requested tokens by the user.
     _amount: uint256, containing the number of tokens to stake
@@ -219,31 +243,28 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         // Update total supply of tokens
         _totalSupply = _totalSupply.add(amount);
         // Update caller balance
-        _balances[msg.sender] = _balances[msg.sender].add(amount);
         _totalBalances[msg.sender] = _totalBalances[msg.sender].add(amount);
         stakingToken.transferFrom(msg.sender, address(this), amount);
         emit Staked(msg.sender, amount);
     }
 
-    function withdraw(uint256 amount) public nonReentrant updateReward(msg.sender, 2) {
+    function withdraw(uint256 amount) public nonReentrant updateStakingRewards(msg.sender) {
     /*
     Function withdrawing the requested tokens by the user.
     _amount: uint256, containing the number of tokens to stake
     returns: NA
     */
         require(amount > 0, "Cannot withdraw 0");
-        require(_balances[msg.sender] >= amount, "Amount required too high");
+        require(balanceOf(msg.sender) >= amount, "Amount required too high");
         // Update total supply of tokens
         _totalSupply = _totalSupply.sub(amount);
         // Update caller balance
-        _balances[msg.sender] = _balances[msg.sender].sub(amount);
         _totalBalances[msg.sender] = _totalBalances[msg.sender].sub(amount);
         stakingToken.transfer(msg.sender, amount);
-        emit Sender(msg.sender);
         emit Withdrawn(msg.sender, amount);
     }
 
-    function getReward() public nonReentrant updateReward(msg.sender, 0) {
+    function getReward() public definedEscrow updateStakingRewards(msg.sender) updateTradingRewards(msg.sender){
     /*
     Function transferring the accumulated rewards for the caller address and updating the state mapping 
     containing the current rewards
@@ -251,40 +272,41 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         uint256 reward = rewards[msg.sender];
         if (reward > 0) {
             rewards[msg.sender] = 0;
-            //rewardsToken.transfer(msg.sender, reward);
             rewardEscrow.appendVestingEntry(msg.sender, reward);
             emit RewardPaid(msg.sender, reward);
         }
     }
 
-    function exit() external {
+    function exit() external definedEscrow {
     /*
     Function handling the exit of the protocol of the caller:
     - Withdraws all tokens
     - Transfers all rewards to caller's address
     */
-        withdraw(_balances[msg.sender]);
+        withdraw(balanceOf(msg.sender));
         getReward();
     }
 
     // TODO: Modifier for onlyRewardEscrow
-    function stakeEscrow(address _account, uint256 _amount) public nonReentrant {
+    function stakeEscrow(address _account, uint256 _amount) public nonReentrant definedEscrow updateStakingRewards(_account) {
         _totalBalances[_account] = _totalBalances[_account].add(_amount);
+        _escrowedBalances[_account] = _escrowedBalances[_account].add(_amount);
         _totalSupply = _totalSupply.add(_amount);
         emit EscrowStaked(_account, _amount);
     }
 
     // TODO: Modifier for onlyRewardEscrow
-    function unstakeEscrow(address _account, uint256 _amount) public nonReentrant {
-        require(_totalBalances[_account] >= _amount, "Amount required too large");
+    function unstakeEscrow(address _account, uint256 _amount) public nonReentrant definedEscrow updateStakingRewards(_account) {
+        require(_escrowedBalances[_account] >= _amount, "Amount required too large");
         _totalBalances[_account] = _totalBalances[_account].sub(_amount);
+        _escrowedBalances[_account] = _escrowedBalances[_account].sub(_amount);
         _totalSupply = _totalSupply.sub(_amount);
         emit EscrowUnstaked(_account, _amount);
     }
 
     /* ========== RESTRICTED FUNCTIONS ========== */
 
-    function notifyRewardAmount(uint256 reward) external onlyRewardsDistribution updateReward(address(0), 1) {
+    function notifyRewardAmount(uint256 reward) external onlyRewardsDistribution updateStakingRewards(address(0)) updateTradingRewards(address(0)) {
     /*
     Function called to initialize a new reward distribution epoch, taking into account rewards still to be 
     delivered from a previous epoch and updating the lastUpdate and periodFinish state variables
@@ -341,46 +363,67 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         emit RewardsDurationUpdated(rewardsDuration);
     }
 
+    function setRewardEscrow(address _rewardEscrow) external onlyOwner {
+    /*
+    Function used to define the rewardEscrow to use
+    */
+        rewardEscrow = RewardEscrow(_rewardEscrow);
+        emit RewardEscrowUpdated(address(_rewardEscrow));
+    }
+
     /* ========== MODIFIERS ========== */
 
-    modifier updateReward(address account, uint256 tokenFees) {
+    modifier updateTradingRewards(address account) {
     /*
-    Modifier called each time an event changing the is called:
-    - stake
-    - withdraw
+    Modifier called each time an event changing the trading score is updated:
     - update trader score
     - notify reward amount
-    The modifier saves the state of the reward rate per token and per fee until this point for the specific 
+    The modifier saves the state of the reward rate per fee until this point for the specific 
     address to be able to calculate the marginal contribution to rewards afterwards and adds the accumulated
     rewards since the last change to the account rewards
     */  
-        if(tokenFees >= 1) {
-            // Calculate the reward per unit of reward score applicable to the last stint of account
-            rewardPerTokenStored = rewardPerToken();
-            // Calculate if the epoch is finished or not
-            lastUpdateTime = lastTimeRewardApplicable();
-        }
-        if (tokenFees <= 1) {
-            // Calculate the reward per unit of reward score applicable to the last stint of account
-            rewardPerFeePaid = rewardPerFee();
-            // Calculate if the epoch is finished or not
-            lastUpdateTimeFees = lastTimeRewardApplicable();
-        }
         
+        // Calculate the reward per unit of reward score applicable to the last stint of account
+        rewardPerFeePaid = rewardPerFee();
+        // Calculate if the epoch is finished or not
+        lastUpdateTimeFees = lastTimeRewardApplicable();
         if (account != address(0)) {
             // Add the rewards added during the last stint
-            if(tokenFees >= 1) {
-                rewards[account] = earned(account, tokenFees);
-                // Update the latest conditions of account for next stint calculations
-                userRewardPerTokenPaid[account] = rewardPerTokenStored;
-            }
-            if(tokenFees<=1) {
-                rewards[account] = earned(account, tokenFees);
-                userRewardPerFeePaid[account] = rewardPerFeePaid;   
-            }
+            rewards[account] = earnedFromTrading(account).add(rewards[account]);
+            userRewardPerFeePaid[account] = rewardPerFeePaid;
         }
         _;
     }
+
+    modifier updateStakingRewards(address account) {
+    /*
+    Modifier called each time an event changing the staked balance is called:
+    - stake
+    - withdraw
+    - notify reward amount
+    The modifier saves the state of the reward rate per token until this point for the specific 
+    address to be able to calculate the marginal contribution to rewards afterwards and adds the accumulated
+    rewards since the last change to the account rewards
+    */  
+    // Calculate the reward per unit of reward score applicable to the last stint of account
+        rewardPerTokenStored = rewardPerToken();
+        // Calculate if the epoch is finished or not
+        lastUpdateTime = lastTimeRewardApplicable();
+            
+        if (account != address(0)) {
+            // Add the rewards added during the last stint
+            rewards[account] = earnedFromStaking(account).add(rewards[account]);
+            // Update the latest conditions of account for next stint calculations
+            userRewardPerTokenPaid[account] = rewardPerTokenStored;
+        }
+        _; 
+    }
+
+    modifier definedEscrow() {
+        require(address(rewardEscrow) != address(0), "Rewards Escrow needs to be defined");
+        _;
+    }
+
 
     /* ========== EVENTS ========== */
 
@@ -392,5 +435,5 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
     event Recovered(address token, uint256 amount);
     event EscrowStaked(address account, uint256 amount);
     event EscrowUnstaked(address account, uint256 amount);
-    event Sender(address snd);
+    event RewardEscrowUpdated(address rewardEscrow);
 }

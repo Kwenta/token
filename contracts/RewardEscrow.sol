@@ -12,14 +12,12 @@ import "./StakingRewards.sol";
 // Internal references
 //import "./interfaces/IERC20.sol";
 import "./interfaces/IFeePool.sol";
-import "./interfaces/ISynthetix.sol";
 
-// https://docs.synthetix.io/contracts/source/contracts/rewardescrow
 contract RewardEscrow is Owned, IRewardEscrow {
     using SafeMath for uint;
 
-    /* The corresponding Synthetix contract. */
-    ISynthetix public synthetix;
+    /* The corresponding KWENTA contract. */
+    IERC20 public kwenta;
 
     IFeePool public feePool;
 
@@ -29,13 +27,13 @@ contract RewardEscrow is Owned, IRewardEscrow {
      * These are the times at which each given quantity of SNX vests. */
     mapping(address => uint[2][]) public vestingSchedules;
 
-    /* An account's total escrowed synthetix balance to save recomputing this for fee extraction purposes. */
+    /* An account's total escrowed Kwenta balance to save recomputing this for fee extraction purposes. */
     mapping(address => uint) public totalEscrowedAccountBalance;
 
-    /* An account's total vested reward synthetix. */
+    /* An account's total vested reward Kwenta. */
     mapping(address => uint) public totalVestedAccountBalance;
 
-    /* The total remaining escrowed balance, for verifying the actual synthetix balance of this contract against. */
+    /* The total remaining escrowed balance, for verifying the actual Kwenta balance of this contract against. */
     uint public totalEscrowedBalance;
 
     uint internal constant TIME_INDEX = 0;
@@ -49,23 +47,23 @@ contract RewardEscrow is Owned, IRewardEscrow {
 
     constructor(
         address _owner,
-        ISynthetix _synthetix,
-        IFeePool _feePool,
-        StakingRewards _stakingRewards
+        address _kwenta,
+        //IFeePool _feePool,
+        address _stakingRewards
     ) public Owned(_owner) {
-        synthetix = _synthetix;
-        feePool = _feePool;
-        stakingRewards = _stakingRewards;
+        kwenta = IERC20(_kwenta);
+        //feePool = _feePool;
+        stakingRewards = StakingRewards(_stakingRewards);
     }
 
     /* ========== SETTERS ========== */
 
     /**
-     * @notice set the synthetix contract address as we need to transfer SNX when the user vests
+     * @notice set the Kwenta contract address as we need to transfer SNX when the user vests
      */
-    function setSynthetix(ISynthetix _synthetix) external onlyOwner {
-        synthetix = _synthetix;
-        emit SynthetixUpdated(address(_synthetix));
+    function setKwenta(IERC20 _kwenta) external onlyOwner {
+        kwenta = _kwenta;
+        emit kwentaUpdated(address(_kwenta));
     }
 
     /**
@@ -99,7 +97,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
 
     /**
      * @notice Get a particular schedule entry for an account.
-     * @return A pair of uints: (timestamp, synthetix quantity).
+     * @return A pair of uints: (timestamp, Kwenta quantity).
      */
     function getVestingScheduleEntry(address account, uint index) public view returns (uint[2] memory) {
         return vestingSchedules[account][index];
@@ -134,7 +132,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
 
     /**
      * @notice Obtain the next schedule entry that will vest for a given user.
-     * @return A pair of uints: (timestamp, synthetix quantity). */
+     * @return A pair of uints: (timestamp, Kwenta quantity). */
     function getNextVestingEntry(address account) public view returns (uint[2] memory) {
         uint index = getNextVestingIndex(account);
         if (index == _numVestingEntries(account)) {
@@ -183,7 +181,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
         /* There must be enough balance in the contract to provide for the vesting entry. */
         totalEscrowedBalance = totalEscrowedBalance.add(quantity);
         require(
-            totalEscrowedBalance <= IERC20(address(synthetix)).balanceOf(address(this)),
+            totalEscrowedBalance <= IERC20(address(kwenta)).balanceOf(address(this)),
             "Must be enough balance in the contract to provide for the vesting entry"
         );
 
@@ -213,14 +211,14 @@ contract RewardEscrow is Owned, IRewardEscrow {
 
     /**
      * @notice Add a new vesting entry at a given time and quantity to an account's schedule.
-     * @dev A call to this should accompany a previous successful call to synthetix.transfer(rewardEscrow, amount),
+     * @dev A call to this should accompany a previous successful call to Kwenta.transfer(rewardEscrow, amount),
      * to ensure that when the funds are withdrawn, there is enough balance.
      * Note; although this function could technically be used to produce unbounded
      * arrays, it's only withinn the 4 year period of the weekly inflation schedule.
      * @param account The account to append a new vesting entry to.
      * @param quantity The quantity of SNX that will be escrowed.
      */
-    function appendVestingEntry(address account, uint quantity) external onlyFeePool {
+    function appendVestingEntry(address account, uint quantity) external {
         _appendVestingEntry(account, quantity);
         stakingRewards.stakeEscrow(account, quantity);
     }
@@ -248,7 +246,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
             totalEscrowedBalance = totalEscrowedBalance.sub(total);
             totalEscrowedAccountBalance[msg.sender] = totalEscrowedAccountBalance[msg.sender].sub(total);
             totalVestedAccountBalance[msg.sender] = totalVestedAccountBalance[msg.sender].add(total);
-            IERC20(address(synthetix)).transfer(msg.sender, total);
+            IERC20(address(kwenta)).transfer(msg.sender, total);
             stakingRewards.unstakeEscrow(msg.sender, total);
             emit Vested(msg.sender, now, total);
         }
@@ -265,7 +263,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
 
     /* ========== EVENTS ========== */
 
-    event SynthetixUpdated(address newSynthetix);
+    event kwentaUpdated(address newkwenta);
 
     event FeePoolUpdated(address newFeePool);
 
