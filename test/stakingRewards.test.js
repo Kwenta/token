@@ -504,8 +504,6 @@ contract('StakingRewards_KWENTA', ([owner, rewardsDistribution, staker1, staker2
 			
 			assert.equal(bal1.toString(), rewStaker1.toString());
 			assert.equal(bal2.toString(), rewStaker2.toString());
-
-
 		});
 	});
 
