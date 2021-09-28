@@ -130,14 +130,11 @@ contract('StakingRewards_KWENTA', ([owner, rewardsDistribution, staker1, staker2
 
 			let bal = await stakingRewards.balanceOf(staker1);
 			assert.equal(bal, 15, "Incorrect amount");
-			let ts = await stakingRewards.totalSupply();
-			assert.equal(ts, 15, "Incorrect _totalSupply");
 
 			await stakingRewards.stake(50, {from: staker2});
 			bal = await stakingRewards.balanceOf(staker2);
 			assert.equal(bal, 50, "Incorrect amount");
-			ts = await stakingRewards.totalSupply();
-			assert.equal(ts, 65, "Incorrect _totalSupply");
+			
 		})
 	});
 
@@ -149,14 +146,10 @@ contract('StakingRewards_KWENTA', ([owner, rewardsDistribution, staker1, staker2
 			await stakingRewards.withdraw(15, {from: staker1});
 			let bal = await stakingRewards.balanceOf(staker1);
 			assert.equal(bal, 0, "Incorrect amount");
-			let ts = await stakingRewards.totalSupply();
-			assert.equal(ts, 50, "Incorrect _totalSupply");
 
 			await stakingRewards.withdraw(50, {from: staker2});
 			bal = await stakingRewards.balanceOf(staker2);
 			assert.equal(bal, 0, "Incorrect amount");
-			ts = await stakingRewards.totalSupply();
-			assert.equal(ts, 0, "Incorrect _totalSupply");
 		})
 	});
 
@@ -208,7 +201,7 @@ contract('StakingRewards_KWENTA', ([owner, rewardsDistribution, staker1, staker2
 
 	describe('rewardPerToken()', () => {
 		it('should return 0', async () => {
-			assert.equal(await stakingRewards.rewardPerToken(), 0);
+			assert.equal(await stakingRewards.rewardPerRewardScore(), 0);
 		});
 
 		it('should be > 0', async () => {
@@ -216,8 +209,8 @@ contract('StakingRewards_KWENTA', ([owner, rewardsDistribution, staker1, staker2
 			;
 			await stakingRewards.stake(totalToStake, { from: staker1 });
 
-			const totalSupply = await stakingRewards.totalSupply();
-			assertBNGreaterThan(totalSupply, 0);
+			const totalRewardScore = await stakingRewards.totalRewardScore();
+			assertBNGreaterThan(totalRewardScore, 0);
 
 			const rewardValue = toUnit(50.0);
 			
@@ -227,29 +220,8 @@ contract('StakingRewards_KWENTA', ([owner, rewardsDistribution, staker1, staker2
 
 			await fastForward(DAY);
 
-			const rewardPerToken = await stakingRewards.rewardPerToken();
-			assertBNGreaterThan(rewardPerToken, 0);
-		});
-	});
-
-	describe('rewardPerFee()', () => {
-		it('should be > 0', async () => {
-			
-			await stakingRewards.updateTraderScore(staker1, 30);
-
-			const totalFees = await stakingRewards.totalFeesPaid();
-			assertBNGreaterThan(totalFees, 0);
-
-			const rewardValue = toUnit(50.0);
-			
-			await stakingRewards.notifyRewardAmount(rewardValue, {
-				from: rewardsDistribution,
-			});
-
-			await fastForward(DAY);
-
-			const rewardPerFee = await stakingRewards.rewardPerFee();
-			assertBNGreaterThan(rewardPerFee, 0);
+			const rewardPerRewardScore = await stakingRewards.rewardPerRewardScore();
+			assertBNGreaterThan(rewardPerRewardScore, 0);
 		});
 	});
 
@@ -268,7 +240,7 @@ contract('StakingRewards_KWENTA', ([owner, rewardsDistribution, staker1, staker2
 
 			await fastForward(DAY);
 
-			const earned = await stakingRewards.earnedFromStaking(staker1);
+			const earned = await stakingRewards.earned(staker1);
 
 			assertBNGreaterThan(earned, ZERO_BN);
 		});
@@ -285,7 +257,7 @@ contract('StakingRewards_KWENTA', ([owner, rewardsDistribution, staker1, staker2
 
 			await fastForward(DAY);
 
-			const earned = await stakingRewards.earnedFromStaking(staker1);
+			const earned = await stakingRewards.earned(staker1);
 
 			assertBNGreaterThan(earned, ZERO_BN);
 		});
@@ -370,11 +342,9 @@ contract('StakingRewards_KWENTA', ([owner, rewardsDistribution, staker1, staker2
 			assert.equal(fees1, 0);
 			assert.equal(fees2, 0);
 
-			let totalSupply = await stakingRewards.totalSupply();	
-			let totaltrading = await stakingRewards.totalFeesPaid();	
+			let totalRewardScore = await stakingRewards.totalRewardScore();	
 			
-			assert.equal(totalSupply, 0);
-			assert.equal(totaltrading, 0);
+			assert.equal(totalRewardScore, 0);
 
 			// Testing first leg of implementation
 
@@ -392,12 +362,11 @@ contract('StakingRewards_KWENTA', ([owner, rewardsDistribution, staker1, staker2
 
 			await fastForward(61);
 
-			let rewStaker1 = await stakingRewards.earnedTotal(staker1);
+			let rewStaker1 = await stakingRewards.earned(staker1);
+			assert.equal(rewStaker1.toString(), toUnit(20));
 
-			assert.equal(rewStaker1.toString(), toUnit(27));
-
-			let rewStaker2 = await stakingRewards.earnedTotal(staker2);
-			assert.equal(rewStaker2.toString(), toUnit(33));
+			let rewStaker2 = await stakingRewards.earned(staker2);
+			assert.equal(rewStaker2.toString(), toUnit(40));
 
 			// Testing second leg of implementation
 
@@ -410,11 +379,11 @@ contract('StakingRewards_KWENTA', ([owner, rewardsDistribution, staker1, staker2
 
 			await fastForward(61);
 
-			rewStaker1 = await stakingRewards.earnedTotal(staker1);
-			assert.equal(rewStaker1.toString(), toUnit(68));
+			rewStaker1 = await stakingRewards.earned(staker1);
+			assertBNClose(rewStaker1, toUnit(62.857), toUnit(0.01));
 
-			rewStaker2 = await stakingRewards.earnedTotal(staker2);
-			assert.equal(rewStaker2.toString(), toUnit(52));
+			rewStaker2 = await stakingRewards.earned(staker2);
+			assertBNClose(rewStaker2, toUnit(57.143), toUnit(0.01));
 
 			// Testing third leg of implementation
 
@@ -430,11 +399,11 @@ contract('StakingRewards_KWENTA', ([owner, rewardsDistribution, staker1, staker2
 
 			await fastForward(31);
 
-			rewStaker1 = await stakingRewards.earnedTotal(staker1);
-			assertBNClose(rewStaker1, toUnit(87.8684), toUnit(0.01));
+			rewStaker1 = await stakingRewards.earned(staker1);
+			assertBNClose(rewStaker1, toUnit(82.088), toUnit(0.01));
 
-			rewStaker2 = await stakingRewards.earnedTotal(staker2);
-			assertBNClose(rewStaker2, toUnit(62.1316), toUnit(0.01));
+			rewStaker2 = await stakingRewards.earned(staker2);
+			assertBNClose(rewStaker2, toUnit(67.912), toUnit(0.01));
 
 			// Testing fourth leg of implementation
 
@@ -450,11 +419,11 @@ contract('StakingRewards_KWENTA', ([owner, rewardsDistribution, staker1, staker2
 
 			await fastForward(71);
 
-			rewStaker1 = await stakingRewards.earnedTotal(staker1);
-			assertBNClose(rewStaker1, toUnit(124.0197), toUnit(0.01));
+			rewStaker1 = await stakingRewards.earned(staker1);
+			assertBNClose(rewStaker1, toUnit(108.207), toUnit(0.01));
 
-			rewStaker2 = await stakingRewards.earnedTotal(staker2);
-			assertBNClose(rewStaker2, toUnit(95.9803), toUnit(0.01));
+			rewStaker2 = await stakingRewards.earned(staker2);
+			assertBNClose(rewStaker2, toUnit(111.793), toUnit(0.01));
 
 			// Testing fifth leg of implementation
 
@@ -470,11 +439,11 @@ contract('StakingRewards_KWENTA', ([owner, rewardsDistribution, staker1, staker2
 
 			await fastForward(31);
 
-			rewStaker1 = await stakingRewards.earnedTotal(staker1);
-			assertBNClose(rewStaker1, toUnit(138.3882), toUnit(0.1));
+			rewStaker1 = await stakingRewards.earned(staker1);
+			assertBNClose(rewStaker1, toUnit(117.885), toUnit(0.1));
 
-			rewStaker2 = await stakingRewards.earnedTotal(staker2);
-			assertBNClose(rewStaker2, toUnit(111.6118), toUnit(0.1));
+			rewStaker2 = await stakingRewards.earned(staker2);
+			assertBNClose(rewStaker2, toUnit(132.115), toUnit(0.1));
 
 			// Testing sixth leg of implementation
 
@@ -490,11 +459,11 @@ contract('StakingRewards_KWENTA', ([owner, rewardsDistribution, staker1, staker2
 
 			await fastForward(51);
 
-			rewStaker1 = await stakingRewards.earnedTotal(staker1);
-			assertBNClose(rewStaker1, toUnit(168.0035), toUnit(0.1));
+			rewStaker1 = await stakingRewards.earned(staker1);
+			assertBNClose(rewStaker1, toUnit(153.096), toUnit(0.1));
 
-			rewStaker2 = await stakingRewards.earnedTotal(staker2);
-			assertBNClose(rewStaker2, toUnit(131.9965), toUnit(0.1));
+			rewStaker2 = await stakingRewards.earned(staker2);
+			assertBNClose(rewStaker2, toUnit(146.904), toUnit(0.1));
 
 			await stakingRewards.exit({from: staker1});
 			await stakingRewards.exit({from: staker2});
