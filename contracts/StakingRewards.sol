@@ -288,15 +288,24 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
     }
 
     // TODO: Modifier for onlyRewardEscrow
-    function stakeEscrow(address _account, uint256 _amount) public nonReentrant definedEscrow updateStakingRewards(_account) {
+    function stakeEscrow(address _account, uint256 _amount) public nonReentrant onlyRewardEscrow definedEscrow updateStakingRewards(_account) {
+    /*
+    Function called from RewardEscrow (append vesting entry) to accumulate escrowed tokens into rewards
+    _account: address escrowing the rewards
+    _amount: uint256, amount escrowed
+    */
         _totalBalances[_account] = _totalBalances[_account].add(_amount);
         _escrowedBalances[_account] = _escrowedBalances[_account].add(_amount);
         _totalSupply = _totalSupply.add(_amount);
         emit EscrowStaked(_account, _amount);
     }
 
-    // TODO: Modifier for onlyRewardEscrow
-    function unstakeEscrow(address _account, uint256 _amount) public nonReentrant definedEscrow updateStakingRewards(_account) {
+    function unstakeEscrow(address _account, uint256 _amount) public nonReentrant onlyRewardEscrow definedEscrow updateStakingRewards(_account) {
+    /*
+    Function called from RewardEscrow (vest) to deduct the escrowed tokens and not accumulate rewards
+    _account: address escrowing the rewards
+    _amount: uint256, amount escrowed
+    */
         require(_escrowedBalances[_account] >= _amount, "Amount required too large");
         _totalBalances[_account] = _totalBalances[_account].sub(_amount);
         _escrowedBalances[_account] = _escrowedBalances[_account].sub(_amount);
@@ -421,6 +430,13 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
 
     modifier definedEscrow() {
         require(address(rewardEscrow) != address(0), "Rewards Escrow needs to be defined");
+        _;
+    }
+
+    modifier onlyRewardEscrow() {
+        bool isRE = msg.sender == address(rewardEscrow);
+
+        require(isRE, "Only the RewardEscrow contract can perform this action");
         _;
     }
 
