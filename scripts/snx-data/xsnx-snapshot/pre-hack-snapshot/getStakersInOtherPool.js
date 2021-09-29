@@ -79,7 +79,10 @@ async function getStakersInOtherPool(provider) {
 
   console.log("total address balances count:", addressCount);
 
-  console.log("sum of all bpt token holders:", ethers.utils.formatEther(balanceSum));
+  console.log(
+    "sum of all bpt token holders:",
+    ethers.utils.formatEther(balanceSum)
+  );
   console.log("total bpt supply:", ethers.utils.formatEther(bptTotalSupply));
   console.log("total xsnx in pool:", ethers.utils.formatEther(xsnxInPool));
   console.log("xsnx per 1 bpt:", xsnxPer1BPT / 100000000);
@@ -95,8 +98,14 @@ async function getStakersInOtherPool(provider) {
     totalBalance[address] = totalBalance[address].toString();
   }
 
-  console.log("total xSNX balance of snapshot:", ethers.utils.formatEther(totalxSNXBalance));
-  console.log("total xsnx in secondary pool:", ethers.utils.formatEther(xsnxInPool)));
+  console.log(
+    "total xSNX balance of snapshot:",
+    ethers.utils.formatEther(totalxSNXBalance)
+  );
+  console.log(
+    "total xsnx in secondary pool:",
+    ethers.utils.formatEther(xsnxInPool)
+  );
   fs.writeFileSync(
     "scripts/snx-data/xsnx-snapshot/pre-hack-snapshot/snapshotAAVELINKPool.json",
     JSON.stringify(totalBalance)

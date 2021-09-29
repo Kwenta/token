@@ -1,5 +1,4 @@
 const { ethers } = require("hardhat");
-const { bn } = require("../helpers");
 const XSNX = require("../xSNX.json");
 const { POST_HACK_START, AUGUST_SNAP } = require("../blocks");
 

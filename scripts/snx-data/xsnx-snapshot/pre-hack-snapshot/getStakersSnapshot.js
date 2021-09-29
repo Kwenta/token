@@ -100,7 +100,7 @@ async function getStakersSnapshot(provider) {
   console.log("total xsnx in pool:", ethers.utils.formatEther(xsnxInPool));
   console.log("xsnx per 1 bpt:", xsnxPer1BPT / 100000000);
 
-  let totalxSNXBalance = bn(0);
+  let totalxSNXBalance = new ethers.BigNumber.from(0);
   // Convert BPT to xSNX balance
   for (let address of Object.keys(totalBalance)) {
     let balance = totalBalance[address];

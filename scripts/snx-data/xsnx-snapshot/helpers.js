@@ -1,4 +1,4 @@
-const { ethers, network } = require("hardhat");
+const { ethers } = require("hardhat");
 
 /**
  * Deploy a contract by name without constructor arguments
@@ -28,38 +28,8 @@ async function deployWithAbi(contract, deployer, ...args) {
   return await Factory.deploy(...args);
 }
 
-/**
- * Return BigNumber
- */
-function bn(amount) {
-  return new ethers.BigNumber.from(amount);
-}
-
-/**
- * Returns number representing BigNumber without decimal precision
- */
-function getNumberNoDecimals(amount) {
-  let decimal = Math.pow(10, 18);
-  let decimals = bn(decimal.toString());
-  return amount.div(decimals).toNumber();
-}
-
-/**
- * Returns number representing BigNumber without decimal precision (custom)
- */
-function getNumberDivDecimals(amount, _decimals) {
-  let decimal = Math.pow(10, _decimals);
-  let decimals = bn(decimal.toString());
-  return amount.div(decimals).toNumber();
-}
-
 module.exports = {
   deploy,
   deployArgs,
   deployWithAbi,
-  bn,
-  bnDecimal,
-  bnDecimals,
-  getNumberNoDecimals,
-  getNumberDivDecimals,
 };

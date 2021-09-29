@@ -1,6 +1,5 @@
 // const fs = require("fs");
 const { ethers } = require("hardhat");
-const { getNumberNoDecimals } = require("../../snx-data/xsnx-snapshot/helpers");
 const SNX = require("../SNX.json");
 
 const SNX_ADDRESS = "0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f";
@@ -107,7 +106,7 @@ async function getL2Snapshot(minBlock, maxBlock, provider) {
     totalBalance[address] = totalBalance[address].toString();
   }
   console.log(
-    `from blocks ${minBlock} to ${maxBlock} - calculated L2 balance: ${getNumberNoDecimals(
+    `from blocks ${minBlock} to ${maxBlock} - calculated L2 balance: ${ethers.utils.formatEther(
       balanceSum
     )}`
   );

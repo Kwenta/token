@@ -13,7 +13,7 @@ async function getSnapshot(provider) {
 
   const snapshot = {};
   for (let [address, amount] of Object.entries(preHackSnapshot)) {
-    snapshot[address] = bn(amount);
+    snapshot[address] = amount;
   }
   for (let [address, amount] of Object.entries(augustHackSnapshot)) {
     if (snapshot[address]) {

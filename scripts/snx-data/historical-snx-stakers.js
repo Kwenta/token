@@ -94,8 +94,13 @@ async function fetchData() {
     }
 
     for (const [address, holdings] of Object.entries(resultL2)) {
-      weeklyRewardL2 += (holdings / 1e18) * (EST_L2_REWARDS_APY / 52);
-      dataL2.push({ account: address.toLowerCase(), rewards: weeklyRewardL2 });
+      const newWeeklyRewardL2 = (holdings / 1e18) * (EST_L2_REWARDS_APY / 52);
+      console.log("newWeeklyRewardL2", newWeeklyRewardL2);
+      weeklyRewardL2 += newWeeklyRewardL2;
+      dataL2.push({
+        account: address.toLowerCase(),
+        rewards: newWeeklyRewardL2,
+      });
     }
     console.log("L1 rewards for week " + (i + 1) + " - ", weeklyRewardL1);
     console.log("L1 stakers for week " + (i + 1) + " - ", result.length);
@@ -193,13 +198,13 @@ async function fetchData() {
 }
 
 function updateAccountAndTotalsWeekly(allUserData, weeklyReward) {
-  Object.keys(allUserData).map((userData) => {
-    const weeklyPercent = userData.rewards / weeklyReward;
+  allUserData.map(({ rewards, account }) => {
+    const weeklyPercent = rewards / weeklyReward;
 
-    if (accountsScores[userData.account]) {
-      accountsScores[userData.account] += weeklyPercent;
+    if (accountsScores[account]) {
+      accountsScores[account] += weeklyPercent;
     } else {
-      accountsScores[userData.account] = weeklyPercent;
+      accountsScores[account] = weeklyPercent;
     }
 
     totalScores += weeklyPercent;

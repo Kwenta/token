@@ -57,7 +57,7 @@ async function getHoldersSnapshot(provider) {
   delete totalBalance[balancerXsnxPool]; // remove balancer pool from snapshot
   delete totalBalance[balancerXsnxPoolSecondary]; // remove balancer pool 2 from snapshot
 
-  let balanceSum = bn(0);
+  let balanceSum = new ethers.BigNumber.from(0);
   let addressCount = 0;
   for (let address of Object.keys(totalBalance)) {
     // remove 0 balance addresses and address 0x0 which is < 0 balance
