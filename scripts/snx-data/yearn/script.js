@@ -1,5 +1,5 @@
-// const fs = require("fs");
 const { ethers } = require("hardhat");
+const { queryFilterHelper } = require("../utils");
 
 const SNX_ADDRESS = "0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f";
 const SNX_YEARN_VAULT = "0xF29AE508698bDeF169B89834F76704C3B205aedf";
@@ -10,10 +10,15 @@ async function getYearnData(minBlock, maxBlock, provider) {
   const snx = new ethers.Contract(SNX_ADDRESS, SNX.abi, provider);
   const filterTo = snx.filters.Transfer(null, SNX_YEARN_VAULT);
   const filterFrom = snx.filters.Transfer(SNX_YEARN_VAULT);
-  const transfersIn = await getSNXTransfers(snx, minBlock, maxBlock, filterTo);
+  const transfersIn = await queryFilterHelper(
+    snx,
+    minBlock,
+    maxBlock,
+    filterTo
+  );
   console.log("[new bridge] transfers in count", transfersIn.length);
 
-  const transfersOut = await getSNXTransfers(
+  const transfersOut = await queryFilterHelper(
     snx,
     minBlock,
     maxBlock,
@@ -39,9 +44,9 @@ async function getYearnData(minBlock, maxBlock, provider) {
     if (totalBalance[address]) {
       totalBalance[address] = totalBalance[address].sub(value);
     } else {
-      throw new Error(
-        `a: unexepected yearn transfer error from address ${address}`
-      );
+      // throw new Error(
+      //   `unexepected yearn transfer error from address: ${address}`
+      // );
     }
   }
 
@@ -66,34 +71,26 @@ async function getYearnData(minBlock, maxBlock, provider) {
   return totalBalance;
 }
 
-async function getSNXTransfers(snx, fromBlock, toBlock, filter) {
-  let transferEvents = await snx.queryFilter(filter, fromBlock, toBlock);
-  let transfers = [];
-
-  for (let i = 0; i < transferEvents.length; ++i) {
-    let data = {
-      value: transferEvents[i].args.value,
-      from: transferEvents[i].args.from,
-      to: transferEvents[i].args.to,
-    };
-    transfers.push(data);
-  }
-
-  return transfers;
-}
-
 module.exports = {
   getYearnData,
 };
 
 // async function main() {
-// 	const data = await getYearnData(0, 'latest');
-// 	fs.writeFileSync('scripts/snx-data/yearn/yearn_snapshot.json', JSON.stringify(data));
+//   const provider = new ethers.providers.JsonRpcProvider(
+//     {
+//       url: process.env.ARCHIVE_NODE_URL,
+//       user: process.env.ARCHIVE_NODE_USER,
+//       password: process.env.ARCHIVE_NODE_PASS,
+//       timeout: 300000,
+//     },
+//     1
+//   );
+//   return getYearnData(12572748, 13323457, provider);
 // }
 
 // main()
-// 	.then(() => process.exit(0))
-// 	.catch(error => {
-// 		console.error(error);
-// 		process.exit(1);
-// 	});
+//   .then(() => process.exit(0))
+//   .catch((error) => {
+//     console.error(error);
+//     process.exit(1);
+//   });

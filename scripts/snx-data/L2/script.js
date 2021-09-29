@@ -19,7 +19,7 @@ async function getL2Snapshot(minBlock, maxBlock, provider) {
     maxBlock,
     filterToNew
   );
-  //console.log('[new bridge] transfers in count', transfersInNew.length);
+  console.log("[new l2 bridge] transfers in count", transfersInNew.length);
 
   const transfersOutNew = await getSNXTransfers(
     snx,
@@ -27,7 +27,7 @@ async function getL2Snapshot(minBlock, maxBlock, provider) {
     maxBlock,
     filterFromNew
   );
-  //console.log('[new bridge] transfers out count', transfersOutNew.length);
+  console.log("[new l2 bridge] transfers out count", transfersOutNew.length);
 
   const transfersInOld = await getSNXTransfers(
     snx,
@@ -35,7 +35,7 @@ async function getL2Snapshot(minBlock, maxBlock, provider) {
     maxBlock,
     filterToOld
   );
-  //console.log('[old bridge] transfers in count', transfersInOld.length);
+  console.log("[old l2 bridge] transfers in count", transfersInOld.length);
 
   const transfersOutOld = await getSNXTransfers(
     snx,
@@ -43,11 +43,10 @@ async function getL2Snapshot(minBlock, maxBlock, provider) {
     maxBlock,
     filterFromOld
   );
-  //console.log('[old bridge] transfers out count', transfersOutOld.length);
+  console.log("[old l2 bridge] transfers out count", transfersOutOld.length);
 
   // add and subtract balance for addresses for each transfer
   let totalBalance = {};
-  console.log("transfersInNew.length", transfersInNew.length);
   for (let i = 0; i < transfersInNew.length; ++i) {
     let address = transfersInNew[i].from;
     let value = transfersInNew[i].value;
@@ -57,21 +56,19 @@ async function getL2Snapshot(minBlock, maxBlock, provider) {
       totalBalance[address] = value;
     }
   }
-  console.log("transfersOutNew.length", transfersOutNew.length);
+
   for (let i = 0; i < transfersOutNew.length; ++i) {
     let address = transfersOutNew[i].from;
     let value = transfersOutNew[i].value;
     if (totalBalance[address]) {
       totalBalance[address] = totalBalance[address].sub(value);
     } else {
-      // TODO add this back for prod. not for testing
-      // throw new Error(
-      //   `a: unexepected l2 transfer error from address ${address}`
-      // );
+      throw new Error(
+        `a: unexepected l2 transfer error from address ${address}`
+      );
     }
   }
 
-  console.log("transfersInOld.length", transfersInOld.length);
   for (let i = 0; i < transfersInOld.length; ++i) {
     let address = transfersInOld[i].from;
     let value = transfersInOld[i].value;
@@ -81,17 +78,16 @@ async function getL2Snapshot(minBlock, maxBlock, provider) {
       totalBalance[address] = value;
     }
   }
-  console.log("transfersOutOld.length", transfersOutOld.length);
+
   for (let i = 0; i < transfersOutOld.length; ++i) {
     let address = transfersOutOld[i].from;
     let value = transfersOutOld[i].value;
     if (totalBalance[address]) {
       totalBalance[address] = totalBalance[address].sub(value);
     } else {
-      // TODO add this back for prod. not for testing
-      // throw new Error(
-      //   `b: unexepected l2 transfer error from address ${address}`
-      // );
+      throw new Error(
+        `b: unexepected l2 transfer error from address ${address}`
+      );
     }
   }
 

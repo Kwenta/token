@@ -12,6 +12,7 @@ const { getL2Snapshot } = require("./l2/script.js");
 const PROXY_FEE_POOL_ADDRESS = "0xb440dd674e1243644791a4adfe3a2abb0a92d309";
 const XSNX_ADMIN_PROXY = 0x7cd5e2d0056a7a7f09cbb86e540ef4f6dccc97dd;
 const YEARN_STAKING_ADDRESS = 0xc9a62e09834cedcff8c136f33d0ae3406aea66bd;
+const YEARN_STAKING_START_BLOCK = 12272748;
 const EST_L2_REWARDS_APY = 0.2;
 const MAX_GET_BLOCK_FAILS = 5;
 
@@ -62,6 +63,7 @@ async function fetchData() {
       url: process.env.ARCHIVE_NODE_URL,
       user: process.env.ARCHIVE_NODE_USER,
       password: process.env.ARCHIVE_NODE_PASS,
+      timeout: 200000,
     },
     1
   );
@@ -95,7 +97,6 @@ async function fetchData() {
 
     for (const [address, holdings] of Object.entries(resultL2)) {
       const newWeeklyRewardL2 = (holdings / 1e18) * (EST_L2_REWARDS_APY / 52);
-      console.log("newWeeklyRewardL2", newWeeklyRewardL2);
       weeklyRewardL2 += newWeeklyRewardL2;
       dataL2.push({
         account: address.toLowerCase(),
@@ -126,7 +127,7 @@ async function fetchData() {
       blocks[i],
       "max block",
       blocks[i + 1],
-      "diff",
+      "num blocks in week",
       blocks[i + 1] - blocks[i]
     );
     txCount += result.length;
@@ -134,42 +135,43 @@ async function fetchData() {
 
   // xSNX & Yearn snapshot
   for (const [key, value] of Object.entries(accountsScores)) {
-    if (key == XSNX_ADMIN_PROXY) {
-      console.log("XSNX_ADMIN_PROXY score", value);
+    // if (key == XSNX_ADMIN_PROXY) {
+    //   console.log("XSNX_ADMIN_PROXY score", value);
 
-      let xSNXTotal = 0;
-      //const snapshot = await getXSNXSnapshot(value, blocks[blocks.length - 1], provider);
-      const snapshot = await getXSNXSnapshot(value, provider);
-      for (const [snapshotKey, snapshotValue] of Object.entries(snapshot)) {
-        if (accountsScores[snapshotKey.toLowerCase()]) {
-          console.log(
-            "current value pre xSNX",
-            accountsScores[snapshotKey.toLowerCase()]
-          );
-          console.log("add'l xSNX snapshot value", snapshotValue);
-          accountsScores[snapshotKey.toLowerCase()] += snapshotValue;
-        } else {
-          accountsScores[snapshotKey.toLowerCase()] = snapshotValue;
-        }
-        xSNXTotal += snapshotValue;
-      }
+    //   let xSNXTotal = 0;
+    //   //const snapshot = await getXSNXSnapshot(value, blocks[blocks.length - 1], provider);
+    //   const snapshot = await getXSNXSnapshot(value, provider);
+    //   for (const [snapshotKey, snapshotValue] of Object.entries(snapshot)) {
+    //     if (accountsScores[snapshotKey.toLowerCase()]) {
+    //       console.log(
+    //         "current value pre xSNX",
+    //         accountsScores[snapshotKey.toLowerCase()]
+    //       );
+    //       console.log("add'l xSNX snapshot value", snapshotValue);
+    //       accountsScores[snapshotKey.toLowerCase()] += snapshotValue;
+    //     } else {
+    //       accountsScores[snapshotKey.toLowerCase()] = snapshotValue;
+    //     }
+    //     xSNXTotal += snapshotValue;
+    //   }
 
-      // should be roughly the same value as XSNX_ADMIN_PROXY score
-      console.log("xSNXTotal", xSNXTotal);
-      console.log("xSNX deleted score", accountsScores[XSNX_ADMIN_PROXY]);
+    //   // should be roughly the same value as XSNX_ADMIN_PROXY score
+    //   console.log("xSNXTotal", xSNXTotal);
+    //   console.log("xSNX deleted score", accountsScores[XSNX_ADMIN_PROXY]);
 
-      // don't give any score to the xSNX proxy
-      accountsScores[key] = 0;
-    } else if (key == YEARN_STAKING_ADDRESS) {
+    //   // don't give any score to the xSNX proxy
+    //   accountsScores[key] = 0;
+    // } else
+    if (key == YEARN_STAKING_ADDRESS) {
       console.log("YEARN_STAKING_ADDRESS score", value);
 
       let yearnTotal = 0;
-      const yearnSnapshot = await getYearnSnapshot(
-        value,
-        0,
-        blocks[blocks.length - 1],
-        provider
-      );
+      // const yearnSnapshot = await getYearnSnapshot(
+      //   value,
+      //   YEARN_STAKING_START_BLOCK,
+      //   blocks[blocks.length - 1],
+      //   provider
+      // );
       for (const [snapshotKey, snapshotValue] of Object.entries(
         yearnSnapshot
       )) {

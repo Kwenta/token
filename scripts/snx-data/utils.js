@@ -96,10 +96,63 @@ const setTargetAddress = (contractName, network, address) => {
   );
 };
 
+// NOTE that our archive node fails on filter requests spanning 500K blocks
+// so we are recursively getting data we need from it in 300K intervals
+async function queryFilterHelper(
+  contract,
+  fromBlock,
+  toBlock,
+  filter,
+  prevTransfers = [],
+  attempt = 0
+) {
+  const MAX_RETRIES = 3;
+  try {
+    const NUM_BLOCKS = 300000;
+    const tempToBlock =
+      fromBlock + NUM_BLOCKS >= toBlock ? toBlock : fromBlock + NUM_BLOCKS;
+    let events = await contract.queryFilter(filter, fromBlock, tempToBlock);
+    let transfers = [];
+    console.log(`getting data from ${fromBlock} to ${tempToBlock}`);
+    for (let i = 0; i < events.length; ++i) {
+      let data = {
+        value: events[i].args.value,
+        from: events[i].args.from,
+        to: events[i].args.to,
+      };
+      transfers.push(data);
+    }
+    const updatedTransfers = [...prevTransfers, ...transfers];
+    if (tempToBlock === toBlock) {
+      return updatedTransfers;
+    }
+    return queryFilterHelper(
+      contract,
+      fromBlock + NUM_BLOCKS,
+      toBlock,
+      filter,
+      updatedTransfers
+    );
+  } catch (e) {
+    if (attempt + 1 > MAX_RETRIES) {
+      throw new Error("too many errors in the queryFilter helper");
+    }
+    return queryFilterHelper(
+      contract,
+      fromBlock,
+      toBlock,
+      filter,
+      prevTransfers,
+      attempt + 1
+    );
+  }
+}
+
 module.exports = {
   getTargetAddress,
   setTargetAddress,
   feesClaimed,
   getXSNXSnapshot,
   getYearnSnapshot,
+  queryFilterHelper,
 };
