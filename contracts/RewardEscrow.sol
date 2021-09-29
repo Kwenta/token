@@ -24,7 +24,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
     StakingRewards public stakingRewards;
 
     /* Lists of (timestamp, quantity) pairs per account, sorted in ascending time order.
-     * These are the times at which each given quantity of SNX vests. */
+     * These are the times at which each given quantity of KWENTA vests. */
     mapping(address => uint[2][]) public vestingSchedules;
 
     /* An account's total escrowed Kwenta balance to save recomputing this for fee extraction purposes. */
@@ -59,11 +59,11 @@ contract RewardEscrow is Owned, IRewardEscrow {
     /* ========== SETTERS ========== */
 
     /**
-     * @notice set the Kwenta contract address as we need to transfer SNX when the user vests
+     * @notice set the Kwenta contract address as we need to transfer KWENTA when the user vests
      */
     function setKwenta(IERC20 _kwenta) external onlyOwner {
         kwenta = _kwenta;
-        emit kwentaUpdated(address(_kwenta));
+        emit KwentaUpdated(address(_kwenta));
     }
 
     /**
@@ -111,7 +111,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
     }
 
     /**
-     * @notice Get the quantity of SNX associated with a given schedule entry.
+     * @notice Get the quantity of KWENTA associated with a given schedule entry.
      */
     function getVestingQuantity(address account, uint index) public view returns (uint) {
         return getVestingScheduleEntry(account, index)[QUANTITY_INDEX];
@@ -195,7 +195,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
         if (scheduleLength == 0) {
             totalEscrowedAccountBalance[account] = quantity;
         } else {
-            /* Disallow adding new vested SNX earlier than the last one.
+            /* Disallow adding new vested KWENTA earlier than the last one.
              * Since entries are only appended, this means that no vesting date can be repeated. */
             require(
                 getVestingTime(account, scheduleLength - 1) < time,
@@ -216,7 +216,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
      * Note; although this function could technically be used to produce unbounded
      * arrays, it's only withinn the 4 year period of the weekly inflation schedule.
      * @param account The account to append a new vesting entry to.
-     * @param quantity The quantity of SNX that will be escrowed.
+     * @param quantity The quantity of KWENTA that will be escrowed.
      */
     function appendVestingEntry(address account, uint quantity) external {
         _appendVestingEntry(account, quantity);
@@ -224,7 +224,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
     }
 
     /**
-     * @notice Allow a user to withdraw any SNX in their schedule that have vested.
+     * @notice Allow a user to withdraw any KWENTA in their schedule that have vested.
      */
     function vest() external {
         uint numEntries = _numVestingEntries(msg.sender);
@@ -263,7 +263,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
 
     /* ========== EVENTS ========== */
 
-    event kwentaUpdated(address newkwenta);
+    event KwentaUpdated(address newkwenta);
 
     event FeePoolUpdated(address newFeePool);
 

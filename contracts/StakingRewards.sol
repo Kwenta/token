@@ -39,7 +39,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
     // Reward rate per second for next epoch
     uint256 public rewardRate = 0;
     // Epoch default duration
-    uint256 public rewardsDuration = 1 minutes;
+    uint256 public rewardsDuration = 7 days;
     // Last time an event altering the rewardscore
     uint256 public lastUpdateTimeRewardScore;
     // Last rewardRate per RewardScore
@@ -92,35 +92,42 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
 
     function totalRewardScore() external view returns (uint256) {
     /*
-    Getter funtion for the state variable _totalRewardScore
+    Getter function for the state variable _totalRewardScore
     */
         return _totalRewardScore;
     }
 
     function balanceOf(address account) public view returns (uint256) {
     /*
-    Getter funtion for the staked balance of an account
+    Getter function for the staked balance of an account
     */
         return _totalBalances[account].sub(_escrowedBalances[account]);
     }
 
     function rewardScoreOf(address account) public view returns (uint256) {
     /*
-    Getter funtion for the reward score of an account
+    Getter function for the reward score of an account
     */
         return _rewardScores[account];
     }
 
     function totalBalanceOf(address account) external view returns (uint256) {
     /*
-    Getter funtion for the total balances of an account (staked + escrowed rewards)
+    Getter function for the total balances of an account (staked + escrowed rewards)
     */
         return _totalBalances[account];
     }
 
+    function escrowedBalanceOf(address account) external view returns (uint256) {
+    /*
+    Getter function for the escrowed balance of an account
+    */
+        return _escrowedBalances[account];
+    }
+
     function feesOf(address account) external view returns (uint256) {
     /*
-    Getter funtion for the state variable _feesPaid
+    Getter function for the state variable _feesPaid
     */
         return _feesPaid[account];
     }
@@ -228,7 +235,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         emit Withdrawn(msg.sender, amount);
     }
 
-    function getReward() public definedEscrow updateRewards(msg.sender){
+    function getReward() public updateRewards(msg.sender){
     /*
     Function transferring the accumulated rewards for the caller address and updating the state mapping 
     containing the current rewards
@@ -241,7 +248,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         }
     }
 
-    function exit() external definedEscrow {
+    function exit() external {
     /*
     Function handling the exit of the protocol of the caller:
     - Withdraws all tokens
@@ -251,7 +258,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         getReward();
     }
 
-    function stakeEscrow(address _account, uint256 _amount) public nonReentrant onlyRewardEscrow definedEscrow updateRewards(_account) {
+    function stakeEscrow(address _account, uint256 _amount) public nonReentrant onlyRewardEscrow updateRewards(_account) {
     /*
     Function called from RewardEscrow (append vesting entry) to accumulate escrowed tokens into rewards
     _account: address escrowing the rewards
@@ -264,7 +271,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         emit EscrowStaked(_account, _amount);
     }
 
-    function unstakeEscrow(address _account, uint256 _amount) public nonReentrant onlyRewardEscrow definedEscrow updateRewards(_account) {
+    function unstakeEscrow(address _account, uint256 _amount) public nonReentrant onlyRewardEscrow updateRewards(_account) {
     /*
     Function called from RewardEscrow (vest) to deduct the escrowed tokens and not accumulate rewards
     _account: address escrowing the rewards
@@ -362,11 +369,6 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
             rewards[account] = earned(account);
             userRewardPerRewardScorePaid[account] = rewardPerRewardScoreStored;
         }
-        _;
-    }
-
-    modifier definedEscrow() {
-        require(address(rewardEscrow) != address(0), "Rewards Escrow needs to be defined");
         _;
     }
 

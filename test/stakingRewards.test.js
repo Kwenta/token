@@ -348,6 +348,8 @@ contract('StakingRewards_KWENTA', ([owner, rewardsDistribution, staker1, staker2
 
 			// Testing first leg of implementation
 
+			await stakingRewards.setRewardsDuration(60, {from: owner});
+
 			await stakingRewards.stake(toUnit(10), {from: staker1});
 			await stakingRewards.stake(toUnit(10), {from: staker2});
 
@@ -440,10 +442,10 @@ contract('StakingRewards_KWENTA', ([owner, rewardsDistribution, staker1, staker2
 			await fastForward(31);
 
 			rewStaker1 = await stakingRewards.earned(staker1);
-			assertBNClose(rewStaker1, toUnit(117.885), toUnit(0.1));
+			assertBNClose(rewStaker1, toUnit(117.885), toUnit(0.01));
 
 			rewStaker2 = await stakingRewards.earned(staker2);
-			assertBNClose(rewStaker2, toUnit(132.115), toUnit(0.1));
+			assertBNClose(rewStaker2, toUnit(132.115), toUnit(0.01));
 
 			// Testing sixth leg of implementation
 
@@ -460,10 +462,10 @@ contract('StakingRewards_KWENTA', ([owner, rewardsDistribution, staker1, staker2
 			await fastForward(51);
 
 			rewStaker1 = await stakingRewards.earned(staker1);
-			assertBNClose(rewStaker1, toUnit(153.096), toUnit(0.1));
+			assertBNClose(rewStaker1, toUnit(153.096), toUnit(0.01));
 
 			rewStaker2 = await stakingRewards.earned(staker2);
-			assertBNClose(rewStaker2, toUnit(146.904), toUnit(0.1));
+			assertBNClose(rewStaker2, toUnit(146.904), toUnit(0.01));
 
 			await stakingRewards.exit({from: staker1});
 			await stakingRewards.exit({from: staker2});
@@ -473,6 +475,42 @@ contract('StakingRewards_KWENTA', ([owner, rewardsDistribution, staker1, staker2
 			
 			assert.equal(bal1.toString(), rewStaker1.toString());
 			assert.equal(bal2.toString(), rewStaker2.toString());
+
+			fastForward(60*60*24*366);
+
+			bal1 = await stakingToken.balanceOf(staker1);	
+			bal2 = await stakingToken.balanceOf(staker2);
+
+			assert.equal(bal1.toString(), toUnit(100));
+			assert.equal(bal2.toString(), toUnit(100));
+
+			await rewardsEscrow.vest({from: staker1});
+			await rewardsEscrow.vest({from: staker2});
+
+			bal1 = await stakingToken.balanceOf(staker1);	
+			bal2 = await stakingToken.balanceOf(staker2);
+
+			assertBNClose(bal1, toUnit(253.096), toUnit(0.01));
+			assertBNClose(bal2, toUnit(246.904), toUnit(0.01));
+
+			bal1 = await rewardsEscrow.totalEscrowedAccountBalance(staker1);	
+			bal2 = await rewardsEscrow.totalEscrowedAccountBalance(staker2);
+
+			assert.equal(bal1.toString(), 0);
+			assert.equal(bal2.toString(), 0);
+
+			bal1 = await stakingRewards.totalBalanceOf(staker1);	
+			bal2 = await stakingRewards.totalBalanceOf(staker2);
+
+			assert.equal(bal1.toString(), 0);
+			assert.equal(bal2.toString(), 0);
+
+			bal1 = await stakingRewards.escrowedBalanceOf(staker1);	
+			bal2 = await stakingRewards.escrowedBalanceOf(staker2);
+
+			assert.equal(bal1.toString(), 0);
+			assert.equal(bal2.toString(), 0);
+
 		});
 	});
 
