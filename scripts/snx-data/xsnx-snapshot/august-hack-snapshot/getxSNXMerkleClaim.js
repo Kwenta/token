@@ -1,6 +1,5 @@
-const { ethers } = require("hardhat");
 const fs = require("fs");
-const { bn } = require("../helpers");
+const { ethers } = require("hardhat");
 const XSNX = require("./xSNX.json");
 const merkleClaimSnapshot = require("./pre-hack-snapshot.json");
 
@@ -28,20 +27,23 @@ async function getUnclaimedXSNXaMerkleClaim(provider) {
 
   // Remove all addresses which have redeemed their xSNXa from xSNXaMerkleClaim Contract
   for (let i = 0; i < transferEvents.length; ++i) {
-    let values = transferEvents[i].returnValues;
-    values.txid = transferEvents[i].transactionHash;
-    if (values.from == merkleClaimsContract) {
-      if (totalBalance[values.to]) {
-        delete totalBalance[values.to];
+    const data = {
+      value: transferEvents[i].args.value,
+      from: transferEvents[i].args.from,
+      to: transferEvents[i].args.to,
+    };
+    if (data.from == merkleClaimsContract) {
+      if (totalBalance[data.to]) {
+        delete totalBalance[data.to];
       }
     }
   }
 
-  let totalAllocated = bn(0);
+  let totalAllocated = new ethers.BigNumber.from(0);
   let addressCount = 0;
   for (let address of Object.keys(totalBalance)) {
     // remove 0 balance addresses and address 0x0 which is < 0 balance
-    if (totalBalance[address] <= 0) {
+    if (totalBalance[address].lte(0)) {
       delete totalBalance[address];
       continue;
     }
@@ -53,7 +55,10 @@ async function getUnclaimedXSNXaMerkleClaim(provider) {
     "total addresses which haven't claimed from xSNXMerkleClaim:",
     addressCount
   );
-  console.log("total address xSNX value:", totalAllocated.toString());
+  console.log(
+    "total address xSNX value:",
+    ethers.utils.formatEther(totalAllocated)
+  );
 
   fs.writeFileSync(
     "scripts/snx-data/xsnx-snapshot/august-hack-snapshot/snapshotXSNXaMerkleUnclaimed.json",

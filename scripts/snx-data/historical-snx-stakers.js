@@ -72,10 +72,7 @@ async function fetchData() {
   // const blocks = await getBlocksInChunks(provider, contractStartBlock, []);
   // console.log("blocks", blocks);
   // TODO remove this - just for testing
-  const blocks = [
-    12823540, 12868207, 12912866, 12957072, 13002303, 13047648, 13092917,
-    13138392, 13183697, 13228907, 13274218,
-  ];
+  const blocks = [12823540, 12868207, 12912866];
 
   for (let i = 0; i < blocks.length; i++) {
     if (!blocks[i + 1]) break;
@@ -144,7 +141,7 @@ async function fetchData() {
             "current value pre xSNX",
             accountsScores[snapshotKey.toLowerCase()]
           );
-          console.log("xSNX snapshot value", snapshotValue);
+          console.log("add'l xSNX snapshot value", snapshotValue);
           accountsScores[snapshotKey.toLowerCase()] += snapshotValue;
         } else {
           accountsScores[snapshotKey.toLowerCase()] = snapshotValue;
@@ -154,6 +151,7 @@ async function fetchData() {
 
       // should be roughly the same value as XSNX_ADMIN_PROXY score
       console.log("xSNXTotal", xSNXTotal);
+      console.log("xSNX deleted score", accountsScores[XSNX_ADMIN_PROXY]);
 
       // don't give any score to the xSNX proxy
       accountsScores[key] = 0;
@@ -175,7 +173,7 @@ async function fetchData() {
             "current value pre yearn",
             accountsScores[snapshotKey.toLowerCase()]
           );
-          console.log("yearn snapshot value", snapshotValue);
+          console.log("add'l yearn snapshot value", snapshotValue);
           accountsScores[snapshotKey.toLowerCase()] += snapshotValue;
         } else {
           accountsScores[snapshotKey.toLowerCase()] = snapshotValue;
@@ -184,9 +182,9 @@ async function fetchData() {
       }
 
       // should be roughly the same value as YEARN_STAKING_ADDRESS score
-      console.log("yearnTotal", yearnTotal);
-
-      // don't give any score to the main yearn staking address
+      console.log("yearn indiv total", yearnTotal);
+      console.log("yearn deleted score", accountsScores[YEARN_STAKING_ADDRESS]);
+      // don't give any score to the main yearn address
       accountsScores[key] = 0;
     }
   }

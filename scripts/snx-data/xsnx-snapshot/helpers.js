@@ -36,24 +36,6 @@ function bn(amount) {
 }
 
 /**
- * Returns bignumber scaled to 18 decimals
- */
-function bnDecimal(amount) {
-  let decimal = Math.pow(10, 18);
-  let decimals = bn(decimal.toString());
-  return bn(amount).mul(decimals);
-}
-
-/**
- * Returns bignumber scaled to custom amount of decimals
- */
-function bnDecimals(amount, _decimals) {
-  let decimal = Math.pow(10, _decimals);
-  let decimals = bn(decimal.toString());
-  return bn(amount).mul(decimals);
-}
-
-/**
  * Returns number representing BigNumber without decimal precision
  */
 function getNumberNoDecimals(amount) {

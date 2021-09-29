@@ -1,5 +1,4 @@
 const { ethers } = require("hardhat");
-const { bn } = require("../helpers");
 const XSNX = require("./xSNX.json");
 
 /**
@@ -23,13 +22,16 @@ async function getStakingRewardsStakers(provider) {
 
   // record all transfers to and from pool (all go through balancer pool)
   for (let i = 0; i < transferEvents.length; ++i) {
-    let values = transferEvents[i].returnValues;
-    values.txid = transferEvents[i].transactionHash;
-    if (values.from == stakingRewardsContract) {
-      transferFromStakingRewards.push(values);
+    const data = {
+      value: transferEvents[i].args.value,
+      from: transferEvents[i].args.from,
+      to: transferEvents[i].args.to,
+    };
+    if (data.from == stakingRewardsContract) {
+      transferFromStakingRewards.push(data);
     }
-    if (values.to == stakingRewardsContract) {
-      transferToStakingRewards.push(values);
+    if (data.to == stakingRewardsContract) {
+      transferToStakingRewards.push(data);
     }
   }
 
@@ -39,7 +41,7 @@ async function getStakingRewardsStakers(provider) {
 
   for (let i = 0; i < transferToStakingRewards.length; ++i) {
     let address = transferToStakingRewards[i].from;
-    let value = bn(transferToStakingRewards[i].value);
+    let value = transferToStakingRewards[i].value;
     if (totalBalance[address]) {
       totalBalance[address] = totalBalance[address].add(value);
     } else {
@@ -48,17 +50,17 @@ async function getStakingRewardsStakers(provider) {
   }
   for (let i = 0; i < transferFromStakingRewards.length; ++i) {
     let address = transferFromStakingRewards[i].to;
-    let value = bn(transferFromStakingRewards[i].value);
+    let value = transferFromStakingRewards[i].value;
     if (totalBalance[address]) {
       totalBalance[address] = totalBalance[address].sub(value);
     }
   }
 
-  let totalAllocated = bn(0);
+  let totalAllocated = new ethers.BigNumber.fom(0);
   let addressCount = 0;
   for (let address of Object.keys(totalBalance)) {
     // remove 0 balance addresses and address 0x0 which is < 0 balance
-    if (totalBalance[address] <= 0) {
+    if (totalBalance[address].lte(0)) {
       delete totalBalance[address];
       continue;
     }
@@ -69,7 +71,7 @@ async function getStakingRewardsStakers(provider) {
   console.log("total staking rewards stakers count:", addressCount);
   console.log(
     "total staked in rewards contract:",
-    totalAllocated.div(bn(10).pow(18)).toString()
+    ethers.utils.formatEther(totalAllocated)
   );
 
   return totalBalance;

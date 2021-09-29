@@ -3,7 +3,7 @@ const fs = require("fs");
 
 const { getStakingRewardsStakers } = require("./getStakingRewardsStakers");
 const XSNX = require("./xSNX.json");
-const { PRE_HACK_END } = require("./blocks");
+const { PRE_HACK_END } = require("../blocks");
 
 /**
  * Get snapshot of all addresses staking xSNX in xSNX Pool at a block before the xToken hack occurred
@@ -78,7 +78,7 @@ async function getStakersSnapshot(provider) {
   let addressCount = 0;
   for (let address of Object.keys(totalBalance)) {
     // remove 0 balance addresses and address 0x0 which is < 0 balance
-    if (totalBalance[address] <= 0) {
+    if (totalBalance[address].lte(0)) {
       delete totalBalance[address];
       continue;
     }

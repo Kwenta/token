@@ -1,9 +1,9 @@
 const { ethers } = require("hardhat");
 const fs = require("fs");
-const { getNumberNoDecimals } = require("../helpers");
 
 const XSNX = require("./xSNX.json");
 const { getUnclaimedXSNXaMerkleClaim } = require("./getxSNXMerkleClaim");
+const { AUGUST_SNAP } = require("../blocks");
 
 /**
  * Get snapshot of all addresses holding xSNX at a block before the xSNX hack occurred
@@ -21,13 +21,17 @@ async function getHoldersSnapshot(provider) {
   let transferEvents = await xsnx.queryFilter(
     xsnx.filters.Transfer(),
     0,
-    13118314
+    AUGUST_SNAP
   );
   let transfers = [];
 
   for (let i = 0; i < transferEvents.length; ++i) {
-    let values = transferEvents[i].returnValues;
-    transfers.push(values);
+    const data = {
+      value: transferEvents[i].args.value,
+      from: transferEvents[i].args.from,
+      to: transferEvents[i].args.to,
+    };
+    transfers.push(data);
   }
 
   // add and subtract balance for addresses for each transfer
@@ -35,7 +39,7 @@ async function getHoldersSnapshot(provider) {
 
   for (let i = 0; i < transfers.length; ++i) {
     let address = transfers[i].to;
-    let value = bn(transfers[i].value);
+    let value = transfers[i].value;
     if (totalBalance[address]) {
       totalBalance[address] = totalBalance[address].add(value);
     } else {
@@ -44,7 +48,7 @@ async function getHoldersSnapshot(provider) {
   }
   for (let i = 0; i < transfers.length; ++i) {
     let address = transfers[i].from;
-    let value = bn(transfers[i].value);
+    let value = transfers[i].value;
     if (totalBalance[address]) {
       totalBalance[address] = totalBalance[address].sub(value);
     } else {
@@ -66,11 +70,11 @@ async function getHoldersSnapshot(provider) {
     }
   }
 
-  let balanceSum = bn(0);
+  let balanceSum = new ethers.BigNumber.from(0);
   let addressCount = 0;
   for (let address of Object.keys(totalBalance)) {
     // remove 0 balance addresses and address 0x0 which is < 0 balance
-    if (totalBalance[address] <= 0) {
+    if (totalBalance[address].lte(0)) {
       delete totalBalance[address];
       continue;
     }
@@ -79,21 +83,25 @@ async function getHoldersSnapshot(provider) {
     addressCount++;
   }
   console.log("total addresses in snapshot count:", addressCount);
-  console.log("calculated pool balance:", getNumberNoDecimals(vaultBalance));
-  console.log("calculated holders balance:", getNumberNoDecimals(balanceSum));
+  console.log(
+    "calculated pool balance:",
+    ethers.utils.formatEther(vaultBalance)
+  );
+  console.log(
+    "calculated holders balance:",
+    ethers.utils.formatEther(balanceSum)
+  );
   console.log(
     "pool balance + holders balance:",
-    getNumberNoDecimals(vaultBalance) + getNumberNoDecimals(balanceSum)
+    ethers.utils.formatEther(vaultBalance) +
+      ethers.utils.formatEther(balanceSum)
   );
-  let xsnxTotalSupply = await xsnx.methods.totalSupply().call();
-  let xsnxBalanceInBalancer = await xsnx.methods
-    .balanceOf(balancerXsnxVault)
-    .call();
-
-  console.log("xsnx total supply:", getNumberNoDecimals(bn(xsnxTotalSupply)));
+  let xsnxTotalSupply = await xsnx.totalSupply();
+  let xsnxBalanceInBalancer = await xsnx.balanceOf(balancerXsnxVault);
+  console.log("xsnx total supply:", ethers.utils.formatEther(xsnxTotalSupply));
   console.log(
     "xsnx balance in balancer vault:",
-    getNumberNoDecimals(bn(xsnxBalanceInBalancer))
+    ethers.utils.formatEther(xsnxBalanceInBalancer)
   );
 
   fs.writeFileSync(
@@ -101,13 +109,6 @@ async function getHoldersSnapshot(provider) {
     JSON.stringify(totalBalance)
   );
   return totalBalance;
-}
-
-/**
- * Return BigNumber
- */
-function bn(amount) {
-  return new ethers.BigNumber.from(amount);
 }
 
 module.exports = { getHoldersSnapshot };

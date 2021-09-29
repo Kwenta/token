@@ -1,5 +1,5 @@
 const fs = require("fs");
-const { bn } = require("../helpers");
+const { ethers } = require("hardhat");
 
 /**
  * Merge the holders and stakers of xsnx in one final snapshot
@@ -9,7 +9,7 @@ async function getFinalSnapshot(xsnxHoldersSnapshot, xsnxStakersSnapshot) {
   // merge the two snapshots
   let finalSnapshot = {};
   for (let [address, amount] of Object.entries(xsnxHoldersSnapshot)) {
-    finalSnapshot[address] = bn(amount);
+    finalSnapshot[address] = new ethers.BigNumber.from(amount);
   }
   for (let [address, amount] of Object.entries(xsnxStakersSnapshot)) {
     if (finalSnapshot[address]) {
@@ -19,7 +19,7 @@ async function getFinalSnapshot(xsnxHoldersSnapshot, xsnxStakersSnapshot) {
     }
   }
 
-  let totalXSNXTValue = bn(0);
+  let totalXSNXTValue = new ethers.BigNumber.from(0);
   let distributionCount = 0;
   for (let [address, amount] of Object.entries(finalSnapshot)) {
     if (amount == 0) {
