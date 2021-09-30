@@ -6,6 +6,9 @@ import "openzeppelin-solidity-2.3.0/contracts/math/SafeMath.sol";
 import "openzeppelin-solidity-2.3.0/contracts/token/ERC20/ERC20Detailed.sol";
 import "openzeppelin-solidity-2.3.0/contracts/token/ERC20/SafeERC20.sol";
 import "openzeppelin-solidity-2.3.0/contracts/utils/ReentrancyGuard.sol";
+import "./libraries/FixidityLib.sol";
+import "./libraries/ExponentLib.sol";
+import "./libraries/LogarithmLib.sol";
 
 // Inheritance
 // import "./interfaces/IStakingRewards.sol";
@@ -24,8 +27,14 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
     - Calculating and notifying rewards
     */
     using SafeMath for uint256;
+    using SafeMath for int256;
+    using FixidityLib for FixidityLib.Fixidity;
+    using ExponentLib for FixidityLib.Fixidity;
+    using LogarithmLib for FixidityLib.Fixidity;
 
     /* ========== STATE VARIABLES ========== */
+
+    FixidityLib.Fixidity public fixidity;
 
     // Reward Escrow
     RewardEscrow public rewardEscrow;
@@ -66,8 +75,8 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
     uint256 private constant MIN_STAKE = 0;
 
     uint256 private constant MAX_BPS = 1e24;
-    uint256 private constant WEIGHT_FEES = 1;
-    uint256 private constant WEIGHT_STAKING = 1;
+    int256 private constant WEIGHT_FEES = 3333333333333333333;
+    int256 private constant WEIGHT_STAKING =1428571428571428571;
     uint256 public _weightFees = 7_000;
     uint256 public _weightTradingScore = 3_000;
     uint256 public _weightStakingScore = 7_000;
@@ -86,6 +95,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         rewardsToken = IERC20(_rewardsToken);
         stakingToken = IERC20(_stakingToken);
         rewardsDistribution = _rewardsDistribution;
+        fixidity.init(18);
     }
 
     /* ========== VIEWS ========== */
@@ -198,7 +208,11 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
     _account: address to update the reward score for
     returns: uint256 containing the new reward score for _account
     */
-        uint256 newRewardScore = (_totalBalances[_account] ** WEIGHT_STAKING).mul(_feesPaid[_account] ** WEIGHT_FEES);
+        
+        uint256 newRewardScore = 0;
+        if(_feesPaid[_account] > 0 && _totalBalances[_account] > 0) {
+            newRewardScore = uint256(fixidity.root_any(int256(_totalBalances[_account]), WEIGHT_STAKING)).mul(uint256(fixidity.root_any(int256(_feesPaid[_account]), WEIGHT_FEES)));
+        }
         _rewardScores[_account] = newRewardScore;
         return newRewardScore;
     }
