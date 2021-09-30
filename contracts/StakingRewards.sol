@@ -75,12 +75,9 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
     uint256 private constant MIN_STAKE = 0;
 
     uint256 private constant MAX_BPS = 1e24;
-    int256 private constant WEIGHT_FEES = 3333333333333333333;
-    int256 private constant WEIGHT_STAKING =1428571428571428571;
-    uint256 public _weightFees = 7_000;
-    uint256 public _weightTradingScore = 3_000;
-    uint256 public _weightStakingScore = 7_000;
-
+    int256 private constant WEIGHT_FEES = 3_333_333_333_333_333_333;
+    int256 private constant WEIGHT_STAKING =1_428_571_428_571_428_571;
+    
     /* ========== CONSTRUCTOR ========== */
 
     constructor(
