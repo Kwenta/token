@@ -26,7 +26,7 @@ async function getStakersSnapshot(blockNumber, provider) {
   const stakingRewardsContract = "0x9AA731A7302117A16e008754A8254fEDE2C35f8D"; // staking rewards address
   const transfers = await queryFilterHelper(
     bpt,
-    POST_HACK_START,
+    POST_HACK_START + 1,
     AUGUST_SNAP - 1,
     bpt.filters.Transfer()
   );

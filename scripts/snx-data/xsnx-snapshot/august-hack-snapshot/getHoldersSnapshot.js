@@ -3,7 +3,8 @@ const fs = require("fs");
 
 const XSNX = require("./xSNX.json");
 const { getUnclaimedXSNXaMerkleClaim } = require("./getxSNXMerkleClaim");
-const { AUGUST_SNAP } = require("../blocks");
+const { AUGUST_SNAP, XSNX_POST_HACK_DEPLOYED_BLOCK } = require("../blocks");
+const { queryFilterHelper } = require("../../utils");
 
 /**
  * Get snapshot of all addresses holding xSNX at a block before the xSNX hack occurred
@@ -16,23 +17,14 @@ async function getHoldersSnapshot(provider) {
     XSNX.abi,
     provider
   );
-  let balancerXsnxVault = "0xBA12222222228d8Ba445958a75a0704d566BF2C8"; // balancer vault address
-  let merkleClaimXSNXa = "0x1de6Cd47Dfe2dF0d72bff4354d04a79195cABB1C"; // xSNXa Merkle Claim contract
-  let transferEvents = await xsnx.queryFilter(
-    xsnx.filters.Transfer(),
-    0,
-    AUGUST_SNAP
+  const balancerXsnxVault = "0xBA12222222228d8Ba445958a75a0704d566BF2C8"; // balancer vault address
+  const merkleClaimXSNXa = "0x1de6Cd47Dfe2dF0d72bff4354d04a79195cABB1C"; // xSNXa Merkle Claim contract
+  const transfers = await queryFilterHelper(
+    xsnx,
+    XSNX_POST_HACK_DEPLOYED_BLOCK,
+    AUGUST_SNAP,
+    xsnx.filters.Transfer()
   );
-  let transfers = [];
-
-  for (let i = 0; i < transferEvents.length; ++i) {
-    const data = {
-      value: transferEvents[i].args.value,
-      from: transferEvents[i].args.from,
-      to: transferEvents[i].args.to,
-    };
-    transfers.push(data);
-  }
 
   // add and subtract balance for addresses for each transfer
   let totalBalance = {};

@@ -10,22 +10,22 @@ async function getPostHackSnapshot(provider) {
 
 module.exports = { getPostHackSnapshot };
 
-async function main() {
-  const provider = new ethers.providers.JsonRpcProvider(
-    {
-      url: process.env.ARCHIVE_NODE_URL,
-      user: process.env.ARCHIVE_NODE_USER,
-      password: process.env.ARCHIVE_NODE_PASS,
-      timeout: 300000,
-    },
-    1
-  );
-  await getPostHackSnapshot(provider);
-}
+// async function main() {
+//   const provider = new ethers.providers.JsonRpcProvider(
+//     {
+//       url: process.env.ARCHIVE_NODE_URL,
+//       user: process.env.ARCHIVE_NODE_USER,
+//       password: process.env.ARCHIVE_NODE_PASS,
+//       timeout: 300000,
+//     },
+//     1
+//   );
+//   await getPostHackSnapshot(provider);
+// }
 
-main()
-  .then(() => process.exit(0))
-  .catch((error) => {
-    console.error(error);
-    process.exit(1);
-  });
+// main()
+//   .then(() => process.exit(0))
+//   .catch((error) => {
+//     console.error(error);
+//     process.exit(1);
+//   });

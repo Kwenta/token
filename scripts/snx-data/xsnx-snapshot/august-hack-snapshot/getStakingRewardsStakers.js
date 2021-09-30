@@ -1,6 +1,7 @@
 const { ethers } = require("hardhat");
 const XSNX = require("./xSNX.json");
-
+const { queryFilterHelper } = require("../../utils");
+const { XSNX_POST_HACK_DEPLOYED_BLOCK } = require("../blocks");
 /**
  * Get snapshot of all addresses staking Balancer Pool Token in Staking Rewards contract pre-hack
  * Used in getStakersSnapshot to retrieve the total xSNX value of LP Stakers at pre-hack time
@@ -12,26 +13,22 @@ async function getStakingRewardsStakers(provider) {
     provider
   );
   const stakingRewardsContract = "0x9AA731A7302117A16e008754A8254fEDE2C35f8D";
-  let transferEvents = await bpt.queryFilter(
-    bpt.filters.Transfer(),
-    0,
-    13118314
+  const transfers = await queryFilterHelper(
+    bpt,
+    BPT_POST_HACK_DEPLOYED_BLOCK,
+    13118314,
+    bpt.filters.Transfer()
   );
   let transferToStakingRewards = [];
   let transferFromStakingRewards = [];
 
   // record all transfers to and from pool (all go through balancer pool)
-  for (let i = 0; i < transferEvents.length; ++i) {
-    const data = {
-      value: transferEvents[i].args.value,
-      from: transferEvents[i].args.from,
-      to: transferEvents[i].args.to,
-    };
-    if (data.from == stakingRewardsContract) {
-      transferFromStakingRewards.push(data);
+  for (let i = 0; i < transfers.length; ++i) {
+    if (transfers[i].from == stakingRewardsContract) {
+      transferFromStakingRewards.push(transfers[i]);
     }
-    if (data.to == stakingRewardsContract) {
-      transferToStakingRewards.push(data);
+    if (transfers[i].to == stakingRewardsContract) {
+      transferToStakingRewards.push(transfers[i]);
     }
   }
 

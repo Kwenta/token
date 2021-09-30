@@ -9,3 +9,23 @@ async function getAugustHackSnapshot(provider) {
 }
 
 module.exports = { getAugustHackSnapshot };
+
+async function main() {
+  const provider = new ethers.providers.JsonRpcProvider(
+    {
+      url: process.env.ARCHIVE_NODE_URL,
+      user: process.env.ARCHIVE_NODE_USER,
+      password: process.env.ARCHIVE_NODE_PASS,
+      timeout: 300000,
+    },
+    1
+  );
+  await getAugustHackSnapshot(provider);
+}
+
+main()
+  .then(() => process.exit(0))
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });

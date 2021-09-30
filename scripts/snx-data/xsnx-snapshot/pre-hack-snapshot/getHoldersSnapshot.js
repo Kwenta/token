@@ -1,6 +1,6 @@
 const { ethers } = require("hardhat");
 const XSNX = require("./xSNX.json");
-const { PRE_HACK_END, XSNX_START_BLOCK } = require("../blocks");
+const { PRE_HACK_END, XSNX_DEPLOYED_BLOCK } = require("../blocks");
 const { queryFilterHelper } = require("../../utils");
 
 /**
@@ -19,7 +19,7 @@ async function getHoldersSnapshot(provider) {
     "0x4939e1557613B6e84b92bf4C5D2db4061bD1A7c7"; // balancer AAVE-LINK-xSNX pool address
   const transfers = await queryFilterHelper(
     xsnx,
-    XSNX_START_BLOCK,
+    XSNX_DEPLOYED_BLOCK,
     PRE_HACK_END,
     xsnx.filters.Transfer()
   );

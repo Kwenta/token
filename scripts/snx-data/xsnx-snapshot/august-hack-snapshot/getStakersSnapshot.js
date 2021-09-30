@@ -3,6 +3,8 @@ const fs = require("fs");
 
 const { getStakingRewardsStakers } = require("./getStakingRewardsStakers");
 const XSNX = require("./xSNX.json");
+const { queryFilterHelper } = require("../../utils");
+const { BPT_POST_HACK_DEPLOYED_BLOCK } = require("../blocks");
 
 /**
  * Get snapshot of all addresses staking xSNX in xSNX Pool at a block before the xToken hack occurred
@@ -22,22 +24,13 @@ async function getStakersSnapshot(provider) {
   );
   const balancerVault = "0xBA12222222228d8Ba445958a75a0704d566BF2C8"; // balancer vault address
   const stakingRewardsContract = "0x9AA731A7302117A16e008754A8254fEDE2C35f8D"; // staking rewards address
-  let transferEvents = await bpt.queryFilter(
-    bpt.filters.Transfer(),
-    0,
-    13118314
+  let transfers = await queryFilterHelper(
+    bpt,
+    BPT_POST_HACK_DEPLOYED_BLOCK,
+    13118314,
+    bpt.filters.Transfer()
   );
-  console.log("total bpt transfers:", transferEvents.length);
-  let transfers = [];
-
-  for (let i = 0; i < transferEvents.length; ++i) {
-    const data = {
-      value: transferEvents[i].args.value,
-      from: transferEvents[i].args.from,
-      to: transferEvents[i].args.to,
-    };
-    transfers.push(data);
-  }
+  console.log("total bpt transfers:", transfers.length);
 
   // add and subtract balance for addresses for each transfer
   let totalBalance = {};

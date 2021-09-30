@@ -134,7 +134,7 @@ async function queryFilterHelper(
       updatedTransfers
     );
   } catch (e) {
-    console.log("failed on attempt", attempt);
+    console.log("failed on attempt", attempt, " with error", e.message);
     if (attempt + 1 > MAX_RETRIES) {
       throw new Error("too many errors in the queryFilter helper");
     }
