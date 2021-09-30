@@ -220,6 +220,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
      */
     function appendVestingEntry(address account, uint quantity) external {
         _appendVestingEntry(account, quantity);
+        // TODO: Comprobar que StakingRewards existe, cambiar constructor y setStakingRewards, onlyStaingrewards
         stakingRewards.stakeEscrow(account, quantity);
     }
 

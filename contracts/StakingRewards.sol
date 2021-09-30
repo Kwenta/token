@@ -65,7 +65,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
     
     uint256 private constant MIN_STAKE = 0;
 
-    uint256 private constant MAX_BPS = 1_000_000_000_000_000_000_000_000;
+    uint256 private constant MAX_BPS = 1e24;
     uint256 private constant WEIGHT_FEES = 1;
     uint256 private constant WEIGHT_STAKING = 1;
     uint256 public _weightFees = 7_000;
@@ -235,7 +235,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         emit Withdrawn(msg.sender, amount);
     }
 
-    function getReward() public updateRewards(msg.sender){
+    function getReward() public updateRewards(msg.sender) nonReentrant {
     /*
     Function transferring the accumulated rewards for the caller address and updating the state mapping 
     containing the current rewards
@@ -258,7 +258,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         getReward();
     }
 
-    function stakeEscrow(address _account, uint256 _amount) public nonReentrant onlyRewardEscrow updateRewards(_account) {
+    function stakeEscrow(address _account, uint256 _amount) public onlyRewardEscrow updateRewards(_account) {
     /*
     Function called from RewardEscrow (append vesting entry) to accumulate escrowed tokens into rewards
     _account: address escrowing the rewards
