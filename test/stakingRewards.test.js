@@ -107,11 +107,20 @@ contract('StakingRewards_KWENTA', ([owner, rewardsDistribution, staker1, staker2
 
 		await StakingRewards.link(fixidityLib);
 		await StakingRewards.link(exponentLib);
+		rewardsEscrow = await RewardsEscrow.new(
+				owner,
+				stakingToken.address
+			);
+
 		stakingRewards = await StakingRewards.new(owner,
 			rewardsDistribution,
 			rewardsToken.address,
-			stakingToken.address
+			stakingToken.address,
+			rewardsEscrow.address
 			);
+
+
+		rewardsEscrow.setStakingRewards(stakingRewards.address, {from: owner});
 
 		stakingToken._mint(staker1, 100);
 		stakingToken._mint(staker2, 100);
@@ -323,19 +332,20 @@ contract('StakingRewards_KWENTA', ([owner, rewardsDistribution, staker1, staker2
 			stakingToken = await TokenContract.new(NAME, SYMBOL);
 			rewardsToken = await TokenContract.new(NAME, SYMBOL);
 
+			rewardsEscrow = await RewardsEscrow.new(
+				owner,
+				stakingToken.address
+			);
+
 			stakingRewards = await StakingRewards.new(owner,
 				rewardsDistribution,
 				rewardsToken.address,
-				stakingToken.address
+				stakingToken.address,
+				rewardsEscrow.address
 				);
 
-			rewardsEscrow = await RewardsEscrow.new(
-				owner,
-				stakingToken.address,
-				stakingRewards.address
-			);
 
-			stakingRewards.setRewardEscrow(rewardsEscrow.address, {from: owner});
+			rewardsEscrow.setStakingRewards(stakingRewards.address, {from: owner});
 
 			stakingToken._mint(rewardsEscrow.address, toUnit(1000));
 

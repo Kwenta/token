@@ -87,7 +87,8 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         address _owner,
         address _rewardsDistribution,
         address _rewardsToken,
-        address _stakingToken
+        address _stakingToken,
+        address _rewardEscrow
     ) public Owned(_owner) {
     /*
     Setup the owner, rewards distribution and token addresses
@@ -96,6 +97,8 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         stakingToken = IERC20(_stakingToken);
         rewardsDistribution = _rewardsDistribution;
         fixidity.init(18);
+
+        rewardEscrow = RewardEscrow(_rewardEscrow);
     }
 
     /* ========== VIEWS ========== */
@@ -354,14 +357,6 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         emit RewardsDurationUpdated(rewardsDuration);
     }
 
-    function setRewardEscrow(address _rewardEscrow) external onlyOwner {
-    /*
-    Function used to define the rewardEscrow to use
-    */
-        rewardEscrow = RewardEscrow(_rewardEscrow);
-        emit RewardEscrowUpdated(address(_rewardEscrow));
-    }
-
     /* ========== MODIFIERS ========== */
 
     modifier updateRewards(address account) {
@@ -404,5 +399,5 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
     event Recovered(address token, uint256 amount);
     event EscrowStaked(address account, uint256 amount);
     event EscrowUnstaked(address account, uint256 amount);
-    event RewardEscrowUpdated(address rewardEscrow);
+    
 }

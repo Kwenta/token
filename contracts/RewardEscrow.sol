@@ -47,13 +47,11 @@ contract RewardEscrow is Owned, IRewardEscrow {
 
     constructor(
         address _owner,
-        address _kwenta,
-        //IFeePool _feePool,
-        address _stakingRewards
+        address _kwenta
     ) public Owned(_owner) {
         kwenta = IERC20(_kwenta);
         //feePool = _feePool;
-        stakingRewards = StakingRewards(_stakingRewards);
+        
     }
 
     /* ========== SETTERS ========== */
@@ -64,6 +62,14 @@ contract RewardEscrow is Owned, IRewardEscrow {
     function setKwenta(IERC20 _kwenta) external onlyOwner {
         kwenta = _kwenta;
         emit KwentaUpdated(address(_kwenta));
+    }
+
+    function setStakingRewards(address _stakingRewards) external onlyOwner {
+    /*
+    Function used to define the StakingRewards to use
+    */
+        stakingRewards = StakingRewards(_stakingRewards);
+        emit StakingRewardsUpdated(address(_stakingRewards));
     }
 
     /**
@@ -218,10 +224,12 @@ contract RewardEscrow is Owned, IRewardEscrow {
      * @param account The account to append a new vesting entry to.
      * @param quantity The quantity of KWENTA that will be escrowed.
      */
-    function appendVestingEntry(address account, uint quantity) external {
+    function appendVestingEntry(address account, uint quantity) external onlyStakingRewards {
         _appendVestingEntry(account, quantity);
-        // TODO: Comprobar que StakingRewards existe, cambiar constructor y setStakingRewards, onlyStaingrewards
-        stakingRewards.stakeEscrow(account, quantity);
+        if(address(stakingRewards) != address(0)) {
+            stakingRewards.stakeEscrow(account, quantity);    
+        }
+        
     }
 
     /**
@@ -262,6 +270,13 @@ contract RewardEscrow is Owned, IRewardEscrow {
         _;
     }
 
+    modifier onlyStakingRewards() {
+        bool isStakingRewards = msg.sender == address(stakingRewards);
+
+        require(isStakingRewards, "Only the StakingRewards contract can perform this action");
+        _;
+    }
+
     /* ========== EVENTS ========== */
 
     event KwentaUpdated(address newkwenta);
@@ -271,4 +286,6 @@ contract RewardEscrow is Owned, IRewardEscrow {
     event Vested(address indexed beneficiary, uint time, uint value);
 
     event VestingEntryCreated(address indexed beneficiary, uint time, uint value);
+
+    event StakingRewardsUpdated(address rewardEscrow);
 }
