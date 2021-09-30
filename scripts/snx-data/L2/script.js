@@ -1,6 +1,6 @@
-// const fs = require("fs");
 const { ethers } = require("hardhat");
 const SNX = require("../SNX.json");
+const { queryFilterHelper } = require("../utils");
 
 const SNX_ADDRESS = "0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f";
 const L2_NEW_BRIDGE = "0x5fd79d46eba7f351fe49bff9e87cdea6c821ef9f";
@@ -13,7 +13,7 @@ async function getL2Snapshot(minBlock, maxBlock, provider) {
   const filterToNew = snx.filters.Transfer(null, L2_NEW_BRIDGE);
   const filterToOld = snx.filters.Transfer(null, L2_OLD_BRIDGE);
 
-  const transfersInNew = await getSNXTransfers(
+  const transfersInNew = await queryFilterHelper(
     snx,
     minBlock,
     maxBlock,
@@ -21,7 +21,7 @@ async function getL2Snapshot(minBlock, maxBlock, provider) {
   );
   console.log("[new l2 bridge] transfers in count", transfersInNew.length);
 
-  const transfersOutNew = await getSNXTransfers(
+  const transfersOutNew = await queryFilterHelper(
     snx,
     minBlock,
     maxBlock,
@@ -29,7 +29,7 @@ async function getL2Snapshot(minBlock, maxBlock, provider) {
   );
   console.log("[new l2 bridge] transfers out count", transfersOutNew.length);
 
-  const transfersInOld = await getSNXTransfers(
+  const transfersInOld = await queryFilterHelper(
     snx,
     minBlock,
     maxBlock,
@@ -37,7 +37,7 @@ async function getL2Snapshot(minBlock, maxBlock, provider) {
   );
   console.log("[old l2 bridge] transfers in count", transfersInOld.length);
 
-  const transfersOutOld = await getSNXTransfers(
+  const transfersOutOld = await queryFilterHelper(
     snx,
     minBlock,
     maxBlock,
@@ -63,9 +63,9 @@ async function getL2Snapshot(minBlock, maxBlock, provider) {
     if (totalBalance[address]) {
       totalBalance[address] = totalBalance[address].sub(value);
     } else {
-      throw new Error(
-        `a: unexepected l2 transfer error from address ${address}`
-      );
+      // throw new Error(
+      //   `a: unexepected l2 transfer error from address ${address}`
+      // );
     }
   }
 
@@ -85,16 +85,16 @@ async function getL2Snapshot(minBlock, maxBlock, provider) {
     if (totalBalance[address]) {
       totalBalance[address] = totalBalance[address].sub(value);
     } else {
-      throw new Error(
-        `b: unexepected l2 transfer error from address ${address}`
-      );
+      // throw new Error(
+      //   `b: unexepected l2 transfer error from address ${address}`
+      // );
     }
   }
 
   let balanceSum = new ethers.BigNumber.from(0);
   for (const address of Object.keys(totalBalance)) {
     // remove 0 balance addresses and address 0x0 which is < 0 balance
-    if (totalBalance[address].lte(0)) {
+    if (totalBalance[address] <= 0) {
       delete totalBalance[address];
       continue;
     }
@@ -110,32 +110,33 @@ async function getL2Snapshot(minBlock, maxBlock, provider) {
   return totalBalance;
 }
 
-async function getSNXTransfers(snx, fromBlock, toBlock, filter) {
-  let transferEvents = await snx.queryFilter(filter, fromBlock, toBlock);
-  let transfers = [];
-  for (let i = 0; i < transferEvents.length; i++) {
-    const data = {
-      value: transferEvents[i].args.value,
-      from: transferEvents[i].args.from,
-    };
-    transfers.push(data);
-  }
-
-  return transfers;
-}
-
 module.exports = {
   getL2Snapshot,
 };
 
 // async function main() {
-// 	const data = await getL2Snapshot(0, 'latest');
-// 	fs.writeFileSync('scripts/snx-data/L2/L2_snapshot.json', JSON.stringify(data));
+//   const provider = new ethers.providers.JsonRpcProvider(
+//     {
+//       url: process.env.ARCHIVE_NODE_URL,
+//       user: process.env.ARCHIVE_NODE_USER,
+//       password: process.env.ARCHIVE_NODE_PASS,
+//       timeout: 300000,
+//     },
+//     1
+//   );
+//   await getL2Snapshot(12956238, 13328346, provider);
 // }
 
 // main()
-// 	.then(() => process.exit(0))
-// 	.catch(error => {
-// 		console.error(error);
-// 		process.exit(1);
-// 	});
+//   .then(() => process.exit(0))
+//   .catch((error) => {
+//     console.error(error);
+//     process.exit(1);
+//   });
+
+// sample results for comparison with other scripts: TODO - remove
+// [new l2 bridge] transfers in count 1638
+// [new l2 bridge] transfers out count 307
+// [old l2 bridge] transfers in count 0
+// [old l2 bridge] transfers out count 0
+// from blocks 12956238 to 13328346 - calculated L2 balance: 7298560.987011728880954949

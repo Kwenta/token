@@ -96,8 +96,8 @@ const setTargetAddress = (contractName, network, address) => {
   );
 };
 
-// NOTE that our archive node fails on filter requests spanning 500K blocks
-// so we are recursively getting data we need from it in 300K intervals
+// NOTE that our archive node fails on filter requests spanning large number of blocks
+// and the queries are a lot faster with less blocks so going to use 100K per request
 async function queryFilterHelper(
   contract,
   fromBlock,
@@ -106,14 +106,14 @@ async function queryFilterHelper(
   prevTransfers = [],
   attempt = 0
 ) {
-  const MAX_RETRIES = 3;
+  const MAX_RETRIES = 5;
   try {
-    const NUM_BLOCKS = 300000;
+    const NUM_BLOCKS = 100000;
     const tempToBlock =
       fromBlock + NUM_BLOCKS >= toBlock ? toBlock : fromBlock + NUM_BLOCKS;
+    console.log(`getting data from ${fromBlock} to ${tempToBlock}`);
     let events = await contract.queryFilter(filter, fromBlock, tempToBlock);
     let transfers = [];
-    console.log(`getting data from ${fromBlock} to ${tempToBlock}`);
     for (let i = 0; i < events.length; ++i) {
       let data = {
         value: events[i].args.value,
@@ -134,6 +134,7 @@ async function queryFilterHelper(
       updatedTransfers
     );
   } catch (e) {
+    console.log("failed on attempt", attempt);
     if (attempt + 1 > MAX_RETRIES) {
       throw new Error("too many errors in the queryFilter helper");
     }

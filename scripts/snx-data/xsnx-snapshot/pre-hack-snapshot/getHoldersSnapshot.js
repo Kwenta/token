@@ -1,7 +1,7 @@
-const fs = require("fs");
 const { ethers } = require("hardhat");
 const XSNX = require("./xSNX.json");
-const { PRE_HACK_END } = require("../blocks");
+const { PRE_HACK_END, XSNX_START_BLOCK } = require("../blocks");
+const { queryFilterHelper } = require("../../utils");
 
 /**
  * Get snapshot of all addresses holding xSNX at a block before the xToken hack occurred
@@ -9,28 +9,21 @@ const { PRE_HACK_END } = require("../blocks");
  */
 async function getHoldersSnapshot(provider) {
   console.log("---Get Holders Snapshot---");
-  const xsnx = new ethers.contract(
+  const xsnx = new ethers.Contract(
     "0x2367012ab9c3da91290f71590d5ce217721eefe4",
     XSNX.abi,
     provider
   );
-  let balancerXsnxPool = "0xE3f9cF7D44488715361581DD8B3a15379953eB4C"; // balancer pool address
-  let balancerXsnxPoolSecondary = "0x4939e1557613B6e84b92bf4C5D2db4061bD1A7c7"; // balancer AAVE-LINK-xSNX pool address
-  let transferEvents = await xsnx.queryFilter(
-    xsnx.filters.Transfer(),
-    0,
-    PRE_HACK_END
+  const balancerXsnxPool = "0xE3f9cF7D44488715361581DD8B3a15379953eB4C"; // balancer pool address
+  const balancerXsnxPoolSecondary =
+    "0x4939e1557613B6e84b92bf4C5D2db4061bD1A7c7"; // balancer AAVE-LINK-xSNX pool address
+  const transfers = await queryFilterHelper(
+    xsnx,
+    XSNX_START_BLOCK,
+    PRE_HACK_END,
+    xsnx.filters.Transfer()
   );
-  let transfers = [];
-
-  for (let i = 0; i < transferEvents.length; ++i) {
-    const data = {
-      value: transferEvents[i].args.value,
-      from: transferEvents[i].args.from,
-      to: transferEvents[i].args.to,
-    };
-    transfers.push(data);
-  }
+  console.log("total xsnx holder transfers:", transfers.length);
 
   // add and subtract balance for addresses for each transfer
   let totalBalance = {};
@@ -61,7 +54,7 @@ async function getHoldersSnapshot(provider) {
   let addressCount = 0;
   for (let address of Object.keys(totalBalance)) {
     // remove 0 balance addresses and address 0x0 which is < 0 balance
-    if (totalBalance[address].lte(0)) {
+    if (totalBalance[address] <= 0) {
       delete totalBalance[address];
       continue;
     }
@@ -91,10 +84,6 @@ async function getHoldersSnapshot(provider) {
     ethers.utils.formatEther(xsnxBalanceInPool)
   );
 
-  fs.writeFileSync(
-    "scripts/snx-data/xsnx-snapshot/pre-hack-snapshot/snapshotHolders.json",
-    JSON.stringify(totalBalance)
-  );
   return totalBalance;
 }
 

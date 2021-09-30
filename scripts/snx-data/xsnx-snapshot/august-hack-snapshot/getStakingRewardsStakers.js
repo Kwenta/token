@@ -60,7 +60,7 @@ async function getStakingRewardsStakers(provider) {
   let addressCount = 0;
   for (let address of Object.keys(totalBalance)) {
     // remove 0 balance addresses and address 0x0 which is < 0 balance
-    if (totalBalance[address].lte(0)) {
+    if (totalBalance[address] <= 0) {
       delete totalBalance[address];
       continue;
     }

@@ -1,4 +1,3 @@
-const fs = require("fs");
 const { getAugustHackSnapshot } = require("./august-hack-snapshot/getSnapshot");
 const { getPostHackSnapshot } = require("./post-hack-snapshot/getSnapshot");
 const { getPreHackSnapshot } = require("./pre-hack-snapshot/getSnapshot");
@@ -29,15 +28,9 @@ async function getSnapshot(provider) {
       snapshot[address] = amount;
     }
   }
-  fs.writeFileSync(
-    "scripts/snx-data/xsnx-snapshot/snapshot.json",
-    JSON.stringify(snapshot)
-  );
   return snapshot;
 }
 
 module.exports = {
   getSnapshot,
 };
-
-//getSnapshot(13118314);

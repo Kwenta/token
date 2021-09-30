@@ -54,7 +54,7 @@ async function getYearnData(minBlock, maxBlock, provider) {
   let addressCount = 0;
   for (let address of Object.keys(totalBalance)) {
     // remove 0 balance addresses and address 0x0 which is < 0 balance
-    if (totalBalance[address].lte(0)) {
+    if (totalBalance[address] <= 0) {
       delete totalBalance[address];
       continue;
     }
@@ -85,7 +85,7 @@ module.exports = {
 //     },
 //     1
 //   );
-//   return getYearnData(12572748, 13323457, provider);
+//   return getYearnData(12956238, 13328346, provider);
 // }
 
 // main()
@@ -94,3 +94,10 @@ module.exports = {
 //     console.error(error);
 //     process.exit(1);
 //   });
+
+// output results for comparison
+// [new bridge] transfers in count 665
+// getting data from 12956238 to 13328346
+// [new bridge] transfers out count 379
+// total addresses in snapshot count: 367
+// calculated Yearn balance: 1499828.964047605257473434

@@ -1,7 +1,8 @@
 const { ethers } = require("hardhat");
 const fs = require("fs");
 const XSNX = require("./xSNX.json");
-const { PRE_HACK_END } = require("../blocks");
+const { PRE_HACK_END, BPT_START_BLOCK } = require("../blocks");
+const { queryFilterHelper } = require("../../utils");
 
 /**
  * Get snapshot of all addresses staking xSNX in AAVE-LINK-xSNX-UNI-YFI Balancer Pool
@@ -20,23 +21,14 @@ async function getStakersInOtherPool(provider) {
     XSNX.abi,
     provider
   );
-  let balancerXsnxPool = "0x4939e1557613b6e84b92bf4c5d2db4061bd1a7c7"; // balancer pool address
-  let transferEvents = await bpt.queryFilter(
-    bpt.filters.Transfer(),
-    0,
-    PRE_HACK_END
+  const balancerXsnxPool = "0x4939e1557613b6e84b92bf4c5d2db4061bd1a7c7"; // balancer pool address
+  const transfers = await queryFilterHelper(
+    bpt,
+    BPT_START_BLOCK,
+    PRE_HACK_END,
+    bpt.filters.Transfer()
   );
-  console.log("total bpt transfers:", transferEvents.length);
-  let transfers = [];
-
-  for (let i = 0; i < transferEvents.length; ++i) {
-    const data = {
-      value: transferEvents[i].args.value,
-      from: transferEvents[i].args.from,
-      to: transferEvents[i].args.to,
-    };
-    transfers.push(data);
-  }
+  console.log("total stakers in otheres pool transfers:", transfers.length);
 
   // add and subtract balance for addresses for each transfer
   let totalBalance = {};
@@ -65,7 +57,7 @@ async function getStakersInOtherPool(provider) {
   let addressCount = 0;
   for (let address of Object.keys(totalBalance)) {
     // remove 0 balance addresses and address 0x0 which is < 0 balance
-    if (totalBalance[address].lte(0)) {
+    if (totalBalance[address] <= 0) {
       delete totalBalance[address];
       continue;
     }

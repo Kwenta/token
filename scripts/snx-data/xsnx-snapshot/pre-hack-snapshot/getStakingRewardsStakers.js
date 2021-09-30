@@ -1,6 +1,7 @@
 const { ethers } = require("hardhat");
 const XSNX = require("./xSNX.json");
-const { PRE_HACK_END } = require("../blocks");
+const { PRE_HACK_END, BPT_START_BLOCK } = require("../blocks");
+const { queryFilterHelper } = require("../../utils");
 
 /**
  * Get snapshot of all addresses staking Balancer Pool Token in Staking Rewards contract pre-hack
@@ -15,26 +16,22 @@ async function getStakingRewardsStakers(provider) {
   );
 
   const stakingRewardsContract = "0x1c65b1763eEE90fca83E65F14bB1d63c5280c651";
-  let transferEvents = await bpt.queryFilter(
-    bpt.filters.Transfer(),
-    0,
-    PRE_HACK_END
+  let transfers = await queryFilterHelper(
+    bpt,
+    BPT_START_BLOCK,
+    PRE_HACK_END,
+    bpt.filters.Transfer()
   );
   let transferToStakingRewards = [];
   let transferFromStakingRewards = [];
 
   // record all transfers to and from pool (all go through balancer pool)
-  for (let i = 0; i < transferEvents.length; ++i) {
-    let data = {
-      value: transferEvents[i].args.value,
-      from: transferEvents[i].args.from,
-      to: transferEvents[i].args.to,
-    };
-    if (data.from == stakingRewardsContract) {
-      transferFromStakingRewards.push(data);
+  for (let i = 0; i < transfers.length; ++i) {
+    if (transfers[i].from == stakingRewardsContract) {
+      transferFromStakingRewards.push(transfers[i]);
     }
-    if (data.to == stakingRewardsContract) {
-      transferToStakingRewards.push(data);
+    if (transfers[i].to == stakingRewardsContract) {
+      transferToStakingRewards.push(transfers[i]);
     }
   }
 
@@ -63,7 +60,7 @@ async function getStakingRewardsStakers(provider) {
   let addressCount = 0;
   for (let address of Object.keys(totalBalance)) {
     // remove 0 balance addresses and address 0x0 which is < 0 balance
-    if (totalBalance[address].lte(0)) {
+    if (totalBalance[address] <= 0) {
       delete totalBalance[address];
       continue;
     }
