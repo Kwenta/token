@@ -12,7 +12,9 @@
     "take-snapshot": "LATEST_BLOCK=13328346 hardhat run ./scripts/snx-data/historical-snx-stakers.js",
     "yearn-snapshot": "hardhat run ./scripts/snx-data/yearn/script.js",
     "l2-snapshot": "hardhat run ./scripts/snx-data/L2/script.js",
-    "xsnx-pre-hack-snapshot": "hardhat run ./scripts/snx-data/xsnx-snapshot/pre-hack-snapshot/getSnapshot.js"
+    "xsnx-pre-hack-snapshot": "hardhat run ./scripts/snx-data/xsnx-snapshot/pre-hack-snapshot/getSnapshot.js",
+    "xsnx-post-hack-snapshot": "hardhat run ./scripts/snx-data/xsnx-snapshot/post-hack-snapshot/getSnapshot.js",
+    "xsnx-august-hack-snapshot": "hardhat run ./scripts/snx-data/xsnx-snapshot/august-hack-snapshot/getSnapshot.js"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "2.0.2",

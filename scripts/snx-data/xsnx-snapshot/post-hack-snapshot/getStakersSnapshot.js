@@ -4,6 +4,7 @@ const fs = require("fs");
 const { getStakingRewardsStakers } = require("./getStakingRewardsStakers");
 const XSNX = require("../xSNX.json");
 const { POST_HACK_START, AUGUST_SNAP } = require("../blocks");
+const { queryFilterHelper } = require("../../utils");
 
 /**
  * Get snapshot of all addresses staking xSNX in xSNXa-WETH Balancer Pool
@@ -23,22 +24,13 @@ async function getStakersSnapshot(blockNumber, provider) {
   );
   const balancerVault = "0xBA12222222228d8Ba445958a75a0704d566BF2C8"; // balancer vault which holds xsnx tokens
   const stakingRewardsContract = "0x9AA731A7302117A16e008754A8254fEDE2C35f8D"; // staking rewards address
-  const transferEvents = await bpt.queryFilter(
-    bpt.filters.Transfer(),
+  const transfers = await queryFilterHelper(
+    bpt,
     POST_HACK_START,
-    AUGUST_SNAP - 1
+    AUGUST_SNAP - 1,
+    bpt.filters.Transfer()
   );
-  console.log("total bpt transfers:", transferEvents.length);
-  const transfers = [];
-
-  for (let i = 0; i < transferEvents.length; ++i) {
-    const data = {
-      value: transferEvents[i].args.value,
-      from: transferEvents[i].args.from,
-      to: transferEvents[i].args.to,
-    };
-    transfers.push(data);
-  }
+  console.log("total bpt transfers:", transfers.length);
 
   // add and subtract balance for addresses for each transfer
   let totalBalance = {};
@@ -106,7 +98,7 @@ async function getStakersSnapshot(blockNumber, provider) {
   let totalxSNXBalance = new ethers.BigNumber.from(0);
   // Convert BPT to xSNX balance
   for (let address of Object.keys(totalBalance)) {
-    const balance = totalBalance[address];
+    const balance = new ethers.BigNumber.from(totalBalance[address]);
     totalBalance[address] = balance.mul(xsnxPer1BPT).div(100000000).toString();
     totalxSNXBalance = totalxSNXBalance.add(totalBalance[address]);
   }

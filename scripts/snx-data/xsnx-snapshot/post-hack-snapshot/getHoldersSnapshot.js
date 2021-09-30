@@ -2,6 +2,7 @@ const { ethers } = require("hardhat");
 const fs = require("fs");
 const XSNX = require("../xSNX.json");
 const { POST_HACK_START, AUGUST_SNAP } = require("../blocks");
+const { queryFilterHelper } = require("../../utils");
 
 /**
  * Get snapshot of all addresses holding xSNXa
@@ -14,22 +15,13 @@ async function getHoldersSnapshot(provider) {
     XSNX.abi,
     provider
   );
-  let balancerVault = "0xBA12222222228d8Ba445958a75a0704d566BF2C8"; // balancer vault which holds xsnx tokens
-  let transferEvents = await xsnx.queryFilter(
-    xsnx.filters.Transfer(),
+  const balancerVault = "0xBA12222222228d8Ba445958a75a0704d566BF2C8"; // balancer vault which holds xsnx tokens
+  const transfers = await queryFilterHelper(
+    xsnx,
     POST_HACK_START,
-    AUGUST_SNAP - 1
+    AUGUST_SNAP - 1,
+    xsnx.filters.Transfer()
   );
-  let transfers = [];
-
-  for (let i = 0; i < transferEvents.length; ++i) {
-    const data = {
-      value: transferEvents[i].args.value,
-      from: transferEvents[i].args.from,
-      to: transferEvents[i].args.to,
-    };
-    transfers.push(data);
-  }
 
   // add and subtract balance for addresses for each transfer
   let totalBalance = {};

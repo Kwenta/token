@@ -82,7 +82,7 @@ async function getStakersInOtherPool(provider) {
   let totalxSNXBalance = new ethers.BigNumber.from(0);
   // Convert BPT to xSNX balance
   for (let address of Object.keys(totalBalance)) {
-    let balance = totalBalance[address];
+    const balance = new ethers.BigNumber.from(totalBalance[address]);
     totalBalance[address] = balance.mul(xsnxPer1BPT).div(100000000).toString();
     totalxSNXBalance = totalxSNXBalance.add(totalBalance[address]);
     console.log(`${address}:`, ethers.utils.formatEther(totalBalance[address]));
