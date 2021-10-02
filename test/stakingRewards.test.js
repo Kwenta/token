@@ -122,11 +122,11 @@ contract('StakingRewards KWENTA', ([owner, rewardsDistribution, staker1, staker2
 
 
 		rewardsEscrow.setStakingRewards(stakingRewards.address, {from: owner});
-
-		stakingToken._mint(staker1, 100);
-		stakingToken._mint(staker2, 100);
-
 		rewardsToken._mint(stakingRewards.address, toUnit(100));
+
+		stakingToken._mint(staker1, toUnit(100));
+		stakingToken._mint(staker2, toUnit(100));
+
 
 	});
 
@@ -146,8 +146,8 @@ contract('StakingRewards KWENTA', ([owner, rewardsDistribution, staker1, staker2
 		})
 		it("stakes the correct amount", async() => {
 
-			await stakingToken.approve(stakingRewards.address, 100, {from: staker1});
-			await stakingToken.approve(stakingRewards.address, 100, {from: staker2});
+			await stakingToken.approve(stakingRewards.address, toUnit(100), {from: staker1});
+			await stakingToken.approve(stakingRewards.address, toUnit(100), {from: staker2});
 
 			await stakingRewards.stake(15, {from: staker1});
 
@@ -178,28 +178,28 @@ contract('StakingRewards KWENTA', ([owner, rewardsDistribution, staker1, staker2
 
 	describe("traderScore()", async() => {
 		it("initializes updatesTraderScore correctly", async() => {
-			let ts1 = await stakingRewards.feesOf(staker1);
-			let ts2 = await stakingRewards.feesOf(staker2);
+			let ts1 = await stakingRewards.feesPaidBy(staker1);
+			let ts2 = await stakingRewards.feesPaidBy(staker2);
 			assert.equal(ts1, 0);
 			assert.equal(ts2, 0);
 		})
 
 		it("updates updatesTraderScore correctly", async() => {
-			await stakingRewards.stake(5, {from: staker1});
-			await stakingRewards.stake(5, {from: staker2});
+			await stakingRewards.stake(toUnit(5), {from: staker1});
+			await stakingRewards.stake(toUnit(5), {from: staker2});
 
-			await stakingRewards.updateTraderScore(staker1, 5);
-			await stakingRewards.updateTraderScore(staker2, 4);
+			await stakingRewards.updateTraderScore(staker1, toUnit(5));
+			await stakingRewards.updateTraderScore(staker2, toUnit(4));
 
-			let ts1 = await stakingRewards.feesOf(staker1);
-			let expected = 5;
+			let ts1 = await stakingRewards.feesPaidBy(staker1);
+			let expected = toUnit(5);
 			
-			assert.equal(ts1, expected);
+			assertBNEqual(ts1, expected);
 
-			let ts2 = await stakingRewards.feesOf(staker2);
-			expected = 4;
+			let ts2 = await stakingRewards.feesPaidBy(staker2);
+			expected = toUnit(4);
 
-			assert.equal(ts2, expected);
+			assertBNEqual(ts2, expected);
 		})
 	});
 
@@ -228,7 +228,7 @@ contract('StakingRewards KWENTA', ([owner, rewardsDistribution, staker1, staker2
 		});
 
 		it('should be > 0', async () => {
-			const totalToStake = 10;
+			const totalToStake = toUnit(10);
 			;
 			await stakingRewards.stake(totalToStake, { from: staker1 });
 
@@ -250,10 +250,21 @@ contract('StakingRewards KWENTA', ([owner, rewardsDistribution, staker1, staker2
 
 	describe('earned()', () => {
 
-		it('should be > 0 when staking', async () => {
-			await stakingRewards.updateTraderScore(staker1, 30);
+		it('should be 0 when staking but not trading', async () => {
+			stakingRewards = await StakingRewards.new(owner,
+				rewardsDistribution,
+				rewardsToken.address,
+				stakingToken.address,
+				rewardsEscrow.address
+				);
 
-			const totalToStake = 1;
+
+			rewardsEscrow.setStakingRewards(stakingRewards.address, {from: owner});
+			rewardsToken._mint(stakingRewards.address, toUnit(100));
+			await stakingToken.approve(stakingRewards.address, toUnit(100), {from: staker1});
+			await stakingToken.approve(stakingRewards.address, toUnit(100), {from: staker2});
+
+			const totalToStake = toUnit(1);
 
 			await stakingRewards.stake(totalToStake, { from: staker1 });
 
@@ -267,11 +278,81 @@ contract('StakingRewards KWENTA', ([owner, rewardsDistribution, staker1, staker2
 
 			const earned = await stakingRewards.earned(staker1);
 
-			assertBNGreaterThan(earned, ZERO_BN);
+			assertBNEqual(earned, ZERO_BN);
 		});
 
-		it('should be > 0 when trading', async () => {
-			const totalToStake = 1;
+		it('should be 0 when trading and not staking', async () => {
+			stakingRewards = await StakingRewards.new(owner,
+				rewardsDistribution,
+				rewardsToken.address,
+				stakingToken.address,
+				rewardsEscrow.address
+				);
+
+
+			rewardsEscrow.setStakingRewards(stakingRewards.address, {from: owner});
+			rewardsToken._mint(stakingRewards.address, toUnit(100));
+			await stakingToken.approve(stakingRewards.address, toUnit(100), {from: staker1});
+			await stakingToken.approve(stakingRewards.address, toUnit(100), {from: staker2});
+
+			await stakingRewards.updateTraderScore(staker1, 30);
+
+			const rewardValue = toUnit(5.0);
+			
+			await stakingRewards.notifyRewardAmount(rewardValue, {
+				from: rewardsDistribution,
+			});
+
+			await fastForward(DAY);
+
+			const earned = await stakingRewards.earned(staker1);
+
+			assertBNEqual(earned, ZERO_BN);
+		});
+
+		it('should be 0 when not trading and not staking', async () => {
+			stakingRewards = await StakingRewards.new(owner,
+				rewardsDistribution,
+				rewardsToken.address,
+				stakingToken.address,
+				rewardsEscrow.address
+				);
+
+
+			rewardsEscrow.setStakingRewards(stakingRewards.address, {from: owner});
+			rewardsToken._mint(stakingRewards.address, toUnit(100));
+			await stakingToken.approve(stakingRewards.address, toUnit(100), {from: staker1});
+			await stakingToken.approve(stakingRewards.address, toUnit(100), {from: staker2});
+
+			const rewardValue = toUnit(5.0);
+			
+			await stakingRewards.notifyRewardAmount(rewardValue, {
+				from: rewardsDistribution,
+			});
+
+			await fastForward(DAY);
+
+			const earned = await stakingRewards.earned(staker1);
+
+			assertBNEqual(earned, ZERO_BN);
+		});
+
+		it('should be > 0 when trading and staking', async () => {
+			stakingRewards = await StakingRewards.new(owner,
+				rewardsDistribution,
+				rewardsToken.address,
+				stakingToken.address,
+				rewardsEscrow.address
+				);
+
+
+			rewardsEscrow.setStakingRewards(stakingRewards.address, {from: owner});
+			rewardsToken._mint(stakingRewards.address, toUnit(100));
+			await stakingToken.approve(stakingRewards.address, toUnit(100), {from: staker1});
+			await stakingToken.approve(stakingRewards.address, toUnit(100), {from: staker2});
+
+			const totalToStake = toUnit(1);
+
 			await stakingRewards.stake(totalToStake, { from: staker1 });
 
 			await stakingRewards.updateTraderScore(staker1, 30);
@@ -364,8 +445,8 @@ contract('StakingRewards KWENTA', ([owner, rewardsDistribution, staker1, staker2
 			assert.equal(bal1, 0);
 			assert.equal(bal2, 0);
 
-			let fees1 = await stakingRewards.feesOf(staker1);	
-			let fees2 = await stakingRewards.feesOf(staker2);	
+			let fees1 = await stakingRewards.feesPaidBy(staker1);	
+			let fees2 = await stakingRewards.feesPaidBy(staker2);	
 			
 			assert.equal(fees1, 0);
 			assert.equal(fees2, 0);

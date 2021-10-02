@@ -75,9 +75,9 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
     uint256 private constant MIN_STAKE = 0;
 
     uint256 private constant MAX_BPS = 1e24;
-    // Needs to be int256 for power library, weight is equal to 1/0.3
+    // Needs to be int256 for power library, root to calculate is equal to 1/0.3
     int256 private constant WEIGHT_FEES = 3_333_333_333_333_333_333;
-    // Needs to be int256 for power library, weight is equal to 1/0.7
+    // Needs to be int256 for power library, root to calculate is equal to 1/0.7
     int256 private constant WEIGHT_STAKING =1_428_571_428_571_428_571;
     
     /* ========== CONSTRUCTOR ========== */
@@ -137,7 +137,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         return _escrowedBalances[account];
     }
 
-    function feesOf(address account) external view returns (uint256) {
+    function feesPaidBy(address account) external view returns (uint256) {
     /*
     Getter function for the state variable _feesPaid
     */
@@ -199,12 +199,14 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         if(balanceOf(_trader) > MIN_STAKE){
             _feesPaid[_trader] = _feesPaid[_trader].add(_newFeesPaid);
             uint256 oldRewardScore = _rewardScores[_trader];
-            _totalRewardScore = _totalRewardScore.sub(oldRewardScore).add(updateRewardScore(_trader));
+            uint256 newRewardScore = calculateRewardScore(_trader);
+            _rewardScores[_trader] = newRewardScore;
+            _totalRewardScore = _totalRewardScore.sub(oldRewardScore).add(newRewardScore);
         }
         
     }
 
-    function updateRewardScore(address _account) private returns(uint256){
+    function calculateRewardScore(address _account) private view returns(uint256){
     /*
     Function updating and returning the reward score for a specific account
     _account: address to update the reward score for
@@ -216,7 +218,6 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         if(_feesPaid[_account] > 0 && _totalBalances[_account] > 0) {
             newRewardScore = uint256(fixidity.root_any(int256(_totalBalances[_account]), WEIGHT_STAKING)).mul(uint256(fixidity.root_any(int256(_feesPaid[_account]), WEIGHT_FEES)));
         }
-        _rewardScores[_account] = newRewardScore;
         return newRewardScore;
     }
 
@@ -231,7 +232,9 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         // Update caller balance
         _totalBalances[msg.sender] = _totalBalances[msg.sender].add(amount);
         uint256 oldRewardScore = _rewardScores[msg.sender];
-        _totalRewardScore = _totalRewardScore.sub(oldRewardScore).add(updateRewardScore(msg.sender));
+        uint256 newRewardScore = calculateRewardScore(msg.sender);
+        _rewardScores[msg.sender] = newRewardScore;
+        _totalRewardScore = _totalRewardScore.sub(oldRewardScore).add(newRewardScore);
         stakingToken.transferFrom(msg.sender, address(this), amount);
         emit Staked(msg.sender, amount);
     }
@@ -247,7 +250,9 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         // Update caller balance
         _totalBalances[msg.sender] = _totalBalances[msg.sender].sub(amount);
         uint256 oldRewardScore = _rewardScores[msg.sender];
-        _totalRewardScore = _totalRewardScore.sub(oldRewardScore).add(updateRewardScore(msg.sender));
+        uint256 newRewardScore = calculateRewardScore(msg.sender);
+        _rewardScores[msg.sender] = newRewardScore;
+        _totalRewardScore = _totalRewardScore.sub(oldRewardScore).add(newRewardScore);
         stakingToken.transfer(msg.sender, amount);
         emit Withdrawn(msg.sender, amount);
     }
@@ -285,7 +290,9 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         _totalBalances[_account] = _totalBalances[_account].add(_amount);
         _escrowedBalances[_account] = _escrowedBalances[_account].add(_amount);
         uint256 oldRewardScore = _rewardScores[_account];
-        _totalRewardScore = _totalRewardScore.sub(oldRewardScore).add(updateRewardScore(_account));
+        uint256 newRewardScore = calculateRewardScore(_account);
+        _rewardScores[_account] = newRewardScore;
+        _totalRewardScore = _totalRewardScore.sub(oldRewardScore).add(newRewardScore);
         emit EscrowStaked(_account, _amount);
     }
 
@@ -299,7 +306,9 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         _totalBalances[_account] = _totalBalances[_account].sub(_amount);
         _escrowedBalances[_account] = _escrowedBalances[_account].sub(_amount);
         uint256 oldRewardScore = _rewardScores[_account];
-        _totalRewardScore = _totalRewardScore.sub(oldRewardScore).add(updateRewardScore(_account));
+        uint256 newRewardScore = calculateRewardScore(_account);
+        _rewardScores[_account] = newRewardScore;
+        _totalRewardScore = _totalRewardScore.sub(oldRewardScore).add(newRewardScore);
         emit EscrowUnstaked(_account, _amount);
     }
 

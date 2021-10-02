@@ -256,7 +256,9 @@ contract RewardEscrow is Owned, IRewardEscrow {
             totalEscrowedAccountBalance[msg.sender] = totalEscrowedAccountBalance[msg.sender].sub(total);
             totalVestedAccountBalance[msg.sender] = totalVestedAccountBalance[msg.sender].add(total);
             IERC20(address(kwenta)).transfer(msg.sender, total);
-            stakingRewards.unstakeEscrow(msg.sender, total);
+            if(address(stakingRewards) != address(0)) {
+                stakingRewards.unstakeEscrow(msg.sender, total);
+            }
             emit Vested(msg.sender, now, total);
         }
     }
