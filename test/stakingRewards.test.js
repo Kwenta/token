@@ -86,11 +86,12 @@ require("chai")
 	.use(require("chai-bn-equal"))
 	.should();
 
-contract('StakingRewards_KWENTA', ([owner, rewardsDistribution, staker1, staker2]) => {
+contract('StakingRewards KWENTA', ([owner, rewardsDistribution, staker1, staker2]) => {
 	console.log("Start tests");
 	let stakingRewards;
 	let stakingToken;
 	let rewardsToken;
+	let rewardsEscrow;
 	const DAY = 86400;
 	const ZERO_BN = toBN(0);
 

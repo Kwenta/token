@@ -75,7 +75,9 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
     uint256 private constant MIN_STAKE = 0;
 
     uint256 private constant MAX_BPS = 1e24;
+    // Needs to be int256 for power library, weight is equal to 1/0.3
     int256 private constant WEIGHT_FEES = 3_333_333_333_333_333_333;
+    // Needs to be int256 for power library, weight is equal to 1/0.7
     int256 private constant WEIGHT_STAKING =1_428_571_428_571_428_571;
     
     /* ========== CONSTRUCTOR ========== */
@@ -114,7 +116,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         return _totalBalances[account].sub(_escrowedBalances[account]);
     }
 
-    function rewardScoreOf(address account) public view returns (uint256) {
+    function rewardScoreOf(address account) external view returns (uint256) {
     /*
     Getter function for the reward score of an account
     */
@@ -210,6 +212,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
     */
         
         uint256 newRewardScore = 0;
+        // Handle case with 0 reward to avoid the library crashing
         if(_feesPaid[_account] > 0 && _totalBalances[_account] > 0) {
             newRewardScore = uint256(fixidity.root_any(int256(_totalBalances[_account]), WEIGHT_STAKING)).mul(uint256(fixidity.root_any(int256(_feesPaid[_account]), WEIGHT_FEES)));
         }
@@ -257,6 +260,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         uint256 reward = rewards[msg.sender];
         if (reward > 0) {
             rewards[msg.sender] = 0;
+            // Send the rewards to Escrow for 1 year
             rewardEscrow.appendVestingEntry(msg.sender, reward);
             emit RewardPaid(msg.sender, reward);
         }
@@ -342,6 +346,14 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         emit Recovered(tokenAddress, tokenAmount);
     }
 
+    function setRewardEscrow(address _rewardEscrow) external onlyOwner {
+    /*
+    Function available for the owner to change the rewardEscrow contract to use
+    */
+        rewardEscrow = RewardEscrow(_rewardEscrow);
+        emit RewardEscrowUpdated(address(_rewardEscrow));
+    }
+
     function setRewardsDuration(uint256 _rewardsDuration) external onlyOwner {
     /*
     Function available for the owner to change the rewards duration via the state variable _rewardsDuration
@@ -396,5 +408,6 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
     event Recovered(address token, uint256 amount);
     event EscrowStaked(address account, uint256 amount);
     event EscrowUnstaked(address account, uint256 amount);
+    event RewardEscrowUpdated(address account);
     
 }

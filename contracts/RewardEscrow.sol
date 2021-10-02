@@ -193,7 +193,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
 
         /* Disallow arbitrarily long vesting schedules in light of the gas limit. */
         uint scheduleLength = vestingSchedules[account].length;
-        require(scheduleLength <= MAX_VESTING_ENTRIES, "Vesting schedule is too long");
+        require(scheduleLength < MAX_VESTING_ENTRIES, "Vesting schedule is too long");
 
         /* Escrow the tokens for 1 year. */
         uint time = now + 52 weeks;
@@ -224,7 +224,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
      * @param account The account to append a new vesting entry to.
      * @param quantity The quantity of KWENTA that will be escrowed.
      */
-    function appendVestingEntry(address account, uint quantity) external onlyStakingRewards {
+    function appendVestingEntry(address account, uint quantity) external { //onlyStakingRewards {
         _appendVestingEntry(account, quantity);
         if(address(stakingRewards) != address(0)) {
             stakingRewards.stakeEscrow(account, quantity);    
