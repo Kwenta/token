@@ -1,7 +1,7 @@
-const fs = require("fs");
 const { ethers } = require("hardhat");
 const XSNX = require("./xSNX.json");
 const merkleClaimSnapshot = require("./pre-hack-snapshot.json");
+const { AUGUST_SNAP, XSNX_POST_HACK_DEPLOYED_BLOCK } = require("../blocks");
 
 /**
  * Get snapshot of all addresses which haven't claimed xSNXa from Merkle Claim contract
@@ -20,8 +20,8 @@ async function getUnclaimedXSNXaMerkleClaim(provider) {
   const merkleClaimsContract = "0x1de6Cd47Dfe2dF0d72bff4354d04a79195cABB1C";
   let transferEvents = await xsnx.queryFilter(
     xsnx.filters.Transfer(),
-    0,
-    13118314
+    XSNX_POST_HACK_DEPLOYED_BLOCK,
+    AUGUST_SNAP
   );
   let totalBalance = merkleClaimSnapshot;
 
@@ -60,10 +60,6 @@ async function getUnclaimedXSNXaMerkleClaim(provider) {
     ethers.utils.formatEther(totalAllocated)
   );
 
-  fs.writeFileSync(
-    "scripts/snx-data/xsnx-snapshot/august-hack-snapshot/snapshotXSNXaMerkleUnclaimed.json",
-    JSON.stringify(totalBalance)
-  );
   return totalBalance;
 }
 

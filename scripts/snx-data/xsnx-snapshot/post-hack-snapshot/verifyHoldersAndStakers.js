@@ -1,6 +1,6 @@
 const { ethers } = require("hardhat");
+const XSNX = require("./xSNX.json");
 
-const XSNX = require("../xSNX.json");
 const provider = new ethers.providers.JsonRpcProvider({
   url: process.env.ARCHIVE_NODE_URL,
   user: process.env.ARCHIVE_NODE_USER,
@@ -12,7 +12,7 @@ const xsnx = new ethers.Contract(
   XSNX.abi,
   provider
 );
-let balancerVault = "0xBA12222222228d8Ba445958a75a0704d566BF2C8"; // balancer vault (xsnx token holder)
+let balancerVault = "0xBA12222222228d8Ba445958a75a0704d566BF2C8"; // balancer pool address
 
 let holders = require("./snapshotHolders.json");
 let stakers = require("./snapshotPoolStakers.json");

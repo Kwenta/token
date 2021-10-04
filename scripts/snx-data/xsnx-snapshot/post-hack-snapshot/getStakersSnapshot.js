@@ -2,15 +2,15 @@ const { ethers } = require("hardhat");
 const fs = require("fs");
 
 const { getStakingRewardsStakers } = require("./getStakingRewardsStakers");
-const XSNX = require("../xSNX.json");
-const { POST_HACK_START, AUGUST_SNAP } = require("../blocks");
+const XSNX = require("./xSNX.json");
 const { queryFilterHelper } = require("../../utils");
+const { BPT_POST_HACK_DEPLOYED_BLOCK, AUGUST_SNAP } = require("../blocks");
 
 /**
- * Get snapshot of all addresses staking xSNX in xSNXa-WETH Balancer Pool
- * Need to run with mainnet forking enabled
+ * Get snapshot of all addresses staking xSNX in xSNX Pool at a block before the xToken hack occurred
+ * Need to run with mainnet forking enabled pinned at block 13118314 (6 blocks before the hack)
  */
-async function getStakersSnapshot(blockNumber, provider) {
+async function getStakersSnapshot(provider) {
   console.log("---Get Stakers Snapshot---");
   const xsnx = new ethers.Contract(
     "0x1cf0f3aabe4d12106b27ab44df5473974279c524",
@@ -22,12 +22,12 @@ async function getStakersSnapshot(blockNumber, provider) {
     XSNX.abi,
     provider
   );
-  const balancerVault = "0xBA12222222228d8Ba445958a75a0704d566BF2C8"; // balancer vault which holds xsnx tokens
+  const balancerVault = "0xBA12222222228d8Ba445958a75a0704d566BF2C8"; // balancer vault address
   const stakingRewardsContract = "0x9AA731A7302117A16e008754A8254fEDE2C35f8D"; // staking rewards address
-  const transfers = await queryFilterHelper(
+  let transfers = await queryFilterHelper(
     bpt,
-    POST_HACK_START + 1,
-    AUGUST_SNAP - 1,
+    BPT_POST_HACK_DEPLOYED_BLOCK,
+    AUGUST_SNAP,
     bpt.filters.Transfer()
   );
   console.log("total bpt transfers:", transfers.length);
@@ -53,21 +53,19 @@ async function getStakersSnapshot(blockNumber, provider) {
       //totalBalance[address] = value;
     }
   }
-  console.log(
-    "balance of staking rewards contract:",
-    ethers.utils.formatEther(totalBalance[stakingRewardsContract])
-  );
-
-  delete totalBalance[balancerVault]; // remove balancer vault from snapshot
+  delete totalBalance[balancerVault]; // remove balancer pool from snapshot
   delete totalBalance[stakingRewardsContract]; // remove staking rewards contract from snapshot
 
-  let stakingRewardsStakers = await getStakingRewardsStakers(
-    blockNumber,
-    provider
-  );
+  let stakingRewardsStakers = await getStakingRewardsStakers(provider);
 
-  // merge two snapshots
-  totalBalance = { ...totalBalance, ...stakingRewardsStakers };
+  // merge the two snapshots
+  for (let [address, amount] of Object.entries(stakingRewardsStakers)) {
+    if (totalBalance[address]) {
+      totalBalance[address] = totalBalance[address].add(amount);
+    } else {
+      totalBalance[address] = amount;
+    }
+  }
 
   let balanceSum = new ethers.BigNumber.from(0);
   let addressCount = 0;
@@ -77,13 +75,12 @@ async function getStakersSnapshot(blockNumber, provider) {
       delete totalBalance[address];
       continue;
     }
-    totalBalance[address] = totalBalance[address].toString();
     balanceSum = balanceSum.add(totalBalance[address]);
     addressCount++;
   }
   let bptTotalSupply = await bpt.totalSupply();
   let xsnxInPool = await xsnx.balanceOf(balancerVault);
-  let xsnxPer1BPT = xsnxInPool.mul(100000000).div(bptTotalSupply).toNumber(); // mul by 100M for precision
+  let xsnxPer1BPT = xsnxInPool.mul(1e14).div(bptTotalSupply).toNumber(); // mul by 1e14 for precision
 
   console.log("total address balances count:", addressCount);
 
@@ -93,13 +90,13 @@ async function getStakersSnapshot(blockNumber, provider) {
   );
   console.log("total bpt supply:", ethers.utils.formatEther(bptTotalSupply));
   console.log("total xsnx in pool:", ethers.utils.formatEther(xsnxInPool));
-  console.log("xsnx per 1 bpt:", xsnxPer1BPT / 100000000);
+  console.log("xsnx per 1 bpt:", xsnxPer1BPT / 1e14);
 
   let totalxSNXBalance = new ethers.BigNumber.from(0);
   // Convert BPT to xSNX balance
   for (let address of Object.keys(totalBalance)) {
     const balance = new ethers.BigNumber.from(totalBalance[address]);
-    totalBalance[address] = balance.mul(xsnxPer1BPT).div(100000000).toString();
+    totalBalance[address] = balance.mul(xsnxPer1BPT).div(1e14).toString();
     totalxSNXBalance = totalxSNXBalance.add(totalBalance[address]);
   }
 
