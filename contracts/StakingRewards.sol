@@ -74,7 +74,8 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
     
     uint256 private constant MIN_STAKE = 0;
 
-    uint256 private constant MAX_BPS = 1e24;
+    uint256 private constant MAX_BPS = 10_000;
+    uint256 private constant MAX_DECIMALS = 1e20;
     // Needs to be int256 for power library, root to calculate is equal to 1/0.3
     int256 private constant WEIGHT_FEES = 3_333_333_333_333_333_333;
     // Needs to be int256 for power library, root to calculate is equal to 1/0.7
@@ -164,7 +165,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         }
         return
             rewardPerRewardScoreStored.add(
-                lastTimeRewardApplicable().sub(lastUpdateTimeRewardScore).mul(rewardRate).mul(MAX_BPS).div(_totalRewardScore)
+                lastTimeRewardApplicable().sub(lastUpdateTimeRewardScore).mul(rewardRate).mul(MAX_BPS).mul(MAX_DECIMALS).div(_totalRewardScore)
             );
     }
 
@@ -175,7 +176,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
     last changes (deducting userRewardPerRewardScorePaid) and adds the result to the existing rewards balance of the account
     returns: uint256 containing the total rewards due to account
     */
-        return _rewardScores[account].mul(rewardPerRewardScore().sub(userRewardPerRewardScorePaid[account])).div(1e24).add(rewards[account]);
+        return _rewardScores[account].mul(rewardPerRewardScore().sub(userRewardPerRewardScorePaid[account])).div(MAX_BPS).div(MAX_DECIMALS).add(rewards[account]);
     }
 
     function getRewardForDuration() external view returns (uint256) {
