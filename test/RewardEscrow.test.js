@@ -141,6 +141,7 @@ contract('RewardEscrow KWENTA', ([owner, rewardsDistribution, staker1, staker2])
 	let stakingToken;
 	let rewardsToken;
 	let rewardsEscrow;
+	let SRsigner;
 	const ZERO_BN = toBN(0);
 
 	before(async() => {
@@ -168,6 +169,13 @@ contract('RewardEscrow KWENTA', ([owner, rewardsDistribution, staker1, staker2])
 			rewardsEscrow.address
 			);
 
+		await hre.network.provider.request({
+		  method: "hardhat_impersonateAccount",
+		  params: [stakingRewards.address],
+		});
+
+		SRsigner = await ethers.getSigner(stakingRewards.address);
+
 		rewardsEscrow.setStakingRewards(stakingRewards.address, {from: owner});
 
 		stakingToken._mint(staker1, toUnit(1000000));
@@ -175,6 +183,11 @@ contract('RewardEscrow KWENTA', ([owner, rewardsDistribution, staker1, staker2])
 		stakingToken._mint(owner, toUnit(1000000));
 
 		rewardsToken._mint(stakingRewards.address, toUnit(1000000));
+
+		await network.provider.send("hardhat_setBalance", [
+		  stakingRewards.address,
+		  "0x10000000000000000000000000000000",
+		]);
 
 	});
 
@@ -219,7 +232,7 @@ contract('RewardEscrow KWENTA', ([owner, rewardsDistribution, staker1, staker2])
 					from: owner,
 				});
 
-				await rewardsEscrow.appendVestingEntry(staker1, toUnit('0'), { from: owner }).should.be.rejected;
+				await rewardsEscrow.appendVestingEntry(staker1, toUnit('0'), { from: stakingRewards.address }).should.be.rejected;
 				
 			});
 
@@ -228,7 +241,7 @@ contract('RewardEscrow KWENTA', ([owner, rewardsDistribution, staker1, staker2])
 				await stakingToken.transfer(rewardsEscrow.address, toUnit('1'), {
 					from: owner,
 				});
-				await rewardsEscrow.appendVestingEntry(staker1, toUnit('10'), { from: owner }).should.be.rejected;
+				await rewardsEscrow.appendVestingEntry(staker1, toUnit('10'), { from: stakingRewards.address }).should.be.rejected;
 			});
 	});
 
@@ -240,11 +253,11 @@ contract('RewardEscrow KWENTA', ([owner, rewardsDistribution, staker1, staker2])
 				});
 
 				// Add a few vesting entries as the feepool address
-				await rewardsEscrow.appendVestingEntry(staker1, toUnit('1000'), { from: owner });
+				await rewardsEscrow.appendVestingEntry(staker1, toUnit('1000'), { from: stakingRewards.address });
 				await fastForward(WEEK);
-				await rewardsEscrow.appendVestingEntry(staker1, toUnit('2000'), { from: owner });
+				await rewardsEscrow.appendVestingEntry(staker1, toUnit('2000'), { from: stakingRewards.address });
 				await fastForward(WEEK);
-				await rewardsEscrow.appendVestingEntry(staker1, toUnit('3000'), { from: owner });
+				await rewardsEscrow.appendVestingEntry(staker1, toUnit('3000'), { from: stakingRewards.address });
 			});
 
 			it('should append a vesting entry and increase the contracts balance', async () => {
@@ -306,11 +319,11 @@ contract('RewardEscrow KWENTA', ([owner, rewardsDistribution, staker1, staker2])
 				});
 
 				// Add a few vesting entries as the feepool address
-				await rewardsEscrow.appendVestingEntry(staker1, toUnit('1000'), { from: owner });
+				await rewardsEscrow.appendVestingEntry(staker1, toUnit('1000'), { from: stakingRewards.address });
 				await fastForward(WEEK);
-				await rewardsEscrow.appendVestingEntry(staker1, toUnit('2000'), { from: owner });
+				await rewardsEscrow.appendVestingEntry(staker1, toUnit('2000'), { from: stakingRewards.address });
 				await fastForward(WEEK);
-				await rewardsEscrow.appendVestingEntry(staker1, toUnit('3000'), { from: owner });
+				await rewardsEscrow.appendVestingEntry(staker1, toUnit('3000'), { from: stakingRewards.address });
 
 				// fastForward to vest only the first weeks entry
 				await fastForward(YEAR - WEEK * 2);
@@ -358,11 +371,11 @@ contract('RewardEscrow KWENTA', ([owner, rewardsDistribution, staker1, staker2])
 				});
 
 				// Add a few vesting entries as the feepool address
-				await rewardsEscrow.appendVestingEntry(staker1, toUnit('1000'), { from: owner });
+				await rewardsEscrow.appendVestingEntry(staker1, toUnit('1000'), { from: stakingRewards.address });
 				await fastForward(WEEK);
-				await rewardsEscrow.appendVestingEntry(staker1, toUnit('2000'), { from: owner });
+				await rewardsEscrow.appendVestingEntry(staker1, toUnit('2000'), { from: stakingRewards.address });
 				await fastForward(WEEK);
-				await rewardsEscrow.appendVestingEntry(staker1, toUnit('3000'), { from: owner });
+				await rewardsEscrow.appendVestingEntry(staker1, toUnit('3000'), { from: stakingRewards.address });
 
 				// Need to go into the future to vest
 				await fastForward(YEAR + WEEK * 3);
@@ -444,11 +457,11 @@ contract('RewardEscrow KWENTA', ([owner, rewardsDistribution, staker1, staker2])
 
 			// Add a few vesting entries as the feepool address
 			/*
-			await rewardsEscrow.appendVestingEntry(staker1, toUnit('1000'), { from: owner });
+			await rewardsEscrow.appendVestingEntry(staker1, toUnit('1000'), { from: stakingRewards.address });
 			await fastForward(WEEK);
-			await rewardsEscrow.appendVestingEntry(staker1, toUnit('2000'), { from: owner });
+			await rewardsEscrow.appendVestingEntry(staker1, toUnit('2000'), { from: stakingRewards.address });
 			await fastForward(WEEK);
-			await rewardsEscrow.appendVestingEntry(staker1, toUnit('3000'), { from: owner });
+			await rewardsEscrow.appendVestingEntry(staker1, toUnit('3000'), { from: stakingRewards.address });
 
 			// Need to go into the future to vest
 			await fastForward(YEAR + WEEK * 3);
@@ -466,11 +479,11 @@ contract('RewardEscrow KWENTA', ([owner, rewardsDistribution, staker1, staker2])
 
 				// append the MAX_VESTING_ENTRIES to the schedule
 				for (let i = 0; i < MAX_VESTING_ENTRIES; i++) {
-					await rewardsEscrow.appendVestingEntry(staker1, toUnit('1'), { from: owner });
+					await rewardsEscrow.appendVestingEntry(staker1, toUnit('1'), { from: stakingRewards.address });
 					await fastForward(WEEK);
 				}
 				// assert adding 1 more above the MAX_VESTING_ENTRIES fails
-				await rewardsEscrow.appendVestingEntry(staker1, toUnit('1'), { from: owner }).should.be.rejected;
+				await rewardsEscrow.appendVestingEntry(staker1, toUnit('1'), { from: stakingRewards.address }).should.be.rejected;
 			}).timeout(60e3);
 
 			it('should be able to read an accounts schedule of 5 vesting entries', async () => {
@@ -483,7 +496,7 @@ contract('RewardEscrow KWENTA', ([owner, rewardsDistribution, staker1, staker2])
 
 				// Append the VESTING_ENTRIES to the schedule
 				for (let i = 0; i < VESTING_ENTRIES; i++) {
-					rewardsEscrow.appendVestingEntry(staker1, toUnit('1'), { from: owner });
+					rewardsEscrow.appendVestingEntry(staker1, toUnit('1'), { from: stakingRewards.address });
 					await fastForward(SECOND);
 				}
 
@@ -509,7 +522,7 @@ contract('RewardEscrow KWENTA', ([owner, rewardsDistribution, staker1, staker2])
 
 				// Append the MAX_VESTING_ENTRIES to the schedule
 				for (let i = 0; i < MAX_VESTING_ENTRIES; i++) {
-					rewardsEscrow.appendVestingEntry(staker1, toUnit('1'), { from: owner });
+					rewardsEscrow.appendVestingEntry(staker1, toUnit('1'), { from: stakingRewards.address });
 					await fastForward(SECOND);
 				}
 

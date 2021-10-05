@@ -224,7 +224,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
      * @param account The account to append a new vesting entry to.
      * @param quantity The quantity of KWENTA that will be escrowed.
      */
-    function appendVestingEntry(address account, uint quantity) external { //onlyStakingRewards {
+    function appendVestingEntry(address account, uint quantity) external onlyStakingRewards {
         _appendVestingEntry(account, quantity);
         if(address(stakingRewards) != address(0)) {
             stakingRewards.stakeEscrow(account, quantity);    
