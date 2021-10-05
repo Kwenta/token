@@ -454,18 +454,6 @@ contract('RewardEscrow KWENTA', ([owner, rewardsDistribution, staker1, staker2])
 			await stakingToken.transfer(rewardsEscrow.address, toUnit('6000'), {
 				from: owner,
 			});
-
-			// Add a few vesting entries as the feepool address
-			/*
-			await rewardsEscrow.appendVestingEntry(staker1, toUnit('1000'), { from: stakingRewards.address });
-			await fastForward(WEEK);
-			await rewardsEscrow.appendVestingEntry(staker1, toUnit('2000'), { from: stakingRewards.address });
-			await fastForward(WEEK);
-			await rewardsEscrow.appendVestingEntry(staker1, toUnit('3000'), { from: stakingRewards.address });
-
-			// Need to go into the future to vest
-			await fastForward(YEAR + WEEK * 3);
-			*/
 		});
 
 			it('should not create more than MAX_VESTING_ENTRIES vesting entries', async () => {
