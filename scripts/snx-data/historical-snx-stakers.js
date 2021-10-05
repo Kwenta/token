@@ -19,7 +19,7 @@ const L2_TRANSFER_START_BLOCK = 11656238;
 const EST_L2_AND_YEARN_REWARDS_APY = 0.15;
 const MAX_GET_BLOCK_FAILS = 5;
 
-let txCount = 0;
+let l1txCount = 0;
 let totalScores = 0;
 let accountsScores = {};
 
@@ -31,6 +31,7 @@ async function getBlocksInChunks(
 ) {
   try {
     const blocks = [...storedBlocks];
+    console.log("blocks so far", blocks);
     const toBlock = fromBlock + 500000;
 
     const filter = {
@@ -55,35 +56,13 @@ async function getBlocksInChunks(
   }
 }
 
-async function fetchData() {
-  if (
-    process.env.ARCHIVE_NODE_URL == null ||
-    process.env.ARCHIVE_NODE_PASS == null ||
-    process.env.ARCHIVE_NODE_USER == null
-  ) {
-    throw new Error("need credentials to access archive node for script");
-  }
-
-  const provider = new ethers.providers.JsonRpcProvider(
-    {
-      url: process.env.ARCHIVE_NODE_URL,
-      user: process.env.ARCHIVE_NODE_USER,
-      password: process.env.ARCHIVE_NODE_PASS,
-      timeout: 200000,
-    },
-    1
-  );
-
-  await provider.ready;
-
+async function fetchData(provider) {
   const blocks = await getBlocksInChunks(
     provider,
     PROXY_FEE_POOL_START_BLOCK,
     []
   );
-  console.log("blocks", blocks);
-  // TODO remove this - just for testing
-  // const blocks = [12823540, 12868207, 12912866];
+  console.log("final blocks", blocks);
 
   for (let i = 0; i < blocks.length; i++) {
     if (!blocks[i + 1]) break;
@@ -133,10 +112,19 @@ async function fetchData() {
       updateAccountAndTotalsWeekly(data, weeklyRewardL1);
     }
 
+    fs.writeFileSync(
+      "scripts/snx-data/latest_week.json",
+      JSON.stringify({
+        latestBlock: blocks[i + 1],
+        accountsScores,
+      }),
+      function (err) {
+        if (err) return console.log(err);
+      }
+    );
+
     console.log("total scores", totalScores);
     console.log("L1 tx count for week " + (i + 1) + " -", result.length);
-    const txCountL2 = resultL2 ? resultL2.length : 0;
-    console.log("L2 tx count for week " + (i + 1) + " -", txCountL2);
     console.log(
       "min block",
       blocks[i],
@@ -145,7 +133,7 @@ async function fetchData() {
       "num blocks in week",
       blocks[i + 1] - blocks[i]
     );
-    txCount += result.length + txCountL2;
+    l1txCount += result.length;
   }
 
   // xSNX & Yearn snapshot
@@ -232,7 +220,25 @@ function updateAccountAndTotalsWeekly(allUserData, weeklyReward) {
 }
 
 async function main() {
-  const data = await fetchData();
+  if (
+    process.env.ARCHIVE_NODE_URL == null ||
+    process.env.ARCHIVE_NODE_PASS == null ||
+    process.env.ARCHIVE_NODE_USER == null
+  ) {
+    throw new Error("need credentials to access archive node for script");
+  }
+  const provider = new ethers.providers.JsonRpcProvider(
+    {
+      url: process.env.ARCHIVE_NODE_URL,
+      user: process.env.ARCHIVE_NODE_USER,
+      password: process.env.ARCHIVE_NODE_PASS,
+      timeout: 200000,
+    },
+    1
+  );
+  await provider.ready;
+
+  const data = await fetchData(provider);
 
   fs.writeFileSync(
     "scripts/snx-data/historical_snx.json",
@@ -243,7 +249,7 @@ async function main() {
   );
 
   console.log("accounts scores length", Object.keys(data).length);
-  console.log("tx total count", txCount);
+  console.log("tx total count", l1txCount);
   console.log("total scores", totalScores);
 }
 

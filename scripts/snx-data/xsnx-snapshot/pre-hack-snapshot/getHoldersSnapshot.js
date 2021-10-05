@@ -1,7 +1,7 @@
 const { ethers } = require("hardhat");
 const XSNX = require("./xSNX.json");
 const { PRE_HACK_END, XSNX_DEPLOYED_BLOCK } = require("../blocks");
-const { queryFilterHelper } = require("../../utils");
+const { queryFilterHelper, zeroBN } = require("../utils");
 
 /**
  * Get snapshot of all addresses holding xSNX at a block before the xToken hack occurred
@@ -14,6 +14,8 @@ async function getHoldersSnapshot(provider) {
     XSNX.abi,
     provider
   );
+  console.log("PRE_HACK_END", PRE_HACK_END);
+  console.log("queryFilterHelper", queryFilterHelper);
   const balancerXsnxPool = "0xE3f9cF7D44488715361581DD8B3a15379953eB4C"; // balancer pool address
   const balancerXsnxPoolSecondary =
     "0x4939e1557613B6e84b92bf4C5D2db4061bD1A7c7"; // balancer AAVE-LINK-xSNX pool address
@@ -50,7 +52,7 @@ async function getHoldersSnapshot(provider) {
   delete totalBalance[balancerXsnxPool]; // remove balancer pool from snapshot
   delete totalBalance[balancerXsnxPoolSecondary]; // remove balancer pool 2 from snapshot
 
-  let balanceSum = new ethers.BigNumber.from(0);
+  let balanceSum = zeroBN;
   let addressCount = 0;
   for (let address of Object.keys(totalBalance)) {
     // remove 0 balance addresses and address 0x0 which is < 0 balance

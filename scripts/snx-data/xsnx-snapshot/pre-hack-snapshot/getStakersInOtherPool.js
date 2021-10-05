@@ -2,7 +2,7 @@ const { ethers } = require("hardhat");
 const fs = require("fs");
 const XSNX = require("./xSNX.json");
 const { PRE_HACK_END, BPT_START_BLOCK } = require("../blocks");
-const { queryFilterHelper } = require("../../utils");
+const { queryFilterHelper, zeroBN } = require("../utils");
 
 /**
  * Get snapshot of all addresses staking xSNX in AAVE-LINK-xSNX-UNI-YFI Balancer Pool
@@ -53,7 +53,7 @@ async function getStakersInOtherPool(provider) {
   }
   delete totalBalance[balancerXsnxPool]; // remove balancer pool from snapshot
 
-  let balanceSum = new ethers.BigNumber.from(0);
+  let balanceSum = zeroBN;
   let addressCount = 0;
   for (let address of Object.keys(totalBalance)) {
     // remove 0 balance addresses and address 0x0 which is < 0 balance
@@ -79,7 +79,7 @@ async function getStakersInOtherPool(provider) {
   console.log("total xsnx in pool:", ethers.utils.formatEther(xsnxInPool));
   console.log("xsnx per 1 bpt:", xsnxPer1BPT / 100000000);
 
-  let totalxSNXBalance = new ethers.BigNumber.from(0);
+  let totalxSNXBalance = zeroBN;
   // Convert BPT to xSNX balance
   for (let address of Object.keys(totalBalance)) {
     const balance = new ethers.BigNumber.from(totalBalance[address]);

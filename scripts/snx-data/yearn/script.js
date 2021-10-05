@@ -1,5 +1,5 @@
 const { ethers } = require("hardhat");
-const { queryFilterHelper } = require("../utils");
+const { queryFilterHelper, zeroBN } = require("../xsnx-snapshot/utils");
 
 const SNX_ADDRESS = "0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f";
 const SNX_YEARN_VAULT = "0xF29AE508698bDeF169B89834F76704C3B205aedf";
@@ -50,7 +50,7 @@ async function getYearnData(minBlock, maxBlock, provider) {
     }
   }
 
-  let balanceSum = new ethers.BigNumber.from(0);
+  let balanceSum = zeroBN;
   let addressCount = 0;
   for (let address of Object.keys(totalBalance)) {
     // remove 0 balance addresses and address 0x0 which is < 0 balance

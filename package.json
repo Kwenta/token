@@ -9,7 +9,7 @@
     "deploy-kwenta:kovan": "hardhat run ./scrips/deploy-kwenta  --network kovan",
     "deploy-distribution": "hardhat run ./scrips/deploy-distribution  --network mainnet",
     "deploy-distribution:kovan": "hardhat run ./scrips/deploy-distribution  --network kovan",
-    "take-snapshot": "LATEST_BLOCK=13328346 hardhat run ./scripts/snx-data/historical-snx-stakers.js",
+    "historical-snx-snapshot": "hardhat run ./scripts/snx-data/historical-snx-stakers.js",
     "yearn-snapshot": "hardhat run ./scripts/snx-data/yearn/script.js",
     "l2-snapshot": "hardhat run ./scripts/snx-data/L2/script.js",
     "xsnx-pre-hack-snapshot": "hardhat run ./scripts/snx-data/xsnx-snapshot/pre-hack-snapshot/getSnapshot.js",

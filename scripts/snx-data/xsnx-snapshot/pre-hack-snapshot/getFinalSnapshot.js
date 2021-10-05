@@ -1,5 +1,6 @@
 const fs = require("fs");
 const { ethers } = require("hardhat");
+const { zeroBN } = require("../utils");
 
 /**
  * Merge the holders and stakers of xsnx in one final snapshot
@@ -19,7 +20,7 @@ async function getFinalSnapshot(xsnxHoldersSnapshot, xsnxStakersSnapshot) {
     }
   }
 
-  let totalXSNXTValue = new ethers.BigNumber.from(0);
+  let totalXSNXTValue = zeroBN;
   let distributionCount = 0;
   for (let [address, amount] of Object.entries(finalSnapshot)) {
     if (amount == 0) {

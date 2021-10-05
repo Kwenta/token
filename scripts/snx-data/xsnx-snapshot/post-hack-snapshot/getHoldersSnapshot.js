@@ -4,7 +4,7 @@ const fs = require("fs");
 const XSNX = require("./xSNX.json");
 const { getUnclaimedXSNXaMerkleClaim } = require("./getxSNXMerkleClaim");
 const { AUGUST_SNAP, XSNX_POST_HACK_DEPLOYED_BLOCK } = require("../blocks");
-const { queryFilterHelper } = require("../../utils");
+const { queryFilterHelper, zeroBN } = require("../utils");
 
 /**
  * Get snapshot of all addresses holding xSNX at a block before the xSNX hack occurred
@@ -12,6 +12,7 @@ const { queryFilterHelper } = require("../../utils");
  */
 async function getHoldersSnapshot(provider) {
   console.log("---Get Holders Snapshot---");
+  console.log("dont call me!");
   const xsnx = new ethers.Contract(
     "0x1cf0f3aabe4d12106b27ab44df5473974279c524",
     XSNX.abi,
@@ -62,7 +63,7 @@ async function getHoldersSnapshot(provider) {
     }
   }
 
-  let balanceSum = new ethers.BigNumber.from(0);
+  let balanceSum = zeroBN;
   let addressCount = 0;
   for (let address of Object.keys(totalBalance)) {
     console.log("totalBalance[address]", totalBalance[address]);

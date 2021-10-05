@@ -1,6 +1,6 @@
 const { ethers } = require("hardhat");
 const SNX = require("../SNX.json");
-const { queryFilterHelper } = require("../utils");
+const { queryFilterHelper, zeroBN } = require("../xsnx-snapshot/utils");
 
 const SNX_ADDRESS = "0xc011a73ee8576fb46f5e1c5751ca3b9fe0af2a6f";
 const L2_NEW_BRIDGE = "0x5fd79d46eba7f351fe49bff9e87cdea6c821ef9f";
@@ -91,7 +91,7 @@ async function getL2Snapshot(minBlock, maxBlock, provider) {
     }
   }
 
-  let balanceSum = new ethers.BigNumber.from(0);
+  let balanceSum = zeroBN;
   for (const address of Object.keys(totalBalance)) {
     // remove 0 balance addresses and address 0x0 which is < 0 balance
     if (totalBalance[address] <= 0) {

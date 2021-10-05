@@ -1,12 +1,12 @@
 const fs = require("fs");
 const { ethers } = require("hardhat");
+const { zeroBN } = require("../utils");
 
 /**
  * Merge the holders and stakers of xsnx in one final snapshot
  */
 async function getFinalSnapshot(xsnxHoldersSnapshot, xsnxStakersSnapshot) {
   console.log("---Get Final Snapshot---");
-  const zeroBN = new ethers.BigNumber.from(0);
   const oneEvm = new ethers.BigNumber.from(Math.pow(10, 18).toString());
   // merge the two snapshots
   let finalSnapshot = {};

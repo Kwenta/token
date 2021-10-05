@@ -1,6 +1,7 @@
 const { ethers } = require("hardhat");
 
 const XSNX = require("./xSNX.json");
+const { zeroBN } = require("../utils");
 
 const provider = new ethers.providers.JsonRpcProvider({
   url: process.env.ARCHIVE_NODE_URL,
@@ -21,12 +22,12 @@ let stakers = require("./snapshotPoolStakers.json");
  * Verify the numbers in both holders and stakers snapshot match
  */
 async function verify() {
-  let holdersTotal = new ethers.BigNumber.from(0);
+  let holdersTotal = zeroBN;
   for (let amount of Object.values(holders)) {
     holdersTotal = holdersTotal.add(amount);
   }
 
-  let stakersTotal = new ethers.BigNumber.from(0);
+  let stakersTotal = zeroBN;
   for (let amount of Object.values(stakers)) {
     stakersTotal = stakersTotal.add(amount);
   }

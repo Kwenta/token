@@ -1,6 +1,6 @@
 const { ethers } = require("hardhat");
 const XSNX = require("./xSNX.json");
-const { queryFilterHelper } = require("../../utils");
+const { queryFilterHelper, zeroBN } = require("../utils");
 const { BPT_POST_HACK_DEPLOYED_BLOCK, AUGUST_SNAP } = require("../blocks");
 /**
  * Get snapshot of all addresses staking Balancer Pool Token in Staking Rewards contract pre-hack
@@ -53,7 +53,7 @@ async function getStakingRewardsStakers(provider) {
     }
   }
 
-  let totalAllocated = new ethers.BigNumber.from(0);
+  let totalAllocated = zeroBN;
   let addressCount = 0;
   for (let address of Object.keys(totalBalance)) {
     // remove 0 balance addresses and address 0x0 which is < 0 balance

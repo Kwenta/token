@@ -2,6 +2,7 @@ const { ethers } = require("hardhat");
 const XSNX = require("./xSNX.json");
 const merkleClaimSnapshot = require("./pre-hack-snapshot.json");
 const { AUGUST_SNAP, XSNX_POST_HACK_DEPLOYED_BLOCK } = require("../blocks");
+const { zeroBN } = require("../utils");
 
 /**
  * Get snapshot of all addresses which haven't claimed xSNXa from Merkle Claim contract
@@ -39,7 +40,7 @@ async function getUnclaimedXSNXaMerkleClaim(provider) {
     }
   }
 
-  let totalAllocated = new ethers.BigNumber.from(0);
+  let totalAllocated = zeroBN;
   let addressCount = 0;
   for (let address of Object.keys(totalBalance)) {
     // remove 0 balance addresses and address 0x0 which is < 0 balance

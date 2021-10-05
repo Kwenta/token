@@ -18,6 +18,7 @@ async function getPreHackSnapshot(provider) {
 module.exports = { getPreHackSnapshot };
 
 // async function main() {
+//   console.log("here we are to start?");
 //   const provider = new ethers.providers.JsonRpcProvider(
 //     {
 //       url: process.env.ARCHIVE_NODE_URL,

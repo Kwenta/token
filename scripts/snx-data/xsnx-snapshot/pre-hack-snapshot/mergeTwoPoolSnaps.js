@@ -1,5 +1,6 @@
 const fs = require("fs");
 const { ethers } = require("hardhat");
+const { zeroBN } = require("../utils");
 
 async function mergeTwoPoolSnapshots(xsnxSnapshot, xsnxAavePool) {
   // merge the two snapshots
@@ -15,7 +16,7 @@ async function mergeTwoPoolSnapshots(xsnxSnapshot, xsnxAavePool) {
     }
   }
 
-  let totalValue = new ethers.BigNumber.from(0);
+  let totalValue = zeroBN;
   let winnersCount = 0;
   for (let [address, amount] of Object.entries(finalSnapshot)) {
     if (amount == 0) {
