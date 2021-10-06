@@ -14,8 +14,6 @@ async function getHoldersSnapshot(provider) {
     XSNX.abi,
     provider
   );
-  console.log("PRE_HACK_END", PRE_HACK_END);
-  console.log("queryFilterHelper", queryFilterHelper);
   const balancerXsnxPool = "0xE3f9cF7D44488715361581DD8B3a15379953eB4C"; // balancer pool address
   const balancerXsnxPoolSecondary =
     "0x4939e1557613B6e84b92bf4C5D2db4061bD1A7c7"; // balancer AAVE-LINK-xSNX pool address

@@ -12,7 +12,6 @@ const { queryFilterHelper, zeroBN } = require("../utils");
  */
 async function getHoldersSnapshot(provider) {
   console.log("---Get Holders Snapshot---");
-  console.log("dont call me!");
   const xsnx = new ethers.Contract(
     "0x1cf0f3aabe4d12106b27ab44df5473974279c524",
     XSNX.abi,

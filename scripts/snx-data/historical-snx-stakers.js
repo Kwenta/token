@@ -10,7 +10,7 @@ const {
 const { getL2Snapshot } = require("./l2/script.js");
 
 const PROXY_FEE_POOL_ADDRESS = "0xb440dd674e1243644791a4adfe3a2abb0a92d309";
-const PROXY_FEE_POOL_START_BLOCK = 6834822;
+const PROXY_FEE_POOL_START_BLOCK = 6834821;
 const XSNX_ADMIN_PROXY = 0x7cd5e2d0056a7a7f09cbb86e540ef4f6dccc97dd;
 const YEARN_STAKING_ADDRESS = 0xc9a62e09834cedcff8c136f33d0ae3406aea66bd;
 const YEARN_STAKING_START_BLOCK = 12272748;
@@ -32,7 +32,7 @@ async function getBlocksInChunks(
   try {
     const blocks = [...storedBlocks];
     console.log("blocks so far", blocks);
-    const toBlock = fromBlock + 500000;
+    const toBlock = fromBlock + 400000;
 
     const filter = {
       address: PROXY_FEE_POOL_ADDRESS,
@@ -47,6 +47,13 @@ async function getBlocksInChunks(
     for (const key in logs) {
       blocks.push(logs[key].blockNumber);
     }
+    fs.writeFileSync(
+      "scripts/snx-data/latest_block_set.json",
+      JSON.stringify(blocks),
+      function (err) {
+        if (err) return console.log(err);
+      }
+    );
     return getBlocksInChunks(provider, toBlock + 1, blocks);
   } catch (e) {
     console.log(`get block failure # ${attempt + 1}: ${e.message}`);
@@ -56,15 +63,37 @@ async function getBlocksInChunks(
   }
 }
 
-async function fetchData(provider) {
+async function fetchData(provider, continueFromPrevious) {
+  let startingBlock = PROXY_FEE_POOL_START_BLOCK;
+  const latestBlockSet = JSON.parse(
+    fs.readFileSync("scripts/snx-data/latest_block_set.json")
+  );
+  if (latestBlockSet && latestBlockSet.length > 0) {
+    startingBlock = latestBlockSet[latestBlockSet.length - 1];
+  }
+
   const blocks = await getBlocksInChunks(
     provider,
-    PROXY_FEE_POOL_START_BLOCK,
-    []
+    startingBlock + 1,
+    latestBlockSet
   );
   console.log("final blocks", blocks);
 
-  for (let i = 0; i < blocks.length; i++) {
+  let startFromIndex = 0;
+  if (continueFromPrevious) {
+    const latestData = JSON.parse(
+      fs.readFileSync("scripts/snx-data/latest_week.json")
+    );
+    const blockIndex =
+      latestData && latestData.latestBlock
+        ? blocks.indexOf(latestData.latestBlock)
+        : -1;
+    startFromIndex = blockIndex === -1 ? 0 : blockIndex;
+    accountsScores =
+      latestData && latestData.accountsScores ? latestData.accountsScores : {};
+  }
+
+  for (let i = startFromIndex; i < blocks.length; i++) {
     if (!blocks[i + 1]) break;
 
     const result = await feesClaimed(blocks[i], blocks[i + 1]);
@@ -140,8 +169,24 @@ async function fetchData(provider) {
   for (const [key, value] of Object.entries(accountsScores)) {
     if (key == XSNX_ADMIN_PROXY) {
       let xSNXTotal = 0;
-      //const snapshot = await getXSNXSnapshot(value, blocks[blocks.length - 1], provider);
-      const snapshot = await getXSNXSnapshot(value, provider);
+      let snapshot;
+      const xSNXData = JSON.parse(
+        fs.readFileSync("scripts/snx-data/xsnx_snapshot_final.json")
+      );
+      if (xSNXData && xSNXData.snapshot && Object.keys(snapshot).length > 0) {
+        snapshot = xSNXData.snapshot;
+      } else {
+        snapshot = await getXSNXSnapshot(value, provider);
+        fs.writeFileSync(
+          "scripts/snx-data/xsnx_snapshot_final.json",
+          JSON.stringify({
+            snapshot,
+          }),
+          function (err) {
+            if (err) return console.log(err);
+          }
+        );
+      }
       for (const [snapshotKey, snapshotValue] of Object.entries(snapshot)) {
         if (accountsScores[snapshotKey.toLowerCase()]) {
           console.log(
@@ -238,7 +283,9 @@ async function main() {
   );
   await provider.ready;
 
-  const data = await fetchData(provider);
+  const continueFromPrevious = true;
+
+  const data = await fetchData(provider, continueFromPrevious);
 
   fs.writeFileSync(
     "scripts/snx-data/historical_snx.json",

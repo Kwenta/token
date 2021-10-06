@@ -1,6 +1,6 @@
 const { getPostHackSnapshot } = require("./post-hack-snapshot/getSnapshot");
 const { getPreHackSnapshot } = require("./pre-hack-snapshot/getSnapshot");
-const { zeroBN } = require("../utils");
+const { zeroBN } = require("./utils");
 
 /**
  * Get snapshot of xsnx holders + LP stakers either pre-hack or post-hack
