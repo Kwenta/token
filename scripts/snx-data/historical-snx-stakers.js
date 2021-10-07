@@ -14,7 +14,6 @@ const PROXY_FEE_POOL_START_BLOCK = 6834821;
 const XSNX_ADMIN_PROXY = 0x7cd5e2d0056a7a7f09cbb86e540ef4f6dccc97dd;
 const YEARN_STAKING_ADDRESS = 0xc9a62e09834cedcff8c136f33d0ae3406aea66bd;
 const YEARN_STAKING_START_BLOCK = 12272748;
-const YEARN_STAKING_ESTIMATED_YEARS_TOTAL = 0.5;
 const L2_TRANSFER_START_BLOCK = 11656238;
 const EST_L2_AND_YEARN_REWARDS_APY = 0.15;
 const MAX_GET_BLOCK_FAILS = 5;
@@ -173,7 +172,11 @@ async function fetchData(provider, continueFromPrevious) {
       const xSNXData = JSON.parse(
         fs.readFileSync("scripts/snx-data/xsnx_snapshot_final.json")
       );
-      if (xSNXData && xSNXData.snapshot && Object.keys(snapshot).length > 0) {
+      if (
+        xSNXData &&
+        xSNXData.snapshot &&
+        Object.keys(xSNXData.snapshot).length > 0
+      ) {
         snapshot = xSNXData.snapshot;
       } else {
         snapshot = await getXSNXSnapshot(value, provider);
@@ -218,25 +221,17 @@ async function fetchData(provider, continueFromPrevious) {
       for (const [snapshotKey, snapshotValue] of Object.entries(
         yearnSnapshot
       )) {
-        console.log(
-          "yearn total snx balance value",
-          ethers.utils.formatEther(snapshotValue)
-        );
-        const proRataSnapshotValue =
-          Number(ethers.utils.formatEther(snapshotValue)) *
-          EST_L2_AND_YEARN_REWARDS_APY *
-          YEARN_STAKING_ESTIMATED_YEARS_TOTAL;
-        console.log("add'l yearn snapshot value", proRataSnapshotValue);
+        console.log("add'l yearn snapshot value", snapshotValue);
         if (accountsScores[snapshotKey.toLowerCase()]) {
           console.log(
             "current value pre yearn",
             accountsScores[snapshotKey.toLowerCase()]
           );
-          accountsScores[snapshotKey.toLowerCase()] += proRataSnapshotValue;
+          accountsScores[snapshotKey.toLowerCase()] += snapshotValue;
         } else {
-          accountsScores[snapshotKey.toLowerCase()] = proRataSnapshotValue;
+          accountsScores[snapshotKey.toLowerCase()] = snapshotValue;
         }
-        yearnTotal += proRataSnapshotValue;
+        yearnTotal += snapshotValue;
       }
 
       // should be roughly the same value as YEARN_STAKING_ADDRESS score
