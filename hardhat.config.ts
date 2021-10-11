@@ -1,6 +1,7 @@
 import { task } from "hardhat/config";
 import "@nomiclabs/hardhat-waffle";
 import "@nomiclabs/hardhat-truffle5";
+import "hardhat-gas-reporter";
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -26,6 +27,9 @@ export default {
       }, 
       {
         version: "0.5.16"
+      },
+      {
+        version: "0.4.21"
       },
     ],
   },

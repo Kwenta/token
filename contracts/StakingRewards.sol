@@ -74,6 +74,8 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
     
     // Minimum staked amount necessary to accumulate rewards
     uint256 private constant MIN_STAKE = 0;
+    // Decay rate for fees paid (in USD per second)
+    uint256 private constant DECAY_RATE = 11_574_074_074_074;
 
     uint256 private constant MAX_BPS = 10_000;
     uint256 private constant DECIMALS_DIFFERENCE = 1e20;
