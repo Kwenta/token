@@ -1,11 +1,12 @@
-pragma solidity ^0.5.16;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
 
 // Import necessary contracts for math operations and Token handling
-import "openzeppelin-solidity-2.3.0/contracts/math/Math.sol";
-import "openzeppelin-solidity-2.3.0/contracts/math/SafeMath.sol";
-import "openzeppelin-solidity-2.3.0/contracts/token/ERC20/ERC20Detailed.sol";
-import "openzeppelin-solidity-2.3.0/contracts/token/ERC20/SafeERC20.sol";
-import "openzeppelin-solidity-2.3.0/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+//import "@openzeppelin/contracts/token/ERC20/ERC20Detailed.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./libraries/FixidityLib.sol";
 import "./libraries/ExponentLib.sol";
 import "./libraries/LogarithmLib.sol";
@@ -92,7 +93,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
         address _rewardsToken,
         address _stakingToken,
         address _rewardEscrow
-    ) public Owned(_owner) {
+    ) Owned(_owner) {
     /*
     Setup the owner, rewards distribution and token addresses
     */
@@ -318,7 +319,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
 
     /* ========== RESTRICTED FUNCTIONS ========== */
 
-    function notifyRewardAmount(uint256 reward) external onlyRewardsDistribution updateRewards(address(0)) {
+    function notifyRewardAmount(uint256 reward) external onlyRewardsDistribution updateRewards(address(0)) override {
     /*
     Function called to initialize a new reward distribution epoch, taking into account rewards still to be 
     delivered from a previous epoch and updating the lastUpdate and periodFinish state variables

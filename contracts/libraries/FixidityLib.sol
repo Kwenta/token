@@ -1,4 +1,5 @@
-pragma solidity ^0.5.16;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
 
 library FixidityLib {
 
@@ -82,6 +83,6 @@ library FixidityLib {
 
     function trunc_digits(Fixidity storage fixidity, int256 v, uint8 digits) public view returns (int256) {
         if(digits <= 0) return v;
-        return round_off(fixidity, v, digits) / (10 ** digits);
+        return round_off(fixidity, v, digits) / int256((10 ** digits));
     }
 }

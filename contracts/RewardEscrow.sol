@@ -1,9 +1,10 @@
-pragma solidity ^0.5.16;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
 
 // Inheritance
 import "./Owned.sol";
 import "./interfaces/IRewardEscrow.sol";
-import "openzeppelin-solidity-2.3.0/contracts/token/ERC20/SafeERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 // Libraries
 import "./SafeDecimalMath.sol";
@@ -28,10 +29,10 @@ contract RewardEscrow is Owned, IRewardEscrow {
     mapping(address => uint[2][]) public vestingSchedules;
 
     /* An account's total escrowed Kwenta balance to save recomputing this for fee extraction purposes. */
-    mapping(address => uint) public totalEscrowedAccountBalance;
+    mapping(address => uint) public override totalEscrowedAccountBalance;
 
     /* An account's total vested reward Kwenta. */
-    mapping(address => uint) public totalVestedAccountBalance;
+    mapping(address => uint) public override totalVestedAccountBalance;
 
     /* The total remaining escrowed balance, for verifying the actual Kwenta balance of this contract against. */
     uint public totalEscrowedBalance;
@@ -48,7 +49,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
     constructor(
         address _owner,
         address _kwenta
-    ) public Owned(_owner) {
+    ) Owned(_owner) {
         kwenta = IERC20(_kwenta);
         //feePool = _feePool;
         
@@ -86,7 +87,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
     /**
      * @notice A simple alias to totalEscrowedAccountBalance: provides ERC20 balance integration.
      */
-    function balanceOf(address account) public view returns (uint) {
+    function balanceOf(address account) public view override returns (uint) {
         return totalEscrowedAccountBalance[account];
     }
 
@@ -97,7 +98,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
     /**
      * @notice The number of vesting dates in an account's schedule.
      */
-    function numVestingEntries(address account) external view returns (uint) {
+    function numVestingEntries(address account) external view override returns (uint) {
         return vestingSchedules[account].length;
     }
 
@@ -105,7 +106,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
      * @notice Get a particular schedule entry for an account.
      * @return A pair of uints: (timestamp, Kwenta quantity).
      */
-    function getVestingScheduleEntry(address account, uint index) public view returns (uint[2] memory) {
+    function getVestingScheduleEntry(address account, uint index) public view override returns (uint[2] memory) {
         return vestingSchedules[account][index];
     }
 
@@ -126,7 +127,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
     /**
      * @notice Obtain the index of the next schedule entry that will vest for a given user.
      */
-    function getNextVestingIndex(address account) public view returns (uint) {
+    function getNextVestingIndex(address account) public view override returns (uint) {
         uint len = _numVestingEntries(account);
         for (uint i = 0; i < len; i++) {
             if (getVestingTime(account, i) != 0) {
@@ -196,7 +197,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
         require(scheduleLength < MAX_VESTING_ENTRIES, "Vesting schedule is too long");
 
         /* Escrow the tokens for 1 year. */
-        uint time = now + 52 weeks;
+        uint time = block.timestamp + 52 weeks;
 
         if (scheduleLength == 0) {
             totalEscrowedAccountBalance[account] = quantity;
@@ -212,7 +213,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
 
         vestingSchedules[account].push([time, quantity]);
 
-        emit VestingEntryCreated(account, now, quantity);
+        emit VestingEntryCreated(account, block.timestamp, quantity);
     }
 
     /**
@@ -224,7 +225,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
      * @param account The account to append a new vesting entry to.
      * @param quantity The quantity of KWENTA that will be escrowed.
      */
-    function appendVestingEntry(address account, uint quantity) external onlyStakingRewards {
+    function appendVestingEntry(address account, uint quantity) override external onlyStakingRewards {
         _appendVestingEntry(account, quantity);
         if(address(stakingRewards) != address(0)) {
             stakingRewards.stakeEscrow(account, quantity);    
@@ -235,13 +236,13 @@ contract RewardEscrow is Owned, IRewardEscrow {
     /**
      * @notice Allow a user to withdraw any KWENTA in their schedule that have vested.
      */
-    function vest() external {
+    function vest() override external {
         uint numEntries = _numVestingEntries(msg.sender);
         uint total;
         for (uint i = 0; i < numEntries; i++) {
             uint time = getVestingTime(msg.sender, i);
             /* The list is sorted; when we reach the first future time, bail out. */
-            if (time > now) {
+            if (time > block.timestamp) {
                 break;
             }
             uint qty = getVestingQuantity(msg.sender, i);
@@ -259,7 +260,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
             if(address(stakingRewards) != address(0)) {
                 stakingRewards.unstakeEscrow(msg.sender, total);
             }
-            emit Vested(msg.sender, now, total);
+            emit Vested(msg.sender, block.timestamp, total);
         }
     }
 
