@@ -113,12 +113,20 @@ contract('StakingRewards KWENTA', ([owner, rewardsDistribution, staker1, staker2
 				stakingToken.address
 			);
 
-		stakingRewards = await StakingRewards.new(owner,
+		/*stakingRewards = await StakingRewards.new(owner,
 			rewardsDistribution,
 			rewardsToken.address,
 			stakingToken.address,
 			rewardsEscrow.address
-			);
+			);*/
+		stakingRewards = await StakingRewards.new();
+
+		stakingRewards.initialize(owner,
+		rewardsDistribution,
+		rewardsToken.address,
+		stakingToken.address,
+		rewardsEscrow.address
+		);
 
 
 		rewardsEscrow.setStakingRewards(stakingRewards.address, {from: owner});
@@ -251,13 +259,14 @@ contract('StakingRewards KWENTA', ([owner, rewardsDistribution, staker1, staker2
 	describe('earned()', () => {
 
 		it('should be 0 when staking but not trading', async () => {
-			stakingRewards = await StakingRewards.new(owner,
+			stakingRewards = await StakingRewards.new();
+
+			stakingRewards.initialize(owner,
 				rewardsDistribution,
 				rewardsToken.address,
 				stakingToken.address,
 				rewardsEscrow.address
-				);
-
+			);
 
 			rewardsEscrow.setStakingRewards(stakingRewards.address, {from: owner});
 			rewardsToken._mint(stakingRewards.address, toUnit(100));
@@ -282,12 +291,14 @@ contract('StakingRewards KWENTA', ([owner, rewardsDistribution, staker1, staker2
 		});
 
 		it('should be 0 when trading and not staking', async () => {
-			stakingRewards = await StakingRewards.new(owner,
-				rewardsDistribution,
-				rewardsToken.address,
-				stakingToken.address,
-				rewardsEscrow.address
-				);
+			stakingRewards = await StakingRewards.new();
+
+		stakingRewards.initialize(owner,
+		rewardsDistribution,
+		rewardsToken.address,
+		stakingToken.address,
+		rewardsEscrow.address
+		);
 
 
 			rewardsEscrow.setStakingRewards(stakingRewards.address, {from: owner});
@@ -311,12 +322,14 @@ contract('StakingRewards KWENTA', ([owner, rewardsDistribution, staker1, staker2
 		});
 
 		it('should be 0 when not trading and not staking', async () => {
-			stakingRewards = await StakingRewards.new(owner,
-				rewardsDistribution,
-				rewardsToken.address,
-				stakingToken.address,
-				rewardsEscrow.address
-				);
+			stakingRewards = await StakingRewards.new();
+
+		stakingRewards.initialize(owner,
+		rewardsDistribution,
+		rewardsToken.address,
+		stakingToken.address,
+		rewardsEscrow.address
+		);
 
 
 			rewardsEscrow.setStakingRewards(stakingRewards.address, {from: owner});
@@ -338,12 +351,14 @@ contract('StakingRewards KWENTA', ([owner, rewardsDistribution, staker1, staker2
 		});
 
 		it('should be > 0 when trading and staking', async () => {
-			stakingRewards = await StakingRewards.new(owner,
-				rewardsDistribution,
-				rewardsToken.address,
-				stakingToken.address,
-				rewardsEscrow.address
-				);
+			stakingRewards = await StakingRewards.new();
+
+		stakingRewards.initialize(owner,
+		rewardsDistribution,
+		rewardsToken.address,
+		stakingToken.address,
+		rewardsEscrow.address
+		);
 
 
 			rewardsEscrow.setStakingRewards(stakingRewards.address, {from: owner});
@@ -419,12 +434,14 @@ contract('StakingRewards KWENTA', ([owner, rewardsDistribution, staker1, staker2
 				stakingToken.address
 			);
 
-			stakingRewards = await StakingRewards.new(owner,
-				rewardsDistribution,
-				rewardsToken.address,
-				stakingToken.address,
-				rewardsEscrow.address
-				);
+			stakingRewards = await StakingRewards.new();
+
+		stakingRewards.initialize(owner,
+		rewardsDistribution,
+		rewardsToken.address,
+		stakingToken.address,
+		rewardsEscrow.address
+		);
 
 
 			rewardsEscrow.setStakingRewards(stakingRewards.address, {from: owner});

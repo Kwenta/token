@@ -2,17 +2,15 @@
 pragma solidity ^0.8.0;
 
 // Inheritance
-import "./Owned.sol";
+import "./OwnedUpgradeable.sol";
 
 // https://docs.synthetix.io/contracts/source/contracts/pausable
-abstract contract Pausable is Owned {
+abstract contract Pausable is OwnedUpgradeable {
     uint public lastPauseTime;
     bool public paused;
 
-    constructor() {
-        // This contract is abstract, and thus cannot be instantiated directly
+    function __Pausable_init(address _owner) internal {
         require(owner != address(0), "Owner must be set");
-        // Paused will be false, and lastPauseTime will be 0 upon initialisation
     }
 
     /**

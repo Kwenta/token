@@ -6,7 +6,8 @@ import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 //import "@openzeppelin/contracts/token/ERC20/ERC20Detailed.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "./libraries/FixidityLib.sol";
 import "./libraries/ExponentLib.sol";
 import "./libraries/LogarithmLib.sol";
@@ -19,7 +20,7 @@ import "./Pausable.sol";
 import "./RewardEscrow.sol";
 
 
-contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausable {
+contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable{
     /*
     StakingRewards contract for Kwenta responsible for:
     - Staking KWENTA tokens
@@ -45,11 +46,11 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
     IERC20 public stakingToken;
     // Time handling:
     // Time where new reward epoch finishes 
-    uint256 public periodFinish = 0;
+    uint256 public periodFinish;
     // Reward rate per second for next epoch
-    uint256 public rewardRate = 0;
+    uint256 public rewardRate;
     // Epoch default duration
-    uint256 public rewardsDuration = 7 days;
+    uint256 public rewardsDuration;
     // Last time an event altering the rewardscore
     uint256 public lastUpdateTimeRewardScore;
     // Last rewardRate per RewardScore
@@ -87,16 +88,39 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
     
     /* ========== CONSTRUCTOR ========== */
 
-    constructor(
+    /*constructor(
         address _owner,
         address _rewardsDistribution,
         address _rewardsToken,
         address _stakingToken,
         address _rewardEscrow
     ) Owned(_owner) {
-    /*
+    
     Setup the owner, rewards distribution and token addresses
-    */
+    
+        rewardsToken = IERC20(_rewardsToken);
+        stakingToken = IERC20(_stakingToken);
+        rewardsDistribution = _rewardsDistribution;
+        fixidity.init(18);
+
+        rewardEscrow = RewardEscrow(_rewardEscrow);
+    }*/
+
+    function initialize(address _owner,
+        address _rewardsDistribution,
+        address _rewardsToken,
+        address _stakingToken,
+        address _rewardEscrow
+    ) public {
+        __Owned_init(_owner);
+        __Pausable_init(_owner);
+
+        __ReentrancyGuard_init();
+
+        periodFinish = 0;
+        rewardRate = 0;
+        rewardsDuration = 7 days;
+
         rewardsToken = IERC20(_rewardsToken);
         stakingToken = IERC20(_stakingToken);
         rewardsDistribution = _rewardsDistribution;
@@ -409,6 +433,10 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuard, Pausab
 
         require(isRE, "Only the RewardEscrow contract can perform this action");
         _;
+    }
+
+    function _authorizeUpgrade(address newImplementation) internal override {
+
     }
 
 

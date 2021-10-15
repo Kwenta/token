@@ -2,6 +2,7 @@ import { task } from "hardhat/config";
 import "@nomiclabs/hardhat-waffle";
 import "@nomiclabs/hardhat-truffle5";
 import "hardhat-gas-reporter";
+import "@openzeppelin/hardhat-upgrades";
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -23,14 +24,8 @@ export default {
   solidity: {
     compilers: [
       {
-        version: "0.8.0",
-      }, 
-      {
-        version: "0.5.16"
-      },
-      {
-        version: "0.4.21"
-      },
+        version: "0.8.2",
+      }
     ],
   },
 };

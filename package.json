@@ -16,6 +16,9 @@
     "ethers": "^5.4.6",
     "hardhat": "^2.6.4",
     "@openzeppelin/contracts": "4.3.2",
+    "@openzeppelin/contracts-upgradeable": "4.3.2",
+    "@openzeppelin/truffle-upgrades": "1.9.1",
+    "@openzeppelin/hardhat-upgrades": "1.10.0",
     "ts-node": "^10.2.1",
     "typescript": "^4.4.2"
   }

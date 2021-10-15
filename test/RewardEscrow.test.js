@@ -162,12 +162,14 @@ contract('RewardEscrow KWENTA', ([owner, rewardsDistribution, staker1, staker2])
 				stakingToken.address
 			);
 
-		stakingRewards = await StakingRewards.new(owner,
-			rewardsDistribution,
-			rewardsToken.address,
-			stakingToken.address,
-			rewardsEscrow.address
-			);
+		stakingRewards = await StakingRewards.new();
+
+		stakingRewards.initialize(owner,
+		rewardsDistribution,
+		rewardsToken.address,
+		stakingToken.address,
+		rewardsEscrow.address
+		);
 
 		await hre.network.provider.request({
 		  method: "hardhat_impersonateAccount",

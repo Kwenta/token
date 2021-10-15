@@ -24,7 +24,7 @@ library ExponentLib {
         int256 tr = 100 * fixidity.fixed_1;
         int256 d = tr;
         for(uint8 i = 1; i <= 2 * fixidity.digits; i++) {
-            d = (d * x) / (fixidity.fixed_1 * i);
+            d = (d * x) / (fixidity.fixed_1 * int8(i));
             tr += d;
         }
         return fixidity.trunc_digits(fixidity.multiply(tr, r), 2);
@@ -42,7 +42,7 @@ library ExponentLib {
         }
     }
 
-    function root_n(FixidityLib.Fixidity storage fixidity, int256 a, uint8 n) public view returns (int256) {
-        return power_e(fixidity, fixidity.divide(fixidity.log_e(a), fixidity.fixed_1 * n));
+    function root_n(FixidityLib.Fixidity storage fixidity, int256 a, uint256 n) public view returns (int256) {
+        return power_e(fixidity, fixidity.divide(fixidity.log_e(a), fixidity.fixed_1 * int256(n)));
     }
 }
