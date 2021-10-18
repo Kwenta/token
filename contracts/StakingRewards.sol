@@ -414,12 +414,8 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuardUpgradea
         _;
     }
 
-    function _authorizeUpgrade(address newImplementation) internal override onlyProxy {
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {
 
-    }
-
-    function getAdmin() public onlyOwner returns(address) {
-        return address(rewardEscrow);
     }
 
 
