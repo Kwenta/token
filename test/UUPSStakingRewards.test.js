@@ -88,8 +88,9 @@ contract('UUPS Proxy for StakingRewards', ([owner, rewardsDistribution]) => {
 			assert.equal(balance, 50);
 		});
 
-		it("should stake upgrade correctly", async() => {
+		it("should upgrade correctly", async() => {
 
+			const [staker1, staker2] = await hre.ethers.getSigners();
 
 			FixidityLib = await hre.ethers.getContractFactory("FixidityLib");
 			fixidityLib = await FixidityLib.deploy();
@@ -120,9 +121,40 @@ contract('UUPS Proxy for StakingRewards', ([owner, rewardsDistribution]) => {
 				}
   				);
 
-  			let version = await upgradedImplementation.version();
+  			await upgradedImplementation.setVersion("V2");
+
+  			let version = await upgradedImplementation.getVersion();
 
   			assert.equal(version, "V2");
+
+  			let stakingRewardsV3 = await hre.ethers.getContractFactory("StakingRewardsV3", {
+				libraries: {FixidityLib: fixidityLib.address,
+							ExponentLib: exponentLib.address,
+				}
+			});
+
+			const upgradedImplementationV3 = await hre.upgrades.upgradeProxy(upgradedImplementation.address, 
+  				stakingRewardsV3,
+				{
+				unsafeAllow: ["external-library-linking"]
+				}
+  				);
+
+			await upgradedImplementationV3.setVersion("V3");
+
+  			version = await upgradedImplementationV3.getVersion();
+
+  			assert.equal(version, "V3");
+
+  			await upgradedImplementationV3.setTotalRewardScoreAdded(); 
+  			let rewardScoreAdded = await upgradedImplementationV3.getTotalRewardScoreAdded();
+  			assert.equal(rewardScoreAdded.toString(), "2");
+
+
+			let balance = await upgradedImplementationV3.balanceOf(staker1.address);
+			assert.equal(balance, 50);
+
+
 
 		});
 	});

@@ -7,9 +7,15 @@ import "./StakingRewards.sol";
 
 
 contract StakingRewardsV2 is StakingRewards{
+
+    string private version;
     
-    function version() public pure returns(string memory) {
-        return "V2";
+    function setVersion(string memory _version) public onlyOwner {
+        version = _version;
+    }
+
+    function getVersion() public view returns(string memory){
+        return version;
     }
     
 }

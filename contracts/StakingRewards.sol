@@ -110,7 +110,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuardUpgradea
 
     /* ========== VIEWS ========== */
 
-    function totalRewardScore() external view returns (uint256) {
+    function totalRewardScore() public view returns (uint256) {
     /*
     Getter function for the state variable _totalRewardScore
     */
