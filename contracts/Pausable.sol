@@ -9,7 +9,8 @@ abstract contract Pausable is OwnedUpgradeable {
     uint public lastPauseTime;
     bool public paused;
 
-    function __Pausable_init(address _owner) internal {
+    function __Pausable_init(address _owner) public initializer {
+        __Owned_init(_owner);
         require(owner != address(0), "Owner must be set");
     }
 

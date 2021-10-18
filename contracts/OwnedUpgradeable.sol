@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+
 // https://docs.synthetix.io/contracts/source/contracts/owned
-contract OwnedUpgradeable {
+contract OwnedUpgradeable is Initializable {
     address public owner;
     address public nominatedOwner;
 
-    function __Owned_init(address _owner) internal {
+    function __Owned_init(address _owner) public initializer {
         require(_owner != address(0), "Owner address cannot be 0");
         owner = _owner;
         emit OwnerChanged(address(0), _owner);

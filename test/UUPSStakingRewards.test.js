@@ -8,6 +8,7 @@ let ExponentLib = artifacts.require("ExponentLib");
 let LogarithmLib = artifacts.require("LogarithmLib");
 
 let StakingRewards = artifacts.require("StakingRewards");
+let StakingRewardsV2 = artifacts.require("StakingRewardsV2");
 let TokenContract = artifacts.require("ERC20");
 let RewardsEscrow = artifacts.require("RewardEscrow");
 
@@ -19,41 +20,21 @@ require("chai")
 	.use(require("chai-bn-equal"))
 	.should();
 
-contract('UUPS Proxy for StakingRewards', ([owner, admin, rewardsDistribution, staker1, staker2]) => {
+contract('UUPS Proxy for StakingRewards', ([owner, rewardsDistribution]) => {
 	console.log("Start tests");
 	let stakingRewards;
 	let stakingToken;
 	let rewardsToken;
 	let rewardsEscrow;
+	let st_proxy;
 
 	before(async() => {
 		stakingToken = await TokenContract.new(NAME, SYMBOL);
 		rewardsToken = await TokenContract.new(NAME, SYMBOL);
-
-		fixidityLib = await FixidityLib.new();
-		await LogarithmLib.link(fixidityLib);
-		logarithmLib = await LogarithmLib.new();
-		await ExponentLib.link(fixidityLib);
-		await ExponentLib.link(logarithmLib);
-		exponentLib = await ExponentLib.new();
-
-		await StakingRewards.link(fixidityLib);
-		await StakingRewards.link(exponentLib);
 		rewardsEscrow = await RewardsEscrow.new(
 				owner,
 				stakingToken.address
 			);
-
-		/*stakingRewards = await StakingRewards.new(owner,
-			rewardsDistribution,
-			rewardsToken.address,
-			stakingToken.address,
-			rewardsEscrow.address
-			);*/
-
-
-		//rewardsEscrow.setStakingRewards(stakingRewards.address, {from: owner});
-
 	});
 
 	describe("UUPS Deployment", async() => {
@@ -80,11 +61,69 @@ contract('UUPS Proxy for StakingRewards', ([owner, admin, rewardsDistribution, s
 							ExponentLib: exponentLib.address,
 				}
 			});
-			const st_proxy = await hre.upgrades.deployProxy(StakingRewards,
+			st_proxy = await hre.upgrades.deployProxy(StakingRewards,
 				[owner, rewardsDistribution, rewardsToken.address, stakingToken.address, rewardsEscrow.address],
 				{kind: "uups",
 				unsafeAllow: ["external-library-linking"]
 				});
+
+			admin_address = await hre.upgrades.erc1967.getAdminAddress(st_proxy.address);
+			implementation = await hre.upgrades.erc1967.getImplementationAddress(st_proxy.address);
+
+			owner_address = await st_proxy.owner();
+
+			assert.notEqual(implementation, st_proxy.address);
+
+		});
+		it("should stake correctly", async() => {
+			const [staker1, staker2] = await hre.ethers.getSigners();
+
+			await stakingToken._mint(staker1.address, 100);
+			await stakingToken.approve(st_proxy.address, 100, {from: staker1.address});
+
+			await st_proxy.connect(staker1).stake(50);
+
+			let balance = await st_proxy.connect(staker1).balanceOf(staker1.address);
+
+			assert.equal(balance, 50);
+		});
+
+		it("should stake upgrade correctly", async() => {
+
+
+			FixidityLib = await hre.ethers.getContractFactory("FixidityLib");
+			fixidityLib = await FixidityLib.deploy();
+			
+			LogarithmLib = await hre.ethers.getContractFactory("LogarithmLib", {
+				libraries: {FixidityLib: fixidityLib.address}
+			});
+			logarithmLib = await LogarithmLib.deploy();
+
+			ExponentLib = await hre.ethers.getContractFactory("ExponentLib", {
+				libraries: {FixidityLib: fixidityLib.address,
+							LogarithmLib: logarithmLib.address,
+				}
+			});
+			exponentLib = await ExponentLib.deploy();
+
+
+			let stakingRewardsV2 = await hre.ethers.getContractFactory("StakingRewardsV2", {
+				libraries: {FixidityLib: fixidityLib.address,
+							ExponentLib: exponentLib.address,
+				}
+			});
+
+  			const upgradedImplementation = await hre.upgrades.upgradeProxy(st_proxy.address, 
+  				stakingRewardsV2,
+				{
+				unsafeAllow: ["external-library-linking"]
+				}
+  				);
+
+  			let version = await upgradedImplementation.version();
+
+  			assert.equal(version, "V2");
+
 		});
 	});
 });

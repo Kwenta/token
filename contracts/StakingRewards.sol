@@ -4,7 +4,6 @@ pragma solidity ^0.8.0;
 // Import necessary contracts for math operations and Token handling
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-//import "@openzeppelin/contracts/token/ERC20/ERC20Detailed.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
@@ -13,7 +12,6 @@ import "./libraries/ExponentLib.sol";
 import "./libraries/LogarithmLib.sol";
 
 // Inheritance
-// import "./interfaces/IStakingRewards.sol";
 import "./RewardsDistributionRecipient.sol";
 import "./Pausable.sol";
 
@@ -86,33 +84,14 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuardUpgradea
     // Needs to be int256 for power library, root to calculate is equal to 1/0.7
     int256 private constant WEIGHT_STAKING =1_428_571_428_571_428_571;
     
-    /* ========== CONSTRUCTOR ========== */
-
-    /*constructor(
-        address _owner,
-        address _rewardsDistribution,
-        address _rewardsToken,
-        address _stakingToken,
-        address _rewardEscrow
-    ) Owned(_owner) {
-    
-    Setup the owner, rewards distribution and token addresses
-    
-        rewardsToken = IERC20(_rewardsToken);
-        stakingToken = IERC20(_stakingToken);
-        rewardsDistribution = _rewardsDistribution;
-        fixidity.init(18);
-
-        rewardEscrow = RewardEscrow(_rewardEscrow);
-    }*/
+    /* ========== INITIALIZER ========== */
 
     function initialize(address _owner,
         address _rewardsDistribution,
         address _rewardsToken,
         address _stakingToken,
         address _rewardEscrow
-    ) public {
-        __Owned_init(_owner);
+    ) public initializer {
         __Pausable_init(_owner);
 
         __ReentrancyGuard_init();
@@ -435,8 +414,12 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuardUpgradea
         _;
     }
 
-    function _authorizeUpgrade(address newImplementation) internal override {
+    function _authorizeUpgrade(address newImplementation) internal override onlyProxy {
 
+    }
+
+    function getAdmin() public onlyOwner returns(address) {
+        return address(rewardEscrow);
     }
 
 
