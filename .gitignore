@@ -8,3 +8,4 @@ artifacts
 
 2Dos.ignore
 * Decay rates.xlsx
+test/gasTest.test.js

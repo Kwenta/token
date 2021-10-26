@@ -436,12 +436,12 @@ contract('StakingRewards KWENTA', ([owner, rewardsDistribution, staker1, staker2
 
 			stakingRewards = await StakingRewards.new();
 
-		stakingRewards.initialize(owner,
-		rewardsDistribution,
-		rewardsToken.address,
-		stakingToken.address,
-		rewardsEscrow.address
-		);
+			stakingRewards.initialize(owner,
+			rewardsDistribution,
+			rewardsToken.address,
+			stakingToken.address,
+			rewardsEscrow.address
+			);
 
 
 			rewardsEscrow.setStakingRewards(stakingRewards.address, {from: owner});
