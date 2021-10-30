@@ -258,7 +258,7 @@ contract('StakingRewards KWENTA', ([owner, rewardsDistribution, staker1, staker2
 
 	describe('earned()', () => {
 
-		it('should be 0 when staking but not trading', async () => {
+		it('should not be 0 when staking but not trading', async () => {
 			stakingRewards = await StakingRewards.new();
 
 			stakingRewards.initialize(owner,
@@ -283,11 +283,11 @@ contract('StakingRewards KWENTA', ([owner, rewardsDistribution, staker1, staker2
 				from: rewardsDistribution,
 			});
 
-			await fastForward(DAY);
+			await fastForward(DAY*7);
 
 			const earned = await stakingRewards.earned(staker1);
 
-			assertBNEqual(earned, ZERO_BN);
+			assertBNClose(earned, toUnit(4), toUnit(0.01));
 		});
 
 		it('should be 0 when trading and not staking', async () => {
@@ -491,10 +491,10 @@ contract('StakingRewards KWENTA', ([owner, rewardsDistribution, staker1, staker2
 			await fastForward(61);
 
 			let rewStaker1 = await stakingRewards.earned(staker1);
-			assertBNClose(rewStaker1, toUnit(26.892), toUnit(0.01));
+			assertBNClose(rewStaker1, toUnit(28.572), toUnit(0.01));
 
 			let rewStaker2 = await stakingRewards.earned(staker2);
-			assertBNClose(rewStaker2, toUnit(33.108), toUnit(0.01));
+			assertBNClose(rewStaker2, toUnit(31.428), toUnit(0.01));
 
 			// Testing second leg of implementation
 
@@ -508,10 +508,10 @@ contract('StakingRewards KWENTA', ([owner, rewardsDistribution, staker1, staker2
 			await fastForward(61);
 
 			rewStaker1 = await stakingRewards.earned(staker1);
-			assertBNClose(rewStaker1, toUnit(69.778), toUnit(0.01));
+			assertBNClose(rewStaker1, toUnit(74.565), toUnit(0.01));
 
 			rewStaker2 = await stakingRewards.earned(staker2);
-			assertBNClose(rewStaker2, toUnit(50.222), toUnit(0.01));
+			assertBNClose(rewStaker2, toUnit(45.435), toUnit(0.01));
 
 			// Testing third leg of implementation
 
@@ -528,10 +528,10 @@ contract('StakingRewards KWENTA', ([owner, rewardsDistribution, staker1, staker2
 			await fastForward(31);
 
 			rewStaker1 = await stakingRewards.earned(staker1);
-			assertBNClose(rewStaker1, toUnit(90.591), toUnit(0.01));
+			assertBNClose(rewStaker1, toUnit(97.210), toUnit(0.01));
 
 			rewStaker2 = await stakingRewards.earned(staker2);
-			assertBNClose(rewStaker2, toUnit(59.409), toUnit(0.01));
+			assertBNClose(rewStaker2, toUnit(52.790), toUnit(0.01));
 
 			// Testing fourth leg of implementation
 
@@ -548,10 +548,10 @@ contract('StakingRewards KWENTA', ([owner, rewardsDistribution, staker1, staker2
 			await fastForward(71);
 
 			rewStaker1 = await stakingRewards.earned(staker1);
-			assertBNClose(rewStaker1, toUnit(126.443), toUnit(0.01));
+			assertBNClose(rewStaker1, toUnit(137.275), toUnit(0.01));
 
 			rewStaker2 = await stakingRewards.earned(staker2);
-			assertBNClose(rewStaker2, toUnit(93.557), toUnit(0.01));
+			assertBNClose(rewStaker2, toUnit(82.725), toUnit(0.01));
 
 			// Testing fifth leg of implementation
 
@@ -568,10 +568,10 @@ contract('StakingRewards KWENTA', ([owner, rewardsDistribution, staker1, staker2
 			await fastForward(31);
 
 			rewStaker1 = await stakingRewards.earned(staker1);
-			assertBNClose(rewStaker1, toUnit(140.637), toUnit(0.01));
+			assertBNClose(rewStaker1, toUnit(153.069), toUnit(0.01));
 
 			rewStaker2 = await stakingRewards.earned(staker2);
-			assertBNClose(rewStaker2, toUnit(109.363), toUnit(0.01));
+			assertBNClose(rewStaker2, toUnit(96.931), toUnit(0.01));
 
 			// Testing sixth leg of implementation
 
@@ -588,10 +588,10 @@ contract('StakingRewards KWENTA', ([owner, rewardsDistribution, staker1, staker2
 			await fastForward(51);
 
 			rewStaker1 = await stakingRewards.earned(staker1);
-			assertBNClose(rewStaker1, toUnit(170.274), toUnit(0.01));
+			assertBNClose(rewStaker1, toUnit(182.132), toUnit(0.01));
 
 			rewStaker2 = await stakingRewards.earned(staker2);
-			assertBNClose(rewStaker2, toUnit(129.726), toUnit(0.01));
+			assertBNClose(rewStaker2, toUnit(117.868), toUnit(0.01));
 
 			await stakingRewards.exit({from: staker1});
 			await stakingRewards.exit({from: staker2});
@@ -616,8 +616,8 @@ contract('StakingRewards KWENTA', ([owner, rewardsDistribution, staker1, staker2
 			bal1 = await stakingToken.balanceOf(staker1);	
 			bal2 = await stakingToken.balanceOf(staker2);
 
-			assertBNClose(bal1, toUnit(270.274), toUnit(0.01));
-			assertBNClose(bal2, toUnit(229.726), toUnit(0.01));
+			assertBNClose(bal1, toUnit(282.132), toUnit(0.01));
+			assertBNClose(bal2, toUnit(217.868), toUnit(0.01));
 
 			bal1 = await rewardsEscrow.totalEscrowedAccountBalance(staker1);	
 			bal2 = await rewardsEscrow.totalEscrowedAccountBalance(staker2);

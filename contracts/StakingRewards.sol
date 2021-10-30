@@ -14,7 +14,7 @@ import "./libraries/LogarithmLib.sol";
 // Inheritance
 import "./RewardsDistributionRecipient.sol";
 import "./Pausable.sol";
-
+// Import RewardEscrow contract for Escrow interactions
 import "./RewardEscrow.sol";
 
 
@@ -47,6 +47,8 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuardUpgradea
     uint256 public periodFinish;
     // Reward rate per second for next epoch
     uint256 public rewardRate;
+    uint256 public rewardRateStaking;
+    uint256 public rewardRateTrading;
     // Epoch default duration
     uint256 public rewardsDuration;
     // Last time an event altering the rewardscore
@@ -57,17 +59,25 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuardUpgradea
     uint256 public rewardPerRewardScoreStored;
     // Maximum amount of time to receive rewards for trading fees
     uint256 public feeRewardsDuration;
+    // Last Update Time for staking Rewards
+    uint256 public lastUpdateTime;
+    // Last reward per token staked
+    uint256 public rewardPerTokenStored;
 
     
-    // Save the latest reward per RewardScore applicable for each address
+    // Save the latest reward per RewardScore applicable for each address (Trading Rewards)
     mapping(address => uint256) public userRewardPerRewardScorePaid;
-    // Save the latest reward per RewardScore applicable for each address
+    // Save the latest reward per Token applicable for each address (Staking Rewards)
+    mapping(address => uint256) public userRewardPerTokenPaid;
+    // Save the latest time fees were updated for each address (decay rate calculations)
     mapping(address => uint256) public userLastFeeUpdate;
     // Rewards due to each account
     mapping(address => uint256) public rewards;
 
     // Total RewardsScore
     uint256 private _totalRewardScore;
+    // Total tokens included in rewards (both staked and escrowed)
+    uint256 public _totalSupply;
     
     // Tokens escrowed for each address
     mapping(address => uint256) private _escrowedBalances;
@@ -77,20 +87,24 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuardUpgradea
     mapping(address => uint256) private _decayedFees;
     // Save the latest total token to account for rewards (staked + escrowed rewards)
     mapping(address => uint256) private _totalBalances;
-    // Save the latest total token to account for rewards (staked + escrowed rewards)
+    // Save the rewardScore per address
     mapping(address => uint256) private _rewardScores;
     
     // Minimum staked amount necessary to accumulate rewards
     uint256 private constant MIN_STAKE = 0;
     // Decay rate for fees paid (in USD per second)
     int256 private constant DECAY_RATE = 999000000000000000;
-
+    // Decimals calculations
     uint256 private constant MAX_BPS = 10_000;
     uint256 private constant DECIMALS_DIFFERENCE = 1e50;
     // Needs to be int256 for power library, root to calculate is equal to 1/0.3
-    int256 private constant WEIGHT_FEES = 3_333_333_333_333_333_333;
+    int256 private constant WEIGHT_FEES = 1_428_571_428_571_428_571;
     // Needs to be int256 for power library, root to calculate is equal to 1/0.7
-    int256 private constant WEIGHT_STAKING =1_428_571_428_571_428_571;
+    int256 private constant WEIGHT_STAKING =3_333_333_333_333_333_333;
+    // Division of rewards between staking and trading
+    // TODO: Create getters and setters
+    uint256 private constant PERCENTAGE_STAKING = 80;
+    uint256 private constant PERCENTAGE_TRADING = 20;
 
     /* ========== PROXY VARIABLES ========== */
     address private admin;
@@ -152,12 +166,12 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuardUpgradea
         return _totalBalances[account];
     }
 
-    function escrowedBalanceOf(address account) external view returns (uint256) {
-    /*
+    /*function escrowedBalanceOf(address account) external view returns (uint256) {
+    
     Getter function for the escrowed balance of an account
-    */
+    
         return _escrowedBalances[account];
-    }
+    }*/
 
     function feesPaidBy(address account) external view returns (uint256) {
     /*
@@ -171,6 +185,16 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuardUpgradea
     Calculate if we are still in the reward epoch or we reached periodFinish
     */
         return Math.min(block.timestamp, periodFinish);
+    }
+
+    function rewardPerToken() public view returns (uint256) {
+        if (_totalSupply == 0) {
+            return rewardPerTokenStored;
+        }
+        return
+            rewardPerTokenStored.add(
+                lastTimeRewardApplicable().sub(lastUpdateTime).mul(rewardRateStaking).mul(DECIMALS_DIFFERENCE).div(_totalSupply)
+            );
     }
 
     function rewardPerRewardScore() public view returns (uint256) {
@@ -188,7 +212,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuardUpgradea
         return
             rewardPerRewardScoreStored.add(
                 // lastTimeRewardApplicable().sub(lastUpdateTimeRewardScore).mul(rewardRate).mul(MAX_BPS).mul(DECIMALS_DIFFERENCE).div(_totalRewardScore).div(uint256(fixidity.power_any(DECAY_RATE, 300000000000000000 * int256(block.timestamp - lastUpdateTimeFeeDecay))))
-                lastTimeRewardApplicable().sub(lastUpdateTimeRewardScore).mul(rewardRate).mul(MAX_BPS).mul(DECIMALS_DIFFERENCE).div(_totalRewardScore)
+                lastTimeRewardApplicable().sub(lastUpdateTimeRewardScore).mul(rewardRateTrading).mul(MAX_BPS).mul(DECIMALS_DIFFERENCE).div(_totalRewardScore)
             );
     }
 
@@ -200,12 +224,13 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuardUpgradea
     returns: uint256 containing the total rewards due to account
     */
     // TODO: MULTIPLY REWARDSCORE[ACCOUNT] BY DR^(0.3*(block.timestamp - lastTimeUpdated[account]))
-        uint256 tmpVar = 1;
+        uint256 stakingRewards = _totalBalances[account].mul(rewardPerToken().sub(userRewardPerTokenPaid[account])).div(DECIMALS_DIFFERENCE).add(rewards[account]);
         // if(userLastFeeUpdate[account] > 0) {
         //     tmpVar = uint256(fixidity.power_any(DECAY_RATE, 300000000000000000 * int256(block.timestamp - userLastFeeUpdate[account])));
         // }
+        uint256 tradingRewards = _rewardScores[account].mul(rewardPerRewardScore().sub(userRewardPerRewardScorePaid[account])).div(MAX_BPS).div(DECIMALS_DIFFERENCE);
         
-        return _rewardScores[account].mul(tmpVar).mul(rewardPerRewardScore().sub(userRewardPerRewardScorePaid[account])).div(MAX_BPS).div(DECIMALS_DIFFERENCE).add(rewards[account]);
+        return stakingRewards.add(tradingRewards);
     }
 
     function getRewardForDuration() external view returns (uint256) {
@@ -265,6 +290,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuardUpgradea
         require(amount > 0, "Cannot stake 0");
         // Update caller balance
         _totalBalances[msg.sender] = _totalBalances[msg.sender].add(amount);
+        _totalSupply = _totalSupply.add(amount);
         uint256 oldRewardScore = _rewardScores[msg.sender];
         uint256 newRewardScore = calculateRewardScore(msg.sender);
         _rewardScores[msg.sender] = newRewardScore;
@@ -284,6 +310,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuardUpgradea
         require(balanceOf(msg.sender) >= amount, "Amount required too high");
         // Update caller balance
         _totalBalances[msg.sender] = _totalBalances[msg.sender].sub(amount);
+        _totalSupply = _totalSupply.sub(amount);
         uint256 oldRewardScore = _rewardScores[msg.sender];
         uint256 newRewardScore = calculateRewardScore(msg.sender);
         _rewardScores[msg.sender] = newRewardScore;
@@ -324,6 +351,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuardUpgradea
     _amount: uint256, amount escrowed
     */
         _totalBalances[_account] = _totalBalances[_account].add(_amount);
+        _totalSupply = _totalSupply.add(_amount);
         _escrowedBalances[_account] = _escrowedBalances[_account].add(_amount);
         uint256 oldRewardScore = _rewardScores[_account];
         uint256 newRewardScore = calculateRewardScore(_account);
@@ -341,6 +369,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuardUpgradea
     */
         require(_escrowedBalances[_account] >= _amount, "Amount required too large");
         _totalBalances[_account] = _totalBalances[_account].sub(_amount);
+        _totalSupply = _totalSupply.sub(_amount);
         _escrowedBalances[_account] = _escrowedBalances[_account].sub(_amount);
         uint256 oldRewardScore = _rewardScores[_account];
         uint256 newRewardScore = calculateRewardScore(_account);
@@ -371,6 +400,8 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuardUpgradea
             // Formula: rewardRate = (sum of remaining rewards and new amount) / time
             rewardRate = reward.add(leftover).div(rewardsDuration);
         }
+        rewardRateStaking = rewardRate.mul(MAX_BPS).mul(PERCENTAGE_STAKING).div(MAX_BPS).div(100);
+        rewardRateTrading = rewardRate.mul(MAX_BPS).mul(PERCENTAGE_TRADING).div(MAX_BPS).div(100);
 
         // Ensure the provided reward amount is not more than the balance in the contract.
         // This keeps the reward rate in the right range, preventing overflows due to
@@ -382,6 +413,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuardUpgradea
 
         // Time updates
         lastUpdateTimeRewardScore = block.timestamp;
+        lastUpdateTime = block.timestamp;
         periodFinish = block.timestamp.add(rewardsDuration);
         emit RewardAdded(reward);
     }
@@ -426,13 +458,16 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuardUpgradea
     */  
         
         // Calculate the reward per unit of reward score applicable to the last stint of account
+        rewardPerTokenStored = rewardPerToken();
         rewardPerRewardScoreStored = rewardPerRewardScore();
-        lastUpdateTimeFeeDecay = block.timestamp;
+        // lastUpdateTimeFeeDecay = block.timestamp;
         // Calculate if the epoch is finished or not
+        lastUpdateTime = lastTimeRewardApplicable();
         lastUpdateTimeRewardScore = lastTimeRewardApplicable();
         if (account != address(0)) {
             // Add the rewards added during the last stint
             rewards[account] = earned(account);
+            userRewardPerTokenPaid[account] = rewardPerTokenStored;
             userRewardPerRewardScorePaid[account] = rewardPerRewardScoreStored;
         }
         _;
@@ -465,7 +500,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuardUpgradea
     /* ========== PROXY FUNCTIONS ========== */
     
 
-    function getAdmin() public view returns(address) {
+   /* function getAdmin() public view returns(address) {
         return admin;
     }
 
@@ -473,7 +508,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuardUpgradea
         admin = _newAdmin;
         // emit AdminChanged(msg.sender, _newAdmin);
     }
-
+*/
     modifier onlyAdmin() {
         bool isAdmin = msg.sender == admin;
 
