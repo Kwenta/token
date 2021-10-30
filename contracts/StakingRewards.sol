@@ -18,7 +18,7 @@ import "./Pausable.sol";
 import "./RewardEscrow.sol";
 
 
-contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable{
+contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable {
     /*
     StakingRewards contract for Kwenta responsible for:
     - Staking KWENTA tokens
@@ -91,6 +91,9 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuardUpgradea
     int256 private constant WEIGHT_FEES = 3_333_333_333_333_333_333;
     // Needs to be int256 for power library, root to calculate is equal to 1/0.7
     int256 private constant WEIGHT_STAKING =1_428_571_428_571_428_571;
+
+    /* ========== PROXY VARIABLES ========== */
+    address private admin;
     
     /* ========== INITIALIZER ========== */
 
@@ -103,6 +106,8 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuardUpgradea
         __Pausable_init(_owner);
 
         __ReentrancyGuard_init();
+
+        admin = _owner;
 
         periodFinish = 0;
         rewardRate = 0;
@@ -182,13 +187,9 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuardUpgradea
         // TODO: DIVIDE BY DR^(0.3*(block.timestamp - lastTimeUpdatedFees))
         return
             rewardPerRewardScoreStored.add(
-                lastTimeRewardApplicable().sub(lastUpdateTimeRewardScore).mul(rewardRate).mul(MAX_BPS).mul(DECIMALS_DIFFERENCE).div(_totalRewardScore).div(uint256(fixidity.power_any(DECAY_RATE, 300000000000000000 * int256(block.timestamp - lastUpdateTimeFeeDecay))))
-                // lastTimeRewardApplicable().sub(lastUpdateTimeRewardScore).mul(rewardRate).mul(MAX_BPS).mul(DECIMALS_DIFFERENCE).div(_totalRewardScore).div(1)
+                // lastTimeRewardApplicable().sub(lastUpdateTimeRewardScore).mul(rewardRate).mul(MAX_BPS).mul(DECIMALS_DIFFERENCE).div(_totalRewardScore).div(uint256(fixidity.power_any(DECAY_RATE, 300000000000000000 * int256(block.timestamp - lastUpdateTimeFeeDecay))))
+                lastTimeRewardApplicable().sub(lastUpdateTimeRewardScore).mul(rewardRate).mul(MAX_BPS).mul(DECIMALS_DIFFERENCE).div(_totalRewardScore)
             );
-    }
-
-    function setMapping(address account) public {
-        userLastFeeUpdate[account] = lastUpdateTimeFeeDecay;
     }
 
     function earned(address account) public view returns(uint256) {
@@ -199,10 +200,12 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuardUpgradea
     returns: uint256 containing the total rewards due to account
     */
     // TODO: MULTIPLY REWARDSCORE[ACCOUNT] BY DR^(0.3*(block.timestamp - lastTimeUpdated[account]))
-
-        // uint256 tmpVar = uint256(fixidity.power_any(DECAY_RATE, 300000000000000000 * int256(block.timestamp - userLastFeeUpdate[account])));
-        // return _rewardScores[account].mul(tmpVar).mul(rewardPerRewardScore().sub(userRewardPerRewardScorePaid[account])).div(MAX_BPS).div(DECIMALS_DIFFERENCE).add(rewards[account]);
-        return userLastFeeUpdate[account] - lastUpdateTimeFeeDecay;
+        uint256 tmpVar = 1;
+        // if(userLastFeeUpdate[account] > 0) {
+        //     tmpVar = uint256(fixidity.power_any(DECAY_RATE, 300000000000000000 * int256(block.timestamp - userLastFeeUpdate[account])));
+        // }
+        
+        return _rewardScores[account].mul(tmpVar).mul(rewardPerRewardScore().sub(userRewardPerRewardScorePaid[account])).div(MAX_BPS).div(DECIMALS_DIFFERENCE).add(rewards[account]);
     }
 
     function getRewardForDuration() external view returns (uint256) {
@@ -442,7 +445,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuardUpgradea
         _;
     }
 
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {
+    function _authorizeUpgrade(address newImplementation) internal override onlyAdmin {
 
     }
 
@@ -458,5 +461,27 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuardUpgradea
     event EscrowStaked(address account, uint256 amount);
     event EscrowUnstaked(address account, uint256 amount);
     event RewardEscrowUpdated(address account);
+
+    /* ========== PROXY FUNCTIONS ========== */
     
+
+    function getAdmin() public view returns(address) {
+        return admin;
+    }
+
+    function setAdmin(address _newAdmin) public onlyOwner {
+        admin = _newAdmin;
+        // emit AdminChanged(msg.sender, _newAdmin);
+    }
+
+    modifier onlyAdmin() {
+        bool isAdmin = msg.sender == admin;
+
+        require(isAdmin, "Only the Admin address can perform this action");
+        _;
+    }
+
+    /* ========== PROXY EVENTS ========== */
+    // event AdminChanged(address owner, address newAdmin);
+
 }

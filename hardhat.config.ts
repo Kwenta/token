@@ -28,4 +28,12 @@ export default {
       }
     ],
   },
+  networks: {
+    hardhat: {
+      /*forking: {
+        url: "https://eth-mainnet.alchemyapi.io/v2/fmAqj9zaojIx6Jt1_3zJKS5jo8oFA_pl",
+        blockNumber: 11095000
+      }*/
+    }
+  }
 };

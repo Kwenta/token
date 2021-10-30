@@ -190,10 +190,7 @@ contract('Staking Rewards with decay rate', ([owner, rewardsDistribution, staker
 			res = await stakingRewards.lastUpdateTimeFeeDecay();
 			console.log("Total for staker1 is", res.toString());
 			res = await stakingRewards.lastTimeRewardApplicable();
-			console.log("Total for staker1 is", res.toString());
-
-			await stakingRewards.setMapping(staker1);			
-			await stakingRewards.setMapping(staker2);			
+			console.log("Total for staker1 is", res.toString());		
 
 			let rewStaker1 = await stakingRewards.earned(staker1);
 			console.log("Total for staker1 is", rewStaker1.toString());

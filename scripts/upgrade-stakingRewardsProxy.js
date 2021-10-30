@@ -2,7 +2,7 @@ const hardhat = require('hardhat');
 
 async function main() {
 
-  let stakingRewardsProxyAddress = "0x0";
+  let stakingRewardsProxyAddress = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9";
 
   // We get the contracts to deploy (libraries + staking rewards contract)
 
@@ -22,7 +22,7 @@ async function main() {
   exponentLib = await ExponentLib.deploy();
 
 
-  StakingRewards_NEW = await hre.ethers.getContractFactory("StakingRewards", {
+  StakingRewards_NEW = await hre.ethers.getContractFactory("StakingRewardsV2", {
     libraries: {FixidityLib: fixidityLib.address,
           ExponentLib: exponentLib.address,
     }
@@ -39,10 +39,11 @@ async function main() {
 
   // Get the address from the implementation
 
-  implementation = await hre.upgrades.erc1967.getImplementationAddress(stakingRewardsProxyAddress);
+  implementation = await hre.upgrades.erc1967.getImplementationAddress(upgradedImplementation.address);
 
-  console.log("Staking Rewards Proxy deployed to:", stakingRewardsProxyAddress);
+  console.log("Staking Rewards Proxy deployed to:", upgradedImplementation.address);
   console.log("Staking Rewards Logic deployed to:", implementation);
+
 }
 
 // We recommend this pattern to be able to use async/await everywhere

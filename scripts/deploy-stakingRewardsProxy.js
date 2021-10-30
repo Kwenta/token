@@ -2,6 +2,12 @@ const hardhat = require('hardhat');
 
 async function main() {
 
+  owner = "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266";
+  rewardsDistribution = "0x70997970c51812dc3a010c7d01b50e0d17dc79c8";
+  rewardsTokenAddress = "0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc";
+  stakingTokenAddress = "0x90f79bf6eb2c4f870365e785982e1f101e93b906";
+  rewardsEscrowAddress = "0x15d34aaf54267db7d7c367839aaf71a00a2c6a65";
+
   // We get the contracts to deploy (libraries + staking rewards contract)
 
   FixidityLib = await hre.ethers.getContractFactory("FixidityLib");
@@ -32,14 +38,15 @@ async function main() {
         [
         owner, 
         rewardsDistribution, 
-        rewardsToken.address, 
-        stakingToken.address, 
-        rewardsEscrow.address
+        rewardsTokenAddress, 
+        stakingTokenAddress, 
+        rewardsEscrowAddress
         ],
         {
           kind: "uups",
           unsafeAllow: ["external-library-linking"]
         });
+  await stakingRewardsProxy.deployed();
 
   // Get the address from the implementation
 
@@ -47,6 +54,27 @@ async function main() {
 
   console.log("Staking Rewards Proxy deployed to:", stakingRewardsProxy.address);
   console.log("Staking Rewards Logic deployed to:", implementation);
+
+  /*StakingRewards_NEW = await hre.ethers.getContractFactory("StakingRewardsV2", {
+    libraries: {FixidityLib: fixidityLib.address,
+          ExponentLib: exponentLib.address,
+    }
+  });
+
+  // Upgrade the UUPS Proxy using hardhat upgrades from OpenZeppelin
+
+  upgradedImplementation = await hre.upgrades.upgradeProxy(stakingRewardsProxy.address, 
+          StakingRewards_NEW,
+        {
+        unsafeAllow: ["external-library-linking"]
+        }
+          );
+
+  implementation = await hre.upgrades.erc1967.getImplementationAddress(upgradedImplementation.address);
+
+  console.log("Staking Rewards Proxy deployed to:", upgradedImplementation.address);
+  console.log("Staking Rewards Logic deployed to:", implementation);*/
+
 }
 
 // We recommend this pattern to be able to use async/await everywhere

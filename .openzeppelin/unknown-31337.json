@@ -82,6 +82,16 @@
       "address": "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
       "txHash": "0x9470af4be63fa5659e1d40e72e7c16ff5a154f6ecaccd9d22793e003141b75b1",
       "kind": "uups"
+    },
+    {
+      "address": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+      "txHash": "0xefd5cae2629356f791e1e49b82b0d4976e2e9608224b59d6cb83ab2b9642f3bf",
+      "kind": "uups"
+    },
+    {
+      "address": "0xB377a2EeD7566Ac9fCb0BA673604F9BF875e2Bab",
+      "txHash": "0x95c45115cf89bd13e54950826720eb85c830131b0745c52e549c8fdc6f1534e1",
+      "kind": "uups"
     }
   ],
   "impls": {
@@ -2595,257 +2605,6 @@
         }
       }
     },
-    "547db2c66c19af817cbc8930b5c2eee5702541b1e96ae1129ab86acbb0080e84": {
-      "address": "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318",
-      "txHash": "0x715a0cedcaaff7362c88cd98e9acd24068474e867f306fd7ef5a31b5fd32ab03",
-      "layout": {
-        "storage": [
-          {
-            "contract": "Initializable",
-            "label": "_initialized",
-            "type": "t_bool",
-            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:21"
-          },
-          {
-            "contract": "Initializable",
-            "label": "_initializing",
-            "type": "t_bool",
-            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:26"
-          },
-          {
-            "contract": "OwnedUpgradeable",
-            "label": "owner",
-            "type": "t_address",
-            "src": "contracts\\OwnedUpgradeable.sol:8"
-          },
-          {
-            "contract": "OwnedUpgradeable",
-            "label": "nominatedOwner",
-            "type": "t_address",
-            "src": "contracts\\OwnedUpgradeable.sol:9"
-          },
-          {
-            "contract": "RewardsDistributionRecipient",
-            "label": "rewardsDistribution",
-            "type": "t_address",
-            "src": "contracts\\RewardsDistributionRecipient.sol:9"
-          },
-          {
-            "contract": "ReentrancyGuardUpgradeable",
-            "label": "_status",
-            "type": "t_uint256",
-            "src": "@openzeppelin\\contracts-upgradeable\\security\\ReentrancyGuardUpgradeable.sol:37"
-          },
-          {
-            "contract": "ReentrancyGuardUpgradeable",
-            "label": "__gap",
-            "type": "t_array(t_uint256)49_storage",
-            "src": "@openzeppelin\\contracts-upgradeable\\security\\ReentrancyGuardUpgradeable.sol:67"
-          },
-          {
-            "contract": "Pausable",
-            "label": "lastPauseTime",
-            "type": "t_uint256",
-            "src": "contracts\\Pausable.sol:9"
-          },
-          {
-            "contract": "Pausable",
-            "label": "paused",
-            "type": "t_bool",
-            "src": "contracts\\Pausable.sol:10"
-          },
-          {
-            "contract": "ERC1967UpgradeUpgradeable",
-            "label": "__gap",
-            "type": "t_array(t_uint256)50_storage",
-            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\ERC1967\\ERC1967UpgradeUpgradeable.sol:214"
-          },
-          {
-            "contract": "UUPSUpgradeable",
-            "label": "__gap",
-            "type": "t_array(t_uint256)50_storage",
-            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\UUPSUpgradeable.sol:80"
-          },
-          {
-            "contract": "StakingRewards",
-            "label": "fixidity",
-            "type": "t_struct(Fixidity)10933_storage",
-            "src": "contracts\\StakingRewards.sol:37"
-          },
-          {
-            "contract": "StakingRewards",
-            "label": "rewardEscrow",
-            "type": "t_contract(RewardEscrow)9013",
-            "src": "contracts\\StakingRewards.sol:40"
-          },
-          {
-            "contract": "StakingRewards",
-            "label": "rewardsToken",
-            "type": "t_contract(IERC20)1005",
-            "src": "contracts\\StakingRewards.sol:43"
-          },
-          {
-            "contract": "StakingRewards",
-            "label": "stakingToken",
-            "type": "t_contract(IERC20)1005",
-            "src": "contracts\\StakingRewards.sol:44"
-          },
-          {
-            "contract": "StakingRewards",
-            "label": "periodFinish",
-            "type": "t_uint256",
-            "src": "contracts\\StakingRewards.sol:47"
-          },
-          {
-            "contract": "StakingRewards",
-            "label": "rewardRate",
-            "type": "t_uint256",
-            "src": "contracts\\StakingRewards.sol:49"
-          },
-          {
-            "contract": "StakingRewards",
-            "label": "rewardsDuration",
-            "type": "t_uint256",
-            "src": "contracts\\StakingRewards.sol:51"
-          },
-          {
-            "contract": "StakingRewards",
-            "label": "lastUpdateTimeRewardScore",
-            "type": "t_uint256",
-            "src": "contracts\\StakingRewards.sol:53"
-          },
-          {
-            "contract": "StakingRewards",
-            "label": "lastUpdateTimeFeeDecay",
-            "type": "t_uint256",
-            "src": "contracts\\StakingRewards.sol:55"
-          },
-          {
-            "contract": "StakingRewards",
-            "label": "rewardPerRewardScoreStored",
-            "type": "t_uint256",
-            "src": "contracts\\StakingRewards.sol:57"
-          },
-          {
-            "contract": "StakingRewards",
-            "label": "feeRewardsDuration",
-            "type": "t_uint256",
-            "src": "contracts\\StakingRewards.sol:59"
-          },
-          {
-            "contract": "StakingRewards",
-            "label": "userRewardPerRewardScorePaid",
-            "type": "t_mapping(t_address,t_uint256)",
-            "src": "contracts\\StakingRewards.sol:63"
-          },
-          {
-            "contract": "StakingRewards",
-            "label": "userLastFeeUpdate",
-            "type": "t_mapping(t_address,t_uint256)",
-            "src": "contracts\\StakingRewards.sol:65"
-          },
-          {
-            "contract": "StakingRewards",
-            "label": "rewards",
-            "type": "t_mapping(t_address,t_uint256)",
-            "src": "contracts\\StakingRewards.sol:67"
-          },
-          {
-            "contract": "StakingRewards",
-            "label": "_totalRewardScore",
-            "type": "t_uint256",
-            "src": "contracts\\StakingRewards.sol:70"
-          },
-          {
-            "contract": "StakingRewards",
-            "label": "_escrowedBalances",
-            "type": "t_mapping(t_address,t_uint256)",
-            "src": "contracts\\StakingRewards.sol:73"
-          },
-          {
-            "contract": "StakingRewards",
-            "label": "_feesPaid",
-            "type": "t_mapping(t_address,t_uint256)",
-            "src": "contracts\\StakingRewards.sol:75"
-          },
-          {
-            "contract": "StakingRewards",
-            "label": "_decayedFees",
-            "type": "t_mapping(t_address,t_uint256)",
-            "src": "contracts\\StakingRewards.sol:77"
-          },
-          {
-            "contract": "StakingRewards",
-            "label": "_totalBalances",
-            "type": "t_mapping(t_address,t_uint256)",
-            "src": "contracts\\StakingRewards.sol:79"
-          },
-          {
-            "contract": "StakingRewards",
-            "label": "_rewardScores",
-            "type": "t_mapping(t_address,t_uint256)",
-            "src": "contracts\\StakingRewards.sol:81"
-          }
-        ],
-        "types": {
-          "t_struct(Fixidity)10933_storage": {
-            "label": "struct FixidityLib.Fixidity",
-            "members": [
-              {
-                "label": "digits",
-                "type": "t_uint8"
-              },
-              {
-                "label": "fixed_1",
-                "type": "t_int256"
-              },
-              {
-                "label": "fixed_e",
-                "type": "t_int256"
-              },
-              {
-                "label": "fixed_pi",
-                "type": "t_int256"
-              },
-              {
-                "label": "fixed_exp_10",
-                "type": "t_int256"
-              }
-            ]
-          },
-          "t_uint8": {
-            "label": "uint8"
-          },
-          "t_int256": {
-            "label": "int256"
-          },
-          "t_contract(RewardEscrow)9013": {
-            "label": "contract RewardEscrow"
-          },
-          "t_contract(IERC20)1005": {
-            "label": "contract IERC20"
-          },
-          "t_uint256": {
-            "label": "uint256"
-          },
-          "t_mapping(t_address,t_uint256)": {
-            "label": "mapping(address => uint256)"
-          },
-          "t_address": {
-            "label": "address"
-          },
-          "t_array(t_uint256)50_storage": {
-            "label": "uint256[50]"
-          },
-          "t_bool": {
-            "label": "bool"
-          },
-          "t_array(t_uint256)49_storage": {
-            "label": "uint256[49]"
-          }
-        }
-      }
-    },
     "f0c8782072e6f18aa0d650ef3f6f3a0ac401f7b45099bdb238d15ea78a34cdab": {
       "address": "0x610178dA211FEF7D417bC0e6FeD39F05609AD788",
       "txHash": "0xc8e79594ac7af795f01d3c80980e0a8ebfb4f4b2eeda50e71b8d7e7908b31757",
@@ -3329,6 +3088,2394 @@
           },
           "t_uint256": {
             "label": "uint256"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          }
+        }
+      }
+    },
+    "7414950e74e2b3b1868c3b7eb9674c670a6b707200a1d49dacbb047115bae983": {
+      "address": "0xB2b580ce436E6F77A5713D80887e14788Ef49c9A",
+      "txHash": "0xf85f7474955dcfc749a7c1f461c07fea453e124742e1268d303ef1c5cb1a4b9e",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:21"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:26"
+          },
+          {
+            "contract": "OwnedUpgradeable",
+            "label": "owner",
+            "type": "t_address",
+            "src": "contracts\\OwnedUpgradeable.sol:8"
+          },
+          {
+            "contract": "OwnedUpgradeable",
+            "label": "nominatedOwner",
+            "type": "t_address",
+            "src": "contracts\\OwnedUpgradeable.sol:9"
+          },
+          {
+            "contract": "RewardsDistributionRecipient",
+            "label": "rewardsDistribution",
+            "type": "t_address",
+            "src": "contracts\\RewardsDistributionRecipient.sol:9"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "@openzeppelin\\contracts-upgradeable\\security\\ReentrancyGuardUpgradeable.sol:37"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin\\contracts-upgradeable\\security\\ReentrancyGuardUpgradeable.sol:67"
+          },
+          {
+            "contract": "Pausable",
+            "label": "lastPauseTime",
+            "type": "t_uint256",
+            "src": "contracts\\Pausable.sol:9"
+          },
+          {
+            "contract": "Pausable",
+            "label": "paused",
+            "type": "t_bool",
+            "src": "contracts\\Pausable.sol:10"
+          },
+          {
+            "contract": "ERC1967UpgradeUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\ERC1967\\ERC1967UpgradeUpgradeable.sol:214"
+          },
+          {
+            "contract": "UUPSUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\UUPSUpgradeable.sol:80"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "fixidity",
+            "type": "t_struct(Fixidity)4967_storage",
+            "src": "contracts\\StakingRewards.sol:37"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewardEscrow",
+            "type": "t_contract(RewardEscrow)2998",
+            "src": "contracts\\StakingRewards.sol:40"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewardsToken",
+            "type": "t_contract(IERC20)1005",
+            "src": "contracts\\StakingRewards.sol:43"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "stakingToken",
+            "type": "t_contract(IERC20)1005",
+            "src": "contracts\\StakingRewards.sol:44"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "periodFinish",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:47"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewardRate",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:49"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewardsDuration",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:51"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "lastUpdateTimeRewardScore",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:53"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "lastUpdateTimeFeeDecay",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:55"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewardPerRewardScoreStored",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:57"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "feeRewardsDuration",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:59"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "userRewardPerRewardScorePaid",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:63"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "userLastFeeUpdate",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:65"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewards",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:67"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_totalRewardScore",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:70"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_escrowedBalances",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:73"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_feesPaid",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:75"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_decayedFees",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:77"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_totalBalances",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:79"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_rewardScores",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:81"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "admin",
+            "type": "t_address",
+            "src": "contracts\\StakingRewards.sol:96"
+          }
+        ],
+        "types": {
+          "t_struct(Fixidity)4967_storage": {
+            "label": "struct FixidityLib.Fixidity",
+            "members": [
+              {
+                "label": "digits",
+                "type": "t_uint8"
+              },
+              {
+                "label": "fixed_1",
+                "type": "t_int256"
+              },
+              {
+                "label": "fixed_e",
+                "type": "t_int256"
+              },
+              {
+                "label": "fixed_pi",
+                "type": "t_int256"
+              },
+              {
+                "label": "fixed_exp_10",
+                "type": "t_int256"
+              }
+            ]
+          },
+          "t_uint8": {
+            "label": "uint8"
+          },
+          "t_int256": {
+            "label": "int256"
+          },
+          "t_contract(RewardEscrow)2998": {
+            "label": "contract RewardEscrow"
+          },
+          "t_contract(IERC20)1005": {
+            "label": "contract IERC20"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          }
+        }
+      }
+    },
+    "c38d3d320089aa08698da5cb39b12aff6a7e6da821eecc6af1853ffd688e608b": {
+      "address": "0x26B862f640357268Bd2d9E95bc81553a2Aa81D7E",
+      "txHash": "0x974ebd3c53cd6c72808129a95c99fdeb372f54b5eb2037127a73ec4721f33acf",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:21"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:26"
+          },
+          {
+            "contract": "OwnedUpgradeable",
+            "label": "owner",
+            "type": "t_address",
+            "src": "contracts\\OwnedUpgradeable.sol:8"
+          },
+          {
+            "contract": "OwnedUpgradeable",
+            "label": "nominatedOwner",
+            "type": "t_address",
+            "src": "contracts\\OwnedUpgradeable.sol:9"
+          },
+          {
+            "contract": "RewardsDistributionRecipient",
+            "label": "rewardsDistribution",
+            "type": "t_address",
+            "src": "contracts\\RewardsDistributionRecipient.sol:9"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "@openzeppelin\\contracts-upgradeable\\security\\ReentrancyGuardUpgradeable.sol:37"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin\\contracts-upgradeable\\security\\ReentrancyGuardUpgradeable.sol:67"
+          },
+          {
+            "contract": "Pausable",
+            "label": "lastPauseTime",
+            "type": "t_uint256",
+            "src": "contracts\\Pausable.sol:9"
+          },
+          {
+            "contract": "Pausable",
+            "label": "paused",
+            "type": "t_bool",
+            "src": "contracts\\Pausable.sol:10"
+          },
+          {
+            "contract": "ERC1967UpgradeUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\ERC1967\\ERC1967UpgradeUpgradeable.sol:214"
+          },
+          {
+            "contract": "UUPSUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\UUPSUpgradeable.sol:80"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "fixidity",
+            "type": "t_struct(Fixidity)4967_storage",
+            "src": "contracts\\StakingRewards.sol:37"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewardEscrow",
+            "type": "t_contract(RewardEscrow)2998",
+            "src": "contracts\\StakingRewards.sol:40"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewardsToken",
+            "type": "t_contract(IERC20)1005",
+            "src": "contracts\\StakingRewards.sol:43"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "stakingToken",
+            "type": "t_contract(IERC20)1005",
+            "src": "contracts\\StakingRewards.sol:44"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "periodFinish",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:47"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewardRate",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:49"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewardsDuration",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:51"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "lastUpdateTimeRewardScore",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:53"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "lastUpdateTimeFeeDecay",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:55"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewardPerRewardScoreStored",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:57"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "feeRewardsDuration",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:59"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "userRewardPerRewardScorePaid",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:63"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "userLastFeeUpdate",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:65"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewards",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:67"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_totalRewardScore",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:70"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_escrowedBalances",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:73"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_feesPaid",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:75"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_decayedFees",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:77"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_totalBalances",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:79"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_rewardScores",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:81"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "admin",
+            "type": "t_address",
+            "src": "contracts\\StakingRewards.sol:96"
+          },
+          {
+            "contract": "StakingRewardsV2",
+            "label": "version",
+            "type": "t_string_storage",
+            "src": "contracts\\StakingRewardsV2.sol:11"
+          }
+        ],
+        "types": {
+          "t_string_storage": {
+            "label": "string"
+          },
+          "t_struct(Fixidity)4967_storage": {
+            "label": "struct FixidityLib.Fixidity",
+            "members": [
+              {
+                "label": "digits",
+                "type": "t_uint8"
+              },
+              {
+                "label": "fixed_1",
+                "type": "t_int256"
+              },
+              {
+                "label": "fixed_e",
+                "type": "t_int256"
+              },
+              {
+                "label": "fixed_pi",
+                "type": "t_int256"
+              },
+              {
+                "label": "fixed_exp_10",
+                "type": "t_int256"
+              }
+            ]
+          },
+          "t_uint8": {
+            "label": "uint8"
+          },
+          "t_int256": {
+            "label": "int256"
+          },
+          "t_contract(RewardEscrow)2998": {
+            "label": "contract RewardEscrow"
+          },
+          "t_contract(IERC20)1005": {
+            "label": "contract IERC20"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          }
+        }
+      }
+    },
+    "d42008fe127151dbd32e15cb7c189abe4b9e72d025bf77096b30319c47b3027b": {
+      "address": "0xddE78e6202518FF4936b5302cC2891ec180E8bFf",
+      "txHash": "0xf4678e1b7ce73b92bb1f2033edaeb1d95c78d47a4cc9ff2fd9f5898f59bb57be",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:21"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:26"
+          },
+          {
+            "contract": "OwnedUpgradeable",
+            "label": "owner",
+            "type": "t_address",
+            "src": "contracts\\OwnedUpgradeable.sol:8"
+          },
+          {
+            "contract": "OwnedUpgradeable",
+            "label": "nominatedOwner",
+            "type": "t_address",
+            "src": "contracts\\OwnedUpgradeable.sol:9"
+          },
+          {
+            "contract": "RewardsDistributionRecipient",
+            "label": "rewardsDistribution",
+            "type": "t_address",
+            "src": "contracts\\RewardsDistributionRecipient.sol:9"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "@openzeppelin\\contracts-upgradeable\\security\\ReentrancyGuardUpgradeable.sol:37"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin\\contracts-upgradeable\\security\\ReentrancyGuardUpgradeable.sol:67"
+          },
+          {
+            "contract": "Pausable",
+            "label": "lastPauseTime",
+            "type": "t_uint256",
+            "src": "contracts\\Pausable.sol:9"
+          },
+          {
+            "contract": "Pausable",
+            "label": "paused",
+            "type": "t_bool",
+            "src": "contracts\\Pausable.sol:10"
+          },
+          {
+            "contract": "ERC1967UpgradeUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\ERC1967\\ERC1967UpgradeUpgradeable.sol:214"
+          },
+          {
+            "contract": "UUPSUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\UUPSUpgradeable.sol:80"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "fixidity",
+            "type": "t_struct(Fixidity)4967_storage",
+            "src": "contracts\\StakingRewards.sol:37"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewardEscrow",
+            "type": "t_contract(RewardEscrow)2998",
+            "src": "contracts\\StakingRewards.sol:40"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewardsToken",
+            "type": "t_contract(IERC20)1005",
+            "src": "contracts\\StakingRewards.sol:43"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "stakingToken",
+            "type": "t_contract(IERC20)1005",
+            "src": "contracts\\StakingRewards.sol:44"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "periodFinish",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:47"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewardRate",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:49"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewardsDuration",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:51"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "lastUpdateTimeRewardScore",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:53"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "lastUpdateTimeFeeDecay",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:55"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewardPerRewardScoreStored",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:57"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "feeRewardsDuration",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:59"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "userRewardPerRewardScorePaid",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:63"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "userLastFeeUpdate",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:65"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewards",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:67"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_totalRewardScore",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:70"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_escrowedBalances",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:73"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_feesPaid",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:75"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_decayedFees",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:77"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_totalBalances",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:79"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_rewardScores",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:81"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "admin",
+            "type": "t_address",
+            "src": "contracts\\StakingRewards.sol:96"
+          },
+          {
+            "contract": "StakingRewardsV2",
+            "label": "version",
+            "type": "t_string_storage",
+            "src": "contracts\\StakingRewardsV2.sol:11"
+          },
+          {
+            "contract": "StakingRewardsV3",
+            "label": "_totalRewardScoreAdded",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewardsV3.sol:11"
+          }
+        ],
+        "types": {
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_string_storage": {
+            "label": "string"
+          },
+          "t_struct(Fixidity)4967_storage": {
+            "label": "struct FixidityLib.Fixidity",
+            "members": [
+              {
+                "label": "digits",
+                "type": "t_uint8"
+              },
+              {
+                "label": "fixed_1",
+                "type": "t_int256"
+              },
+              {
+                "label": "fixed_e",
+                "type": "t_int256"
+              },
+              {
+                "label": "fixed_pi",
+                "type": "t_int256"
+              },
+              {
+                "label": "fixed_exp_10",
+                "type": "t_int256"
+              }
+            ]
+          },
+          "t_uint8": {
+            "label": "uint8"
+          },
+          "t_int256": {
+            "label": "int256"
+          },
+          "t_contract(RewardEscrow)2998": {
+            "label": "contract RewardEscrow"
+          },
+          "t_contract(IERC20)1005": {
+            "label": "contract IERC20"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          }
+        }
+      }
+    },
+    "39cd3582a414ab1996a88dfea60b0b42ec8955713a5a6a122c18a383dcc0493e": {
+      "address": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
+      "txHash": "0xc53d648c2f11878d37a95a2f8435c8683dd6c54f8c36b31003e43f2d9f1dfae7",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:21"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:26"
+          },
+          {
+            "contract": "OwnedUpgradeable",
+            "label": "owner",
+            "type": "t_address",
+            "src": "contracts\\OwnedUpgradeable.sol:8"
+          },
+          {
+            "contract": "OwnedUpgradeable",
+            "label": "nominatedOwner",
+            "type": "t_address",
+            "src": "contracts\\OwnedUpgradeable.sol:9"
+          },
+          {
+            "contract": "RewardsDistributionRecipient",
+            "label": "rewardsDistribution",
+            "type": "t_address",
+            "src": "contracts\\RewardsDistributionRecipient.sol:9"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "@openzeppelin\\contracts-upgradeable\\security\\ReentrancyGuardUpgradeable.sol:37"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin\\contracts-upgradeable\\security\\ReentrancyGuardUpgradeable.sol:67"
+          },
+          {
+            "contract": "Pausable",
+            "label": "lastPauseTime",
+            "type": "t_uint256",
+            "src": "contracts\\Pausable.sol:9"
+          },
+          {
+            "contract": "Pausable",
+            "label": "paused",
+            "type": "t_bool",
+            "src": "contracts\\Pausable.sol:10"
+          },
+          {
+            "contract": "ERC1967UpgradeUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\ERC1967\\ERC1967UpgradeUpgradeable.sol:214"
+          },
+          {
+            "contract": "UUPSUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\UUPSUpgradeable.sol:80"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "fixidity",
+            "type": "t_struct(Fixidity)4967_storage",
+            "src": "contracts\\StakingRewards.sol:37"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewardEscrow",
+            "type": "t_contract(RewardEscrow)2998",
+            "src": "contracts\\StakingRewards.sol:40"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewardsToken",
+            "type": "t_contract(IERC20)1005",
+            "src": "contracts\\StakingRewards.sol:43"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "stakingToken",
+            "type": "t_contract(IERC20)1005",
+            "src": "contracts\\StakingRewards.sol:44"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "periodFinish",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:47"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewardRate",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:49"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewardsDuration",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:51"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "lastUpdateTimeRewardScore",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:53"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "lastUpdateTimeFeeDecay",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:55"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewardPerRewardScoreStored",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:57"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "feeRewardsDuration",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:59"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "userRewardPerRewardScorePaid",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:63"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "userLastFeeUpdate",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:65"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewards",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:67"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_totalRewardScore",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:70"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_escrowedBalances",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:73"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_feesPaid",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:75"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_decayedFees",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:77"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_totalBalances",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:79"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_rewardScores",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:81"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "admin",
+            "type": "t_address",
+            "src": "contracts\\StakingRewards.sol:96"
+          }
+        ],
+        "types": {
+          "t_struct(Fixidity)4967_storage": {
+            "label": "struct FixidityLib.Fixidity",
+            "members": [
+              {
+                "label": "digits",
+                "type": "t_uint8"
+              },
+              {
+                "label": "fixed_1",
+                "type": "t_int256"
+              },
+              {
+                "label": "fixed_e",
+                "type": "t_int256"
+              },
+              {
+                "label": "fixed_pi",
+                "type": "t_int256"
+              },
+              {
+                "label": "fixed_exp_10",
+                "type": "t_int256"
+              }
+            ]
+          },
+          "t_uint8": {
+            "label": "uint8"
+          },
+          "t_int256": {
+            "label": "int256"
+          },
+          "t_contract(RewardEscrow)2998": {
+            "label": "contract RewardEscrow"
+          },
+          "t_contract(IERC20)1005": {
+            "label": "contract IERC20"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          }
+        }
+      }
+    },
+    "96f39a738e453ae5b055e45618b3150e85fbeaca0eaa2150b8cec6fe2870664a": {
+      "address": "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
+      "txHash": "0xe57ca1dcb9daf2a350289cded9b695838fb0ed13d25c0860d4e0f60cbec261d3",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:21"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:26"
+          },
+          {
+            "contract": "OwnedUpgradeable",
+            "label": "owner",
+            "type": "t_address",
+            "src": "contracts\\OwnedUpgradeable.sol:8"
+          },
+          {
+            "contract": "OwnedUpgradeable",
+            "label": "nominatedOwner",
+            "type": "t_address",
+            "src": "contracts\\OwnedUpgradeable.sol:9"
+          },
+          {
+            "contract": "RewardsDistributionRecipient",
+            "label": "rewardsDistribution",
+            "type": "t_address",
+            "src": "contracts\\RewardsDistributionRecipient.sol:9"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "@openzeppelin\\contracts-upgradeable\\security\\ReentrancyGuardUpgradeable.sol:37"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin\\contracts-upgradeable\\security\\ReentrancyGuardUpgradeable.sol:67"
+          },
+          {
+            "contract": "Pausable",
+            "label": "lastPauseTime",
+            "type": "t_uint256",
+            "src": "contracts\\Pausable.sol:9"
+          },
+          {
+            "contract": "Pausable",
+            "label": "paused",
+            "type": "t_bool",
+            "src": "contracts\\Pausable.sol:10"
+          },
+          {
+            "contract": "ERC1967UpgradeUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\ERC1967\\ERC1967UpgradeUpgradeable.sol:214"
+          },
+          {
+            "contract": "UUPSUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\UUPSUpgradeable.sol:80"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "fixidity",
+            "type": "t_struct(Fixidity)4967_storage",
+            "src": "contracts\\StakingRewards.sol:37"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewardEscrow",
+            "type": "t_contract(RewardEscrow)2998",
+            "src": "contracts\\StakingRewards.sol:40"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewardsToken",
+            "type": "t_contract(IERC20)1005",
+            "src": "contracts\\StakingRewards.sol:43"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "stakingToken",
+            "type": "t_contract(IERC20)1005",
+            "src": "contracts\\StakingRewards.sol:44"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "periodFinish",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:47"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewardRate",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:49"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewardsDuration",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:51"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "lastUpdateTimeRewardScore",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:53"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "lastUpdateTimeFeeDecay",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:55"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewardPerRewardScoreStored",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:57"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "feeRewardsDuration",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:59"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "userRewardPerRewardScorePaid",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:63"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "userLastFeeUpdate",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:65"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewards",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:67"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_totalRewardScore",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:70"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_escrowedBalances",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:73"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_feesPaid",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:75"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_decayedFees",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:77"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_totalBalances",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:79"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_rewardScores",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:81"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "admin",
+            "type": "t_address",
+            "src": "contracts\\StakingRewards.sol:96"
+          },
+          {
+            "contract": "StakingRewardsV2",
+            "label": "version",
+            "type": "t_string_storage",
+            "src": "contracts\\StakingRewardsV2.sol:11"
+          }
+        ],
+        "types": {
+          "t_string_storage": {
+            "label": "string"
+          },
+          "t_struct(Fixidity)4967_storage": {
+            "label": "struct FixidityLib.Fixidity",
+            "members": [
+              {
+                "label": "digits",
+                "type": "t_uint8"
+              },
+              {
+                "label": "fixed_1",
+                "type": "t_int256"
+              },
+              {
+                "label": "fixed_e",
+                "type": "t_int256"
+              },
+              {
+                "label": "fixed_pi",
+                "type": "t_int256"
+              },
+              {
+                "label": "fixed_exp_10",
+                "type": "t_int256"
+              }
+            ]
+          },
+          "t_uint8": {
+            "label": "uint8"
+          },
+          "t_int256": {
+            "label": "int256"
+          },
+          "t_contract(RewardEscrow)2998": {
+            "label": "contract RewardEscrow"
+          },
+          "t_contract(IERC20)1005": {
+            "label": "contract IERC20"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          }
+        }
+      }
+    },
+    "51058d21ba54818fbd1e7de18bd772fd767df3daf9ae047a16df674612ef0bc3": {
+      "address": "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318",
+      "txHash": "0x983b405b0f13c44772cde1a0b7f18038138788038fc7c2d70099c215842adc7c",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:21"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:26"
+          },
+          {
+            "contract": "OwnedUpgradeable",
+            "label": "owner",
+            "type": "t_address",
+            "src": "contracts\\OwnedUpgradeable.sol:8"
+          },
+          {
+            "contract": "OwnedUpgradeable",
+            "label": "nominatedOwner",
+            "type": "t_address",
+            "src": "contracts\\OwnedUpgradeable.sol:9"
+          },
+          {
+            "contract": "RewardsDistributionRecipient",
+            "label": "rewardsDistribution",
+            "type": "t_address",
+            "src": "contracts\\RewardsDistributionRecipient.sol:9"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "@openzeppelin\\contracts-upgradeable\\security\\ReentrancyGuardUpgradeable.sol:37"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin\\contracts-upgradeable\\security\\ReentrancyGuardUpgradeable.sol:67"
+          },
+          {
+            "contract": "Pausable",
+            "label": "lastPauseTime",
+            "type": "t_uint256",
+            "src": "contracts\\Pausable.sol:9"
+          },
+          {
+            "contract": "Pausable",
+            "label": "paused",
+            "type": "t_bool",
+            "src": "contracts\\Pausable.sol:10"
+          },
+          {
+            "contract": "ERC1967UpgradeUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\ERC1967\\ERC1967UpgradeUpgradeable.sol:214"
+          },
+          {
+            "contract": "UUPSUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\UUPSUpgradeable.sol:80"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "fixidity",
+            "type": "t_struct(Fixidity)4967_storage",
+            "src": "contracts\\StakingRewards.sol:37"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewardEscrow",
+            "type": "t_contract(RewardEscrow)2998",
+            "src": "contracts\\StakingRewards.sol:40"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewardsToken",
+            "type": "t_contract(IERC20)1005",
+            "src": "contracts\\StakingRewards.sol:43"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "stakingToken",
+            "type": "t_contract(IERC20)1005",
+            "src": "contracts\\StakingRewards.sol:44"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "periodFinish",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:47"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewardRate",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:49"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewardsDuration",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:51"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "lastUpdateTimeRewardScore",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:53"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "lastUpdateTimeFeeDecay",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:55"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewardPerRewardScoreStored",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:57"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "feeRewardsDuration",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:59"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "userRewardPerRewardScorePaid",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:63"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "userLastFeeUpdate",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:65"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewards",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:67"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_totalRewardScore",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:70"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_escrowedBalances",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:73"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_feesPaid",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:75"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_decayedFees",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:77"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_totalBalances",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:79"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_rewardScores",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:81"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "admin",
+            "type": "t_address",
+            "src": "contracts\\StakingRewards.sol:96"
+          },
+          {
+            "contract": "StakingRewardsV2",
+            "label": "version",
+            "type": "t_string_storage",
+            "src": "contracts\\StakingRewardsV2.sol:11"
+          }
+        ],
+        "types": {
+          "t_string_storage": {
+            "label": "string"
+          },
+          "t_struct(Fixidity)4967_storage": {
+            "label": "struct FixidityLib.Fixidity",
+            "members": [
+              {
+                "label": "digits",
+                "type": "t_uint8"
+              },
+              {
+                "label": "fixed_1",
+                "type": "t_int256"
+              },
+              {
+                "label": "fixed_e",
+                "type": "t_int256"
+              },
+              {
+                "label": "fixed_pi",
+                "type": "t_int256"
+              },
+              {
+                "label": "fixed_exp_10",
+                "type": "t_int256"
+              }
+            ]
+          },
+          "t_uint8": {
+            "label": "uint8"
+          },
+          "t_int256": {
+            "label": "int256"
+          },
+          "t_contract(RewardEscrow)2998": {
+            "label": "contract RewardEscrow"
+          },
+          "t_contract(IERC20)1005": {
+            "label": "contract IERC20"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          }
+        }
+      }
+    },
+    "f26c2b1bcfa9e369f0338512e6dce63f906bfc62c94965485133efad21bcc16c": {
+      "address": "0x0B306BF915C4d645ff596e518fAf3F9669b97016",
+      "txHash": "0x4f155d5ff4602285ce908a7420a230cad5d37010700f0a2bfdd5c24af719b355",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:21"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:26"
+          },
+          {
+            "contract": "OwnedUpgradeable",
+            "label": "owner",
+            "type": "t_address",
+            "src": "contracts\\OwnedUpgradeable.sol:8"
+          },
+          {
+            "contract": "OwnedUpgradeable",
+            "label": "nominatedOwner",
+            "type": "t_address",
+            "src": "contracts\\OwnedUpgradeable.sol:9"
+          },
+          {
+            "contract": "RewardsDistributionRecipient",
+            "label": "rewardsDistribution",
+            "type": "t_address",
+            "src": "contracts\\RewardsDistributionRecipient.sol:9"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "@openzeppelin\\contracts-upgradeable\\security\\ReentrancyGuardUpgradeable.sol:37"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin\\contracts-upgradeable\\security\\ReentrancyGuardUpgradeable.sol:67"
+          },
+          {
+            "contract": "Pausable",
+            "label": "lastPauseTime",
+            "type": "t_uint256",
+            "src": "contracts\\Pausable.sol:9"
+          },
+          {
+            "contract": "Pausable",
+            "label": "paused",
+            "type": "t_bool",
+            "src": "contracts\\Pausable.sol:10"
+          },
+          {
+            "contract": "ERC1967UpgradeUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\ERC1967\\ERC1967UpgradeUpgradeable.sol:214"
+          },
+          {
+            "contract": "UUPSUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\UUPSUpgradeable.sol:80"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "fixidity",
+            "type": "t_struct(Fixidity)4967_storage",
+            "src": "contracts\\StakingRewards.sol:37"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewardEscrow",
+            "type": "t_contract(RewardEscrow)2998",
+            "src": "contracts\\StakingRewards.sol:40"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewardsToken",
+            "type": "t_contract(IERC20)1005",
+            "src": "contracts\\StakingRewards.sol:43"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "stakingToken",
+            "type": "t_contract(IERC20)1005",
+            "src": "contracts\\StakingRewards.sol:44"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "periodFinish",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:47"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewardRate",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:49"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewardsDuration",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:51"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "lastUpdateTimeRewardScore",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:53"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "lastUpdateTimeFeeDecay",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:55"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewardPerRewardScoreStored",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:57"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "feeRewardsDuration",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:59"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "userRewardPerRewardScorePaid",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:63"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "userLastFeeUpdate",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:65"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewards",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:67"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_totalRewardScore",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:70"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_escrowedBalances",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:73"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_feesPaid",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:75"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_decayedFees",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:77"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_totalBalances",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:79"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_rewardScores",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:81"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "admin",
+            "type": "t_address",
+            "src": "contracts\\StakingRewards.sol:96"
+          },
+          {
+            "contract": "StakingRewardsV2",
+            "label": "version",
+            "type": "t_string_storage",
+            "src": "contracts\\StakingRewardsV2.sol:11"
+          }
+        ],
+        "types": {
+          "t_string_storage": {
+            "label": "string"
+          },
+          "t_struct(Fixidity)4967_storage": {
+            "label": "struct FixidityLib.Fixidity",
+            "members": [
+              {
+                "label": "digits",
+                "type": "t_uint8"
+              },
+              {
+                "label": "fixed_1",
+                "type": "t_int256"
+              },
+              {
+                "label": "fixed_e",
+                "type": "t_int256"
+              },
+              {
+                "label": "fixed_pi",
+                "type": "t_int256"
+              },
+              {
+                "label": "fixed_exp_10",
+                "type": "t_int256"
+              }
+            ]
+          },
+          "t_uint8": {
+            "label": "uint8"
+          },
+          "t_int256": {
+            "label": "int256"
+          },
+          "t_contract(RewardEscrow)2998": {
+            "label": "contract RewardEscrow"
+          },
+          "t_contract(IERC20)1005": {
+            "label": "contract IERC20"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          }
+        }
+      }
+    },
+    "dcc926cc1dc12c5c856256ed4531570f6e36571ecc2769bcbd4206d6af287df9": {
+      "address": "0xc6e7DF5E7b4f2A278906862b61205850344D4e7d",
+      "txHash": "0x1bb5fa2cecff89e17283af3f14ad5ba97f9181f6bb083c9c7100359e4c4ad000",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:21"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:26"
+          },
+          {
+            "contract": "OwnedUpgradeable",
+            "label": "owner",
+            "type": "t_address",
+            "src": "contracts\\OwnedUpgradeable.sol:8"
+          },
+          {
+            "contract": "OwnedUpgradeable",
+            "label": "nominatedOwner",
+            "type": "t_address",
+            "src": "contracts\\OwnedUpgradeable.sol:9"
+          },
+          {
+            "contract": "RewardsDistributionRecipient",
+            "label": "rewardsDistribution",
+            "type": "t_address",
+            "src": "contracts\\RewardsDistributionRecipient.sol:9"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "@openzeppelin\\contracts-upgradeable\\security\\ReentrancyGuardUpgradeable.sol:37"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin\\contracts-upgradeable\\security\\ReentrancyGuardUpgradeable.sol:67"
+          },
+          {
+            "contract": "Pausable",
+            "label": "lastPauseTime",
+            "type": "t_uint256",
+            "src": "contracts\\Pausable.sol:9"
+          },
+          {
+            "contract": "Pausable",
+            "label": "paused",
+            "type": "t_bool",
+            "src": "contracts\\Pausable.sol:10"
+          },
+          {
+            "contract": "ERC1967UpgradeUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\ERC1967\\ERC1967UpgradeUpgradeable.sol:214"
+          },
+          {
+            "contract": "UUPSUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\UUPSUpgradeable.sol:80"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "fixidity",
+            "type": "t_struct(Fixidity)4967_storage",
+            "src": "contracts\\StakingRewards.sol:37"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewardEscrow",
+            "type": "t_contract(RewardEscrow)2998",
+            "src": "contracts\\StakingRewards.sol:40"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewardsToken",
+            "type": "t_contract(IERC20)1005",
+            "src": "contracts\\StakingRewards.sol:43"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "stakingToken",
+            "type": "t_contract(IERC20)1005",
+            "src": "contracts\\StakingRewards.sol:44"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "periodFinish",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:47"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewardRate",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:49"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewardsDuration",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:51"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "lastUpdateTimeRewardScore",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:53"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "lastUpdateTimeFeeDecay",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:55"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewardPerRewardScoreStored",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:57"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "feeRewardsDuration",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:59"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "userRewardPerRewardScorePaid",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:63"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "userLastFeeUpdate",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:65"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewards",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:67"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_totalRewardScore",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:70"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_escrowedBalances",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:73"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_feesPaid",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:75"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_decayedFees",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:77"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_totalBalances",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:79"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_rewardScores",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:81"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "admin",
+            "type": "t_address",
+            "src": "contracts\\StakingRewards.sol:96"
+          },
+          {
+            "contract": "StakingRewardsV2",
+            "label": "version",
+            "type": "t_string_storage",
+            "src": "contracts\\StakingRewardsV2.sol:11"
+          }
+        ],
+        "types": {
+          "t_string_storage": {
+            "label": "string"
+          },
+          "t_struct(Fixidity)4967_storage": {
+            "label": "struct FixidityLib.Fixidity",
+            "members": [
+              {
+                "label": "digits",
+                "type": "t_uint8"
+              },
+              {
+                "label": "fixed_1",
+                "type": "t_int256"
+              },
+              {
+                "label": "fixed_e",
+                "type": "t_int256"
+              },
+              {
+                "label": "fixed_pi",
+                "type": "t_int256"
+              },
+              {
+                "label": "fixed_exp_10",
+                "type": "t_int256"
+              }
+            ]
+          },
+          "t_uint8": {
+            "label": "uint8"
+          },
+          "t_int256": {
+            "label": "int256"
+          },
+          "t_contract(RewardEscrow)2998": {
+            "label": "contract RewardEscrow"
+          },
+          "t_contract(IERC20)1005": {
+            "label": "contract IERC20"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          }
+        }
+      }
+    },
+    "ab692f4c6736d341849e70ff0300e9387b3de0b02ba4d9b7bc709f69169ccf4c": {
+      "address": "0x4ed7c70F96B99c776995fB64377f0d4aB3B0e1C1",
+      "txHash": "0x19f75dc4fe9465c8f46d7ca452b92800d854d561c07075506f4c3e1d958896e0",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_bool",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:21"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:26"
+          },
+          {
+            "contract": "OwnedUpgradeable",
+            "label": "owner",
+            "type": "t_address",
+            "src": "contracts\\OwnedUpgradeable.sol:8"
+          },
+          {
+            "contract": "OwnedUpgradeable",
+            "label": "nominatedOwner",
+            "type": "t_address",
+            "src": "contracts\\OwnedUpgradeable.sol:9"
+          },
+          {
+            "contract": "RewardsDistributionRecipient",
+            "label": "rewardsDistribution",
+            "type": "t_address",
+            "src": "contracts\\RewardsDistributionRecipient.sol:9"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "_status",
+            "type": "t_uint256",
+            "src": "@openzeppelin\\contracts-upgradeable\\security\\ReentrancyGuardUpgradeable.sol:37"
+          },
+          {
+            "contract": "ReentrancyGuardUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "@openzeppelin\\contracts-upgradeable\\security\\ReentrancyGuardUpgradeable.sol:67"
+          },
+          {
+            "contract": "Pausable",
+            "label": "lastPauseTime",
+            "type": "t_uint256",
+            "src": "contracts\\Pausable.sol:9"
+          },
+          {
+            "contract": "Pausable",
+            "label": "paused",
+            "type": "t_bool",
+            "src": "contracts\\Pausable.sol:10"
+          },
+          {
+            "contract": "ERC1967UpgradeUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\ERC1967\\ERC1967UpgradeUpgradeable.sol:214"
+          },
+          {
+            "contract": "UUPSUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\UUPSUpgradeable.sol:80"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "fixidity",
+            "type": "t_struct(Fixidity)4967_storage",
+            "src": "contracts\\StakingRewards.sol:37"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewardEscrow",
+            "type": "t_contract(RewardEscrow)2998",
+            "src": "contracts\\StakingRewards.sol:40"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewardsToken",
+            "type": "t_contract(IERC20)1005",
+            "src": "contracts\\StakingRewards.sol:43"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "stakingToken",
+            "type": "t_contract(IERC20)1005",
+            "src": "contracts\\StakingRewards.sol:44"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "periodFinish",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:47"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewardRate",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:49"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewardsDuration",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:51"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "lastUpdateTimeRewardScore",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:53"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "lastUpdateTimeFeeDecay",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:55"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewardPerRewardScoreStored",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:57"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "feeRewardsDuration",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:59"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "userRewardPerRewardScorePaid",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:63"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "userLastFeeUpdate",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:65"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "rewards",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:67"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_totalRewardScore",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewards.sol:70"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_escrowedBalances",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:73"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_feesPaid",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:75"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_decayedFees",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:77"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_totalBalances",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:79"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "_rewardScores",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "contracts\\StakingRewards.sol:81"
+          },
+          {
+            "contract": "StakingRewards",
+            "label": "admin",
+            "type": "t_address",
+            "src": "contracts\\StakingRewards.sol:96"
+          },
+          {
+            "contract": "StakingRewardsV2",
+            "label": "version",
+            "type": "t_string_storage",
+            "src": "contracts\\StakingRewardsV2.sol:11"
+          },
+          {
+            "contract": "StakingRewardsV3",
+            "label": "_totalRewardScoreAdded",
+            "type": "t_uint256",
+            "src": "contracts\\StakingRewardsV3.sol:11"
+          }
+        ],
+        "types": {
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_string_storage": {
+            "label": "string"
+          },
+          "t_struct(Fixidity)4967_storage": {
+            "label": "struct FixidityLib.Fixidity",
+            "members": [
+              {
+                "label": "digits",
+                "type": "t_uint8"
+              },
+              {
+                "label": "fixed_1",
+                "type": "t_int256"
+              },
+              {
+                "label": "fixed_e",
+                "type": "t_int256"
+              },
+              {
+                "label": "fixed_pi",
+                "type": "t_int256"
+              },
+              {
+                "label": "fixed_exp_10",
+                "type": "t_int256"
+              }
+            ]
+          },
+          "t_uint8": {
+            "label": "uint8"
+          },
+          "t_int256": {
+            "label": "int256"
+          },
+          "t_contract(RewardEscrow)2998": {
+            "label": "contract RewardEscrow"
+          },
+          "t_contract(IERC20)1005": {
+            "label": "contract IERC20"
           },
           "t_mapping(t_address,t_uint256)": {
             "label": "mapping(address => uint256)"
