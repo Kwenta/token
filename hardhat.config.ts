@@ -2,6 +2,7 @@ import { task } from "hardhat/config";
 import "@nomiclabs/hardhat-waffle";
 import "@nomiclabs/hardhat-truffle5";
 import "hardhat-gas-reporter";
+import "hardhat-contract-sizer";
 import "@openzeppelin/hardhat-upgrades";
 
 // This is a sample Hardhat task. To learn how to create your own go to
@@ -27,13 +28,11 @@ export default {
         version: "0.8.2",
       }
     ],
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 1,
+      },
+    },
   },
-  networks: {
-    hardhat: {
-      /*forking: {
-        url: "https://eth-mainnet.alchemyapi.io/v2/fmAqj9zaojIx6Jt1_3zJKS5jo8oFA_pl",
-        blockNumber: 11095000
-      }*/
-    }
-  }
 };

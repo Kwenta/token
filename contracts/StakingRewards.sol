@@ -10,6 +10,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "./libraries/FixidityLib.sol";
 import "./libraries/ExponentLib.sol";
 import "./libraries/LogarithmLib.sol";
+// import "./utils/PowerContract.sol";
 
 // Inheritance
 import "./RewardsDistributionRecipient.sol";
@@ -97,10 +98,10 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuardUpgradea
     // Decimals calculations
     uint256 private constant MAX_BPS = 10_000;
     uint256 private constant DECIMALS_DIFFERENCE = 1e50;
-    // Needs to be int256 for power library, root to calculate is equal to 1/0.3
-    int256 private constant WEIGHT_FEES = 1_428_571_428_571_428_571;
-    // Needs to be int256 for power library, root to calculate is equal to 1/0.7
-    int256 private constant WEIGHT_STAKING =3_333_333_333_333_333_333;
+    // Needs to be int256 for power library, root to calculate is equal to 0.7
+    int256 private constant WEIGHT_FEES = 700_000_000_000_000_000;
+    // Needs to be int256 for power library, root to calculate is equal to 0.3
+    int256 private constant WEIGHT_STAKING = 300_000_000_000_000_000;
     // Division of rewards between staking and trading
     // TODO: Create getters and setters
     uint256 private constant PERCENTAGE_STAKING = 80;
@@ -108,6 +109,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuardUpgradea
 
     /* ========== PROXY VARIABLES ========== */
     address private admin;
+    address private pendingAdmin;
     
     /* ========== INITIALIZER ========== */
 
@@ -122,6 +124,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuardUpgradea
         __ReentrancyGuard_init();
 
         admin = _owner;
+        pendingAdmin = _owner;
 
         periodFinish = 0;
         rewardRate = 0;
@@ -166,12 +169,12 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuardUpgradea
         return _totalBalances[account];
     }
 
-    /*function escrowedBalanceOf(address account) external view returns (uint256) {
+    function escrowedBalanceOf(address account) external view returns (uint256) {
     
-    Getter function for the escrowed balance of an account
+    // Getter function for the escrowed balance of an account
     
         return _escrowedBalances[account];
-    }*/
+    }
 
     function feesPaidBy(address account) external view returns (uint256) {
     /*
@@ -275,7 +278,7 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuardUpgradea
         uint256 newRewardScore = 0;
         // Handle case with 0 reward to avoid the library crashing
         if(_feesPaid[_account] > 0 && _totalBalances[_account] > 0) {
-            newRewardScore = uint256(fixidity.root_any(int256(_totalBalances[_account]), WEIGHT_STAKING)).mul(uint256(fixidity.root_any(int256(_feesPaid[_account]), WEIGHT_FEES)));
+            newRewardScore = uint256(fixidity.power_any(int256(_totalBalances[_account]), WEIGHT_STAKING)).mul(uint256(fixidity.power_any(int256(_feesPaid[_account]), WEIGHT_FEES)));
         }
         return newRewardScore;
     }
@@ -456,7 +459,11 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuardUpgradea
     address to be able to calculate the marginal contribution to rewards afterwards and adds the accumulated
     rewards since the last change to the account rewards
     */  
-        
+        _updateRewards(account);
+        _;
+    }
+
+    function _updateRewards(address account) internal {
         // Calculate the reward per unit of reward score applicable to the last stint of account
         rewardPerTokenStored = rewardPerToken();
         rewardPerRewardScoreStored = rewardPerRewardScore();
@@ -470,19 +477,19 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuardUpgradea
             userRewardPerTokenPaid[account] = rewardPerTokenStored;
             userRewardPerRewardScorePaid[account] = rewardPerRewardScoreStored;
         }
-        _;
     }
 
     modifier onlyRewardEscrow() {
-        bool isRE = msg.sender == address(rewardEscrow);
-
-        require(isRE, "Only the RewardEscrow contract can perform this action");
+        _onlyRewardEscrow();
         _;
     }
 
-    function _authorizeUpgrade(address newImplementation) internal override onlyAdmin {
+    function _onlyRewardEscrow() internal {
+        bool isRE = msg.sender == address(rewardEscrow);
 
+        require(isRE, "Only the RewardEscrow contract can perform this action");
     }
+
 
 
     /* ========== EVENTS ========== */
@@ -499,21 +506,48 @@ contract StakingRewards is RewardsDistributionRecipient, ReentrancyGuardUpgradea
 
     /* ========== PROXY FUNCTIONS ========== */
     
+    function _authorizeUpgrade(address newImplementation) internal override onlyAdmin {
 
-   /* function getAdmin() public view returns(address) {
+    }
+
+    function getAdmin() public view returns(address) {
         return admin;
     }
 
-    function setAdmin(address _newAdmin) public onlyOwner {
-        admin = _newAdmin;
+    function getPendingAdmin() public view returns(address) {
+        return pendingAdmin;
+    }
+
+    function setPendingAdmin(address _newAdmin) public onlyOwner {
+        pendingAdmin = _newAdmin;
+        // emit newPendingAdmin(msg.sender, _newAdmin);
+    }
+
+    function pendingAdminAccept() public onlyPendingAdmin {
+        admin = pendingAdmin;
         // emit AdminChanged(msg.sender, _newAdmin);
     }
-*/
+
     modifier onlyAdmin() {
+        _onlyAdmin();
+        _;
+    }
+
+    function _onlyAdmin() internal {
         bool isAdmin = msg.sender == admin;
 
         require(isAdmin, "Only the Admin address can perform this action");
+    }
+
+    modifier onlyPendingAdmin() {
+        _onlyPendingAdmin();
         _;
+    }
+
+    function _onlyPendingAdmin() internal {
+        bool isPendingAdmin = msg.sender == pendingAdmin;
+
+        require(isPendingAdmin, "Only the pending admin address can perform this action");
     }
 
     /* ========== PROXY EVENTS ========== */

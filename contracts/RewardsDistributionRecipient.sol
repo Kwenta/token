@@ -11,8 +11,12 @@ abstract contract RewardsDistributionRecipient is OwnedUpgradeable {
     function notifyRewardAmount(uint256 reward) virtual external;
 
     modifier onlyRewardsDistribution() {
-        require(msg.sender == rewardsDistribution, "Caller is not RewardsDistribution contract");
+        _onlyRewardsDistribution();
         _;
+    }
+
+    function _onlyRewardsDistribution() internal {
+        require(msg.sender == rewardsDistribution, "Caller is not RewardsDistribution contract");
     }
 
     function setRewardsDistribution(address _rewardsDistribution) external onlyOwner {

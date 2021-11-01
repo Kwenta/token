@@ -39,7 +39,11 @@ abstract contract Pausable is OwnedUpgradeable {
     event PauseChanged(bool isPaused);
 
     modifier notPaused {
-        require(!paused, "This action cannot be performed while the contract is paused");
+        _notPaused();
         _;
+    }
+
+    function _notPaused() internal {
+        require(!paused, "This action cannot be performed while the contract is paused");
     }
 }

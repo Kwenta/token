@@ -8,8 +8,6 @@ async function main() {
   let exponentLibAddress = "0x0";
   let stakingRewardsProxyAddress = "0x0";
 
-  let newAdminAddress = "0x0";
-
   StakingRewards = await hre.ethers.getContractFactory("StakingRewards", {
     libraries: {FixidityLib: fixidityLibAddress,
           ExponentLib: exponentLibAddress,
@@ -20,7 +18,11 @@ async function main() {
 
   stakingRewardsProxy = await StakingRewards.attach(stakingRewardsProxyAddress);
 
-  await stakingRewardsProxy.setAdmin(newAdminAddress);
+  await stakingRewardsProxy.pendingAdminAccept();
+
+  let result = await stakingRewardsProxy.getAdmin();
+
+  console.log("New admin has been set to :", result);
 
 }
 
