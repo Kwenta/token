@@ -9,7 +9,13 @@ The following architecture diagram is still in flux, but provides a general over
 ## Testing
 
 ```
-npx hardhat test
+npm run test
+```
+```
+npm run test:unit
+```
+```
+npm run test:integration
 ```
 
 ## Deployment

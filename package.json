@@ -1,10 +1,13 @@
 {
-  "name": "kwenta-contracts",
+  "name": "@kwenta/token",
   "version": "0.0.1",
   "license": "MIT",
   "author": "Kwenta",
-  "description": "Kwenta smart contracts",
+  "description": "Kwenta Token Contracts",
   "scripts": {
+    "test": "npx hardhat test",
+    "test:unit": "npx hardhat test test/unit/*",
+    "test:integration": "npx hardhat test test/integration/*",
     "deploy-kwenta": "hardhat run ./scrips/deploy-kwenta  --network mainnet",
     "deploy-kwenta:kovan": "hardhat run ./scrips/deploy-kwenta  --network kovan",
     "deploy-distribution": "hardhat run ./scrips/deploy-distribution  --network mainnet",
@@ -33,5 +36,8 @@
     "synthetix-data": "2.1.43",
     "ts-node": "10.2.1",
     "typescript": "4.4.2"
+  },
+  "dependencies": {
+    "@synthetixio/wei": "^2.50.1-ovm-alpha"
   }
 }
