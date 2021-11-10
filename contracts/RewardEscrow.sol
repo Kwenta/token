@@ -10,17 +10,11 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./SafeDecimalMath.sol";
 import "./StakingRewards.sol";
 
-// Internal references
-//import "./interfaces/IERC20.sol";
-import "./interfaces/IFeePool.sol";
-
 contract RewardEscrow is Owned, IRewardEscrow {
     using SafeMath for uint;
 
     /* The corresponding KWENTA contract. */
     IERC20 public kwenta;
-
-    IFeePool public feePool;
 
     StakingRewards public stakingRewards;
 
@@ -51,7 +45,6 @@ contract RewardEscrow is Owned, IRewardEscrow {
         address _kwenta
     ) Owned(_owner) {
         kwenta = IERC20(_kwenta);
-        //feePool = _feePool;
         
     }
 
@@ -71,15 +64,6 @@ contract RewardEscrow is Owned, IRewardEscrow {
     */
         stakingRewards = StakingRewards(_stakingRewards);
         emit StakingRewardsUpdated(address(_stakingRewards));
-    }
-
-    /**
-     * @notice set the FeePool contract as it is the only authority to be able to call
-     * appendVestingEntry with the onlyFeePool modifer
-     */
-    function setFeePool(IFeePool _feePool) external onlyOwner {
-        feePool = _feePool;
-        emit FeePoolUpdated(address(_feePool));
     }
 
     /* ========== VIEW FUNCTIONS ========== */
@@ -266,13 +250,6 @@ contract RewardEscrow is Owned, IRewardEscrow {
 
     /* ========== MODIFIERS ========== */
 
-    modifier onlyFeePool() {
-        bool isFeePool = msg.sender == address(feePool);
-
-        require(isFeePool, "Only the FeePool contracts can perform this action");
-        _;
-    }
-
     modifier onlyStakingRewards() {
         bool isStakingRewards = msg.sender == address(stakingRewards);
 
@@ -283,8 +260,6 @@ contract RewardEscrow is Owned, IRewardEscrow {
     /* ========== EVENTS ========== */
 
     event KwentaUpdated(address newkwenta);
-
-    event FeePoolUpdated(address newFeePool);
 
     event Vested(address indexed beneficiary, uint time, uint value);
 
