@@ -10,5 +10,8 @@ artifacts
 * Decay rates.xlsx
 test/gasTest.test.js
 test/testSR.test.js
+test/stakingRewards.test.js
+test/stakingRewardsPowerFormula.test.js
 contracts/utils/PowerContract.sol
 contracts/libraries/DecayRateLib.sol
+contracts/StakingRewardsV3.sol

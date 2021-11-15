@@ -7,12 +7,9 @@ import "./interfaces/IRewardEscrow.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 // Libraries
-import "./SafeDecimalMath.sol";
 import "./StakingRewards.sol";
 
 contract RewardEscrow is Owned, IRewardEscrow {
-    using SafeMath for uint;
-
     /* The corresponding KWENTA contract. */
     IERC20 public kwenta;
 
@@ -45,7 +42,6 @@ contract RewardEscrow is Owned, IRewardEscrow {
         address _kwenta
     ) Owned(_owner) {
         kwenta = IERC20(_kwenta);
-        
     }
 
     /* ========== SETTERS ========== */
@@ -58,10 +54,10 @@ contract RewardEscrow is Owned, IRewardEscrow {
         emit KwentaUpdated(address(_kwenta));
     }
 
-    function setStakingRewards(address _stakingRewards) external onlyOwner {
     /*
-    Function used to define the StakingRewards to use
+    * @notice Function used to define the StakingRewards to use
     */
+    function setStakingRewards(address _stakingRewards) external onlyOwner {
         stakingRewards = StakingRewards(_stakingRewards);
         emit StakingRewardsUpdated(address(_stakingRewards));
     }
@@ -83,7 +79,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
      * @notice The number of vesting dates in an account's schedule.
      */
     function numVestingEntries(address account) external view override returns (uint) {
-        return vestingSchedules[account].length;
+        return _numVestingEntries(account);
     }
 
     /**
@@ -170,7 +166,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
         require(quantity != 0, "Quantity cannot be zero");
 
         /* There must be enough balance in the contract to provide for the vesting entry. */
-        totalEscrowedBalance = totalEscrowedBalance.add(quantity);
+        totalEscrowedBalance = totalEscrowedBalance + quantity;
         require(
             totalEscrowedBalance <= IERC20(address(kwenta)).balanceOf(address(this)),
             "Must be enough balance in the contract to provide for the vesting entry"
@@ -192,7 +188,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
                 getVestingTime(account, scheduleLength - 1) < time,
                 "Cannot add new vested entries earlier than the last one"
             );
-            totalEscrowedAccountBalance[account] = totalEscrowedAccountBalance[account].add(quantity);
+            totalEscrowedAccountBalance[account] = totalEscrowedAccountBalance[account] + quantity;
         }
 
         vestingSchedules[account].push([time, quantity]);
@@ -205,7 +201,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
      * @dev A call to this should accompany a previous successful call to Kwenta.transfer(rewardEscrow, amount),
      * to ensure that when the funds are withdrawn, there is enough balance.
      * Note; although this function could technically be used to produce unbounded
-     * arrays, it's only withinn the 4 year period of the weekly inflation schedule.
+     * arrays, it's only within the 4 year period of the weekly inflation schedule.
      * @param account The account to append a new vesting entry to.
      * @param quantity The quantity of KWENTA that will be escrowed.
      */
@@ -232,14 +228,14 @@ contract RewardEscrow is Owned, IRewardEscrow {
             uint qty = getVestingQuantity(msg.sender, i);
             if (qty > 0) {
                 vestingSchedules[msg.sender][i] = [0, 0];
-                total = total.add(qty);
+                total = total + qty;
             }
         }
 
         if (total != 0) {
-            totalEscrowedBalance = totalEscrowedBalance.sub(total);
-            totalEscrowedAccountBalance[msg.sender] = totalEscrowedAccountBalance[msg.sender].sub(total);
-            totalVestedAccountBalance[msg.sender] = totalVestedAccountBalance[msg.sender].add(total);
+            totalEscrowedBalance = totalEscrowedBalance - total;
+            totalEscrowedAccountBalance[msg.sender] = totalEscrowedAccountBalance[msg.sender] - total;
+            totalVestedAccountBalance[msg.sender] = totalVestedAccountBalance[msg.sender] + total;
             IERC20(address(kwenta)).transfer(msg.sender, total);
             if(address(stakingRewards) != address(0)) {
                 stakingRewards.unstakeEscrow(msg.sender, total);
