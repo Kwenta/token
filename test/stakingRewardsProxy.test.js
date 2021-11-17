@@ -104,31 +104,37 @@ before(async() => {
 describe("Proxy deployment", async() => {
 	it("should deploy the proxy", async() => {
 			FixidityLib = await hre.ethers.getContractFactory("FixidityLib");
-			fixidityLib = await FixidityLib.deploy();
-			
-			LogarithmLib = await hre.ethers.getContractFactory("LogarithmLib", {
-				libraries: {FixidityLib: fixidityLib.address}
-			});
-			logarithmLib = await LogarithmLib.deploy();
-			ExponentLib = await hre.ethers.getContractFactory("ExponentLib", {
-				libraries: {FixidityLib: fixidityLib.address,
-							LogarithmLib: logarithmLib.address,
-				}
-			});
-			exponentLib = await ExponentLib.deploy();
+		fixidityLib = await FixidityLib.deploy();
+		
+		LogarithmLib = await hre.ethers.getContractFactory("LogarithmLib", {
+			libraries: {FixidityLib: fixidityLib.address}
+		});
+		logarithmLib = await LogarithmLib.deploy();
+		ExponentLib = await hre.ethers.getContractFactory("ExponentLib", {
+			libraries: {FixidityLib: fixidityLib.address,
+						LogarithmLib: logarithmLib.address,
+			}
+		});
+		exponentLib = await ExponentLib.deploy();
 
+		DecayRateLib = await hre.ethers.getContractFactory("DecayRateLib", {
+			libraries: {
+						ExponentLib: exponentLib.address
+			}
+		});
+		decayRateLib = await DecayRateLib.deploy();	
 
-			StakingRewards = await hre.ethers.getContractFactory("StakingRewards", {
-				libraries: {FixidityLib: fixidityLib.address,
-							ExponentLib: exponentLib.address,
-				}
+		StakingRewards = await hre.ethers.getContractFactory("StakingRewards", {
+			libraries: {FixidityLib: fixidityLib.address,
+						DecayRateLib: decayRateLib.address
+			}
+		});
+		stProxy = await hre.upgrades.deployProxy(StakingRewards,
+			[owner.address, kwentaToken.address, 
+			kwentaToken.address, rewardsEscrow.address, 30*DAY],
+			{kind: "uups",
+			unsafeAllow: ["external-library-linking"]
 			});
-			stProxy = await hre.upgrades.deployProxy(StakingRewards,
-				[owner.address, kwentaToken.address, 
-				kwentaToken.address, rewardsEscrow.address, 30*86_400],
-				{kind: "uups",
-				unsafeAllow: ["external-library-linking"]
-				});
 
 			admin_address = await hre.upgrades.erc1967.getAdminAddress(stProxy.address);
 			implementation = await hre.upgrades.erc1967.getImplementationAddress(stProxy.address);
@@ -264,31 +270,37 @@ describe('earned()', () => {
 
 		it('should not be 0 when staking but not trading', async () => {
 			FixidityLib = await hre.ethers.getContractFactory("FixidityLib");
-			fixidityLib = await FixidityLib.deploy();
-			
-			LogarithmLib = await hre.ethers.getContractFactory("LogarithmLib", {
-				libraries: {FixidityLib: fixidityLib.address}
-			});
-			logarithmLib = await LogarithmLib.deploy();
-			ExponentLib = await hre.ethers.getContractFactory("ExponentLib", {
-				libraries: {FixidityLib: fixidityLib.address,
-							LogarithmLib: logarithmLib.address,
-				}
-			});
-			exponentLib = await ExponentLib.deploy();
+		fixidityLib = await FixidityLib.deploy();
+		
+		LogarithmLib = await hre.ethers.getContractFactory("LogarithmLib", {
+			libraries: {FixidityLib: fixidityLib.address}
+		});
+		logarithmLib = await LogarithmLib.deploy();
+		ExponentLib = await hre.ethers.getContractFactory("ExponentLib", {
+			libraries: {FixidityLib: fixidityLib.address,
+						LogarithmLib: logarithmLib.address,
+			}
+		});
+		exponentLib = await ExponentLib.deploy();
 
+		DecayRateLib = await hre.ethers.getContractFactory("DecayRateLib", {
+			libraries: {
+						ExponentLib: exponentLib.address
+			}
+		});
+		decayRateLib = await DecayRateLib.deploy();	
 
-			StakingRewards = await hre.ethers.getContractFactory("StakingRewards", {
-				libraries: {FixidityLib: fixidityLib.address,
-							ExponentLib: exponentLib.address,
-				}
+		StakingRewards = await hre.ethers.getContractFactory("StakingRewards", {
+			libraries: {FixidityLib: fixidityLib.address,
+						DecayRateLib: decayRateLib.address
+			}
+		});
+		stProxy = await hre.upgrades.deployProxy(StakingRewards,
+			[owner.address, kwentaToken.address, 
+			kwentaToken.address, rewardsEscrow.address, 30*DAY],
+			{kind: "uups",
+			unsafeAllow: ["external-library-linking"]
 			});
-			stProxy = await hre.upgrades.deployProxy(StakingRewards,
-				[owner.address, kwentaToken.address, 
-				kwentaToken.address, rewardsEscrow.address, 30*86_400],
-				{kind: "uups",
-				unsafeAllow: ["external-library-linking"]
-				});
 
 			rewardsEscrow.setStakingRewards(stProxy.address);
 			kwentaToken._mint(stProxy.address, toUnit(100));
@@ -312,31 +324,37 @@ describe('earned()', () => {
 
 		it('should be 0 when trading and not staking', async () => {
 			FixidityLib = await hre.ethers.getContractFactory("FixidityLib");
-			fixidityLib = await FixidityLib.deploy();
-			
-			LogarithmLib = await hre.ethers.getContractFactory("LogarithmLib", {
-				libraries: {FixidityLib: fixidityLib.address}
-			});
-			logarithmLib = await LogarithmLib.deploy();
-			ExponentLib = await hre.ethers.getContractFactory("ExponentLib", {
-				libraries: {FixidityLib: fixidityLib.address,
-							LogarithmLib: logarithmLib.address,
-				}
-			});
-			exponentLib = await ExponentLib.deploy();
+		fixidityLib = await FixidityLib.deploy();
+		
+		LogarithmLib = await hre.ethers.getContractFactory("LogarithmLib", {
+			libraries: {FixidityLib: fixidityLib.address}
+		});
+		logarithmLib = await LogarithmLib.deploy();
+		ExponentLib = await hre.ethers.getContractFactory("ExponentLib", {
+			libraries: {FixidityLib: fixidityLib.address,
+						LogarithmLib: logarithmLib.address,
+			}
+		});
+		exponentLib = await ExponentLib.deploy();
 
+		DecayRateLib = await hre.ethers.getContractFactory("DecayRateLib", {
+			libraries: {
+						ExponentLib: exponentLib.address
+			}
+		});
+		decayRateLib = await DecayRateLib.deploy();	
 
-			StakingRewards = await hre.ethers.getContractFactory("StakingRewards", {
-				libraries: {FixidityLib: fixidityLib.address,
-							ExponentLib: exponentLib.address,
-				}
+		StakingRewards = await hre.ethers.getContractFactory("StakingRewards", {
+			libraries: {FixidityLib: fixidityLib.address,
+						DecayRateLib: decayRateLib.address
+			}
+		});
+		stProxy = await hre.upgrades.deployProxy(StakingRewards,
+			[owner.address, kwentaToken.address, 
+			kwentaToken.address, rewardsEscrow.address, 30*DAY],
+			{kind: "uups",
+			unsafeAllow: ["external-library-linking"]
 			});
-			stProxy = await hre.upgrades.deployProxy(StakingRewards,
-				[owner.address, kwentaToken.address, 
-				kwentaToken.address, rewardsEscrow.address, 30*86_400],
-				{kind: "uups",
-				unsafeAllow: ["external-library-linking"]
-				});
 
 			await stProxy.connect(owner).setExchangerProxy(exchangerProxy.address);
 			await rewardsEscrow.setStakingRewards(stProxy.address);
@@ -359,31 +377,37 @@ describe('earned()', () => {
 
 		it('should be 0 when not trading and not staking', async () => {
 			FixidityLib = await hre.ethers.getContractFactory("FixidityLib");
-			fixidityLib = await FixidityLib.deploy();
-			
-			LogarithmLib = await hre.ethers.getContractFactory("LogarithmLib", {
-				libraries: {FixidityLib: fixidityLib.address}
-			});
-			logarithmLib = await LogarithmLib.deploy();
-			ExponentLib = await hre.ethers.getContractFactory("ExponentLib", {
-				libraries: {FixidityLib: fixidityLib.address,
-							LogarithmLib: logarithmLib.address,
-				}
-			});
-			exponentLib = await ExponentLib.deploy();
+		fixidityLib = await FixidityLib.deploy();
+		
+		LogarithmLib = await hre.ethers.getContractFactory("LogarithmLib", {
+			libraries: {FixidityLib: fixidityLib.address}
+		});
+		logarithmLib = await LogarithmLib.deploy();
+		ExponentLib = await hre.ethers.getContractFactory("ExponentLib", {
+			libraries: {FixidityLib: fixidityLib.address,
+						LogarithmLib: logarithmLib.address,
+			}
+		});
+		exponentLib = await ExponentLib.deploy();
 
+		DecayRateLib = await hre.ethers.getContractFactory("DecayRateLib", {
+			libraries: {
+						ExponentLib: exponentLib.address
+			}
+		});
+		decayRateLib = await DecayRateLib.deploy();	
 
-			StakingRewards = await hre.ethers.getContractFactory("StakingRewards", {
-				libraries: {FixidityLib: fixidityLib.address,
-							ExponentLib: exponentLib.address,
-				}
+		StakingRewards = await hre.ethers.getContractFactory("StakingRewards", {
+			libraries: {FixidityLib: fixidityLib.address,
+						DecayRateLib: decayRateLib.address
+			}
+		});
+		stProxy = await hre.upgrades.deployProxy(StakingRewards,
+			[owner.address, kwentaToken.address, 
+			kwentaToken.address, rewardsEscrow.address, 30*DAY],
+			{kind: "uups",
+			unsafeAllow: ["external-library-linking"]
 			});
-			stProxy = await hre.upgrades.deployProxy(StakingRewards,
-				[owner.address, kwentaToken.address, 
-				kwentaToken.address, rewardsEscrow.address, 30*86_400],
-				{kind: "uups",
-				unsafeAllow: ["external-library-linking"]
-				});
 
 			await stProxy.connect(owner).setExchangerProxy(exchangerProxy.address);
 			await rewardsEscrow.setStakingRewards(stProxy.address);
@@ -404,31 +428,37 @@ describe('earned()', () => {
 
 		it('should be > 0 when trading and staking', async () => {
 			FixidityLib = await hre.ethers.getContractFactory("FixidityLib");
-			fixidityLib = await FixidityLib.deploy();
-			
-			LogarithmLib = await hre.ethers.getContractFactory("LogarithmLib", {
-				libraries: {FixidityLib: fixidityLib.address}
-			});
-			logarithmLib = await LogarithmLib.deploy();
-			ExponentLib = await hre.ethers.getContractFactory("ExponentLib", {
-				libraries: {FixidityLib: fixidityLib.address,
-							LogarithmLib: logarithmLib.address,
-				}
-			});
-			exponentLib = await ExponentLib.deploy();
+		fixidityLib = await FixidityLib.deploy();
+		
+		LogarithmLib = await hre.ethers.getContractFactory("LogarithmLib", {
+			libraries: {FixidityLib: fixidityLib.address}
+		});
+		logarithmLib = await LogarithmLib.deploy();
+		ExponentLib = await hre.ethers.getContractFactory("ExponentLib", {
+			libraries: {FixidityLib: fixidityLib.address,
+						LogarithmLib: logarithmLib.address,
+			}
+		});
+		exponentLib = await ExponentLib.deploy();
 
+		DecayRateLib = await hre.ethers.getContractFactory("DecayRateLib", {
+			libraries: {
+						ExponentLib: exponentLib.address
+			}
+		});
+		decayRateLib = await DecayRateLib.deploy();	
 
-			StakingRewards = await hre.ethers.getContractFactory("StakingRewards", {
-				libraries: {FixidityLib: fixidityLib.address,
-							ExponentLib: exponentLib.address,
-				}
+		StakingRewards = await hre.ethers.getContractFactory("StakingRewards", {
+			libraries: {FixidityLib: fixidityLib.address,
+						DecayRateLib: decayRateLib.address
+			}
+		});
+		stProxy = await hre.upgrades.deployProxy(StakingRewards,
+			[owner.address, kwentaToken.address, 
+			kwentaToken.address, rewardsEscrow.address, 30*DAY],
+			{kind: "uups",
+			unsafeAllow: ["external-library-linking"]
 			});
-			stProxy = await hre.upgrades.deployProxy(StakingRewards,
-				[owner.address, kwentaToken.address, 
-				kwentaToken.address, rewardsEscrow.address, 30*86_400],
-				{kind: "uups",
-				unsafeAllow: ["external-library-linking"]
-				});
 
 			await stProxy.connect(owner).setExchangerProxy(exchangerProxy.address);
 			await rewardsEscrow.setStakingRewards(stProxy.address);
@@ -480,6 +510,7 @@ describe('notifyRewardAmount()', () => {
 
 describe('implementation test', () => {
 	it('calculates rewards correctly', async() => {
+
 		FixidityLib = await hre.ethers.getContractFactory("FixidityLib");
 		fixidityLib = await FixidityLib.deploy();
 		
@@ -494,10 +525,16 @@ describe('implementation test', () => {
 		});
 		exponentLib = await ExponentLib.deploy();
 
+		DecayRateLib = await hre.ethers.getContractFactory("DecayRateLib", {
+			libraries: {
+						ExponentLib: exponentLib.address
+			}
+		});
+		decayRateLib = await DecayRateLib.deploy();	
 
 		StakingRewards = await hre.ethers.getContractFactory("StakingRewards", {
 			libraries: {FixidityLib: fixidityLib.address,
-						ExponentLib: exponentLib.address,
+						DecayRateLib: decayRateLib.address
 			}
 		});
 		stProxy = await hre.upgrades.deployProxy(StakingRewards,
@@ -527,7 +564,7 @@ describe('implementation test', () => {
 		let rewardValue = toUnit(100);
 		await stProxy.connect(owner).notifyRewardAmount(rewardValue);
 		await fastForward(16*DAY);
-		
+
 		await stProxy.connect(staker1).exit();
 		await stProxy.connect(staker2).exit();
 
@@ -536,6 +573,8 @@ describe('implementation test', () => {
 
 		assertBNClose(rewardsStaker1.toString(), toUnit(47.6204852265976), toUnit(0.001));
 		assertBNClose(rewardsStaker2.toString(), toUnit(52.3795147734024), toUnit(0.001));
+
+
 
 		})
 	})

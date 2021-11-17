@@ -10,6 +10,8 @@ import "./libraries/FixidityLib.sol";
 import "./libraries/ExponentLib.sol";
 import "./libraries/LogarithmLib.sol";
 
+import "./libraries/DecayRateLib.sol";
+
 // Inheritance
 import "./Pausable.sol";
 // Import RewardEscrow contract for Escrow interactions
@@ -29,7 +31,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
 
     /* ========== STATE VARIABLES ========== */
 
-    FixidityLib.Fixidity public fixidity;
+    FixidityLib.Fixidity private fixidity;
 
     // Reward Escrow
     RewardEscrow public rewardEscrow;
@@ -50,23 +52,23 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     // Epoch default duration
     uint256 public rewardsDuration;
     // Last time an event altering the rewardscore
-    uint256 public lastUpdateTimeRewardScore;
+    uint256 private lastUpdateTimeRewardScore;
     // Last rewardRate per RewardScore
-    uint256 public rewardPerRewardScoreStored;
+    uint256 private rewardPerRewardScoreStored;
     // Last Update Time for staking Rewards
-    uint256 public lastUpdateTime;
+    uint256 private lastUpdateTime;
     // Last reward per token staked
-    uint256 public rewardPerTokenStored;
+    uint256 private rewardPerTokenStored;
     // Time to zero for decay rate
     uint256 public timeToZero;
     uint256 public rewardStartedTime;
     // Decay Rate variables
-    uint256 public lastTotalSlope;
+    uint256 private lastTotalSlope;
 
     // Mapping containing future decaying slopes of totalRewardScores
-    mapping(uint256 => uint256) public slopeChanges;
+    mapping(uint256 => uint256) private slopeChanges;
     // Mapping containing future decaying slopes of each user's total rewards
-    mapping(address => mapping(uint256 => uint256)) public userRewardScoreSlopeChanges;
+    mapping(address => mapping(uint256 => uint256)) private userRewardScoreSlopeChanges;
     // Custom data structure to save (i) last state of user reward score, (ii) slope and (iii) updated time
     struct StateUser {
         uint256 lastRewardScore;
@@ -74,22 +76,22 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
         uint256 lastUpdated;
     }
     // Mapping containing the last state of each user
-    mapping(address => StateUser) public lastStateUser;
+    mapping(address => StateUser) private lastStateUser;
 
     
     // Save the latest reward per RewardScore applicable for each address (Trading Rewards)
-    mapping(address => uint256) public userRewardPerRewardScorePaid;
+    mapping(address => uint256) private userRewardPerRewardScorePaid;
     // Save the latest reward per Token applicable for each address (Staking Rewards)
-    mapping(address => uint256) public userRewardPerTokenPaid;
+    mapping(address => uint256) private userRewardPerTokenPaid;
     // Rewards due to each account
     mapping(address => uint256) public rewards;
 
     // Total RewardsScore
     uint256 private _totalRewardScore;
     // Total area under the decaying total reward score curve
-    uint256 public _accumulatedTotalRewardScore;
+    uint256 private _accumulatedTotalRewardScore;
     // Total tokens included in rewards (both staked and escrowed)
-    uint256 public _totalSupply;
+    uint256 private _totalSupply;
     
     // Tokens escrowed for each address
     mapping(address => uint256) private _escrowedBalances;
@@ -100,7 +102,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     // Save the rewardScore per address
     mapping(address => uint256) private _rewardScores;
     // Total area under each user's reward score curve
-    mapping(address => uint256) public _accumulatedRewardScores;
+    mapping(address => uint256) private _accumulatedRewardScores;
     // Division of rewards between staking and trading
     uint256 public PERCENTAGE_STAKING;
     uint256 public PERCENTAGE_TRADING;
@@ -357,229 +359,161 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     }
 
     /*
-    * @notice Function used to total decayed reward score since the last update until the current time taking
-    * into account all slope changes happening in between
-    * @return uint, new totalRewardScore
+    * @notice Getter function for the total slope change required
+    * @param timeSlopeChange, uint256 containing the date for which to lookup the slope change
+    * @return slope change for the specific day required
     */
-    function calculateDecayedTotalRewardScore() public returns(uint256) {
-        
-        uint256 currentTime = (block.timestamp / DAY) * DAY;
+    function getSlopeChangeAt(uint256 timeSlopeChange) external view returns(uint) {
+        return slopeChanges[timeSlopeChange];
+    }
 
-        uint256 lastInteraction = (lastUpdateTimeRewardScore / DAY ) * DAY;
-
-        uint256 nEntries = (currentTime - lastInteraction) / DAY;
-        
-        // If initial call or calling the same day it has already been calculated, return same state
-        if(nEntries == 0 || lastInteraction == 0) {
-            return _totalRewardScore;
-        // If more time than _timeToZero has passed, everything is decayed, return 0
-        }
-        //  else if(nEntries >= timeToZero / DAY) {
-        //     lastTotalSlope = 0;
-        //     _totalRewardScore = 0;
-        //     return 0;
-        // }
-        
-        uint256 slope = lastTotalSlope;
-        uint256 total = _totalRewardScore;
-        uint256 nextSlopeChange = 0;
-        uint256 roundedFinish = (periodFinish / DAY) * DAY;
-        uint256 _rewardStartedTime = rewardStartedTime;
-        uint256 _accumulatedTotal = _accumulatedTotalRewardScore;
-        
-        // Iterate over the last days until reaching the current time, incrementing both the accumulatedTotalRewardScore
-        // and updating the totalRewardScore
-        for(uint256 i = lastInteraction; i <= currentTime; i += DAY) {
-            nextSlopeChange = slopeChanges[i];
-            if(nextSlopeChange != 0 || i == currentTime) {
-                total = (total - slope * (i - lastInteraction));
-
-                if (lastInteraction < _rewardStartedTime && i >= _rewardStartedTime) {
-                    _accumulatedTotal = 0;
-                    if(i > roundedFinish) {
-                        _accumulatedTotal = total + slope * (i - roundedFinish);
-                        _accumulatedTotal = _accumulatedTotal + slope * (Math.min(i, roundedFinish) - _rewardStartedTime) / 2;
-                        _accumulatedTotal *= (Math.min(i, roundedFinish) - _rewardStartedTime);    
-                    } else {
-                        _accumulatedTotal = total + slope * (Math.min(i, roundedFinish) - _rewardStartedTime) / 2;
-                        _accumulatedTotal *= (Math.min(i, roundedFinish) - _rewardStartedTime);
-                    }
-                } else if (roundedFinish > 0) {
-                    if (i > roundedFinish) {
-                            _accumulatedTotal += (total + slope * (i - roundedFinish)) * (Math.min(i, roundedFinish) - lastInteraction) + slope * (Math.min(i, roundedFinish) - lastInteraction) * (Math.min(i, roundedFinish) - lastInteraction) / 2;
-                        } else {
-                            _accumulatedTotal += total * (Math.min(i, roundedFinish) - lastInteraction) + slope * (Math.min(i, roundedFinish) - lastInteraction) * (Math.min(i, roundedFinish) - lastInteraction) / 2;
-                        }
-                }
-
-                lastInteraction = i;
-                slope = slope - nextSlopeChange;
-            }
-        }
-
-
-        if (slope == 0) {
-            total = 0;
-        }
-
-        // Update the necessary state variables
+    /*
+    * @notice Setter function for the state of the total reward score (value, slope, accumulated)
+    * @param slope new slope to update to
+    * @param total new total to update to
+    * @param accumulated new accumuladted total to update to
+    */
+    function setNewTotalState(uint256 slope, uint256 total, uint256 accumulated) internal {
         lastTotalSlope = slope;
         _totalRewardScore = total;
-        _accumulatedTotalRewardScore = _accumulatedTotal;
-
-        return total;
+        _accumulatedTotalRewardScore = accumulated;
     }
 
     /*
-    * @notice Function used a user's decayed reward score since the last update until the current time taking
-    * into account all slope changes happening in between
-    * @return uint, new totalRewardScore
+    * @notice Getter function for the user slope change required
+    * @param account address to check the slope change
+    * @param timeSlopeChange, uint256 containing the date for which to lookup the slope change
+    * @return slope change for the specific account and day required
     */
-    function calculateDecayedUserRewardScore(address _account) public returns(uint256) {
-        StateUser memory _lastStateUser = lastStateUser[_account];
-        uint256 currentTime = (block.timestamp / DAY) * DAY;
-
-        uint256 nEntries = (currentTime - _lastStateUser.lastUpdated) / DAY;
-
-        // If initial call or calling the same day it has already been calculated, return same state
-        if(nEntries == 0 || _lastStateUser.lastUpdated == 0) {
-            return _lastStateUser.lastRewardScore;
-        // If more time than _timeToZero has passed, everything is decayed, return 0
-        } else if(_lastStateUser.lastRewardScore == 0) {
-            return 0;
-        } 
-        
-        uint256 lastInteraction = _lastStateUser.lastUpdated;
-        uint256 _accumulatedUser = _accumulatedRewardScores[_account];
-        uint256 _rewardStartedTime = rewardStartedTime;
-        uint256 roundedFinish = (periodFinish / DAY) * DAY;
-        uint256 slope = _lastStateUser.lastSlope;
-        uint256 total = _lastStateUser.lastRewardScore;
-        uint256 nextSlopeChange = 0;
-
-        // Iterate over the last days until reaching the current time, incrementing both the accumulatedTotalRewardScore
-        // and updating the totalRewardScore
-        for(uint256 i = lastInteraction; i <= currentTime; i += DAY) {
-            nextSlopeChange = userRewardScoreSlopeChanges[_account][i];
-            if(nextSlopeChange != 0 || i == currentTime) {
-                total = (total - slope * (i - lastInteraction));
-
-                if (lastInteraction <= _rewardStartedTime && i >= _rewardStartedTime) {
-                    userRewardPerRewardScorePaid[_account] = 0;
-                    if(i > roundedFinish) {
-                        _accumulatedUser = total + slope * (i - roundedFinish);
-                        _accumulatedUser = _accumulatedUser + slope * (Math.min(i, roundedFinish) - _rewardStartedTime) / 2;
-                        _accumulatedUser *= (Math.min(i, roundedFinish) - _rewardStartedTime);    
-                    } else {
-                        _accumulatedUser = total + slope * (Math.min(i, roundedFinish) - _rewardStartedTime) / 2;
-                        _accumulatedUser *= (Math.min(i, roundedFinish) - _rewardStartedTime);
-                    }
-                } else if (roundedFinish > 0){
-                    if (i > roundedFinish) {
-                            _accumulatedUser += (total + slope * (i - roundedFinish)) * (Math.min(i, periodFinish) - lastInteraction) + slope * (Math.min(i, periodFinish) - lastInteraction) * (Math.min(i, periodFinish) - lastInteraction) / 2;
-                        } else {
-                            _accumulatedUser += total * (Math.min(i, roundedFinish) - lastInteraction) + slope * (Math.min(i, periodFinish) - lastInteraction) * (Math.min(i, periodFinish) - lastInteraction) / 2;
-                        }
-                }
-
-                lastInteraction = i;
-                slope = slope - nextSlopeChange;
-            }
-
-        }
-
-        if (slope == 0) {
-            total = 0;
-        }
-
-        // Update the necessary state variables
-        _lastStateUser.lastSlope = slope;
-        _lastStateUser.lastUpdated = currentTime;
-        _lastStateUser.lastRewardScore = total;
-        lastStateUser[_account] = _lastStateUser;
-        _accumulatedRewardScores[_account] = _accumulatedUser;
-        
-        return total;
+    function getUserSlopeChangeAt(address _account, uint256 timeSlopeChange) external view returns(uint) {
+        return userRewardScoreSlopeChanges[_account][timeSlopeChange];
     }
 
     /*
-    * @notice Function updating and returning the reward score for a specific account
-    * @param _account: address to update the reward score for
-    * @return uint256 containing the new reward score for _account
-    */        
-    function calculateRewardScore(address _account, uint256 _prevStakingAmount, uint256 _newFees) private returns(uint256){
-        uint256 newRewardScore = 0;
-        uint256 roundedTime = (block.timestamp / DAY) * DAY;
-        // Handle case with 0 reward to avoid the library crashing
-        if((_totalBalances[_account] == 0) || (_totalBalances[_account] > 0 && lastStateUser[_account].lastRewardScore == 0 && _newFees == 0)) {
-            lastStateUser[_account].lastSlope = 0;
-            lastStateUser[_account].lastRewardScore = 0;
-            lastStateUser[_account].lastUpdated = roundedTime;
-            return 0;
-        }
-
-        // If the reward score already exists -> Update it instead of recalculating from scratch
-        if(_rewardScores[_account] > 0 && _prevStakingAmount > 0) {
-            // newFees = 0 means fees haven't changes, must be tokens
-            // Perform a re-scaling of the previous reward score by: rewardScorePrev * (Nnew / Nprev) ^ 0.3
-            if(_newFees == 0) {
-                // Scale Ni + Scale all slopes in the future
-                uint256 scalingFactor = uint256(fixidity.power_any(int256(_totalBalances[_account] * (1e18) / _prevStakingAmount), WEIGHT_STAKING));
-                newRewardScore = _rewardScores[_account] * scalingFactor / (1e18);
-                uint256 prevSlope = lastStateUser[_account].lastSlope;
-                lastStateUser[_account].lastSlope = lastStateUser[_account].lastSlope * scalingFactor / (1e18);
-                lastStateUser[_account].lastRewardScore = newRewardScore;
-                lastStateUser[_account].lastUpdated = roundedTime;
-
-                // If we have increased tokens, add slope, if not, substract
-                if(_totalBalances[_account] > _prevStakingAmount) {
-                    addUserSlopes(_account, lastStateUser[_account].lastSlope - prevSlope, roundedTime, timeToZero);
-                } else {
-                    decreaseUserSlopes(_account, prevSlope - lastStateUser[_account].lastSlope, roundedTime, timeToZero);
-                }
-
-                lastTotalSlope = lastTotalSlope - prevSlope + lastStateUser[_account].lastSlope;
-            } else {
-                // New amount of fees, we calculate what are the decayed fees today, add the new amount and 
-                // re-calculate rewardScore by:
-                // 1. Divide the rewardScore by N^0.3 to isolate the trading feed component
-                uint256 stakingComponent = uint256(fixidity.power_any(int256(_totalBalances[_account]), WEIGHT_STAKING));
-                newRewardScore = _rewardScores[_account] / stakingComponent;
-                // 2. Elevate to 1/0.7 to get the equivalent trading fees after decay and add the new fees spent
-                newRewardScore = uint256(fixidity.power_any(int256(newRewardScore), INVERSE_WEIGHT_FEES)) + _newFees;
-                // 3. Calculate the new rewardScore re-multiplying the staking component N^0.3
-                newRewardScore = stakingComponent * (uint256(fixidity.power_any(int256(newRewardScore), WEIGHT_FEES)));
-
-                // New fees mean new slopes to add as they have to decay later + increase today's slope
-                uint256 additionalSlope = (newRewardScore - _rewardScores[_account]) / timeToZero;
-                addSlope(_account, additionalSlope, roundedTime + timeToZero);
-
-                lastStateUser[_account].lastSlope = lastStateUser[_account].lastSlope + additionalSlope;
-                lastStateUser[_account].lastRewardScore = newRewardScore;
-                lastStateUser[_account].lastUpdated = roundedTime;
-
-                lastTotalSlope = lastTotalSlope + additionalSlope;
-            }
-
-            return newRewardScore;
-        }
-
-        // We have to calculate the reward Score entirely
-        newRewardScore = uint256(fixidity.power_any(int256(_totalBalances[_account]), WEIGHT_STAKING)) * (uint256(fixidity.power_any(int256(_feesPaid[_account]), WEIGHT_FEES)));
-
-        lastStateUser[_account].lastSlope = newRewardScore / timeToZero;
-        lastStateUser[_account].lastRewardScore = newRewardScore;
-        lastStateUser[_account].lastUpdated = roundedTime;
-
-        addSlope(_account, lastStateUser[_account].lastSlope, roundedTime + timeToZero);
-
-        lastTotalSlope = lastTotalSlope + lastStateUser[_account].lastSlope;
-
-        return newRewardScore;
+    * @notice Setter function for the new user state
+    * @param account address to update last state of
+    * @param slope new slope to update to
+    * @param total new total to update to
+    * @param lastUpdate new lastUpdate time to update to
+    */
+    function setNewUserState(address _account, uint256 slope, uint256 total, uint256 lastUpdate) internal {
+        lastStateUser[_account].lastSlope = slope;
+        lastStateUser[_account].lastRewardScore = total;
+        lastStateUser[_account].lastUpdated = lastUpdate;
     }
 
+    /*
+    * @notice Setter function for the new user accumulated state
+    * @param account address to update last state of
+    * @param accumulated new user accumulated value to update to
+    */
+    function setNewAccumulatedUser(address _account, uint256 accumulated) internal {
+        _accumulatedRewardScores[_account] = accumulated;
+    }
+
+    /*
+    * @notice Wrapper to calculate the decayed total reward score using the DecayRateLib
+    */
+    function calculateDecayedTotalRewardScore() internal {
+
+        DecayRateLib.ParamsCalculateDecayedRewardScore memory params = DecayRateLib.ParamsCalculateDecayedRewardScore(
+           lastTotalSlope,
+           _totalRewardScore,
+           (periodFinish/DAY)*DAY,
+           rewardStartedTime,
+           _accumulatedTotalRewardScore,
+           lastUpdateTimeRewardScore,
+           timeToZero
+        );
+
+        (uint256 totalSlope, uint256 total, uint256 accumulated) = DecayRateLib.calculateDecayedTotalRewardScore(
+            params);
+        setNewTotalState(totalSlope, total, accumulated);
+    }
+
+    /*
+    * @notice Wrapper to calculate the decayed user reward score using the DecayRateLib
+    * @return new reward score for the requested account
+    */
+    function calculateDecayedUserRewardScore(address account) internal returns(uint256) {
+        
+        DecayRateLib.ParamsCalculateDecayedRewardScore memory params = DecayRateLib.ParamsCalculateDecayedRewardScore(
+           lastStateUser[account].lastSlope,
+           lastStateUser[account].lastRewardScore,
+           (periodFinish/DAY)*DAY,
+           rewardStartedTime,
+           _accumulatedRewardScores[account],
+           lastStateUser[account].lastUpdated,
+           timeToZero
+        );
+
+        (uint256 userSlope, uint256 userTotal, uint256 userAccumulated) = DecayRateLib.calculateDecayedUserRewardScore(
+                account,
+                params);
+        setNewUserState(account, userSlope, userTotal, (block.timestamp / DAY) * DAY);
+        setNewAccumulatedUser(account, userAccumulated);
+
+        return userTotal;
+    }
+
+    /*
+    * @notice update the reward score depending on the scenario (using the DecayRateLib):
+    * - if token balance has changed: re-scale the previous reward score
+    * - if fee balance has changed: re-calculate the reward score accounting for new fees
+    * - if previous reward score is 0, calculate the reward score from scratch
+    * Adjust both the total and user slopes accordingly
+    * @param _account, the user to update the reward score to
+    * @param _prevBalance, user's previous total Balance, will be 0 if coming from it's not a re-scaling
+    * @param _oldRewardScore, user's previous reward score, used to update the total reward score
+    * @param _newFees, user's new amount of fees, only used if called from updateTraderScore()
+    */
     function updateRewardScore(address _account, uint256 _prevBalance, uint256 _oldRewardScore, uint256 _newFees) internal {
-        uint256 newRewardScore = calculateRewardScore(_account, _prevBalance, _newFees);
+        uint256 roundedTime = (block.timestamp / DAY) * DAY;
+        uint256 _totalBalanceUser = _totalBalances[_account];
+        DecayRateLib.ParamsCalculateRewardScore memory params = DecayRateLib.ParamsCalculateRewardScore(
+            _account,
+            _prevBalance, 
+            _newFees,
+            _totalBalanceUser,
+            lastStateUser[_account].lastSlope,
+            _oldRewardScore,
+            WEIGHT_STAKING,
+            WEIGHT_FEES,
+            INVERSE_WEIGHT_FEES,
+            timeToZero
+        );
+        uint256 _timeToZero = timeToZero;
+        uint256 newRewardScore = 0;
+        uint256 lastSlope = 0;
+        uint256 prevSlope = lastStateUser[_account].lastSlope;
+
+        if((_totalBalanceUser == 0) || (_totalBalanceUser > 0 && _oldRewardScore == 0 && _newFees == 0)) {
+                setNewUserState(_account, 0, 0, roundedTime);
+        } else if(_oldRewardScore > 0 && _prevBalance > 0) {
+            if (_newFees == 0) {
+                (newRewardScore, lastSlope) = DecayRateLib.scalePreviousRewardScore(params, fixidity);
+                // If we have increased tokens, add slope, if not, substract
+                if(_totalBalanceUser > _prevBalance) {
+                    addUserSlopes(_account, lastSlope - prevSlope, roundedTime, _timeToZero);
+                } else {
+                    decreaseUserSlopes(_account, prevSlope - lastSlope, roundedTime, _timeToZero);
+                }
+                lastTotalSlope = lastTotalSlope - prevSlope + lastSlope;
+            } else {
+                (newRewardScore, lastSlope) = DecayRateLib.increaseFeesRewardScore(params, fixidity);
+                addSlope(_account, lastSlope, roundedTime + _timeToZero);
+                lastTotalSlope = lastTotalSlope + lastSlope;
+                lastSlope = prevSlope + lastSlope;
+            }
+        } else {
+            newRewardScore = DecayRateLib.calculateRewardScore(params, fixidity);
+            lastSlope = newRewardScore / _timeToZero;
+            addSlope(_account, lastSlope, roundedTime + _timeToZero);
+            lastTotalSlope = lastTotalSlope + lastSlope;
+        }
+
+        setNewUserState(_account, lastSlope, newRewardScore, roundedTime);
+
         _rewardScores[_account] = newRewardScore;
         _totalRewardScore = _totalRewardScore - _oldRewardScore + newRewardScore;
         lastUpdateTimeRewardScore = block.timestamp;
@@ -591,7 +525,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     * @param _amount: uint256, containing the number of tokens to stake
     */
     function stake(uint256 _amount) external nonReentrant notPaused updateRewards(msg.sender) {
-        require(_amount > 0, "Cannot stake 0");
+        require(_amount > 0);
         // Update caller balance
         uint256 oldRewardScore = _rewardScores[msg.sender];
         uint256 _totalBalance = _totalBalances[msg.sender];
@@ -608,7 +542,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     */
     function withdraw(uint256 _amount) public nonReentrant updateRewards(msg.sender) {
         require(_amount > 0, "Cannot withdraw 0");
-        require(balanceOf(msg.sender) >= _amount, "Amount required too high");
+        require(balanceOf(msg.sender) >= _amount);
         // Update caller balance
         uint256 oldRewardScore = _rewardScores[msg.sender];
         uint256 _totalBalance = _totalBalances[msg.sender];
@@ -665,7 +599,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     * @param _amount: uint256, amount escrowed
     */
     function unstakeEscrow(address _account, uint256 _amount) public nonReentrant onlyRewardEscrow updateRewards(_account) {
-        require(_escrowedBalances[_account] >= _amount, "Amount required too large");
+        require(_escrowedBalances[_account] >= _amount);
         uint256 oldRewardScore = _rewardScores[_account];
         uint256 _totalBalance = _totalBalances[_account];
         _totalBalances[_account] = _totalBalance - _amount;
@@ -706,7 +640,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
         // Reward + leftover must be less than 2^256 / 10^18 to avoid overflow.
         uint256 balance = rewardsToken.balanceOf(address(this));
         
-        require(rewardRate <= balance / rewardsDuration, "Provided reward too high");
+        require(rewardRate <= balance / rewardsDuration);
 
         // Time updates
         lastUpdateTimeRewardScore = block.timestamp;
@@ -717,7 +651,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
 
     // @notice Added to support recovering LP Rewards from other systems such as BAL to be distributed to holders
     function recoverERC20(address tokenAddress, uint256 tokenAmount) external onlyOwner {
-        require(tokenAddress != address(stakingToken), "Cannot withdraw the staking token");
+        require(tokenAddress != address(stakingToken));
         IERC20(tokenAddress).transfer(owner, tokenAmount);
         emit Recovered(tokenAddress, tokenAmount);
     }
@@ -746,8 +680,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     */
     function setRewardsDuration(uint256 _rewardsDuration) external onlyOwner {
         require(
-            block.timestamp > periodFinish,
-            "Previous rewards period must be complete before changing the duration for the new period"
+            block.timestamp > periodFinish
         );
         rewardsDuration = _rewardsDuration;
         emit RewardsDurationUpdated(rewardsDuration);
@@ -759,8 +692,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     */
     function setDecayRate(uint256 newTimeToZero) external onlyOwner {
         require(
-            block.timestamp > periodFinish,
-            "Previous rewards period must be complete before changing the duration for the new period"
+            block.timestamp > periodFinish
         );
         timeToZero = newTimeToZero;
     }
@@ -817,7 +749,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     function _onlyExchangerProxy() internal {
         bool isEP = msg.sender == address(exchangerProxy);
 
-        require(isEP, "Only the Exchanger Proxy contract can perform this action");
+        require(isEP);
     }
 
     /*
@@ -834,7 +766,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     function _onlyRewardEscrow() internal {
         bool isRE = msg.sender == address(rewardEscrow);
 
-        require(isRE, "Only the RewardEscrow contract can perform this action");
+        require(isRE);
     }
 
 
@@ -903,7 +835,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     function _onlyAdmin() internal {
         bool isAdmin = msg.sender == admin;
 
-        require(isAdmin, "Only the Admin address can perform this action");
+        require(isAdmin);
     }
 
     /*
@@ -920,7 +852,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     function _onlyPendingAdmin() internal {
         bool isPendingAdmin = msg.sender == pendingAdmin;
 
-        require(isPendingAdmin, "Only the pending admin address can perform this action");
+        require(isPendingAdmin);
     }
 
 }

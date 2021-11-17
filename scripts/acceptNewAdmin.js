@@ -5,12 +5,12 @@ async function main() {
   // We get the addresses of the contracts (libraries + staking rewards contract)
 
   let fixidityLibAddress = "0x0";
-  let exponentLibAddress = "0x0";
+  let decayRateLib = "0x0";
   let stakingRewardsProxyAddress = "0x0";
 
   StakingRewards = await hre.ethers.getContractFactory("StakingRewards", {
     libraries: {FixidityLib: fixidityLibAddress,
-          ExponentLib: exponentLibAddress,
+          DecayRateLib: decayRateLib.address
     }
   });
 

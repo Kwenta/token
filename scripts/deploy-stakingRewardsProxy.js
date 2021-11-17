@@ -25,12 +25,17 @@ async function main() {
   });
   exponentLib = await ExponentLib.deploy();
 
+  DecayRateLib = await hre.ethers.getContractFactory("DecayRateLib", {
+      libraries: {
+            ExponentLib: exponentLib.address
+      }
+    });
 
   StakingRewards = await hre.ethers.getContractFactory("StakingRewards", {
-    libraries: {FixidityLib: fixidityLib.address,
-          ExponentLib: exponentLib.address,
-    }
-  });
+      libraries: {FixidityLib: fixidityLib.address,
+            DecayRateLib: decayRateLib.address
+      }
+    });
 
   // Deploy the UUPS Proxy using hardhat upgrades from OpenZeppelin
 
