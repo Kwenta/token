@@ -583,7 +583,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     * @param _account: address escrowing the rewards
     * @param _amount: uint256, amount escrowed
     */
-    function stakeEscrow(address _account, uint256 _amount) public onlyRewardEscrow updateRewards(_account) {
+    function stakeEscrow(address _account, uint256 _amount) public nonReentrant onlyRewardEscrow updateRewards(_account) {
         uint256 oldRewardScore = _rewardScores[_account];
         uint256 _totalBalance = _totalBalances[_account];
         _totalBalances[_account] = _totalBalance + _amount;

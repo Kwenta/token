@@ -1,16 +1,4 @@
 const hardhat = require('hardhat');
-// const { deployProxy, upgradeProxy } = require('@openzeppelin/truffle-upgrades');
-
-const Owned = artifacts.require("Owned");
-
-let FixidityLib = artifacts.require("FixidityLib");
-let ExponentLib = artifacts.require("ExponentLib");
-let LogarithmLib = artifacts.require("LogarithmLib");
-
-let StakingRewards = artifacts.require("StakingRewards");
-let StakingRewardsV2 = artifacts.require("StakingRewardsV2");
-let TokenContract = artifacts.require("ERC20");
-let RewardsEscrow = artifacts.require("RewardEscrow");
 
 const NAME = "Kwenta";
 const SYMBOL = "KWENTA";
@@ -23,18 +11,15 @@ require("chai")
 contract('UUPS Proxy for StakingRewards', ([owner, rewardsDistribution]) => {
 	console.log("Start tests");
 	let stakingRewards;
-	let stakingToken;
-	let rewardsToken;
+	let kwentaToken;
 	let rewardsEscrow;
 	let st_proxy;
 
 	before(async() => {
-		stakingToken = await TokenContract.new(NAME, SYMBOL);
-		rewardsToken = await TokenContract.new(NAME, SYMBOL);
-		rewardsEscrow = await RewardsEscrow.new(
-				owner,
-				stakingToken.address
-			);
+		KwentaToken = await hre.ethers.getContractFactory("ERC20");
+		kwentaToken = await KwentaToken.deploy(NAME, SYMBOL);
+		RewardsEscrow = await hre.ethers.getContractFactory("RewardEscrow");
+		rewardsEscrow = await RewardsEscrow.deploy(owner, kwentaToken.address);
 	});
 
 	describe("UUPS Deployment", async() => {
@@ -47,7 +32,6 @@ contract('UUPS Proxy for StakingRewards', ([owner, rewardsDistribution]) => {
 				libraries: {FixidityLib: fixidityLib.address}
 			});
 			logarithmLib = await LogarithmLib.deploy();
-
 			ExponentLib = await hre.ethers.getContractFactory("ExponentLib", {
 				libraries: {FixidityLib: fixidityLib.address,
 							LogarithmLib: logarithmLib.address,
@@ -55,14 +39,20 @@ contract('UUPS Proxy for StakingRewards', ([owner, rewardsDistribution]) => {
 			});
 			exponentLib = await ExponentLib.deploy();
 
+			DecayRateLib = await hre.ethers.getContractFactory("DecayRateLib", {
+				libraries: {
+							ExponentLib: exponentLib.address
+				}
+			});
+			decayRateLib = await DecayRateLib.deploy();	
 
 			StakingRewards = await hre.ethers.getContractFactory("StakingRewards", {
 				libraries: {FixidityLib: fixidityLib.address,
-							ExponentLib: exponentLib.address,
+							DecayRateLib: decayRateLib.address
 				}
 			});
 			st_proxy = await hre.upgrades.deployProxy(StakingRewards,
-				[owner, rewardsDistribution, rewardsToken.address, stakingToken.address, rewardsEscrow.address],
+				[owner, rewardsDistribution, kwentaToken.address, kwentaToken.address, rewardsEscrow.address],
 				{kind: "uups",
 				unsafeAllow: ["external-library-linking"]
 				});
@@ -78,14 +68,14 @@ contract('UUPS Proxy for StakingRewards', ([owner, rewardsDistribution]) => {
 		it("should stake correctly", async() => {
 			const [staker1, staker2] = await hre.ethers.getSigners();
 
-			await stakingToken._mint(staker1.address, 100);
-			await stakingToken.approve(st_proxy.address, 100, {from: staker1.address});
+			await kwentaToken._mint(staker1.address, 100);
+			await kwentaToken.connect(staker1).approve(st_proxy.address, 100);
 
 			await st_proxy.connect(staker1).stake(50);
 
 			let balance = await st_proxy.connect(staker1).balanceOf(staker1.address);
 
-			assert.equal(balance, 50);
+			assert.equal(balance.toString(), 50);
 		});
 
 		it("should upgrade correctly", async() => {
@@ -99,7 +89,6 @@ contract('UUPS Proxy for StakingRewards', ([owner, rewardsDistribution]) => {
 				libraries: {FixidityLib: fixidityLib.address}
 			});
 			logarithmLib = await LogarithmLib.deploy();
-
 			ExponentLib = await hre.ethers.getContractFactory("ExponentLib", {
 				libraries: {FixidityLib: fixidityLib.address,
 							LogarithmLib: logarithmLib.address,
@@ -107,10 +96,17 @@ contract('UUPS Proxy for StakingRewards', ([owner, rewardsDistribution]) => {
 			});
 			exponentLib = await ExponentLib.deploy();
 
+			DecayRateLib = await hre.ethers.getContractFactory("DecayRateLib", {
+				libraries: {
+							ExponentLib: exponentLib.address
+				}
+			});
+			decayRateLib = await DecayRateLib.deploy();	
+
 
 			let stakingRewardsV2 = await hre.ethers.getContractFactory("StakingRewardsV2", {
 				libraries: {FixidityLib: fixidityLib.address,
-							ExponentLib: exponentLib.address,
+							DecayRateLib: decayRateLib.address,
 				}
 			});
 
@@ -129,7 +125,7 @@ contract('UUPS Proxy for StakingRewards', ([owner, rewardsDistribution]) => {
 
   			let stakingRewardsV3 = await hre.ethers.getContractFactory("StakingRewardsV3", {
 				libraries: {FixidityLib: fixidityLib.address,
-							ExponentLib: exponentLib.address,
+							DecayRateLib: decayRateLib.address,
 				}
 			});
 
@@ -152,7 +148,7 @@ contract('UUPS Proxy for StakingRewards', ([owner, rewardsDistribution]) => {
 
 
 			let balance = await upgradedImplementationV3.balanceOf(staker1.address);
-			assert.equal(balance, 50);
+			assert.equal(balance.toString(), 50);
 
 
 

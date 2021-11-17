@@ -63,6 +63,7 @@ const mineBlock = () => send({ method: 'evm_mine' });
 const FixidityLib = artifacts.require("FixidityLib");
 const ExponentLib = artifacts.require("ExponentLib");
 const LogarithmLib = artifacts.require("LogarithmLib");
+const DecayRateLib = artifacts.require("DecayRateLib");
 
 const StakingRewards = artifacts.require("StakingRewards");
 const TokenContract = artifacts.require("ERC20");
@@ -154,9 +155,12 @@ contract('RewardEscrow KWENTA', ([owner, rewardsDistribution, staker1, staker2])
 		await ExponentLib.link(fixidityLib);
 		await ExponentLib.link(logarithmLib);
 		exponentLib = await ExponentLib.new();
+		
+		await DecayRateLib.link(exponentLib);
+		decayRateLib = await DecayRateLib.new();
 
 		await StakingRewards.link(fixidityLib);
-		await StakingRewards.link(exponentLib);
+		await StakingRewards.link(decayRateLib);
 		rewardsEscrow = await RewardsEscrow.new(
 				owner,
 				stakingToken.address
@@ -253,7 +257,7 @@ contract('RewardEscrow KWENTA', ([owner, rewardsDistribution, staker1, staker2])
 				await stakingToken.transfer(rewardsEscrow.address, toUnit('6000'), {
 					from: owner,
 				});
-
+				stakingRewards.setRewardEscrow(rewardsEscrow.address, {from: owner});
 				// Add a few vesting entries as the feepool address
 				await rewardsEscrow.appendVestingEntry(staker1, toUnit('1000'), { from: stakingRewards.address });
 				await fastForward(WEEK);
