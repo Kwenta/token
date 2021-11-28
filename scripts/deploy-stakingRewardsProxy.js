@@ -7,6 +7,7 @@ async function main() {
   rewardsTokenAddress = "0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc";
   stakingTokenAddress = "0x90f79bf6eb2c4f870365e785982e1f101e93b906";
   rewardsEscrowAddress = "0x15d34aaf54267db7d7c367839aaf71a00a2c6a65";
+  nDaysStartRewards = 3;
 
   // We get the contracts to deploy (libraries + staking rewards contract)
 
@@ -25,15 +26,9 @@ async function main() {
   });
   exponentLib = await ExponentLib.deploy();
 
-  DecayRateLib = await hre.ethers.getContractFactory("DecayRateLib", {
-      libraries: {
-            ExponentLib: exponentLib.address
-      }
-    });
-
   StakingRewards = await hre.ethers.getContractFactory("StakingRewards", {
       libraries: {FixidityLib: fixidityLib.address,
-            DecayRateLib: decayRateLib.address
+            ExponentLib: exponentLib.address
       }
     });
 
@@ -45,7 +40,8 @@ async function main() {
         rewardsDistribution, 
         rewardsTokenAddress, 
         stakingTokenAddress, 
-        rewardsEscrowAddress
+        rewardsEscrowAddress,
+        nDaysStartRewards
         ],
         {
           kind: "uups",
@@ -59,26 +55,6 @@ async function main() {
 
   console.log("Staking Rewards Proxy deployed to:", stakingRewardsProxy.address);
   console.log("Staking Rewards Logic deployed to:", implementation);
-
-  /*StakingRewards_NEW = await hre.ethers.getContractFactory("StakingRewardsV2", {
-    libraries: {FixidityLib: fixidityLib.address,
-          ExponentLib: exponentLib.address,
-    }
-  });
-
-  // Upgrade the UUPS Proxy using hardhat upgrades from OpenZeppelin
-
-  upgradedImplementation = await hre.upgrades.upgradeProxy(stakingRewardsProxy.address, 
-          StakingRewards_NEW,
-        {
-        unsafeAllow: ["external-library-linking"]
-        }
-          );
-
-  implementation = await hre.upgrades.erc1967.getImplementationAddress(upgradedImplementation.address);
-
-  console.log("Staking Rewards Proxy deployed to:", upgradedImplementation.address);
-  console.log("Staking Rewards Logic deployed to:", implementation);*/
 
 }
 

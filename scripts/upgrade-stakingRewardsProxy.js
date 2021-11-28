@@ -21,17 +21,9 @@ async function main() {
   });
   exponentLib = await ExponentLib.deploy();
 
-  DecayRateLib = await hre.ethers.getContractFactory("DecayRateLib", {
-      libraries: {
-            ExponentLib: exponentLib.address
-      }
-    });
-    decayRateLib = await DecayRateLib.deploy(); 
-
-
   StakingRewards_NEW = await hre.ethers.getContractFactory("StakingRewardsV2", {
     libraries: {FixidityLib: fixidityLib.address,
-          DecayRateLib: decayRateLib.address
+          ExponentLib: exponentLib.address
     }
   });
 

@@ -1,6 +1,7 @@
 node_modules
 .env
 .DS_Store
+.gitignore
 
 #Hardhat files
 cache
@@ -13,5 +14,6 @@ test/testSR.test.js
 test/stakingRewards.test.js
 test/stakingRewardsPowerFormula.test.js
 contracts/utils/PowerContract.sol
-contracts/libraries/DecayRateLib.sol
 contracts/StakingRewardsV3.sol
+contracts/libraries/DecayRateLib.sol
+.openzeppelin/*
