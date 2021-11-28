@@ -10,6 +10,7 @@ import "./libraries/FixidityLib.sol";
 import "./libraries/ExponentLib.sol";
 import "./libraries/LogarithmLib.sol";
 
+// Note needed copy function to calculate rewardscore
 import "./libraries/DecayRateLib.sol";
 
 // Inheritance
@@ -45,6 +46,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     // Time handling:
     // Time where new reward epoch finishes 
     uint256 public periodFinish;
+    uint256 public _weeklyStartRewards;
     // Reward rate per second for next epoch
     uint256 public rewardRate;
     uint256 public rewardRateStaking;
@@ -59,28 +61,13 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     uint256 private lastUpdateTime;
     // Last reward per token staked
     uint256 private rewardPerTokenStored;
-    // Time to zero for decay rate
-    uint256 public timeToZero;
     uint256 public rewardStartedTime;
-    // Decay Rate variables
-    uint256 private lastTotalSlope;
-
-    // Mapping containing future decaying slopes of totalRewardScores
-    mapping(uint256 => uint256) private slopeChanges;
-    // Mapping containing future decaying slopes of each user's total rewards
-    mapping(address => mapping(uint256 => uint256)) private userRewardScoreSlopeChanges;
-    // Custom data structure to save (i) last state of user reward score, (ii) slope and (iii) updated time
-    struct StateUser {
-        uint256 lastRewardScore;
-        uint256 lastSlope;
-        uint256 lastUpdated;
-    }
-    // Mapping containing the last state of each user
-    mapping(address => StateUser) private lastStateUser;
-
+    uint256 public currentEpoch;
     
-    // Save the latest reward per RewardScore applicable for each address (Trading Rewards)
-    mapping(address => uint256) private userRewardPerRewardScorePaid;
+    // Save the date of the latest interaction for each address (Trading Rewards)
+    mapping(address => uint256) private lastTradeUserEpoch;
+    // Save the rewardPerRewardScore of each epoch for backward reward calculation
+    mapping(uint256 => uint256) private epochRewardPerRewardScore;
     // Save the latest reward per Token applicable for each address (Staking Rewards)
     mapping(address => uint256) private userRewardPerTokenPaid;
     // Rewards due to each account
@@ -88,8 +75,6 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
 
     // Total RewardsScore
     uint256 private _totalRewardScore;
-    // Total area under the decaying total reward score curve
-    uint256 private _accumulatedTotalRewardScore;
     // Total tokens included in rewards (both staked and escrowed)
     uint256 private _totalSupply;
     
@@ -101,8 +86,6 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     mapping(address => uint256) private _totalBalances;
     // Save the rewardScore per address
     mapping(address => uint256) private _rewardScores;
-    // Total area under each user's reward score curve
-    mapping(address => uint256) private _accumulatedRewardScores;
     // Division of rewards between staking and trading
     uint256 public PERCENTAGE_STAKING;
     uint256 public PERCENTAGE_TRADING;
@@ -113,12 +96,11 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     uint256 private constant DECIMALS_DIFFERENCE = 1e30;
     // Needs to be int256 for power library, root to calculate is equal to 0.7
     int256 private constant WEIGHT_FEES = 7e17;
-    // 1/0.7 constant used to update the rewardscore when increasing the trading fees spent
-    int256 private constant INVERSE_WEIGHT_FEES = 1_428_571_428_571_430_000;
     // Needs to be int256 for power library, root to calculate is equal to 0.3
     int256 private constant WEIGHT_STAKING = 3e17;
-    // 
+    // Time constants
     uint256 private constant DAY = 1 days;
+    uint256 private constant WEEK = 7 days;
 
     /* ========== PROXY VARIABLES ========== */
     address private admin;
@@ -129,7 +111,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
         address _rewardsToken,
         address _stakingToken,
         address _rewardEscrow,
-        uint256 _timeToZero
+        uint256 weeklyStartRewards
     ) public initializer {
         __Pausable_init(_owner);
 
@@ -146,12 +128,12 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
         stakingToken = IERC20(_stakingToken);
         fixidity.init(18);
 
-        timeToZero = _timeToZero;
-
         rewardEscrow = RewardEscrow(_rewardEscrow);
 
         PERCENTAGE_STAKING = 8_000;
         PERCENTAGE_TRADING = 2_000;
+
+        _weeklyStartRewards = weeklyStartRewards;
     }
 
     /* ========== VIEWS ========== */
@@ -232,24 +214,6 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     }
 
     /*
-    * @notice Function calculating the state of reward to be delivered per unit of reward score before the new change
-    * takes place. Saved in userRewardPerRewardScorePaid and used later in function earned() to calculate the 
-    * extra rewards to add taking into account the reward conditions of the latest change and the current earned() 
-    * context
-    * @return uint256 containing the new reward per rewardScore 
-    */
-    
-    function rewardPerRewardScore() public view returns (uint256) {
-        if (_accumulatedTotalRewardScore == 0) {
-            return rewardPerRewardScoreStored;
-        }
-        return
-            rewardPerRewardScoreStored + (
-                (lastTimeRewardApplicable() - Math.min(lastUpdateTimeRewardScore, periodFinish)) * rewardRateTrading * DECIMALS_DIFFERENCE / _accumulatedTotalRewardScore
-            );
-    }
-
-    /*
     * @notice Function calculating the rewards earned by an account between the current call moment and the latest change in
     * reward score. The function divides the reward score by the total amount, accounts for the changes between now and the 
     * last changes (deducting userRewardPerRewardScorePaid) and adds the result to the existing rewards balance of the account
@@ -257,9 +221,11 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     * @return uint256 containing the total rewards due to account
     */
     function earned(address account) public view returns(uint256) {
-        // rewardScores must be decayed!
         uint256 stakingRewards = _totalBalances[account] * (rewardPerToken() - userRewardPerTokenPaid[account]) / DECIMALS_DIFFERENCE;
-        uint256 tradingRewards = _accumulatedRewardScores[account] * (rewardPerRewardScore() - userRewardPerRewardScorePaid[account]) / DECIMALS_DIFFERENCE;
+        uint256 tradingRewards = 0;
+        if(lastTradeUserEpoch[account] < currentEpoch) {
+            tradingRewards = _rewardScores[account] * epochRewardPerRewardScore[lastTradeUserEpoch[account]] / DECIMALS_DIFFERENCE;
+        }
         return stakingRewards + tradingRewards + rewards[account];
     }
 
@@ -285,6 +251,43 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
         PERCENTAGE_TRADING = _percentageTrading;
     }
 
+    /**
+     * @notice Set the day of the week the reward epochs start
+     * @dev As UNIX times started on a Thursday (January 1st 1970), shift n days as necessary, e.g. to start
+     * on a Monday go 3 days prior (Wednesday, Tuesday, Monday), the remaining options are:
+     * Friday: 6
+     * Saturday: 5
+     * Sunday: 4 
+     * Monday: 3
+     * Tuesday: 2
+     * Wednesday: 1
+     * Thursday: 0
+     * @param newWeeklyStart the number of days to shift
+     */
+    function setWeeklyStartRewards(uint256 newWeeklyStart) external onlyOwner {
+        _weeklyStartRewards = newWeeklyStart;
+    }
+
+    /**
+     * @notice If this is the first interaction with the contract in a new Epoch, save the rewardPerRewardScore
+     * in the epochs mapping
+     */
+    function updateRewardEpoch() internal {
+        // Dividing by week to get the last batch of 7 days, as UNIX started in 1970/01/01 (Thursday), we
+        // go back 3 days to start a Monday
+        uint256 newEpoch = (block.timestamp / WEEK) * WEEK - _weeklyStartRewards * DAY;
+
+        if(newEpoch > currentEpoch) {
+            // Save rewardRateTrading * WEEK / _totalRewardScore to epoch mapping
+            if(_totalRewardScore > 0) {
+                epochRewardPerRewardScore[currentEpoch] = rewardRateTrading * WEEK / _totalRewardScore;
+            }
+            _totalRewardScore = 0;
+            currentEpoch = newEpoch;
+        }
+
+    }
+
     /*
     * @notice Function called by the ExchangerProxy updating the fees paid by each account and the contribution
     * to the total reward scores
@@ -292,231 +295,34 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     * @param _feesPaid: uint256, total fees paid in this period
     */
     function updateTraderScore(address _trader, uint256 _newFeesPaid) external onlyExchangerProxy updateRewards(_trader) {
-        _feesPaid[_trader] += _newFeesPaid;
-        uint256 oldRewardScore = _rewardScores[_trader];
-        updateRewardScore(_trader, 0, oldRewardScore, _newFeesPaid);
-    }
-
-    /*
-    * @notice Function used to increase the already existing user slopes (due to a new staking)
-    * @param _account: address, for which to update the score
-    * @param additionalSlope: uint256, new slope in tokens per second to add
-    * @param updateTime: uint256, time of update
-    * @param _timeToZero: uint256, when will the slope alter the total
-    */
-    function addUserSlopes(
-        address _account, 
-        uint256 additionalSlope, 
-        uint256 updateTime, 
-        uint256 _timeToZero) internal {
-
-        uint256 lastTime = updateTime + _timeToZero;
-
-        for(uint256 i = updateTime; i <= lastTime; i+=DAY) {
-            if(userRewardScoreSlopeChanges[_account][i] > 0){
-                addSlope(_account, additionalSlope, i);
-            }
-        }
-    }
-
-    /*
-    * @notice Function used to decrease each user's slopes (due to a withdrawal of tokens)
-    * @param _account: address, for which to update the score
-    * @param removeSlope: uint256, new slope in tokens per second to substract
-    * @param updateTime: uint256, time of update
-    * @param _timeToZero: uint256, when will the slope alter the total
-    */
-    function decreaseUserSlopes(
-        address _account, 
-        uint256 removeSlope, 
-        uint256 updateTime, 
-        uint256 _timeToZero) internal {
-
-        uint256 lastTime = updateTime + _timeToZero;
-
-        for(uint256 i = updateTime; i <= lastTime; i+=DAY) {
-            if(userRewardScoreSlopeChanges[_account][i] > 0){
-                if(userRewardScoreSlopeChanges[_account][i] >= removeSlope) {
-                    userRewardScoreSlopeChanges[_account][i] = userRewardScoreSlopeChanges[_account][i] - removeSlope;
-                } else {
-                    userRewardScoreSlopeChanges[_account][i] = 0;
-                }
-                slopeChanges[i] = slopeChanges[i] - removeSlope;
-            }
-        }
-    }
-
-    /*
-    * @notice Function used to add a new slope change to the user and the decayed totalRewardScore calculation
-    * @param _account: address, for which to update the score
-    * @param slope: uint256, new slope in tokens per second to add
-    * @param updateTime: uint256, time of update
-    * @param _timeToZero: uint256, when will the slope alter the total
-    */
-    function addSlope(address _account, uint256 slope, uint256 nextChange) internal {
-        userRewardScoreSlopeChanges[_account][nextChange] += slope;
-        slopeChanges[nextChange] += slope;
-    }
-
-    /*
-    * @notice Getter function for the total slope change required
-    * @param timeSlopeChange, uint256 containing the date for which to lookup the slope change
-    * @return slope change for the specific day required
-    */
-    function getSlopeChangeAt(uint256 timeSlopeChange) external view returns(uint) {
-        return slopeChanges[timeSlopeChange];
-    }
-
-    /*
-    * @notice Setter function for the state of the total reward score (value, slope, accumulated)
-    * @param slope new slope to update to
-    * @param total new total to update to
-    * @param accumulated new accumuladted total to update to
-    */
-    function setNewTotalState(uint256 slope, uint256 total, uint256 accumulated) internal {
-        lastTotalSlope = slope;
-        _totalRewardScore = total;
-        _accumulatedTotalRewardScore = accumulated;
-    }
-
-    /*
-    * @notice Getter function for the user slope change required
-    * @param account address to check the slope change
-    * @param timeSlopeChange, uint256 containing the date for which to lookup the slope change
-    * @return slope change for the specific account and day required
-    */
-    function getUserSlopeChangeAt(address _account, uint256 timeSlopeChange) external view returns(uint) {
-        return userRewardScoreSlopeChanges[_account][timeSlopeChange];
-    }
-
-    /*
-    * @notice Setter function for the new user state
-    * @param account address to update last state of
-    * @param slope new slope to update to
-    * @param total new total to update to
-    * @param lastUpdate new lastUpdate time to update to
-    */
-    function setNewUserState(address _account, uint256 slope, uint256 total, uint256 lastUpdate) internal {
-        lastStateUser[_account].lastSlope = slope;
-        lastStateUser[_account].lastRewardScore = total;
-        lastStateUser[_account].lastUpdated = lastUpdate;
-    }
-
-    /*
-    * @notice Setter function for the new user accumulated state
-    * @param account address to update last state of
-    * @param accumulated new user accumulated value to update to
-    */
-    function setNewAccumulatedUser(address _account, uint256 accumulated) internal {
-        _accumulatedRewardScores[_account] = accumulated;
-    }
-
-    /*
-    * @notice Wrapper to calculate the decayed total reward score using the DecayRateLib
-    */
-    function calculateDecayedTotalRewardScore() internal {
-
-        DecayRateLib.ParamsCalculateDecayedRewardScore memory params = DecayRateLib.ParamsCalculateDecayedRewardScore(
-           lastTotalSlope,
-           _totalRewardScore,
-           (periodFinish/DAY)*DAY,
-           rewardStartedTime,
-           _accumulatedTotalRewardScore,
-           lastUpdateTimeRewardScore,
-           timeToZero
-        );
-
-        (uint256 totalSlope, uint256 total, uint256 accumulated) = DecayRateLib.calculateDecayedTotalRewardScore(
-            params);
-        setNewTotalState(totalSlope, total, accumulated);
-    }
-
-    /*
-    * @notice Wrapper to calculate the decayed user reward score using the DecayRateLib
-    * @return new reward score for the requested account
-    */
-    function calculateDecayedUserRewardScore(address account) internal returns(uint256) {
-        
-        DecayRateLib.ParamsCalculateDecayedRewardScore memory params = DecayRateLib.ParamsCalculateDecayedRewardScore(
-           lastStateUser[account].lastSlope,
-           lastStateUser[account].lastRewardScore,
-           (periodFinish/DAY)*DAY,
-           rewardStartedTime,
-           _accumulatedRewardScores[account],
-           lastStateUser[account].lastUpdated,
-           timeToZero
-        );
-
-        (uint256 userSlope, uint256 userTotal, uint256 userAccumulated) = DecayRateLib.calculateDecayedUserRewardScore(
-                account,
-                params);
-        setNewUserState(account, userSlope, userTotal, (block.timestamp / DAY) * DAY);
-        setNewAccumulatedUser(account, userAccumulated);
-
-        return userTotal;
-    }
-
-    /*
-    * @notice update the reward score depending on the scenario (using the DecayRateLib):
-    * - if token balance has changed: re-scale the previous reward score
-    * - if fee balance has changed: re-calculate the reward score accounting for new fees
-    * - if previous reward score is 0, calculate the reward score from scratch
-    * Adjust both the total and user slopes accordingly
-    * @param _account, the user to update the reward score to
-    * @param _prevBalance, user's previous total Balance, will be 0 if coming from it's not a re-scaling
-    * @param _oldRewardScore, user's previous reward score, used to update the total reward score
-    * @param _newFees, user's new amount of fees, only used if called from updateTraderScore()
-    */
-    function updateRewardScore(address _account, uint256 _prevBalance, uint256 _oldRewardScore, uint256 _newFees) internal {
-        uint256 roundedTime = (block.timestamp / DAY) * DAY;
-        uint256 _totalBalanceUser = _totalBalances[_account];
-        DecayRateLib.ParamsCalculateRewardScore memory params = DecayRateLib.ParamsCalculateRewardScore(
-            _account,
-            _prevBalance, 
-            _newFees,
-            _totalBalanceUser,
-            lastStateUser[_account].lastSlope,
-            _oldRewardScore,
-            WEIGHT_STAKING,
-            WEIGHT_FEES,
-            INVERSE_WEIGHT_FEES,
-            timeToZero
-        );
-        uint256 _timeToZero = timeToZero;
-        uint256 newRewardScore = 0;
-        uint256 lastSlope = 0;
-        uint256 prevSlope = lastStateUser[_account].lastSlope;
-
-        if((_totalBalanceUser == 0) || (_totalBalanceUser > 0 && _oldRewardScore == 0 && _newFees == 0)) {
-                setNewUserState(_account, 0, 0, roundedTime);
-        } else if(_oldRewardScore > 0 && _prevBalance > 0) {
-            if (_newFees == 0) {
-                (newRewardScore, lastSlope) = DecayRateLib.scalePreviousRewardScore(params, fixidity);
-                // If we have increased tokens, add slope, if not, substract
-                if(_totalBalanceUser > _prevBalance) {
-                    addUserSlopes(_account, lastSlope - prevSlope, roundedTime, _timeToZero);
-                } else {
-                    decreaseUserSlopes(_account, prevSlope - lastSlope, roundedTime, _timeToZero);
-                }
-                lastTotalSlope = lastTotalSlope - prevSlope + lastSlope;
-            } else {
-                (newRewardScore, lastSlope) = DecayRateLib.increaseFeesRewardScore(params, fixidity);
-                addSlope(_account, lastSlope, roundedTime + _timeToZero);
-                lastTotalSlope = lastTotalSlope + lastSlope;
-                lastSlope = prevSlope + lastSlope;
-            }
+        if (lastTradeUserEpoch[_trader] < currentEpoch) {
+            _feesPaid[_trader] = _newFeesPaid;
+            lastTradeUserEpoch[_trader] = currentEpoch;
         } else {
-            newRewardScore = DecayRateLib.calculateRewardScore(params, fixidity);
-            lastSlope = newRewardScore / _timeToZero;
-            addSlope(_account, lastSlope, roundedTime + _timeToZero);
-            lastTotalSlope = lastTotalSlope + lastSlope;
+            _feesPaid[_trader] += _newFeesPaid;
+        }
+        uint256 oldRewardScore = _rewardScores[_trader];
+        updateRewardScore(_trader, oldRewardScore);
+    }
+
+    /*
+    * @notice update the reward score:
+    * - if there hasn´t been a trade in the currentEpoch, return 0
+    * - if there has, update the reward score
+    * @param _account, the user to update the reward score to
+    */
+    function updateRewardScore(address _account, uint256 _oldRewardScore) internal {
+        uint256 newRewardScore = 0;
+        if(lastTradeUserEpoch[_account] == currentEpoch && _totalBalances[_account] > 0) {
+            newRewardScore = uint256(fixidity.power_any(int256(_totalBalances[_account]), WEIGHT_STAKING)) * (uint256(fixidity.power_any(int256(_feesPaid[_account]), WEIGHT_FEES)));
         }
 
-        setNewUserState(_account, lastSlope, newRewardScore, roundedTime);
+        if(lastTradeUserEpoch[_account] < currentEpoch) {
+            _oldRewardScore = 0;
+        }
 
-        _rewardScores[_account] = newRewardScore;
-        _totalRewardScore = _totalRewardScore - _oldRewardScore + newRewardScore;
-        lastUpdateTimeRewardScore = block.timestamp;
+        _totalRewardScore = _totalRewardScore  - _oldRewardScore + newRewardScore;
+
     }
 
 
@@ -527,11 +333,9 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     function stake(uint256 _amount) external nonReentrant notPaused updateRewards(msg.sender) {
         require(_amount > 0);
         // Update caller balance
-        uint256 oldRewardScore = _rewardScores[msg.sender];
-        uint256 _totalBalance = _totalBalances[msg.sender];
-        _totalBalances[msg.sender] = _totalBalance + _amount;
-        _totalSupply = _totalSupply + _amount;
-        updateRewardScore(msg.sender, _totalBalance, oldRewardScore, 0);
+        _totalBalances[msg.sender] += _amount;
+        _totalSupply += _amount;
+        updateRewardScore(msg.sender, _rewardScores[msg.sender]);
         stakingToken.transferFrom(msg.sender, address(this), _amount);
         emit Staked(msg.sender, _amount);
     }
@@ -544,11 +348,9 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
         require(_amount > 0, "Cannot withdraw 0");
         require(balanceOf(msg.sender) >= _amount);
         // Update caller balance
-        uint256 oldRewardScore = _rewardScores[msg.sender];
-        uint256 _totalBalance = _totalBalances[msg.sender];
-        _totalBalances[msg.sender] = _totalBalance - _amount;
-        _totalSupply = _totalSupply - _amount;
-        updateRewardScore(msg.sender, _totalBalance, oldRewardScore, 0);
+        _totalBalances[msg.sender] -= _amount;
+        _totalSupply -=  _amount;
+        updateRewardScore(msg.sender, _rewardScores[msg.sender]);
         stakingToken.transfer(msg.sender, _amount);
         emit Withdrawn(msg.sender, _amount);
     }
@@ -584,12 +386,10 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     * @param _amount: uint256, amount escrowed
     */
     function stakeEscrow(address _account, uint256 _amount) public nonReentrant onlyRewardEscrow updateRewards(_account) {
-        uint256 oldRewardScore = _rewardScores[_account];
-        uint256 _totalBalance = _totalBalances[_account];
-        _totalBalances[_account] = _totalBalance + _amount;
-        _totalSupply = _totalSupply + _amount;
-        _escrowedBalances[_account] = _escrowedBalances[_account] + _amount;
-        updateRewardScore(_account, _totalBalance, oldRewardScore, 0);
+        _totalBalances[_account] +=  _amount;
+        _totalSupply +=  _amount;
+        _escrowedBalances[_account] +=  _amount;
+        updateRewardScore(msg.sender, _rewardScores[msg.sender]);
         emit EscrowStaked(_account, _amount);
     }
 
@@ -600,53 +400,25 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     */
     function unstakeEscrow(address _account, uint256 _amount) public nonReentrant onlyRewardEscrow updateRewards(_account) {
         require(_escrowedBalances[_account] >= _amount);
-        uint256 oldRewardScore = _rewardScores[_account];
-        uint256 _totalBalance = _totalBalances[_account];
-        _totalBalances[_account] = _totalBalance - _amount;
-        _totalSupply = _totalSupply - _amount;
-        _escrowedBalances[_account] = _escrowedBalances[_account] - _amount;
-        updateRewardScore(_account, _totalBalance, oldRewardScore, 0);
+        _totalBalances[_account] -= _amount;
+        _totalSupply -= _amount;
+        _escrowedBalances[_account] -= _amount;
+        updateRewardScore(msg.sender, _rewardScores[msg.sender]);
         emit EscrowUnstaked(_account, _amount);
     }
 
     /* ========== RESTRICTED FUNCTIONS ========== */
 
-    /*
-    * @notice Function called to initialize a new reward distribution epoch, taking into account rewards still to be 
-    * delivered from a previous epoch and updating the lastUpdate and periodFinish state variables
-    * @param reward, amount to be distributed among stakers and traders
-    */
-    function notifyRewardAmount(uint256 reward) external updateRewards(address(0)) {
-    // If the previous epoch is finished, rewardRate calculation is straightforward
-    // if not, add to the new amount to be delivered the remaining rewards still to be delivered by previous epoch
-        if (block.timestamp >= periodFinish) {
-            // Formula: rewardRate = total reward / time
-            rewardRate = reward / rewardsDuration;
-            rewardStartedTime = (block.timestamp / DAY) * DAY;
-        } else {
-            // Time to finish the previous reward epoch
-            uint256 remaining = periodFinish - block.timestamp;
-            // Total rewardsa still to be delivered in previous epoch
-            uint256 leftover = remaining * rewardRate;
-            // Formula: rewardRate = (sum of remaining rewards and new amount) / time
-            rewardRate = (reward + leftover) / rewardsDuration;
-        }
+    function setRewardNEpochs(uint256 reward, uint256 nEpochs) external onlyOwner updateRewards(address(0)) {
+        rewardRate = reward / nEpochs / WEEK;
         rewardRateStaking = rewardRate * PERCENTAGE_STAKING / MAX_BPS;
         rewardRateTrading = rewardRate * PERCENTAGE_TRADING / MAX_BPS;
 
-        // Ensure the provided reward amount is not more than the balance in the contract.
-        // This keeps the reward rate in the right range, preventing overflows due to
-        // very high values of rewardRate in the earned and rewardsPerToken functions;
-        // Reward + leftover must be less than 2^256 / 10^18 to avoid overflow.
         uint256 balance = rewardsToken.balanceOf(address(this));
-        
-        require(rewardRate <= balance / rewardsDuration);
-
-        // Time updates
-        lastUpdateTimeRewardScore = block.timestamp;
+        require(reward <= balance);
         lastUpdateTime = block.timestamp;
-        periodFinish = block.timestamp + rewardsDuration;
-        emit RewardAdded(reward);
+        periodFinish = block.timestamp + rewardsDuration * nEpochs;
+        emit RewardAdded(reward, nEpochs);
     }
 
     // @notice Added to support recovering LP Rewards from other systems such as BAL to be distributed to holders
@@ -686,17 +458,6 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
         emit RewardsDurationUpdated(rewardsDuration);
     }
 
-    /*
-    * @notice Function available for the owner to change the decay rate period
-    * @param _rewardsDuration to set
-    */
-    function setDecayRate(uint256 newTimeToZero) external onlyOwner {
-        require(
-            block.timestamp > periodFinish
-        );
-        timeToZero = newTimeToZero;
-    }
-
     /* ========== MODIFIERS ========== */
 
     /*
@@ -716,22 +477,16 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     /*
     * @notice internal function used in the modifier with the same name to optimize bytecode
     */
-    function _updateRewards(address account) public {
+    function _updateRewards(address account) internal {
         // Calculate the reward per unit of reward score applicable to the last stint of account
         rewardPerTokenStored = rewardPerToken();
-        // Decay the total reward score sum and the total accumulated reward score
-        calculateDecayedTotalRewardScore();
-        rewardPerRewardScoreStored = rewardPerRewardScore();
         // Calculate if the epoch is finished or not
         lastUpdateTime = lastTimeRewardApplicable();
-        lastUpdateTimeRewardScore = block.timestamp; // lastTimeRewardApplicable();
+        updateRewardEpoch();
         if (account != address(0)) {
             // Add the rewards added during the last stint
-            // Decay the user's reward score until today
-            _rewardScores[account] = calculateDecayedUserRewardScore(account);
             rewards[account] = earned(account);
             userRewardPerTokenPaid[account] = rewardPerTokenStored;
-            userRewardPerRewardScorePaid[account] = rewardPerRewardScoreStored;
         }
     }
 
@@ -746,7 +501,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     /*
     * @notice internal function used in the modifier with the same name to optimize bytecode
     */
-    function _onlyExchangerProxy() internal {
+    function _onlyExchangerProxy() internal view {
         bool isEP = msg.sender == address(exchangerProxy);
 
         require(isEP);
@@ -763,7 +518,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     /*
     * @notice internal function used in the modifier with the same name to optimize bytecode
     */
-    function _onlyRewardEscrow() internal {
+    function _onlyRewardEscrow() internal view {
         bool isRE = msg.sender == address(rewardEscrow);
 
         require(isRE);
@@ -773,7 +528,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
 
     /* ========== EVENTS ========== */
 
-    event RewardAdded(uint256 reward);
+    event RewardAdded(uint256 reward, uint256 nEpochs);
     event Staked(address indexed user, uint256 amount);
     event Withdrawn(address indexed user, uint256 amount);
     event RewardPaid(address indexed user, uint256 reward);
@@ -832,7 +587,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     /*
     * @notice internal function used in the modifier with the same name to optimize bytecode
     */
-    function _onlyAdmin() internal {
+    function _onlyAdmin() internal view {
         bool isAdmin = msg.sender == admin;
 
         require(isAdmin);
@@ -849,7 +604,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     /*
     * @notice internal function used in the modifier with the same name to optimize bytecode
     */
-    function _onlyPendingAdmin() internal {
+    function _onlyPendingAdmin() internal view {
         bool isPendingAdmin = msg.sender == pendingAdmin;
 
         require(isPendingAdmin);
