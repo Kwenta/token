@@ -18,6 +18,7 @@ const mineBlock = () => send({ method: 'evm_mine' });
 const NAME = "Kwenta";
 const SYMBOL = "KWENTA";
 const DAY = 86400;
+const WEEK = DAY * 7;
 const ZERO_BN = toBN(0);
 
 const toUnit = amount => toBN(toWei(amount.toString(), 'ether')).toString();
@@ -388,6 +389,42 @@ describe('setRewardNEpochs()', () => {
 			});
 	});
 
+describe('rewardEpochs()', () => {
+		it('Updates the reward Epoch mapping after the week is finished', async () => {
+			StakingRewards = await deployContract();
+			stProxy = await hre.upgrades.deployProxy(StakingRewards,
+			[owner.address, kwentaToken.address, 
+			kwentaToken.address, rewardsEscrow.address, 3],
+			{kind: "uups",
+			unsafeAllow: ["external-library-linking"]
+			});
+			await stProxy.connect(owner).setExchangerProxy(exchangerProxy.address);
+			await rewardsEscrow.setStakingRewards(stProxy.address);
+			await kwentaToken._mint(stProxy.address, toUnit(100));
+			await kwentaToken.connect(staker1).approve(stProxy.address, toUnit(100));
+			await kwentaToken.connect(staker2).approve(stProxy.address, toUnit(100));
+
+			const totalToStake = toUnit(1);
+			const rewardValue = toUnit(5.0);
+			let currEpoch = Math.floor(await currentTime() / WEEK) * WEEK - 3 * DAY ;
+			await stProxy.setRewardNEpochs(rewardValue, 1);
+
+			await stProxy.connect(staker1).stake(totalToStake);
+			await stProxy.connect(exchangerProxy).updateTraderScore(staker1.address, 30);
+
+			let reward = await stProxy.rewardPerRewardScoreOfEpoch(currEpoch);
+
+			assert.equal(reward, 0);
+
+			await fastForward(DAY*7);
+
+			await stProxy.connect(staker1).stake(totalToStake);
+			reward = await stProxy.rewardPerRewardScoreOfEpoch(currEpoch);
+			assertBNGreaterThan(reward, 0);
+
+			});
+	});
+
 describe('implementation test', () => {
 	it('calculates rewards correctly', async() => {
 
@@ -404,30 +441,48 @@ describe('implementation test', () => {
 		await kwentaToken.connect(staker1).approve(stProxy.address, toUnit(100));
 		await kwentaToken.connect(staker2).approve(stProxy.address, toUnit(100));
 
-		await stProxy.connect(owner).setRewardsDuration(DAY*15);
-
-		// Testing first leg of implementation
-
 		await stProxy.connect(staker1).stake(toUnit(10));
 		await stProxy.connect(staker2).stake(toUnit(10));
 
+		await stProxy.setRewardNEpochs(toUnit(300), 3);
+
+		await fastForward(1*DAY);
+		
 		await stProxy.connect(exchangerProxy).updateTraderScore(staker1.address, toUnit(25));
 		await stProxy.connect(exchangerProxy).updateTraderScore(staker2.address, toUnit(50));
 
-		await fastForward(2*DAY);
+		await fastForward(3*DAY);
 
-		let rewardValue = toUnit(100);
-		await stProxy.connect(owner).notifyRewardAmount(rewardValue);
-		await fastForward(16*DAY);
+		await stProxy.connect(staker1).withdraw(toUnit(5));
 
+		await fastForward(3*DAY);
+
+		await stProxy.connect(staker2).withdraw(toUnit(10));
+
+		await fastForward(1*DAY);
+
+		await stProxy.connect(exchangerProxy).updateTraderScore(staker2.address, toUnit(70));
+
+		await fastForward(6*DAY);
+
+		await stProxy.connect(staker2).stake(toUnit(30));
+		await stProxy.connect(exchangerProxy).updateTraderScore(staker2.address, toUnit(90));
+
+		await fastForward(4*DAY);
+
+		await stProxy.connect(exchangerProxy).updateTraderScore(staker1.address, toUnit(100));
+
+		await fastForward(3*DAY);
+
+		
 		await stProxy.connect(staker1).exit();
 		await stProxy.connect(staker2).exit();
 
-		let rewardsStaker1 = await stProxy.escrowedBalanceOf(staker1.address);
-		let rewardsStaker2 = await stProxy.escrowedBalanceOf(staker2.address);
+		let escrowedSt1 = await stProxy.escrowedBalanceOf(staker1.address);
+		let escrowedSt2 = await stProxy.escrowedBalanceOf(staker2.address);
 
-		assertBNClose(rewardsStaker1.toString(), toUnit(47.6204852265976), toUnit(0.001));
-		assertBNClose(rewardsStaker2.toString(), toUnit(52.3795147734024), toUnit(0.001));
+		assertBNClose(escrowedSt1.toString(), toUnit(140.10276354425000), toUnit(0.001));
+		assertBNClose(escrowedSt2.toString(), toUnit(139.89723645575000), toUnit(0.001));
 
 		})
 	})

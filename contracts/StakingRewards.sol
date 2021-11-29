@@ -10,9 +10,6 @@ import "./libraries/FixidityLib.sol";
 import "./libraries/ExponentLib.sol";
 import "./libraries/LogarithmLib.sol";
 
-// Note needed copy function to calculate rewardscore
-import "./libraries/DecayRateLib.sol";
-
 // Inheritance
 import "./Pausable.sol";
 // Import RewardEscrow contract for Escrow interactions
@@ -53,15 +50,10 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     uint256 public rewardRateTrading;
     // Epoch default duration
     uint256 public rewardsDuration;
-    // Last time an event altering the rewardscore
-    uint256 private lastUpdateTimeRewardScore;
-    // Last rewardRate per RewardScore
-    uint256 private rewardPerRewardScoreStored;
     // Last Update Time for staking Rewards
     uint256 private lastUpdateTime;
     // Last reward per token staked
     uint256 private rewardPerTokenStored;
-    uint256 public rewardStartedTime;
     uint256 public currentEpoch;
     
     // Save the date of the latest interaction for each address (Trading Rewards)
@@ -101,6 +93,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     // Time constants
     uint256 private constant DAY = 1 days;
     uint256 private constant WEEK = 7 days;
+    uint256 public testVar;
 
     /* ========== PROXY VARIABLES ========== */
     address private admin;
@@ -180,6 +173,15 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     */
     function escrowedBalanceOf(address account) external view returns (uint256) {
         return _escrowedBalances[account];
+    }
+
+    /*
+    * @notice Getter function for the reward per reward score of a past epoch
+    * @param id of the week to get the reward
+    * @return reward per reward score of specified week
+    */
+    function rewardPerRewardScoreOfEpoch(uint256 _epoch) external view returns (uint256) {
+        return epochRewardPerRewardScore[_epoch];
     }
 
     /*
@@ -280,7 +282,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
         if(newEpoch > currentEpoch) {
             // Save rewardRateTrading * WEEK / _totalRewardScore to epoch mapping
             if(_totalRewardScore > 0) {
-                epochRewardPerRewardScore[currentEpoch] = rewardRateTrading * WEEK / _totalRewardScore;
+                epochRewardPerRewardScore[currentEpoch] = rewardRateTrading * WEEK * DECIMALS_DIFFERENCE / _totalRewardScore;
             }
             _totalRewardScore = 0;
             currentEpoch = newEpoch;
@@ -295,13 +297,14 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     * @param _feesPaid: uint256, total fees paid in this period
     */
     function updateTraderScore(address _trader, uint256 _newFeesPaid) external onlyExchangerProxy updateRewards(_trader) {
+        uint256 oldRewardScore = _rewardScores[_trader];
         if (lastTradeUserEpoch[_trader] < currentEpoch) {
             _feesPaid[_trader] = _newFeesPaid;
             lastTradeUserEpoch[_trader] = currentEpoch;
+            oldRewardScore = 0;
         } else {
             _feesPaid[_trader] += _newFeesPaid;
         }
-        uint256 oldRewardScore = _rewardScores[_trader];
         updateRewardScore(_trader, oldRewardScore);
     }
 
@@ -313,7 +316,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     */
     function updateRewardScore(address _account, uint256 _oldRewardScore) internal {
         uint256 newRewardScore = 0;
-        if(lastTradeUserEpoch[_account] == currentEpoch && _totalBalances[_account] > 0) {
+        if((lastTradeUserEpoch[_account] == currentEpoch) && (_totalBalances[_account] > 0)) {
             newRewardScore = uint256(fixidity.power_any(int256(_totalBalances[_account]), WEIGHT_STAKING)) * (uint256(fixidity.power_any(int256(_feesPaid[_account]), WEIGHT_FEES)));
         }
 
@@ -321,6 +324,9 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
             _oldRewardScore = 0;
         }
 
+        testVar = _feesPaid[_account];
+
+        _rewardScores[_account] = newRewardScore;
         _totalRewardScore = _totalRewardScore  - _oldRewardScore + newRewardScore;
 
     }
@@ -385,7 +391,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     * @param _account: address escrowing the rewards
     * @param _amount: uint256, amount escrowed
     */
-    function stakeEscrow(address _account, uint256 _amount) public nonReentrant onlyRewardEscrow updateRewards(_account) {
+    function stakeEscrow(address _account, uint256 _amount) public onlyRewardEscrow updateRewards(_account) {
         _totalBalances[_account] +=  _amount;
         _totalSupply +=  _amount;
         _escrowedBalances[_account] +=  _amount;
