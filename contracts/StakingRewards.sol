@@ -93,7 +93,6 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     // Time constants
     uint256 private constant DAY = 1 days;
     uint256 private constant WEEK = 7 days;
-    uint256 public testVar;
 
     /* ========== PROXY VARIABLES ========== */
     address private admin;
@@ -323,8 +322,6 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
         if(lastTradeUserEpoch[_account] < currentEpoch) {
             _oldRewardScore = 0;
         }
-
-        testVar = _feesPaid[_account];
 
         _rewardScores[_account] = newRewardScore;
         _totalRewardScore = _totalRewardScore  - _oldRewardScore + newRewardScore;
