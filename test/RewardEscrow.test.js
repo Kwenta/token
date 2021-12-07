@@ -63,7 +63,6 @@ const mineBlock = () => send({ method: 'evm_mine' });
 const FixidityLib = artifacts.require("FixidityLib");
 const ExponentLib = artifacts.require("ExponentLib");
 const LogarithmLib = artifacts.require("LogarithmLib");
-const DecayRateLib = artifacts.require("DecayRateLib");
 
 const StakingRewards = artifacts.require("StakingRewards");
 const TokenContract = artifacts.require("ERC20");
@@ -156,11 +155,8 @@ contract('RewardEscrow KWENTA', ([owner, rewardsDistribution, staker1, staker2])
 		await ExponentLib.link(logarithmLib);
 		exponentLib = await ExponentLib.new();
 		
-		await DecayRateLib.link(exponentLib);
-		decayRateLib = await DecayRateLib.new();
-
 		await StakingRewards.link(fixidityLib);
-		await StakingRewards.link(decayRateLib);
+		await StakingRewards.link(exponentLib);
 		rewardsEscrow = await RewardsEscrow.new(
 				owner,
 				stakingToken.address
@@ -169,10 +165,10 @@ contract('RewardEscrow KWENTA', ([owner, rewardsDistribution, staker1, staker2])
 		stakingRewards = await StakingRewards.new();
 
 		stakingRewards.initialize(owner,
-		rewardsDistribution,
 		rewardsToken.address,
 		stakingToken.address,
-		rewardsEscrow.address
+		rewardsEscrow.address,
+		3
 		);
 
 		await hre.network.provider.request({
