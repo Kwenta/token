@@ -412,6 +412,11 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
 
     /* ========== RESTRICTED FUNCTIONS ========== */
 
+    /*
+    * @notice Function used to set the rewards for the next N epochs
+    * @param rewards, total amount to distribute
+    * @param nEpochs, number of weeks with rewards
+    */  
     function setRewardNEpochs(uint256 reward, uint256 nEpochs) external onlyOwner updateRewards(address(0)) {
         rewardRate = reward / nEpochs / WEEK;
         rewardRateStaking = rewardRate * PERCENTAGE_STAKING / MAX_BPS;
