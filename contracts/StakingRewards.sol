@@ -281,7 +281,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
 
         if(newEpoch > currentEpoch) {
             // Save rewardRateTrading * WEEK / _totalRewardScore to epoch mapping
-            if(_totalRewardScore > 0 && currentEpoch < (periodFinish / WEEK) * WEEK - 3*DAY) {
+            if(_totalRewardScore > 0 && currentEpoch < (periodFinish / WEEK) * WEEK - _weeklyStartRewards*DAY) {
                 epochRewardPerRewardScore[currentEpoch] = rewardRateTrading * WEEK * DECIMALS_DIFFERENCE / _totalRewardScore;
             }
             _totalRewardScore = 0;
