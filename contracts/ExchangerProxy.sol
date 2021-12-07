@@ -5,14 +5,19 @@ import "./interfaces/IAddressResolver.sol";
 import "./interfaces/ISynthetix.sol";
 import "./interfaces/IExchanger.sol";
 
-contract ExchangerProxy {
+interface IStakingRewards {
+    function updateTraderScore(address _trader, uint256 _newFeesPaid) external returns (uint);
+}
 
+contract ExchangerProxy {
     IAddressResolver addressResolver;
+    IStakingRewards stakingRewards;
     bytes32 private constant CONTRACT_SYNTHETIX = "Synthetix";
     bytes32 private constant CONTRACT_EXCHANGER = "Exchanger";
 
-    constructor(address _addressResolver) {
+    constructor(address _addressResolver, address _stakingRewards) {
         addressResolver = IAddressResolver(_addressResolver);
+        stakingRewards = IStakingRewards(_stakingRewards);
     }
 
     function synthetix() internal view returns (ISynthetix) {
@@ -49,7 +54,7 @@ contract ExchangerProxy {
         );
 
         // Update StakingRewards trader score
-        //updateTraderScore(msg.sender, fee);
+        stakingRewards.updateTraderScore(msg.sender, fee);
         return received;
     }
 
