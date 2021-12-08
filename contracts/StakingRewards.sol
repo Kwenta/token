@@ -86,9 +86,9 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     uint256 private constant MAX_BPS = 10_000;
     uint256 private constant DECIMALS_DIFFERENCE = 1e30;
     // Needs to be int256 for power library, root to calculate is equal to 0.7
-    int256 private constant WEIGHT_FEES = 7e17;
+    int256 public WEIGHT_FEES;
     // Needs to be int256 for power library, root to calculate is equal to 0.3
-    int256 private constant WEIGHT_STAKING = 3e17;
+    int256 public WEIGHT_STAKING;
     // Time constants
     uint256 private constant DAY = 1 days;
     uint256 private constant WEEK = 7 days;
@@ -123,6 +123,9 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
 
         PERCENTAGE_STAKING = 8_000;
         PERCENTAGE_TRADING = 2_000;
+
+        WEIGHT_STAKING = 3e17;
+        WEIGHT_FEES = 7e17;
 
         weeklyStartRewards = _weeklyStartRewards;
     }
@@ -255,6 +258,18 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     }
 
     /* ========== MUTATIVE FUNCTIONS ========== */
+
+    /**
+     * @notice Set the weights for the reward score formula
+     * @dev Only the owner can use this function and parameters should be in Units (100% = 1e18)
+     * @param _weightStaking the weight for tokens staked
+     * @param _weightFees the weight of fees paid in the epoch
+     */
+    function setWeightsRewardScore(int256 _weightStaking, int256 _weightFees) external onlyOwner {
+        require(_weightStaking + _weightFees == 1e18);
+        WEIGHT_STAKING = _weightStaking;
+        WEIGHT_FEES = _weightFees;
+    }
 
     /**
      * @notice Set the % distribution between staking and trading
