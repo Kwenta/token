@@ -81,7 +81,6 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     // Division of rewards between staking and trading
     uint256 public PERCENTAGE_STAKING;
     uint256 public PERCENTAGE_TRADING;
-
     
     // Decimals calculations
     uint256 private constant MAX_BPS = 10_000;
@@ -103,7 +102,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
         address _rewardsToken,
         address _stakingToken,
         address _rewardEscrow,
-        uint256 weeklyStartRewards
+        uint256 _weeklyStartRewards
     ) public initializer {
         __Pausable_init(_owner);
 
@@ -125,7 +124,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
         PERCENTAGE_STAKING = 8_000;
         PERCENTAGE_TRADING = 2_000;
 
-        weeklyStartRewards = weeklyStartRewards;
+        weeklyStartRewards = _weeklyStartRewards;
     }
 
     /* ========== VIEWS ========== */
@@ -238,6 +237,23 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
         return rewardRate * rewardsDuration;
     }
 
+    /**
+     * @notice Calculate the reward epoch for a specific date, taking into account the day they start
+     * @param _date to calculate the reward epoch for
+     * @ return uint256 containing the date of the start of the epoch
+     */
+    function getEpochForDate(uint256 _date) internal view returns(uint256) {
+        _date = (_date / DAY) * DAY;
+        uint256 naturalEpoch = (_date / WEEK) * WEEK;
+
+        if(_date - naturalEpoch >= (7-weeklyStartRewards)*DAY) {
+            return naturalEpoch + WEEK - weeklyStartRewards*DAY;
+        } else {
+            return naturalEpoch - weeklyStartRewards*DAY;
+        }
+
+    }
+
     /* ========== MUTATIVE FUNCTIONS ========== */
 
     /**
@@ -277,11 +293,11 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     function updateRewardEpoch() internal {
         // Dividing by week to get the last batch of 7 days, as UNIX started in 1970/01/01 (Thursday), we
         // go back 3 days to start a Monday
-        uint256 newEpoch = (block.timestamp / WEEK) * WEEK - weeklyStartRewards * DAY;
+        uint256 newEpoch = getEpochForDate(block.timestamp);
 
         if(newEpoch > currentEpoch) {
             // Save rewardRateTrading * WEEK / _totalRewardScore to epoch mapping
-            if(_totalRewardScore > 0 && currentEpoch < (periodFinish / WEEK) * WEEK - weeklyStartRewards*DAY) {
+            if(_totalRewardScore > 0 && currentEpoch < getEpochForDate(periodFinish)) {
                 epochRewardPerRewardScore[currentEpoch] = rewardRateTrading * WEEK * DECIMALS_DIFFERENCE / _totalRewardScore;
             }
             _totalRewardScore = 0;
@@ -380,7 +396,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     * - Transfers all rewards to caller's address
     */
     function exit() external {
-        withdraw(updateTraderScore(msg.sender));
+        withdraw(stakedBalanceOf(msg.sender));
         getReward();
     }
 

@@ -170,11 +170,11 @@ describe("stake()", async() => {
 
 			await stProxy.connect(staker1).stake(15);
 
-			let bal = await stProxy.balanceOf(staker1.address);
+			let bal = await stProxy.stakedBalanceOf(staker1.address);
 			assert.equal(bal, 15, "Incorrect amount");
 
 			await stProxy.connect(staker2).stake(50);
-			bal = await stProxy.balanceOf(staker2.address);
+			bal = await stProxy.stakedBalanceOf(staker2.address);
 			assert.equal(bal, 50, "Incorrect amount");
 			
 		})
@@ -189,11 +189,11 @@ describe("withdraw()", async() => {
 		})
 		it("withdraws the correct amount", async() => {
 			await stProxy.connect(staker1).withdraw(15);
-			let bal = await stProxy.balanceOf(staker1.address);
+			let bal = await stProxy.stakedBalanceOf(staker1.address);
 			assert.equal(bal, 0, "Incorrect amount");
 
 			await stProxy.connect(staker2).withdraw(50);
-			bal = await stProxy.balanceOf(staker2.address);
+			bal = await stProxy.stakedBalanceOf(staker2.address);
 			assert.equal(bal, 0, "Incorrect amount");
 		})
 	});
@@ -440,6 +440,17 @@ describe('implementation test', () => {
 		await kwentaToken._mint(stProxy.address, toUnit(1000));
 		await kwentaToken.connect(staker1).approve(stProxy.address, toUnit(100));
 		await kwentaToken.connect(staker2).approve(stProxy.address, toUnit(100));
+
+		var currEpoch = Math.floor(await currentTime() / WEEK) * WEEK;
+		var today = Math.floor(await currentTime() / DAY) * DAY;
+		if(today - currEpoch >= 4*DAY) {
+			currEpoch = currEpoch + WEEK - 3*DAY;
+		} else {
+			currEpoch = currEpoch - 3*DAY;
+		}
+		let daysTillMonday = currEpoch - today + WEEK;
+
+		await fastForward(daysTillMonday + 1);
 
 		await stProxy.connect(staker1).stake(toUnit(10));
 		await stProxy.connect(staker2).stake(toUnit(10));

@@ -66,7 +66,7 @@ contract('UUPS Proxy for StakingRewards', ([owner, rewardsDistribution]) => {
 
 			await st_proxy.connect(staker1).stake(50);
 
-			let balance = await st_proxy.connect(staker1).balanceOf(staker1.address);
+			let balance = await st_proxy.connect(staker1).stakedBalanceOf(staker1.address);
 
 			assert.equal(balance.toString(), 50);
 		});
@@ -132,7 +132,7 @@ contract('UUPS Proxy for StakingRewards', ([owner, rewardsDistribution]) => {
   			assert.equal(rewardScoreAdded.toString(), "2");
 
 
-			let balance = await upgradedImplementationV3.balanceOf(staker1.address);
+			let balance = await upgradedImplementationV3.stakedBalanceOf(staker1.address);
 			assert.equal(balance.toString(), 50);
 
 
