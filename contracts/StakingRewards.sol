@@ -43,7 +43,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     // Time handling:
     // Time where new reward epoch finishes 
     uint256 public periodFinish;
-    uint256 public _weeklyStartRewards;
+    uint256 public weeklyStartRewards;
     // Reward rate per second for next epoch
     uint256 public rewardRate;
     uint256 public rewardRateStaking;
@@ -125,7 +125,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
         PERCENTAGE_STAKING = 8_000;
         PERCENTAGE_TRADING = 2_000;
 
-        _weeklyStartRewards = weeklyStartRewards;
+        weeklyStartRewards = weeklyStartRewards;
     }
 
     /* ========== VIEWS ========== */
@@ -143,7 +143,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     * @param account address to check token balance of
     * @return token balance of specified account
     */
-    function balanceOf(address account) public view returns (uint256) {
+    function stakedBalanceOf(address account) public view returns (uint256) {
         return _totalBalances[account] - _escrowedBalances[account];
     }
 
@@ -266,7 +266,8 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
      * @param newWeeklyStart the number of days to shift
      */
     function setWeeklyStartRewards(uint256 newWeeklyStart) external onlyOwner {
-        _weeklyStartRewards = newWeeklyStart;
+        require(newWeeklyStart < 7);
+        weeklyStartRewards = newWeeklyStart;
     }
 
     /**
@@ -276,11 +277,11 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     function updateRewardEpoch() internal {
         // Dividing by week to get the last batch of 7 days, as UNIX started in 1970/01/01 (Thursday), we
         // go back 3 days to start a Monday
-        uint256 newEpoch = (block.timestamp / WEEK) * WEEK - _weeklyStartRewards * DAY;
+        uint256 newEpoch = (block.timestamp / WEEK) * WEEK - weeklyStartRewards * DAY;
 
         if(newEpoch > currentEpoch) {
             // Save rewardRateTrading * WEEK / _totalRewardScore to epoch mapping
-            if(_totalRewardScore > 0 && currentEpoch < (periodFinish / WEEK) * WEEK - _weeklyStartRewards*DAY) {
+            if(_totalRewardScore > 0 && currentEpoch < (periodFinish / WEEK) * WEEK - weeklyStartRewards*DAY) {
                 epochRewardPerRewardScore[currentEpoch] = rewardRateTrading * WEEK * DECIMALS_DIFFERENCE / _totalRewardScore;
             }
             _totalRewardScore = 0;
@@ -349,7 +350,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     */
     function withdraw(uint256 _amount) public nonReentrant updateRewards(msg.sender) {
         require(_amount > 0, "Cannot withdraw 0");
-        require(balanceOf(msg.sender) >= _amount);
+        require(stakedBalanceOf(msg.sender) >= _amount);
         // Update caller balance
         _totalBalances[msg.sender] -= _amount;
         _totalSupply -=  _amount;
@@ -379,7 +380,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     * - Transfers all rewards to caller's address
     */
     function exit() external {
-        withdraw(balanceOf(msg.sender));
+        withdraw(updateTraderScore(msg.sender));
         getReward();
     }
 
