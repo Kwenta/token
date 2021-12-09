@@ -17,3 +17,5 @@ contracts/utils/PowerContract.sol
 contracts/StakingRewardsV3.sol
 contracts/libraries/DecayRateLib.sol
 .openzeppelin/*
+
+package-lock*
