@@ -406,7 +406,13 @@ describe('rewardEpochs()', () => {
 
 			const totalToStake = toUnit(1);
 			const rewardValue = toUnit(5.0);
-			let currEpoch = Math.floor(await currentTime() / WEEK) * WEEK - 3 * DAY ;
+			var currEpoch = Math.floor(await currentTime() / WEEK) * WEEK;
+			var today = Math.floor(await currentTime() / DAY) * DAY;
+			if(today - currEpoch >= 4*DAY) {
+				currEpoch = currEpoch + WEEK - 3*DAY;
+			} else {
+				currEpoch = currEpoch - 3*DAY;
+			}
 			await stProxy.setRewardNEpochs(rewardValue, 1);
 
 			await stProxy.connect(staker1).stake(totalToStake);
