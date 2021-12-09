@@ -26,7 +26,13 @@ export default {
     compilers: [
       {
         version: "0.8.2",
-      }
+      },
+      {
+        version: '0.5.16',
+      },
+      {
+        version: "0.8.7",
+      },
     ],
     settings: {
       optimizer: {
