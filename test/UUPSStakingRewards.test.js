@@ -2,22 +2,33 @@ const hardhat = require('hardhat');
 
 const NAME = "Kwenta";
 const SYMBOL = "KWENTA";
+const INITIAL_SUPPLY = hre.ethers.utils.parseUnits("313373");
 
 require("chai")
 	.use(require("chai-as-promised"))
 	.use(require("chai-bn-equal"))
 	.should();
 
-contract('UUPS Proxy for StakingRewards', ([owner, rewardsDistribution]) => {
+contract('UUPS Proxy for StakingRewards', ([owner, rewardsDistribution, supplySchedule]) => {
 	console.log("Start tests");
 	let stakingRewards;
 	let kwentaToken;
 	let rewardsEscrow;
 	let st_proxy;
+	let staker1;
+	let staker2;
+	let treasuryDAO;
 
 	before(async() => {
-		KwentaToken = await hre.ethers.getContractFactory("ERC20");
-		kwentaToken = await KwentaToken.deploy(NAME, SYMBOL);
+		[staker1, staker2, treasuryDAO] = await hre.ethers.getSigners();
+		KwentaToken = await hre.ethers.getContractFactory("Kwenta");
+		kwentaToken = await KwentaToken.deploy(NAME, 
+			SYMBOL,
+			INITIAL_SUPPLY,
+			treasuryDAO.address,
+			rewardsDistribution,
+			supplySchedule
+		);
 		RewardsEscrow = await hre.ethers.getContractFactory("RewardEscrow");
 		rewardsEscrow = await RewardsEscrow.deploy(owner, kwentaToken.address);
 	});
@@ -59,9 +70,8 @@ contract('UUPS Proxy for StakingRewards', ([owner, rewardsDistribution]) => {
 
 		});
 		it("should stake correctly", async() => {
-			const [staker1, staker2] = await hre.ethers.getSigners();
-
-			await kwentaToken._mint(staker1.address, 100);
+			
+			await kwentaToken.connect(treasuryDAO).transfer(staker1.address, 100);
 			await kwentaToken.connect(staker1).approve(st_proxy.address, 100);
 
 			await st_proxy.connect(staker1).stake(50);
@@ -72,8 +82,6 @@ contract('UUPS Proxy for StakingRewards', ([owner, rewardsDistribution]) => {
 		});
 
 		it("should upgrade correctly", async() => {
-
-			const [staker1, staker2] = await hre.ethers.getSigners();
 
 			FixidityLib = await hre.ethers.getContractFactory("FixidityLib");
 			fixidityLib = await FixidityLib.deploy();

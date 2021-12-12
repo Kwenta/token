@@ -65,11 +65,12 @@ const ExponentLib = artifacts.require("ExponentLib");
 const LogarithmLib = artifacts.require("LogarithmLib");
 
 const StakingRewards = artifacts.require("StakingRewards");
-const TokenContract = artifacts.require("ERC20");
+const TokenContract = artifacts.require("Kwenta");
 const RewardsEscrow = artifacts.require("RewardEscrow");
 
 const NAME = "Kwenta";
 const SYMBOL = "KWENTA";
+const INITIAL_SUPPLY = hre.ethers.utils.parseUnits("313373");
 
 const toUnit = amount => toBN(toWei(amount.toString(), 'ether'));
 
@@ -131,7 +132,7 @@ require("chai")
 	.use(require("chai-bn-equal"))
 	.should();
 
-contract('RewardEscrow KWENTA', ([owner, rewardsDistribution, staker1, staker2]) => {
+contract('RewardEscrow KWENTA', ([owner, rewardsDistribution, staker1, staker2, treasuryDAO]) => {
 	console.log("Start tests");
 	const SECOND = 1000;
 	const DAY = 86400;
@@ -145,8 +146,18 @@ contract('RewardEscrow KWENTA', ([owner, rewardsDistribution, staker1, staker2])
 	const ZERO_BN = toBN(0);
 
 	before(async() => {
-		stakingToken = await TokenContract.new(NAME, SYMBOL);
-		rewardsToken = await TokenContract.new(NAME, SYMBOL);
+		stakingToken = await TokenContract.new(NAME, 
+			SYMBOL, 
+			INITIAL_SUPPLY,
+            treasuryDAO,
+            ethers.constants.AddressZero,
+            ethers.constants.AddressZero);
+		rewardsToken = await TokenContract.new(NAME, 
+			SYMBOL, 
+			INITIAL_SUPPLY,
+            treasuryDAO,
+            ethers.constants.AddressZero,
+            ethers.constants.AddressZero);
 
 		fixidityLib = await FixidityLib.new();
 		await LogarithmLib.link(fixidityLib);
@@ -178,13 +189,13 @@ contract('RewardEscrow KWENTA', ([owner, rewardsDistribution, staker1, staker2])
 
 		SRsigner = await ethers.getSigner(stakingRewards.address);
 
-		rewardsEscrow.setStakingRewards(stakingRewards.address, {from: owner});
+		await rewardsEscrow.setStakingRewards(stakingRewards.address, {from: owner});
 
-		stakingToken._mint(staker1, toUnit(1000000));
-		stakingToken._mint(staker2, toUnit(1000000));
-		stakingToken._mint(owner, toUnit(1000000));
-
-		rewardsToken._mint(stakingRewards.address, toUnit(1000000));
+		await stakingToken.transfer(staker1, toUnit(10000), {from: treasuryDAO});
+		await stakingToken.transfer(staker2, toUnit(10000), {from: treasuryDAO});
+		await stakingToken.transfer(owner, toUnit(31000), {from: treasuryDAO});
+		
+		await rewardsToken.transfer(stakingRewards.address, toUnit(100000), {from: treasuryDAO});
 
 		await network.provider.send("hardhat_setBalance", [
 		  stakingRewards.address,
@@ -356,8 +367,13 @@ contract('RewardEscrow KWENTA', ([owner, rewardsDistribution, staker1, staker2])
 
 	describe('Vesting', async () => {
 			beforeEach(async () => {
-				stakingToken = await TokenContract.new(NAME, SYMBOL);
-				stakingToken._mint(owner, toUnit(1000000));
+				stakingToken = await TokenContract.new(NAME, 
+					SYMBOL, 
+					INITIAL_SUPPLY,
+		            treasuryDAO,
+		            ethers.constants.AddressZero,
+		            ethers.constants.AddressZero);
+				await stakingToken.transfer(owner, toUnit(10000), {from: treasuryDAO});
 
 				rewardsEscrow = await RewardsEscrow.new(
 				owner,
@@ -441,8 +457,13 @@ contract('RewardEscrow KWENTA', ([owner, rewardsDistribution, staker1, staker2])
 	describe('Stress Test', () => {
 
 		beforeEach(async () => {
-			stakingToken = await TokenContract.new(NAME, SYMBOL);
-			stakingToken._mint(owner, toUnit(1000000));
+			stakingToken = await TokenContract.new(NAME, 
+			SYMBOL, 
+			INITIAL_SUPPLY,
+            treasuryDAO,
+            ethers.constants.AddressZero,
+            ethers.constants.AddressZero);
+            await stakingToken.transfer(owner, toUnit(10000), {from: treasuryDAO});
 
 			rewardsEscrow = await RewardsEscrow.new(
 			owner,

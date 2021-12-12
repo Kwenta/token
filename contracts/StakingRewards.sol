@@ -9,6 +9,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "./libraries/FixidityLib.sol";
 import "./libraries/ExponentLib.sol";
 import "./libraries/LogarithmLib.sol";
+import "./interfaces/IStakingRewards.sol";
 
 // Inheritance
 import "./Pausable.sol";
@@ -22,7 +23,7 @@ import "./RewardEscrow.sol";
     - Updating staker and trader scores
     - Calculating and notifying rewards
     */
-contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable {
+contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable {
     using FixidityLib for FixidityLib.Fixidity;
     using ExponentLib for FixidityLib.Fixidity;
     using LogarithmLib for FixidityLib.Fixidity;
@@ -38,7 +39,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     address private exchangerProxy;
 
     // Tokens to stake and reward
-    IERC20 public rewardsToken;
+    IERC20 public override rewardsToken;
     IERC20 public stakingToken;
     // Time handling:
     // Time where new reward epoch finishes 
@@ -136,7 +137,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     * @notice Getter function for the state variable _totalRewardScore
     * @return sum of all rewardScores
     */
-    function totalRewardScore() public view returns (uint256) {
+    function totalRewardScore() override public view returns (uint256) {
         return _totalRewardScore;
     }
 
@@ -145,7 +146,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     * @param account address to check token balance of
     * @return token balance of specified account
     */
-    function stakedBalanceOf(address account) public view returns (uint256) {
+    function stakedBalanceOf(address account) override public view returns (uint256) {
         return _totalBalances[account] - _escrowedBalances[account];
     }
 
@@ -154,7 +155,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     * @param account address to check the reward score of
     * @return reward score of specified account
     */
-    function rewardScoreOf(address account) external view returns (uint256) {
+    function rewardScoreOf(address account) override external view returns (uint256) {
         return _rewardScores[account];
     }
 
@@ -163,7 +164,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     * @param account address to check the total balance of
     * @return total balance of specified account
     */
-    function totalBalanceOf(address account) external view returns (uint256) {
+    function totalBalanceOf(address account) override external view returns (uint256) {
         return _totalBalances[account];
     }
 
@@ -172,7 +173,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     * @param account address to check the escrowed balance of
     * @return escrowed balance of specified account
     */
-    function escrowedBalanceOf(address account) external view returns (uint256) {
+    function escrowedBalanceOf(address account) override external view returns (uint256) {
         return _escrowedBalances[account];
     }
 
@@ -181,7 +182,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     * @param id of the week to get the reward
     * @return reward per reward score of specified week
     */
-    function rewardPerRewardScoreOfEpoch(uint256 _epoch) external view returns (uint256) {
+    function rewardPerRewardScoreOfEpoch(uint256 _epoch) override external view returns (uint256) {
         return epochRewardPerRewardScore[_epoch];
     }
 
@@ -190,7 +191,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     * @param account address to check the fees balance of
     * @return fees of specified account
     */
-    function feesPaidBy(address account) external view returns (uint256) {
+    function feesPaidBy(address account) override external view returns (uint256) {
         return _feesPaid[account];
     }
 
@@ -198,7 +199,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     * @notice Calculate if we are still in the reward epoch or we reached periodFinish
     * @return Max date to sum rewards, either now or period finish
     */
-    function lastTimeRewardApplicable() public view returns (uint256) {
+    function lastTimeRewardApplicable() override public view returns (uint256) {
         return Math.min(block.timestamp, periodFinish);
     }
 
@@ -206,7 +207,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     * @notice Calculate the reward distribution per token based on the time elapsed and current value of totalSupply
     * @return corresponding reward per token stored
     */
-    function rewardPerToken() public view returns (uint256) {
+    function rewardPerToken() override public view returns (uint256) {
         if (_totalSupply == 0) {
             return rewardPerTokenStored;
         }
@@ -223,7 +224,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     * @param account to calculate the earned rewards
     * @return uint256 containing the total rewards due to account
     */
-    function earned(address account) public view returns(uint256) {
+    function earned(address account) override public view returns(uint256) {
         uint256 stakingRewards = _totalBalances[account] * (rewardPerToken() - userRewardPerTokenPaid[account]) / DECIMALS_DIFFERENCE;
         uint256 tradingRewards = 0;
         if(lastTradeUserEpoch[account] < currentEpoch) {
@@ -236,7 +237,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     * @notice Calculate the total rewards delivered in a specific duration, multiplying rewardRate x duration
     * @return uint256 containing the total rewards to be delivered
     */
-    function getRewardForDuration() external view returns (uint256) {
+    function getRewardForDuration() override external view returns (uint256) {
         return rewardRate * rewardsDuration;
     }
 
@@ -265,7 +266,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
      * @param _weightStaking the weight for tokens staked
      * @param _weightFees the weight of fees paid in the epoch
      */
-    function setWeightsRewardScore(int256 _weightStaking, int256 _weightFees) external onlyOwner {
+    function setWeightsRewardScore(int256 _weightStaking, int256 _weightFees) override external onlyOwner {
         require(_weightStaking + _weightFees == 1e18);
         WEIGHT_STAKING = _weightStaking;
         WEIGHT_FEES = _weightFees;
@@ -277,7 +278,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
      * @param _percentageStaking the % of rewards to distribute to staking scores
      * @param _percentageTrading the % of rewards to distribute to reward scores
      */
-    function setPercentageRewards(uint256 _percentageStaking, uint256 _percentageTrading) external onlyOwner {
+    function setPercentageRewards(uint256 _percentageStaking, uint256 _percentageTrading) override external onlyOwner {
         require(_percentageTrading + _percentageStaking == 10_000);
         PERCENTAGE_STAKING = _percentageStaking;
         PERCENTAGE_TRADING = _percentageTrading;
@@ -327,7 +328,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     * @param _trader: address, for which to update the score
     * @param _feesPaid: uint256, total fees paid in this period
     */
-    function updateTraderScore(address _trader, uint256 _newFeesPaid) external onlyExchangerProxy updateRewards(_trader) {
+    function updateTraderScore(address _trader, uint256 _newFeesPaid) override external onlyExchangerProxy updateRewards(_trader) {
         uint256 oldRewardScore = _rewardScores[_trader];
         if (lastTradeUserEpoch[_trader] < currentEpoch) {
             _feesPaid[_trader] = _newFeesPaid;
@@ -365,7 +366,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     * @notice Function staking the requested tokens by the user.
     * @param _amount: uint256, containing the number of tokens to stake
     */
-    function stake(uint256 _amount) external nonReentrant notPaused updateRewards(msg.sender) {
+    function stake(uint256 _amount) override external nonReentrant notPaused updateRewards(msg.sender) {
         require(_amount > 0);
         // Update caller balance
         _totalBalances[msg.sender] += _amount;
@@ -379,7 +380,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     * @notice Function withdrawing the requested tokens by the user.
     * @param _amount: uint256, containing the number of tokens to stake
     */
-    function withdraw(uint256 _amount) public nonReentrant updateRewards(msg.sender) {
+    function withdraw(uint256 _amount) override public nonReentrant updateRewards(msg.sender) {
         require(_amount > 0, "Cannot withdraw 0");
         require(stakedBalanceOf(msg.sender) >= _amount);
         // Update caller balance
@@ -394,7 +395,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     * @notice Function transferring the accumulated rewards for the caller address and updating the state mapping 
     containing the current rewards
     */
-    function getReward() public updateRewards(msg.sender) nonReentrant {
+    function getReward() override public updateRewards(msg.sender) nonReentrant {
         uint256 reward = rewards[msg.sender];
         if (reward > 0) {
             rewards[msg.sender] = 0;
@@ -410,7 +411,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     * - Withdraws all tokens
     * - Transfers all rewards to caller's address
     */
-    function exit() external {
+    function exit() override external {
         withdraw(stakedBalanceOf(msg.sender));
         getReward();
     }
@@ -449,7 +450,7 @@ contract StakingRewards is ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable
     * @param rewards, total amount to distribute
     * @param nEpochs, number of weeks with rewards
     */  
-    function setRewardNEpochs(uint256 reward, uint256 nEpochs) external onlyOwner updateRewards(address(0)) {
+    function setRewardNEpochs(uint256 reward, uint256 nEpochs) override external onlyOwner updateRewards(address(0)) {
         rewardRate = reward / nEpochs / WEEK;
         rewardRateStaking = rewardRate * PERCENTAGE_STAKING / MAX_BPS;
         rewardRateTrading = rewardRate * PERCENTAGE_TRADING / MAX_BPS;

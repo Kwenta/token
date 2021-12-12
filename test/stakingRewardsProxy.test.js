@@ -17,6 +17,7 @@ const mineBlock = () => send({ method: 'evm_mine' });
 
 const NAME = "Kwenta";
 const SYMBOL = "KWENTA";
+const INITIAL_SUPPLY = hre.ethers.utils.parseUnits("313373");
 const DAY = 86400;
 const WEEK = DAY * 7;
 const ZERO_BN = toBN(0);
@@ -85,6 +86,9 @@ require("chai")
 let owner;
 let staker1;
 let staker2;
+let treasuryDAO;
+let rewardsDistribution;
+let supplySchedule;
 let stProxy;
 let exchangerProxy;
 let rewardsEscrow;
@@ -115,14 +119,20 @@ const deployContract = async () => {
 }
  
 before(async() => {
-		[owner, staker1, staker2, exchangerProxy] = await hre.ethers.getSigners();
-		KwentaToken = await hre.ethers.getContractFactory("ERC20");
-		kwentaToken = await KwentaToken.deploy(NAME, SYMBOL);
+		[owner, staker1, staker2, exchangerProxy, rewardsDistribution, treasuryDAO, supplySchedule] = await hre.ethers.getSigners();
+		KwentaToken = await hre.ethers.getContractFactory("Kwenta");
+		kwentaToken = await KwentaToken.deploy(NAME, 
+			SYMBOL,
+			INITIAL_SUPPLY,
+			treasuryDAO.address,
+			rewardsDistribution.address,
+			supplySchedule.address
+		);
 		RewardsEscrow = await await hre.ethers.getContractFactory("RewardEscrow");
 		rewardsEscrow = await RewardsEscrow.deploy(owner.address, kwentaToken.address);
 
-		await kwentaToken._mint(staker1.address, toUnit(100));
-		await kwentaToken._mint(staker2.address, toUnit(100));
+		await kwentaToken.connect(treasuryDAO).transfer(staker1.address, toUnit(100));
+		await kwentaToken.connect(treasuryDAO).transfer(staker2.address, toUnit(100));
 	});
 
 describe("Proxy deployment", async() => {
@@ -145,7 +155,7 @@ describe("Proxy deployment", async() => {
 
 			await stProxy.connect(owner).setExchangerProxy(exchangerProxy.address);
 
-			await kwentaToken._mint(stProxy.address, toUnit(500));
+			await kwentaToken.connect(treasuryDAO).transfer(stProxy.address, toUnit(500));
 
 		});
 	});
@@ -274,7 +284,7 @@ describe('earned()', () => {
 			});
 
 			rewardsEscrow.setStakingRewards(stProxy.address);
-			kwentaToken._mint(stProxy.address, toUnit(100));
+			await kwentaToken.connect(treasuryDAO).transfer(stProxy.address, toUnit(100));
 			await kwentaToken.connect(staker1).approve(stProxy.address, toUnit(100));
 			await kwentaToken.connect(staker2).approve(stProxy.address, toUnit(100));
 
@@ -304,7 +314,7 @@ describe('earned()', () => {
 
 			await stProxy.connect(owner).setExchangerProxy(exchangerProxy.address);
 			await rewardsEscrow.setStakingRewards(stProxy.address);
-			await kwentaToken._mint(stProxy.address, toUnit(100));
+			await kwentaToken.connect(treasuryDAO).transfer(stProxy.address, toUnit(100));
 			await kwentaToken.connect(staker1).approve(stProxy.address, toUnit(100));
 			await kwentaToken.connect(staker2).approve(stProxy.address, toUnit(100));
 
@@ -332,7 +342,7 @@ describe('earned()', () => {
 
 			await stProxy.connect(owner).setExchangerProxy(exchangerProxy.address);
 			await rewardsEscrow.setStakingRewards(stProxy.address);
-			await kwentaToken._mint(stProxy.address, toUnit(100));
+			await kwentaToken.connect(treasuryDAO).transfer(stProxy.address, toUnit(100));
 			await kwentaToken.connect(staker1).approve(stProxy.address, toUnit(100));
 			await kwentaToken.connect(staker2).approve(stProxy.address, toUnit(100));
 
@@ -358,7 +368,7 @@ describe('earned()', () => {
 
 			await stProxy.connect(owner).setExchangerProxy(exchangerProxy.address);
 			await rewardsEscrow.setStakingRewards(stProxy.address);
-			await kwentaToken._mint(stProxy.address, toUnit(100));
+			await kwentaToken.connect(treasuryDAO).transfer(stProxy.address, toUnit(100));
 			await kwentaToken.connect(staker1).approve(stProxy.address, toUnit(100));
 			await kwentaToken.connect(staker2).approve(stProxy.address, toUnit(100));
 
@@ -400,7 +410,7 @@ describe('rewardEpochs()', () => {
 			});
 			await stProxy.connect(owner).setExchangerProxy(exchangerProxy.address);
 			await rewardsEscrow.setStakingRewards(stProxy.address);
-			await kwentaToken._mint(stProxy.address, toUnit(100));
+			await kwentaToken.connect(treasuryDAO).transfer(stProxy.address, toUnit(100));
 			await kwentaToken.connect(staker1).approve(stProxy.address, toUnit(100));
 			await kwentaToken.connect(staker2).approve(stProxy.address, toUnit(100));
 
@@ -443,7 +453,7 @@ describe('implementation test', () => {
 			});
 		await stProxy.connect(owner).setExchangerProxy(exchangerProxy.address);
 		await rewardsEscrow.setStakingRewards(stProxy.address);
-		await kwentaToken._mint(stProxy.address, toUnit(1000));
+		await kwentaToken.connect(treasuryDAO).transfer(stProxy.address, toUnit(1000));
 		await kwentaToken.connect(staker1).approve(stProxy.address, toUnit(100));
 		await kwentaToken.connect(staker2).approve(stProxy.address, toUnit(100));
 
