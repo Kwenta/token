@@ -1,13 +1,10 @@
 import { task } from "hardhat/config";
 import "@nomiclabs/hardhat-waffle";
-<<<<<<< HEAD
 import "hardhat-typechain";
-=======
 import "@nomiclabs/hardhat-truffle5";
 import "hardhat-gas-reporter";
 import "hardhat-contract-sizer";
 import "@openzeppelin/hardhat-upgrades";
->>>>>>> 7970244e670862a14e17418cda9af4776a2de3a0
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
