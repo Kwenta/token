@@ -53,7 +53,7 @@ contract Kwenta is ERC20 {
         _mint(rewardsDistribution, amountToDistribute);
 
         // Kick off the distribution of rewards
-        _rewardsDistribution.distributeRewards(amountToDistribute);
+        _rewardsDistribution.setRewardNEpochs(amountToDistribute, 1);
 
         // Assign the minters reward.
         _mint(msg.sender, minterReward);

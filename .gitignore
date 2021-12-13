@@ -1,7 +1,21 @@
 node_modules
 .env
 .DS_Store
+.gitignore
 
 #Hardhat files
 cache
 artifacts
+
+2Dos.ignore
+* Decay rates.xlsx
+test/gasTest.test.js
+test/testSR.test.js
+test/stakingRewards.test.js
+test/stakingRewardsPowerFormula.test.js
+contracts/utils/PowerContract.sol
+contracts/StakingRewardsV3.sol
+contracts/libraries/DecayRateLib.sol
+.openzeppelin/*
+
+package-lock*
