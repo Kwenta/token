@@ -254,19 +254,28 @@ describe('lastTimeRewardApplicable()', () => {
 
 describe('rewardPerToken()', () => {
 		it('should return 0', async () => {
-			console.log("TOTAL SUPPLY", (await kwentaToken.balanceOf(stProxy.address)).toString());
+			StakingRewards = await deployContract();
+			stProxy = await hre.upgrades.deployProxy(StakingRewards,
+				[owner.address, kwentaToken.address, 
+				kwentaToken.address, rewardsEscrow.address, 3],
+				{kind: "uups",
+				unsafeAllow: ["external-library-linking"]
+				});
+
+			await stProxy.connect(owner).setExchangerProxy(exchangerProxy.address);
+
 			assertBNEqual(await stProxy.rewardPerToken(), 0);
 		});
 
 		it('should be > 0', async () => {
 			const totalToStake = toUnit(10);
 			
+			await kwentaToken.connect(treasuryDAO).transfer(stProxy.address, toUnit(10));
+			await kwentaToken.connect(staker1).approve(stProxy.address, toUnit(10));
+			await stProxy.connect(owner).setRewardNEpochs(toUnit(10), 4);
 
-			const totalRewardScore = await stProxy.totalRewardScore();
-			assertBNGreaterThan(totalRewardScore, 0);
-
-			await fastForward(DAY);
 			await stProxy.connect(staker1).stake(totalToStake);
+			await fastForward(1);
 
 			const rewardPerToken = await stProxy.rewardPerToken();
 			assertBNGreaterThan(rewardPerToken, 0);
