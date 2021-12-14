@@ -254,7 +254,8 @@ describe('lastTimeRewardApplicable()', () => {
 
 describe('rewardPerToken()', () => {
 		it('should return 0', async () => {
-			assert.equal(await stProxy.rewardPerToken(), 0);
+			console.log("TOTAL SUPPLY", (await kwentaToken.balanceOf(stProxy.address)).toString());
+			assertBNEqual(await stProxy.rewardPerToken(), 0);
 		});
 
 		it('should be > 0', async () => {

@@ -16,7 +16,7 @@ import "./interfaces/IERC20.sol";
 // https://docs.synthetix.io/contracts/source/contracts/supplyschedule
 contract SupplySchedule is Owned, ISupplySchedule {
     using SafeMath for uint;
-    using SafeDecimalMath for uint;
+    using SafeDecimalMathV5 for uint;
     using Math for uint;
 
     // Time of the last inflation supply mint event
@@ -114,7 +114,7 @@ contract SupplySchedule is Owned, ISupplySchedule {
     function tokenDecaySupplyForWeek(uint counter) public pure returns (uint) {
         // Apply exponential decay function to number of weeks since
         // start of inflation smoothing to calculate diminishing supply for the week.
-        uint effectiveDecay = (SafeDecimalMath.unit().sub(DECAY_RATE)).powDecimal(counter);
+        uint effectiveDecay = (SafeDecimalMathV5.unit().sub(DECAY_RATE)).powDecimal(counter);
         uint supplyForWeek = INITIAL_WEEKLY_SUPPLY.multiplyDecimal(effectiveDecay);
 
         return supplyForWeek;
@@ -126,10 +126,10 @@ contract SupplySchedule is Owned, ISupplySchedule {
      */
     function terminalInflationSupply(uint totalSupply, uint numOfWeeks) public pure returns (uint) {
         // rate = (1 + weekly rate) ^ num of weeks
-        uint effectiveCompoundRate = SafeDecimalMath.unit().add(TERMINAL_SUPPLY_RATE_ANNUAL.div(52)).powDecimal(numOfWeeks);
+        uint effectiveCompoundRate = SafeDecimalMathV5.unit().add(TERMINAL_SUPPLY_RATE_ANNUAL.div(52)).powDecimal(numOfWeeks);
 
         // return Supply * (effectiveRate - 1) for extra supply to issue based on number of weeks
-        return totalSupply.multiplyDecimal(effectiveCompoundRate.sub(SafeDecimalMath.unit()));
+        return totalSupply.multiplyDecimal(effectiveCompoundRate.sub(SafeDecimalMathV5.unit()));
     }
 
     /**

@@ -6,7 +6,7 @@ import "./SafeDecimalMath.sol";
 // https://docs.synthetix.io/contracts/source/libraries/math
 library Math {
     using SafeMath for uint;
-    using SafeDecimalMath for uint;
+    using SafeDecimalMathV5 for uint;
 
     /**
      * @dev Uses "exponentiation by squaring" algorithm where cost is 0(logN)
@@ -17,7 +17,7 @@ library Math {
     function powDecimal(uint x, uint n) internal pure returns (uint) {
         // https://mpark.github.io/programming/2014/08/18/exponentiation-by-squaring/
 
-        uint result = SafeDecimalMath.unit();
+        uint result = SafeDecimalMathV5.unit();
         while (n > 0) {
             if (n % 2 != 0) {
                 result = result.multiplyDecimal(x);
