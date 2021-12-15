@@ -51,14 +51,14 @@ describe("SupplySchedule", async () => {
     }
 
     const setupSupplySchedule = async () => {
-        const MockRewardsDistribution = await ethers.getContractFactory(
-            "MockRewardsDistribution"
+        const MockStakingRewards = await ethers.getContractFactory(
+            "MockStakingRewards"
         );
-        const mockRewardsDistribution = await MockRewardsDistribution.deploy();
-        await mockRewardsDistribution.deployed();
+        const mockStakingRewards = await MockStakingRewards.deploy();
+        await mockStakingRewards.deployed();
 
         const SafeDecimalMath = await ethers.getContractFactory(
-            "SafeDecimalMath"
+            "SafeDecimalMathV5"
         );
         const safeDecimalMath = await SafeDecimalMath.deploy();
         await safeDecimalMath.deployed();
@@ -67,7 +67,7 @@ describe("SupplySchedule", async () => {
             "SupplySchedule",
             {
                 libraries: {
-                    SafeDecimalMath: safeDecimalMath.address,
+                    SafeDecimalMathV5: safeDecimalMath.address,
                 },
             }
         );
@@ -107,14 +107,18 @@ describe("SupplySchedule", async () => {
 
     it("should set constructor params on deployment", async () => {
         const SupplySchedule = await setupSupplySchedule();
-        supplySchedule = await SupplySchedule.deploy(owner.address);
-        await supplySchedule.deployed();
+        const instance = await SupplySchedule.deploy(owner.address);
+        await instance.deployed();
 
-        const weeklyIssuance = wei(313373).div(52);
-        expect(await instance.owner()).to.equal(owner);
-        expect(await instance.lastMintEvent()).to.equal(wei(0).toBN());
+        expect(await instance.owner()).to.equal(owner.address);
+        expect(await instance.lastMintEvent()).to.be.closeTo(
+            wei(Math.round(Date.now() / 1000), 18, true).toBN(),
+            10
+        );
         expect(await instance.weekCounter()).to.equal(wei(0).toBN());
-        expect(await instance.INITIAL_WEEKLY_SUPPLY()).to.equal(weeklyIssuance);
+        expect(await instance.INITIAL_WEEKLY_SUPPLY()).to.equal(
+            initialWeeklySupply.toBN()
+        );
     });
 
     describe("linking synthetix", async () => {

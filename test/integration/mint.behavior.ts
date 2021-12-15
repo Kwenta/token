@@ -11,18 +11,18 @@ describe("Mint", () => {
     let safeDecimalMath,
         supplySchedule: Contract,
         kwenta: Contract,
-        mockRewardsDistribution: Contract;
+        mockStakingRewards: Contract;
     before(async () => {
         const [owner] = await ethers.getSigners();
 
-        const MockRewardsDistribution = await ethers.getContractFactory(
-            "MockRewardsDistribution"
+        const MockStakingRewards = await ethers.getContractFactory(
+            "MockStakingRewards"
         );
-        mockRewardsDistribution = await MockRewardsDistribution.deploy();
-        await mockRewardsDistribution.deployed();
+        mockStakingRewards = await MockStakingRewards.deploy();
+        await mockStakingRewards.deployed();
 
         const SafeDecimalMath = await ethers.getContractFactory(
-            "SafeDecimalMath"
+            "SafeDecimalMathV5"
         );
         safeDecimalMath = await SafeDecimalMath.deploy();
         await safeDecimalMath.deployed();
@@ -31,7 +31,7 @@ describe("Mint", () => {
             "SupplySchedule",
             {
                 libraries: {
-                    SafeDecimalMath: safeDecimalMath.address,
+                    SafeDecimalMathV5: safeDecimalMath.address,
                 },
             }
         );
@@ -44,7 +44,7 @@ describe("Mint", () => {
             SYMBOL,
             INITIAL_SUPPLY,
             TREASURY_DAO_ADDRESS,
-            mockRewardsDistribution.address,
+            mockStakingRewards.address,
             supplySchedule.address
         );
         await kwenta.deployed();
@@ -57,7 +57,7 @@ describe("Mint", () => {
     it("No inflationary supply to mint", async () => {
         await expect(kwenta.mint()).to.be.revertedWith("No supply is mintable");
         expect(
-            await kwenta.balanceOf(mockRewardsDistribution.address)
+            await kwenta.balanceOf(mockStakingRewards.address)
         ).to.equal(0);
     });
 
@@ -71,7 +71,7 @@ describe("Mint", () => {
 
         // Make sure this is equivalent to first week distribution
         expect(
-            await kwenta.balanceOf(mockRewardsDistribution.address)
+            await kwenta.balanceOf(mockStakingRewards.address)
         ).to.equal(INITIAL_SUPPLY.mul(60).div(100).div(52).sub(MINTER_REWARD));
     });
 });
