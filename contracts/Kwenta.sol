@@ -4,11 +4,11 @@ pragma solidity ^0.8.7;
 
 import './utils/ERC20.sol';
 import './interfaces/ISupplySchedule.sol';
-import './interfaces/IRewardsDistribution.sol';
+import './interfaces/IStakingRewards.sol';
 
 contract Kwenta is ERC20 {
 
-    address rewardsDistribution;
+    address stakingRewards;
     address supplySchedule;
 
     constructor(
@@ -16,7 +16,7 @@ contract Kwenta is ERC20 {
         string memory symbol, 
         uint _initialSupply, 
         address _treasuryDAO,
-        address _rewardsDistribution,
+        address _stakingRewards,
         address _supplySchedule
     ) ERC20(name, symbol) {
         // Treasury DAO 60%
@@ -26,16 +26,16 @@ contract Kwenta is ERC20 {
         // SX/Kwenta Airdrop 2.5%
         // Trader Ongoing Distribution 2.5%
         // Aelin 5%
-        rewardsDistribution = _rewardsDistribution;
+        stakingRewards = _stakingRewards;
         supplySchedule = _supplySchedule;
     }
 
     // Mints inflationary supply
     function mint() external returns (bool) {
-        require(rewardsDistribution != address(0), "RewardsDistribution not set");
+        require(stakingRewards != address(0), "Staking rewards not set");
 
         ISupplySchedule _supplySchedule = ISupplySchedule(supplySchedule);
-        IRewardsDistribution _rewardsDistribution = IRewardsDistribution(rewardsDistribution);
+        IStakingRewards _stakingRewards = IStakingRewards(stakingRewards);
 
         uint supplyToMint = _supplySchedule.mintableSupply();
         require(supplyToMint > 0, "No supply is mintable");
@@ -50,10 +50,10 @@ contract Kwenta is ERC20 {
         uint amountToDistribute = supplyToMint - minterReward;
 
         // Mint to the RewardsDistribution contract
-        _mint(rewardsDistribution, amountToDistribute);
+        _mint(stakingRewards, amountToDistribute);
 
         // Kick off the distribution of rewards
-        _rewardsDistribution.setRewardNEpochs(amountToDistribute, 1);
+        _stakingRewards.setRewardNEpochs(amountToDistribute, 1);
 
         // Assign the minters reward.
         _mint(msg.sender, minterReward);

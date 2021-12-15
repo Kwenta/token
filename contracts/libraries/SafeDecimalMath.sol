@@ -4,7 +4,7 @@ pragma solidity ^0.5.16;
 import "./SafeMath.sol";
 
 // https://docs.synthetix.io/contracts/source/libraries/safedecimalmath
-library SafeDecimalMath {
+library SafeDecimalMathV5 {
     using SafeMath for uint;
 
     /* Number of decimal places in the representations. */
