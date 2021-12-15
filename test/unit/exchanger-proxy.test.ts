@@ -34,7 +34,7 @@ describe("Exchanger Proxy", function () {
         ////
 
         fakeStakingRewards = await smock.fake<IStakingRewards>(
-            "IStakingRewards"
+            "StakingRewards"
         );
         fakeStakingRewards.updateTraderScore.returns();
 
