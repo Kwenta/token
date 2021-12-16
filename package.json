@@ -5,6 +5,7 @@
     "test:integration": "npx hardhat test test/integration/*"
   },
   "devDependencies": {
+    "@defi-wonderland/smock": "^2.0.7",
     "@nomiclabs/hardhat-ethers": "^2.0.2",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
     "@nomiclabs/hardhat-truffle5": "2.0.0",
@@ -29,6 +30,7 @@
     "typescript": "^4.4.2"
   },
   "dependencies": {
-    "@synthetixio/wei": "^2.50.1-ovm-alpha"
+    "@synthetixio/wei": "^2.50.1-ovm-alpha",
+    "hardhat-typechain": "^0.3.5"
   }
 }

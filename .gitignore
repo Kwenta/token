@@ -6,6 +6,7 @@ node_modules
 #Hardhat files
 cache
 artifacts
+typechain
 
 2Dos.ignore
 * Decay rates.xlsx
