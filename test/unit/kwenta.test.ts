@@ -66,4 +66,15 @@ describe("KWENTA Token", function () {
             treasurySupplyWithDivertedRewards
         );
     });
+
+    it("Test changing inflationary diversion percentage", async function () {
+        await kwenta.setTreasuryDiversion(3000);
+        expect(await kwenta.treasuryDiversion()).to.equal("3000");
+    });
+
+    it("Test revert for setting inflationary diversion basis points greater than 10000", async function () {
+        await expect(kwenta.setTreasuryDiversion(20000)).to.be.revertedWith(
+            "Represented in basis points"
+        );
+    });
 });

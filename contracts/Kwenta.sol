@@ -13,7 +13,7 @@ contract Kwenta is ERC20, Owned {
     address stakingRewards;
     address supplySchedule;
 
-    uint treasuryDiversion;
+    uint public treasuryDiversion;
 
     constructor(
         string memory name, 
@@ -34,7 +34,7 @@ contract Kwenta is ERC20, Owned {
         // Trader Ongoing Distribution 2.5%
         stakingRewards = _stakingRewards;
         supplySchedule = _supplySchedule;
-        setTreasuryDiversionPercentage(_treasuryDiversion);
+        setTreasuryDiversion(_treasuryDiversion);
     }
 
     // Mints inflationary supply
@@ -63,7 +63,7 @@ contract Kwenta is ERC20, Owned {
         return true;
     }
 
-    function setTreasuryDiversionPercentage(uint _treasuryDiversion) public {
+    function setTreasuryDiversion(uint _treasuryDiversion) public {
         require(_treasuryDiversion < 10000, "Represented in basis points");
         treasuryDiversion = _treasuryDiversion;
     }
