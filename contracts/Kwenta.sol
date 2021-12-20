@@ -3,31 +3,38 @@
 pragma solidity ^0.8.7;
 
 import './utils/ERC20.sol';
+import './Owned.sol';
 import './interfaces/ISupplySchedule.sol';
 import './interfaces/IStakingRewards.sol';
 
-contract Kwenta is ERC20 {
+contract Kwenta is ERC20, Owned {
 
+    address treasuryDAO;
     address stakingRewards;
     address supplySchedule;
+
+    uint treasuryDiversion;
 
     constructor(
         string memory name, 
         string memory symbol, 
         uint _initialSupply, 
+        address _owner,
         address _treasuryDAO,
         address _stakingRewards,
-        address _supplySchedule
-    ) ERC20(name, symbol) {
+        address _supplySchedule,
+        uint _treasuryDiversion
+    ) ERC20(name, symbol) Owned(_owner) {
         // Treasury DAO 60%
-        _mint(_treasuryDAO, _initialSupply * 60 / 100);
+        _mint(_treasuryDAO, _initialSupply * 65 / 100);
+        treasuryDAO = _treasuryDAO;
         // TODO: Transfer to respective distributions:
         // Synthetix Staker Airdrop 30%
         // SX/Kwenta Airdrop 2.5%
         // Trader Ongoing Distribution 2.5%
-        // Aelin 5%
         stakingRewards = _stakingRewards;
         supplySchedule = _supplySchedule;
+        setTreasuryDiversionPercentage(_treasuryDiversion);
     }
 
     // Mints inflationary supply
@@ -43,22 +50,22 @@ contract Kwenta is ERC20 {
         // record minting event before mutation to token supply
         _supplySchedule.recordMintEvent(supplyToMint);
 
-        // Set minted SNX balance to RewardEscrow's balance
-        // Minus the minterReward and set balance of minter to add reward
         uint minterReward = _supplySchedule.minterReward();
-        // Get the remainder
         uint amountToDistribute = supplyToMint - minterReward;
+        uint amountToTreasury = amountToDistribute * treasuryDiversion / 10000;
+        uint amountToStakingRewards = amountToDistribute - amountToTreasury;
 
-        // Mint to the RewardsDistribution contract
-        _mint(stakingRewards, amountToDistribute);
-
-        // Kick off the distribution of rewards
+        _mint(treasuryDAO, amountToTreasury);
+        _mint(stakingRewards, amountToStakingRewards);
         _stakingRewards.setRewardNEpochs(amountToDistribute, 1);
-
-        // Assign the minters reward.
         _mint(msg.sender, minterReward);
 
         return true;
+    }
+
+    function setTreasuryDiversionPercentage(uint _treasuryDiversion) public {
+        require(_treasuryDiversion < 10000, "Represented in basis points");
+        treasuryDiversion = _treasuryDiversion;
     }
 
 }
