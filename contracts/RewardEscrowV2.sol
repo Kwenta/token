@@ -11,8 +11,8 @@ import "./SafeDecimalMath.sol";
 
 // Internal references
 import "./interfaces/IERC20.sol";
-import "./interfaces/IStakingRewards.sol";
 import "./interfaces/IKwenta.sol";
+import "./StakingRewards.sol";
 
 contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
     using SafeMath for uint;
@@ -242,6 +242,25 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
         uint256 duration
     ) external onlyStakingRewards {
         _appendVestingEntry(account, quantity, duration);
+    }
+
+    /**
+     * @notice Stakes escrowed KWENTA.
+     * @dev No tokens are transfered during this process, but the StakingRewards escrowed balance is updated.
+     * @param _amount The amount of escrowed KWENTA to be staked.
+     */
+    function stakeEscrow(uint256 _amount) external {
+        require(_amount + stakingRewards.escrowedBalanceOf(msg.sender) <= totalEscrowedAccountBalance[msg.sender]);
+        stakingRewards.stakeEscrow(msg.sender, _amount);
+    }
+
+    /**
+     * @notice Unstakes escrowed KWENTA.
+     * @dev No tokens are transfered during this process, but the StakingRewards escrowed balance is updated.
+     * @param _amount The amount of escrowed KWENTA to be unstaked.
+     */
+    function unstakeEscrow(uint256 _amount) external {
+        stakingRewards.unstakeEscrow(msg.sender, _amount);
     }
 
     /* Transfer vested tokens and update totalEscrowedAccountBalance, totalVestedAccountBalance */
