@@ -1,8 +1,19 @@
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity >=0.4.24;
+pragma experimental ABIEncoderV2;
 
-// https://docs.synthetix.io/contracts/source/interfaces/irewardescrow
-interface IRewardEscrow {
+library VestingEntries {
+    struct VestingEntry {
+        uint64 endTime;
+        uint256 escrowAmount;
+    }
+    struct VestingEntryWithID {
+        uint64 endTime;
+        uint256 escrowAmount;
+        uint256 entryID;
+    }
+}
+
+interface IRewardEscrowV2 {
     // Views
     function balanceOf(address account) external view returns (uint);
 
@@ -12,12 +23,40 @@ interface IRewardEscrow {
 
     function totalVestedAccountBalance(address account) external view returns (uint);
 
-    function getVestingScheduleEntry(address account, uint index) external view returns (uint[2] memory);
+    function getVestingQuantity(address account, uint256[] calldata entryIDs) external view returns (uint);
 
-    function getNextVestingIndex(address account) external view returns (uint);
+    function getVestingSchedules(
+        address account,
+        uint256 index,
+        uint256 pageSize
+    ) external view returns (VestingEntries.VestingEntryWithID[] memory);
+
+    function getAccountVestingEntryIDs(
+        address account,
+        uint256 index,
+        uint256 pageSize
+    ) external view returns (uint256[] memory);
+
+    function getVestingEntryClaimable(address account, uint256 entryID) external view returns (uint);
+
+    function getVestingEntry(address account, uint256 entryID) external view returns (uint64, uint256);
 
     // Mutative functions
-    function appendVestingEntry(address account, uint quantity) external;
+    function vest(uint256[] calldata entryIDs) external;
 
-    function vest() external;
+    function createEscrowEntry(
+        address beneficiary,
+        uint256 deposit,
+        uint256 duration
+    ) external;
+
+    function appendVestingEntry(
+        address account,
+        uint256 quantity,
+        uint256 duration
+    ) external;
+
+    function stakeEscrow(uint256 _amount) external;
+
+    function unstakeEscrow(uint256 _amount) external;
 }
