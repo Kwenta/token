@@ -20,7 +20,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
 
     IKwenta public kwenta;
 
-    IStakingRewards public stakingRewards;
+    StakingRewards public stakingRewards;
 
     mapping(address => mapping(uint256 => VestingEntries.VestingEntry)) public vestingSchedules;
 
@@ -30,10 +30,10 @@ contract RewardEscrow is Owned, IRewardEscrow {
     uint256 public nextEntryId;
 
     /* An account's total escrowed KWENTA balance to save recomputing this for fee extraction purposes. */
-    mapping(address => uint256) public totalEscrowedAccountBalance;
+    mapping(address => uint256) override public totalEscrowedAccountBalance;
 
     /* An account's total vested reward KWENTA. */
-    mapping(address => uint256) public totalVestedAccountBalance;
+    mapping(address => uint256) override public totalVestedAccountBalance;
 
     /* The total remaining escrowed balance, for verifying the actual KWENTA balance of this contract against. */
     uint256 public totalEscrowedBalance;
@@ -63,7 +63,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
     * @notice Function used to define the StakingRewards to use
     */
     function setStakingRewards(address _stakingRewards) public onlyOwner {
-        stakingRewards = IStakingRewards(_stakingRewards);
+        stakingRewards = StakingRewards(_stakingRewards);
         emit StakingRewardsUpdated(address(_stakingRewards));
     }
 
@@ -72,14 +72,14 @@ contract RewardEscrow is Owned, IRewardEscrow {
     /**
      * @notice A simple alias to totalEscrowedAccountBalance: provides ERC20 balance integration.
      */
-    function balanceOf(address account) public view returns (uint) {
+    function balanceOf(address account) override public view returns (uint) {
         return totalEscrowedAccountBalance[account];
     }
 
     /**
      * @notice The number of vesting dates in an account's schedule.
      */
-    function numVestingEntries(address account) external view returns (uint) {
+    function numVestingEntries(address account) override external view returns (uint) {
         return accountVestingEntryIDs[account].length;
     }
 
@@ -88,7 +88,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
      * @return endTime the vesting entry object 
      * @return escrowAmount rate per second emission.
      */
-    function getVestingEntry(address account, uint256 entryID) external view returns (uint64 endTime, uint256 escrowAmount) {
+    function getVestingEntry(address account, uint256 entryID) override external view returns (uint64 endTime, uint256 escrowAmount) {
         endTime = vestingSchedules[account][entryID].endTime;
         escrowAmount = vestingSchedules[account][entryID].escrowAmount;
     }
@@ -97,7 +97,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
         address account,
         uint256 index,
         uint256 pageSize
-    ) external view returns (VestingEntries.VestingEntryWithID[] memory) {
+    ) override external view returns (VestingEntries.VestingEntryWithID[] memory) {
         uint256 endIndex = index + pageSize;
 
         // If index starts after the endIndex return no results
@@ -130,7 +130,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
         address account,
         uint256 index,
         uint256 pageSize
-    ) external view returns (uint256[] memory) {
+    ) override external view returns (uint256[] memory) {
         uint256 endIndex = index + pageSize;
 
         // If the page extends past the end of the accountVestingEntryIDs, truncate it.
@@ -149,7 +149,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
         return page;
     }
 
-    function getVestingQuantity(address account, uint256[] calldata entryIDs) external view returns (uint total) {
+    function getVestingQuantity(address account, uint256[] calldata entryIDs) override external view returns (uint total) {
         for (uint i = 0; i < entryIDs.length; i++) {
             VestingEntries.VestingEntry memory entry = vestingSchedules[account][entryIDs[i]];
 
@@ -163,7 +163,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
         }
     }
 
-    function getVestingEntryClaimable(address account, uint256 entryID) external view returns (uint) {
+    function getVestingEntryClaimable(address account, uint256 entryID) override external view returns (uint) {
         VestingEntries.VestingEntry memory entry = vestingSchedules[account][entryID];
         return _claimableAmount(entry);
     }
@@ -184,7 +184,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
      * Allows users to vest their vesting entries based on msg.sender
      */
 
-    function vest(uint256[] calldata entryIDs) external {
+    function vest(uint256[] calldata entryIDs) override external {
         uint256 total;
         for (uint i = 0; i < entryIDs.length; i++) {
             VestingEntries.VestingEntry storage entry = vestingSchedules[msg.sender][entryIDs[i]];
@@ -218,7 +218,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
         address beneficiary,
         uint256 deposit,
         uint256 duration
-    ) external {
+    ) override external {
         require(beneficiary != address(0), "Cannot create escrow with address(0)");
 
         /* Transfer SNX from msg.sender */
@@ -240,7 +240,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
         address account,
         uint256 quantity,
         uint256 duration
-    ) external onlyStakingRewards {
+    ) override external onlyStakingRewards {
         _appendVestingEntry(account, quantity, duration);
     }
 
@@ -249,7 +249,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
      * @dev No tokens are transfered during this process, but the StakingRewards escrowed balance is updated.
      * @param _amount The amount of escrowed KWENTA to be staked.
      */
-    function stakeEscrow(uint256 _amount) external {
+    function stakeEscrow(uint256 _amount) override external {
         require(_amount + stakingRewards.escrowedBalanceOf(msg.sender) <= totalEscrowedAccountBalance[msg.sender]);
         stakingRewards.stakeEscrow(msg.sender, _amount);
     }
@@ -259,7 +259,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
      * @dev No tokens are transfered during this process, but the StakingRewards escrowed balance is updated.
      * @param _amount The amount of escrowed KWENTA to be unstaked.
      */
-    function unstakeEscrow(uint256 _amount) external {
+    function unstakeEscrow(uint256 _amount) override external {
         stakingRewards.unstakeEscrow(msg.sender, _amount);
     }
 
