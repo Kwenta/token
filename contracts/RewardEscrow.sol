@@ -14,7 +14,7 @@ import "./interfaces/IERC20.sol";
 import "./interfaces/IKwenta.sol";
 import "./StakingRewards.sol";
 
-contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
+contract RewardEscrow is Owned, IRewardEscrow {
     using SafeMath for uint;
     using SafeDecimalMath for uint;
 

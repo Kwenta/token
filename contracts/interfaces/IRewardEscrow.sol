@@ -13,7 +13,7 @@ library VestingEntries {
     }
 }
 
-interface IRewardEscrowV2 {
+interface IRewardEscrow {
     // Views
     function balanceOf(address account) external view returns (uint);
 
