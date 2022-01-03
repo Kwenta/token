@@ -43,10 +43,9 @@ contract RewardEscrow is Owned, IRewardEscrow {
 
     /* ========== CONSTRUCTOR ========== */
 
-    constructor(address _owner, address _kwenta, address _stakingRewards) Owned(_owner) {
+    constructor(address _owner, address _kwenta) Owned(_owner) {
         nextEntryId = 1;
         setKwenta(_kwenta);
-        setStakingRewards(_stakingRewards);
     }
 
     /* ========== SETTERS ========== */
@@ -315,7 +314,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
 
     /* ========== MODIFIERS ========== */
     modifier onlyStakingRewards() {
-        require(msg.sender == address(stakingRewards), "Only the StakingRewards contract can perform this action");
+        require(msg.sender == address(stakingRewards), "Only the StakingRewards can perform this action");
         _;
     }
 
