@@ -1,46 +1,51 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
+pragma experimental ABIEncoderV2;
 
 // Inheritance
 import "./Owned.sol";
 import "./interfaces/IRewardEscrow.sol";
 
 // Libraries
+import "./SafeDecimalMath.sol";
+
+// Internal references
+import "./interfaces/IERC20.sol";
+import "./interfaces/IKwenta.sol";
 import "./StakingRewards.sol";
 
 contract RewardEscrow is Owned, IRewardEscrow {
-    /* The corresponding KWENTA contract. */
-    IERC20 public kwenta;
+    using SafeMath for uint;
+    using SafeDecimalMath for uint;
+
+    IKwenta public kwenta;
 
     StakingRewards public stakingRewards;
 
-    /* Lists of (timestamp, quantity) pairs per account, sorted in ascending time order.
-     * These are the times at which each given quantity of KWENTA vests. */
-    mapping(address => uint[2][]) public vestingSchedules;
+    mapping(address => mapping(uint256 => VestingEntries.VestingEntry)) public vestingSchedules;
 
-    /* An account's total escrowed Kwenta balance to save recomputing this for fee extraction purposes. */
-    mapping(address => uint) public override totalEscrowedAccountBalance;
+    mapping(address => uint256[]) public accountVestingEntryIDs;
 
-    /* An account's total vested reward Kwenta. */
-    mapping(address => uint) public override totalVestedAccountBalance;
+    /*Counter for new vesting entry ids. */
+    uint256 public nextEntryId;
 
-    /* The total remaining escrowed balance, for verifying the actual Kwenta balance of this contract against. */
-    uint public totalEscrowedBalance;
+    /* An account's total escrowed KWENTA balance to save recomputing this for fee extraction purposes. */
+    mapping(address => uint256) override public totalEscrowedAccountBalance;
 
-    uint internal constant TIME_INDEX = 0;
-    uint internal constant QUANTITY_INDEX = 1;
+    /* An account's total vested reward KWENTA. */
+    mapping(address => uint256) override public totalVestedAccountBalance;
 
-    /* Limit vesting entries to disallow unbounded iteration over vesting schedules.
-     * There are 5 years of the supply schedule */
-    uint public constant MAX_VESTING_ENTRIES = 52 * 5;
+    /* The total remaining escrowed balance, for verifying the actual KWENTA balance of this contract against. */
+    uint256 public totalEscrowedBalance;
+
+    /* Max escrow duration */
+    uint public max_duration = 2 * 52 weeks; // Default max 2 years duration
 
     /* ========== CONSTRUCTOR ========== */
 
-    constructor(
-        address _owner,
-        address _kwenta
-    ) Owned(_owner) {
-        kwenta = IERC20(_kwenta);
+    constructor(address _owner, address _kwenta) Owned(_owner) {
+        nextEntryId = 1;
+        setKwenta(_kwenta);
     }
 
     /* ========== SETTERS ========== */
@@ -48,15 +53,15 @@ contract RewardEscrow is Owned, IRewardEscrow {
     /**
      * @notice set the Kwenta contract address as we need to transfer KWENTA when the user vests
      */
-    function setKwenta(IERC20 _kwenta) external onlyOwner {
-        kwenta = _kwenta;
+    function setKwenta(address _kwenta) public onlyOwner {
+        kwenta = IKwenta(_kwenta);
         emit KwentaUpdated(address(_kwenta));
     }
 
     /*
     * @notice Function used to define the StakingRewards to use
     */
-    function setStakingRewards(address _stakingRewards) external onlyOwner {
+    function setStakingRewards(address _stakingRewards) public onlyOwner {
         stakingRewards = StakingRewards(_stakingRewards);
         emit StakingRewardsUpdated(address(_stakingRewards));
     }
@@ -66,199 +71,256 @@ contract RewardEscrow is Owned, IRewardEscrow {
     /**
      * @notice A simple alias to totalEscrowedAccountBalance: provides ERC20 balance integration.
      */
-    function balanceOf(address account) public view override returns (uint) {
+    function balanceOf(address account) override public view returns (uint) {
         return totalEscrowedAccountBalance[account];
-    }
-
-    function _numVestingEntries(address account) internal view returns (uint) {
-        return vestingSchedules[account].length;
     }
 
     /**
      * @notice The number of vesting dates in an account's schedule.
      */
-    function numVestingEntries(address account) external view override returns (uint) {
-        return _numVestingEntries(account);
+    function numVestingEntries(address account) override external view returns (uint) {
+        return accountVestingEntryIDs[account].length;
     }
 
     /**
      * @notice Get a particular schedule entry for an account.
-     * @return A pair of uints: (timestamp, Kwenta quantity).
+     * @return endTime the vesting entry object 
+     * @return escrowAmount rate per second emission.
      */
-    function getVestingScheduleEntry(address account, uint index) public view override returns (uint[2] memory) {
-        return vestingSchedules[account][index];
+    function getVestingEntry(address account, uint256 entryID) override external view returns (uint64 endTime, uint256 escrowAmount) {
+        endTime = vestingSchedules[account][entryID].endTime;
+        escrowAmount = vestingSchedules[account][entryID].escrowAmount;
     }
 
-    /**
-     * @notice Get the time at which a given schedule entry will vest.
-     */
-    function getVestingTime(address account, uint index) public view returns (uint) {
-        return getVestingScheduleEntry(account, index)[TIME_INDEX];
+    function getVestingSchedules(
+        address account,
+        uint256 index,
+        uint256 pageSize
+    ) override external view returns (VestingEntries.VestingEntryWithID[] memory) {
+        uint256 endIndex = index + pageSize;
+
+        // If index starts after the endIndex return no results
+        if (endIndex <= index) {
+            return new VestingEntries.VestingEntryWithID[](0);
+        }
+
+        // If the page extends past the end of the accountVestingEntryIDs, truncate it.
+        if (endIndex > accountVestingEntryIDs[account].length) {
+            endIndex = accountVestingEntryIDs[account].length;
+        }
+
+        uint256 n = endIndex - index;
+        VestingEntries.VestingEntryWithID[] memory vestingEntries = new VestingEntries.VestingEntryWithID[](n);
+        for (uint256 i; i < n; i++) {
+            uint256 entryID = accountVestingEntryIDs[account][i + index];
+
+            VestingEntries.VestingEntry memory entry = vestingSchedules[account][entryID];
+
+            vestingEntries[i] = VestingEntries.VestingEntryWithID({
+                endTime: uint64(entry.endTime),
+                escrowAmount: entry.escrowAmount,
+                entryID: entryID
+            });
+        }
+        return vestingEntries;
     }
 
-    /**
-     * @notice Get the quantity of KWENTA associated with a given schedule entry.
-     */
-    function getVestingQuantity(address account, uint index) public view returns (uint) {
-        return getVestingScheduleEntry(account, index)[QUANTITY_INDEX];
+    function getAccountVestingEntryIDs(
+        address account,
+        uint256 index,
+        uint256 pageSize
+    ) override external view returns (uint256[] memory) {
+        uint256 endIndex = index + pageSize;
+
+        // If the page extends past the end of the accountVestingEntryIDs, truncate it.
+        if (endIndex > accountVestingEntryIDs[account].length) {
+            endIndex = accountVestingEntryIDs[account].length;
+        }
+        if (endIndex <= index) {
+            return new uint256[](0);
+        }
+
+        uint256 n = endIndex - index;
+        uint256[] memory page = new uint256[](n);
+        for (uint256 i; i < n; i++) {
+            page[i] = accountVestingEntryIDs[account][i + index];
+        }
+        return page;
     }
 
-    /**
-     * @notice Obtain the index of the next schedule entry that will vest for a given user.
-     */
-    function getNextVestingIndex(address account) public view override returns (uint) {
-        uint len = _numVestingEntries(account);
-        for (uint i = 0; i < len; i++) {
-            if (getVestingTime(account, i) != 0) {
-                return i;
+    function getVestingQuantity(address account, uint256[] calldata entryIDs) override external view returns (uint total) {
+        for (uint i = 0; i < entryIDs.length; i++) {
+            VestingEntries.VestingEntry memory entry = vestingSchedules[account][entryIDs[i]];
+
+            /* Skip entry if escrowAmount == 0 */
+            if (entry.escrowAmount != 0) {
+                uint256 quantity = _claimableAmount(entry);
+
+                /* add quantity to total */
+                total = total.add(quantity);
             }
         }
-        return len;
     }
 
-    /**
-     * @notice Obtain the next schedule entry that will vest for a given user.
-     * @return A pair of uints: (timestamp, Kwenta quantity). */
-    function getNextVestingEntry(address account) public view returns (uint[2] memory) {
-        uint index = getNextVestingIndex(account);
-        if (index == _numVestingEntries(account)) {
-            return [uint(0), 0];
+    function getVestingEntryClaimable(address account, uint256 entryID) override external view returns (uint) {
+        VestingEntries.VestingEntry memory entry = vestingSchedules[account][entryID];
+        return _claimableAmount(entry);
+    }
+
+    function _claimableAmount(VestingEntries.VestingEntry memory _entry) internal view returns (uint256) {
+        uint256 quantity;
+        if (_entry.escrowAmount != 0) {
+            /* Escrow amounts claimable if block.timestamp equal to or after entry endTime */
+            quantity = block.timestamp >= _entry.endTime ? _entry.escrowAmount : 0;
         }
-        return getVestingScheduleEntry(account, index);
-    }
-
-    /**
-     * @notice Obtain the time at which the next schedule entry will vest for a given user.
-     */
-    function getNextVestingTime(address account) external view returns (uint) {
-        return getNextVestingEntry(account)[TIME_INDEX];
-    }
-
-    /**
-     * @notice Obtain the quantity which the next schedule entry will vest for a given user.
-     */
-    function getNextVestingQuantity(address account) external view returns (uint) {
-        return getNextVestingEntry(account)[QUANTITY_INDEX];
-    }
-
-    /**
-     * @notice return the full vesting schedule entries vest for a given user.
-     * @dev For DApps to display the vesting schedule for the
-     * inflationary supply over 5 years. Solidity cant return variable length arrays
-     * so this is returning pairs of data. Vesting Time at [0] and quantity at [1] and so on
-     */
-    function checkAccountSchedule(address account) public view returns (uint[520] memory) {
-        uint[520] memory _result;
-        uint schedules = _numVestingEntries(account);
-        for (uint i = 0; i < schedules; i++) {
-            uint[2] memory pair = getVestingScheduleEntry(account, i);
-            _result[i * 2] = pair[0];
-            _result[i * 2 + 1] = pair[1];
-        }
-        return _result;
+        return quantity;
     }
 
     /* ========== MUTATIVE FUNCTIONS ========== */
 
-    function _appendVestingEntry(address account, uint quantity) internal {
+    /**
+     * Vest escrowed amounts that are claimable
+     * Allows users to vest their vesting entries based on msg.sender
+     */
+
+    function vest(uint256[] calldata entryIDs) override external {
+        uint256 total;
+        for (uint i = 0; i < entryIDs.length; i++) {
+            VestingEntries.VestingEntry storage entry = vestingSchedules[msg.sender][entryIDs[i]];
+
+            /* Skip entry if escrowAmount == 0 already vested */
+            if (entry.escrowAmount != 0) {
+                uint256 quantity = _claimableAmount(entry);
+
+                /* update entry to remove escrowAmount */
+                if (quantity > 0) {
+                    entry.escrowAmount = 0;
+                }
+
+                /* add quantity to total */
+                total = total.add(quantity);
+            }
+        }
+
+        /* Transfer vested tokens. Will revert if total > totalEscrowedAccountBalance */
+        if (total != 0) {
+            _transferVestedTokens(msg.sender, total);
+        }
+    }
+
+    /**
+     * @notice Create an escrow entry to lock SNX for a given duration in seconds
+     * @dev This call expects that the depositor (msg.sender) has already approved the Reward escrow contract
+     to spend the the amount being escrowed.
+     */
+    function createEscrowEntry(
+        address beneficiary,
+        uint256 deposit,
+        uint256 duration
+    ) override external {
+        require(beneficiary != address(0), "Cannot create escrow with address(0)");
+
+        /* Transfer SNX from msg.sender */
+        require(IERC20(kwenta).transferFrom(msg.sender, address(this), deposit), "token transfer failed");
+
+        /* Append vesting entry for the beneficiary address */
+        _appendVestingEntry(beneficiary, deposit, duration);
+    }
+
+    /**
+     * @notice Add a new vesting entry at a given time and quantity to an account's schedule.
+     * @dev A call to this should accompany a previous successful call to kwenta.transfer(rewardEscrow, amount),
+     * to ensure that when the funds are withdrawn, there is enough balance.
+     * @param account The account to append a new vesting entry to.
+     * @param quantity The quantity of SNX that will be escrowed.
+     * @param duration The duration that SNX will be emitted.
+     */
+    function appendVestingEntry(
+        address account,
+        uint256 quantity,
+        uint256 duration
+    ) override external onlyStakingRewards {
+        _appendVestingEntry(account, quantity, duration);
+    }
+
+    /**
+     * @notice Stakes escrowed KWENTA.
+     * @dev No tokens are transfered during this process, but the StakingRewards escrowed balance is updated.
+     * @param _amount The amount of escrowed KWENTA to be staked.
+     */
+    function stakeEscrow(uint256 _amount) override external {
+        require(_amount + stakingRewards.escrowedBalanceOf(msg.sender) <= totalEscrowedAccountBalance[msg.sender]);
+        stakingRewards.stakeEscrow(msg.sender, _amount);
+    }
+
+    /**
+     * @notice Unstakes escrowed KWENTA.
+     * @dev No tokens are transfered during this process, but the StakingRewards escrowed balance is updated.
+     * @param _amount The amount of escrowed KWENTA to be unstaked.
+     */
+    function unstakeEscrow(uint256 _amount) override external {
+        stakingRewards.unstakeEscrow(msg.sender, _amount);
+    }
+
+    /* Transfer vested tokens and update totalEscrowedAccountBalance, totalVestedAccountBalance */
+    function _transferVestedTokens(address _account, uint256 _amount) internal {
+        _reduceAccountEscrowBalances(_account, _amount);
+        totalVestedAccountBalance[_account] = totalVestedAccountBalance[_account].add(_amount);
+        IERC20(address(kwenta)).transfer(_account, _amount);
+        emit Vested(_account, block.timestamp, _amount);
+    }
+
+    function _reduceAccountEscrowBalances(address _account, uint256 _amount) internal {
+        // Reverts if amount being vested is greater than the account's existing totalEscrowedAccountBalance
+        totalEscrowedBalance = totalEscrowedBalance.sub(_amount);
+        totalEscrowedAccountBalance[_account] = totalEscrowedAccountBalance[_account].sub(_amount);
+    }
+
+    /* ========== INTERNALS ========== */
+
+    function _appendVestingEntry(
+        address account,
+        uint256 quantity,
+        uint256 duration
+    ) internal {
         /* No empty or already-passed vesting entries allowed. */
         require(quantity != 0, "Quantity cannot be zero");
+        require(duration > 0 && duration <= max_duration, "Cannot escrow with 0 duration OR above max_duration");
 
         /* There must be enough balance in the contract to provide for the vesting entry. */
-        totalEscrowedBalance = totalEscrowedBalance + quantity;
+        totalEscrowedBalance = totalEscrowedBalance.add(quantity);
+
         require(
             totalEscrowedBalance <= IERC20(address(kwenta)).balanceOf(address(this)),
             "Must be enough balance in the contract to provide for the vesting entry"
         );
 
-        /* Disallow arbitrarily long vesting schedules in light of the gas limit. */
-        uint scheduleLength = vestingSchedules[account].length;
-        require(scheduleLength < MAX_VESTING_ENTRIES, "Vesting schedule is too long");
+        /* Escrow the tokens for duration. */
+        uint endTime = block.timestamp + duration;
 
-        /* Escrow the tokens for 1 year. */
-        uint time = block.timestamp + 52 weeks;
+        /* Add quantity to account's escrowed balance */
+        totalEscrowedAccountBalance[account] = totalEscrowedAccountBalance[account].add(quantity);
 
-        if (scheduleLength == 0) {
-            totalEscrowedAccountBalance[account] = quantity;
-        } else {
-            /* Disallow adding new vested KWENTA earlier than the last one.
-             * Since entries are only appended, this means that no vesting date can be repeated. */
-            require(
-                getVestingTime(account, scheduleLength - 1) < time,
-                "Cannot add new vested entries earlier than the last one"
-            );
-            totalEscrowedAccountBalance[account] = totalEscrowedAccountBalance[account] + quantity;
-        }
+        uint entryID = nextEntryId;
+        vestingSchedules[account][entryID] = VestingEntries.VestingEntry({endTime: uint64(endTime), escrowAmount: quantity});
 
-        vestingSchedules[account].push([time, quantity]);
+        accountVestingEntryIDs[account].push(entryID);
 
-        emit VestingEntryCreated(account, block.timestamp, quantity);
-    }
+        /* Increment the next entry id. */
+        nextEntryId = nextEntryId.add(1);
 
-    /**
-     * @notice Add a new vesting entry at a given time and quantity to an account's schedule.
-     * @dev A call to this should accompany a previous successful call to Kwenta.transfer(rewardEscrow, amount),
-     * to ensure that when the funds are withdrawn, there is enough balance.
-     * Note; although this function could technically be used to produce unbounded
-     * arrays, it's only within the 4 year period of the weekly inflation schedule.
-     * @param account The account to append a new vesting entry to.
-     * @param quantity The quantity of KWENTA that will be escrowed.
-     */
-    function appendVestingEntry(address account, uint quantity) override external onlyStakingRewards {
-        _appendVestingEntry(account, quantity);
-        if(address(stakingRewards) != address(0)) {
-            stakingRewards.stakeEscrow(account, quantity);    
-        }
-        
-    }
-
-    /**
-     * @notice Allow a user to withdraw any KWENTA in their schedule that have vested.
-     */
-    function vest() override external {
-        uint numEntries = _numVestingEntries(msg.sender);
-        uint total;
-        for (uint i = 0; i < numEntries; i++) {
-            uint time = getVestingTime(msg.sender, i);
-            /* The list is sorted; when we reach the first future time, bail out. */
-            if (time > block.timestamp) {
-                break;
-            }
-            uint qty = getVestingQuantity(msg.sender, i);
-            if (qty > 0) {
-                vestingSchedules[msg.sender][i] = [0, 0];
-                total = total + qty;
-            }
-        }
-
-        if (total != 0) {
-            totalEscrowedBalance = totalEscrowedBalance - total;
-            totalEscrowedAccountBalance[msg.sender] = totalEscrowedAccountBalance[msg.sender] - total;
-            totalVestedAccountBalance[msg.sender] = totalVestedAccountBalance[msg.sender] + total;
-            IERC20(address(kwenta)).transfer(msg.sender, total);
-            if(address(stakingRewards) != address(0)) {
-                stakingRewards.unstakeEscrow(msg.sender, total);
-            }
-            emit Vested(msg.sender, block.timestamp, total);
-        }
+        emit VestingEntryCreated(account, block.timestamp, quantity, duration, entryID);
     }
 
     /* ========== MODIFIERS ========== */
-
     modifier onlyStakingRewards() {
-        bool isStakingRewards = msg.sender == address(stakingRewards);
-
-        require(isStakingRewards, "Only the StakingRewards contract can perform this action");
+        require(msg.sender == address(stakingRewards), "Only the StakingRewards can perform this action");
         _;
     }
 
     /* ========== EVENTS ========== */
-
-    event KwentaUpdated(address newkwenta);
-
     event Vested(address indexed beneficiary, uint time, uint value);
-
-    event VestingEntryCreated(address indexed beneficiary, uint time, uint value);
-
+    event VestingEntryCreated(address indexed beneficiary, uint time, uint value, uint duration, uint entryID);
+    event KwentaUpdated(address newkwenta);
     event StakingRewardsUpdated(address rewardEscrow);
 }

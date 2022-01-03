@@ -124,9 +124,11 @@ before(async() => {
 		kwentaToken = await KwentaToken.deploy(NAME, 
 			SYMBOL,
 			INITIAL_SUPPLY,
+			owner.address,
 			treasuryDAO.address,
 			rewardsDistribution.address,
-			supplySchedule.address
+			supplySchedule.address,
+			2000
 		);
 		RewardsEscrow = await await hre.ethers.getContractFactory("RewardEscrow");
 		rewardsEscrow = await RewardsEscrow.deploy(owner.address, kwentaToken.address);

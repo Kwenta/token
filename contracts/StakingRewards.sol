@@ -400,7 +400,7 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
             rewards[msg.sender] = 0;
             // Send the rewards to Escrow for 1 year
             stakingToken.transfer(address(rewardEscrow), reward);
-            rewardEscrow.appendVestingEntry(msg.sender, reward);
+            rewardEscrow.appendVestingEntry(msg.sender, reward, 52 weeks);
             emit RewardPaid(msg.sender, reward);
         }
     }
