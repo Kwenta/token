@@ -9,6 +9,7 @@ const { assert } = require("chai");
 require("chai")
     .use(require("chai-as-promised"))
     .use(require("chai-bn-equal"))
+    .use(smock.matchers)
     .should();
 
 const send = (payload) => {
@@ -150,7 +151,7 @@ assert.eventEqual = assertEventEqual;
 
 contract(
     "RewardEscrow KWENTA",
-    ([owner, rewardsDistribution, staker1, staker2, treasuryDAO]) => {
+    ([owner, user1, staker1, staker2, treasuryDAO]) => {
         console.log("Start tests");
         const SECOND = 1000;
         const DAY = 86400;
@@ -164,6 +165,8 @@ contract(
 
         before(async () => {
             kwentaSmock = await smock.fake("Kwenta");
+
+            // TODO: Remove if unused
             stakingToken = await TokenContract.new(
                 NAME,
                 SYMBOL,
@@ -198,6 +201,7 @@ contract(
 
             stakingRewards = await StakingRewards.new();
 
+            // TODO: Remove if unused
             stakingRewards.initialize(
                 owner,
                 rewardsToken.address,
@@ -1530,6 +1534,64 @@ contract(
 
                 // should be 130 entryID's in the list
                 assert.equal(vestingEntryIDs.length, 130);
+            });
+        });
+
+        describe.only("Staking Escrow", () => {
+            let stakingRewardsSmock;
+
+            beforeEach(async () => {
+                stakingRewardsSmock = await smock.fake("StakingRewards");
+
+                rewardsEscrow = await RewardsEscrow.new(
+                    owner,
+                    kwentaSmock.address
+                );
+                await rewardsEscrow.setStakingRewards(
+                    stakingRewardsSmock.address,
+                    {
+                        from: owner,
+                    }
+                );
+            });
+
+            it("should revert because staker has no escrowed KWENTA", async () => {
+                const escrowAmount = wei(10).toBN();
+                await assert.revert(
+                    rewardsEscrow.stakeEscrow(escrowAmount, {
+                        from: staker1,
+                    })
+                );
+            });
+
+            it("should stake escrow", async () => {
+                const escrowAmount = wei(10).toBN();
+                // stub transferFrom
+                kwentaSmock.transferFrom.returns(true);
+                // stub balanceOf
+                kwentaSmock.balanceOf.returns(escrowAmount);
+                await rewardsEscrow.createEscrowEntry(
+                    staker1,
+                    escrowAmount,
+                    1 * YEAR
+                );
+                await rewardsEscrow.stakeEscrow(escrowAmount, {
+                    from: staker1,
+                });
+                expect(stakingRewardsSmock.stakeEscrow).to.have.been.calledWith(
+                    staker1,
+                    escrowAmount
+                );
+            });
+
+            it("should unstake escrow", async () => {
+                const escrowAmount = wei(10).toBN();
+                await rewardsEscrow.unstakeEscrow(escrowAmount, {
+                    from: staker1,
+                });
+                expect(
+                    stakingRewardsSmock.unstakeEscrow
+                ).to.have.been.calledWith(staker1, escrowAmount);
             });
         });
     }
