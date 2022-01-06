@@ -1537,7 +1537,7 @@ contract(
             });
         });
 
-        describe.only("Staking Escrow", () => {
+        describe("Staking Escrow", () => {
             let stakingRewardsSmock;
 
             beforeEach(async () => {

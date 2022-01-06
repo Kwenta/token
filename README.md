@@ -15,7 +15,7 @@ The following architecture diagram is still in flux, but provides a general over
 npm run test
 ```
 ```
-npm run test:unit
+npm run test:contracts
 ```
 ```
 npm run test:integration
