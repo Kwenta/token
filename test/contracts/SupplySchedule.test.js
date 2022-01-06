@@ -81,6 +81,7 @@ describe("SupplySchedule", async () => {
         const INITIAL_SUPPLY = parseUnits("313373");
         const TREASURY_DAO_ADDRESS =
             "0x0000000000000000000000000000000000000001";
+        const INFLATION_DIVERSION_BPS = 2000;
 
         const SupplySchedule = await setupSupplySchedule();
         supplySchedule = await SupplySchedule.deploy(owner.address);
@@ -91,9 +92,11 @@ describe("SupplySchedule", async () => {
             NAME,
             SYMBOL,
             INITIAL_SUPPLY,
+            owner.address,
             TREASURY_DAO_ADDRESS, // Cannot mint to zero address
             ethers.constants.AddressZero,
-            ethers.constants.AddressZero
+            ethers.constants.AddressZero,
+            INFLATION_DIVERSION_BPS
         );
 
         await synthetixProxy.deployed();
