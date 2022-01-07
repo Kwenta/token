@@ -204,6 +204,11 @@ contract RewardEscrow is Owned, IRewardEscrow {
 
         /* Transfer vested tokens. Will revert if total > totalEscrowedAccountBalance */
         if (total != 0) {
+            uint unstakedEscrow = totalEscrowedAccountBalance[msg.sender] - stakingRewards.escrowedBalanceOf(msg.sender);
+            if (total > unstakedEscrow) {
+                uint neededStakedEscrow = total - unstakedEscrow;
+                unstakeEscrow(neededStakedEscrow);
+            }
             _transferVestedTokens(msg.sender, total);
         }
     }
@@ -258,7 +263,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
      * @dev No tokens are transfered during this process, but the StakingRewards escrowed balance is updated.
      * @param _amount The amount of escrowed KWENTA to be unstaked.
      */
-    function unstakeEscrow(uint256 _amount) override external {
+    function unstakeEscrow(uint256 _amount) override public {
         stakingRewards.unstakeEscrow(msg.sender, _amount);
     }
 
