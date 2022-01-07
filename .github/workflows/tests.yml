@@ -13,6 +13,6 @@ jobs:
       - name: npm update
         run: npm install -g npm@7.18.1
       - name: Install dependencies
-        run: npm i --no-audit --legacy-peer-deps
+        run: npm i --no-audit
       - name: Execute Tests
         run: npm run test:contracts
