@@ -3,6 +3,7 @@ const hardhat = require('hardhat');
 const NAME = "Kwenta";
 const SYMBOL = "KWENTA";
 const INITIAL_SUPPLY = hre.ethers.utils.parseUnits("313373");
+const INFLATION_DIVERSION_BPS = 2000;
 
 require("chai")
 	.use(require("chai-as-promised"))
@@ -22,12 +23,15 @@ contract('UUPS Proxy for StakingRewards', ([owner, rewardsDistribution, supplySc
 	before(async() => {
 		[staker1, staker2, treasuryDAO] = await hre.ethers.getSigners();
 		KwentaToken = await hre.ethers.getContractFactory("Kwenta");
-		kwentaToken = await KwentaToken.deploy(NAME, 
+		kwentaToken = await KwentaToken.deploy(
+			NAME, 
 			SYMBOL,
 			INITIAL_SUPPLY,
+			owner,
 			treasuryDAO.address,
 			rewardsDistribution,
-			supplySchedule
+			supplySchedule,
+			INFLATION_DIVERSION_BPS
 		);
 		RewardsEscrow = await hre.ethers.getContractFactory("RewardEscrow");
 		rewardsEscrow = await RewardsEscrow.deploy(owner, kwentaToken.address);

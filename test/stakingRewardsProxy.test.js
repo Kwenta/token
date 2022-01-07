@@ -513,15 +513,14 @@ describe('implementation test', () => {
 
 		await fastForward(3*DAY);
 
-		
+		// Check rewards are accrued into the escrow contract after stakers exit()
 		await stProxy.connect(staker1).exit();
-		await stProxy.connect(staker2).exit();
-
-		let escrowedSt1 = await stProxy.escrowedBalanceOf(staker1.address);
-		let escrowedSt2 = await stProxy.escrowedBalanceOf(staker2.address);
-
+		let escrowedSt1 = await kwentaToken.balanceOf(rewardsEscrow.address);
 		assertBNClose(escrowedSt1.toString(), toUnit(140.10276354425000), toUnit(0.001));
-		assertBNClose(escrowedSt2.toString(), toUnit(139.89723645575000), toUnit(0.001));
+
+		await stProxy.connect(staker2).exit();
+		let escrowedSt2 = await kwentaToken.balanceOf(rewardsEscrow.address);
+		assertBNClose(escrowedSt2.toString(), toUnit(140.10276354425000 + 139.89723645575000), toUnit(0.001));
 
 		})
 	})
