@@ -1,5 +1,6 @@
 {
   "scripts": {
+    "compile": "npx hardhat compile",
     "test": "npx hardhat test",
     "test:contracts": "npx hardhat test test/contracts/*",
     "test:integration": "npx hardhat test test/integration/*"
