@@ -1,7 +1,7 @@
 name: Automated Tests
 on: [push]
 jobs:
-  Contract-Tests:
+  Contract:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository code
@@ -12,13 +12,17 @@ jobs:
           node-version: '14.17.1'
       - name: Update NPM
         run: npm install -g npm@7.18.1
+      - uses: actions/cache@v2
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/package-lock.json') }}
       - name: Install dependencies
         run: npm i --no-audit
       - name: Compile contracts
         run: npm run compile
       - name: Execute contract tests
         run: npm run test:contracts
-  Integration-Tests:
+  Integration:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository code
@@ -29,6 +33,10 @@ jobs:
           node-version: '14.17.1'
       - name: Update NPM
         run: npm install -g npm@7.18.1
+      - uses: actions/cache@v2
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/package-lock.json') }}
       - name: Install dependencies
         run: npm i --no-audit
       - name: Compile contracts
