@@ -25,12 +25,15 @@ contract Kwenta is ERC20, Owned {
         address _supplySchedule,
         uint _treasuryDiversion
     ) ERC20(name, symbol) Owned(_owner) {
+        // Treasury DAO 60%
+        _mint(_treasuryDAO, _initialSupply * 65 / 100);
         treasuryDAO = _treasuryDAO;
+        // TODO: Transfer to respective distributions:
+        // Synthetix Staker Airdrop 30%
+        // SX/Kwenta Airdrop 2.5%
+        // Trader Ongoing Distribution 2.5%
         stakingRewards = _stakingRewards;
         supplySchedule = _supplySchedule;
-        // Provide treasury with 100% of the initial supply
-        _mint(treasuryDAO, _initialSupply);
-        // Divert percentage of weekly inflation to treasury
         setTreasuryDiversion(_treasuryDiversion);
     }
 
