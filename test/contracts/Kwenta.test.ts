@@ -43,17 +43,15 @@ describe("KWENTA Token", function () {
         expect(await kwenta.symbol()).to.equal(SYMBOL);
     });
 
-    it("Total supply should be at 65% after deployment", async function () {
-        // This is because we only mint into the treasury for now
+    it("Total supply should be 313373", async function () {
         expect(await kwenta.totalSupply()).to.equal(
-            INITIAL_SUPPLY.mul(65).div(100)
+            INITIAL_SUPPLY
         );
     });
 
     it("Test inflationary diversion", async function () {
-        const initialTreasurySupply = INITIAL_SUPPLY.mul(65).div(100);
         const inflationaryRewardsForMint = 200;
-        const treasurySupplyWithDivertedRewards = initialTreasurySupply.add(
+        const treasurySupplyWithDivertedRewards = INITIAL_SUPPLY.add(
             ethers.BigNumber.from(inflationaryRewardsForMint)
                 .mul(INFLATION_DIVERSION_BPS)
                 .div(10000)
