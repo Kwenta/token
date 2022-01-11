@@ -452,7 +452,7 @@ describe("SupplySchedule", async () => {
                 );
             });
 
-            it.only("should calculate the mintable supply after 1 week", async () => {
+            it("should calculate the mintable supply after 1 week", async () => {
                 const expectedIssuance = initialWeeklySupply.toBN();
                 const inWeekTwo = weekOne + WEEK;
                 // fast forward EVM to Week 2
