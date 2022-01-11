@@ -254,7 +254,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
      * @param _amount The amount of escrowed KWENTA to be staked.
      */
     function stakeEscrow(uint256 _amount) override external {
-        require(_amount + stakingRewards.escrowedBalanceOf(msg.sender) <= totalEscrowedAccountBalance[msg.sender]);
+        require(_amount + stakingRewards.escrowedBalanceOf(msg.sender) <= totalEscrowedAccountBalance[msg.sender], "Insufficient unstaked escrow");
         stakingRewards.stakeEscrow(msg.sender, _amount);
     }
 

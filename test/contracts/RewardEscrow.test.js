@@ -1564,6 +1564,29 @@ contract(
                 );
             });
 
+            it("should revert because staker does not have enough escrowed KWENTA", async () => {
+                const escrowAmount = wei(10).toBN();
+                // stub transferFrom
+                kwentaSmock.transferFrom.returns(true);
+                // stub balanceOf
+                kwentaSmock.balanceOf.returns(escrowAmount);
+                await rewardsEscrow.createEscrowEntry(
+                    staker1,
+                    escrowAmount,
+                    1 * YEAR
+                );
+                // Stake half of escrow
+                stakingRewardsSmock.escrowedBalanceOf.returns(
+                    escrowAmount.div(2)
+                );
+                // Attempt to stake more
+                await assert.revert(
+                    rewardsEscrow.stakeEscrow(escrowAmount, {
+                        from: staker1,
+                    })
+                );
+            });
+
             it("should stake escrow", async () => {
                 const escrowAmount = wei(10).toBN();
                 // stub transferFrom
@@ -1592,6 +1615,50 @@ contract(
                 expect(
                     stakingRewardsSmock.unstakeEscrow
                 ).to.have.been.calledWith(staker1, escrowAmount);
+            });
+
+            it("should vest without unstaking escrow", async () => {
+                const escrowAmount = wei(10).toBN();
+                // stub transferFrom
+                kwentaSmock.transferFrom.returns(true);
+                // stub balanceOf
+                kwentaSmock.balanceOf.returns(escrowAmount.mul(2));
+                await rewardsEscrow.createEscrowEntry(
+                    staker1,
+                    escrowAmount,
+                    1 * YEAR
+                );
+                await rewardsEscrow.createEscrowEntry(
+                    staker1,
+                    escrowAmount,
+                    1 * YEAR
+                );
+                //Stake half of escrow
+                stakingRewardsSmock.escrowedBalanceOf.returns(escrowAmount);
+
+                await fastForward(YEAR);
+                await rewardsEscrow.vest([1], { from: staker1 });
+                expect(stakingRewardsSmock.unstakeEscrow).to.have.callCount(0);
+            });
+
+            // This is what happens when you currently have staked escrow and it needs to be vested
+            it("should vest and unstake escrow", async () => {
+                const escrowAmount = wei(10).toBN();
+                // stub transferFrom
+                kwentaSmock.transferFrom.returns(true);
+                // stub balanceOf
+                kwentaSmock.balanceOf.returns(escrowAmount);
+                await rewardsEscrow.createEscrowEntry(
+                    staker1,
+                    escrowAmount,
+                    1 * YEAR
+                );
+                //Stake all of escrow
+                stakingRewardsSmock.escrowedBalanceOf.returns(escrowAmount);
+
+                await fastForward(YEAR);
+                await rewardsEscrow.vest([1], { from: staker1 });
+                expect(stakingRewardsSmock.unstakeEscrow).to.have.callCount(1);
             });
         });
     }
