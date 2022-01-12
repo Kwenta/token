@@ -10,7 +10,7 @@ const INFLATION_DIVERSION_BPS = 2000;
 
 // test accounts
 let owner: SignerWithAddress;
-let addr1: SignerWithAddress; 
+let addr1: SignerWithAddress;
 let addr2: SignerWithAddress;
 let TREASURY_DAO: SignerWithAddress;
 
@@ -32,13 +32,13 @@ const loadSetup = () => {
 	before('Deploy contracts', async () => {
 		[owner, addr1, addr2, TREASURY_DAO] = await ethers.getSigners();
 
-        // Deploy FixidityLib
-        const FixidityLib = await ethers.getContractFactory('FixidityLib');
+		// Deploy FixidityLib
+		const FixidityLib = await ethers.getContractFactory('FixidityLib');
 		fixidityLib = await FixidityLib.deploy();
 		await fixidityLib.deployed();
 
-        // Deploy LogarithmLib
-        const LogarithmLib = await ethers.getContractFactory('LogarithmLib', {
+		// Deploy LogarithmLib
+		const LogarithmLib = await ethers.getContractFactory('LogarithmLib', {
 			libraries: {
 				FixidityLib: fixidityLib.address,
 			},
@@ -46,7 +46,7 @@ const loadSetup = () => {
 		logarithmLib = await LogarithmLib.deploy();
 		await logarithmLib.deployed();
 
-        // Deploy ExponentLib
+		// Deploy ExponentLib
 		const ExponentLib = await ethers.getContractFactory('ExponentLib', {
 			libraries: {
 				FixidityLib: fixidityLib.address,
@@ -56,7 +56,7 @@ const loadSetup = () => {
 		exponentLib = await ExponentLib.deploy();
 		await exponentLib.deployed();
 
-        // Deploy StakingRewards
+		// Deploy StakingRewards
 		const StakingRewards = await ethers.getContractFactory('StakingRewards', {
 			libraries: {
 				ExponentLib: exponentLib.address,
@@ -66,14 +66,14 @@ const loadSetup = () => {
 		stakingRewards = await StakingRewards.deploy();
 		await stakingRewards.deployed();
 
-        // Deploy SafeDecimalMath
+		// Deploy SafeDecimalMath
 		const SafeDecimalMath = await ethers.getContractFactory(
 			'SafeDecimalMathV5'
 		);
 		safeDecimalMath = await SafeDecimalMath.deploy();
 		await safeDecimalMath.deployed();
 
-        // Deploy SupplySchedule
+		// Deploy SupplySchedule
 		const SupplySchedule = await ethers.getContractFactory('SupplySchedule', {
 			libraries: {
 				SafeDecimalMathV5: safeDecimalMath.address,
@@ -82,7 +82,7 @@ const loadSetup = () => {
 		supplySchedule = await SupplySchedule.deploy(owner.address);
 		await supplySchedule.deployed();
 
-        // Deploy Kwenta
+		// Deploy Kwenta
 		const Kwenta = await ethers.getContractFactory('Kwenta');
 		kwenta = await Kwenta.deploy(
 			NAME,
@@ -97,19 +97,19 @@ const loadSetup = () => {
 		await kwenta.deployed();
 		await supplySchedule.setSynthetixProxy(kwenta.address);
 
-        // Deploy RewardEscrow
+		// Deploy RewardEscrow
 		const RewardEscrow = await ethers.getContractFactory('RewardEscrow');
 		rewardEscrow = await RewardEscrow.deploy(owner.address, kwenta.address);
 		await rewardEscrow.deployed();
 
-        // Initialize StakingRewards
-        await stakingRewards.initialize(
-            owner.address,
-            kwenta.address,
-            kwenta.address,
-            rewardEscrow.address,
-            1 // @TODO what is a good value to use here?
-        );
+		// Initialize StakingRewards
+		await stakingRewards.initialize(
+			owner.address,
+			kwenta.address,
+			kwenta.address,
+			rewardEscrow.address,
+			1 // @TODO what is a good value to use here?
+		);
 	});
 };
 
@@ -117,7 +117,22 @@ describe('Stake', () => {
 	describe('Regular staking', async () => {
 		loadSetup();
 		it('Stake and withdraw all', async () => {
-            // TODO: expect same tokens back
+			// initial state should be 0
+			expect(await kwenta.balanceOf(addr1.address)).to.equal(0);
+
+			// transfer 200 KWENTA to addr1
+			await expect(() =>
+				kwenta.connect(TREASURY_DAO).transfer(addr1.address, 200)
+			).to.changeTokenBalance(kwenta, addr1, 200);
+
+			// increase KWENTA allowance for stakingRewards and stake
+			await kwenta.connect(addr1).approve(stakingRewards.address, 200);
+			await stakingRewards.connect(addr1).stake(200);
+			expect(await kwenta.balanceOf(addr1.address)).to.equal(0);
+
+			// withdraw ALL KWENTA staked
+			await stakingRewards.connect(addr1).withdraw(200);
+			expect(await kwenta.balanceOf(addr1.address)).to.equal(200);
 		});
 
 		it('Stake and claim: ', async () => {
