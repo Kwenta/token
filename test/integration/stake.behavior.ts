@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { ethers } from 'hardhat';
+import { ethers, upgrades } from 'hardhat';
 import { Contract } from '@ethersproject/contracts';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
@@ -7,6 +7,7 @@ const NAME = 'Kwenta';
 const SYMBOL = 'KWENTA';
 const INITIAL_SUPPLY = ethers.utils.parseUnits('313373');
 const INFLATION_DIVERSION_BPS = 2000;
+const WEEKLY_START_REWARDS = 3;
 
 // test accounts
 let owner: SignerWithAddress;
@@ -16,9 +17,9 @@ let TREASURY_DAO: SignerWithAddress;
 
 // core contracts
 let kwenta: Contract;
-let stakingRewards: Contract;
 let supplySchedule: Contract;
 let rewardEscrow: Contract;
+let stakingRewardsProxy: Contract;
 
 // library contracts
 let fixidityLib: Contract;
@@ -56,16 +57,6 @@ const loadSetup = () => {
 		exponentLib = await ExponentLib.deploy();
 		await exponentLib.deployed();
 
-		// Deploy StakingRewards
-		const StakingRewards = await ethers.getContractFactory('StakingRewards', {
-			libraries: {
-				ExponentLib: exponentLib.address,
-				FixidityLib: fixidityLib.address,
-			},
-		});
-		stakingRewards = await StakingRewards.deploy();
-		await stakingRewards.deployed();
-
 		// Deploy SafeDecimalMath
 		const SafeDecimalMath = await ethers.getContractFactory(
 			'SafeDecimalMathV5'
@@ -90,7 +81,6 @@ const loadSetup = () => {
 			INITIAL_SUPPLY,
 			owner.address,
 			TREASURY_DAO.address,
-			stakingRewards.address,
 			supplySchedule.address,
 			INFLATION_DIVERSION_BPS
 		);
@@ -102,14 +92,39 @@ const loadSetup = () => {
 		rewardEscrow = await RewardEscrow.deploy(owner.address, kwenta.address);
 		await rewardEscrow.deployed();
 
-		// Initialize StakingRewards
-		await stakingRewards.initialize(
-			owner.address,
-			kwenta.address,
-			kwenta.address,
-			rewardEscrow.address,
-			1 // @TODO what is a good value to use here?
+		// Deploy StakingRewards
+		const StakingRewards = await ethers.getContractFactory('StakingRewards', {
+			libraries: {
+				ExponentLib: exponentLib.address,
+				FixidityLib: fixidityLib.address,
+			},
+		});
+
+		// Deploy UUPS Proxy using hardhat upgrades from OpenZeppelin
+		stakingRewardsProxy = await upgrades.deployProxy(
+			StakingRewards,
+			[
+				owner.address,
+				kwenta.address,
+				kwenta.address,
+				rewardEscrow.address,
+				WEEKLY_START_REWARDS,
+			],
+			{
+				kind: 'uups',
+				unsafeAllow: ['external-library-linking'],
+			}
 		);
+		await stakingRewardsProxy.deployed();
+
+		// Get the address from the implementation (Staking Rewards Logic deployed)
+		let stakingRewardsProxyLogicAddress =
+			await upgrades.erc1967.getImplementationAddress(
+				stakingRewardsProxy.address
+			);
+
+		// Set StakingRewards address in Kwenta token
+		await kwenta.setStakingRewards(stakingRewardsProxy.address);
 	});
 };
 
@@ -126,12 +141,12 @@ describe('Stake', () => {
 			).to.changeTokenBalance(kwenta, addr1, 200);
 
 			// increase KWENTA allowance for stakingRewards and stake
-			await kwenta.connect(addr1).approve(stakingRewards.address, 200);
-			await stakingRewards.connect(addr1).stake(200);
+			await kwenta.connect(addr1).approve(stakingRewardsProxy.address, 200);
+			await stakingRewardsProxy.connect(addr1).stake(200);
 			expect(await kwenta.balanceOf(addr1.address)).to.equal(0);
 
 			// withdraw ALL KWENTA staked
-			await stakingRewards.connect(addr1).withdraw(200);
+			await stakingRewardsProxy.connect(addr1).withdraw(200);
 			expect(await kwenta.balanceOf(addr1.address)).to.equal(200);
 		});
 
