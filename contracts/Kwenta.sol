@@ -63,7 +63,7 @@ contract Kwenta is ERC20, Owned {
         treasuryDiversion = _treasuryDiversion;
     }
 
-    function setStakingRewards(address _stakingRewards) external {
+    function setStakingRewards(address _stakingRewards) external onlyOwner {
         stakingRewards = _stakingRewards;
     }
 
