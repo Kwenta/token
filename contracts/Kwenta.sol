@@ -21,12 +21,10 @@ contract Kwenta is ERC20, Owned {
         uint _initialSupply, 
         address _owner,
         address _treasuryDAO,
-        address _stakingRewards,
         address _supplySchedule,
         uint _treasuryDiversion
     ) ERC20(name, symbol) Owned(_owner) {
         treasuryDAO = _treasuryDAO;
-        stakingRewards = _stakingRewards;
         supplySchedule = _supplySchedule;
         // Provide treasury with 100% of the initial supply
         _mint(treasuryDAO, _initialSupply);
@@ -63,6 +61,10 @@ contract Kwenta is ERC20, Owned {
     function setTreasuryDiversion(uint _treasuryDiversion) public {
         require(_treasuryDiversion < 10000, "Represented in basis points");
         treasuryDiversion = _treasuryDiversion;
+    }
+
+    function setStakingRewards(address _stakingRewards) external {
+        stakingRewards = _stakingRewards;
     }
 
 }

@@ -98,7 +98,8 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     address private pendingAdmin;
     
     /* ========== INITIALIZER ========== */
-    function initialize(address _owner,
+    function initialize(
+        address _owner,
         address _rewardsToken,
         address _stakingToken,
         address _rewardEscrow,
