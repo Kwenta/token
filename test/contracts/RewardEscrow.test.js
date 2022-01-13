@@ -174,7 +174,6 @@ contract(
                 owner,
                 treasuryDAO,
                 ethers.constants.AddressZero,
-                ethers.constants.AddressZero,
                 2000
             );
             rewardsToken = await TokenContract.new(
@@ -183,7 +182,6 @@ contract(
                 INITIAL_SUPPLY,
                 owner,
                 treasuryDAO,
-                ethers.constants.AddressZero,
                 ethers.constants.AddressZero,
                 2000
             );
@@ -755,7 +753,6 @@ contract(
                     INITIAL_SUPPLY,
                     owner,
                     treasuryDAO,
-                    ethers.constants.AddressZero,
                     ethers.constants.AddressZero,
                     2000
                 );

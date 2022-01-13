@@ -95,7 +95,6 @@ describe("SupplySchedule", async () => {
             owner.address,
             TREASURY_DAO_ADDRESS, // Cannot mint to zero address
             ethers.constants.AddressZero,
-            ethers.constants.AddressZero,
             INFLATION_DIVERSION_BPS
         );
 

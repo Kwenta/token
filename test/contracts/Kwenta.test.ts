@@ -29,11 +29,11 @@ describe("KWENTA Token", function () {
             INITIAL_SUPPLY,
             owner.address,
             TREASURY_DAO_ADDRESS, // Cannot mint to zero address
-            stakingRewards.address,
             supplySchedule.address,
             INFLATION_DIVERSION_BPS
         );
         await kwenta.deployed();
+        await kwenta.setStakingRewards(stakingRewards.address);
 
         return kwenta;
     });
