@@ -143,11 +143,15 @@ describe('Stake', () => {
 			// increase KWENTA allowance for stakingRewards and stake
 			await kwenta.connect(addr1).approve(stakingRewardsProxy.address, 200);
 			await stakingRewardsProxy.connect(addr1).stake(200);
+
+            // check KWENTA was staked
 			expect(await kwenta.balanceOf(addr1.address)).to.equal(0);
+            expect(await stakingRewardsProxy.connect(addr1).stakedBalanceOf(addr1.address)).to.equal(200);
 
 			// withdraw ALL KWENTA staked
 			await stakingRewardsProxy.connect(addr1).withdraw(200);
 			expect(await kwenta.balanceOf(addr1.address)).to.equal(200);
+            expect(await stakingRewardsProxy.connect(addr1).stakedBalanceOf(addr1.address)).to.equal(0);
 		});
 
 		it('Stake and claim: ', async () => {
