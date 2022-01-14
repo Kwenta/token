@@ -11,8 +11,8 @@ import './interfaces/IKwenta.sol';
 contract Kwenta is ERC20, Owned, IKwenta {
 
     address treasuryDAO;
-    address stakingRewards;
     address supplySchedule;
+    address public stakingRewards;
 
     uint public treasuryDiversion;
 
