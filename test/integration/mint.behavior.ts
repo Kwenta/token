@@ -46,11 +46,11 @@ describe("Mint", () => {
             INITIAL_SUPPLY,
             owner.address,
             TREASURY_DAO_ADDRESS,
-            mockStakingRewards.address,
             supplySchedule.address,
             INFLATION_DIVERSION_BPS
         );
         await kwenta.deployed();
+        await kwenta.setStakingRewards(mockStakingRewards.address);
 
         await supplySchedule.setSynthetixProxy(kwenta.address);
 

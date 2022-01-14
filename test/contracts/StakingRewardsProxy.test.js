@@ -121,12 +121,12 @@ const deployContract = async () => {
 before(async() => {
 		[owner, staker1, staker2, exchangerProxy, rewardsDistribution, treasuryDAO, supplySchedule] = await hre.ethers.getSigners();
 		KwentaToken = await hre.ethers.getContractFactory("Kwenta");
-		kwentaToken = await KwentaToken.deploy(NAME, 
+		kwentaToken = await KwentaToken.deploy(
+			NAME, 
 			SYMBOL,
 			INITIAL_SUPPLY,
 			owner.address,
 			treasuryDAO.address,
-			rewardsDistribution.address,
 			supplySchedule.address,
 			2000
 		);

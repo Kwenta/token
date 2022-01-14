@@ -6,12 +6,13 @@ import './utils/ERC20.sol';
 import './Owned.sol';
 import './interfaces/ISupplySchedule.sol';
 import './interfaces/IStakingRewards.sol';
+import './interfaces/IKwenta.sol';
 
-contract Kwenta is ERC20, Owned {
+contract Kwenta is ERC20, Owned, IKwenta {
 
     address treasuryDAO;
-    address stakingRewards;
     address supplySchedule;
+    address public stakingRewards;
 
     uint public treasuryDiversion;
 
@@ -21,12 +22,10 @@ contract Kwenta is ERC20, Owned {
         uint _initialSupply, 
         address _owner,
         address _treasuryDAO,
-        address _stakingRewards,
         address _supplySchedule,
         uint _treasuryDiversion
     ) ERC20(name, symbol) Owned(_owner) {
         treasuryDAO = _treasuryDAO;
-        stakingRewards = _stakingRewards;
         supplySchedule = _supplySchedule;
         // Provide treasury with 100% of the initial supply
         _mint(treasuryDAO, _initialSupply);
@@ -35,7 +34,7 @@ contract Kwenta is ERC20, Owned {
     }
 
     // Mints inflationary supply
-    function mint() external returns (bool) {
+    function mint() override external returns (bool) {
         require(stakingRewards != address(0), "Staking rewards not set");
 
         ISupplySchedule _supplySchedule = ISupplySchedule(supplySchedule);
@@ -63,6 +62,10 @@ contract Kwenta is ERC20, Owned {
     function setTreasuryDiversion(uint _treasuryDiversion) public {
         require(_treasuryDiversion < 10000, "Represented in basis points");
         treasuryDiversion = _treasuryDiversion;
+    }
+
+    function setStakingRewards(address _stakingRewards) override external onlyOwner {
+        stakingRewards = _stakingRewards;
     }
 
 }

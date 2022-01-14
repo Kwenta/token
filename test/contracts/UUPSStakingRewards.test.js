@@ -29,7 +29,6 @@ contract('UUPS Proxy for StakingRewards', ([owner, rewardsDistribution, supplySc
 			INITIAL_SUPPLY,
 			owner,
 			treasuryDAO.address,
-			rewardsDistribution,
 			supplySchedule,
 			INFLATION_DIVERSION_BPS
 		);
