@@ -246,7 +246,7 @@ describe('Stake', () => {
 			expect(await kwenta.balanceOf(addr2.address)).to.equal(200);
 		});
 	});
-
+  
 	describe('Escrow staking', async () => {
 		loadSetup();
 		before('Create new escrow entry', async () => {
