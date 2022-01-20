@@ -2,6 +2,7 @@ import { expect } from 'chai';
 import { ethers, upgrades } from 'hardhat';
 import { Contract } from '@ethersproject/contracts';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import { wei } from '@synthetixio/wei';
 
 const NAME = 'Kwenta';
 const SYMBOL = 'KWENTA';
@@ -195,7 +196,7 @@ describe('Stake', () => {
 
 		it('Wait then claim rewards', async () => {
 			// Fund StackingRewards with KWENTA
-			const rewards = ethers.BigNumber.from("10000000000000000000"); // 1e19
+			const rewards = wei(10).toBN();
 			await expect(() =>
 				kwenta
 					.connect(TREASURY_DAO)
@@ -203,7 +204,7 @@ describe('Stake', () => {
 			).to.changeTokenBalance(kwenta, stakingRewardsProxy, rewards);
 
 			// Set the rewards for the next epoch (1)
-			const reward = ethers.BigNumber.from("1000000000000000000"); // 1e18
+			const reward = wei(1).toBN();
 			await stakingRewardsProxy.setRewardNEpochs(reward, 1);
 
 			// wait
@@ -230,7 +231,7 @@ describe('Stake', () => {
 			).to.changeTokenBalance(kwenta, addr2, 200);
 
 			// Set the rewards for the next epoch (2)
-			const reward = ethers.BigNumber.from("1000000000000000000"); // 1e18
+			const reward = wei(1).toBN();
 			await stakingRewardsProxy.setRewardNEpochs(reward, 1);
 
 			// increase KWENTA allowance for stakingRewards and stake
@@ -240,7 +241,7 @@ describe('Stake', () => {
 			// wait
 			await fastForward(SECONDS_IN_WEEK);
 
-			// expect half tokens back and no rewards
+			// expect tokens back and no rewards
 			await stakingRewardsProxy.connect(addr2).exit();
 			expect(await rewardEscrow.balanceOf(addr2.address)).to.be.above(0);
 			expect(await kwenta.balanceOf(addr2.address)).to.equal(200);
