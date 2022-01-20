@@ -5,6 +5,7 @@ library VestingEntries {
     struct VestingEntry {
         uint64 endTime;
         uint256 escrowAmount;
+        uint256 duration;
     }
     struct VestingEntryWithID {
         uint64 endTime;
@@ -39,7 +40,7 @@ interface IRewardEscrow {
 
     function getVestingEntryClaimable(address account, uint256 entryID) external view returns (uint);
 
-    function getVestingEntry(address account, uint256 entryID) external view returns (uint64, uint256);
+    function getVestingEntry(address account, uint256 entryID) external view returns (uint64, uint256, uint256);
 
     // Mutative functions
     function vest(uint256[] calldata entryIDs) external;
