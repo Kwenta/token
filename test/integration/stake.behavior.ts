@@ -2,17 +2,20 @@ import { expect } from 'chai';
 import { ethers, upgrades } from 'hardhat';
 import { Contract } from '@ethersproject/contracts';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import { wei } from '@synthetixio/wei';
 
 const NAME = 'Kwenta';
 const SYMBOL = 'KWENTA';
 const INITIAL_SUPPLY = ethers.utils.parseUnits('313373');
 const INFLATION_DIVERSION_BPS = 2000;
 const WEEKLY_START_REWARDS = 3;
+const SECONDS_IN_WEEK = 6048000;
 
 // test accounts
 let owner: SignerWithAddress;
 let addr1: SignerWithAddress;
 let addr2: SignerWithAddress;
+let addr3: SignerWithAddress;
 let TREASURY_DAO: SignerWithAddress;
 
 // core contracts
@@ -29,9 +32,21 @@ let exponentLib: Contract;
 // util contracts
 let safeDecimalMath: Contract;
 
+// Time/Fast-forwarding Helper Methods
+const currentTime = async () => {
+    const blockNumber = await ethers.provider.getBlockNumber();
+    const block = await ethers.provider.getBlock(blockNumber);
+    return block.timestamp;
+};
+
+const fastForward = async (sec: number) => {
+    const currTime = await currentTime();
+    await ethers.provider.send('evm_mine', [currTime + sec]);
+};
+
 const loadSetup = () => {
 	before('Deploy contracts', async () => {
-		[owner, addr1, addr2, TREASURY_DAO] = await ethers.getSigners();
+		[owner, addr1, addr2, addr3, TREASURY_DAO] = await ethers.getSigners();
 
 		// Deploy FixidityLib
 		const FixidityLib = await ethers.getContractFactory('FixidityLib');
@@ -125,6 +140,9 @@ const loadSetup = () => {
 
 		// Set StakingRewards address in Kwenta token
 		await kwenta.setStakingRewards(stakingRewardsProxy.address);
+
+		// Set StakingRewards address in RewardEscrow
+		await rewardEscrow.setStakingRewards(stakingRewardsProxy.address);
 	});
 };
 
@@ -132,10 +150,10 @@ describe('Stake', () => {
 	describe('Regular staking', async () => {
 		loadSetup();
 		it('Stake and withdraw all', async () => {
-			// initial state should be 0
+			// initial balance should be 0
 			expect(await kwenta.balanceOf(addr1.address)).to.equal(0);
 
-			// transfer 200 KWENTA to addr1
+			// transfer KWENTA to addr1
 			await expect(() =>
 				kwenta.connect(TREASURY_DAO).transfer(addr1.address, 200)
 			).to.changeTokenBalance(kwenta, addr1, 200);
@@ -144,29 +162,92 @@ describe('Stake', () => {
 			await kwenta.connect(addr1).approve(stakingRewardsProxy.address, 200);
 			await stakingRewardsProxy.connect(addr1).stake(200);
 
-            // check KWENTA was staked
+			// check KWENTA was staked
 			expect(await kwenta.balanceOf(addr1.address)).to.equal(0);
-            expect(await stakingRewardsProxy.connect(addr1).stakedBalanceOf(addr1.address)).to.equal(200);
+			expect(
+				await stakingRewardsProxy
+					.connect(addr1)
+					.stakedBalanceOf(addr1.address)
+			).to.equal(200);
 
 			// withdraw ALL KWENTA staked
 			await stakingRewardsProxy.connect(addr1).withdraw(200);
 			expect(await kwenta.balanceOf(addr1.address)).to.equal(200);
-            expect(await stakingRewardsProxy.connect(addr1).stakedBalanceOf(addr1.address)).to.equal(0);
+			expect(
+				await stakingRewardsProxy
+					.connect(addr1)
+					.stakedBalanceOf(addr1.address)
+			).to.equal(0);
 		});
 
-		it('Stake and claim: ', async () => {
-			// TODO: expect 0 rewards
+		it('Stake and claim rewards', async () => {
+			// increase KWENTA allowance for stakingRewards and stake
+			await kwenta.connect(addr1).approve(stakingRewardsProxy.address, 200);
+			await stakingRewardsProxy.connect(addr1).stake(200);
+
+			// addr1 does not have any escrow entries
+			expect(await rewardEscrow.numVestingEntries(addr1.address)).to.equal(0);
+
+			// claim rewards (expect 0 rewards)
+			expect(await stakingRewardsProxy.totalBalanceOf(addr1.address)).to.equal(200);
+			await stakingRewardsProxy.connect(addr1).getReward();
+			expect(await rewardEscrow.balanceOf(addr1.address)).to.equal(0);
 		});
-		it('Wait then claim', async () => {
-			// TODO: expect > 0 rewards appended in escrow
+
+		it('Wait then claim rewards', async () => {
+			// Fund StackingRewards with KWENTA
+			const rewards = wei(10).toBN();
+			await expect(() =>
+				kwenta
+					.connect(TREASURY_DAO)
+					.transfer(stakingRewardsProxy.address, rewards)
+			).to.changeTokenBalance(kwenta, stakingRewardsProxy, rewards);
+
+			// Set the rewards for the next epoch (1)
+			const reward = wei(1).toBN();
+			await stakingRewardsProxy.setRewardNEpochs(reward, 1);
+
+			// wait
+			await fastForward(SECONDS_IN_WEEK);
+
+			// addr1 does not have any escrow entries
+			expect(await rewardEscrow.numVestingEntries(addr1.address)).to.equal(0);
+
+			// claim rewards (expect > 0 rewards appended in escrow)
+			await stakingRewardsProxy.connect(addr1).getReward();
+			expect(await rewardEscrow.balanceOf(addr1.address)).to.be.above(0);
+
+			// addr1 does have an escrow entry
+			expect(await rewardEscrow.numVestingEntries(addr1.address)).to.equal(1);
 		});
-		it('Exit with half', async () => {
-			// TODO: expect half tokens back no rewards
-		});
-		it('Wait, exit with remaining half', async () => {
-			// TODO: expect same tokens back, > 0 rewards appended in escrow
+
+		it('Stake, Wait, and then Exit', async () => {
+			// initial balance should be 0
+			expect(await kwenta.balanceOf(addr2.address)).to.equal(0);
+
+			// transfer KWENTA to addr2
+			await expect(() =>
+				kwenta.connect(TREASURY_DAO).transfer(addr2.address, 200)
+			).to.changeTokenBalance(kwenta, addr2, 200);
+
+			// Set the rewards for the next epoch (2)
+			const reward = wei(1).toBN();
+			await stakingRewardsProxy.setRewardNEpochs(reward, 1);
+
+			// increase KWENTA allowance for stakingRewards and stake
+			await kwenta.connect(addr2).approve(stakingRewardsProxy.address, 200);
+			await stakingRewardsProxy.connect(addr2).stake(200);
+
+			// wait
+			await fastForward(SECONDS_IN_WEEK);
+
+			// expect tokens back and no rewards
+			await stakingRewardsProxy.connect(addr2).exit();
+			expect(await rewardEscrow.balanceOf(addr2.address)).to.be.above(0);
+			expect(await kwenta.balanceOf(addr2.address)).to.equal(200);
 		});
 	});
+  
 	describe('Escrow staking', async () => {
 		loadSetup();
 		before('Create new escrow entry', async () => {
