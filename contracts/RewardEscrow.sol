@@ -149,32 +149,35 @@ contract RewardEscrow is Owned, IRewardEscrow {
         return page;
     }
 
-    function getVestingQuantity(address account, uint256[] calldata entryIDs) override external view returns (uint total) {
+    function getVestingQuantity(address account, uint256[] calldata entryIDs) override external view returns (uint total, uint totalFee) {
         for (uint i = 0; i < entryIDs.length; i++) {
             VestingEntries.VestingEntry memory entry = vestingSchedules[account][entryIDs[i]];
 
             /* Skip entry if escrowAmount == 0 */
             if (entry.escrowAmount != 0) {
-                uint256 quantity = _claimableAmount(entry);
+                (uint256 quantity, uint256 fee) = _claimableAmount(entry);
 
                 /* add quantity to total */
-                total = total.add(quantity);
+                total += quantity;
+                totalFee += fee;
             }
         }
     }
 
-    function getVestingEntryClaimable(address account, uint256 entryID) override external view returns (uint) {
+    function getVestingEntryClaimable(address account, uint256 entryID) override external view returns (uint, uint) {
         VestingEntries.VestingEntry memory entry = vestingSchedules[account][entryID];
         return _claimableAmount(entry);
     }
 
-    function _claimableAmount(VestingEntries.VestingEntry memory _entry) internal view returns (uint256) {
+    function _claimableAmount(VestingEntries.VestingEntry memory _entry) internal view returns (uint256, uint256) {
         uint256 quantity;
+        uint256 fee;
         if (_entry.escrowAmount != 0) {
-            /* Escrow amounts claimable if block.timestamp equal to or after entry endTime */
-            quantity = block.timestamp >= _entry.endTime ? _entry.escrowAmount : _entry.escrowAmount - _earlyVestFee(_entry);
+            fee = _entry.escrowAmount - _earlyVestFee(_entry);
+            /* Full escrow amounts claimable if block.timestamp equal to or after entry endTime */
+            quantity = block.timestamp >= _entry.endTime ? _entry.escrowAmount : fee;
         }
-        return quantity;
+        return (quantity, fee);
     }
 
     function _earlyVestFee(VestingEntries.VestingEntry memory _entry) internal view returns (uint256) {
@@ -198,26 +201,29 @@ contract RewardEscrow is Owned, IRewardEscrow {
     function vest(uint256[] calldata entryIDs) override external {
         require(!_isStaked(msg.sender), "Must unstake escrow to vest");
         uint256 total;
+        uint256 totalFee;
         for (uint i = 0; i < entryIDs.length; i++) {
             VestingEntries.VestingEntry storage entry = vestingSchedules[msg.sender][entryIDs[i]];
 
             /* Skip entry if escrowAmount == 0 already vested */
             if (entry.escrowAmount != 0) {
-                uint256 quantity = _claimableAmount(entry);
+                (uint256 quantity, uint256 fee) = _claimableAmount(entry);
 
                 /* update entry to remove escrowAmount */
-                if (quantity > 0) {
-                    entry.escrowAmount = 0;
-                }
+                entry.escrowAmount = 0;
 
                 /* add quantity to total */
-                total = total.add(quantity);
+                total += quantity;
+                totalFee += fee;
             }
         }
 
         /* Transfer vested tokens. Will revert if total > totalEscrowedAccountBalance */
         if (total != 0) {
             _transferVestedTokens(msg.sender, total);
+        }
+        if (totalFee != 0) {
+            kwenta.burn(totalFee);
         }
     }
 

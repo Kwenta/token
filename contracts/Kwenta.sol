@@ -60,6 +60,10 @@ contract Kwenta is ERC20, Owned {
         return true;
     }
 
+    function burn(uint amount) external {
+        _burn(msg.sender, amount);
+    }
+
     function setTreasuryDiversion(uint _treasuryDiversion) public {
         require(_treasuryDiversion < 10000, "Represented in basis points");
         treasuryDiversion = _treasuryDiversion;

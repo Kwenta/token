@@ -24,7 +24,7 @@ interface IRewardEscrow {
 
     function totalVestedAccountBalance(address account) external view returns (uint);
 
-    function getVestingQuantity(address account, uint256[] calldata entryIDs) external view returns (uint);
+    function getVestingQuantity(address account, uint256[] calldata entryIDs) external view returns (uint, uint);
 
     function getVestingSchedules(
         address account,
@@ -38,7 +38,7 @@ interface IRewardEscrow {
         uint256 pageSize
     ) external view returns (uint256[] memory);
 
-    function getVestingEntryClaimable(address account, uint256 entryID) external view returns (uint);
+    function getVestingEntryClaimable(address account, uint256 entryID) external view returns (uint, uint);
 
     function getVestingEntry(address account, uint256 entryID) external view returns (uint64, uint256, uint256);
 
