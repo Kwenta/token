@@ -75,9 +75,9 @@ const mockAddressResolver = async () => {
 	return fakeAddressResolver;
 };
 
-// StackingRewards: fund with KWENTA and set the rewards
+// StakingRewards: fund with KWENTA and set the rewards
 const fundAndSetStakingRewards = async () => {
-	// fund StackingRewards with KWENTA
+	// fund StakingRewards with KWENTA
 	const rewards = wei(10).toBN();
 	await expect(() =>
 		kwenta
@@ -86,7 +86,7 @@ const fundAndSetStakingRewards = async () => {
 	).to.changeTokenBalance(kwenta, stakingRewardsProxy, rewards);
 
 	// set the rewards for the next epoch (1)
-	const reward = wei(1).toBN();
+	const reward = wei(10).toBN();
 	await stakingRewardsProxy.setRewardNEpochs(reward, 1);
 }
 
@@ -255,7 +255,7 @@ describe('Stake', () => {
 		});
 
 		it('Wait then claim rewards', async () => {
-			// fund StackingRewards with KWENTA and set the rewards for the next epoch
+			// fund StakingRewards with KWENTA and set the rewards for the next epoch
 			await fundAndSetStakingRewards();
 
 			// wait
@@ -348,7 +348,7 @@ describe('Stake', () => {
 		});
 
 		it('Wait, claim rewards', async () => {
-			// fund StackingRewards with KWENTA and set the rewards for the next epoch
+			// fund StakingRewards with KWENTA and set the rewards for the next epoch
 			await fundAndSetStakingRewards();
 
 			// establish current escrow balance(s)
@@ -453,7 +453,7 @@ describe('Stake', () => {
 		});
 
 		it('Wait, and then claim kwenta for both stakers', async () => {
-			// fund StackingRewards with KWENTA and set the rewards for the next epoch
+			// fund StakingRewards with KWENTA and set the rewards for the next epoch
 			await fundAndSetStakingRewards();
 
 			// wait
