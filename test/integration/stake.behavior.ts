@@ -431,7 +431,7 @@ describe('Stake', () => {
 			).to.equal(200);
 		});
 
-		it('Execute trade on synthetix through proxy', async () => {
+		it.skip('Execute trade on synthetix through proxy', async () => {
 			// establish traderScore pre-trade
 			expect(
 				await stakingRewardsProxy.rewardScoreOf(addr1.address)
@@ -452,7 +452,7 @@ describe('Stake', () => {
 			).to.be.above(0);
 		});
 
-		it('Wait, and then claim kwenta for both stakers', async () => {
+		it.skip('Wait, and then claim kwenta for both stakers', async () => {
 			// fund StakingRewards with KWENTA and set the rewards for the next epoch
 			await fundAndSetStakingRewards();
 
