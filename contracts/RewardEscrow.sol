@@ -170,12 +170,17 @@ contract RewardEscrow is Owned, IRewardEscrow {
     }
 
     function _claimableAmount(VestingEntries.VestingEntry memory _entry) internal view returns (uint256, uint256) {
+        uint256 escrowAmount = _entry.escrowAmount;
         uint256 quantity;
         uint256 fee;
-        if (_entry.escrowAmount != 0) {
-            fee = _entry.escrowAmount - _earlyVestFee(_entry);
+        if (escrowAmount != 0) {
             /* Full escrow amounts claimable if block.timestamp equal to or after entry endTime */
-            quantity = block.timestamp >= _entry.endTime ? _entry.escrowAmount : fee;
+            if (block.timestamp >= _entry.endTime) {
+                quantity = escrowAmount;
+            } else {
+                fee = _earlyVestFee(_entry);
+                quantity = escrowAmount - fee;
+            }
         }
         return (quantity, fee);
     }
@@ -223,6 +228,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
             _transferVestedTokens(msg.sender, total);
         }
         if (totalFee != 0) {
+            _reduceAccountEscrowBalances(msg.sender, totalFee);
             kwenta.burn(totalFee);
         }
     }
