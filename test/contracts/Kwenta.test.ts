@@ -5,7 +5,7 @@ import { FakeContract, smock } from "@defi-wonderland/smock";
 import { SupplySchedule } from "../../typechain/SupplySchedule";
 import { StakingRewards } from "../../typechain/StakingRewards";
 
-describe("KWENTA Token", async function () {
+describe("KWENTA Token", function () {
     const NAME = "Kwenta";
     const SYMBOL = "KWENTA";
     const INITIAL_SUPPLY = ethers.utils.parseUnits("313373");
