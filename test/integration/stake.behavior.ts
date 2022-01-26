@@ -50,10 +50,10 @@ const fastForward = async (sec: number) => {
 // Mock Synthetix AddressResolver
 const mockAddressResolver = async () => {
 	const fakeSynthetix = await smock.fake<ISynthetix>('ISynthetix');
-	fakeSynthetix.exchangeWithTracking.returns(0);
+	fakeSynthetix.exchangeWithTracking.returns(10);
 
 	const fakeExchanger = await smock.fake<IExchanger>('IExchanger');
-	fakeExchanger.feeRateForExchange.returns(0);
+	fakeExchanger.feeRateForExchange.returns(10);
 
 	const fakeAddressResolver = await smock.fake<IAddressResolver>(
 		'IAddressResolver'
@@ -431,7 +431,7 @@ describe('Stake', () => {
 			).to.equal(200);
 		});
 
-		it.skip('Execute trade on synthetix through proxy', async () => {
+		it('Execute trade on synthetix through proxy', async () => {
 			// establish traderScore pre-trade
 			expect(
 				await stakingRewardsProxy.rewardScoreOf(addr1.address)
@@ -452,7 +452,7 @@ describe('Stake', () => {
 			).to.be.above(0);
 		});
 
-		it.skip('Wait, and then claim kwenta for both stakers', async () => {
+		it('Wait, and then claim kwenta for both stakers', async () => {
 			// fund StakingRewards with KWENTA and set the rewards for the next epoch
 			await fundAndSetStakingRewards();
 
