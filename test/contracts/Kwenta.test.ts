@@ -5,17 +5,15 @@ import { FakeContract, smock } from "@defi-wonderland/smock";
 import { SupplySchedule } from "../../typechain/SupplySchedule";
 import { StakingRewards } from "../../typechain/StakingRewards";
 
-describe("KWENTA Token", function () {
+describe("KWENTA Token", async function () {
     const NAME = "Kwenta";
     const SYMBOL = "KWENTA";
     const INITIAL_SUPPLY = ethers.utils.parseUnits("313373");
-    const TREASURY_DAO_ADDRESS = "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
     const INFLATION_DIVERSION_BPS = 2000;
 
     let kwenta: Contract, supplySchedule: FakeContract<SupplySchedule>;
-    before(async () => {
-        const [owner] = await ethers.getSigners();
-
+    beforeEach(async () => {
+        const [owner, treasuryDAO] = await ethers.getSigners();
         supplySchedule = await smock.fake("SupplySchedule");
 
         const stakingRewards = await smock.fake<StakingRewards>(
@@ -28,7 +26,7 @@ describe("KWENTA Token", function () {
             SYMBOL,
             INITIAL_SUPPLY,
             owner.address,
-            TREASURY_DAO_ADDRESS, // Cannot mint to zero address
+            treasuryDAO.address, // Cannot mint to zero address
             stakingRewards.address,
             supplySchedule.address,
             INFLATION_DIVERSION_BPS
@@ -44,12 +42,11 @@ describe("KWENTA Token", function () {
     });
 
     it("Total supply should be 313373", async function () {
-        expect(await kwenta.totalSupply()).to.equal(
-            INITIAL_SUPPLY
-        );
+        expect(await kwenta.totalSupply()).to.equal(INITIAL_SUPPLY);
     });
 
     it("Test inflationary diversion", async function () {
+        const [, treasuryDAO] = await ethers.getSigners();
         const inflationaryRewardsForMint = 200;
         const treasurySupplyWithDivertedRewards = INITIAL_SUPPLY.add(
             ethers.BigNumber.from(inflationaryRewardsForMint)
@@ -60,7 +57,7 @@ describe("KWENTA Token", function () {
         supplySchedule.mintableSupply.returns(inflationaryRewardsForMint);
         await kwenta.mint();
 
-        expect(await kwenta.balanceOf(TREASURY_DAO_ADDRESS)).to.equal(
+        expect(await kwenta.balanceOf(treasuryDAO.address)).to.equal(
             treasurySupplyWithDivertedRewards
         );
     });
@@ -74,5 +71,18 @@ describe("KWENTA Token", function () {
         await expect(kwenta.setTreasuryDiversion(20000)).to.be.revertedWith(
             "Represented in basis points"
         );
+    });
+
+    it("Test burn attempt from empty address", async function () {
+        const [, , user1] = await ethers.getSigners();
+        await expect(kwenta.connect(user1).burn(1)).to.be.revertedWith(
+            "ERC20: burn amount exceeds balance"
+        );
+    });
+
+    it("Test burn attempt", async function () {
+        const [, treasuryDAO] = await ethers.getSigners();
+        await kwenta.connect(treasuryDAO).burn(1);
+        expect(await kwenta.totalSupply()).to.equal(INITIAL_SUPPLY.sub("1"));
     });
 });
