@@ -204,7 +204,6 @@ contract RewardEscrow is Owned, IRewardEscrow {
      */
 
     function vest(uint256[] calldata entryIDs) override external {
-        require(!_isStaked(msg.sender), "Must unstake escrow to vest");
         uint256 total;
         uint256 totalFee;
         for (uint i = 0; i < entryIDs.length; i++) {
@@ -225,12 +224,26 @@ contract RewardEscrow is Owned, IRewardEscrow {
 
         /* Transfer vested tokens. Will revert if total > totalEscrowedAccountBalance */
         if (total != 0) {
+            // Withdraw staked escrowed kwenta if needed for reward
+            if (_isStaked(msg.sender)) {
+                uint totalWithFee = total + totalFee;
+                uint unstakedEscrow = totalEscrowedAccountBalance[msg.sender] - stakingRewards.escrowedBalanceOf(msg.sender);
+                if (totalWithFee > unstakedEscrow) {
+                    uint amountToUnstake = totalWithFee - unstakedEscrow;
+                    unstakeEscrow(amountToUnstake);
+                }
+            }
+
+            // Burn kwenta if fee
+            if (totalFee != 0) {
+                _reduceAccountEscrowBalances(msg.sender, totalFee);
+                kwenta.burn(totalFee);
+            }
+
+            // Transfer kwenta
             _transferVestedTokens(msg.sender, total);
         }
-        if (totalFee != 0) {
-            _reduceAccountEscrowBalances(msg.sender, totalFee);
-            kwenta.burn(totalFee);
-        }
+        
     }
 
     /**
