@@ -13,14 +13,14 @@ const BN = require("bn.js");
 const { expect } = require("chai");
 const { wei } = require("@synthetixio/wei");
 
-describe("SupplySchedule", async () => {
+describe("SupplySchedule", () => {
     const initialWeeklySupply = wei(313373).mul(0.6).div(52); // 75,000,000 / 52 weeks
     let inflationStartDate;
 
     //const [, owner, synthetix, account1, account2] = accounts;
-    const accounts = await ethers.getSigners();
-    const [owner, , account1, account2] = accounts;
-
+    
+    let accounts;
+    let owner, account1, account2;
     let supplySchedule, synthetixProxy, decayRate;
 
     /*
@@ -76,6 +76,9 @@ describe("SupplySchedule", async () => {
     };
 
     beforeEach(async () => {
+        accounts = await ethers.getSigners();
+        [owner, , account1, account2] = accounts;
+
         const NAME = "Kwenta";
         const SYMBOL = "KWENTA";
         const INITIAL_SUPPLY = parseUnits("313373");
@@ -157,7 +160,7 @@ describe("SupplySchedule", async () => {
     describe("functions and modifiers", async () => {
         it("should allow owner to update the minter reward amount", async () => {
             const existingReward = await supplySchedule.minterReward();
-            const newReward = existingReward.sub(ethers.utils.parseUnits("10"));
+            const newReward = existingReward.sub(ethers.utils.parseUnits("0.5"));
 
             //Capture event
             await expect(
