@@ -247,7 +247,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
     }
 
     /**
-     * @notice Create an escrow entry to lock SNX for a given duration in seconds
+     * @notice Create an escrow entry to lock KWENTA for a given duration in seconds
      * @dev This call expects that the depositor (msg.sender) has already approved the Reward escrow contract
      to spend the the amount being escrowed.
      */
@@ -258,7 +258,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
     ) override external {
         require(beneficiary != address(0), "Cannot create escrow with address(0)");
 
-        /* Transfer SNX from msg.sender */
+        /* Transfer KWENTA from msg.sender */
         require(IERC20(kwenta).transferFrom(msg.sender, address(this), deposit), "token transfer failed");
 
         /* Append vesting entry for the beneficiary address */
@@ -270,8 +270,8 @@ contract RewardEscrow is Owned, IRewardEscrow {
      * @dev A call to this should accompany a previous successful call to kwenta.transfer(rewardEscrow, amount),
      * to ensure that when the funds are withdrawn, there is enough balance.
      * @param account The account to append a new vesting entry to.
-     * @param quantity The quantity of SNX that will be escrowed.
-     * @param duration The duration that SNX will be emitted.
+     * @param quantity The quantity of KWENTA that will be escrowed.
+     * @param duration The duration that KWENTA will be emitted.
      */
     function appendVestingEntry(
         address account,

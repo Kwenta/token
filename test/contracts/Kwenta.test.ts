@@ -11,14 +11,15 @@ describe("KWENTA Token", function () {
     const INITIAL_SUPPLY = ethers.utils.parseUnits("313373");
     const INFLATION_DIVERSION_BPS = 2000;
 
-    let kwenta: Contract, supplySchedule: FakeContract<SupplySchedule>;
+    let kwenta: Contract;
+    let supplySchedule: FakeContract<SupplySchedule>;
+    let stakingRewards: FakeContract<StakingRewards>;
+
     beforeEach(async () => {
         const [owner, treasuryDAO] = await ethers.getSigners();
-        supplySchedule = await smock.fake("SupplySchedule");
 
-        const stakingRewards = await smock.fake<StakingRewards>(
-            "StakingRewards"
-        );
+        supplySchedule = await smock.fake("SupplySchedule");
+        stakingRewards = await smock.fake("StakingRewards");
 
         const Kwenta = await ethers.getContractFactory("Kwenta");
         kwenta = await Kwenta.deploy(
@@ -27,7 +28,6 @@ describe("KWENTA Token", function () {
             INITIAL_SUPPLY,
             owner.address,
             treasuryDAO.address, // Cannot mint to zero address
-            stakingRewards.address,
             supplySchedule.address,
             INFLATION_DIVERSION_BPS
         );
@@ -45,8 +45,23 @@ describe("KWENTA Token", function () {
         expect(await kwenta.totalSupply()).to.equal(INITIAL_SUPPLY);
     });
 
+    it("Test mint reverts because 'Staking rewards not set'", async function () {
+        expect(await kwenta.stakingRewards()).to.equal(
+            "0x0000000000000000000000000000000000000000"
+        );
+        await expect(kwenta.mint()).to.be.revertedWith(
+            "Staking rewards not set"
+        );
+    });
+
+    it("Test setting the staking rewards address actually sets the address", async function () {
+        await kwenta.setStakingRewards(stakingRewards.address);
+        expect(await kwenta.stakingRewards()).to.equal(stakingRewards.address);
+    });
+
     it("Test inflationary diversion", async function () {
         const [, treasuryDAO] = await ethers.getSigners();
+        await kwenta.setStakingRewards(stakingRewards.address);
         const inflationaryRewardsForMint = 200;
         const treasurySupplyWithDivertedRewards = INITIAL_SUPPLY.add(
             ethers.BigNumber.from(inflationaryRewardsForMint)

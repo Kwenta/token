@@ -21,7 +21,7 @@ import "./RewardEscrow.sol";
     - Withdrawing KWENTA tokens
     - Updating staker and trader scores
     - Calculating and notifying rewards
-    */
+*/
 contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable {
     using FixidityLib for FixidityLib.Fixidity;
     using ExponentLib for FixidityLib.Fixidity;
@@ -98,7 +98,8 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     address private pendingAdmin;
     
     /* ========== INITIALIZER ========== */
-    function initialize(address _owner,
+    function initialize(
+        address _owner,
         address _rewardsToken,
         address _stakingToken,
         address _rewardEscrow,
@@ -133,79 +134,79 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     /* ========== VIEWS ========== */
 
     /*
-    * @notice Getter function for the state variable _totalRewardScore
-    * @return sum of all rewardScores
-    */
+     * @notice Getter function for the state variable _totalRewardScore
+     * @return sum of all rewardScores
+     */
     function totalRewardScore() override public view returns (uint256) {
         return _totalRewardScore;
     }
 
     /*
-    * @notice Getter function for the staked balance of an account
-    * @param account address to check token balance of
-    * @return token balance of specified account
-    */
+     * @notice Getter function for the staked balance of an account
+     * @param account address to check token balance of
+     * @return token balance of specified account
+     */
     function stakedBalanceOf(address account) override public view returns (uint256) {
         return _totalBalances[account] - _escrowedBalances[account];
     }
 
     /*
-    * @notice Getter function for the reward score of an account
-    * @param account address to check the reward score of
-    * @return reward score of specified account
-    */
+     * @notice Getter function for the reward score of an account
+     * @param account address to check the reward score of
+     * @return reward score of specified account
+     */
     function rewardScoreOf(address account) override external view returns (uint256) {
         return _rewardScores[account];
     }
 
     /*
-    * @notice Getter function for the total balances of an account (staked + escrowed rewards)
-    * @param account address to check the total balance of
-    * @return total balance of specified account
-    */
+     * @notice Getter function for the total balances of an account (staked + escrowed rewards)
+     * @param account address to check the total balance of
+     * @return total balance of specified account
+     */
     function totalBalanceOf(address account) override external view returns (uint256) {
         return _totalBalances[account];
     }
 
     /*
-    * @notice Getter function for the escrowed balance of an account
-    * @param account address to check the escrowed balance of
-    * @return escrowed balance of specified account
-    */
+     * @notice Getter function for the escrowed balance of an account
+     * @param account address to check the escrowed balance of
+     * @return escrowed balance of specified account
+     */
     function escrowedBalanceOf(address account) override external view returns (uint256) {
         return _escrowedBalances[account];
     }
 
     /*
-    * @notice Getter function for the reward per reward score of a past epoch
-    * @param id of the week to get the reward
-    * @return reward per reward score of specified week
-    */
+     * @notice Getter function for the reward per reward score of a past epoch
+     * @param id of the week to get the reward
+     * @return reward per reward score of specified week
+     */
     function rewardPerRewardScoreOfEpoch(uint256 _epoch) override external view returns (uint256) {
         return epochRewardPerRewardScore[_epoch];
     }
 
     /*
-    * @notice Getter function for the total fees paid by an account
-    * @param account address to check the fees balance of
-    * @return fees of specified account
-    */
+     * @notice Getter function for the total fees paid by an account
+     * @param account address to check the fees balance of
+     * @return fees of specified account
+     */
     function feesPaidBy(address account) override external view returns (uint256) {
         return _feesPaid[account];
     }
 
     /*
-    * @notice Calculate if we are still in the reward epoch or we reached periodFinish
-    * @return Max date to sum rewards, either now or period finish
-    */
+     * @notice Calculate if we are still in the reward epoch or we reached periodFinish
+     * @return Max date to sum rewards, either now or period finish
+     */
     function lastTimeRewardApplicable() override public view returns (uint256) {
         return Math.min(block.timestamp, periodFinish);
     }
 
     /*
-    * @notice Calculate the reward distribution per token based on the time elapsed and current value of totalSupply
-    * @return corresponding reward per token stored
-    */
+     * @notice Calculate the reward distribution per token based on the time elapsed and current value of totalSupply
+     * @return corresponding reward per token stored
+     */
     function rewardPerToken() override public view returns (uint256) {
         if (_totalSupply == 0) {
             return rewardPerTokenStored;
@@ -217,12 +218,12 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     }
 
     /*
-    * @notice Function calculating the rewards earned by an account between the current call moment and the latest change in
-    * reward score. The function divides the reward score by the total amount, accounts for the changes between now and the 
-    * last changes (deducting userRewardPerRewardScorePaid) and adds the result to the existing rewards balance of the account
-    * @param account to calculate the earned rewards
-    * @return uint256 containing the total rewards due to account
-    */
+     * @notice Function calculating the rewards earned by an account between the current call moment and the latest change in
+     * reward score. The function divides the reward score by the total amount, accounts for the changes between now and the 
+     * last changes (deducting userRewardPerRewardScorePaid) and adds the result to the existing rewards balance of the account
+     * @param account to calculate the earned rewards
+     * @return uint256 containing the total rewards due to account
+     */
     function earned(address account) override public view returns(uint256) {
         uint256 stakingRewards = _totalBalances[account] * (rewardPerToken() - userRewardPerTokenPaid[account]) / DECIMALS_DIFFERENCE;
         uint256 tradingRewards = 0;
@@ -233,9 +234,9 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     }
 
     /*
-    * @notice Calculate the total rewards delivered in a specific duration, multiplying rewardRate x duration
-    * @return uint256 containing the total rewards to be delivered
-    */
+     * @notice Calculate the total rewards delivered in a specific duration, multiplying rewardRate x duration
+     * @return uint256 containing the total rewards to be delivered
+     */
     function getRewardForDuration() override external view returns (uint256) {
         return rewardRate * rewardsDuration;
     }
@@ -322,11 +323,11 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     }
 
     /*
-    * @notice Function called by the ExchangerProxy updating the fees paid by each account and the contribution
-    * to the total reward scores
-    * @param _trader: address, for which to update the score
-    * @param _feesPaid: uint256, total fees paid in this period
-    */
+     * @notice Function called by the ExchangerProxy updating the fees paid by each account and the contribution
+     * to the total reward scores
+     * @param _trader: address, for which to update the score
+     * @param _feesPaid: uint256, total fees paid in this period
+     */
     function updateTraderScore(address _trader, uint256 _newFeesPaid) override external onlyExchangerProxy updateRewards(_trader) {
         uint256 oldRewardScore = _rewardScores[_trader];
         if (lastTradeUserEpoch[_trader] < currentEpoch) {
@@ -340,11 +341,11 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     }
 
     /*
-    * @notice update the reward score:
-    * - if there hasn´t been a trade in the currentEpoch, return 0
-    * - if there has, update the reward score
-    * @param _account, the user to update the reward score to
-    */
+     * @notice update the reward score:
+     * - if there hasn´t been a trade in the currentEpoch, return 0
+     * - if there has, update the reward score
+     * @param _account, the user to update the reward score to
+     */
     function updateRewardScore(address _account, uint256 _oldRewardScore) internal {
         uint256 newRewardScore = 0;
         if((lastTradeUserEpoch[_account] == currentEpoch) && (_totalBalances[_account] > 0)) {
@@ -362,9 +363,9 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
 
 
     /*
-    * @notice Function staking the requested tokens by the user.
-    * @param _amount: uint256, containing the number of tokens to stake
-    */
+     * @notice Function staking the requested tokens by the user.
+     * @param _amount: uint256, containing the number of tokens to stake
+     */
     function stake(uint256 _amount) override external nonReentrant notPaused updateRewards(msg.sender) {
         require(_amount > 0);
         // Update caller balance
@@ -376,9 +377,9 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     }
 
     /*
-    * @notice Function withdrawing the requested tokens by the user.
-    * @param _amount: uint256, containing the number of tokens to stake
-    */
+     * @notice Function withdrawing the requested tokens by the user.
+     * @param _amount: uint256, containing the number of tokens to stake
+     */
     function withdraw(uint256 _amount) override public nonReentrant updateRewards(msg.sender) {
         require(_amount > 0, "Cannot withdraw 0");
         require(stakedBalanceOf(msg.sender) >= _amount);
@@ -391,9 +392,9 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     }
 
     /*
-    * @notice Function transferring the accumulated rewards for the caller address and updating the state mapping 
-    containing the current rewards
-    */
+     * @notice Function transferring the accumulated rewards for the caller address and updating the state mapping 
+     * containing the current rewards
+     */
     function getReward() override public updateRewards(msg.sender) nonReentrant {
         uint256 reward = rewards[msg.sender];
         if (reward > 0) {
@@ -406,20 +407,20 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     }
 
     /*
-    * @notice Function handling the exit of the protocol of the caller:
-    * - Withdraws all tokens
-    * - Transfers all rewards to caller's address
-    */
+     * @notice Function handling the exit of the protocol of the caller:
+     * - Withdraws all tokens
+     * - Transfers all rewards to caller's address
+     */
     function exit() override external {
         withdraw(stakedBalanceOf(msg.sender));
         getReward();
     }
 
     /*
-    * @notice Function called from RewardEscrow (append vesting entry) to accumulate escrowed tokens into rewards
-    * @param _account: address escrowing the rewards
-    * @param _amount: uint256, amount escrowed
-    */
+     * @notice Function called from RewardEscrow (append vesting entry) to accumulate escrowed tokens into rewards
+     * @param _account: address escrowing the rewards
+     * @param _amount: uint256, amount escrowed
+     */
     function stakeEscrow(address _account, uint256 _amount) override public onlyRewardEscrow updateRewards(_account) {
         _totalBalances[_account] +=  _amount;
         _totalSupply +=  _amount;
@@ -429,10 +430,10 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     }
 
     /*
-    * @notice Function called from RewardEscrow (vest) to deduct the escrowed tokens and not accumulate rewards
-    * @param _account: address escrowing the rewards
-    * @param _amount: uint256, amount escrowed
-    */
+     * @notice Function called from RewardEscrow (vest) to deduct the escrowed tokens and not accumulate rewards
+     * @param _account: address escrowing the rewards
+     * @param _amount: uint256, amount escrowed
+     */
     function unstakeEscrow(address _account, uint256 _amount) override public nonReentrant onlyRewardEscrow updateRewards(_account) {
         require(_escrowedBalances[_account] >= _amount);
         _totalBalances[_account] -= _amount;
@@ -445,10 +446,10 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     /* ========== RESTRICTED FUNCTIONS ========== */
 
     /*
-    * @notice Function used to set the rewards for the next N epochs
-    * @param rewards, total amount to distribute
-    * @param nEpochs, number of weeks with rewards
-    */  
+     * @notice Function used to set the rewards for the next N epochs
+     * @param rewards, total amount to distribute
+     * @param nEpochs, number of weeks with rewards
+     */  
     function setRewardNEpochs(uint256 reward, uint256 nEpochs) override external onlyOwner updateRewards(address(0)) {
         rewardRate = reward / nEpochs / WEEK;
         rewardRateStaking = rewardRate * PERCENTAGE_STAKING / MAX_BPS;
@@ -469,27 +470,27 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     }
 
     /*
-    * @notice Function available for the owner to change the rewardEscrow contract to use
-    * @param address of the rewardEsxrow contract to use
-    */
+     * @notice Function available for the owner to change the rewardEscrow contract to use
+     * @param address of the rewardEsxrow contract to use
+     */
     function setRewardEscrow(address _rewardEscrow) external onlyOwner {
         rewardEscrow = RewardEscrow(_rewardEscrow);
         emit RewardEscrowUpdated(address(_rewardEscrow));
     }
 
     /*
-    * @notice Function available for the owner to change the exchangerProxy contract to use
-    * @param address of the exchanger proxy to use
-    */
+     * @notice Function available for the owner to change the exchangerProxy contract to use
+     * @param address of the exchanger proxy to use
+     */
     function setExchangerProxy(address _exchangerProxy) external onlyOwner {
         exchangerProxy = _exchangerProxy;
         emit ExchangerProxyUpdated(_exchangerProxy);
     }
 
     /*
-    * @notice Function available for the owner to change the rewards duration via the state variable _rewardsDuration
-    * @param _rewardsDuration to set
-    */
+     * @notice Function available for the owner to change the rewards duration via the state variable _rewardsDuration
+     * @param _rewardsDuration to set
+     */
     function setRewardsDuration(uint256 _rewardsDuration) external onlyOwner {
         require(
             block.timestamp > periodFinish
@@ -501,22 +502,22 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     /* ========== MODIFIERS ========== */
 
     /*
-    * @notice Modifier called each time an event changing the trading score is updated:
-    * - update trader score
-    * - notify reward amount
-    * The modifier saves the state of the reward rate per fee until this point for the specific 
-    * address to be able to calculate the marginal contribution to rewards afterwards and adds the accumulated
-    * rewards since the last change to the account rewards
-    * @param address to update rewards to
-    */  
+     * @notice Modifier called each time an event changing the trading score is updated:
+     * - update trader score
+     * - notify reward amount
+     * The modifier saves the state of the reward rate per fee until this point for the specific 
+     * address to be able to calculate the marginal contribution to rewards afterwards and adds the accumulated
+     * rewards since the last change to the account rewards
+     * @param address to update rewards to
+     */  
     modifier updateRewards(address account) {
         _updateRewards(account);
         _;
     }
 
     /*
-    * @notice internal function used in the modifier with the same name to optimize bytecode
-    */
+     * @notice internal function used in the modifier with the same name to optimize bytecode
+     */
     function _updateRewards(address account) internal {
         // Calculate the reward per unit of reward score applicable to the last stint of account
         rewardPerTokenStored = rewardPerToken();
@@ -531,16 +532,16 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     }
 
     /*
-    * @notice access control modifier for exchanger proxy
-    */
+     * @notice access control modifier for exchanger proxy
+     */
     modifier onlyExchangerProxy() {
         _onlyExchangerProxy();
         _;
     }
 
     /*
-    * @notice internal function used in the modifier with the same name to optimize bytecode
-    */
+     * @notice internal function used in the modifier with the same name to optimize bytecode
+     */
     function _onlyExchangerProxy() internal view {
         bool isEP = msg.sender == address(exchangerProxy);
 
@@ -548,16 +549,16 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     }
 
     /*
-    * @notice access control modifier for rewardEscrow
-    */
+     * @notice access control modifier for rewardEscrow
+     */
     modifier onlyRewardEscrow() {
         _onlyRewardEscrow();
         _;
     }
 
     /*
-    * @notice internal function used in the modifier with the same name to optimize bytecode
-    */
+     * @notice internal function used in the modifier with the same name to optimize bytecode
+     */
     function _onlyRewardEscrow() internal view {
         bool isRE = msg.sender == address(rewardEscrow);
 
@@ -582,51 +583,51 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     /* ========== PROXY FUNCTIONS ========== */
     
     /*
-    * @notice Necessary override for Open Zeppelin UUPS proxy to make sure the admin logic is included
-    */
+     * @notice Necessary override for Open Zeppelin UUPS proxy to make sure the admin logic is included
+     */
     function _authorizeUpgrade(address newImplementation) internal override onlyAdmin {
 
     }
 
     /*
-    * @notice Getter function for current admin of stakingRewards Proxy
-    */
+     * @notice Getter function for current admin of stakingRewards Proxy
+     */
     function getAdmin() external view returns(address) {
         return admin;
     }
 
     /*
-    * @notice Getter function for current proposed new admin of stakingRewards Proxy
-    */
+     * @notice Getter function for current proposed new admin of stakingRewards Proxy
+     */
     function getPendingAdmin() external view returns(address) {
         return pendingAdmin;
     }
 
     /*
-    * @notice Propose a new admin for the staking rewards proxy (only the owner can do this)
-    */
+     * @notice Propose a new admin for the staking rewards proxy (only the owner can do this)
+     */
     function setPendingAdmin(address _newAdmin) external onlyOwner {
         pendingAdmin = _newAdmin;
     }
 
     /*
-    * @notice Pending admin accepts the new role as admin
-    */
+     * @notice Pending admin accepts the new role as admin
+     */
     function pendingAdminAccept() external onlyPendingAdmin {
         admin = pendingAdmin;
     }
 
     /*
-    * @notice access control modifier for admin
-    */
+     * @notice access control modifier for admin
+     */
     modifier onlyAdmin() {
         _onlyAdmin();
         _;
     }
 
     /*
-    * @notice internal function used in the modifier with the same name to optimize bytecode
-    */
+     * @notice internal function used in the modifier with the same name to optimize bytecode
+     */
     function _onlyAdmin() internal view {
         bool isAdmin = msg.sender == admin;
 
@@ -634,16 +635,16 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     }
 
     /*
-    * @notice access control modifier for pending admin
-    */
+     * @notice access control modifier for pending admin
+     */
     modifier onlyPendingAdmin() {
         _onlyPendingAdmin();
         _;
     }
 
     /*
-    * @notice internal function used in the modifier with the same name to optimize bytecode
-    */
+     * @notice internal function used in the modifier with the same name to optimize bytecode
+     */
     function _onlyPendingAdmin() internal view {
         bool isPendingAdmin = msg.sender == pendingAdmin;
 
