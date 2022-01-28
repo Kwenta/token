@@ -18,7 +18,7 @@ describe("SupplySchedule", () => {
     let inflationStartDate;
 
     //const [, owner, synthetix, account1, account2] = accounts;
-    
+
     let accounts;
     let owner, account1, account2;
     let supplySchedule, synthetixProxy, decayRate;
@@ -75,6 +75,7 @@ describe("SupplySchedule", () => {
         return SupplySchedule;
     };
 
+    let deploymentTime;
     beforeEach(async () => {
         accounts = await ethers.getSigners();
         [owner, , account1, account2] = accounts;
@@ -102,6 +103,7 @@ describe("SupplySchedule", () => {
         );
 
         await synthetixProxy.deployed();
+        deploymentTime = (await ethers.provider.getBlock()).timestamp;
         await supplySchedule.setSynthetixProxy(synthetixProxy.address);
 
         decayRate = await supplySchedule.DECAY_RATE();
@@ -117,7 +119,7 @@ describe("SupplySchedule", () => {
 
         expect(await instance.owner()).to.equal(owner.address);
         expect(await instance.lastMintEvent()).to.be.closeTo(
-            wei(Math.round(Date.now() / 1000), 18, true).toBN(),
+            wei(deploymentTime, 18, true).toBN(),
             10
         );
         expect(await instance.weekCounter()).to.equal(wei(0).toBN());
@@ -160,7 +162,9 @@ describe("SupplySchedule", () => {
     describe("functions and modifiers", async () => {
         it("should allow owner to update the minter reward amount", async () => {
             const existingReward = await supplySchedule.minterReward();
-            const newReward = existingReward.sub(ethers.utils.parseUnits("0.5"));
+            const newReward = existingReward.sub(
+                ethers.utils.parseUnits("0.5")
+            );
 
             //Capture event
             await expect(
