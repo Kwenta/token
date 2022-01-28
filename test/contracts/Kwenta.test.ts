@@ -4,6 +4,7 @@ import { Contract } from "@ethersproject/contracts";
 import { FakeContract, smock } from "@defi-wonderland/smock";
 import { SupplySchedule } from "../../typechain/SupplySchedule";
 import { StakingRewards } from "../../typechain/StakingRewards";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 describe("KWENTA Token", function () {
     const NAME = "Kwenta";
@@ -15,8 +16,11 @@ describe("KWENTA Token", function () {
     let supplySchedule: FakeContract<SupplySchedule>;
     let stakingRewards: FakeContract<StakingRewards>;
 
+    let owner: SignerWithAddress,
+        treasuryDAO: SignerWithAddress,
+        user1: SignerWithAddress;
     beforeEach(async () => {
-        const [owner, treasuryDAO] = await ethers.getSigners();
+        [owner, treasuryDAO, user1] = await ethers.getSigners();
 
         supplySchedule = await smock.fake("SupplySchedule");
         stakingRewards = await smock.fake("StakingRewards");
@@ -60,7 +64,6 @@ describe("KWENTA Token", function () {
     });
 
     it("Test inflationary diversion", async function () {
-        const [, treasuryDAO] = await ethers.getSigners();
         await kwenta.setStakingRewards(stakingRewards.address);
         const inflationaryRewardsForMint = 200;
         const treasurySupplyWithDivertedRewards = INITIAL_SUPPLY.add(
@@ -89,14 +92,12 @@ describe("KWENTA Token", function () {
     });
 
     it("Test burn attempt from empty address", async function () {
-        const [, , user1] = await ethers.getSigners();
         await expect(kwenta.connect(user1).burn(1)).to.be.revertedWith(
             "ERC20: burn amount exceeds balance"
         );
     });
 
     it("Test burn attempt", async function () {
-        const [, treasuryDAO] = await ethers.getSigners();
         await kwenta.connect(treasuryDAO).burn(1);
         expect(await kwenta.totalSupply()).to.equal(INITIAL_SUPPLY.sub("1"));
     });
