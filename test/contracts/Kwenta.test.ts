@@ -4,20 +4,22 @@ import { Contract } from "@ethersproject/contracts";
 import { FakeContract, smock } from "@defi-wonderland/smock";
 import { SupplySchedule } from "../../typechain/SupplySchedule";
 import { StakingRewards } from "../../typechain/StakingRewards";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 describe("KWENTA Token", function () {
     const NAME = "Kwenta";
     const SYMBOL = "KWENTA";
     const INITIAL_SUPPLY = ethers.utils.parseUnits("313373");
     const TREASURY_DAO_ADDRESS = "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-    const INFLATION_DIVERSION_BPS = 2000; 
+    const INFLATION_DIVERSION_BPS = 2000;
 
-    let kwenta: Contract
+    let kwenta: Contract;
     let supplySchedule: FakeContract<SupplySchedule>;
     let stakingRewards: FakeContract<StakingRewards>;
 
+    let owner: SignerWithAddress, user1: SignerWithAddress;
     before(async () => {
-        const [owner] = await ethers.getSigners();
+        [owner, user1] = await ethers.getSigners();
 
         supplySchedule = await smock.fake("SupplySchedule");
         stakingRewards = await smock.fake("StakingRewards");
@@ -43,13 +45,13 @@ describe("KWENTA Token", function () {
     });
 
     it("Total supply should be 313373", async function () {
-        expect(await kwenta.totalSupply()).to.equal(
-            INITIAL_SUPPLY
-        );
+        expect(await kwenta.totalSupply()).to.equal(INITIAL_SUPPLY);
     });
 
     it("Test mint reverts because 'Staking rewards not set'", async function () {
-        expect(await kwenta.stakingRewards()).to.equal("0x0000000000000000000000000000000000000000");
+        expect(await kwenta.stakingRewards()).to.equal(
+            "0x0000000000000000000000000000000000000000"
+        );
         await expect(kwenta.mint()).to.be.revertedWith(
             "Staking rewards not set"
         );
@@ -77,6 +79,11 @@ describe("KWENTA Token", function () {
         );
     });
 
+    it("Test unable to set treasury diversion as non-owner", async function () {
+        await expect(kwenta.connect(user1).setTreasuryDiversion(3000)).to.be
+            .reverted;
+    });
+
     it("Test changing inflationary diversion percentage", async function () {
         await kwenta.setTreasuryDiversion(3000);
         expect(await kwenta.treasuryDiversion()).to.equal("3000");
@@ -87,5 +94,4 @@ describe("KWENTA Token", function () {
             "Represented in basis points"
         );
     });
-
 });
