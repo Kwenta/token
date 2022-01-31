@@ -8,6 +8,8 @@ interface IKwenta is IERC20 {
 
     function mint() external returns (bool);
 
+    function burn(uint amount) external;
+    
     function setStakingRewards(address _stakingRewards) external;
 
 }

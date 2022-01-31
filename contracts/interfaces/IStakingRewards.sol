@@ -48,4 +48,8 @@ interface IStakingRewards {
 
     function setRewardNEpochs(uint256 reward, uint256 nEpochs) external;
 
+    function stakeEscrow(address _account, uint256 _amount) external;
+
+    function unstakeEscrow(address _account, uint256 _amount) external;
+
 }
