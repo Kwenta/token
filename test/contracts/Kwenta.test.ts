@@ -10,16 +10,17 @@ describe("KWENTA Token", function () {
     const NAME = "Kwenta";
     const SYMBOL = "KWENTA";
     const INITIAL_SUPPLY = ethers.utils.parseUnits("313373");
-    const TREASURY_DAO_ADDRESS = "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
     const INFLATION_DIVERSION_BPS = 2000;
 
     let kwenta: Contract;
     let supplySchedule: FakeContract<SupplySchedule>;
     let stakingRewards: FakeContract<StakingRewards>;
 
-    let owner: SignerWithAddress, user1: SignerWithAddress;
-    before(async () => {
-        [owner, user1] = await ethers.getSigners();
+    let owner: SignerWithAddress,
+        treasuryDAO: SignerWithAddress,
+        user1: SignerWithAddress;
+    beforeEach(async () => {
+        [owner, treasuryDAO, user1] = await ethers.getSigners();
 
         supplySchedule = await smock.fake("SupplySchedule");
         stakingRewards = await smock.fake("StakingRewards");
@@ -30,7 +31,7 @@ describe("KWENTA Token", function () {
             SYMBOL,
             INITIAL_SUPPLY,
             owner.address,
-            TREASURY_DAO_ADDRESS, // Cannot mint to zero address
+            treasuryDAO.address, // Cannot mint to zero address
             supplySchedule.address,
             INFLATION_DIVERSION_BPS
         );
@@ -74,7 +75,7 @@ describe("KWENTA Token", function () {
         supplySchedule.mintableSupply.returns(inflationaryRewardsForMint);
         await kwenta.mint();
 
-        expect(await kwenta.balanceOf(TREASURY_DAO_ADDRESS)).to.equal(
+        expect(await kwenta.balanceOf(treasuryDAO.address)).to.equal(
             treasurySupplyWithDivertedRewards
         );
     });
@@ -93,5 +94,16 @@ describe("KWENTA Token", function () {
         await expect(kwenta.setTreasuryDiversion(20000)).to.be.revertedWith(
             "Represented in basis points"
         );
+    });
+
+    it("Test burn attempt from empty address", async function () {
+        await expect(kwenta.connect(user1).burn(1)).to.be.revertedWith(
+            "ERC20: burn amount exceeds balance"
+        );
+    });
+
+    it("Test burn attempt", async function () {
+        await kwenta.connect(treasuryDAO).burn(1);
+        expect(await kwenta.totalSupply()).to.equal(INITIAL_SUPPLY.sub("1"));
     });
 });

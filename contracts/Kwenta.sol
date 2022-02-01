@@ -59,6 +59,10 @@ contract Kwenta is ERC20, Owned, IKwenta {
         return true;
     }
 
+    function burn(uint amount) override external {
+        _burn(msg.sender, amount);
+    }
+
     function setTreasuryDiversion(uint _treasuryDiversion) override public onlyOwner {
         require(_treasuryDiversion < 10000, "Represented in basis points");
         treasuryDiversion = _treasuryDiversion;
