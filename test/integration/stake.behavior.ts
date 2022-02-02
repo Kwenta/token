@@ -398,6 +398,9 @@ describe('Stake', () => {
 	describe('Staking w/ trading rewards', async () => {
 		loadSetup();
 		before('Stake kwenta', async () => {
+			// fund StakingRewards with KWENTA and set the rewards for the next epoch
+			await fundAndSetStakingRewards();
+			
 			// initial balance(s) should be 0
 			expect(await kwenta.balanceOf(addr1.address)).to.equal(0);
 			expect(await kwenta.balanceOf(addr2.address)).to.equal(0);
