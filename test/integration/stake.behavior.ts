@@ -400,7 +400,7 @@ describe('Stake', () => {
 		before('Stake kwenta', async () => {
 			// fund StakingRewards with KWENTA and set the rewards for the next epoch
 			await fundAndSetStakingRewards();
-			
+
 			// initial balance(s) should be 0
 			expect(await kwenta.balanceOf(addr1.address)).to.equal(0);
 			expect(await kwenta.balanceOf(addr2.address)).to.equal(0);
@@ -439,6 +439,9 @@ describe('Stake', () => {
 			expect(
 				await stakingRewardsProxy.rewardScoreOf(addr1.address)
 			).to.equal(0);
+			expect(
+				await stakingRewardsProxy.rewardScoreOf(addr2.address)
+			).to.equal(0);
 
 			// trade
 			await exchangerProxy.connect(addr1).exchangeWithTraderScoreTracking(
@@ -453,11 +456,16 @@ describe('Stake', () => {
 			expect(
 				await stakingRewardsProxy.rewardScoreOf(addr1.address)
 			).to.be.above(0);
+			expect(
+				await stakingRewardsProxy.rewardScoreOf(addr2.address)
+			).to.equal(0);
 		});
 
 		it('Wait, and then claim kwenta for both stakers', async () => {
-			// fund StakingRewards with KWENTA and set the rewards for the next epoch
-			await fundAndSetStakingRewards();
+			// establish reward balance pre-claim
+			expect(await rewardEscrow.balanceOf(addr1.address)).to.equal(
+				await rewardEscrow.balanceOf(addr2.address)
+			);
 
 			// wait
 			fastForward(SECONDS_IN_WEEK);
