@@ -10,8 +10,20 @@ import "./libraries/Math.sol";
 
 // Internal references
 // import "./Proxy.sol";
-import "./interfaces/ISynthetix.sol";
 import "./interfaces/IERC20.sol";
+
+// Used here because this contract is a different version
+interface IKwenta {
+
+    function mint() external returns (bool);
+
+    function burn(uint amount) external;
+
+    function setTreasuryDiversion(uint _treasuryDiversion) external;
+    
+    function setStakingRewards(address _stakingRewards) external;
+
+}
 
 // https://docs.synthetix.io/contracts/source/contracts/supplyschedule
 contract SupplySchedule is Owned, ISupplySchedule {
@@ -25,7 +37,7 @@ contract SupplySchedule is Owned, ISupplySchedule {
     // Counter for number of weeks since the start of supply inflation
     uint public weekCounter;
 
-    // The number of SNX rewarded to the caller of Synthetix.mint()
+    // The number of KWENTA rewarded to the caller of Kwenta.mint()
     uint public minterReward = 1e18;
 
     uint public constant INITIAL_SUPPLY = 313373e18;
@@ -33,10 +45,10 @@ contract SupplySchedule is Owned, ISupplySchedule {
     // Initial Supply * 240% Initial Inflation Rate / 52 weeks.
     uint public constant INITIAL_WEEKLY_SUPPLY = INITIAL_SUPPLY * 240 / 100 / 52;
 
-    // Address of the SynthetixProxy for the onlySynthetix modifier
-    address payable public synthetixProxy;
+    // Address of the kwenta for the onlyKwenta modifier
+    address payable public kwenta;
 
-    // Max SNX rewards for minter
+    // Max KWENTA rewards for minter
     uint public constant MAX_MINTER_REWARD = 20 * 1e18;
 
     // How long each inflation period is before mint can be called
@@ -64,7 +76,7 @@ contract SupplySchedule is Owned, ISupplySchedule {
     // ========== VIEWS ==========
 
     /**
-     * @return The amount of SNX mintable for the inflationary supply
+     * @return The amount of KWENTA mintable for the inflationary supply
      */
     function mintableSupply() external view returns (uint) {
         uint totalAmount;
@@ -94,9 +106,9 @@ contract SupplySchedule is Owned, ISupplySchedule {
                 totalAmount = totalAmount.add(tokenDecaySupplyForWeek(decayCount));
                 remainingWeeksToMint--;
             } else {
-                // Terminal supply is calculated on the total supply of Synthetix including any new supply
+                // Terminal supply is calculated on the total supply of Kwenta including any new supply
                 // We can compound the remaining week's supply at the fixed terminal rate
-                uint totalSupply = IERC20(synthetixProxy).totalSupply();
+                uint totalSupply = IERC20(kwenta).totalSupply();
                 uint currentTotalSupply = totalSupply.add(totalAmount);
 
                 totalAmount = totalAmount.add(terminalInflationSupply(currentTotalSupply, remainingWeeksToMint));
@@ -157,12 +169,12 @@ contract SupplySchedule is Owned, ISupplySchedule {
     // ========== MUTATIVE FUNCTIONS ==========
 
     /**
-     * @notice Record the mint event from Synthetix by incrementing the inflation
+     * @notice Record the mint event from Kwenta by incrementing the inflation
      * week counter for the number of weeks minted (probabaly always 1)
      * and store the time of the event.
-     * @param supplyMinted the amount of SNX the total supply was inflated by.
+     * @param supplyMinted the amount of KWENTA the total supply was inflated by.
      * */
-    function recordMintEvent(uint supplyMinted) external onlySynthetix returns (bool) {
+    function recordMintEvent(uint supplyMinted) external onlyKwenta returns (bool) {
         uint numberOfWeeksIssued = weeksSinceLastIssuance();
 
         // add number of weeks minted to weekCounter
@@ -177,11 +189,11 @@ contract SupplySchedule is Owned, ISupplySchedule {
     }
 
     /**
-     * @notice Sets the reward amount of SNX for the caller of the public
-     * function Synthetix.mint().
+     * @notice Sets the reward amount of KWENTA for the caller of the public
+     * function Kwenta.mint().
      * This incentivises anyone to mint the inflationary supply and the mintr
      * Reward will be deducted from the inflationary supply and sent to the caller.
-     * @param amount the amount of SNX to reward the minter.
+     * @param amount the amount of KWENTA to reward the minter.
      * */
     function setMinterReward(uint amount) external onlyOwner {
         require(amount <= MAX_MINTER_REWARD, "Reward cannot exceed max minter reward");
@@ -192,25 +204,25 @@ contract SupplySchedule is Owned, ISupplySchedule {
     // ========== SETTERS ========== */
 
     /**
-     * @notice Set the SynthetixProxy should it ever change.
-     * SupplySchedule requires Synthetix address as it has the authority
+     * @notice Set the Kwenta should it ever change.
+     * SupplySchedule requires Kwenta address as it has the authority
      * to record mint event.
      * */
-    function setSynthetixProxy(ISynthetix _synthetixProxy) external onlyOwner {
-        require(address(_synthetixProxy) != address(0), "Address cannot be 0");
-        synthetixProxy = address(uint160(address(_synthetixProxy)));
-        emit SynthetixProxyUpdated(synthetixProxy);
+    function setKwenta(IKwenta _kwenta) external onlyOwner {
+        require(address(_kwenta) != address(0), "Address cannot be 0");
+        kwenta = address(uint160(address(_kwenta)));
+        emit KwentaUpdated(kwenta);
     }
 
     // ========== MODIFIERS ==========
 
     /**
-     * @notice Only the Synthetix contract is authorised to call this function
+     * @notice Only the Kwenta contract is authorised to call this function
      * */
-    modifier onlySynthetix() {
+    modifier onlyKwenta() {
         require(
-            msg.sender == address(synthetixProxy),
-            "Only the synthetix contract can perform this action"
+            msg.sender == address(kwenta),
+            "Only the kwenta contract can perform this action"
         );
         _;
     }
@@ -222,12 +234,12 @@ contract SupplySchedule is Owned, ISupplySchedule {
     event SupplyMinted(uint supplyMinted, uint numberOfWeeksIssued, uint lastMintEvent, uint timestamp);
 
     /**
-     * @notice Emitted when the SNX minter reward amount is updated
+     * @notice Emitted when the KWENTA minter reward amount is updated
      * */
     event MinterRewardUpdated(uint newRewardAmount);
 
     /**
-     * @notice Emitted when setSynthetixProxy is called changing the Synthetix Proxy address
+     * @notice Emitted when setKwenta is called changing the Kwenta Proxy address
      * */
-    event SynthetixProxyUpdated(address newAddress);
+    event KwentaUpdated(address newAddress);
 }

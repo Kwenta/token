@@ -58,7 +58,7 @@ describe("Mint", () => {
         await kwenta.deployed();
         await kwenta.setStakingRewards(mockStakingRewards.address);
 
-        await supplySchedule.setSynthetixProxy(kwenta.address);
+        await supplySchedule.setKwenta(kwenta.address);
 
         return kwenta;
     });

@@ -146,7 +146,7 @@ const loadSetup = () => {
 			INFLATION_DIVERSION_BPS
 		);
 		await kwenta.deployed();
-		await supplySchedule.setSynthetixProxy(kwenta.address);
+		await supplySchedule.setKwenta(kwenta.address);
 
 		// deploy RewardEscrow
 		const RewardEscrow = await ethers.getContractFactory('RewardEscrow');
