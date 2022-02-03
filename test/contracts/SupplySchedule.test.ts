@@ -20,7 +20,7 @@ const { expect } = require("chai");
 const { wei } = require("@synthetixio/wei");
 
 describe("SupplySchedule", () => {
-    const initialWeeklySupply = wei(313373).mul(0.6).div(52); // 75,000,000 / 52 weeks
+    const initialWeeklySupply = wei(313373).mul(2.40).div(52);
     let inflationStartDate: number;
 
     let accounts: SignerWithAddress[];
