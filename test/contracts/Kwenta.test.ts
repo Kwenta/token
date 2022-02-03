@@ -80,6 +80,11 @@ describe("KWENTA Token", function () {
         );
     });
 
+    it("Test unable to set treasury diversion as non-owner", async function () {
+        await expect(kwenta.connect(user1).setTreasuryDiversion(3000)).to.be
+            .reverted;
+    });
+
     it("Test changing inflationary diversion percentage", async function () {
         await kwenta.setTreasuryDiversion(3000);
         expect(await kwenta.treasuryDiversion()).to.equal("3000");

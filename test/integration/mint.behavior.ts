@@ -64,7 +64,7 @@ describe("Mint", () => {
 
     it("Mint inflationary supply 1 week later", async () => {
         const [owner] = await ethers.getSigners();
-        const MINTER_REWARD = ethers.utils.parseUnits("200");
+        const MINTER_REWARD = ethers.utils.parseUnits("1");
         const FIRST_WEEK_MINT = INITIAL_SUPPLY.mul(60)
             .div(100)
             .div(52)

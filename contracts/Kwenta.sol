@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.7;
+pragma solidity ^0.8.0;
 
 import './utils/ERC20.sol';
 import './Owned.sol';
@@ -63,7 +63,7 @@ contract Kwenta is ERC20, Owned, IKwenta {
         _burn(msg.sender, amount);
     }
 
-    function setTreasuryDiversion(uint _treasuryDiversion) public {
+    function setTreasuryDiversion(uint _treasuryDiversion) override public onlyOwner {
         require(_treasuryDiversion < 10000, "Represented in basis points");
         treasuryDiversion = _treasuryDiversion;
     }

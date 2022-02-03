@@ -26,7 +26,7 @@ contract SupplySchedule is Owned, ISupplySchedule {
     uint public weekCounter;
 
     // The number of SNX rewarded to the caller of Synthetix.mint()
-    uint public minterReward = 200e18;
+    uint public minterReward = 1e18;
 
     uint public constant INITIAL_SUPPLY = 313373e18;
 
@@ -37,7 +37,7 @@ contract SupplySchedule is Owned, ISupplySchedule {
     address payable public synthetixProxy;
 
     // Max SNX rewards for minter
-    uint public constant MAX_MINTER_REWARD = 200 * 1e18;
+    uint public constant MAX_MINTER_REWARD = 20 * 1e18;
 
     // How long each inflation period is before mint can be called
     uint public constant MINT_PERIOD_DURATION = 1 weeks;
