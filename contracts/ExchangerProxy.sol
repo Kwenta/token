@@ -4,10 +4,7 @@ pragma solidity ^0.8.7;
 import "./interfaces/IAddressResolver.sol";
 import "./interfaces/ISynthetix.sol";
 import "./interfaces/IExchanger.sol";
-
-interface IStakingRewards {
-    function updateTraderScore(address _trader, uint256 _newFeesPaid) external returns (uint);
-}
+import "./interfaces/IStakingRewards.sol";
 
 contract ExchangerProxy {
     IAddressResolver addressResolver;
