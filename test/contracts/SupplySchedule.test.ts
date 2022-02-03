@@ -1,5 +1,11 @@
 "use strict";
 
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { BigNumber } from "ethers";
+import { SupplySchedule } from "../../typechain/SupplySchedule";
+import { Kwenta } from "../../typechain/Kwenta";
+import Wei from "@synthetixio/wei";
+
 const { ethers } = require("hardhat");
 const { parseUnits } = ethers.utils;
 const { AddressZero } = ethers.constants;
@@ -15,18 +21,18 @@ const { wei } = require("@synthetixio/wei");
 
 describe("SupplySchedule", () => {
     const initialWeeklySupply = wei(313373).mul(0.6).div(52); // 75,000,000 / 52 weeks
-    let inflationStartDate;
+    let inflationStartDate: number;
 
-    //const [, owner, synthetix, account1, account2] = accounts;
-
-    let accounts;
-    let owner, account1, account2;
-    let supplySchedule, synthetixProxy, decayRate;
+    let accounts: SignerWithAddress[];
+    let owner: SignerWithAddress, account2: SignerWithAddress;
+    let supplySchedule: SupplySchedule, kwenta: Kwenta;
+    let decayRate: BigNumber;
+    let deploymentTime: number;
 
     /*
      * Exponentiation by squares of x^n, interpreting them as fixed point decimal numbers.
      */
-    const powRoundDown = (x, n, unit = wei(1).toBN()) => {
+    const powRoundDown = (x: BigNumber, n: number, unit = wei(1).toBN()) => {
         let xBN = x;
         let temp = unit;
         while (n > 0) {
@@ -34,12 +40,15 @@ describe("SupplySchedule", () => {
                 temp = temp.mul(xBN).div(unit);
             }
             xBN = xBN.mul(xBN).div(unit);
-            n = parseInt(n / 2);
+            n = parseInt(String(n / 2)); // For some reason my terminal will freeze until reboot if I don't do this?
         }
         return temp;
     };
 
-    function getDecaySupplyForWeekNumber(initialAmount, weekNumber) {
+    function getDecaySupplyForWeekNumber(
+        initialAmount: Wei,
+        weekNumber: number
+    ) {
         //const effectiveRate = wei(1).sub(decayRate).pow(weekNumber);
         const effectiveRate = powRoundDown(
             wei(1).sub(decayRate).toBN(),
@@ -75,10 +84,9 @@ describe("SupplySchedule", () => {
         return SupplySchedule;
     };
 
-    let deploymentTime;
     beforeEach(async () => {
         accounts = await ethers.getSigners();
-        [owner, , account1, account2] = accounts;
+        [owner, account2] = accounts;
 
         const NAME = "Kwenta";
         const SYMBOL = "KWENTA";
@@ -92,7 +100,7 @@ describe("SupplySchedule", () => {
         await supplySchedule.deployed();
 
         const Kwenta = await ethers.getContractFactory("Kwenta");
-        synthetixProxy = await Kwenta.deploy(
+        kwenta = await Kwenta.deploy(
             NAME,
             SYMBOL,
             INITIAL_SUPPLY,
@@ -102,9 +110,9 @@ describe("SupplySchedule", () => {
             INFLATION_DIVERSION_BPS
         );
 
-        await synthetixProxy.deployed();
+        await kwenta.deployed();
         deploymentTime = (await ethers.provider.getBlock()).timestamp;
-        await supplySchedule.setSynthetixProxy(synthetixProxy.address);
+        await supplySchedule.setSynthetixProxy(kwenta.address);
 
         decayRate = await supplySchedule.DECAY_RATE();
         inflationStartDate = (
@@ -128,28 +136,23 @@ describe("SupplySchedule", () => {
         );
     });
 
-    describe("linking synthetix", async () => {
-        it("should have set synthetix proxy", async () => {
-            expect(await supplySchedule.synthetixProxy()).to.equal(
-                synthetixProxy.address
-            );
+    describe("linking kwenta", async () => {
+        it("should have set kwenta", async () => {
+            expect(await supplySchedule.synthetixProxy()).to.equal(kwenta.address);
         });
-        it("should revert when setting synthetix proxy to ZERO_ADDRESS", async () => {
-            await expect(supplySchedule.setSynthetixProxy(AddressZero)).to.be
-                .reverted;
+        it("should revert when setting kwenta to ZERO_ADDRESS", async () => {
+            await expect(supplySchedule.setSynthetixProxy(AddressZero)).to.be.reverted;
         });
 
-        it("should emit an event when setting synthetix proxy", async () => {
+        it("should emit an event when setting kwenta", async () => {
             await expect(
-                supplySchedule.setSynthetixProxy(account2.address, {
-                    from: owner.address,
-                })
+                supplySchedule.connect(owner).setSynthetixProxy(account2.address)
             )
                 .to.emit(supplySchedule, "SynthetixProxyUpdated")
                 .withArgs(account2.address);
         });
 
-        it("should disallow a non-owner from setting the synthetix proxy", async () => {
+        it("should disallow a non-owner from setting kwenta", async () => {
             await onlyGivenAddressCanInvoke(
                 supplySchedule.setSynthetixProxy,
                 [account2.address],
@@ -168,9 +171,7 @@ describe("SupplySchedule", () => {
 
             //Capture event
             await expect(
-                supplySchedule.setMinterReward(newReward, {
-                    from: owner.address,
-                })
+                supplySchedule.connect(owner).setMinterReward(newReward)
             )
                 .to.emit(supplySchedule, "MinterRewardUpdated")
                 .withArgs(newReward);
@@ -261,11 +262,15 @@ describe("SupplySchedule", () => {
         });
 
         describe("terminal inflation supply with initial total supply of 1,000,000", async () => {
-            let weeklySupplyRate;
+            let weeklySupplyRate: Wei;
 
             // Calculate the compound supply for numberOfPeriods (weeks) and initial principal
             // as supply at the beginning of the periods.
-            function getCompoundSupply(principal, weeklyRate, numberOfPeriods) {
+            function getCompoundSupply(
+                principal: Wei,
+                weeklyRate: Wei,
+                numberOfPeriods: number
+            ) {
                 // calcualte effective compound rate for number of weeks to 18 decimals precision
                 const effectiveRate = powRoundDown(
                     wei(1).add(weeklyRate).toBN(),
@@ -406,7 +411,7 @@ describe("SupplySchedule", () => {
         describe("mintable supply", async () => {
             const DAY = 60 * 60 * 24;
             const WEEK = 604800;
-            let weekOne;
+            let weekOne: number;
 
             beforeEach(async () => {
                 weekOne = inflationStartDate + 3600 + 1 * DAY; // 1 day and 60 mins within first week of Inflation supply > Inflation supply as 1 day buffer is added to lastMintEvent
@@ -414,16 +419,14 @@ describe("SupplySchedule", () => {
 
             async function checkMintedValues(
                 mintedSupply = wei(0),
-                weeksIssued,
+                weeksIssued: number,
                 instance = supplySchedule
             ) {
                 const weekCounterBefore = await instance.weekCounter();
 
-                // call updateMintValues to mimic synthetix issuing tokens
+                // call updateMintValues to mimic kwenta issuing tokens
                 await supplySchedule.setSynthetixProxy(owner.address);
-                const transaction = await instance.recordMintEvent(
-                    mintedSupply.toBN()
-                );
+                await instance.recordMintEvent(mintedSupply.toBN());
 
                 const weekCounterAfter = weekCounterBefore.add(
                     wei(weeksIssued, 18, true).toBN()
@@ -435,7 +438,9 @@ describe("SupplySchedule", () => {
                 // lastMintEvent is updated to number of weeks after inflation start date + 1 DAY buffer
                 expect(
                     lastMintEvent.toNumber() ===
-                        inflationStartDate + weekCounterAfter * WEEK + 1 * DAY
+                        inflationStartDate +
+                            weekCounterAfter.toNumber() * WEEK +
+                            1 * DAY
                 ).to.be.ok;
 
                 // check event emitted has correct amounts of supply
