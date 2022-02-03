@@ -30,8 +30,8 @@ contract SupplySchedule is Owned, ISupplySchedule {
 
     uint public constant INITIAL_SUPPLY = 313373e18;
 
-    // Initial Supply * 60% Inflation Rate / 52 weeks.
-    uint public constant INITIAL_WEEKLY_SUPPLY = INITIAL_SUPPLY * 60 / 100 / 52; // TODO: Double check the safety of this math
+    // Initial Supply * 240% Initial Inflation Rate / 52 weeks.
+    uint public constant INITIAL_WEEKLY_SUPPLY = INITIAL_SUPPLY * 240 / 100 / 52;
 
     // Address of the SynthetixProxy for the onlySynthetix modifier
     address payable public synthetixProxy;
@@ -48,7 +48,7 @@ contract SupplySchedule is Owned, ISupplySchedule {
     uint8 public constant SUPPLY_DECAY_END = 208; // Inclusive of SUPPLY_DECAY_END week.
 
     // Weekly percentage decay of inflationary supply
-    uint public constant DECAY_RATE = 2837000000000000; // 0.2837% weekly
+    uint public constant DECAY_RATE = 20500000000000000; // 2.05% weekly
 
     // Percentage growth of terminal supply per annum
     uint public constant TERMINAL_SUPPLY_RATE_ANNUAL = 10000000000000000; // 1.0% pa
