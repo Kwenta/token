@@ -450,34 +450,44 @@ describe('Stake', () => {
 			).to.equal(0);
 
 			// trade
-			await exchangerProxy.connect(addr1).exchangeWithTraderScoreTracking(
-				ethers.utils.formatBytes32String('sUSD'),
-				ethers.constants.One,
-				ethers.utils.formatBytes32String('sETH'),
-				ethers.constants.AddressZero,
-				ethers.utils.formatBytes32String('KWENTA')
-			);
+			await exchangerProxy
+				.connect(addr1)
+				.exchangeWithTraderScoreTracking(
+					ethers.utils.formatBytes32String('sUSD'),
+					ethers.constants.One,
+					ethers.utils.formatBytes32String('sETH'),
+					ethers.constants.AddressZero,
+					ethers.utils.formatBytes32String('KWENTA')
+				);
 
 			// calculate expected reward score
-			const feesPaidByAddr1 = await stakingRewardsProxy.feesPaidBy(addr1.address);
-			console.log("Fees: " + feesPaidByAddr1);
-			const kwentaStakedByAddr1 = await stakingRewardsProxy.stakedBalanceOf(addr1.address);
-			console.log("Staked: " + kwentaStakedByAddr1);
+			const feesPaidByAddr1 = await stakingRewardsProxy.feesPaidBy(
+				addr1.address
+			);
+			const kwentaStakedByAddr1 = await stakingRewardsProxy.stakedBalanceOf(
+				addr1.address
+			);
 
-			const expectedRewardScoreAddr1 = Math.pow(feesPaidByAddr1, 0.7) * Math.pow(kwentaStakedByAddr1, (0.3));
-			console.log("Expected: " + expectedRewardScoreAddr1);
+			// expected reward score
+			const expectedRewardScoreAddr1 =
+				Math.pow(feesPaidByAddr1, 0.7) * Math.pow(kwentaStakedByAddr1, 0.3);
 
-			const actualRewardScoreAddr1 = await stakingRewardsProxy.rewardScoreOf(addr1.address);
-			console.log("Actual: " + actualRewardScoreAddr1);
-			const actualRewardScoreAddr2 = await stakingRewardsProxy.rewardScoreOf(addr2.address);
+			// actual reward score(s)
+			const actualRewardScoreAddr1 = await stakingRewardsProxy.rewardScoreOf(
+				addr1.address
+			);
+			const actualRewardScoreAddr2 = await stakingRewardsProxy.rewardScoreOf(
+				addr2.address
+			);
 
 			// expect reward score to be increase post-trade
-			expect(
-				actualRewardScoreAddr1
-			).to.be.above(expectedRewardScoreAddr1.toString());
-			expect(
-				actualRewardScoreAddr2
-			).to.equal(0);
+			expect(actualRewardScoreAddr1.div(wei(1).toBN())).to.be.closeTo(
+				wei(expectedRewardScoreAddr1.toString(), 18, true)
+					.toBN()
+					.toString(),
+				1e6
+			);
+			expect(actualRewardScoreAddr2).to.equal(0);
 		});
 
 		it('Wait, and then claim kwenta for both stakers', async () => {
