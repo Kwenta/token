@@ -50,7 +50,7 @@ const fastForward = async (sec: number) => {
 // Mock Synthetix AddressResolver
 const mockAddressResolver = async () => {
 	const fakeSynthetix = await smock.fake<ISynthetix>('ISynthetix');
-	fakeSynthetix.exchangeWithTracking.returns(10);
+	fakeSynthetix.exchangeWithTracking.returns(wei(10).toBN());
 
 	const fakeExchanger = await smock.fake<IExchanger>('IExchanger');
 	fakeExchanger.feeRateForExchange.returns(10);
@@ -396,6 +396,7 @@ describe('Stake', () => {
 	});
 
 	describe('Staking w/ trading rewards', async () => {
+		const amountStaked = 200;
 		loadSetup();
 		before('Stake kwenta', async () => {
 			// fund StakingRewards with KWENTA and set the rewards for the next epoch
@@ -407,34 +408,34 @@ describe('Stake', () => {
 
 			// transfer KWENTA to addr1 & addr2
 			await expect(() =>
-				kwenta.connect(TREASURY_DAO).transfer(addr1.address, 200)
-			).to.changeTokenBalance(kwenta, addr1, 200);
-			await expect(() =>
+				kwenta.connect(TREASURY_DAO).transfer(addr1.address, amountStaked)
+			).to.changeTokenBalance(kwenta, addr1, amountStaked);
+			/*await expect(() =>
 				kwenta.connect(TREASURY_DAO).transfer(addr2.address, 200)
-			).to.changeTokenBalance(kwenta, addr2, 200);
+			).to.changeTokenBalance(kwenta, addr2, 200);*/
 
 			// increase KWENTA allowance for stakingRewards and stake
-			await kwenta.connect(addr1).approve(stakingRewardsProxy.address, 200);
-			await kwenta.connect(addr2).approve(stakingRewardsProxy.address, 200);
-			await stakingRewardsProxy.connect(addr1).stake(200);
-			await stakingRewardsProxy.connect(addr2).stake(200);
+			await kwenta.connect(addr1).approve(stakingRewardsProxy.address, amountStaked);
+			//await kwenta.connect(addr2).approve(stakingRewardsProxy.address, 200);
+			await stakingRewardsProxy.connect(addr1).stake(amountStaked);
+			//await stakingRewardsProxy.connect(addr2).stake(200);
 
 			// check KWENTA was staked
 			expect(await kwenta.balanceOf(addr1.address)).to.equal(0);
-			expect(await kwenta.balanceOf(addr2.address)).to.equal(0);
+			//expect(await kwenta.balanceOf(addr2.address)).to.equal(0);
 			expect(
 				await stakingRewardsProxy
 					.connect(addr1)
 					.stakedBalanceOf(addr1.address)
-			).to.equal(200);
-			expect(
+			).to.equal(amountStaked);
+			/*expect(
 				await stakingRewardsProxy
 					.connect(addr2)
 					.stakedBalanceOf(addr2.address)
-			).to.equal(200);
+			).to.equal(200);*/
 		});
 
-		it('Execute trade on synthetix through proxy', async () => {
+		it.only('Execute trade on synthetix through proxy', async () => {
 			// establish traderScore pre-trade
 			expect(
 				await stakingRewardsProxy.rewardScoreOf(addr1.address)
@@ -452,13 +453,20 @@ describe('Stake', () => {
 				ethers.utils.formatBytes32String('KWENTA')
 			);
 
+			// Rough estimation with high precision
+			const expectedRewardsScore = Math.pow(200,.3) * Math.pow(10,.7);
+			
+			console.log("Staked Balance: ", (await stakingRewardsProxy.totalBalanceOf(addr1.address)).toString());
+			console.log("Fees Paid: ", (await stakingRewardsProxy.feesPaidBy(addr1.address)).toString());
+			console.log("Expected: ", expectedRewardsScore.toString());
+			console.log("Actual: ", ethers.utils.formatEther(await stakingRewardsProxy.rewardScoreOf(addr1.address)).toString());
 			// expect traderScore to be increase post-trade
-			expect(
+			/*expect(
 				await stakingRewardsProxy.rewardScoreOf(addr1.address)
-			).to.be.above(0);
+			).to.equal(0);
 			expect(
 				await stakingRewardsProxy.rewardScoreOf(addr2.address)
-			).to.equal(0);
+			).to.equal(0);*/
 		});
 
 		it('Wait, and then claim kwenta for both stakers', async () => {
