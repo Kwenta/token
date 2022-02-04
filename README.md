@@ -10,7 +10,7 @@ The following architecture diagram represents a general overview of the system, 
 
 ### Kwenta.sol
 
-This contract is an extended ERC20 where it’s constructed with the name “Kwenta”, symbol-ed as “KWENTA”, and with an initial supply of 313373. The initial mint is seeded to the Kwenta treasuryDAO. 
+This contract is an extended ERC20 that's constructed with the name “Kwenta”, symbolized as “KWENTA”, and with an initial supply of 313373. The initial mint is seeded to the Kwenta treasuryDAO. 
 
 Minting KWENTA can only be performed once a week. A percentage of the new supply will be diverted to the treasury (20%). The remainder will go into StakingRewards and towards the minter (keeper) fee. There is also burn functionality which is used by our vesting fee mechanism further described below.
 
@@ -26,9 +26,9 @@ Each week the StakingRewards contract is topped up with new inflationary supply 
 
 When rewards are harvested they are escrowed in RewardEscrow for a year.
 
-This contract was made upgradeable (UUPS) to give us flexibility when rewarding additional tokens, but also factoring in additional Kwenta offerings (futures) into the trading rewards system.
+This contract was made upgradeable (UUPS) to give flexibility when rewarding additional tokens, but also factoring in additional Kwenta offerings (futures) into the trading rewards system.
 
-*This implementation of the Cobb-Douglas function required Fixidity’s logarithm library which required us to convert unsigned to signed integers as inputs.
+*This implementation of the Cobb-Douglas function required Fixidity’s logarithm library which required a conversion of unsigned to signed integers as inputs and a conversion of the `power_any` output back to unsigned.
 
 ![Kwenta Token System Architecture Diagram](img/cobb-douglas.png)
 *Details: [Full Staking Mathematical Breakdown](docs/Kwenta_Staking.pdf)*
