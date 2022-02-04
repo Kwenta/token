@@ -20,7 +20,7 @@ const { expect } = require("chai");
 const { wei } = require("@synthetixio/wei");
 
 describe("SupplySchedule", () => {
-    const initialWeeklySupply = wei(313373).mul(0.6).div(52); // 75,000,000 / 52 weeks
+    const initialWeeklySupply = wei(313373).mul(2.40).div(52);
     let inflationStartDate: number;
 
     let accounts: SignerWithAddress[];
@@ -112,7 +112,7 @@ describe("SupplySchedule", () => {
 
         await kwenta.deployed();
         deploymentTime = (await ethers.provider.getBlock()).timestamp;
-        await supplySchedule.setSynthetixProxy(kwenta.address);
+        await supplySchedule.setKwenta(kwenta.address);
 
         decayRate = await supplySchedule.DECAY_RATE();
         inflationStartDate = (
@@ -138,23 +138,23 @@ describe("SupplySchedule", () => {
 
     describe("linking kwenta", async () => {
         it("should have set kwenta", async () => {
-            expect(await supplySchedule.synthetixProxy()).to.equal(kwenta.address);
+            expect(await supplySchedule.kwenta()).to.equal(kwenta.address);
         });
         it("should revert when setting kwenta to ZERO_ADDRESS", async () => {
-            await expect(supplySchedule.setSynthetixProxy(AddressZero)).to.be.reverted;
+            await expect(supplySchedule.setKwenta(AddressZero)).to.be.reverted;
         });
 
         it("should emit an event when setting kwenta", async () => {
             await expect(
-                supplySchedule.connect(owner).setSynthetixProxy(account2.address)
+                supplySchedule.connect(owner).setKwenta(account2.address)
             )
-                .to.emit(supplySchedule, "SynthetixProxyUpdated")
+                .to.emit(supplySchedule, "KwentaUpdated")
                 .withArgs(account2.address);
         });
 
         it("should disallow a non-owner from setting kwenta", async () => {
             await onlyGivenAddressCanInvoke(
-                supplySchedule.setSynthetixProxy,
+                supplySchedule.setKwenta,
                 [account2.address],
                 accounts,
                 owner.address
@@ -425,7 +425,7 @@ describe("SupplySchedule", () => {
                 const weekCounterBefore = await instance.weekCounter();
 
                 // call updateMintValues to mimic kwenta issuing tokens
-                await supplySchedule.setSynthetixProxy(owner.address);
+                await supplySchedule.setKwenta(owner.address);
                 await instance.recordMintEvent(mintedSupply.toBN());
 
                 const weekCounterAfter = weekCounterBefore.add(

@@ -1,11 +1,16 @@
 import { expect } from "chai";
 import { ethers, network } from "hardhat";
 import { Contract } from "@ethersproject/contracts";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import Wei, { wei } from "@synthetixio/wei";
+import { BigNumber } from "ethers";
 
 describe("Mint", () => {
     const NAME = "Kwenta";
     const SYMBOL = "KWENTA";
-    const INITIAL_SUPPLY = ethers.utils.parseUnits("313373");
+    const INITIAL_SUPPLY = wei(313373);
+    const INITIAL_WEEKLY_EMISSION = INITIAL_SUPPLY.mul(2.4).div(52);
+    const RATE_OF_DECAY = 0.0205;
     const TREASURY_DAO_ADDRESS = "0x0000000000000000000000000000000000000001";
     const INFLATION_DIVERSION_BPS = 2000;
 
@@ -13,8 +18,9 @@ describe("Mint", () => {
         supplySchedule: Contract,
         kwenta: Contract,
         mockStakingRewards: Contract;
-    before(async () => {
-        const [owner] = await ethers.getSigners();
+    let owner: SignerWithAddress;
+    beforeEach(async () => {
+        [owner] = await ethers.getSigners();
 
         const MockStakingRewards = await ethers.getContractFactory(
             "MockStakingRewards"
@@ -43,7 +49,7 @@ describe("Mint", () => {
         kwenta = await Kwenta.deploy(
             NAME,
             SYMBOL,
-            INITIAL_SUPPLY,
+            INITIAL_SUPPLY.toBN(),
             owner.address,
             TREASURY_DAO_ADDRESS,
             supplySchedule.address,
@@ -52,7 +58,7 @@ describe("Mint", () => {
         await kwenta.deployed();
         await kwenta.setStakingRewards(mockStakingRewards.address);
 
-        await supplySchedule.setSynthetixProxy(kwenta.address);
+        await supplySchedule.setKwenta(kwenta.address);
 
         return kwenta;
     });
@@ -63,12 +69,8 @@ describe("Mint", () => {
     });
 
     it("Mint inflationary supply 1 week later", async () => {
-        const [owner] = await ethers.getSigners();
         const MINTER_REWARD = ethers.utils.parseUnits("1");
-        const FIRST_WEEK_MINT = INITIAL_SUPPLY.mul(60)
-            .div(100)
-            .div(52)
-            .sub(MINTER_REWARD);
+        const FIRST_WEEK_MINT = INITIAL_WEEKLY_EMISSION.sub(MINTER_REWARD);
 
         // We subtract treasury inflationary diversion amount so that stakers get remainder (after truncation)
         const FIRST_WEEK_STAKING_REWARDS = FIRST_WEEK_MINT.sub(
@@ -81,7 +83,79 @@ describe("Mint", () => {
 
         // Make sure this is equivalent to first week distribution
         expect(await kwenta.balanceOf(mockStakingRewards.address)).to.equal(
-            FIRST_WEEK_STAKING_REWARDS
+            FIRST_WEEK_STAKING_REWARDS.toBN()
         );
+    });
+
+    describe("Verify future supply", () => {
+        const powRoundDown = (
+            x: BigNumber,
+            n: number,
+            unit = wei(1).toBN()
+        ) => {
+            let xBN = x;
+            let temp = unit;
+            while (n > 0) {
+                if (n % 2 !== 0) {
+                    temp = temp.mul(xBN).div(unit);
+                }
+                xBN = xBN.mul(xBN).div(unit);
+                n = parseInt(String(n / 2)); // For some reason my terminal will freeze until reboot if I don't do this?
+            }
+            return temp;
+        };
+
+        function getSupplyAtWeek(weekNumber: number) {
+            let supply = INITIAL_SUPPLY;
+            for (let week = 0; week < weekNumber; week++) {
+                const expectedMint = INITIAL_WEEKLY_EMISSION.mul(
+                    powRoundDown(wei(1 - RATE_OF_DECAY).toBN(), week)
+                );
+                supply = supply.add(expectedMint);
+            }
+            return supply;
+        }
+
+        it("Mint rewards 1 week later", async () => {
+            const expected = getSupplyAtWeek(1);
+            await network.provider.send("evm_increaseTime", [604800]);
+            await kwenta.mint();
+            expect(await kwenta.totalSupply()).to.equal(expected.toBN());
+        });
+
+        it("Mint rewards the second week after the first", async () => {
+            const expected = getSupplyAtWeek(2);
+            await network.provider.send("evm_increaseTime", [604800]);
+            await kwenta.mint();
+            await network.provider.send("evm_increaseTime", [604800 * 2]);
+            await kwenta.mint();
+            expect(await kwenta.totalSupply()).to.equal(expected.toBN());
+        });
+
+        it("Mint rewards the second week skipping first", async () => {
+            const expected = getSupplyAtWeek(2);
+            await network.provider.send("evm_increaseTime", [604800 * 2]);
+            await kwenta.mint();
+            expect(await kwenta.totalSupply()).to.equal(expected.toBN());
+        });
+
+        it("Mint rewards 4 years later", async () => {
+            const expected = getSupplyAtWeek(208);
+            await network.provider.send("evm_increaseTime", [604800 * 208]);
+            await kwenta.mint();
+            expect(await kwenta.totalSupply()).to.equal(expected.toBN());
+        });
+
+        it("Mint rewards 4 years and one week later", async () => {
+            const expectedSupplyAtEndOfDecay = getSupplyAtWeek(208);
+            const expected = expectedSupplyAtEndOfDecay.add(
+                expectedSupplyAtEndOfDecay.mul(wei(0.01).div(52))
+            );
+            await network.provider.send("evm_increaseTime", [604800 * 208]);
+            await kwenta.mint();
+            await network.provider.send("evm_increaseTime", [604800 * 2]);
+            await kwenta.mint();
+            expect(await kwenta.totalSupply()).to.equal(expected.toBN());
+        });
     });
 });
