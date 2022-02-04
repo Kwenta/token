@@ -3,7 +3,8 @@ import { ethers, network, upgrades } from 'hardhat';
 import { Contract } from '@ethersproject/contracts';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { wei } from '@synthetixio/wei';
-import dotenv from "dotenv";
+import { Signer } from 'ethers';
+import dotenv from 'dotenv';
 
 dotenv.config();
 
@@ -25,6 +26,8 @@ let owner: SignerWithAddress;
 let addr1: SignerWithAddress;
 let addr2: SignerWithAddress;
 let TREASURY_DAO: SignerWithAddress;
+let TEST_SIGNER_WITH_sUSD: Signer;
+let TEST_ADDRESS_WITH_sUSD = '0x1aD0DBa5767Ecc44Bd09616b0956932347A397d0'; // found randomly via etherscan
 
 // core contracts
 let kwenta: Contract;
@@ -64,23 +67,45 @@ const fundAndSetStakingRewards = async () => {
 };
 
 const forkOptimismNetwork = async () => {
-    await network.provider.request({
-        method: "hardhat_reset",
-        params: [
-            {
-                forking: {
-                    jsonRpcUrl: process.env.ARCHIVE_NODE_URL,
-                    blockNumber: 3214794,
-                },
-            },
-        ],
-    });
-}
+	await network.provider.request({
+		method: 'hardhat_reset',
+		params: [
+			{
+				forking: {
+					jsonRpcUrl: process.env.ARCHIVE_NODE_URL,
+					blockNumber: 3214794,
+				},
+			},
+		],
+	});
+};
+
+const impersonateTestAccount = async () => {
+	await network.provider.request({
+		method: 'hardhat_impersonateAccount',
+		params: [TEST_ADDRESS_WITH_sUSD],
+	});
+
+	TEST_SIGNER_WITH_sUSD = await ethers.provider.getSigner(
+		TEST_ADDRESS_WITH_sUSD
+	);
+
+	await network.provider.request({
+		method: 'hardhat_setBalance',
+		params: [
+			TEST_ADDRESS_WITH_sUSD,
+			ethers.utils.parseEther('10').toHexString(),
+		],
+	});
+};
 
 const loadSetup = () => {
 	before('Deploy contracts', async () => {
 		// fork optimism mainnet
 		forkOptimismNetwork();
+
+		// impersonate account that has sUSD balance
+		impersonateTestAccount();
 
 		[owner, addr1, addr2, TREASURY_DAO] = await ethers.getSigners();
 
@@ -425,15 +450,20 @@ describe('Stake', () => {
 			await fundAndSetStakingRewards();
 
 			// initial balance(s) should be 0
-			expect(await kwenta.balanceOf(addr1.address)).to.equal(0);
+			expect(await kwenta.balanceOf(TEST_ADDRESS_WITH_sUSD)).to.equal(0);
 			expect(await kwenta.balanceOf(addr2.address)).to.equal(0);
 
+			// transfer KWENTA to addr1 & addr2
 			// transfer KWENTA to addr1 & addr2
 			await expect(() =>
 				kwenta
 					.connect(TREASURY_DAO)
-					.transfer(addr1.address, wei(20000).toBN())
-			).to.changeTokenBalance(kwenta, addr1, wei(20000).toBN());
+					.transfer(TEST_ADDRESS_WITH_sUSD, wei(20000).toBN())
+			).to.changeTokenBalance(
+				kwenta,
+				TEST_SIGNER_WITH_sUSD,
+				wei(20000).toBN()
+			);
 			await expect(() =>
 				kwenta
 					.connect(TREASURY_DAO)
@@ -442,21 +472,23 @@ describe('Stake', () => {
 
 			// increase KWENTA allowance for stakingRewards and stake
 			await kwenta
-				.connect(addr1)
+				.connect(TEST_SIGNER_WITH_sUSD)
 				.approve(stakingRewardsProxy.address, wei(20000).toBN());
 			await kwenta
 				.connect(addr2)
 				.approve(stakingRewardsProxy.address, wei(20000).toBN());
-			await stakingRewardsProxy.connect(addr1).stake(wei(20000).toBN());
+			await stakingRewardsProxy
+				.connect(TEST_SIGNER_WITH_sUSD)
+				.stake(wei(20000).toBN());
 			await stakingRewardsProxy.connect(addr2).stake(wei(20000).toBN());
 
 			// check KWENTA was staked
-			expect(await kwenta.balanceOf(addr1.address)).to.equal(0);
+			expect(await kwenta.balanceOf(TEST_ADDRESS_WITH_sUSD)).to.equal(0);
 			expect(await kwenta.balanceOf(addr2.address)).to.equal(0);
 			expect(
 				await stakingRewardsProxy
-					.connect(addr1)
-					.stakedBalanceOf(addr1.address)
+					.connect(TEST_SIGNER_WITH_sUSD)
+					.stakedBalanceOf(TEST_ADDRESS_WITH_sUSD)
 			).to.equal(wei(20000).toBN());
 			expect(
 				await stakingRewardsProxy
@@ -468,7 +500,7 @@ describe('Stake', () => {
 		it('Execute trade on synthetix through proxy', async () => {
 			// establish traderScore pre-trade
 			expect(
-				await stakingRewardsProxy.rewardScoreOf(addr1.address)
+				await stakingRewardsProxy.rewardScoreOf(TEST_ADDRESS_WITH_sUSD)
 			).to.equal(0);
 			expect(
 				await stakingRewardsProxy.rewardScoreOf(addr2.address)
@@ -476,10 +508,10 @@ describe('Stake', () => {
 
 			// trade
 			await exchangerProxy
-				.connect(addr1)
+				.connect(TEST_SIGNER_WITH_sUSD)
 				.exchangeWithTraderScoreTracking(
 					ethers.utils.formatBytes32String('sUSD'),
-					ethers.constants.One,
+					10,
 					ethers.utils.formatBytes32String('sETH'),
 					ethers.constants.AddressZero,
 					ethers.utils.formatBytes32String('KWENTA')
@@ -487,10 +519,10 @@ describe('Stake', () => {
 
 			// calculate expected reward score
 			const feesPaidByAddr1 = await stakingRewardsProxy.feesPaidBy(
-				addr1.address
+				TEST_ADDRESS_WITH_sUSD
 			);
 			const kwentaStakedByAddr1 = await stakingRewardsProxy.stakedBalanceOf(
-				addr1.address
+				TEST_ADDRESS_WITH_sUSD
 			);
 
 			// expected reward score
@@ -499,7 +531,7 @@ describe('Stake', () => {
 
 			// actual reward score(s)
 			const actualRewardScoreAddr1 = await stakingRewardsProxy.rewardScoreOf(
-				addr1.address
+				TEST_ADDRESS_WITH_sUSD
 			);
 			const actualRewardScoreAddr2 = await stakingRewardsProxy.rewardScoreOf(
 				addr2.address
@@ -525,13 +557,13 @@ describe('Stake', () => {
 			fastForward(SECONDS_IN_WEEK);
 
 			// claim reward(s)
-			await stakingRewardsProxy.connect(addr1).getReward();
+			await stakingRewardsProxy.connect(TEST_SIGNER_WITH_sUSD).getReward();
 			await stakingRewardsProxy.connect(addr2).getReward();
 
 			// expect staker 1 to have greater rewards
-			expect(await rewardEscrow.balanceOf(addr1.address)).to.be.above(
-				await rewardEscrow.balanceOf(addr2.address)
-			);
+			expect(
+				await rewardEscrow.balanceOf(TEST_ADDRESS_WITH_sUSD)
+			).to.be.above(await rewardEscrow.balanceOf(addr2.address));
 		});
 	});
 });
