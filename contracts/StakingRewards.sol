@@ -417,7 +417,7 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     }
 
     /*
-     * @notice Function called from RewardEscrow (append vesting entry) to accumulate escrowed tokens into rewards
+     * @notice Function called from RewardEscrow to accumulate escrowed tokens into rewards
      * @param _account: address escrowing the rewards
      * @param _amount: uint256, amount escrowed
      */

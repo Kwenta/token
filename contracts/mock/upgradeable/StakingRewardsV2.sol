@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 // Import necessary contracts for math operations and Token handling
 
-import "./StakingRewards.sol";
+import "../../StakingRewards.sol";
 
 
 contract StakingRewardsV2 is StakingRewards{
