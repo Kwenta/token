@@ -8,12 +8,17 @@ import { IExchanger } from "../../typechain/IExchanger";
 import { ISynthetix } from "../../typechain/ISynthetix";
 import { IAddressResolver } from "../../typechain/IAddressResolver";
 
+// constants
 const NAME = 'Kwenta';
 const SYMBOL = 'KWENTA';
 const INITIAL_SUPPLY = ethers.utils.parseUnits('313373');
 const INFLATION_DIVERSION_BPS = 2000;
 const WEEKLY_START_REWARDS = 3;
 const SECONDS_IN_WEEK = 6048000;
+
+// test values for staking
+const TEST_VALUE = wei(2000).toBN();
+const SMALLER_TEST_VALUE = wei(1000).toBN();
 
 // test accounts
 let owner: SignerWithAddress;
@@ -78,7 +83,7 @@ const mockAddressResolver = async () => {
 // StakingRewards: fund with KWENTA and set the rewards
 const fundAndSetStakingRewards = async () => {
 	// fund StakingRewards with KWENTA
-	const rewards = wei(10).toBN();
+	const rewards = wei(10000).toBN();
 	await expect(() =>
 		kwenta
 			.connect(TREASURY_DAO)
@@ -86,7 +91,7 @@ const fundAndSetStakingRewards = async () => {
 	).to.changeTokenBalance(kwenta, stakingRewardsProxy, rewards);
 
 	// set the rewards for the next epoch (1)
-	const reward = wei(10).toBN();
+	const reward = wei(10000).toBN();
 	await stakingRewardsProxy.setRewardNEpochs(reward, 1);
 }
 
@@ -215,12 +220,12 @@ describe('Stake', () => {
 
 			// transfer KWENTA to addr1
 			await expect(() =>
-				kwenta.connect(TREASURY_DAO).transfer(addr1.address, 200)
-			).to.changeTokenBalance(kwenta, addr1, 200);
+				kwenta.connect(TREASURY_DAO).transfer(addr1.address, TEST_VALUE)
+			).to.changeTokenBalance(kwenta, addr1, TEST_VALUE);
 
 			// increase KWENTA allowance for stakingRewards and stake
-			await kwenta.connect(addr1).approve(stakingRewardsProxy.address, 200);
-			await stakingRewardsProxy.connect(addr1).stake(200);
+			await kwenta.connect(addr1).approve(stakingRewardsProxy.address, TEST_VALUE);
+			await stakingRewardsProxy.connect(addr1).stake(TEST_VALUE);
 
 			// check KWENTA was staked
 			expect(await kwenta.balanceOf(addr1.address)).to.equal(0);
@@ -228,11 +233,11 @@ describe('Stake', () => {
 				await stakingRewardsProxy
 					.connect(addr1)
 					.stakedBalanceOf(addr1.address)
-			).to.equal(200);
+			).to.equal(TEST_VALUE);
 
 			// withdraw ALL KWENTA staked
-			await stakingRewardsProxy.connect(addr1).withdraw(200);
-			expect(await kwenta.balanceOf(addr1.address)).to.equal(200);
+			await stakingRewardsProxy.connect(addr1).withdraw(TEST_VALUE);
+			expect(await kwenta.balanceOf(addr1.address)).to.equal(TEST_VALUE);
 			expect(
 				await stakingRewardsProxy
 					.connect(addr1)
@@ -242,14 +247,14 @@ describe('Stake', () => {
 
 		it('Stake and claim rewards', async () => {
 			// increase KWENTA allowance for stakingRewards and stake
-			await kwenta.connect(addr1).approve(stakingRewardsProxy.address, 200);
-			await stakingRewardsProxy.connect(addr1).stake(200);
+			await kwenta.connect(addr1).approve(stakingRewardsProxy.address, TEST_VALUE);
+			await stakingRewardsProxy.connect(addr1).stake(TEST_VALUE);
 
 			// check that addr1 does not have any escrow entries
 			expect(await rewardEscrow.numVestingEntries(addr1.address)).to.equal(0);
 
 			// claim rewards (expect 0 rewards)
-			expect(await stakingRewardsProxy.totalBalanceOf(addr1.address)).to.equal(200);
+			expect(await stakingRewardsProxy.totalBalanceOf(addr1.address)).to.equal(TEST_VALUE);
 			await stakingRewardsProxy.connect(addr1).getReward();
 			expect(await rewardEscrow.balanceOf(addr1.address)).to.equal(0);
 		});
@@ -278,16 +283,16 @@ describe('Stake', () => {
 
 			// transfer KWENTA to addr2
 			await expect(() =>
-				kwenta.connect(TREASURY_DAO).transfer(addr2.address, 200)
-			).to.changeTokenBalance(kwenta, addr2, 200);
+				kwenta.connect(TREASURY_DAO).transfer(addr2.address, TEST_VALUE)
+			).to.changeTokenBalance(kwenta, addr2, TEST_VALUE);
 
 			// set the rewards for the next epoch (2)
 			const reward = wei(1).toBN();
 			await stakingRewardsProxy.setRewardNEpochs(reward, 1);
 
 			// increase KWENTA allowance for stakingRewards and stake
-			await kwenta.connect(addr2).approve(stakingRewardsProxy.address, 200);
-			await stakingRewardsProxy.connect(addr2).stake(200);
+			await kwenta.connect(addr2).approve(stakingRewardsProxy.address, TEST_VALUE);
+			await stakingRewardsProxy.connect(addr2).stake(TEST_VALUE);
 
 			// wait
 			await fastForward(SECONDS_IN_WEEK);
@@ -295,7 +300,7 @@ describe('Stake', () => {
 			// expect tokens back and no rewards
 			await stakingRewardsProxy.connect(addr2).exit();
 			expect(await rewardEscrow.balanceOf(addr2.address)).to.be.above(0);
-			expect(await kwenta.balanceOf(addr2.address)).to.equal(200);
+			expect(await kwenta.balanceOf(addr2.address)).to.equal(TEST_VALUE);
 		});
 	});
   
@@ -308,23 +313,23 @@ describe('Stake', () => {
 
 			// transfer KWENTA to addr1 & addr2
 			await expect(() =>
-				kwenta.connect(TREASURY_DAO).transfer(addr1.address, 200)
-			).to.changeTokenBalance(kwenta, addr1, 200);
+				kwenta.connect(TREASURY_DAO).transfer(addr1.address, TEST_VALUE)
+			).to.changeTokenBalance(kwenta, addr1, TEST_VALUE);
 			await expect(() =>
-				kwenta.connect(TREASURY_DAO).transfer(addr2.address, 200)
-			).to.changeTokenBalance(kwenta, addr2, 200);
+				kwenta.connect(TREASURY_DAO).transfer(addr2.address, TEST_VALUE)
+			).to.changeTokenBalance(kwenta, addr2, TEST_VALUE);
 
 			// increase KWENTA allowance for rewardEscrow and stake
-			await kwenta.connect(addr1).approve(rewardEscrow.address, 200);
+			await kwenta.connect(addr1).approve(rewardEscrow.address, TEST_VALUE);
 			await rewardEscrow.connect(addr1).createEscrowEntry(
 				addr1.address,
-        		200,
+        		TEST_VALUE,
         		SECONDS_IN_WEEK
 			);
-			await kwenta.connect(addr2).approve(rewardEscrow.address, 200);
+			await kwenta.connect(addr2).approve(rewardEscrow.address, TEST_VALUE);
 			await rewardEscrow.connect(addr2).createEscrowEntry(
 				addr2.address,
-        		200,
+        		TEST_VALUE,
         		SECONDS_IN_WEEK
 			);
 
@@ -335,16 +340,16 @@ describe('Stake', () => {
 		
 		it('Stake escrowed kwenta', async () => {
 			// check escrowed balance(s)
-			expect(await rewardEscrow.balanceOf(addr1.address)).to.equal(200);
-			expect(await rewardEscrow.balanceOf(addr2.address)).to.equal(200);
+			expect(await rewardEscrow.balanceOf(addr1.address)).to.equal(TEST_VALUE);
+			expect(await rewardEscrow.balanceOf(addr2.address)).to.equal(TEST_VALUE);
 
 			// stake (different amounts) 
-			await rewardEscrow.connect(addr1).stakeEscrow(200);
-			await rewardEscrow.connect(addr2).stakeEscrow(100);
+			await rewardEscrow.connect(addr1).stakeEscrow(TEST_VALUE);
+			await rewardEscrow.connect(addr2).stakeEscrow(SMALLER_TEST_VALUE);
 
 			// check escrow balance(s) and expect balance of staked escrow to be > 0
-			expect(await stakingRewardsProxy.escrowedBalanceOf(addr1.address)).to.equal(200);
-			expect(await stakingRewardsProxy.escrowedBalanceOf(addr2.address)).to.equal(100);
+			expect(await stakingRewardsProxy.escrowedBalanceOf(addr1.address)).to.equal(TEST_VALUE);
+			expect(await stakingRewardsProxy.escrowedBalanceOf(addr2.address)).to.equal(SMALLER_TEST_VALUE);
 		});
 
 		it('Wait, claim rewards', async () => {
@@ -407,17 +412,17 @@ describe('Stake', () => {
 
 			// transfer KWENTA to addr1 & addr2
 			await expect(() =>
-				kwenta.connect(TREASURY_DAO).transfer(addr1.address, 200)
-			).to.changeTokenBalance(kwenta, addr1, 200);
+				kwenta.connect(TREASURY_DAO).transfer(addr1.address, TEST_VALUE)
+			).to.changeTokenBalance(kwenta, addr1, TEST_VALUE);
 			await expect(() =>
-				kwenta.connect(TREASURY_DAO).transfer(addr2.address, 200)
-			).to.changeTokenBalance(kwenta, addr2, 200);
+				kwenta.connect(TREASURY_DAO).transfer(addr2.address, TEST_VALUE)
+			).to.changeTokenBalance(kwenta, addr2, TEST_VALUE);
 
 			// increase KWENTA allowance for stakingRewards and stake
-			await kwenta.connect(addr1).approve(stakingRewardsProxy.address, 200);
-			await kwenta.connect(addr2).approve(stakingRewardsProxy.address, 200);
-			await stakingRewardsProxy.connect(addr1).stake(200);
-			await stakingRewardsProxy.connect(addr2).stake(200);
+			await kwenta.connect(addr1).approve(stakingRewardsProxy.address, TEST_VALUE);
+			await kwenta.connect(addr2).approve(stakingRewardsProxy.address, TEST_VALUE);
+			await stakingRewardsProxy.connect(addr1).stake(TEST_VALUE);
+			await stakingRewardsProxy.connect(addr2).stake(TEST_VALUE);
 
 			// check KWENTA was staked
 			expect(await kwenta.balanceOf(addr1.address)).to.equal(0);
@@ -426,12 +431,12 @@ describe('Stake', () => {
 				await stakingRewardsProxy
 					.connect(addr1)
 					.stakedBalanceOf(addr1.address)
-			).to.equal(200);
+			).to.equal(TEST_VALUE);
 			expect(
 				await stakingRewardsProxy
 					.connect(addr2)
 					.stakedBalanceOf(addr2.address)
-			).to.equal(200);
+			).to.equal(TEST_VALUE);
 		});
 
 		it('Execute trade on synthetix through proxy', async () => {
@@ -452,7 +457,13 @@ describe('Stake', () => {
 				ethers.utils.formatBytes32String('KWENTA')
 			);
 
-			// expect traderScore to be increase post-trade
+			// calculate expected reward score
+			const feesPaidByAddr1 = await stakingRewardsProxy.feesPaidBy(addr1.address);
+			const kwentaStakedByAddr1 = await stakingRewardsProxy.stakedBalanceOf(addr1.address);
+
+			const expectedRewardScore = Math.pow(feesPaidByAddr1, 0.7) * Math.pow(kwentaStakedByAddr1, (1 - 0.7));
+
+			// expect reward score to be increase post-trade
 			expect(
 				await stakingRewardsProxy.rewardScoreOf(addr1.address)
 			).to.be.above(0);
