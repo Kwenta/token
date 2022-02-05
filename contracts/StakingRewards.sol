@@ -85,6 +85,8 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     // Decimals calculations
     uint256 private constant MAX_BPS = 10_000;
     uint256 private constant DECIMALS_DIFFERENCE = 1e30;
+    // Constant to return the reward scores with the correct decimal precision
+    uint256 private constant TOKEN_DECIMALS = 1e18;
     // Needs to be int256 for power library, root to calculate is equal to 0.7
     int256 public WEIGHT_FEES;
     // Needs to be int256 for power library, root to calculate is equal to 0.3
@@ -135,10 +137,13 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
 
     /*
      * @notice Getter function for the state variable _totalRewardScore
+     * Divided by 1e18 as during the calculation we are multiplying two 18 decimal numbers, ending up with 
+     * a 36 precision number. To avoid losing any precision by scaling it down during internal calculations,
+     * we only scale it down for the getters
      * @return sum of all rewardScores
      */
     function totalRewardScore() override public view returns (uint256) {
-        return _totalRewardScore;
+        return _totalRewardScore / TOKEN_DECIMALS;
     }
 
     /*
@@ -152,11 +157,14 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
 
     /*
      * @notice Getter function for the reward score of an account
+     * Divided by 1e18 as during the calculation we are multiplying two 18 decimal numbers, ending up with 
+     * a 36 precision number. To avoid losing any precision by scaling it down during internal calculations,
+     * we only scale it down for the getters
      * @param account address to check the reward score of
      * @return reward score of specified account
      */
     function rewardScoreOf(address account) override external view returns (uint256) {
-        return _rewardScores[account];
+        return _rewardScores[account] / TOKEN_DECIMALS;
     }
 
     /*
