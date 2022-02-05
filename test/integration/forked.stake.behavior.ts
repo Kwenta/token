@@ -27,7 +27,7 @@ let addr1: SignerWithAddress;
 let addr2: SignerWithAddress;
 let TREASURY_DAO: SignerWithAddress;
 let TEST_SIGNER_WITH_sUSD: Signer;
-let TEST_ADDRESS_WITH_sUSD = '0x1aD0DBa5767Ecc44Bd09616b0956932347A397d0'; // found randomly via etherscan
+let TEST_ADDRESS_WITH_sUSD = '0xD8a8aA5E8D776a89EE1B7aE98D3490de8ACad53d'; // found via etherscan
 
 // core contracts
 let kwenta: Contract;
@@ -73,7 +73,7 @@ const forkOptimismNetwork = async () => {
 			{
 				forking: {
 					jsonRpcUrl: process.env.ARCHIVE_NODE_URL,
-					blockNumber: 3214794,
+					blockNumber: 3225902,
 				},
 			},
 		],
@@ -511,7 +511,7 @@ describe('Stake', () => {
 				.connect(TEST_SIGNER_WITH_sUSD)
 				.exchangeWithTraderScoreTracking(
 					ethers.utils.formatBytes32String('sUSD'),
-					10,
+					ethers.constants.One,
 					ethers.utils.formatBytes32String('sETH'),
 					ethers.constants.AddressZero,
 					ethers.utils.formatBytes32String('KWENTA')
