@@ -93,8 +93,8 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     uint256 private constant DAY = 1 days;
     uint256 private constant WEEK = 7 days;
 
-    uint256 private constant STAKING_SAFETY_MINIMUM = 1e4;
-    uint256 private constant FEES_PAID_SAFETY_MINIMUM = 1e12;
+    uint256 public constant STAKING_SAFETY_MINIMUM = 1e4;
+    uint256 public constant FEES_PAID_SAFETY_MINIMUM = 1e12;
 
     /* ========== PROXY VARIABLES ========== */
     address private admin;
@@ -350,10 +350,10 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
      * @param _account, the user to update the reward score to
      */
     function updateRewardScore(address _account, uint256 _oldRewardScore) internal {
-        // Prevent any staking balance change from falling within the danger parameters
-        require(_totalBalances[_account] == 0 || _totalBalances[_account] > STAKING_SAFETY_MINIMUM, "STAKING_SAFETY_MINIMUM");
-        // Prevent any fees paid change from falling witihin the danger parameters
-        require(_feesPaid[_account] == 0 || _feesPaid[_account] > FEES_PAID_SAFETY_MINIMUM, "FEES_PAID_SAFETY_MINIMUM");
+        // Prevent any staking balance change from falling within the danger threshold
+        require(_totalBalances[_account] == 0 || _totalBalances[_account] >= STAKING_SAFETY_MINIMUM, "STAKING_SAFETY_MINIMUM");
+        // Prevent any fees paid change from falling witihin the danger threshold
+        require(_feesPaid[_account] == 0 || _feesPaid[_account] >= FEES_PAID_SAFETY_MINIMUM, "FEES_PAID_SAFETY_MINIMUM");
         
         uint256 newRewardScore = 0;
         if((lastTradeUserEpoch[_account] == currentEpoch) && (_totalBalances[_account] > 0)) {

@@ -175,6 +175,11 @@ describe("stake()", async() => {
 		it("fails with zero amounts", async() => {
 			await stProxy.connect(staker1).stake(0).should.be.rejected;
 		})
+		it("fails when staking below safety limit", async () => {
+			const stakingMinimum = await stProxy.STAKING_SAFETY_MINIMUM();
+			await kwentaToken.connect(staker1).approve(stProxy.address, stakingMinimum.sub(1));
+			await stProxy.connect(staker1).stake(stakingMinimum.sub(1)).should.be.rejected;
+		})
 		it("stakes the correct amount", async() => {
 
 			await kwentaToken.connect(staker1).approve(stProxy.address, toUnit(100));
@@ -199,6 +204,12 @@ describe("withdraw()", async() => {
 		it("fails with amounts too large", async() => {
 			await stProxy.connect(staker1).withdraw(toUnit(100)).should.be.rejected;	
 		})
+		it("fails when withdrawing results in a balance below safety limit", async() => {
+			const stakingMinimum = await stProxy.STAKING_SAFETY_MINIMUM();
+			const stakedAmount = await stProxy.totalBalanceOf(staker1.address);
+			const invalidWithdrawalAmount = stakedAmount.sub(stakingMinimum).add(1);
+			await stProxy.connect(staker1).withdraw(invalidWithdrawalAmount).should.be.rejected;	
+		})
 		it("withdraws the correct amount", async() => {
 			await stProxy.connect(staker1).withdraw(toUnit(15));
 			let bal = await stProxy.stakedBalanceOf(staker1.address);
@@ -217,7 +228,10 @@ describe("feesPaid()", async() => {
 			assert.equal(ts1, 0);
 			assert.equal(ts2, 0);
 		})
-
+		it("fails when fees update is below safety limit", async () => {
+			const feesPaidMinimum = await stProxy.FEES_PAID_SAFETY_MINIMUM();
+			await stProxy.connect(exchangerProxy).updateTraderScore(staker1.address, feesPaidMinimum.sub(1)).should.be.rejected;
+		})
 		it("updates updatesTraderScore correctly", async() => {
 			await stProxy.connect(staker1).stake(toUnit(5));
 			await stProxy.connect(staker2).stake(toUnit(5));
