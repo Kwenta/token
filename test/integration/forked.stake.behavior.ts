@@ -66,6 +66,7 @@ const fundAndSetStakingRewards = async () => {
 	await stakingRewardsProxy.setRewardNEpochs(rewards, 1);
 };
 
+// Fork Optimism Network for following tests
 const forkOptimismNetwork = async () => {
 	await network.provider.request({
 		method: 'hardhat_reset',
