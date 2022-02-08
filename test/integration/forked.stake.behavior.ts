@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { ethers, network, upgrades } from 'hardhat';
+import { artifacts, ethers, network, upgrades, waffle } from 'hardhat';
 import { Contract } from '@ethersproject/contracts';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { wei } from '@synthetixio/wei';
@@ -16,6 +16,7 @@ const INFLATION_DIVERSION_BPS = 2000;
 const WEEKLY_START_REWARDS = 3;
 const SECONDS_IN_WEEK = 6048000;
 const ADDRESS_RESOLVER_OE = '0x95A6a3f44a70172E7d50a9e28c85Dfd712756B8C';
+const sUSD_ADDRESS_OE = '0x8c6f28f2F1A3C87F0f938b96d27520d9751ec8d9';
 
 // test values for staking
 const TEST_VALUE = wei(20000).toBN();
@@ -274,6 +275,25 @@ describe('Stake', () => {
 			expect(
 				await stakingRewardsProxy.rewardScoreOf(addr2.address)
 			).to.equal(0);
+
+			// confirm valid pre-balance of sUSD
+			const IERC20ABI = (
+				await artifacts.readArtifact(
+					'contracts/interfaces/IERC20.sol:IERC20'
+				)
+			).abi;
+			const sUSD = new ethers.Contract(
+				sUSD_ADDRESS_OE,
+				IERC20ABI,
+				waffle.provider
+			);
+			const preBalance = await sUSD.balanceOf(TEST_ADDRESS_WITH_sUSD);
+			expect(preBalance).to.be.above(ethers.constants.One);
+
+			// approve exchangerProxy to spend sUSD and
+			await sUSD
+				.connect(TEST_SIGNER_WITH_sUSD)
+				.approve(exchangerProxy.address, ethers.constants.One);
 
 			// trade
 			await exchangerProxy
