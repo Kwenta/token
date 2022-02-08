@@ -295,6 +295,10 @@ describe('Stake', () => {
 				.connect(TEST_SIGNER_WITH_sUSD)
 				.approve(exchangerProxy.address, ethers.constants.One);
 
+			// confirm allowance
+			const allowance = await sUSD.allowance(TEST_ADDRESS_WITH_sUSD, exchangerProxy.address);
+			expect(allowance).to.equal(ethers.constants.One);
+
 			// trade
 			await exchangerProxy
 				.connect(TEST_SIGNER_WITH_sUSD)
@@ -334,7 +338,7 @@ describe('Stake', () => {
 				1e6
 			);
 			expect(actualRewardScoreAddr2).to.equal(0);
-		});
+		}).timeout(200000);
 
 		it('Wait, and then claim kwenta for both stakers', async () => {
 			// establish reward balance pre-claim
