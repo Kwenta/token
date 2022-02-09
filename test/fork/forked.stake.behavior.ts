@@ -219,7 +219,7 @@ const loadSetup = () => {
 	});
 };
 
-describe('Stake', () => {
+describe('Stake (fork)', () => {
 	describe('Staking w/ trading rewards', async () => {
 		loadSetup();
 		before('Stake kwenta', async () => {
