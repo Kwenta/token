@@ -1,9 +1,10 @@
 {
   "scripts": {
     "compile": "npx hardhat compile",
-    "test": "npx hardhat test",
-    "test:contracts": "npx hardhat test test/contracts/*",
-    "test:integration": "npx hardhat test test/integration/*",
+    "test": "npx hardhat test test/local/contracts/* test/local/integration/*",
+    "test:contracts": "npx hardhat test test/local/contracts/*",
+    "test:integration": "npx hardhat test test/local/integration/*",
+    "test:fork": "npx hardhat test test/fork/*",
     "coverage": "npx hardhat coverage"
   },
   "devDependencies": {
