@@ -57,6 +57,9 @@ npm run test:contracts
 ```
 npm run test:integration
 ```
+```
+npm run test:fork
+```
 
 ## Deployment
 
