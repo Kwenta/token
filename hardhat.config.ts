@@ -51,6 +51,14 @@ export default {
   networks: {
     hardhat: {
       allowUnlimitedContractSize: true
-    }
+    },
+    "optimistic-kovan": {
+      url: `https://opt-kovan.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
+      accounts: [`${process.env.OPTIMISTIC_KOVAN_PRIVATE_KEY}`],
+    },
+    "optimistic-mainnet": {
+      url: `https://opt-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
+      accounts: [`${process.env.OPTIMISTIC_KOVAN_PRIVATE_KEY}`],
+    },
   },
 };
