@@ -276,8 +276,8 @@ describe('MerkleDistributor', () => {
 		describe('two account tree', () => {
 			let tree: BalanceTree;
 			beforeEach('deploy', async () => {
-				// Build tree with: 
-				// (1) addresses who can claim KWENTA 
+				// Build tree with:
+				// (1) addresses who can claim KWENTA
 				// (2) amount given address can claim
 				tree = new BalanceTree([
 					{ account: addr1.address, amount: BigNumber.from(100) },
@@ -359,11 +359,7 @@ describe('MerkleDistributor', () => {
 				).to.changeTokenBalance(kwenta, distributor, 100);
 
 				// generate merkle proof for addr1.address
-				const proof1 = tree.getProof(
-					0,
-					addr1.address,
-					BigNumber.from(100)
-				);
+				const proof1 = tree.getProof(0, addr1.address, BigNumber.from(100));
 				// addr1 claims KWENTA
 				await distributor.claim(0, addr1.address, 100, proof1);
 				// addr1 attempts to claim KWENTA (again)
@@ -378,12 +374,14 @@ describe('MerkleDistributor', () => {
 					kwenta.connect(TREASURY_DAO).transfer(distributor.address, 201)
 				).to.changeTokenBalance(kwenta, distributor, 201);
 
+				// addr1 claims KWENTA
 				await distributor.claim(
 					0,
 					addr1.address,
 					100,
 					tree.getProof(0, addr1.address, BigNumber.from(100))
 				);
+				// addr2 claims KWENTA
 				await distributor.claim(
 					1,
 					addr2.address,
@@ -391,6 +389,7 @@ describe('MerkleDistributor', () => {
 					tree.getProof(1, addr2.address, BigNumber.from(101))
 				);
 
+				// addr1 attempts to claim KWENTA (again)
 				await expect(
 					distributor.claim(
 						0,
@@ -407,12 +406,14 @@ describe('MerkleDistributor', () => {
 					kwenta.connect(TREASURY_DAO).transfer(distributor.address, 201)
 				).to.changeTokenBalance(kwenta, distributor, 201);
 
+				// addr2 claims KWENTA
 				await distributor.claim(
 					1,
 					addr2.address,
 					101,
 					tree.getProof(1, addr2.address, BigNumber.from(101))
 				);
+				// addr1 claims KWENTA
 				await distributor.claim(
 					0,
 					addr1.address,
@@ -420,6 +421,7 @@ describe('MerkleDistributor', () => {
 					tree.getProof(0, addr1.address, BigNumber.from(100))
 				);
 
+				// addr2 attempts to claim KWENTA (again)
 				await expect(
 					distributor.claim(
 						1,
@@ -436,7 +438,10 @@ describe('MerkleDistributor', () => {
 					kwenta.connect(TREASURY_DAO).transfer(distributor.address, 201)
 				).to.changeTokenBalance(kwenta, distributor, 201);
 
+				// generate merkle proof for addr1.address
 				const proof1 = tree.getProof(0, addr1.address, BigNumber.from(100));
+
+				// addr2 attempts to claim KWENTA with addr1's proof
 				await expect(
 					distributor.claim(1, addr2.address, 101, proof1)
 				).to.be.revertedWith('MerkleDistributor: Invalid proof.');
@@ -448,7 +453,10 @@ describe('MerkleDistributor', () => {
 					kwenta.connect(TREASURY_DAO).transfer(distributor.address, 201)
 				).to.changeTokenBalance(kwenta, distributor, 201);
 
+				// generate merkle proof for addr1.address
 				const proof1 = tree.getProof(0, addr1.address, BigNumber.from(100));
+
+				// addr1 attempts to claim MORE KWENTA than proof specifies
 				await expect(
 					distributor.claim(0, addr1.address, 101, proof1)
 				).to.be.revertedWith('MerkleDistributor: Invalid proof.');
@@ -460,324 +468,335 @@ describe('MerkleDistributor', () => {
 					kwenta.connect(TREASURY_DAO).transfer(distributor.address, 100)
 				).to.changeTokenBalance(kwenta, distributor, 100);
 
+				// generate proof and claim for addr1
+				const proof = tree.getProof(0, addr1.address, BigNumber.from(100));
+				const tx = await distributor.claim(0, addr1.address, 100, proof);
+				const receipt = await tx.wait();
+
+				expect(receipt.gasUsed).to.equal(62960);
+			});
+		});
+
+		describe('larger tree', () => {
+			let tree: BalanceTree;
+			let accounts: SignerWithAddress[];
+
+			beforeEach('deploy', async () => {
+				accounts = await ethers.getSigners();
+
+				// Build tree with:
+				// (1) all signers provided by ethers.getSigners()
+				tree = new BalanceTree(
+					accounts.map((account, ix) => {
+						return {
+							account: account.address,
+							amount: BigNumber.from(ix + 1),
+						};
+					})
+				);
+
+				const MerkleDistributor = await ethers.getContractFactory(
+					'MerkleDistributor'
+				);
+				distributor = await MerkleDistributor.deploy(
+					kwenta.address,
+					tree.getHexRoot()
+				);
+				await distributor.deployed();
+			});
+
+			it('claim index 4', async () => {
+				// fund distributor
+				await expect(() =>
+					kwenta.connect(TREASURY_DAO).transfer(distributor.address, 100)
+				).to.changeTokenBalance(kwenta, distributor, 100);
+
+				// generate merkle proof
 				const proof = tree.getProof(
+					4,
+					accounts[4].address,
+					BigNumber.from(5)
+				);
+
+				// claim based on proof and index
+				await expect(distributor.claim(4, accounts[4].address, 5, proof))
+					.to.emit(distributor, 'Claimed')
+					.withArgs(4, accounts[4].address, 5);
+			});
+
+			it('claim index 9', async () => {
+				// fund distributor
+				await expect(() =>
+					kwenta.connect(TREASURY_DAO).transfer(distributor.address, 100)
+				).to.changeTokenBalance(kwenta, distributor, 100);
+
+				// generate merkle proof
+				const proof = tree.getProof(
+					9,
+					accounts[9].address,
+					BigNumber.from(10)
+				);
+
+				// claim based on proof and index
+				await expect(distributor.claim(9, accounts[9].address, 10, proof))
+					.to.emit(distributor, 'Claimed')
+					.withArgs(9, accounts[9].address, 10);
+			});
+
+			it('gas', async () => {
+				// fund distributor
+				await expect(() =>
+					kwenta.connect(TREASURY_DAO).transfer(distributor.address, 100)
+				).to.changeTokenBalance(kwenta, distributor, 100);
+
+				const proof = tree.getProof(
+					9,
+					accounts[9].address,
+					BigNumber.from(10)
+				);
+				const tx = await distributor.claim(
+					9,
+					accounts[9].address,
+					10,
+					proof
+				);
+				const receipt = await tx.wait();
+				expect(receipt.gasUsed).to.eq(72796);
+			});
+
+			it('gas second down about 15k', async () => {
+				// fund distributor
+				await expect(() =>
+					kwenta.connect(TREASURY_DAO).transfer(distributor.address, 100)
+				).to.changeTokenBalance(kwenta, distributor, 100);
+
+				await distributor.claim(
 					0,
+					accounts[0].address,
+					1,
+					tree.getProof(0, accounts[0].address, BigNumber.from(1))
+				);
+				const tx = await distributor.claim(
+					1,
+					accounts[1].address,
+					2,
+					tree.getProof(1, accounts[1].address, BigNumber.from(2))
+				);
+				const receipt = await tx.wait();
+				expect(receipt.gasUsed).to.eq(55696);
+			});
+		});
+
+		describe('realistic size tree', () => {
+			let tree: BalanceTree;
+			const NUM_LEAVES = 100_000;
+			const NUM_SAMPLES = 25;
+			const elements: { account: string; amount: BigNumber }[] = [];
+
+			let addr1Address = '0x70997970C51812dc3A010C7d01b50e0d17dc79C8';
+
+			for (let i = 0; i < NUM_LEAVES; i++) {
+				const node = {
+					account: addr1Address,
+					amount: BigNumber.from(100),
+				};
+				elements.push(node);
+			}
+
+			tree = new BalanceTree(elements);
+
+			it('proof verification works', () => {
+				const root = Buffer.from(tree.getHexRoot().slice(2), 'hex');
+				for (let i = 0; i < NUM_LEAVES; i += NUM_LEAVES / NUM_SAMPLES) {
+					const proof = tree
+						.getProof(i, addr1.address, BigNumber.from(100))
+						.map((el) => Buffer.from(el.slice(2), 'hex'));
+					const validProof = BalanceTree.verifyProof(
+						i,
+						addr1.address,
+						BigNumber.from(100),
+						proof,
+						root
+					);
+					expect(validProof).to.be.true;
+				}
+			});
+
+			beforeEach('deploy', async () => {
+				const MerkleDistributor = await ethers.getContractFactory(
+					'MerkleDistributor'
+				);
+				distributor = await MerkleDistributor.deploy(
+					kwenta.address,
+					tree.getHexRoot()
+				);
+				await distributor.deployed();
+
+				// fund distributor
+				await expect(() =>
+					kwenta
+						.connect(TREASURY_DAO)
+						.transfer(distributor.address, 300_000)
+				).to.changeTokenBalance(kwenta, distributor, 300_000);
+			});
+
+			it('gas', async () => {
+				const proof = tree.getProof(
+					50000,
 					addr1.address,
 					BigNumber.from(100)
 				);
 				const tx = await distributor.claim(
-					0,
+					50000,
 					addr1.address,
 					100,
 					proof
 				);
 				const receipt = await tx.wait();
-				expect(receipt.gasUsed).to.equal(62960);
+				expect(receipt.gasUsed).to.eq(87890);
+			});
+
+			it('gas deeper node', async () => {
+				const proof = tree.getProof(
+					90000,
+					addr1.address,
+					BigNumber.from(100)
+				);
+				const tx = await distributor.claim(
+					90000,
+					addr1.address,
+					100,
+					proof
+				);
+				const receipt = await tx.wait();
+				expect(receipt.gasUsed).to.eq(87924);
+			});
+
+			it('gas average random distribution', async () => {
+				let total: BigNumber = BigNumber.from(0);
+				let count: number = 0;
+				for (let i = 0; i < NUM_LEAVES; i += NUM_LEAVES / NUM_SAMPLES) {
+					const proof = tree.getProof(
+						i,
+						addr1.address,
+						BigNumber.from(100)
+					);
+					const tx = await distributor.claim(i, addr1.address, 100, proof);
+					const receipt = await tx.wait();
+					total = total.add(receipt.gasUsed);
+					count++;
+				}
+				const average = total.div(count);
+				expect(average).to.eq(87877);
+			});
+
+			// this is what we gas golfed by packing the bitmap
+			it('gas average first 25', async () => {
+				let total: BigNumber = BigNumber.from(0);
+				let count: number = 0;
+				for (let i = 0; i < 25; i++) {
+					const proof = tree.getProof(
+						i,
+						addr1.address,
+						BigNumber.from(100)
+					);
+					const tx = await distributor.claim(i, addr1.address, 100, proof);
+					const receipt = await tx.wait();
+					total = total.add(receipt.gasUsed);
+					count++;
+				}
+				const average = total.div(count);
+				expect(average).to.eq(71450);
+			});
+
+			it('no double claims in random distribution', async () => {
+				for (
+					let i = 0;
+					i < 25;
+					i += Math.floor(Math.random() * (NUM_LEAVES / NUM_SAMPLES))
+				) {
+					const proof = tree.getProof(
+						i,
+						addr1.address,
+						BigNumber.from(100)
+					);
+					await distributor.claim(i, addr1.address, 100, proof);
+					await expect(
+						distributor.claim(i, addr1.address, 100, proof)
+					).to.be.revertedWith('MerkleDistributor: Drop already claimed.');
+				}
 			});
 		});
-		
-		// describe('larger tree', () => {
-		// 	let distributor: Contract;
-		// 	let tree: BalanceTree;
-		// 	beforeEach('deploy', async () => {
-		// 		tree = new BalanceTree(
-		// 			wallets.map((wallet, ix) => {
-		// 				return {
-		// 					account: wallet.address,
-		// 					amount: BigNumber.from(ix + 1),
-		// 				};
-		// 			})
-		// 		);
-		// 		distributor = await deployContract(
-		// 			wallet0,
-		// 			Distributor,
-		// 			[token.address, tree.getHexRoot()]
-		// 		);
-		// 		await token.setBalance(distributor.address, 201);
-		// 	});
-
-		// 	it('claim index 4', async () => {
-		// 		const proof = tree.getProof(
-		// 			4,
-		// 			wallets[4].address,
-		// 			BigNumber.from(5)
-		// 		);
-		// 		await expect(
-		// 			distributor.claim(4, wallets[4].address, 5, proof)
-		// 		)
-		// 			.to.emit(distributor, 'Claimed')
-		// 			.withArgs(4, wallets[4].address, 5);
-		// 	});
-		//
-		// 	it('claim index 9', async () => {
-		// 		const proof = tree.getProof(
-		// 			9,
-		// 			wallets[9].address,
-		// 			BigNumber.from(10)
-		// 		);
-		// 		await expect(
-		// 			distributor.claim(9, wallets[9].address, 10, proof)
-		// 		)
-		// 			.to.emit(distributor, 'Claimed')
-		// 			.withArgs(9, wallets[9].address, 10);
-		// 	});
-
-		// 	it('gas', async () => {
-		// 		const proof = tree.getProof(
-		// 			9,
-		// 			wallets[9].address,
-		// 			BigNumber.from(10)
-		// 		);
-		// 		const tx = await distributor.claim(
-		// 			9,
-		// 			wallets[9].address,
-		// 			10,
-		// 			proof
-		// 		);
-		// 		const receipt = await tx.wait();
-		// 		expect(receipt.gasUsed).to.eq(80960);
-		// 	});
-
-		// 	it('gas second down about 15k', async () => {
-		// 		await distributor.claim(
-		// 			0,
-		// 			wallets[0].address,
-		// 			1,
-		// 			tree.getProof(0, wallets[0].address, BigNumber.from(1))
-		// 		);
-		// 		const tx = await distributor.claim(
-		// 			1,
-		// 			wallets[1].address,
-		// 			2,
-		// 			tree.getProof(1, wallets[1].address, BigNumber.from(2))
-		// 		);
-		// 		const receipt = await tx.wait();
-		// 		expect(receipt.gasUsed).to.eq(65940);
-		// 	});
-		// });
-
-		// describe('realistic size tree', () => {
-		// 	let distributor: Contract;
-		// 	let tree: BalanceTree;
-		// 	const NUM_LEAVES = 100_000;
-		// 	const NUM_SAMPLES = 25;
-		// 	const elements: { account: string; amount: BigNumber }[] = [];
-		// 	for (let i = 0; i < NUM_LEAVES; i++) {
-		// 		const node = {
-		// 			account: wallet0.address,
-		// 			amount: BigNumber.from(100),
-		// 		};
-		// 		elements.push(node);
-		// 	}
-		// 	tree = new BalanceTree(elements);
-
-		// 	it('proof verification works', () => {
-		// 		const root = Buffer.from(tree.getHexRoot().slice(2), 'hex');
-		// 		for (let i = 0; i < NUM_LEAVES; i += NUM_LEAVES / NUM_SAMPLES) {
-		// 			const proof = tree
-		// 				.getProof(i, wallet0.address, BigNumber.from(100))
-		// 				.map((el) => Buffer.from(el.slice(2), 'hex'));
-		// 			const validProof = BalanceTree.verifyProof(
-		// 				i,
-		// 				wallet0.address,
-		// 				BigNumber.from(100),
-		// 				proof,
-		// 				root
-		// 			);
-		// 			expect(validProof).to.be.true;
-		// 		}
-		// 	});
-
-		// 	beforeEach('deploy', async () => {
-		// 		distributor = await deployContract(
-		// 			wallet0,
-		// 			Distributor,
-		// 			[token.address, tree.getHexRoot()]
-		// 		);
-		// 		await token.setBalance(distributor.address, constants.MaxUint256);
-		// 	});
-
-		// 	it('gas', async () => {
-		// 		const proof = tree.getProof(
-		// 			50000,
-		// 			wallet0.address,
-		// 			BigNumber.from(100)
-		// 		);
-		// 		const tx = await distributor.claim(
-		// 			50000,
-		// 			wallet0.address,
-		// 			100,
-		// 			proof
-		// 		);
-		// 		const receipt = await tx.wait();
-		// 		expect(receipt.gasUsed).to.eq(91650);
-		// 	});
-		// 	it('gas deeper node', async () => {
-		// 		const proof = tree.getProof(
-		// 			90000,
-		// 			wallet0.address,
-		// 			BigNumber.from(100)
-		// 		);
-		// 		const tx = await distributor.claim(
-		// 			90000,
-		// 			wallet0.address,
-		// 			100,
-		// 			proof
-		// 		);
-		// 		const receipt = await tx.wait();
-		// 		expect(receipt.gasUsed).to.eq(91586);
-		// 	});
-		// 	it('gas average random distribution', async () => {
-		// 		let total: BigNumber = BigNumber.from(0);
-		// 		let count: number = 0;
-		// 		for (let i = 0; i < NUM_LEAVES; i += NUM_LEAVES / NUM_SAMPLES) {
-		// 			const proof = tree.getProof(
-		// 				i,
-		// 				wallet0.address,
-		// 				BigNumber.from(100)
-		// 			);
-		// 			const tx = await distributor.claim(
-		// 				i,
-		// 				wallet0.address,
-		// 				100,
-		// 				proof
-		// 			);
-		// 			const receipt = await tx.wait();
-		// 			total = total.add(receipt.gasUsed);
-		// 			count++;
-		// 		}
-		// 		const average = total.div(count);
-		// 		expect(average).to.eq(77075);
-		// 	});
-		// 	// this is what we gas golfed by packing the bitmap
-		// 	it('gas average first 25', async () => {
-		// 		let total: BigNumber = BigNumber.from(0);
-		// 		let count: number = 0;
-		// 		for (let i = 0; i < 25; i++) {
-		// 			const proof = tree.getProof(
-		// 				i,
-		// 				wallet0.address,
-		// 				BigNumber.from(100)
-		// 			);
-		// 			const tx = await distributor.claim(
-		// 				i,
-		// 				wallet0.address,
-		// 				100,
-		// 				proof
-		// 			);
-		// 			const receipt = await tx.wait();
-		// 			total = total.add(receipt.gasUsed);
-		// 			count++;
-		// 		}
-		// 		const average = total.div(count);
-		// 		expect(average).to.eq(62824);
-		// 	});
-
-		// 	it('no double claims in random distribution', async () => {
-		// 		for (
-		// 			let i = 0;
-		// 			i < 25;
-		// 			i += Math.floor(Math.random() * (NUM_LEAVES / NUM_SAMPLES))
-		// 		) {
-		// 			const proof = tree.getProof(
-		// 				i,
-		// 				wallet0.address,
-		// 				BigNumber.from(100)
-		// 			);
-		// 			await distributor.claim(
-		// 				i,
-		// 				wallet0.address,
-		// 				100,
-		// 				proof
-		// 			);
-		// 			await expect(
-		// 				distributor.claim(i, wallet0.address, 100, proof)
-		// 			).to.be.revertedWith('MerkleDistributor: Drop already claimed.');
-		// 		}
-		// 	});
-		// });
 	});
 
 	describe('parseBalanceMap', () => {
-		// let distributor: Contract;
-		// let claims: {
-		// 	[account: string]: {
-		// 		index: number;
-		// 		amount: string;
-		// 		proof: string[];
-		// 	};
-		// };
-		// beforeEach('deploy', async () => {
-		// 	const {
-		// 		claims: innerClaims,
-		// 		merkleRoot,
-		// 		tokenTotal,
-		// 	} = parseBalanceMap({
-		// 		[wallet0.address]: 200,
-		// 		[wallet1.address]: 300,
-		// 		[wallets[2].address]: 250,
-		// 	});
-		// 	expect(tokenTotal).to.eq('0x02ee'); // 750
-		// 	claims = innerClaims;
-		// 	distributor = await deployContract(
-		// 		wallet0,
-		// 		Distributor,
-		// 		[token.address, merkleRoot]
-		// 	);
-		// 	await token.setBalance(distributor.address, tokenTotal);
-		// });
+		let accounts: SignerWithAddress[];
 
-		// it('check the proofs is as expected', () => {
-		// 	expect(claims).to.deep.eq({
-		// 		[wallet0.address]: {
-		// 			index: 0,
-		// 			amount: '0xc8',
-		// 			proof: [
-		// 				'0x2a411ed78501edb696adca9e41e78d8256b61cfac45612fa0434d7cf87d916c6',
-		// 			],
-		// 		},
-		// 		[wallet1.address]: {
-		// 			index: 1,
-		// 			amount: '0x012c',
-		// 			proof: [
-		// 				'0xbfeb956a3b705056020a3b64c540bff700c0f6c96c55c0a5fcab57124cb36f7b',
-		// 				'0xd31de46890d4a77baeebddbd77bf73b5c626397b73ee8c69b51efe4c9a5a72fa',
-		// 			],
-		// 		},
-		// 		[wallets[2].address]: {
-		// 			index: 2,
-		// 			amount: '0xfa',
-		// 			proof: [
-		// 				'0xceaacce7533111e902cc548e961d77b23a4d8cd073c6b68ccf55c62bd47fc36b',
-		// 				'0xd31de46890d4a77baeebddbd77bf73b5c626397b73ee8c69b51efe4c9a5a72fa',
-		// 			],
-		// 		},
-		// 	});
-		// });
+		let claims: {
+			[account: string]: {
+				index: number;
+				amount: string;
+				proof: string[];
+			};
+		};
 
-		// it('all claims work exactly once', async () => {
-		// 	for (let account in claims) {
-		// 		const claim = claims[account];
-		// 		await expect(
-		// 			distributor.claim(
-		// 				claim.index,
-		// 				account,
-		// 				claim.amount,
-		// 				claim.proof
-		// 			)
-		// 		)
-		// 			.to.emit(distributor, 'Claimed')
-		// 			.withArgs(claim.index, account, claim.amount);
-		// 		await expect(
-		// 			distributor.claim(
-		// 				claim.index,
-		// 				account,
-		// 				claim.amount,
-		// 				claim.proof
-		// 			)
-		// 		).to.be.revertedWith('MerkleDistributor: Drop already claimed.');
-		// 	}
-		// 	expect(await token.balanceOf(distributor.address)).to.eq(0);
-		// });
+		beforeEach('deploy', async () => {
+			accounts = await ethers.getSigners();
+
+			const {
+				claims: innerClaims,
+				merkleRoot,
+				tokenTotal,
+			} = parseBalanceMap({
+				[accounts[0].address]: 200,
+				[accounts[1].address]: 300,
+				[accounts[2].address]: 250,
+			});
+
+			expect(tokenTotal).to.equal('0x02ee'); // 750
+
+			claims = innerClaims;
+
+			const MerkleDistributor = await ethers.getContractFactory(
+				'MerkleDistributor'
+			);
+			distributor = await MerkleDistributor.deploy(
+				kwenta.address,
+				merkleRoot
+			);
+			await distributor.deployed();
+
+			// fund distributor
+			await expect(() =>
+				kwenta
+					.connect(TREASURY_DAO)
+					.transfer(distributor.address, tokenTotal)
+			).to.changeTokenBalance(kwenta, distributor, tokenTotal);
+		});
+
+		it('all claims work exactly once', async () => {
+			for (let account in claims) {
+				const claim = claims[account];
+				await expect(
+					distributor.claim(
+						claim.index,
+						account,
+						claim.amount,
+						claim.proof
+					)
+				)
+					.to.emit(distributor, 'Claimed')
+					.withArgs(claim.index, account, claim.amount);
+				await expect(
+					distributor.claim(
+						claim.index,
+						account,
+						claim.amount,
+						claim.proof
+					)
+				).to.be.revertedWith('MerkleDistributor: Drop already claimed.');
+			}
+			expect(await kwenta.balanceOf(distributor.address)).to.equal(0);
+		});
 	});
 });
