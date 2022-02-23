@@ -548,9 +548,22 @@ describe('Stake', () => {
 			await stakingRewardsProxy.connect(addr2).getReward();
 
 			// expect staker 1 to have greater rewards
-			expect(await rewardEscrow.balanceOf(addr1.address)).to.be.above(
-				await rewardEscrow.balanceOf(addr2.address)
+			var escrowedBalanceAddr1 = await rewardEscrow.balanceOf(addr1.address)
+			var escrowedBalanceAddr2 = await rewardEscrow.balanceOf(addr2.address)
+			expect(escrowedBalanceAddr1).to.be.above(
+				escrowedBalanceAddr2
 			);
+			
+			// multiple calls to getReward() should not produce any extra rewards
+			await stakingRewardsProxy.connect(addr1).getReward();
+			await stakingRewardsProxy.connect(addr2).getReward();
+			expect(await rewardEscrow.balanceOf(addr1.address)).to.equal(
+					escrowedBalanceAddr1
+				);
+			expect(await rewardEscrow.balanceOf(addr2.address)).to.equal(
+				escrowedBalanceAddr2
+			);
+
 		});
 	});
 });
