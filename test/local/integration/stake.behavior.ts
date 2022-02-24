@@ -4,9 +4,10 @@ import { Contract } from '@ethersproject/contracts';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { wei } from '@synthetixio/wei';
 import { FakeContract, smock } from '@defi-wonderland/smock';
-import { IExchanger } from '../../typechain/IExchanger';
-import { ISynthetix } from '../../typechain/ISynthetix';
-import { IAddressResolver } from '../../typechain/IAddressResolver';
+import { IExchanger } from '../../../typechain/IExchanger';
+import { ISynthetix } from '../../../typechain/ISynthetix';
+import { IAddressResolver } from '../../../typechain/IAddressResolver';
+import { IERC20 } from '../../../typechain/IERC20';
 
 // constants
 const NAME = 'Kwenta';
@@ -54,6 +55,8 @@ const fastForward = async (sec: number) => {
 
 // Mock Synthetix AddressResolver
 const mockAddressResolver = async () => {
+	const fakeERC20 = await smock.fake<IERC20>('IERC20');
+
 	const FEE = wei(10).toBN();
 
 	const fakeSynthetix = await smock.fake<ISynthetix>('ISynthetix');
@@ -78,6 +81,9 @@ const mockAddressResolver = async () => {
 			'Could not get Exchanger'
 		)
 		.returns(fakeExchanger.address);
+	fakeAddressResolver.getSynth
+		.whenCalledWith(ethers.utils.formatBytes32String('sUSD'))
+		.returns(fakeERC20.address);
 
 	return fakeAddressResolver;
 };

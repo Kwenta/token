@@ -5,6 +5,7 @@ import "./interfaces/IAddressResolver.sol";
 import "./interfaces/ISynthetix.sol";
 import "./interfaces/IExchanger.sol";
 import "./interfaces/IStakingRewards.sol";
+import "./interfaces/IERC20.sol";
 
 contract ExchangerProxy {
     IAddressResolver addressResolver;
@@ -38,6 +39,14 @@ contract ExchangerProxy {
         address rewardAddress,
         bytes32 trackingCode
     ) external returns (uint amountReceived) {
+        // Establish synth
+        address synthAddress = addressResolver.getSynth(sourceCurrencyKey);
+        IERC20 synth = IERC20(synthAddress);
+
+        // Transfer synth and approve exchanger for spending
+        synth.transferFrom(msg.sender, address(this), sourceAmount);
+        synth.approve(address(exchanger()), sourceAmount);
+
         // Get fee
         uint fee = exchanger().feeRateForExchange(sourceCurrencyKey, destinationCurrencyKey);
 
