@@ -2,8 +2,8 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 import { Contract } from "@ethersproject/contracts";
 import { FakeContract, smock } from "@defi-wonderland/smock";
-import { SupplySchedule } from "../../typechain/SupplySchedule";
-import { StakingRewards } from "../../typechain/StakingRewards";
+import { SupplySchedule } from "../../../typechain/SupplySchedule";
+import { StakingRewards } from "../../../typechain/StakingRewards";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 describe("KWENTA Token", function () {
