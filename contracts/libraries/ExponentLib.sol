@@ -35,11 +35,7 @@ library ExponentLib {
     }
 
     function root_any(FixidityLib.Fixidity storage fixidity, int256 a, int256 b) public view returns (int256) {
-        if(a == 0) {
-            return 0;
-        } else {
-            return power_any(fixidity, a, fixidity.reciprocal(b));
-        }
+        return power_any(fixidity, a, fixidity.reciprocal(b));
     }
 
     function root_n(FixidityLib.Fixidity storage fixidity, int256 a, uint256 n) public view returns (int256) {
