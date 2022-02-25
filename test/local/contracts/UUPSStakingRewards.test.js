@@ -1,3 +1,4 @@
+const { wei } = require('@synthetixio/wei');
 const hardhat = require('hardhat');
 
 const NAME = "Kwenta";
@@ -74,14 +75,14 @@ contract('UUPS Proxy for StakingRewards', ([owner, rewardsDistribution, supplySc
 		});
 		it("should stake correctly", async() => {
 			
-			await kwentaToken.connect(treasuryDAO).transfer(staker1.address, 100);
-			await kwentaToken.connect(staker1).approve(st_proxy.address, 100);
+			await kwentaToken.connect(treasuryDAO).transfer(staker1.address, wei(100).toBN());
+			await kwentaToken.connect(staker1).approve(st_proxy.address, wei(100).toBN());
 
-			await st_proxy.connect(staker1).stake(50);
+			await st_proxy.connect(staker1).stake(wei(50).toBN());
 
 			let balance = await st_proxy.connect(staker1).stakedBalanceOf(staker1.address);
 
-			assert.equal(balance.toString(), 50);
+			assert.equal(balance.toString(), wei(50).toBN());
 		});
 
 		it("should upgrade correctly", async() => {
@@ -144,7 +145,7 @@ contract('UUPS Proxy for StakingRewards', ([owner, rewardsDistribution, supplySc
 
 
 			let balance = await upgradedImplementationV3.stakedBalanceOf(staker1.address);
-			assert.equal(balance.toString(), 50);
+			assert.equal(balance.toString(), wei(50).toBN());
 
 
 
