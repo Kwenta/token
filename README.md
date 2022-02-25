@@ -67,9 +67,11 @@ npm run test:integration
 npm run test:fork
 ```
 
-## Deployment
+## Deployments
 
-*Coming soon...*
+| Contract | Address |
+| --- | --- |
+|vKWENTA | [`0x6789D8a7a7871923Fc6430432A602879eCB6520a`](https://optimistic.etherscan.io/token/0x6789d8a7a7871923fc6430432a602879ecb6520a) |
 
 ---
 
