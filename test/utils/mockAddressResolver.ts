@@ -2,6 +2,7 @@ import { smock } from "@defi-wonderland/smock";
 import { wei } from "@synthetixio/wei";
 import { ethers } from "hardhat";
 import { IAddressResolver } from "../../typechain/IAddressResolver";
+import { IERC20 } from "../../typechain/IERC20";
 import { IExchanger } from "../../typechain/IExchanger";
 import { ISynthetix } from "../../typechain/ISynthetix";
 
@@ -10,6 +11,8 @@ import { ISynthetix } from "../../typechain/ISynthetix";
  * @returns fakeAddressResolver
  */
 export const mockAddressResolver = async () => {
+	const fakeERC20 = await smock.fake<IERC20>('IERC20');
+	
 	const FEE = wei(10).toBN();
 
 	const fakeSynthetix = await smock.fake<ISynthetix>('ISynthetix');
@@ -28,12 +31,19 @@ export const mockAddressResolver = async () => {
 			'Could not get Synthetix'
 		)
 		.returns(fakeSynthetix.address);
+
 	fakeAddressResolver.requireAndGetAddress
 		.whenCalledWith(
 			ethers.utils.formatBytes32String('Exchanger'),
 			'Could not get Exchanger'
 		)
 		.returns(fakeExchanger.address);
+
+	fakeAddressResolver.getSynth
+		.whenCalledWith(
+			ethers.utils.formatBytes32String('sUSD')
+		)
+		.returns(fakeERC20.address);
 
 	return fakeAddressResolver;
 };
