@@ -175,19 +175,24 @@ describe("stake()", async() => {
 		it("fails with zero amounts", async() => {
 			await stProxy.connect(staker1).stake(0).should.be.rejected;
 		})
+		it("fails when staking below safety limit", async () => {
+			const stakingMinimum = await stProxy.STAKING_SAFETY_MINIMUM();
+			await kwentaToken.connect(staker1).approve(stProxy.address, stakingMinimum.sub(1));
+			await stProxy.connect(staker1).stake(stakingMinimum.sub(1)).should.be.rejected;
+		})
 		it("stakes the correct amount", async() => {
 
 			await kwentaToken.connect(staker1).approve(stProxy.address, toUnit(100));
 			await kwentaToken.connect(staker2).approve(stProxy.address, toUnit(100));
 
-			await stProxy.connect(staker1).stake(15);
+			await stProxy.connect(staker1).stake(toUnit(15));
 
 			let bal = await stProxy.stakedBalanceOf(staker1.address);
-			assert.equal(bal, 15, "Incorrect amount");
+			assert.equal(bal, toUnit(15), "Incorrect amount");
 
-			await stProxy.connect(staker2).stake(50);
+			await stProxy.connect(staker2).stake(toUnit(50));
 			bal = await stProxy.stakedBalanceOf(staker2.address);
-			assert.equal(bal, 50, "Incorrect amount");
+			assert.equal(bal, toUnit(50), "Incorrect amount");
 			
 		})
 	});
@@ -197,14 +202,20 @@ describe("withdraw()", async() => {
 			await stProxy.connect(staker1).withdraw(0).should.be.rejected;
 		})
 		it("fails with amounts too large", async() => {
-			await stProxy.connect(staker1).withdraw(100).should.be.rejected;	
+			await stProxy.connect(staker1).withdraw(toUnit(100)).should.be.rejected;	
+		})
+		it("fails when withdrawing results in a balance below safety limit", async() => {
+			const stakingMinimum = await stProxy.STAKING_SAFETY_MINIMUM();
+			const stakedAmount = await stProxy.totalBalanceOf(staker1.address);
+			const invalidWithdrawalAmount = stakedAmount.sub(stakingMinimum).add(1);
+			await stProxy.connect(staker1).withdraw(invalidWithdrawalAmount).should.be.rejected;	
 		})
 		it("withdraws the correct amount", async() => {
-			await stProxy.connect(staker1).withdraw(15);
+			await stProxy.connect(staker1).withdraw(toUnit(15));
 			let bal = await stProxy.stakedBalanceOf(staker1.address);
 			assert.equal(bal, 0, "Incorrect amount");
 
-			await stProxy.connect(staker2).withdraw(50);
+			await stProxy.connect(staker2).withdraw(toUnit(50));
 			bal = await stProxy.stakedBalanceOf(staker2.address);
 			assert.equal(bal, 0, "Incorrect amount");
 		})
@@ -217,7 +228,10 @@ describe("feesPaid()", async() => {
 			assert.equal(ts1, 0);
 			assert.equal(ts2, 0);
 		})
-
+		it("fails when fees update is below safety limit", async () => {
+			const feesPaidMinimum = await stProxy.FEES_PAID_SAFETY_MINIMUM();
+			await stProxy.connect(exchangerProxy).updateTraderScore(staker1.address, feesPaidMinimum.sub(1)).should.be.rejected;
+		})
 		it("updates updatesTraderScore correctly", async() => {
 			await stProxy.connect(staker1).stake(toUnit(5));
 			await stProxy.connect(staker2).stake(toUnit(5));
@@ -330,7 +344,7 @@ describe('earned()', () => {
 			await kwentaToken.connect(staker1).approve(stProxy.address, toUnit(100));
 			await kwentaToken.connect(staker2).approve(stProxy.address, toUnit(100));
 
-			await stProxy.connect(exchangerProxy).updateTraderScore(staker1.address, 30);
+			await stProxy.connect(exchangerProxy).updateTraderScore(staker1.address, toUnit(1));
 
 			const rewardValue = toUnit(5.0);
 			
@@ -388,7 +402,7 @@ describe('earned()', () => {
 
 			await stProxy.connect(staker1).stake(totalToStake);
 
-			await stProxy.connect(exchangerProxy).updateTraderScore(staker1.address, 30);
+			await stProxy.connect(exchangerProxy).updateTraderScore(staker1.address, toUnit(1));
 
 			const rewardValue = toUnit(5.0);
 			
@@ -438,7 +452,7 @@ describe('rewardEpochs()', () => {
 			await stProxy.setRewardNEpochs(rewardValue, 1);
 
 			await stProxy.connect(staker1).stake(totalToStake);
-			await stProxy.connect(exchangerProxy).updateTraderScore(staker1.address, 30);
+			await stProxy.connect(exchangerProxy).updateTraderScore(staker1.address, toUnit(1));
 
 			let reward = await stProxy.rewardPerRewardScoreOfEpoch(currEpoch);
 

@@ -3,8 +3,8 @@ import { ethers } from 'hardhat';
 import { Contract } from '@ethersproject/contracts';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { wei } from '@synthetixio/wei';
-import { fastForward } from '../utils/helpers';
-import { deployKwenta } from '../utils/kwenta';
+import { fastForward } from '../../utils/helpers';
+import { deployKwenta } from '../../utils/kwenta';
 
 // constants
 const NAME = 'Kwenta';

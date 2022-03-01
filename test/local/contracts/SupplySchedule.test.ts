@@ -2,8 +2,8 @@
 
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { BigNumber } from "ethers";
-import { SupplySchedule } from "../../typechain/SupplySchedule";
-import { Kwenta } from "../../typechain/Kwenta";
+import { SupplySchedule } from "../../../typechain/SupplySchedule";
+import { Kwenta } from "../../../typechain/Kwenta";
 import Wei from "@synthetixio/wei";
 
 const { ethers } = require("hardhat");
