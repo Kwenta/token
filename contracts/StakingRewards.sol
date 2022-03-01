@@ -84,7 +84,7 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     
     // Decimals calculations
     uint256 private constant MAX_BPS = 10_000;
-    uint256 private constant DECIMALS_DIFFERENCE = 1e30;
+    uint256 private DECIMALS_DIFFERENCE;
     // Needs to be int256 for power library, root to calculate is equal to 0.7
     int256 public WEIGHT_FEES;
     // Needs to be int256 for power library, root to calculate is equal to 0.3
@@ -127,6 +127,8 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
 
         PERCENTAGE_STAKING = 8_000;
         PERCENTAGE_TRADING = 2_000;
+
+        DECIMALS_DIFFERENCE = 1e30;
 
         WEIGHT_STAKING = 3e17;
         WEIGHT_FEES = 7e17;
@@ -285,6 +287,15 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
         require(_percentageTrading + _percentageStaking == 10_000);
         PERCENTAGE_STAKING = _percentageStaking;
         PERCENTAGE_TRADING = _percentageTrading;
+    }
+
+    /**
+     * @notice Set the DECIMALS needed for the reward rate for an epoch
+     * @dev Only the owner can use this function 
+     * @param _newDecimalsDifference the new number to multiply when calculating rewards (initialized at 1e30)
+     */
+    function setDecimalsDifference(uint256 _newDecimalsDifference) external onlyOwner {
+        DECIMALS_DIFFERENCE = _newDecimalsDifference;
     }
 
     /**
