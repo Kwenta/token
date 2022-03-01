@@ -1,14 +1,10 @@
 import { expect } from 'chai';
-import { ethers, upgrades } from 'hardhat';
-import { Contract, BigNumber, constants } from 'ethers';
+import { ethers } from 'hardhat';
+import { Contract, BigNumber } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import { wei } from '@synthetixio/wei';
-import { FakeContract, smock } from '@defi-wonderland/smock';
-import { IExchanger } from '../../typechain/IExchanger';
-import { ISynthetix } from '../../typechain/ISynthetix';
-import { IAddressResolver } from '../../typechain/IAddressResolver';
 import BalanceTree from '../../src/balance-tree';
 import { parseBalanceMap } from '../../src/parse-balance-map';
+import { deployKwenta } from '../utils/kwenta';
 
 // constants
 const NAME = 'Kwenta';
@@ -16,7 +12,6 @@ const SYMBOL = 'KWENTA';
 const INITIAL_SUPPLY = ethers.utils.parseUnits('313373');
 const INFLATION_DIVERSION_BPS = 2000;
 const WEEKLY_START_REWARDS = 3;
-const SECONDS_IN_WEEK = 6048000;
 const ZERO_BYTES32 =
 	'0x0000000000000000000000000000000000000000000000000000000000000000';
 
@@ -35,154 +30,23 @@ let stakingRewardsProxy: Contract;
 let exchangerProxy: Contract;
 let distributor: Contract;
 
-// library contracts
-let fixidityLib: Contract;
-let logarithmLib: Contract;
-let exponentLib: Contract;
-
-// util contracts
-let safeDecimalMath: Contract;
-
-// fake contracts
-let fakeAddressResolver: FakeContract;
-
-// Mock Synthetix AddressResolver
-const mockAddressResolver = async () => {
-	const FEE = wei(10).toBN();
-
-	const fakeSynthetix = await smock.fake<ISynthetix>('ISynthetix');
-	fakeSynthetix.exchangeWithTracking.returns(FEE);
-
-	const fakeExchanger = await smock.fake<IExchanger>('IExchanger');
-	fakeExchanger.feeRateForExchange.returns(FEE);
-
-	const fakeAddressResolver = await smock.fake<IAddressResolver>(
-		'IAddressResolver'
-	);
-	fakeAddressResolver.requireAndGetAddress.reverts();
-	fakeAddressResolver.requireAndGetAddress
-		.whenCalledWith(
-			ethers.utils.formatBytes32String('Synthetix'),
-			'Could not get Synthetix'
-		)
-		.returns(fakeSynthetix.address);
-	fakeAddressResolver.requireAndGetAddress
-		.whenCalledWith(
-			ethers.utils.formatBytes32String('Exchanger'),
-			'Could not get Exchanger'
-		)
-		.returns(fakeExchanger.address);
-
-	return fakeAddressResolver;
-};
-
 const loadSetup = () => {
 	before('Deploy contracts', async () => {
 		[owner, addr0, addr1, addr2, TREASURY_DAO] = await ethers.getSigners();
-
-		// deploy FixidityLib
-		const FixidityLib = await ethers.getContractFactory('FixidityLib');
-		fixidityLib = await FixidityLib.deploy();
-		await fixidityLib.deployed();
-
-		// deploy LogarithmLib
-		const LogarithmLib = await ethers.getContractFactory('LogarithmLib', {
-			libraries: {
-				FixidityLib: fixidityLib.address,
-			},
-		});
-		logarithmLib = await LogarithmLib.deploy();
-		await logarithmLib.deployed();
-
-		// deploy ExponentLib
-		const ExponentLib = await ethers.getContractFactory('ExponentLib', {
-			libraries: {
-				FixidityLib: fixidityLib.address,
-				LogarithmLib: logarithmLib.address,
-			},
-		});
-		exponentLib = await ExponentLib.deploy();
-		await exponentLib.deployed();
-
-		// deploy SafeDecimalMath
-		const SafeDecimalMath = await ethers.getContractFactory(
-			'SafeDecimalMathV5'
-		);
-		safeDecimalMath = await SafeDecimalMath.deploy();
-		await safeDecimalMath.deployed();
-
-		// deploy SupplySchedule
-		const SupplySchedule = await ethers.getContractFactory('SupplySchedule', {
-			libraries: {
-				SafeDecimalMathV5: safeDecimalMath.address,
-			},
-		});
-		supplySchedule = await SupplySchedule.deploy(owner.address);
-		await supplySchedule.deployed();
-
-		// deploy Kwenta
-		const Kwenta = await ethers.getContractFactory('Kwenta');
-		kwenta = await Kwenta.deploy(
+		let deployments = await deployKwenta(
 			NAME,
 			SYMBOL,
 			INITIAL_SUPPLY,
-			owner.address,
-			TREASURY_DAO.address,
-			supplySchedule.address,
-			INFLATION_DIVERSION_BPS
+			INFLATION_DIVERSION_BPS,
+			WEEKLY_START_REWARDS,
+			owner,
+			TREASURY_DAO
 		);
-		await kwenta.deployed();
-		await supplySchedule.setKwenta(kwenta.address);
-
-		// deploy RewardEscrow
-		const RewardEscrow = await ethers.getContractFactory('RewardEscrow');
-		rewardEscrow = await RewardEscrow.deploy(owner.address, kwenta.address);
-		await rewardEscrow.deployed();
-
-		// deploy StakingRewards
-		const StakingRewards = await ethers.getContractFactory('StakingRewards', {
-			libraries: {
-				ExponentLib: exponentLib.address,
-				FixidityLib: fixidityLib.address,
-			},
-		});
-
-		// deploy UUPS Proxy using hardhat upgrades from OpenZeppelin
-		stakingRewardsProxy = await upgrades.deployProxy(
-			StakingRewards,
-			[
-				owner.address,
-				kwenta.address,
-				kwenta.address,
-				rewardEscrow.address,
-				WEEKLY_START_REWARDS,
-			],
-			{
-				kind: 'uups',
-				unsafeAllow: ['external-library-linking'],
-			}
-		);
-		await stakingRewardsProxy.deployed();
-		
-		// set StakingRewards address in Kwenta token
-		await kwenta.setStakingRewards(stakingRewardsProxy.address);
-
-		// set StakingRewards address in RewardEscrow
-		await rewardEscrow.setStakingRewards(stakingRewardsProxy.address);
-
-		// Mock AddressResolver
-		fakeAddressResolver = await mockAddressResolver();
-
-		// deploy ExchangerProxy
-		const ExchangerProxy = await ethers.getContractFactory('ExchangerProxy');
-		exchangerProxy = await ExchangerProxy.deploy(
-			fakeAddressResolver.address,
-			stakingRewardsProxy.address
-		);
-		await exchangerProxy.deployed();
-
-		// set ExchangerProxy address in StakingRewards
-		await stakingRewardsProxy.setExchangerProxy(exchangerProxy.address);
+		kwenta = deployments.kwenta;
+		supplySchedule = deployments.supplySchedule;
+		rewardEscrow = deployments.rewardEscrow;
+		stakingRewardsProxy = deployments.stakingRewardsProxy;
+		exchangerProxy = deployments.exchangerProxy;
 	});
 };
 
@@ -267,24 +131,21 @@ describe('MerkleDistributor', () => {
 				);
 				await distributor.deployed();
 
-				// fund distributor
 				await expect(() =>
 					kwenta.connect(TREASURY_DAO).transfer(distributor.address, 201)
 				).to.changeTokenBalance(kwenta, distributor, 201);
 			});
 
 			it('successful claim and transfer', async () => {
-				// generate merkle proof for addr0.address
 				const proof0 = tree.getProof(0, addr0.address, BigNumber.from(100));
-				// addr0 claims KWENTA
+				
 				await expect(distributor.claim(0, addr0.address, 100, proof0))
 					.to.emit(distributor, 'Claimed')
 					.withArgs(0, addr0.address, 100);
 				expect(await kwenta.balanceOf(addr0.address)).to.equal(100);
 
-				// generate merkle proof for addr1.address
 				const proof1 = tree.getProof(1, addr1.address, BigNumber.from(101));
-				// addr1 claims KWENTA
+
 				await expect(distributor.claim(1, addr1.address, 101, proof1))
 					.to.emit(distributor, 'Claimed')
 					.withArgs(1, addr1.address, 101);
@@ -294,22 +155,19 @@ describe('MerkleDistributor', () => {
 			});
 
 			it('must have enough to transfer', async () => {
-				// generate merkle proof for addr2.address
 				const proof2 = tree.getProof(2, addr2.address, BigNumber.from(202));
-				// addr0 claims KWENTA
+				
 				await expect(
 					distributor.claim(2, addr2.address, 202, proof2)
 				).to.be.revertedWith('ERC20: transfer amount exceeds balance');
 			});
 
 			it('sets #isClaimed', async () => {
-				// generate merkle proof for addr0.address
 				const proof0 = tree.getProof(0, addr0.address, BigNumber.from(100));
 
 				expect(await distributor.isClaimed(0)).to.equal(false);
 				expect(await distributor.isClaimed(1)).to.equal(false);
 
-				// addr0 claims KWENTA
 				await distributor.claim(0, addr0.address, 100, proof0);
 
 				expect(await distributor.isClaimed(0)).to.equal(true);
@@ -317,25 +175,23 @@ describe('MerkleDistributor', () => {
 			});
 
 			it('cannot allow two claims', async () => {
-				// generate merkle proof for addr0.address
 				const proof0 = tree.getProof(0, addr0.address, BigNumber.from(100));
-				// addr0 claims KWENTA
+
 				await distributor.claim(0, addr0.address, 100, proof0);
-				// addr0 attempts to claim KWENTA (again)
+
 				await expect(
 					distributor.claim(0, addr0.address, 100, proof0)
 				).to.be.revertedWith('MerkleDistributor: Drop already claimed.');
 			});
 
 			it('cannot claim more than once: (index) 0 and then 1', async () => {
-				// addr0 claims KWENTA
 				await distributor.claim(
 					0,
 					addr0.address,
 					100,
 					tree.getProof(0, addr0.address, BigNumber.from(100))
 				);
-				// addr1 claims KWENTA
+
 				await distributor.claim(
 					1,
 					addr1.address,
@@ -343,7 +199,6 @@ describe('MerkleDistributor', () => {
 					tree.getProof(1, addr1.address, BigNumber.from(101))
 				);
 
-				// addr0 attempts to claim KWENTA (again)
 				await expect(
 					distributor.claim(
 						0,
@@ -355,14 +210,13 @@ describe('MerkleDistributor', () => {
 			});
 
 			it('cannot claim more than once: (index) 1 and then 0', async () => {
-				// addr1 claims KWENTA
 				await distributor.claim(
 					1,
 					addr1.address,
 					101,
 					tree.getProof(1, addr1.address, BigNumber.from(101))
 				);
-				// addr0 claims KWENTA
+
 				await distributor.claim(
 					0,
 					addr0.address,
@@ -370,7 +224,6 @@ describe('MerkleDistributor', () => {
 					tree.getProof(0, addr0.address, BigNumber.from(100))
 				);
 
-				// addr1 attempts to claim KWENTA (again)
 				await expect(
 					distributor.claim(
 						1,
@@ -382,31 +235,25 @@ describe('MerkleDistributor', () => {
 			});
 
 			it('cannot claim for address other than proof', async () => {
-				// generate merkle proof for addr0.address
 				const proof0 = tree.getProof(0, addr0.address, BigNumber.from(100));
 
-				// addr1 attempts to claim KWENTA with addr0's proof
 				await expect(
 					distributor.claim(1, addr1.address, 101, proof0)
 				).to.be.revertedWith('MerkleDistributor: Invalid proof.');
 			});
 
 			it('cannot claim more than proof', async () => {
-				// generate merkle proof for addr0.address
 				const proof0 = tree.getProof(0, addr0.address, BigNumber.from(100));
 
-				// addr0 attempts to claim MORE KWENTA than proof specifies
 				await expect(
 					distributor.claim(0, addr0.address, 101, proof0)
 				).to.be.revertedWith('MerkleDistributor: Invalid proof.');
 			});
 
 			it('gas', async () => {
-				// generate proof and claim for addr0
 				const proof = tree.getProof(0, addr0.address, BigNumber.from(100));
 				const tx = await distributor.claim(0, addr0.address, 100, proof);
 				const receipt = await tx.wait();
-
 				expect(receipt.gasUsed).to.equal(69003);
 			});
 		});
@@ -438,35 +285,30 @@ describe('MerkleDistributor', () => {
 				);
 				await distributor.deployed();
 
-				// fund distributor
 				await expect(() =>
 					kwenta.connect(TREASURY_DAO).transfer(distributor.address, 100)
 				).to.changeTokenBalance(kwenta, distributor, 100);
 			});
 
 			it('claim index 4', async () => {
-				// generate merkle proof
 				const proof = tree.getProof(
 					4,
 					accounts[4].address,
 					BigNumber.from(5)
 				);
 
-				// claim based on proof and index
 				await expect(distributor.claim(4, accounts[4].address, 5, proof))
 					.to.emit(distributor, 'Claimed')
 					.withArgs(4, accounts[4].address, 5);
 			});
 
 			it('claim index 9', async () => {
-				// generate merkle proof
 				const proof = tree.getProof(
 					9,
 					accounts[9].address,
 					BigNumber.from(10)
 				);
 
-				// claim based on proof and index
 				await expect(distributor.claim(9, accounts[9].address, 10, proof))
 					.to.emit(distributor, 'Claimed')
 					.withArgs(9, accounts[9].address, 10);
@@ -495,6 +337,7 @@ describe('MerkleDistributor', () => {
 					1,
 					tree.getProof(0, accounts[0].address, BigNumber.from(1))
 				);
+
 				const tx = await distributor.claim(
 					1,
 					accounts[1].address,
@@ -551,7 +394,6 @@ describe('MerkleDistributor', () => {
 				);
 				await distributor.deployed();
 
-				// fund distributor
 				await expect(() =>
 					kwenta
 						.connect(TREASURY_DAO)
@@ -581,6 +423,7 @@ describe('MerkleDistributor', () => {
 					addr0.address,
 					BigNumber.from(100)
 				);
+
 				const tx = await distributor.claim(
 					90000,
 					addr0.address,
@@ -685,7 +528,6 @@ describe('MerkleDistributor', () => {
 			);
 			await distributor.deployed();
 
-			// fund distributor
 			await expect(() =>
 				kwenta
 					.connect(TREASURY_DAO)
