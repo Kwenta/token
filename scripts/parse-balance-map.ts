@@ -15,15 +15,12 @@ interface MerkleDistributorInfo {
 			index: number;
 			amount: string;
 			proof: string[];
-			flags?: {
-				[flag: string]: boolean;
-			};
 		};
 	};
 }
 
 type OldFormat = { [account: string]: number | string };
-type NewFormat = { address: string; earnings: string; reasons: string };
+type NewFormat = { address: string; earnings: string };
 
 export function parseBalanceMap(
 	balances: OldFormat | NewFormat[]
@@ -35,16 +32,14 @@ export function parseBalanceMap(
 				(account): NewFormat => ({
 					address: account,
 					earnings: `0x${balances[account].toString(16)}`,
-					reasons: '',
 				})
 		  );
 
 	const dataByAddress = balancesInNewFormat.reduce<{
 		[address: string]: {
 			amount: BigNumber;
-			flags?: { [flag: string]: boolean };
 		};
-	}>((memo, { address: account, earnings, reasons }) => {
+	}>((memo, { address: account, earnings }) => {
 		if (!isAddress(account)) {
 			throw new Error(`Found invalid address: ${account}`);
 		}
@@ -54,16 +49,7 @@ export function parseBalanceMap(
 		if (parsedNum.lte(0))
 			throw new Error(`Invalid amount for account: ${account}`);
 
-		const flags = {
-			isSOCKS: reasons.includes('socks'),
-			isLP: reasons.includes('lp'),
-			isUser: reasons.includes('user'),
-		};
-
-		memo[parsed] = {
-			amount: parsedNum,
-			...(reasons === '' ? {} : { flags }),
-		};
+		memo[parsed] = { amount: parsedNum };
 		return memo;
 	}, {});
 
@@ -83,15 +69,13 @@ export function parseBalanceMap(
 			amount: string;
 			index: number;
 			proof: string[];
-			flags?: { [flag: string]: boolean };
 		};
 	}>((memo, address, index) => {
-		const { amount, flags } = dataByAddress[address];
+		const { amount } = dataByAddress[address];
 		memo[address] = {
 			index,
 			amount: amount.toHexString(),
 			proof: tree.getProof(index, address, amount),
-			...(flags ? { flags } : {}),
 		};
 		return memo;
 	}, {});
