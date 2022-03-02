@@ -11,7 +11,7 @@ import { ISynthetix } from "../../typechain/ISynthetix";
  * @returns fakeAddressResolver
  */
 export const mockAddressResolver = async () => {
-	const fakeERC20 = await smock.fake<IERC20>('IERC20');
+	const fakeERC20 = await smock.fake<IERC20>('contracts/interfaces/IERC20.sol:IERC20');
 	
 	const FEE = wei(10).toBN();
 
