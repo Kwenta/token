@@ -112,7 +112,6 @@ export const deployKwenta = async (
 			unsafeAllow: ['external-library-linking'],
 		}
 	);
-
 	await stakingRewardsProxy.deployed();
 
 	// set StakingRewards address in Kwenta token
