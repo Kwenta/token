@@ -29,7 +29,7 @@ describe("Mint", () => {
         await mockStakingRewards.deployed();
 
         const SafeDecimalMath = await ethers.getContractFactory(
-            "SafeDecimalMathV5"
+            "SafeDecimalMath"
         );
         safeDecimalMath = await SafeDecimalMath.deploy();
         await safeDecimalMath.deployed();

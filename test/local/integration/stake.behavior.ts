@@ -132,7 +132,7 @@ const loadSetup = () => {
 
 		// deploy SafeDecimalMath
 		const SafeDecimalMath = await ethers.getContractFactory(
-			'SafeDecimalMathV5'
+			'SafeDecimalMath'
 		);
 		safeDecimalMath = await SafeDecimalMath.deploy();
 		await safeDecimalMath.deployed();

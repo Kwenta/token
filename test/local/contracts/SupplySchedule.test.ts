@@ -5,6 +5,8 @@ import { BigNumber } from "ethers";
 import { SupplySchedule } from "../../../typechain/SupplySchedule";
 import { Kwenta } from "../../../typechain/Kwenta";
 import Wei from "@synthetixio/wei";
+import { FakeContract, smock } from "@defi-wonderland/smock";
+import { StakingRewards } from "../../../typechain/StakingRewards";
 
 const { ethers } = require("hardhat");
 const { parseUnits } = ethers.utils;
@@ -20,12 +22,18 @@ const { expect } = require("chai");
 const { wei } = require("@synthetixio/wei");
 
 describe("SupplySchedule", () => {
-    const initialWeeklySupply = wei(313373).mul(2.40).div(52);
+    const NAME = "Kwenta";
+    const SYMBOL = "KWENTA";
+    const INITIAL_SUPPLY = wei(313373);
+    const TREASURY_DAO_ADDRESS = "0x0000000000000000000000000000000000000001";
+    const INFLATION_DIVERSION_BPS = 2000;
+    const initialWeeklySupply = wei(313373).mul(2.4).div(52);
     let inflationStartDate: number;
 
     let accounts: SignerWithAddress[];
     let owner: SignerWithAddress, account2: SignerWithAddress;
     let supplySchedule: SupplySchedule, kwenta: Kwenta;
+    let stakingRewards: FakeContract<StakingRewards>;
     let decayRate: BigNumber;
     let deploymentTime: number;
 
@@ -60,23 +68,19 @@ describe("SupplySchedule", () => {
     }
 
     const setupSupplySchedule = async () => {
-        const MockStakingRewards = await ethers.getContractFactory(
-            "MockStakingRewards"
-        );
-        const mockStakingRewards = await MockStakingRewards.deploy();
-        await mockStakingRewards.deployed();
+        stakingRewards = await smock.fake<StakingRewards>("StakingRewards");
 
         const SafeDecimalMath = await ethers.getContractFactory(
-            "SafeDecimalMathV5"
+            "SafeDecimalMath"
         );
         const safeDecimalMath = await SafeDecimalMath.deploy();
         await safeDecimalMath.deployed();
 
         const SupplySchedule = await ethers.getContractFactory(
-            "SupplySchedule",
+            "$SupplySchedule",
             {
                 libraries: {
-                    SafeDecimalMathV5: safeDecimalMath.address,
+                    SafeDecimalMath: safeDecimalMath.address,
                 },
             }
         );
@@ -88,26 +92,22 @@ describe("SupplySchedule", () => {
         accounts = await ethers.getSigners();
         [owner, account2] = accounts;
 
-        const NAME = "Kwenta";
-        const SYMBOL = "KWENTA";
-        const INITIAL_SUPPLY = parseUnits("313373");
-        const TREASURY_DAO_ADDRESS =
-            "0x0000000000000000000000000000000000000001";
-        const INFLATION_DIVERSION_BPS = 2000;
-
         const SupplySchedule = await setupSupplySchedule();
-        supplySchedule = await SupplySchedule.deploy(owner.address);
+        supplySchedule = await SupplySchedule.deploy(
+            owner.address,
+            TREASURY_DAO_ADDRESS,
+            ethers.constants.AddressZero
+        );
         await supplySchedule.deployed();
 
         const Kwenta = await ethers.getContractFactory("Kwenta");
         kwenta = await Kwenta.deploy(
             NAME,
             SYMBOL,
-            INITIAL_SUPPLY,
+            INITIAL_SUPPLY.toBN(),
             owner.address,
             TREASURY_DAO_ADDRESS, // Cannot mint to zero address
-            ethers.constants.AddressZero,
-            INFLATION_DIVERSION_BPS
+            supplySchedule.address
         );
 
         await kwenta.deployed();
@@ -122,7 +122,11 @@ describe("SupplySchedule", () => {
 
     it("should set constructor params on deployment", async () => {
         const SupplySchedule = await setupSupplySchedule();
-        const instance = await SupplySchedule.deploy(owner.address);
+        const instance = await SupplySchedule.deploy(
+            owner.address,
+            TREASURY_DAO_ADDRESS,
+            ethers.constants.AddressZero
+        );
         await instance.deployed();
 
         expect(await instance.owner()).to.equal(owner.address);
@@ -159,6 +163,65 @@ describe("SupplySchedule", () => {
                 accounts,
                 owner.address
             );
+        });
+    });
+
+    describe("mint & setters", async () => {
+        it("Test mint reverts because 'Staking rewards not set'", async function () {
+            expect(await supplySchedule.stakingRewards()).to.equal(
+                "0x0000000000000000000000000000000000000000"
+            );
+            await expect(supplySchedule.mint()).to.be.revertedWith(
+                "Staking rewards not set"
+            );
+        });
+
+        it("Test setting the staking rewards address actually sets the address", async function () {
+            await supplySchedule.setStakingRewards(stakingRewards.address);
+            expect(await supplySchedule.stakingRewards()).to.equal(
+                stakingRewards.address
+            );
+        });
+
+        it("Test inflationary diversion", async function () {
+            // Set first mintable period
+            const firstMintableTime = inflationStartDate + 604800;
+            await fastForwardTo(new Date(firstMintableTime * 1000));
+            // Set distribution address to bypass require
+            await supplySchedule.setStakingRewards(stakingRewards.address);
+
+            //Calculate expected rewards to treasury
+            const minterReward = wei(1);
+            const expectedTreasurySupplyWithDivertedRewards =
+                INITIAL_SUPPLY.add(
+                    initialWeeklySupply
+                        .sub(minterReward)
+                        .mul(INFLATION_DIVERSION_BPS)
+                        .div(10000)
+                );
+
+            await supplySchedule.mint();
+
+            expect(await kwenta.balanceOf(TREASURY_DAO_ADDRESS)).to.equal(
+                expectedTreasurySupplyWithDivertedRewards.toBN()
+            );
+        });
+
+        it("Test unable to set treasury diversion as non-owner", async function () {
+            await expect(
+                supplySchedule.connect(account2).setTreasuryDiversion(3000)
+            ).to.be.reverted;
+        });
+
+        it("Test changing inflationary diversion percentage", async function () {
+            await supplySchedule.setTreasuryDiversion(3000);
+            expect(await supplySchedule.treasuryDiversion()).to.equal("3000");
+        });
+
+        it("Test revert for setting inflationary diversion basis points greater than 10000", async function () {
+            await expect(
+                supplySchedule.setTreasuryDiversion(20000)
+            ).to.be.revertedWith("Represented in basis points");
         });
     });
 
@@ -426,7 +489,7 @@ describe("SupplySchedule", () => {
 
                 // call updateMintValues to mimic kwenta issuing tokens
                 await supplySchedule.setKwenta(owner.address);
-                await instance.recordMintEvent(mintedSupply.toBN());
+                await instance.$recordMintEvent(mintedSupply.toBN());
 
                 const weekCounterAfter = weekCounterBefore.add(
                     wei(weeksIssued, 18, true).toBN()

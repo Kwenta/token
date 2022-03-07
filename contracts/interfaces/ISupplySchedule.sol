@@ -6,8 +6,11 @@ interface ISupplySchedule {
 
     function isMintable() external view returns (bool);
 
-    function minterReward() external view returns (uint);
-
     // Mutative functions
-    function recordMintEvent(uint supplyMinted) external returns (bool);
+
+    function mint() external;
+
+    function setTreasuryDiversion(uint _treasuryDiversion) external;
+    
+    function setStakingRewards(address _stakingRewards) external;
 }
