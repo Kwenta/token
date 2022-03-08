@@ -13,7 +13,7 @@ const { AddressZero } = ethers.constants;
 const {
     onlyGivenAddressCanInvoke,
     fastForwardTo,
-} = require("../utils/helpers");
+} = require("../../utils/helpers");
 
 const BN = require("bn.js");
 const { expect } = require("chai");
