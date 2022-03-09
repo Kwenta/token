@@ -38,7 +38,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
     uint256 public totalEscrowedBalance;
 
     /* Max escrow duration */
-    uint public max_duration = 2 * 52 weeks; // Default max 2 years duration
+    uint public constant max_duration = 2 * 52 weeks; // Default max 2 years duration
 
     /* ========== CONSTRUCTOR ========== */
 
