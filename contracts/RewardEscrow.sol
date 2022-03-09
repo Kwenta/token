@@ -15,7 +15,6 @@ import "./interfaces/IKwenta.sol";
 import "./interfaces/IStakingRewards.sol";
 
 contract RewardEscrow is Owned, IRewardEscrow {
-    using SafeMath for uint;
     using SafeDecimalMath for uint;
 
     IKwenta public kwenta;
@@ -303,15 +302,15 @@ contract RewardEscrow is Owned, IRewardEscrow {
     /* Transfer vested tokens and update totalEscrowedAccountBalance, totalVestedAccountBalance */
     function _transferVestedTokens(address _account, uint256 _amount) internal {
         _reduceAccountEscrowBalances(_account, _amount);
-        totalVestedAccountBalance[_account] = totalVestedAccountBalance[_account].add(_amount);
+        totalVestedAccountBalance[_account] = totalVestedAccountBalance[_account] + _amount;
         IERC20(address(kwenta)).transfer(_account, _amount);
         emit Vested(_account, block.timestamp, _amount);
     }
 
     function _reduceAccountEscrowBalances(address _account, uint256 _amount) internal {
         // Reverts if amount being vested is greater than the account's existing totalEscrowedAccountBalance
-        totalEscrowedBalance = totalEscrowedBalance.sub(_amount);
-        totalEscrowedAccountBalance[_account] = totalEscrowedAccountBalance[_account].sub(_amount);
+        totalEscrowedBalance = totalEscrowedBalance - _amount;
+        totalEscrowedAccountBalance[_account] = totalEscrowedAccountBalance[_account] - _amount;
     }
 
     /* ========== INTERNALS ========== */
@@ -326,7 +325,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
         require(duration > 0 && duration <= max_duration, "Cannot escrow with 0 duration OR above max_duration");
 
         /* There must be enough balance in the contract to provide for the vesting entry. */
-        totalEscrowedBalance = totalEscrowedBalance.add(quantity);
+        totalEscrowedBalance = totalEscrowedBalance + quantity;
 
         require(
             totalEscrowedBalance <= IERC20(address(kwenta)).balanceOf(address(this)),
@@ -337,7 +336,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
         uint endTime = block.timestamp + duration;
 
         /* Add quantity to account's escrowed balance */
-        totalEscrowedAccountBalance[account] = totalEscrowedAccountBalance[account].add(quantity);
+        totalEscrowedAccountBalance[account] = totalEscrowedAccountBalance[account] + quantity;
 
         uint entryID = nextEntryId;
         vestingSchedules[account][entryID] = VestingEntries.VestingEntry({endTime: uint64(endTime), escrowAmount: quantity, duration: duration});
@@ -345,7 +344,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
         accountVestingEntryIDs[account].push(entryID);
 
         /* Increment the next entry id. */
-        nextEntryId = nextEntryId.add(1);
+        nextEntryId = nextEntryId + 1;
 
         emit VestingEntryCreated(account, block.timestamp, quantity, duration, entryID);
     }
