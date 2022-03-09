@@ -4,7 +4,6 @@ import { Contract } from '@ethersproject/contracts';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { wei } from '@synthetixio/wei';
 import { Signer } from 'ethers';
-import { fastForward } from '../utils/helpers';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -28,7 +27,7 @@ let addr1: SignerWithAddress;
 let addr2: SignerWithAddress;
 let TREASURY_DAO: SignerWithAddress;
 let TEST_SIGNER_WITH_sUSD: Signer;
-let TEST_ADDRESS_WITH_sUSD = '0xD8a8aA5E8D776a89EE1B7aE98D3490de8ACad53d'; // found via etherscan
+let TEST_ADDRESS_WITH_sUSD = '0xB594a842A528cb8b80536a84D3DfEd73C2c0c658';
 
 // core contracts
 let kwenta: Contract;
@@ -44,6 +43,14 @@ let exponentLib: Contract;
 
 // util contracts
 let safeDecimalMath: Contract;
+
+// time/fast-forwarding Helper Methods
+const fastForward = async (sec: number) => {
+	const blockNumber = await ethers.provider.getBlockNumber();
+	const block = await ethers.provider.getBlock(blockNumber);
+	const currTime = block.timestamp;
+	await ethers.provider.send('evm_mine', [currTime + sec]);
+};
 
 // StakingRewards: fund with KWENTA and set the rewards
 const fundAndSetStakingRewards = async () => {
@@ -67,7 +74,7 @@ const forkOptimismNetwork = async () => {
 			{
 				forking: {
 					jsonRpcUrl: process.env.ARCHIVE_NODE_URL,
-					blockNumber: 3225902,
+					blockNumber: 4259299,
 				},
 			},
 		],
