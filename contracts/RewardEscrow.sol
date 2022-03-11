@@ -20,6 +20,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
     IKwenta public kwenta;
 
     IStakingRewards public stakingRewards;
+    bool private stakingRewardsSet = false;
 
     mapping(address => mapping(uint256 => VestingEntries.VestingEntry)) public vestingSchedules;
 
@@ -44,23 +45,21 @@ contract RewardEscrow is Owned, IRewardEscrow {
 
     constructor(address _owner, address _kwenta) Owned(_owner) {
         nextEntryId = 1;
-        setKwenta(_kwenta);
-    }
 
-    /* ========== SETTERS ========== */
-
-    /**
-     * @notice set the Kwenta contract address as we need to transfer KWENTA when the user vests
-     */
-    function setKwenta(address _kwenta) public onlyOwner {
+        // set the Kwenta contract address as we need to transfer KWENTA when the user vests
         kwenta = IKwenta(_kwenta);
         emit KwentaUpdated(address(_kwenta));
     }
+
+    /* ========== SETTERS ========== */
 
     /*
     * @notice Function used to define the StakingRewards to use
     */
     function setStakingRewards(address _stakingRewards) public onlyOwner {
+        require(!stakingRewardsSet, "Staking Rewards already set");
+        stakingRewardsSet = true;
+        
         stakingRewards = IStakingRewards(_stakingRewards);
         emit StakingRewardsUpdated(address(_stakingRewards));
     }
@@ -258,7 +257,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
         require(beneficiary != address(0), "Cannot create escrow with address(0)");
 
         /* Transfer KWENTA from msg.sender */
-        require(IERC20(kwenta).transferFrom(msg.sender, address(this), deposit), "token transfer failed");
+        require(IERC20(kwenta).transferFrom(msg.sender, address(this), deposit), "Token transfer failed");
 
         /* Append vesting entry for the beneficiary address */
         _appendVestingEntry(beneficiary, deposit, duration);
