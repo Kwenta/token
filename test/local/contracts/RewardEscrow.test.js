@@ -291,16 +291,22 @@ contract(
                 assert.equal(ownerAddress, owner, "Wrong owner address");
             });
 
-            it("Should allow owner to set StakingRewards", async () => {
-                await rewardsEscrow.setStakingRewards(stakingRewards.address, {
-                    from: owner,
-                });
+            it("Should have set StakingRewards correctly", async () => {
                 const stakingRewardsAddress =
                     await rewardsEscrow.stakingRewards();
                 assert.equal(
                     stakingRewardsAddress,
                     stakingRewards.address,
                     "Wrong stakingRewards address"
+                );
+            });
+
+            it("Should NOT allow owner to set StakingRewards again", async () => {
+                await assert.revert(
+                    rewardsEscrow.setStakingRewards(stakingRewards.address, {
+                        from: owner,
+                    }),
+                    "Staking Rewards already set"
                 );
             });
 
@@ -625,7 +631,7 @@ contract(
                             from: staker1,
                         }
                     ),
-                    "token transfer failed"
+                    "Token transfer failed"
                 );
             });
             describe("when successfully creating a new escrow entry for staker1", () => {

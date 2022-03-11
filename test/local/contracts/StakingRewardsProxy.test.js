@@ -93,8 +93,6 @@ let stProxy;
 let exchangerProxy;
 let rewardsEscrow;
 
-let res;
-
 const deployContract = async () => {
 	FixidityLib = await hre.ethers.getContractFactory("FixidityLib");
 	fixidityLib = await FixidityLib.deploy();
@@ -117,6 +115,11 @@ const deployContract = async () => {
 	});
 	return StakingRewards;
 }
+
+const deployNewRewardsEscrow = async (owner, kwentaToken) => {
+	RewardsEscrow = await await hre.ethers.getContractFactory("RewardEscrow");
+	rewardsEscrow = await RewardsEscrow.deploy(owner.address, kwentaToken.address);
+}
  
 before(async() => {
 		[owner, staker1, staker2, exchangerProxy, rewardsDistribution, treasuryDAO, supplySchedule] = await hre.ethers.getSigners();
@@ -130,9 +133,9 @@ before(async() => {
 			supplySchedule.address,
 			2000
 		);
-		RewardsEscrow = await await hre.ethers.getContractFactory("RewardEscrow");
-		rewardsEscrow = await RewardsEscrow.deploy(owner.address, kwentaToken.address);
 
+		await deployNewRewardsEscrow(owner, kwentaToken);
+		
 		await kwentaToken.connect(treasuryDAO).transfer(staker1.address, toUnit(100));
 		await kwentaToken.connect(treasuryDAO).transfer(staker2.address, toUnit(100));
 	});
@@ -301,6 +304,11 @@ describe('rewardPerToken()', () => {
 describe('earned()', () => {
 
 		it('should not be 0 when staking but not trading', async () => {
+			// RewardsEscrow only allows for StakingRewards to be set *once*,
+			// thus requiring new deployment when StakingRewards needs to change
+			// for testing purposes
+			await deployNewRewardsEscrow(owner, kwentaToken);
+
 			StakingRewards = await deployContract();
 			stProxy = await hre.upgrades.deployProxy(StakingRewards,
 			[owner.address, kwentaToken.address, 
@@ -330,6 +338,11 @@ describe('earned()', () => {
 			});
 
 		it('should be 0 when trading and not staking', async () => {
+			// RewardsEscrow only allows for StakingRewards to be set *once*,
+			// thus requiring new deployment when StakingRewards needs to change
+			// for testing purposes
+			await deployNewRewardsEscrow(owner, kwentaToken);
+
 			StakingRewards = await deployContract();
 			stProxy = await hre.upgrades.deployProxy(StakingRewards,
 			[owner.address, kwentaToken.address, 
@@ -358,6 +371,11 @@ describe('earned()', () => {
 			});
 
 		it('should be 0 when not trading and not staking', async () => {
+			// RewardsEscrow only allows for StakingRewards to be set *once*,
+			// thus requiring new deployment when StakingRewards needs to change
+			// for testing purposes
+			await deployNewRewardsEscrow(owner, kwentaToken);
+
 			StakingRewards = await deployContract();
 			stProxy = await hre.upgrades.deployProxy(StakingRewards,
 			[owner.address, kwentaToken.address, 
@@ -384,6 +402,11 @@ describe('earned()', () => {
 			});
 
 		it('should be > 0 when trading and staking', async () => {
+			// RewardsEscrow only allows for StakingRewards to be set *once*,
+			// thus requiring new deployment when StakingRewards needs to change
+			// for testing purposes
+			await deployNewRewardsEscrow(owner, kwentaToken);
+
 			StakingRewards = await deployContract();
 			stProxy = await hre.upgrades.deployProxy(StakingRewards,
 			[owner.address, kwentaToken.address, 
@@ -427,6 +450,11 @@ describe('setRewardNEpochs()', () => {
 
 describe('rewardEpochs()', () => {
 		it('Updates the reward Epoch mapping after the week is finished', async () => {
+			// RewardsEscrow only allows for StakingRewards to be set *once*,
+			// thus requiring new deployment when StakingRewards needs to change
+			// for testing purposes
+			await deployNewRewardsEscrow(owner, kwentaToken);
+
 			StakingRewards = await deployContract();
 			stProxy = await hre.upgrades.deployProxy(StakingRewards,
 			[owner.address, kwentaToken.address, 
@@ -469,6 +497,10 @@ describe('rewardEpochs()', () => {
 
 describe('implementation test', () => {
 	it('calculates rewards correctly', async() => {
+		// RewardsEscrow only allows for StakingRewards to be set *once*,
+		// thus requiring new deployment when StakingRewards needs to change
+		// for testing purposes
+		await deployNewRewardsEscrow(owner, kwentaToken);
 
 		StakingRewards = await deployContract();
 		stProxy = await hre.upgrades.deployProxy(StakingRewards,
