@@ -14,7 +14,7 @@ describe('Exchanger Proxy', function () {
 	let exchangerProxy: Contract,
 		fakeStakingRewards: FakeContract<IStakingRewards>;
 	before(async () => {
-        const fakeERC20 = await smock.fake<IERC20>('IERC20');
+        const fakeERC20 = await smock.fake<IERC20>('contracts/interfaces/IERC20.sol:IERC20');
 
 		//// Synthetix AddressResolver mocking. TODO: make reusable
 		const fakeSynthetix = await smock.fake<ISynthetix>('ISynthetix');

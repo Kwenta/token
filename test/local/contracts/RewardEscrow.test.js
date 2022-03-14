@@ -12,8 +12,6 @@ require("chai")
     .use(smock.matchers)
     .should();
 
-const weiFromBN = (bn) => wei(bn.toString(), 18, true);
-
 const send = (payload) => {
     if (!payload.jsonrpc) payload.jsonrpc = "2.0";
     if (!payload.id) payload.id = new Date().getTime();
