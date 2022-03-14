@@ -56,11 +56,11 @@ describe('Mint', () => {
 		);
 		mockStakingRewards = await MockStakingRewards.deploy();
 		await mockStakingRewards.deployed();
-		await kwenta.setStakingRewards(mockStakingRewards.address);
+		await supplySchedule.setStakingRewards(mockStakingRewards.address);
 	});
 
 	it('No inflationary supply to mint', async () => {
-		await expect(kwenta.mint()).to.be.revertedWith('No supply is mintable');
+		await expect(supplySchedule.mint()).to.be.revertedWith('No supply is mintable');
 		expect(await kwenta.balanceOf(mockStakingRewards.address)).to.equal(0);
 	});
 
@@ -75,7 +75,7 @@ describe('Mint', () => {
 
 		expect(await kwenta.balanceOf(owner.address)).to.equal(0);
 		await fastForward(604800);
-		await kwenta.mint();
+		await supplySchedule.mint();
 
 		// Make sure this is equivalent to first week distribution
 		expect(await kwenta.balanceOf(mockStakingRewards.address)).to.equal(
@@ -111,30 +111,30 @@ describe('Mint', () => {
 		it('Mint rewards 1 week later', async () => {
 			const expected = getSupplyAtWeek(1);
 			await network.provider.send('evm_increaseTime', [604800]);
-			await kwenta.mint();
+			await supplySchedule.mint();
 			expect(await kwenta.totalSupply()).to.equal(expected.toBN());
 		});
 
 		it('Mint rewards the second week after the first', async () => {
 			const expected = getSupplyAtWeek(2);
 			await network.provider.send('evm_increaseTime', [604800]);
-			await kwenta.mint();
+			await supplySchedule.mint();
 			await network.provider.send('evm_increaseTime', [604800 * 2]);
-			await kwenta.mint();
+			await supplySchedule.mint();
 			expect(await kwenta.totalSupply()).to.equal(expected.toBN());
 		});
 
 		it('Mint rewards the second week skipping first', async () => {
 			const expected = getSupplyAtWeek(2);
 			await network.provider.send('evm_increaseTime', [604800 * 2]);
-			await kwenta.mint();
+			await supplySchedule.mint();
 			expect(await kwenta.totalSupply()).to.equal(expected.toBN());
 		});
 
 		it('Mint rewards 4 years later', async () => {
 			const expected = getSupplyAtWeek(208);
 			await network.provider.send('evm_increaseTime', [604800 * 208]);
-			await kwenta.mint();
+			await supplySchedule.mint();
 			expect(await kwenta.totalSupply()).to.equal(expected.toBN());
 		});
 
@@ -144,9 +144,9 @@ describe('Mint', () => {
 				expectedSupplyAtEndOfDecay.mul(wei(0.01).div(52))
 			);
 			await network.provider.send('evm_increaseTime', [604800 * 208]);
-			await kwenta.mint();
+			await supplySchedule.mint();
 			await network.provider.send('evm_increaseTime', [604800 * 2]);
-			await kwenta.mint();
+			await supplySchedule.mint();
 			expect(await kwenta.totalSupply()).to.equal(expected.toBN());
 		});
 	});
