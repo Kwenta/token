@@ -4,6 +4,7 @@ import { Contract } from '@ethersproject/contracts';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { wei } from '@synthetixio/wei';
 import { Signer } from 'ethers';
+import { fastForward } from '../utils/helpers';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -43,14 +44,6 @@ let exponentLib: Contract;
 
 // util contracts
 let safeDecimalMath: Contract;
-
-// time/fast-forwarding Helper Methods
-const fastForward = async (sec: number) => {
-	const blockNumber = await ethers.provider.getBlockNumber();
-	const block = await ethers.provider.getBlock(blockNumber);
-	const currTime = block.timestamp;
-	await ethers.provider.send('evm_mine', [currTime + sec]);
-};
 
 // StakingRewards: fund with KWENTA and set the rewards
 const fundAndSetStakingRewards = async () => {
