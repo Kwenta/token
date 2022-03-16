@@ -85,6 +85,8 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     // Decimals calculations
     uint256 private constant MAX_BPS = 10_000;
     uint256 private constant DECIMALS_DIFFERENCE = 1e30;
+    // Constant to return the reward scores with the correct decimal precision
+    uint256 private constant TOKEN_DECIMALS = 1e18;
     // Needs to be int256 for power library, root to calculate is equal to 0.7
     int256 public WEIGHT_FEES;
     // Needs to be int256 for power library, root to calculate is equal to 0.3
@@ -92,6 +94,9 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     // Time constants
     uint256 private constant DAY = 1 days;
     uint256 private constant WEEK = 7 days;
+
+    uint256 public constant STAKING_SAFETY_MINIMUM = 1e4;
+    uint256 public constant FEES_PAID_SAFETY_MINIMUM = 1e12;
 
     /* ========== PROXY VARIABLES ========== */
     address private admin;
@@ -135,10 +140,13 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
 
     /*
      * @notice Getter function for the state variable _totalRewardScore
+     * Divided by 1e18 as during the calculation we are multiplying two 18 decimal numbers, ending up with 
+     * a 36 precision number. To avoid losing any precision by scaling it down during internal calculations,
+     * we only scale it down for the getters
      * @return sum of all rewardScores
      */
     function totalRewardScore() override public view returns (uint256) {
-        return _totalRewardScore;
+        return _totalRewardScore / TOKEN_DECIMALS;
     }
 
     /*
@@ -152,11 +160,14 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
 
     /*
      * @notice Getter function for the reward score of an account
+     * Divided by 1e18 as during the calculation we are multiplying two 18 decimal numbers, ending up with 
+     * a 36 precision number. To avoid losing any precision by scaling it down during internal calculations,
+     * we only scale it down for the getters
      * @param account address to check the reward score of
      * @return reward score of specified account
      */
     function rewardScoreOf(address account) override external view returns (uint256) {
-        return _rewardScores[account];
+        return _rewardScores[account] / TOKEN_DECIMALS;
     }
 
     /*
@@ -347,6 +358,11 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
      * @param _account, the user to update the reward score to
      */
     function updateRewardScore(address _account, uint256 _oldRewardScore) internal {
+        // Prevent any staking balance change from falling within the danger threshold
+        require(_totalBalances[_account] == 0 || _totalBalances[_account] >= STAKING_SAFETY_MINIMUM, "STAKING_SAFETY_MINIMUM");
+        // Prevent any fees paid change from falling witihin the danger threshold
+        require(_feesPaid[_account] == 0 || _feesPaid[_account] >= FEES_PAID_SAFETY_MINIMUM, "FEES_PAID_SAFETY_MINIMUM");
+        
         uint256 newRewardScore = 0;
         if((lastTradeUserEpoch[_account] == currentEpoch) && (_totalBalances[_account] > 0)) {
             newRewardScore = uint256(fixidity.power_any(int256(_totalBalances[_account]), WEIGHT_STAKING)) * (uint256(fixidity.power_any(int256(_feesPaid[_account]), WEIGHT_FEES)));

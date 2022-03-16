@@ -6,6 +6,9 @@ import "hardhat-gas-reporter";
 import "hardhat-contract-sizer";
 import "@openzeppelin/hardhat-upgrades";
 import "solidity-coverage";
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -51,6 +54,14 @@ export default {
   networks: {
     hardhat: {
       allowUnlimitedContractSize: true
-    }
+    },
+    "optimistic-kovan": {
+      url: `https://opt-kovan.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
+      accounts: process.env.DEPLOYER_PRIVATE_KEY ? [process.env.DEPLOYER_PRIVATE_KEY] : undefined,
+    },
+    "optimistic-mainnet": {
+      url: `https://opt-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
+      accounts: process.env.DEPLOYER_PRIVATE_KEY ? [process.env.DEPLOYER_PRIVATE_KEY] : undefined,
+    },
   },
 };
