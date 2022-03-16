@@ -177,7 +177,11 @@ describe("SupplySchedule", () => {
         });
 
         it("Test setting the staking rewards address actually sets the address", async function () {
-            await supplySchedule.setStakingRewards(stakingRewards.address);
+            expect(
+                await supplySchedule.setStakingRewards(stakingRewards.address)
+            )
+                .to.emit(supplySchedule, "StakingRewardsUpdated")
+                .withArgs(stakingRewards.address);
             expect(await supplySchedule.stakingRewards()).to.equal(
                 stakingRewards.address
             );
@@ -214,7 +218,9 @@ describe("SupplySchedule", () => {
         });
 
         it("Test changing inflationary diversion percentage", async function () {
-            await supplySchedule.setTreasuryDiversion(3000);
+            expect(await supplySchedule.setTreasuryDiversion(3000))
+                .to.emit(supplySchedule, "TreasuryDiversionUpdated")
+                .withArgs(3000);
             expect(await supplySchedule.treasuryDiversion()).to.equal("3000");
         });
 

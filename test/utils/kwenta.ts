@@ -117,7 +117,7 @@ export const deployKwenta = async (
 	);
 	await stakingRewardsProxy.deployed();
 
-	// set StakingRewards address in Kwenta token
+	// set StakingRewards address in SupplySchedule
 	await supplySchedule.setStakingRewards(stakingRewardsProxy.address);
 
 	// set StakingRewards address in RewardEscrow

@@ -48,7 +48,7 @@ describe('Mint', () => {
 
 		/*
 		 * @notice in `deployKwenta`, StakingRewards (stakingRewardsProxy) is deployed.
-		 * Below, the address assigned to kwenta for staking rewards is 
+		 * Below, the address assigned to SupplySchedule for staking rewards is 
 		 * the mock version: MockStakingRewards (mockStakingRewards).
 		 */
 		const MockStakingRewards = await ethers.getContractFactory(

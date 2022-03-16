@@ -10,7 +10,6 @@ import "./SafeDecimalMath.sol";
 import "./libraries/Math.sol";
 
 // Internal references
-// import "./Proxy.sol";
 import "./interfaces/IERC20.sol";
 import "./interfaces/IKwenta.sol";
 import './interfaces/IStakingRewards.sol';
@@ -43,7 +42,7 @@ contract SupplySchedule is Owned, ISupplySchedule {
     // How long each inflation period is before mint can be called
     uint public constant MINT_PERIOD_DURATION = 1 weeks;
 
-    uint public INFLATION_START_DATE;
+    uint public immutable INFLATION_START_DATE;
     uint public constant MINT_BUFFER = 1 days;
     uint8 public constant SUPPLY_DECAY_START = 2; // Supply decay starts on the 2nd week of rewards
     uint8 public constant SUPPLY_DECAY_END = 208; // Inclusive of SUPPLY_DECAY_END week.
@@ -239,10 +238,12 @@ contract SupplySchedule is Owned, ISupplySchedule {
     function setTreasuryDiversion(uint _treasuryDiversion) override public onlyOwner {
         require(_treasuryDiversion < 10000, "Represented in basis points");
         treasuryDiversion = _treasuryDiversion;
+        emit TreasuryDiversionUpdated(_treasuryDiversion);
     }
 
     function setStakingRewards(address _stakingRewards) override external onlyOwner {
         stakingRewards = IStakingRewards(_stakingRewards);
+        emit StakingRewardsUpdated(_stakingRewards);
     }
 
     // ========== MODIFIERS ==========
@@ -273,4 +274,14 @@ contract SupplySchedule is Owned, ISupplySchedule {
      * @notice Emitted when setKwenta is called changing the Kwenta Proxy address
      * */
     event KwentaUpdated(address newAddress);
+
+    /**
+     * @notice Emitted when setKwenta is called changing the Kwenta Proxy address
+     * */
+    event TreasuryDiversionUpdated(uint newPercentage);
+
+    /**
+     * @notice Emitted when setKwenta is called changing the Kwenta Proxy address
+     * */
+    event StakingRewardsUpdated(address newAddress);
 }
