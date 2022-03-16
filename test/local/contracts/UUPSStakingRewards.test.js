@@ -30,8 +30,7 @@ contract('UUPS Proxy for StakingRewards', ([owner, rewardsDistribution, supplySc
 			INITIAL_SUPPLY,
 			owner,
 			treasuryDAO.address,
-			supplySchedule,
-			INFLATION_DIVERSION_BPS
+			supplySchedule
 		);
 		RewardsEscrow = await hre.ethers.getContractFactory("RewardEscrow");
 		rewardsEscrow = await RewardsEscrow.deploy(owner, kwentaToken.address);

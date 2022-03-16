@@ -127,8 +127,7 @@ before(async() => {
 			INITIAL_SUPPLY,
 			owner.address,
 			treasuryDAO.address,
-			supplySchedule.address,
-			2000
+			supplySchedule.address
 		);
 		RewardsEscrow = await await hre.ethers.getContractFactory("RewardEscrow");
 		rewardsEscrow = await RewardsEscrow.deploy(owner.address, kwentaToken.address);
