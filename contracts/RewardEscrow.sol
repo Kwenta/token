@@ -60,7 +60,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
         stakingRewardsSet = true;
         
         stakingRewards = IStakingRewards(_stakingRewards);
-        emit StakingRewardsUpdated(address(_stakingRewards));
+        emit StakingRewardsSet(address(_stakingRewards));
     }
 
     /* ========== VIEW FUNCTIONS ========== */
@@ -342,7 +342,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
         accountVestingEntryIDs[account].push(entryID);
 
         /* Increment the next entry id. */
-        nextEntryId = nextEntryId + 1;
+        nextEntryId = nextEntryId++;
 
         emit VestingEntryCreated(account, block.timestamp, quantity, duration, entryID);
     }
@@ -356,5 +356,5 @@ contract RewardEscrow is Owned, IRewardEscrow {
     /* ========== EVENTS ========== */
     event Vested(address indexed beneficiary, uint time, uint value);
     event VestingEntryCreated(address indexed beneficiary, uint time, uint value, uint duration, uint entryID);
-    event StakingRewardsUpdated(address rewardEscrow);
+    event StakingRewardsSet(address rewardEscrow);
 }
