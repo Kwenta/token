@@ -13,7 +13,6 @@ dotenv.config();
 const NAME = 'Kwenta';
 const SYMBOL = 'KWENTA';
 const INITIAL_SUPPLY = ethers.utils.parseUnits('313373');
-const INFLATION_DIVERSION_BPS = 2000;
 const WEEKLY_START_REWARDS = 3;
 const SECONDS_IN_WEEK = 6048000;
 const ADDRESS_RESOLVER_OE = '0x95A6a3f44a70172E7d50a9e28c85Dfd712756B8C';
@@ -25,10 +24,9 @@ const TEST_VALUE = wei(20000).toBN();
 // test accounts
 let owner: SignerWithAddress;
 let addr1: SignerWithAddress;
-let addr2: SignerWithAddress;
 let TREASURY_DAO: SignerWithAddress;
 let TEST_SIGNER_WITH_sUSD: Signer;
-let TEST_ADDRESS_WITH_sUSD = '0xD8a8aA5E8D776a89EE1B7aE98D3490de8ACad53d'; // found via etherscan
+let TEST_ADDRESS_WITH_sUSD = '0xD8a8aA5E8D776a89EE1B7aE98D3490de8ACad53d';
 
 // core contracts
 let kwenta: Contract;
@@ -101,7 +99,7 @@ const loadSetup = () => {
 		// impersonate account that has sUSD balance
 		impersonateTestAccount();
 
-		[owner, addr1, addr2, TREASURY_DAO] = await ethers.getSigners();
+		[owner, addr1, TREASURY_DAO] = await ethers.getSigners();
 
 		// deploy FixidityLib
 		const FixidityLib = await ethers.getContractFactory('FixidityLib');
@@ -129,7 +127,7 @@ const loadSetup = () => {
 
 		// deploy SafeDecimalMath
 		const SafeDecimalMath = await ethers.getContractFactory(
-			'SafeDecimalMathV5'
+			'SafeDecimalMath'
 		);
 		safeDecimalMath = await SafeDecimalMath.deploy();
 		await safeDecimalMath.deployed();
@@ -137,10 +135,14 @@ const loadSetup = () => {
 		// deploy SupplySchedule
 		const SupplySchedule = await ethers.getContractFactory('SupplySchedule', {
 			libraries: {
-				SafeDecimalMathV5: safeDecimalMath.address,
+				SafeDecimalMath: safeDecimalMath.address,
 			},
 		});
-		supplySchedule = await SupplySchedule.deploy(owner.address);
+		supplySchedule = await SupplySchedule.deploy(
+			owner.address, 
+			TREASURY_DAO.address, 
+			ethers.constants.AddressZero // StakingRewards address
+		);
 		await supplySchedule.deployed();
 
 		// deploy Kwenta
@@ -151,8 +153,7 @@ const loadSetup = () => {
 			INITIAL_SUPPLY,
 			owner.address,
 			TREASURY_DAO.address,
-			supplySchedule.address,
-			INFLATION_DIVERSION_BPS
+			supplySchedule.address
 		);
 		await kwenta.deployed();
 		await supplySchedule.setKwenta(kwenta.address);
@@ -187,8 +188,8 @@ const loadSetup = () => {
 		);
 		await stakingRewardsProxy.deployed();
 
-		// set StakingRewards address in Kwenta token
-		await kwenta.setStakingRewards(stakingRewardsProxy.address);
+		// set StakingRewards address in SupplySchedule
+		await supplySchedule.setStakingRewards(stakingRewardsProxy.address);
 
 		// set StakingRewards address in RewardEscrow
 		await rewardEscrow.setStakingRewards(stakingRewardsProxy.address);
@@ -215,33 +216,33 @@ describe('Stake (fork)', () => {
 
 			// initial balance(s) should be 0
 			expect(await kwenta.balanceOf(TEST_ADDRESS_WITH_sUSD)).to.equal(0);
-			expect(await kwenta.balanceOf(addr2.address)).to.equal(0);
+			expect(await kwenta.balanceOf(addr1.address)).to.equal(0);
 
-			// transfer KWENTA to addr1 & addr2
+			// transfer KWENTA to TEST_ADDRESS_WITH_sUSD & addr1
 			await expect(() =>
 				kwenta
 					.connect(TREASURY_DAO)
 					.transfer(TEST_ADDRESS_WITH_sUSD, TEST_VALUE)
 			).to.changeTokenBalance(kwenta, TEST_SIGNER_WITH_sUSD, TEST_VALUE);
 			await expect(() =>
-				kwenta.connect(TREASURY_DAO).transfer(addr2.address, TEST_VALUE)
-			).to.changeTokenBalance(kwenta, addr2, TEST_VALUE);
+				kwenta.connect(TREASURY_DAO).transfer(addr1.address, TEST_VALUE)
+			).to.changeTokenBalance(kwenta, addr1, TEST_VALUE);
 
 			// increase KWENTA allowance for stakingRewards and stake
 			await kwenta
 				.connect(TEST_SIGNER_WITH_sUSD)
 				.approve(stakingRewardsProxy.address, TEST_VALUE);
 			await kwenta
-				.connect(addr2)
+				.connect(addr1)
 				.approve(stakingRewardsProxy.address, TEST_VALUE);
 			await stakingRewardsProxy
 				.connect(TEST_SIGNER_WITH_sUSD)
 				.stake(TEST_VALUE);
-			await stakingRewardsProxy.connect(addr2).stake(TEST_VALUE);
+			await stakingRewardsProxy.connect(addr1).stake(TEST_VALUE);
 
 			// check KWENTA was staked
 			expect(await kwenta.balanceOf(TEST_ADDRESS_WITH_sUSD)).to.equal(0);
-			expect(await kwenta.balanceOf(addr2.address)).to.equal(0);
+			expect(await kwenta.balanceOf(addr1.address)).to.equal(0);
 			expect(
 				await stakingRewardsProxy
 					.connect(TEST_SIGNER_WITH_sUSD)
@@ -249,8 +250,8 @@ describe('Stake (fork)', () => {
 			).to.equal(TEST_VALUE);
 			expect(
 				await stakingRewardsProxy
-					.connect(addr2)
-					.stakedBalanceOf(addr2.address)
+					.connect(addr1)
+					.stakedBalanceOf(addr1.address)
 			).to.equal(TEST_VALUE);
 		});
 
@@ -260,7 +261,7 @@ describe('Stake (fork)', () => {
 				await stakingRewardsProxy.rewardScoreOf(TEST_ADDRESS_WITH_sUSD)
 			).to.equal(0);
 			expect(
-				await stakingRewardsProxy.rewardScoreOf(addr2.address)
+				await stakingRewardsProxy.rewardScoreOf(addr1.address)
 			).to.equal(0);
 
 			// confirm valid pre-balance of sUSD
@@ -298,39 +299,42 @@ describe('Stake (fork)', () => {
 				);
 
 			// calculate expected reward score
-			const feesPaidByAddr1 = await stakingRewardsProxy.feesPaidBy(
+			const feesPaidByTestAddress = await stakingRewardsProxy.feesPaidBy(
 				TEST_ADDRESS_WITH_sUSD
 			);
-			const kwentaStakedByAddr1 = await stakingRewardsProxy.stakedBalanceOf(
+			const kwentaStakedByTestAddress = await stakingRewardsProxy.stakedBalanceOf(
 				TEST_ADDRESS_WITH_sUSD
 			);
 
 			// expected reward score
-			const expectedRewardScoreAddr1 =
-				Math.pow(feesPaidByAddr1, 0.7) * Math.pow(kwentaStakedByAddr1, 0.3);
+			const expectedRewardScoreTestAddress =
+				Math.pow(feesPaidByTestAddress, 0.7) * Math.pow(kwentaStakedByTestAddress, 0.3);
 
 			// actual reward score(s)
-			const actualRewardScoreAddr1 = await stakingRewardsProxy.rewardScoreOf(
+			const actualRewardScoreTestAddress = await stakingRewardsProxy.rewardScoreOf(
 				TEST_ADDRESS_WITH_sUSD
 			);
-			const actualRewardScoreAddr2 = await stakingRewardsProxy.rewardScoreOf(
-				addr2.address
+			const actualRewardScoreAddr1 = await stakingRewardsProxy.rewardScoreOf(
+				addr1.address
 			);
 
-			// expect reward score to be increase post-trade
-			expect(actualRewardScoreAddr1.div(wei(1).toBN())).to.be.closeTo(
-				wei(expectedRewardScoreAddr1.toString(), 18, true)
+			// expect reward score to have increased post-trade
+			expect(actualRewardScoreTestAddress).to.be.closeTo(
+				wei(expectedRewardScoreTestAddress.toString(), 18, true)
 					.toBN()
 					.toString(),
 				1e6
 			);
-			expect(actualRewardScoreAddr2).to.equal(0);
+
+			// expect reward score to not change
+			expect(actualRewardScoreAddr1).to.equal(0);
+			
 		}).timeout(200000);
 
 		it('Wait, and then claim kwenta for both stakers', async () => {
 			// establish reward balance pre-claim
-			expect(await rewardEscrow.balanceOf(addr1.address)).to.equal(
-				await rewardEscrow.balanceOf(addr2.address)
+			expect(await rewardEscrow.balanceOf(TEST_ADDRESS_WITH_sUSD)).to.equal(
+				await rewardEscrow.balanceOf(addr1.address)
 			);
 
 			// wait
@@ -338,12 +342,12 @@ describe('Stake (fork)', () => {
 
 			// claim reward(s)
 			await stakingRewardsProxy.connect(TEST_SIGNER_WITH_sUSD).getReward();
-			await stakingRewardsProxy.connect(addr2).getReward();
+			await stakingRewardsProxy.connect(addr1).getReward();
 
 			// expect staker 1 to have greater rewards
 			expect(
 				await rewardEscrow.balanceOf(TEST_ADDRESS_WITH_sUSD)
-			).to.be.above(await rewardEscrow.balanceOf(addr2.address));
+			).to.be.above(await rewardEscrow.balanceOf(addr1.address));
 		});
 	});
 });

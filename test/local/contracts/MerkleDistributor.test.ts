@@ -2,9 +2,9 @@ import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { Contract, BigNumber } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import BalanceTree from '../../scripts/balance-tree';
-import { parseBalanceMap } from '../../scripts/parse-balance-map';
-import { deployKwenta } from '../utils/kwenta';
+import BalanceTree from '../../../scripts/balance-tree';
+import { parseBalanceMap } from '../../../scripts/parse-balance-map';
+import { deployKwenta } from '../../utils/kwenta';
 
 // constants
 const NAME = 'Kwenta';

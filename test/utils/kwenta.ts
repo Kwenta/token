@@ -57,17 +57,21 @@ export const deployKwenta = async (
 	await exponentLib.deployed();
 
 	// deploy SafeDecimalMath
-	const SafeDecimalMath = await ethers.getContractFactory('SafeDecimalMathV5');
+	const SafeDecimalMath = await ethers.getContractFactory('SafeDecimalMath');
 	const safeDecimalMath = await SafeDecimalMath.deploy();
 	await safeDecimalMath.deployed();
 
 	// deploy SupplySchedule
 	const SupplySchedule = await ethers.getContractFactory('SupplySchedule', {
 		libraries: {
-			SafeDecimalMathV5: safeDecimalMath.address,
+			SafeDecimalMath: safeDecimalMath.address,
 		},
 	});
-	supplySchedule = await SupplySchedule.deploy(owner.address);
+	supplySchedule = await SupplySchedule.deploy(
+		owner.address, 
+		TREASURY_DAO.address, 
+		ethers.constants.AddressZero // StakingRewards address
+	);
 	await supplySchedule.deployed();
 
 	// deploy Kwenta
@@ -78,8 +82,7 @@ export const deployKwenta = async (
 		INITIAL_SUPPLY,
 		owner.address,
 		TREASURY_DAO.address,
-		supplySchedule.address,
-		INFLATION_DIVERSION_BPS
+		supplySchedule.address
 	);
 	await kwenta.deployed();
 	await supplySchedule.setKwenta(kwenta.address);
@@ -114,8 +117,8 @@ export const deployKwenta = async (
 	);
 	await stakingRewardsProxy.deployed();
 
-	// set StakingRewards address in Kwenta token
-	await kwenta.setStakingRewards(stakingRewardsProxy.address);
+	// set StakingRewards address in SupplySchedule
+	await supplySchedule.setStakingRewards(stakingRewardsProxy.address);
 
 	// set StakingRewards address in RewardEscrow
 	await rewardEscrow.setStakingRewards(stakingRewardsProxy.address);
