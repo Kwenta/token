@@ -415,6 +415,7 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
         uint256 reward = rewards[msg.sender];
         if (reward > 0) {
             rewards[msg.sender] = 0;
+            
             // Send the rewards to Escrow for 1 year
             stakingToken.transfer(address(rewardEscrow), reward);
             rewardEscrow.appendVestingEntry(msg.sender, reward, 52 weeks);
@@ -543,6 +544,11 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
         if (account != address(0)) {
             // Add the rewards added during the last stint
             rewards[account] = earned(account);
+            // Reset the reward score as we have already paid these trading rewards
+            if (lastTradeUserEpoch[msg.sender] < currentEpoch) {
+                _rewardScores[msg.sender] = 0;
+            }
+            // Reset the reward per token as we have already paid these staking rewards
             userRewardPerTokenPaid[account] = rewardPerTokenStored;
         }
     }
