@@ -1,12 +1,13 @@
-pragma solidity ^0.5.16;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
 
 // Libraries
-import "./SafeDecimalMath.sol";
+import "../SafeDecimalMath.sol";
 
 // https://docs.synthetix.io/contracts/source/libraries/math
 library Math {
     using SafeMath for uint;
-    using SafeDecimalMathV5 for uint;
+    using SafeDecimalMath for uint;
 
     /**
      * @dev Uses "exponentiation by squaring" algorithm where cost is 0(logN)
@@ -17,7 +18,7 @@ library Math {
     function powDecimal(uint x, uint n) internal pure returns (uint) {
         // https://mpark.github.io/programming/2014/08/18/exponentiation-by-squaring/
 
-        uint result = SafeDecimalMathV5.unit();
+        uint result = SafeDecimalMath.unit();
         while (n > 0) {
             if (n % 2 != 0) {
                 result = result.multiplyDecimal(x);
