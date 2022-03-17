@@ -45,6 +45,8 @@ jobs:
         run: npm run test:integration
   Fork:
     runs-on: ubuntu-latest
+    env:
+      ARCHIVE_NODE_URL: ${{ secrets.ARCHIVE_NODE_URL }}
     steps:
       - name: Check out repository code
         uses: actions/checkout@v2
