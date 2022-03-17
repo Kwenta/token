@@ -342,7 +342,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
         accountVestingEntryIDs[account].push(entryID);
 
         /* Increment the next entry id. */
-        nextEntryId = nextEntryId++;
+        nextEntryId++;
 
         emit VestingEntryCreated(account, block.timestamp, quantity, duration, entryID);
     }
