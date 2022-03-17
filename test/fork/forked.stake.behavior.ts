@@ -13,7 +13,6 @@ dotenv.config();
 const NAME = 'Kwenta';
 const SYMBOL = 'KWENTA';
 const INITIAL_SUPPLY = ethers.utils.parseUnits('313373');
-const INFLATION_DIVERSION_BPS = 2000;
 const WEEKLY_START_REWARDS = 3;
 const SECONDS_IN_WEEK = 6048000;
 const ADDRESS_RESOLVER_OE = '0x95A6a3f44a70172E7d50a9e28c85Dfd712756B8C';
@@ -28,7 +27,7 @@ let addr1: SignerWithAddress;
 let addr2: SignerWithAddress;
 let TREASURY_DAO: SignerWithAddress;
 let TEST_SIGNER_WITH_sUSD: Signer;
-let TEST_ADDRESS_WITH_sUSD = '0xB594a842A528cb8b80536a84D3DfEd73C2c0c658';
+let TEST_ADDRESS_WITH_sUSD = '0xD8a8aA5E8D776a89EE1B7aE98D3490de8ACad53d';
 
 // core contracts
 let kwenta: Contract;
@@ -67,7 +66,7 @@ const forkOptimismNetwork = async () => {
 			{
 				forking: {
 					jsonRpcUrl: process.env.ARCHIVE_NODE_URL,
-					blockNumber: 4259299,
+					blockNumber: 3225902,
 				},
 			},
 		],
@@ -129,7 +128,7 @@ const loadSetup = () => {
 
 		// deploy SafeDecimalMath
 		const SafeDecimalMath = await ethers.getContractFactory(
-			'SafeDecimalMathV5'
+			'SafeDecimalMath'
 		);
 		safeDecimalMath = await SafeDecimalMath.deploy();
 		await safeDecimalMath.deployed();
@@ -137,10 +136,14 @@ const loadSetup = () => {
 		// deploy SupplySchedule
 		const SupplySchedule = await ethers.getContractFactory('SupplySchedule', {
 			libraries: {
-				SafeDecimalMathV5: safeDecimalMath.address,
+				SafeDecimalMath: safeDecimalMath.address,
 			},
 		});
-		supplySchedule = await SupplySchedule.deploy(owner.address);
+		supplySchedule = await SupplySchedule.deploy(
+			owner.address, 
+			TREASURY_DAO.address, 
+			ethers.constants.AddressZero // StakingRewards address
+		);
 		await supplySchedule.deployed();
 
 		// deploy Kwenta
@@ -151,8 +154,7 @@ const loadSetup = () => {
 			INITIAL_SUPPLY,
 			owner.address,
 			TREASURY_DAO.address,
-			supplySchedule.address,
-			INFLATION_DIVERSION_BPS
+			supplySchedule.address
 		);
 		await kwenta.deployed();
 		await supplySchedule.setKwenta(kwenta.address);
@@ -187,8 +189,8 @@ const loadSetup = () => {
 		);
 		await stakingRewardsProxy.deployed();
 
-		// set StakingRewards address in Kwenta token
-		await kwenta.setStakingRewards(stakingRewardsProxy.address);
+		// set StakingRewards address in SupplySchedule
+		await supplySchedule.setStakingRewards(stakingRewardsProxy.address);
 
 		// set StakingRewards address in RewardEscrow
 		await rewardEscrow.setStakingRewards(stakingRewardsProxy.address);
@@ -318,7 +320,7 @@ describe('Stake (fork)', () => {
 			);
 
 			// expect reward score to be increase post-trade
-			expect(actualRewardScoreAddr1.div(wei(1).toBN())).to.be.closeTo(
+			expect(actualRewardScoreAddr1).to.be.closeTo(
 				wei(expectedRewardScoreAddr1.toString(), 18, true)
 					.toBN()
 					.toString(),

@@ -148,8 +148,7 @@ before(async () => {
 		INITIAL_SUPPLY,
 		owner.address,
 		treasuryDAO.address,
-		supplySchedule.address,
-		2000
+		supplySchedule.address
 	);
 
 	await deployNewRewardsEscrow(owner, kwentaToken);

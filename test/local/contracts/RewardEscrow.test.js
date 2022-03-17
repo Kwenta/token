@@ -200,8 +200,7 @@ contract(
                 INITIAL_SUPPLY,
                 owner,
                 treasuryDAO,
-                ethers.constants.AddressZero,
-                2000
+                ethers.constants.AddressZero
             );
             rewardsToken = await TokenContract.new(
                 NAME,
@@ -209,8 +208,7 @@ contract(
                 INITIAL_SUPPLY,
                 owner,
                 treasuryDAO,
-                ethers.constants.AddressZero,
-                2000
+                ethers.constants.AddressZero
             );
 
             fixidityLib = await FixidityLib.new();
@@ -787,8 +785,7 @@ contract(
                     INITIAL_SUPPLY,
                     owner,
                     treasuryDAO,
-                    ethers.constants.AddressZero,
-                    2000
+                    ethers.constants.AddressZero
                 );
 
                 rewardsEscrow = await RewardsEscrow.new(

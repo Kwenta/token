@@ -1,35 +1,26 @@
-pragma solidity ^0.5.16;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
 
 // Inheritance
-import "./utils/Owned.sol";
+import "./Owned.sol";
 import "./interfaces/ISupplySchedule.sol";
 
 // Libraries
-import "./libraries/SafeDecimalMath.sol";
+import "./SafeDecimalMath.sol";
 import "./libraries/Math.sol";
 
 // Internal references
-// import "./Proxy.sol";
 import "./interfaces/IERC20.sol";
-
-// Used here because this contract is a different version
-interface IKwenta {
-
-    function mint() external returns (bool);
-
-    function burn(uint amount) external;
-
-    function setTreasuryDiversion(uint _treasuryDiversion) external;
-    
-    function setStakingRewards(address _stakingRewards) external;
-
-}
+import "./interfaces/IKwenta.sol";
+import './interfaces/IStakingRewards.sol';
 
 // https://docs.synthetix.io/contracts/source/contracts/supplyschedule
 contract SupplySchedule is Owned, ISupplySchedule {
     using SafeMath for uint;
-    using SafeDecimalMathV5 for uint;
+    using SafeDecimalMath for uint;
     using Math for uint;
+
+    IKwenta public kwenta;
 
     // Time of the last inflation supply mint event
     uint public lastMintEvent;
@@ -45,16 +36,13 @@ contract SupplySchedule is Owned, ISupplySchedule {
     // Initial Supply * 240% Initial Inflation Rate / 52 weeks.
     uint public constant INITIAL_WEEKLY_SUPPLY = INITIAL_SUPPLY * 240 / 100 / 52;
 
-    // Address of the kwenta for the onlyKwenta modifier
-    address payable public kwenta;
-
     // Max KWENTA rewards for minter
     uint public constant MAX_MINTER_REWARD = 20 * 1e18;
 
     // How long each inflation period is before mint can be called
     uint public constant MINT_PERIOD_DURATION = 1 weeks;
 
-    uint public INFLATION_START_DATE;
+    uint public immutable INFLATION_START_DATE;
     uint public constant MINT_BUFFER = 1 days;
     uint8 public constant SUPPLY_DECAY_START = 2; // Supply decay starts on the 2nd week of rewards
     uint8 public constant SUPPLY_DECAY_END = 208; // Inclusive of SUPPLY_DECAY_END week.
@@ -65,11 +53,21 @@ contract SupplySchedule is Owned, ISupplySchedule {
     // Percentage growth of terminal supply per annum
     uint public constant TERMINAL_SUPPLY_RATE_ANNUAL = 10000000000000000; // 1.0% pa
 
+    uint public treasuryDiversion = 2000; // 20% to treasury
+
+    address immutable treasuryDAO;
+    IStakingRewards public stakingRewards;
+
     constructor(
-        address _owner
-    ) public Owned(_owner) {
-        INFLATION_START_DATE = now; //Inflation starts as soon as the contract is deployed.
-        lastMintEvent = now;
+        address _owner,
+        address _treasuryDAO,
+        address _stakingRewards
+    ) Owned(_owner) {
+        treasuryDAO = _treasuryDAO;
+        stakingRewards = IStakingRewards(_stakingRewards);
+
+        INFLATION_START_DATE = block.timestamp; //Inflation starts as soon as the contract is deployed.
+        lastMintEvent = block.timestamp;
         weekCounter = 0;
     }
 
@@ -78,7 +76,7 @@ contract SupplySchedule is Owned, ISupplySchedule {
     /**
      * @return The amount of KWENTA mintable for the inflationary supply
      */
-    function mintableSupply() external view returns (uint) {
+    function mintableSupply() override public view returns (uint) {
         uint totalAmount;
 
         if (!isMintable()) {
@@ -126,7 +124,7 @@ contract SupplySchedule is Owned, ISupplySchedule {
     function tokenDecaySupplyForWeek(uint counter) public pure returns (uint) {
         // Apply exponential decay function to number of weeks since
         // start of inflation smoothing to calculate diminishing supply for the week.
-        uint effectiveDecay = (SafeDecimalMathV5.unit().sub(DECAY_RATE)).powDecimal(counter);
+        uint effectiveDecay = (SafeDecimalMath.unit().sub(DECAY_RATE)).powDecimal(counter);
         uint supplyForWeek = INITIAL_WEEKLY_SUPPLY.multiplyDecimal(effectiveDecay);
 
         return supplyForWeek;
@@ -138,10 +136,10 @@ contract SupplySchedule is Owned, ISupplySchedule {
      */
     function terminalInflationSupply(uint totalSupply, uint numOfWeeks) public pure returns (uint) {
         // rate = (1 + weekly rate) ^ num of weeks
-        uint effectiveCompoundRate = SafeDecimalMathV5.unit().add(TERMINAL_SUPPLY_RATE_ANNUAL.div(52)).powDecimal(numOfWeeks);
+        uint effectiveCompoundRate = SafeDecimalMath.unit().add(TERMINAL_SUPPLY_RATE_ANNUAL.div(52)).powDecimal(numOfWeeks);
 
         // return Supply * (effectiveRate - 1) for extra supply to issue based on number of weeks
-        return totalSupply.multiplyDecimal(effectiveCompoundRate.sub(SafeDecimalMathV5.unit()));
+        return totalSupply.multiplyDecimal(effectiveCompoundRate.sub(SafeDecimalMath.unit()));
     }
 
     /**
@@ -151,7 +149,7 @@ contract SupplySchedule is Owned, ISupplySchedule {
     function weeksSinceLastIssuance() public view returns (uint) {
         // Get weeks since lastMintEvent
         // If lastMintEvent not set or 0, then start from inflation start date.
-        uint timeDiff = lastMintEvent > 0 ? now.sub(lastMintEvent) : now.sub(INFLATION_START_DATE);
+        uint timeDiff = lastMintEvent > 0 ? block.timestamp.sub(lastMintEvent) : block.timestamp.sub(INFLATION_START_DATE);
         return timeDiff.div(MINT_PERIOD_DURATION);
     }
 
@@ -159,8 +157,8 @@ contract SupplySchedule is Owned, ISupplySchedule {
      * @return boolean whether the MINT_PERIOD_DURATION (7 days)
      * has passed since the lastMintEvent.
      * */
-    function isMintable() public view returns (bool) {
-        if (now - lastMintEvent > MINT_PERIOD_DURATION) {
+    function isMintable() override public view returns (bool) {
+        if (block.timestamp - lastMintEvent > MINT_PERIOD_DURATION) {
             return true;
         }
         return false;
@@ -174,7 +172,7 @@ contract SupplySchedule is Owned, ISupplySchedule {
      * and store the time of the event.
      * @param supplyMinted the amount of KWENTA the total supply was inflated by.
      * */
-    function recordMintEvent(uint supplyMinted) external onlyKwenta returns (bool) {
+    function recordMintEvent(uint supplyMinted) internal returns (bool) {
         uint numberOfWeeksIssued = weeksSinceLastIssuance();
 
         // add number of weeks minted to weekCounter
@@ -184,7 +182,7 @@ contract SupplySchedule is Owned, ISupplySchedule {
         // 1 day time buffer is added so inflation is minted after feePeriod closes
         lastMintEvent = INFLATION_START_DATE.add(weekCounter.mul(MINT_PERIOD_DURATION)).add(MINT_BUFFER);
 
-        emit SupplyMinted(supplyMinted, numberOfWeeksIssued, lastMintEvent, now);
+        emit SupplyMinted(supplyMinted, numberOfWeeksIssued, lastMintEvent, block.timestamp);
         return true;
     }
 
@@ -201,6 +199,29 @@ contract SupplySchedule is Owned, ISupplySchedule {
         emit MinterRewardUpdated(minterReward);
     }
 
+    /**
+     * @notice Mints new inflationary supply weekly
+     * New KWENTA is distributed between the minter, treasury, and StakingRewards contract
+     * */
+    function mint() override external {
+        require(address(stakingRewards) != address(0), "Staking rewards not set");
+
+        uint supplyToMint = mintableSupply();
+        require(supplyToMint > 0, "No supply is mintable");
+
+        // record minting event before mutation to token supply
+        recordMintEvent(supplyToMint);
+
+        uint amountToDistribute = supplyToMint - minterReward;
+        uint amountToTreasury = amountToDistribute * treasuryDiversion / 10000;
+        uint amountToStakingRewards = amountToDistribute - amountToTreasury;
+
+        kwenta.mint(treasuryDAO, amountToTreasury);
+        kwenta.mint(address(stakingRewards), amountToStakingRewards);
+        stakingRewards.setRewardNEpochs(amountToStakingRewards, 1);
+        kwenta.mint(msg.sender, minterReward);
+    }
+
     // ========== SETTERS ========== */
 
     /**
@@ -210,8 +231,19 @@ contract SupplySchedule is Owned, ISupplySchedule {
      * */
     function setKwenta(IKwenta _kwenta) external onlyOwner {
         require(address(_kwenta) != address(0), "Address cannot be 0");
-        kwenta = address(uint160(address(_kwenta)));
-        emit KwentaUpdated(kwenta);
+        kwenta = _kwenta;
+        emit KwentaUpdated(address(kwenta));
+    }
+
+    function setTreasuryDiversion(uint _treasuryDiversion) override public onlyOwner {
+        require(_treasuryDiversion < 10000, "Represented in basis points");
+        treasuryDiversion = _treasuryDiversion;
+        emit TreasuryDiversionUpdated(_treasuryDiversion);
+    }
+
+    function setStakingRewards(address _stakingRewards) override external onlyOwner {
+        stakingRewards = IStakingRewards(_stakingRewards);
+        emit StakingRewardsUpdated(_stakingRewards);
     }
 
     // ========== MODIFIERS ==========
@@ -242,4 +274,14 @@ contract SupplySchedule is Owned, ISupplySchedule {
      * @notice Emitted when setKwenta is called changing the Kwenta Proxy address
      * */
     event KwentaUpdated(address newAddress);
+
+    /**
+     * @notice Emitted when setKwenta is called changing the Kwenta Proxy address
+     * */
+    event TreasuryDiversionUpdated(uint newPercentage);
+
+    /**
+     * @notice Emitted when setKwenta is called changing the Kwenta Proxy address
+     * */
+    event StakingRewardsUpdated(address newAddress);
 }

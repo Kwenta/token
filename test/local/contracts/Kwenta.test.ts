@@ -1,10 +1,11 @@
 import { expect } from "chai";
-import { ethers } from "hardhat";
+import hre, { ethers } from "hardhat";
 import { Contract } from "@ethersproject/contracts";
 import { FakeContract, smock } from "@defi-wonderland/smock";
 import { SupplySchedule } from "../../../typechain/SupplySchedule";
 import { StakingRewards } from "../../../typechain/StakingRewards";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { wei } from "@synthetixio/wei";
 
 describe("KWENTA Token", function () {
     const NAME = "Kwenta";
@@ -32,8 +33,7 @@ describe("KWENTA Token", function () {
             INITIAL_SUPPLY,
             owner.address,
             treasuryDAO.address, // Cannot mint to zero address
-            supplySchedule.address,
-            INFLATION_DIVERSION_BPS
+            supplySchedule.address
         );
         await kwenta.deployed();
 
@@ -49,51 +49,24 @@ describe("KWENTA Token", function () {
         expect(await kwenta.totalSupply()).to.equal(INITIAL_SUPPLY);
     });
 
-    it("Test mint reverts because 'Staking rewards not set'", async function () {
-        expect(await kwenta.stakingRewards()).to.equal(
-            "0x0000000000000000000000000000000000000000"
-        );
-        await expect(kwenta.mint()).to.be.revertedWith(
-            "Staking rewards not set"
+    it("Cannot mint from address other than supply schedule", async () => {
+        await expect(kwenta.mint(owner.address, 100)).to.be.revertedWith(
+            "Only SupplySchedule can perform this action"
         );
     });
 
-    it("Test setting the staking rewards address actually sets the address", async function () {
-        await kwenta.setStakingRewards(stakingRewards.address);
-        expect(await kwenta.stakingRewards()).to.equal(stakingRewards.address);
-    });
-
-    it("Test inflationary diversion", async function () {
-        await kwenta.setStakingRewards(stakingRewards.address);
-        const inflationaryRewardsForMint = 200;
-        const treasurySupplyWithDivertedRewards = INITIAL_SUPPLY.add(
-            ethers.BigNumber.from(inflationaryRewardsForMint)
-                .mul(INFLATION_DIVERSION_BPS)
-                .div(10000)
+    it("Can mint if supplySchedule", async () => {
+        await hre.network.provider.send("hardhat_setBalance", [
+            supplySchedule.address,
+            "0x1000000000000000",
+        ]);
+        const impersonatedSupplySchedule = await ethers.getSigner(
+            supplySchedule.address
         );
-
-        supplySchedule.mintableSupply.returns(inflationaryRewardsForMint);
-        await kwenta.mint();
-
-        expect(await kwenta.balanceOf(treasuryDAO.address)).to.equal(
-            treasurySupplyWithDivertedRewards
-        );
-    });
-
-    it("Test unable to set treasury diversion as non-owner", async function () {
-        await expect(kwenta.connect(user1).setTreasuryDiversion(3000)).to.be
-            .reverted;
-    });
-
-    it("Test changing inflationary diversion percentage", async function () {
-        await kwenta.setTreasuryDiversion(3000);
-        expect(await kwenta.treasuryDiversion()).to.equal("3000");
-    });
-
-    it("Test revert for setting inflationary diversion basis points greater than 10000", async function () {
-        await expect(kwenta.setTreasuryDiversion(20000)).to.be.revertedWith(
-            "Represented in basis points"
-        );
+        await kwenta
+            .connect(impersonatedSupplySchedule)
+            .mint(owner.address, 100);
+        expect(await kwenta.balanceOf(owner.address)).to.be.equal(100);
     });
 
     it("Test burn attempt from empty address", async function () {

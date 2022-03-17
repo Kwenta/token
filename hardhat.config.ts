@@ -6,7 +6,8 @@ import "hardhat-gas-reporter";
 import "hardhat-contract-sizer";
 import "@openzeppelin/hardhat-upgrades";
 import "solidity-coverage";
-import dotenv from 'dotenv';
+import dotenv from "dotenv";
+import "hardhat-exposed";
 
 dotenv.config();
 
@@ -63,5 +64,8 @@ export default {
       url: `https://opt-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
       accounts: process.env.DEPLOYER_PRIVATE_KEY ? [process.env.DEPLOYER_PRIVATE_KEY] : undefined,
     },
+  },
+  exposed: {
+    exclude: ["**/SafeDecimalMath.sol"]
   },
 };
