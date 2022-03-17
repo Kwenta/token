@@ -15,12 +15,12 @@ import "./interfaces/IKwenta.sol";
 import "./interfaces/IStakingRewards.sol";
 
 contract RewardEscrow is Owned, IRewardEscrow {
-    using SafeMath for uint;
     using SafeDecimalMath for uint;
 
     IKwenta public kwenta;
 
     IStakingRewards public stakingRewards;
+    bool private stakingRewardsSet = false;
 
     mapping(address => mapping(uint256 => VestingEntries.VestingEntry)) public vestingSchedules;
 
@@ -39,31 +39,28 @@ contract RewardEscrow is Owned, IRewardEscrow {
     uint256 public totalEscrowedBalance;
 
     /* Max escrow duration */
-    uint public max_duration = 2 * 52 weeks; // Default max 2 years duration
+    uint public constant max_duration = 2 * 52 weeks; // Default max 2 years duration
 
     /* ========== CONSTRUCTOR ========== */
 
     constructor(address _owner, address _kwenta) Owned(_owner) {
         nextEntryId = 1;
-        setKwenta(_kwenta);
+
+        // set the Kwenta contract address as we need to transfer KWENTA when the user vests
+        kwenta = IKwenta(_kwenta);
     }
 
     /* ========== SETTERS ========== */
-
-    /**
-     * @notice set the Kwenta contract address as we need to transfer KWENTA when the user vests
-     */
-    function setKwenta(address _kwenta) public onlyOwner {
-        kwenta = IKwenta(_kwenta);
-        emit KwentaUpdated(address(_kwenta));
-    }
 
     /*
     * @notice Function used to define the StakingRewards to use
     */
     function setStakingRewards(address _stakingRewards) public onlyOwner {
+        require(!stakingRewardsSet, "Staking Rewards already set");
+        stakingRewardsSet = true;
+        
         stakingRewards = IStakingRewards(_stakingRewards);
-        emit StakingRewardsUpdated(address(_stakingRewards));
+        emit StakingRewardsSet(address(_stakingRewards));
     }
 
     /* ========== VIEW FUNCTIONS ========== */
@@ -259,7 +256,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
         require(beneficiary != address(0), "Cannot create escrow with address(0)");
 
         /* Transfer KWENTA from msg.sender */
-        require(IERC20(kwenta).transferFrom(msg.sender, address(this), deposit), "token transfer failed");
+        require(IERC20(kwenta).transferFrom(msg.sender, address(this), deposit), "Token transfer failed");
 
         /* Append vesting entry for the beneficiary address */
         _appendVestingEntry(beneficiary, deposit, duration);
@@ -303,15 +300,15 @@ contract RewardEscrow is Owned, IRewardEscrow {
     /* Transfer vested tokens and update totalEscrowedAccountBalance, totalVestedAccountBalance */
     function _transferVestedTokens(address _account, uint256 _amount) internal {
         _reduceAccountEscrowBalances(_account, _amount);
-        totalVestedAccountBalance[_account] = totalVestedAccountBalance[_account].add(_amount);
+        totalVestedAccountBalance[_account] += _amount;
         IERC20(address(kwenta)).transfer(_account, _amount);
         emit Vested(_account, block.timestamp, _amount);
     }
 
     function _reduceAccountEscrowBalances(address _account, uint256 _amount) internal {
         // Reverts if amount being vested is greater than the account's existing totalEscrowedAccountBalance
-        totalEscrowedBalance = totalEscrowedBalance.sub(_amount);
-        totalEscrowedAccountBalance[_account] = totalEscrowedAccountBalance[_account].sub(_amount);
+        totalEscrowedBalance -= _amount;
+        totalEscrowedAccountBalance[_account] -= _amount;
     }
 
     /* ========== INTERNALS ========== */
@@ -326,7 +323,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
         require(duration > 0 && duration <= max_duration, "Cannot escrow with 0 duration OR above max_duration");
 
         /* There must be enough balance in the contract to provide for the vesting entry. */
-        totalEscrowedBalance = totalEscrowedBalance.add(quantity);
+        totalEscrowedBalance += quantity;
 
         require(
             totalEscrowedBalance <= IERC20(address(kwenta)).balanceOf(address(this)),
@@ -337,7 +334,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
         uint endTime = block.timestamp + duration;
 
         /* Add quantity to account's escrowed balance */
-        totalEscrowedAccountBalance[account] = totalEscrowedAccountBalance[account].add(quantity);
+        totalEscrowedAccountBalance[account] += quantity;
 
         uint entryID = nextEntryId;
         vestingSchedules[account][entryID] = VestingEntries.VestingEntry({endTime: uint64(endTime), escrowAmount: quantity, duration: duration});
@@ -345,7 +342,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
         accountVestingEntryIDs[account].push(entryID);
 
         /* Increment the next entry id. */
-        nextEntryId = nextEntryId.add(1);
+        nextEntryId++;
 
         emit VestingEntryCreated(account, block.timestamp, quantity, duration, entryID);
     }
@@ -359,6 +356,5 @@ contract RewardEscrow is Owned, IRewardEscrow {
     /* ========== EVENTS ========== */
     event Vested(address indexed beneficiary, uint time, uint value);
     event VestingEntryCreated(address indexed beneficiary, uint time, uint value, uint duration, uint entryID);
-    event KwentaUpdated(address newkwenta);
-    event StakingRewardsUpdated(address rewardEscrow);
+    event StakingRewardsSet(address rewardEscrow);
 }
