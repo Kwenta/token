@@ -321,7 +321,7 @@ describe('Stake (fork)', () => {
 			);
 
 			// expect reward score to be increase post-trade
-			expect(actualRewardScoreAddr1.div(wei(1).toBN())).to.be.closeTo(
+			expect(actualRewardScoreAddr1).to.be.closeTo(
 				wei(expectedRewardScoreAddr1.toString(), 18, true)
 					.toBN()
 					.toString(),
