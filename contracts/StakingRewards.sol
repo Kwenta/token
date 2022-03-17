@@ -11,7 +11,7 @@ import "./libraries/LogarithmLib.sol";
 import "./interfaces/IStakingRewards.sol";
 
 // Inheritance
-import "./Pausable.sol";
+import "./utils/Pausable.sol";
 // Import RewardEscrow contract for Escrow interactions
 import "./RewardEscrow.sol";
 
