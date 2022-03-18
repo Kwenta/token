@@ -278,9 +278,10 @@ describe('Stake (fork)', () => {
 				IERC20ABI,
 				waffle.provider
 			);
-			expect(await sUSD.balanceOf(TEST_ADDRESS_WITH_sUSD)).to.be.above(
-				ethers.constants.One
+			const sUSDBalancePreSwap = await sUSD.balanceOf(
+				TEST_ADDRESS_WITH_sUSD
 			);
+			expect(sUSDBalancePreSwap).to.be.above(ethers.constants.One);
 
 			// confirm no balance of sETH
 			const sETH = new ethers.Contract(
@@ -316,11 +317,16 @@ describe('Stake (fork)', () => {
 					ethers.utils.formatBytes32String('KWENTA')
 				);
 
+			// confirm sUSD balance decreased
+			expect(await sUSD.balanceOf(TEST_ADDRESS_WITH_sUSD)).to.be.below(
+				sUSDBalancePreSwap
+			);
+
 			// confirm sETH balance increased
 			expect(await sETH.balanceOf(TEST_ADDRESS_WITH_sUSD)).to.be.above(
 				sETHBalancePreSwap
 			);
-			
+
 		}).timeout(200000);
 
 		it('Update reward scores properly', async () => {
