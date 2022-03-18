@@ -17,6 +17,7 @@ const WEEKLY_START_REWARDS = 3;
 const SECONDS_IN_WEEK = 6048000;
 const ADDRESS_RESOLVER_OE = '0x95A6a3f44a70172E7d50a9e28c85Dfd712756B8C';
 const sUSD_ADDRESS_OE = '0x8c6f28f2F1A3C87F0f938b96d27520d9751ec8d9';
+const sETH_ADDRESS_OE = '0xE405de8F52ba7559f9df3C368500B6E6ae6Cee49';
 
 // test values for staking
 const TEST_VALUE = wei(20000).toBN();
@@ -26,7 +27,7 @@ let owner: SignerWithAddress;
 let addr1: SignerWithAddress;
 let TREASURY_DAO: SignerWithAddress;
 let TEST_SIGNER_WITH_sUSD: Signer;
-let TEST_ADDRESS_WITH_sUSD = '0xD8a8aA5E8D776a89EE1B7aE98D3490de8ACad53d';
+let TEST_ADDRESS_WITH_sUSD = '0xB594a842A528cb8b80536a84D3DfEd73C2c0c658';
 
 // core contracts
 let kwenta: Contract;
@@ -65,7 +66,7 @@ const forkOptimismNetwork = async () => {
 			{
 				forking: {
 					jsonRpcUrl: process.env.ARCHIVE_NODE_URL,
-					blockNumber: 3225902,
+					blockNumber: 4225902,
 				},
 			},
 		],
@@ -139,8 +140,8 @@ const loadSetup = () => {
 			},
 		});
 		supplySchedule = await SupplySchedule.deploy(
-			owner.address, 
-			TREASURY_DAO.address, 
+			owner.address,
+			TREASURY_DAO.address,
 			ethers.constants.AddressZero // StakingRewards address
 		);
 		await supplySchedule.deployed();
@@ -255,16 +256,18 @@ describe('Stake (fork)', () => {
 			).to.equal(TEST_VALUE);
 		});
 
-		it('Execute trade on synthetix through proxy', async () => {
-			// establish traderScore pre-trade
+		it('Confirm nil trade scores', async () => {
+			// establish traderScore
 			expect(
 				await stakingRewardsProxy.rewardScoreOf(TEST_ADDRESS_WITH_sUSD)
 			).to.equal(0);
 			expect(
 				await stakingRewardsProxy.rewardScoreOf(addr1.address)
 			).to.equal(0);
+		}).timeout(200000);
 
-			// confirm valid pre-balance of sUSD
+		it('Execute trade on synthetix through proxy', async () => {
+			// confirm pre-balance of sUSD
 			const IERC20ABI = (
 				await artifacts.readArtifact(
 					'contracts/interfaces/IERC20.sol:IERC20'
@@ -275,8 +278,20 @@ describe('Stake (fork)', () => {
 				IERC20ABI,
 				waffle.provider
 			);
-			const preBalance = await sUSD.balanceOf(TEST_ADDRESS_WITH_sUSD);
-			expect(preBalance).to.be.above(ethers.constants.One);
+			expect(await sUSD.balanceOf(TEST_ADDRESS_WITH_sUSD)).to.be.above(
+				ethers.constants.One
+			);
+
+			// confirm no balance of sETH
+			const sETH = new ethers.Contract(
+				sETH_ADDRESS_OE,
+				IERC20ABI,
+				waffle.provider
+			);
+			const sETHBalancePreSwap = await sETH.balanceOf(
+				TEST_ADDRESS_WITH_sUSD
+			);
+			expect(sETHBalancePreSwap).to.equal(0);
 
 			// approve exchangerProxy to spend sUSD and
 			await sUSD
@@ -284,7 +299,10 @@ describe('Stake (fork)', () => {
 				.approve(exchangerProxy.address, ethers.constants.One);
 
 			// confirm allowance
-			const allowance = await sUSD.allowance(TEST_ADDRESS_WITH_sUSD, exchangerProxy.address);
+			const allowance = await sUSD.allowance(
+				TEST_ADDRESS_WITH_sUSD,
+				exchangerProxy.address
+			);
 			expect(allowance).to.equal(ethers.constants.One);
 
 			// trade
@@ -298,22 +316,29 @@ describe('Stake (fork)', () => {
 					ethers.utils.formatBytes32String('KWENTA')
 				);
 
+			// confirm sETH balance increased
+			expect(await sETH.balanceOf(TEST_ADDRESS_WITH_sUSD)).to.be.above(
+				sETHBalancePreSwap
+			);
+			
+		}).timeout(200000);
+
+		it('Update reward scores properly', async () => {
 			// calculate expected reward score
 			const feesPaidByTestAddress = await stakingRewardsProxy.feesPaidBy(
 				TEST_ADDRESS_WITH_sUSD
 			);
-			const kwentaStakedByTestAddress = await stakingRewardsProxy.stakedBalanceOf(
-				TEST_ADDRESS_WITH_sUSD
-			);
+			const kwentaStakedByTestAddress =
+				await stakingRewardsProxy.stakedBalanceOf(TEST_ADDRESS_WITH_sUSD);
 
 			// expected reward score
 			const expectedRewardScoreTestAddress =
-				Math.pow(feesPaidByTestAddress, 0.7) * Math.pow(kwentaStakedByTestAddress, 0.3);
+				Math.pow(feesPaidByTestAddress, 0.7) *
+				Math.pow(kwentaStakedByTestAddress, 0.3);
 
 			// actual reward score(s)
-			const actualRewardScoreTestAddress = await stakingRewardsProxy.rewardScoreOf(
-				TEST_ADDRESS_WITH_sUSD
-			);
+			const actualRewardScoreTestAddress =
+				await stakingRewardsProxy.rewardScoreOf(TEST_ADDRESS_WITH_sUSD);
 			const actualRewardScoreAddr1 = await stakingRewardsProxy.rewardScoreOf(
 				addr1.address
 			);
@@ -328,7 +353,6 @@ describe('Stake (fork)', () => {
 
 			// expect reward score to not change
 			expect(actualRewardScoreAddr1).to.equal(0);
-			
 		}).timeout(200000);
 
 		it('Wait, and then claim kwenta for both stakers', async () => {
