@@ -25,7 +25,6 @@ import "./RewardEscrow.sol";
 contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable {
     using FixidityLib for FixidityLib.Fixidity;
     using ExponentLib for FixidityLib.Fixidity;
-    using LogarithmLib for FixidityLib.Fixidity;
 
     /* ========== STATE VARIABLES ========== */
 
