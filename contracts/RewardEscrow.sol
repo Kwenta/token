@@ -3,11 +3,11 @@ pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
 // Inheritance
-import "./Owned.sol";
+import "./utils/Owned.sol";
 import "./interfaces/IRewardEscrow.sol";
 
 // Libraries
-import "./SafeDecimalMath.sol";
+import "./libraries/SafeDecimalMath.sol";
 
 // Internal references
 import "./interfaces/IERC20.sol";

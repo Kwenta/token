@@ -3,7 +3,7 @@
 pragma solidity ^0.8.0;
 
 import './utils/ERC20.sol';
-import './Owned.sol';
+import './utils/Owned.sol';
 import './interfaces/ISupplySchedule.sol';
 import './interfaces/IKwenta.sol';
 
