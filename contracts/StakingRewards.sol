@@ -114,7 +114,6 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
         __ReentrancyGuard_init();
 
         admin = _owner;
-        pendingAdmin = _owner;
 
         periodFinish = 0;
         rewardRate = 0;
@@ -636,6 +635,7 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
      */
     function pendingAdminAccept() external onlyPendingAdmin {
         admin = pendingAdmin;
+        pendingAdmin = address(0);
     }
 
     /*

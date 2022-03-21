@@ -89,6 +89,7 @@ require('chai')
 	.should();
 
 let owner;
+let owner2;
 let staker1;
 let staker2;
 let treasuryDAO;
@@ -140,6 +141,7 @@ before(async () => {
 		rewardsDistribution,
 		treasuryDAO,
 		supplySchedule,
+		owner2
 	] = await hre.ethers.getSigners();
 	KwentaToken = await hre.ethers.getContractFactory('Kwenta');
 	kwentaToken = await KwentaToken.deploy(
@@ -675,5 +677,38 @@ describe('implementation test', () => {
 			toUnit(140.10276354425 + 139.89723645575),
 			toUnit(0.001)
 		);
+	});
+});
+
+describe('ownership test', () => {
+	beforeEach(async () => {
+		await deployNewRewardsEscrow(owner, kwentaToken);
+
+		StakingRewards = await deployContract();
+		stProxy = await hre.upgrades.deployProxy(
+			StakingRewards,
+			[
+				owner.address,
+				kwentaToken.address,
+				kwentaToken.address,
+				rewardsEscrow.address,
+				3,
+			],
+			{ kind: 'uups', unsafeAllow: ['external-library-linking'] }
+		);
+
+		await stProxy.connect(owner).setExchangerProxy(exchangerProxy.address);
+		await rewardsEscrow.setStakingRewards(stProxy.address);
+	})
+
+	it('pending address should be 0', async () => {
+		assert.equal(await stProxy.getPendingAdmin(), hre.ethers.constants.AddressZero);
+	});
+
+	it('transfer ownership, pending address should be 0', async () => {
+		await stProxy.connect(owner).setPendingAdmin(owner2.address);
+		assert.equal(await stProxy.getPendingAdmin(), owner2.address);
+		await stProxy.connect(owner2).pendingAdminAccept();
+		assert.equal(await stProxy.getPendingAdmin(), hre.ethers.constants.AddressZero);
 	});
 });
