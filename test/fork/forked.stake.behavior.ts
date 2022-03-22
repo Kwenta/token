@@ -348,57 +348,6 @@ describe('Stake (fork)', () => {
 			);
 		}).timeout(200000);
 
-		it('Execute trade (sUSD -> sUNI) on synthetix through proxy', async () => {
-			// confirm pre-balance of sUSD
-			const IERC20ABI = (
-				await artifacts.readArtifact(
-					'contracts/interfaces/IERC20.sol:IERC20'
-				)
-			).abi;
-			const sUSD = new ethers.Contract(
-				sUSD_ADDRESS_OE,
-				IERC20ABI,
-				waffle.provider
-			);
-			const sUSDBalancePreSwap = await sUSD.balanceOf(
-				TEST_ADDRESS_WITH_sUSD
-			);
-			expect(sUSDBalancePreSwap).to.be.above(ethers.constants.One);
-
-			// confirm no balance of sUNI
-			const sUNI = new ethers.Contract(
-				sUNI_ADDRESS_OE,
-				IERC20ABI,
-				waffle.provider
-			);
-			const sUNIBalancePreSwap = await sUNI.balanceOf(
-				TEST_ADDRESS_WITH_sUSD
-			);
-			expect(sUNIBalancePreSwap).to.equal(0);
-
-			// trade sUSD -> sUNI
-			// @notice delegateApprovals.approveExchangeOnBehalf called previously
-			await exchangerProxy
-				.connect(TEST_SIGNER_WITH_sUSD)
-				.exchangeOnBehalfWithTraderScoreTracking(
-					ethers.utils.formatBytes32String('sUSD'),
-					wei(1000).toBN(),
-					ethers.utils.formatBytes32String('sUNI'),
-					ethers.constants.AddressZero,
-					ethers.utils.formatBytes32String('KWENTA')
-				);
-
-			// confirm sUSD balance decreased
-			expect(await sUSD.balanceOf(TEST_ADDRESS_WITH_sUSD)).to.be.below(
-				sUSDBalancePreSwap
-			);
-
-			// confirm sUNI balance increased
-			expect(await sUNI.balanceOf(TEST_ADDRESS_WITH_sUSD)).to.be.above(
-				sUNIBalancePreSwap
-			);
-		}).timeout(200000);
-
 		it('Caller can remove swap approval on behalf of exchange', async () => {
 			// remove approval to swap token on behalf of TEST_SIGNER_WITH_sUSD
 			await delegateApprovals
@@ -453,6 +402,70 @@ describe('Stake (fork)', () => {
 						ethers.utils.formatBytes32String('KWENTA')
 					)
 			).to.be.revertedWith('Not approved to act on behalf');
+		}).timeout(200000);
+
+		it('Caller can approve swap *again* on behalf of exchange', async () => {
+			// approve exchange to swap token on behalf of TEST_SIGNER_WITH_sUSD
+			await delegateApprovals
+				.connect(TEST_SIGNER_WITH_sUSD)
+				.approveExchangeOnBehalf(exchangerProxy.address);
+
+			const canExchange = await delegateApprovals
+				.connect(TEST_SIGNER_WITH_sUSD)
+				.canExchangeFor(TEST_ADDRESS_WITH_sUSD, exchangerProxy.address);
+
+			expect(canExchange).to.be.true;
+		});
+
+		it('Execute trade (sUSD -> sUNI) on synthetix through proxy', async () => {
+			// confirm pre-balance of sUSD
+			const IERC20ABI = (
+				await artifacts.readArtifact(
+					'contracts/interfaces/IERC20.sol:IERC20'
+				)
+			).abi;
+			const sUSD = new ethers.Contract(
+				sUSD_ADDRESS_OE,
+				IERC20ABI,
+				waffle.provider
+			);
+			const sUSDBalancePreSwap = await sUSD.balanceOf(
+				TEST_ADDRESS_WITH_sUSD
+			);
+			expect(sUSDBalancePreSwap).to.be.above(ethers.constants.One);
+
+			// confirm no balance of sUNI
+			const sUNI = new ethers.Contract(
+				sUNI_ADDRESS_OE,
+				IERC20ABI,
+				waffle.provider
+			);
+			const sUNIBalancePreSwap = await sUNI.balanceOf(
+				TEST_ADDRESS_WITH_sUSD
+			);
+			expect(sUNIBalancePreSwap).to.equal(0);
+
+			// trade sUSD -> sUNI
+			// @notice delegateApprovals.approveExchangeOnBehalf called previously
+			await exchangerProxy
+				.connect(TEST_SIGNER_WITH_sUSD)
+				.exchangeOnBehalfWithTraderScoreTracking(
+					ethers.utils.formatBytes32String('sUSD'),
+					wei(1000).toBN(),
+					ethers.utils.formatBytes32String('sUNI'),
+					ethers.constants.AddressZero,
+					ethers.utils.formatBytes32String('KWENTA')
+				);
+
+			// confirm sUSD balance decreased
+			expect(await sUSD.balanceOf(TEST_ADDRESS_WITH_sUSD)).to.be.below(
+				sUSDBalancePreSwap
+			);
+
+			// confirm sUNI balance increased
+			expect(await sUNI.balanceOf(TEST_ADDRESS_WITH_sUSD)).to.be.above(
+				sUNIBalancePreSwap
+			);
 		}).timeout(200000);
 
 		it('Update reward scores properly', async () => {
