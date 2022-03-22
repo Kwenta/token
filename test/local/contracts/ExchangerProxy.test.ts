@@ -18,7 +18,7 @@ describe('Exchanger Proxy', function () {
 
 		//// Synthetix AddressResolver mocking. TODO: make reusable
 		const fakeSynthetix = await smock.fake<ISynthetix>('ISynthetix');
-		fakeSynthetix.exchangeWithTracking.returns(0);
+		fakeSynthetix.exchangeOnBehalfWithTracking.returns(0);
 
 		const fakeExchanger = await smock.fake<IExchanger>('IExchanger');
 		fakeExchanger.feeRateForExchange.returns(0);
