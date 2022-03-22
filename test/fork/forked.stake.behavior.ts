@@ -21,7 +21,8 @@ const DELEGATE_APPROVALS_OE = '0x2a23bc0ea97a89abd91214e8e4d20f02fe14743f';
 // token addresses on OE
 const sUSD_ADDRESS_OE = '0x8c6f28f2F1A3C87F0f938b96d27520d9751ec8d9';
 const sETH_ADDRESS_OE = '0xE405de8F52ba7559f9df3C368500B6E6ae6Cee49';
-const sUNI_ADDRESS_OE = '0xf5a6115Aa582Fd1BEEa22BC93B7dC7a785F60d03'
+const sUNI_ADDRESS_OE = '0xf5a6115Aa582Fd1BEEa22BC93B7dC7a785F60d03';
+const sLINK_ADDRESS_OE = '0x2302D7F7783e2712C48aA684451b9d706e74F299';
 
 // test values for staking
 const TEST_VALUE = wei(20000).toBN();
@@ -39,6 +40,7 @@ let supplySchedule: Contract;
 let rewardEscrow: Contract;
 let stakingRewardsProxy: Contract;
 let exchangerProxy: Contract;
+let delegateApprovals: Contract;
 
 // library contracts
 let fixidityLib: Contract;
@@ -258,6 +260,18 @@ describe('Stake (fork)', () => {
 					.connect(addr1)
 					.stakedBalanceOf(addr1.address)
 			).to.equal(TEST_VALUE);
+
+			// define DelegateApprovals contract for approvals
+			const IDelegateApprovals = (
+				await artifacts.readArtifact(
+					'contracts/interfaces/IDelegateApprovals.sol:IDelegateApprovals'
+				)
+			).abi;
+			delegateApprovals = new ethers.Contract(
+				DELEGATE_APPROVALS_OE,
+				IDelegateApprovals,
+				waffle.provider
+			);
 		});
 
 		it('Confirm nil trade scores', async () => {
@@ -269,6 +283,19 @@ describe('Stake (fork)', () => {
 				await stakingRewardsProxy.rewardScoreOf(addr1.address)
 			).to.equal(0);
 		}).timeout(200000);
+
+		it('Caller can approve swap on behalf of exchange', async () => {
+			// approve exchange to swap token on behalf of TEST_SIGNER_WITH_sUSD
+			await delegateApprovals
+				.connect(TEST_SIGNER_WITH_sUSD)
+				.approveExchangeOnBehalf(exchangerProxy.address);
+
+			const canExchange = await delegateApprovals
+				.connect(TEST_SIGNER_WITH_sUSD)
+				.canExchangeFor(TEST_ADDRESS_WITH_sUSD, exchangerProxy.address);
+
+			expect(canExchange).to.be.true;
+		});
 
 		it('Execute trade (sUSD -> sETH) on synthetix through proxy', async () => {
 			// confirm pre-balance of sUSD
@@ -298,22 +325,8 @@ describe('Stake (fork)', () => {
 			);
 			expect(sETHBalancePreSwap).to.equal(0);
 
-			// approve exchange to swap token on behalf of TEST_SIGNER_WITH_sUSD
-			const IDelegateApprovals = (
-				await artifacts.readArtifact(
-					'contracts/interfaces/IDelegateApprovals.sol:IDelegateApprovals'
-				)
-			).abi;
-			const delegateApprovals = new ethers.Contract(
-				DELEGATE_APPROVALS_OE,
-				IDelegateApprovals,
-				waffle.provider
-			);
-			await delegateApprovals
-				.connect(TEST_SIGNER_WITH_sUSD)
-				.approveExchangeOnBehalf(exchangerProxy.address);
-
 			// trade sUSD -> sETH
+			// @notice delegateApprovals.approveExchangeOnBehalf called previously
 			await exchangerProxy
 				.connect(TEST_SIGNER_WITH_sUSD)
 				.exchangeOnBehalfWithTraderScoreTracking(
@@ -323,11 +336,6 @@ describe('Stake (fork)', () => {
 					ethers.constants.AddressZero,
 					ethers.utils.formatBytes32String('KWENTA')
 				);
-
-			// remove approval
-			await delegateApprovals
-				.connect(TEST_SIGNER_WITH_sUSD)
-				.removeExchangeOnBehalf(exchangerProxy.address);
 
 			// confirm sUSD balance decreased
 			expect(await sUSD.balanceOf(TEST_ADDRESS_WITH_sUSD)).to.be.below(
@@ -340,8 +348,7 @@ describe('Stake (fork)', () => {
 			);
 		}).timeout(200000);
 
-
-		it('Expect trade (sUSD -> sUNI) to fail without approval', async () => {
+		it('Execute trade (sUSD -> sUNI) on synthetix through proxy', async () => {
 			// confirm pre-balance of sUSD
 			const IERC20ABI = (
 				await artifacts.readArtifact(
@@ -370,20 +377,83 @@ describe('Stake (fork)', () => {
 			expect(sUNIBalancePreSwap).to.equal(0);
 
 			// trade sUSD -> sUNI
+			// @notice delegateApprovals.approveExchangeOnBehalf called previously
+			await exchangerProxy
+				.connect(TEST_SIGNER_WITH_sUSD)
+				.exchangeOnBehalfWithTraderScoreTracking(
+					ethers.utils.formatBytes32String('sUSD'),
+					wei(1000).toBN(),
+					ethers.utils.formatBytes32String('sUNI'),
+					ethers.constants.AddressZero,
+					ethers.utils.formatBytes32String('KWENTA')
+				);
+
+			// confirm sUSD balance decreased
+			expect(await sUSD.balanceOf(TEST_ADDRESS_WITH_sUSD)).to.be.below(
+				sUSDBalancePreSwap
+			);
+
+			// confirm sUNI balance increased
+			expect(await sUNI.balanceOf(TEST_ADDRESS_WITH_sUSD)).to.be.above(
+				sUNIBalancePreSwap
+			);
+		}).timeout(200000);
+
+		it('Caller can remove swap approval on behalf of exchange', async () => {
+			// remove approval to swap token on behalf of TEST_SIGNER_WITH_sUSD
+			await delegateApprovals
+				.connect(TEST_SIGNER_WITH_sUSD)
+				.removeExchangeOnBehalf(exchangerProxy.address);
+
+			const canExchange = await delegateApprovals
+				.connect(TEST_SIGNER_WITH_sUSD)
+				.canExchangeFor(TEST_ADDRESS_WITH_sUSD, exchangerProxy.address);
+
+			expect(canExchange).to.be.false;
+		});
+
+		it('Expect trade (sUSD -> sLINK) to fail without approval', async () => {
+			// confirm pre-balance of sUSD
+			const IERC20ABI = (
+				await artifacts.readArtifact(
+					'contracts/interfaces/IERC20.sol:IERC20'
+				)
+			).abi;
+			const sUSD = new ethers.Contract(
+				sUSD_ADDRESS_OE,
+				IERC20ABI,
+				waffle.provider
+			);
+			const sUSDBalancePreSwap = await sUSD.balanceOf(
+				TEST_ADDRESS_WITH_sUSD
+			);
+			expect(sUSDBalancePreSwap).to.be.above(ethers.constants.One);
+
+			// confirm no balance of sLINK
+			const sLINK = new ethers.Contract(
+				sLINK_ADDRESS_OE,
+				IERC20ABI,
+				waffle.provider
+			);
+			const sUNIBalancePreSwap = await sLINK.balanceOf(
+				TEST_ADDRESS_WITH_sUSD
+			);
+			expect(sUNIBalancePreSwap).to.equal(0);
+
+			// trade sUSD -> sLINK
+			// @notice delegateApprovals.removeExchangeOnBehalf called previously
 			await expect(
 				exchangerProxy
 					.connect(TEST_SIGNER_WITH_sUSD)
 					.exchangeOnBehalfWithTraderScoreTracking(
 						ethers.utils.formatBytes32String('sUSD'),
 						wei(1000).toBN(),
-						ethers.utils.formatBytes32String('sUNI'),
+						ethers.utils.formatBytes32String('sLINK'),
 						ethers.constants.AddressZero,
 						ethers.utils.formatBytes32String('KWENTA')
 					)
 			).to.be.revertedWith('Not approved to act on behalf');
-
 		}).timeout(200000);
-
 
 		it('Update reward scores properly', async () => {
 			// calculate expected reward score
