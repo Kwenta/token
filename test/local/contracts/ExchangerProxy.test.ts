@@ -60,7 +60,7 @@ describe('Exchanger Proxy', function () {
 	});
 
 	it('updateTraderScore has been called', async function () {
-		await exchangerProxy.exchangeWithTraderScoreTracking(
+		await exchangerProxy.exchangeOnBehalfWithTraderScoreTracking(
 			ethers.utils.formatBytes32String('sUSD'),
 			ethers.constants.One,
 			ethers.utils.formatBytes32String('sETH'),
