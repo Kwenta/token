@@ -16,8 +16,12 @@ const INITIAL_SUPPLY = ethers.utils.parseUnits('313373');
 const WEEKLY_START_REWARDS = 3;
 const SECONDS_IN_WEEK = 6048000;
 const ADDRESS_RESOLVER_OE = '0x95A6a3f44a70172E7d50a9e28c85Dfd712756B8C';
+const DELEGATE_APPROVALS_OE = '0x2a23bc0ea97a89abd91214e8e4d20f02fe14743f';
+
+// token addresses on OE
 const sUSD_ADDRESS_OE = '0x8c6f28f2F1A3C87F0f938b96d27520d9751ec8d9';
 const sETH_ADDRESS_OE = '0xE405de8F52ba7559f9df3C368500B6E6ae6Cee49';
+const sUNI_ADDRESS_OE = '0xf5a6115Aa582Fd1BEEa22BC93B7dC7a785F60d03'
 
 // test values for staking
 const TEST_VALUE = wei(20000).toBN();
@@ -66,7 +70,7 @@ const forkOptimismNetwork = async () => {
 			{
 				forking: {
 					jsonRpcUrl: process.env.ARCHIVE_NODE_URL,
-					blockNumber: 4225902,
+					blockNumber: 4683200,
 				},
 			},
 		],
@@ -266,7 +270,7 @@ describe('Stake (fork)', () => {
 			).to.equal(0);
 		}).timeout(200000);
 
-		it('Execute trade on synthetix through proxy', async () => {
+		it('Execute trade (sUSD -> sETH) on synthetix through proxy', async () => {
 			// confirm pre-balance of sUSD
 			const IERC20ABI = (
 				await artifacts.readArtifact(
@@ -294,28 +298,36 @@ describe('Stake (fork)', () => {
 			);
 			expect(sETHBalancePreSwap).to.equal(0);
 
-			// approve exchangerProxy to spend sUSD and
-			await sUSD
-				.connect(TEST_SIGNER_WITH_sUSD)
-				.approve(exchangerProxy.address, ethers.constants.One);
-
-			// confirm allowance
-			const allowance = await sUSD.allowance(
-				TEST_ADDRESS_WITH_sUSD,
-				exchangerProxy.address
+			// approve exchange to swap token on behalf of TEST_SIGNER_WITH_sUSD
+			const IDelegateApprovals = (
+				await artifacts.readArtifact(
+					'contracts/interfaces/IDelegateApprovals.sol:IDelegateApprovals'
+				)
+			).abi;
+			const delegateApprovals = new ethers.Contract(
+				DELEGATE_APPROVALS_OE,
+				IDelegateApprovals,
+				waffle.provider
 			);
-			expect(allowance).to.equal(ethers.constants.One);
+			await delegateApprovals
+				.connect(TEST_SIGNER_WITH_sUSD)
+				.approveExchangeOnBehalf(exchangerProxy.address);
 
-			// trade
+			// trade sUSD -> sETH
 			await exchangerProxy
 				.connect(TEST_SIGNER_WITH_sUSD)
-				.exchangeWithTraderScoreTracking(
+				.exchangeOnBehalfWithTraderScoreTracking(
 					ethers.utils.formatBytes32String('sUSD'),
-					ethers.constants.One,
+					wei(1000).toBN(),
 					ethers.utils.formatBytes32String('sETH'),
 					ethers.constants.AddressZero,
 					ethers.utils.formatBytes32String('KWENTA')
 				);
+
+			// remove approval
+			await delegateApprovals
+				.connect(TEST_SIGNER_WITH_sUSD)
+				.removeExchangeOnBehalf(exchangerProxy.address);
 
 			// confirm sUSD balance decreased
 			expect(await sUSD.balanceOf(TEST_ADDRESS_WITH_sUSD)).to.be.below(
@@ -326,8 +338,52 @@ describe('Stake (fork)', () => {
 			expect(await sETH.balanceOf(TEST_ADDRESS_WITH_sUSD)).to.be.above(
 				sETHBalancePreSwap
 			);
+		}).timeout(200000);
+
+
+		it('Expect trade (sUSD -> sUNI) to fail without approval', async () => {
+			// confirm pre-balance of sUSD
+			const IERC20ABI = (
+				await artifacts.readArtifact(
+					'contracts/interfaces/IERC20.sol:IERC20'
+				)
+			).abi;
+			const sUSD = new ethers.Contract(
+				sUSD_ADDRESS_OE,
+				IERC20ABI,
+				waffle.provider
+			);
+			const sUSDBalancePreSwap = await sUSD.balanceOf(
+				TEST_ADDRESS_WITH_sUSD
+			);
+			expect(sUSDBalancePreSwap).to.be.above(ethers.constants.One);
+
+			// confirm no balance of sUNI
+			const sUNI = new ethers.Contract(
+				sUNI_ADDRESS_OE,
+				IERC20ABI,
+				waffle.provider
+			);
+			const sUNIBalancePreSwap = await sUNI.balanceOf(
+				TEST_ADDRESS_WITH_sUSD
+			);
+			expect(sUNIBalancePreSwap).to.equal(0);
+
+			// trade sUSD -> sUNI
+			await expect(
+				exchangerProxy
+					.connect(TEST_SIGNER_WITH_sUSD)
+					.exchangeOnBehalfWithTraderScoreTracking(
+						ethers.utils.formatBytes32String('sUSD'),
+						wei(1000).toBN(),
+						ethers.utils.formatBytes32String('sUNI'),
+						ethers.constants.AddressZero,
+						ethers.utils.formatBytes32String('KWENTA')
+					)
+			).to.be.revertedWith('Not approved to act on behalf');
 
 		}).timeout(200000);
+
 
 		it('Update reward scores properly', async () => {
 			// calculate expected reward score
