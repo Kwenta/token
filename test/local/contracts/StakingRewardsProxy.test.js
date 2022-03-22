@@ -699,7 +699,7 @@ describe('ownership test', () => {
 
 		await stProxy.connect(owner).setExchangerProxy(exchangerProxy.address);
 		await rewardsEscrow.setStakingRewards(stProxy.address);
-	})
+	});
 
 	it('pending address should be 0', async () => {
 		assert.equal(await stProxy.getPendingAdmin(), hre.ethers.constants.AddressZero);
@@ -711,4 +711,55 @@ describe('ownership test', () => {
 		await stProxy.connect(owner2).pendingAdminAccept();
 		assert.equal(await stProxy.getPendingAdmin(), hre.ethers.constants.AddressZero);
 	});
+});
+
+describe('recoverERC20()', () => {
+	let rewardsToken, stakingToken;
+	beforeEach(async () => {
+		ERC20 = await hre.ethers.getContractFactory('ERC20');
+		rewardsToken = await ERC20.deploy(
+			NAME,
+			SYMBOL
+		);
+
+		stakingToken = await ERC20.deploy(
+			NAME,
+			SYMBOL
+		);
+
+		unrelatedToken = await ERC20.deploy(
+			NAME,
+			SYMBOL
+		)
+
+		await deployNewRewardsEscrow(owner, kwentaToken);
+
+		StakingRewards = await deployContract();
+		stProxy = await hre.upgrades.deployProxy(
+			StakingRewards,
+			[
+				owner.address,
+				rewardsToken.address,
+				stakingToken.address,
+				rewardsEscrow.address,
+				3,
+			],
+			{ kind: 'uups', unsafeAllow: ['external-library-linking'] }
+		);
+
+		await stProxy.connect(owner).setExchangerProxy(exchangerProxy.address);
+		await rewardsEscrow.setStakingRewards(stProxy.address);
+	});
+
+	it('sweeping the rewards token', async () => {
+		await stProxy.connect(owner).recoverERC20(rewardsToken.address, 1).should.be.rejected;
+	});
+
+	it('sweeping the staking token', async () => {
+		await stProxy.connect(owner).recoverERC20(stakingToken.address, 1).should.be.rejected;
+	});
+
+	it('sweeping unrelated token', async () => {
+		await stProxy.connect(owner).recoverERC20(unrelatedToken.address, 1).should.be.rejectedWith("ERC20: transfer amount exceeds balance");
+	})
 });
