@@ -15,8 +15,11 @@ const SYMBOL = 'KWENTA';
 const INITIAL_SUPPLY = ethers.utils.parseUnits('313373');
 const WEEKLY_START_REWARDS = 3;
 const SECONDS_IN_WEEK = 6048000;
+
+// deployed contract addresses on OE
 const ADDRESS_RESOLVER_OE = '0x95A6a3f44a70172E7d50a9e28c85Dfd712756B8C';
 const DELEGATE_APPROVALS_OE = '0x2a23bc0ea97a89abd91214e8e4d20f02fe14743f';
+const EXCHANGE_RATES_OE = '0x1B9d6cD65dDC981410cb93Af91B097667E0Bc7eE';
 
 // token addresses on OE
 const sUSD_ADDRESS_OE = '0x8c6f28f2F1A3C87F0f938b96d27520d9751ec8d9';
@@ -24,8 +27,9 @@ const sETH_ADDRESS_OE = '0xE405de8F52ba7559f9df3C368500B6E6ae6Cee49';
 const sUNI_ADDRESS_OE = '0xf5a6115Aa582Fd1BEEa22BC93B7dC7a785F60d03';
 const sLINK_ADDRESS_OE = '0x2302D7F7783e2712C48aA684451b9d706e74F299';
 
-// test values for staking
-const TEST_VALUE = wei(20000).toBN();
+// test values
+const TEST_STAKING_VALUE = wei(20000).toBN();
+const TEST_SWAP_VALUE = wei(1000).toBN();
 
 // test accounts
 let owner: SignerWithAddress;
@@ -41,6 +45,7 @@ let rewardEscrow: Contract;
 let stakingRewardsProxy: Contract;
 let exchangerProxy: Contract;
 let delegateApprovals: Contract;
+let exchangeRates: Contract;
 
 // library contracts
 let fixidityLib: Contract;
@@ -211,6 +216,30 @@ const loadSetup = () => {
 
 		// set ExchangerProxy address in StakingRewards
 		await stakingRewardsProxy.setExchangerProxy(exchangerProxy.address);
+
+		// define DelegateApprovals contract for approvals
+		const IDelegateApprovals = (
+			await artifacts.readArtifact(
+				'contracts/interfaces/IDelegateApprovals.sol:IDelegateApprovals'
+			)
+		).abi;
+		delegateApprovals = new ethers.Contract(
+			DELEGATE_APPROVALS_OE,
+			IDelegateApprovals,
+			waffle.provider
+		);
+
+		// define ExchangeRates contract to poll synth swap rates
+		const IExchangeRates = (
+			await artifacts.readArtifact(
+				'contracts/interfaces/IExchangeRates.sol:IExchangeRates'
+			)
+		).abi;
+		exchangeRates = new ethers.Contract(
+			EXCHANGE_RATES_OE,
+			IExchangeRates,
+			waffle.provider
+		);
 	});
 };
 
@@ -229,23 +258,29 @@ describe('Stake (fork)', () => {
 			await expect(() =>
 				kwenta
 					.connect(TREASURY_DAO)
-					.transfer(TEST_ADDRESS_WITH_sUSD, TEST_VALUE)
-			).to.changeTokenBalance(kwenta, TEST_SIGNER_WITH_sUSD, TEST_VALUE);
+					.transfer(TEST_ADDRESS_WITH_sUSD, TEST_STAKING_VALUE)
+			).to.changeTokenBalance(
+				kwenta,
+				TEST_SIGNER_WITH_sUSD,
+				TEST_STAKING_VALUE
+			);
 			await expect(() =>
-				kwenta.connect(TREASURY_DAO).transfer(addr1.address, TEST_VALUE)
-			).to.changeTokenBalance(kwenta, addr1, TEST_VALUE);
+				kwenta
+					.connect(TREASURY_DAO)
+					.transfer(addr1.address, TEST_STAKING_VALUE)
+			).to.changeTokenBalance(kwenta, addr1, TEST_STAKING_VALUE);
 
 			// increase KWENTA allowance for stakingRewards and stake
 			await kwenta
 				.connect(TEST_SIGNER_WITH_sUSD)
-				.approve(stakingRewardsProxy.address, TEST_VALUE);
+				.approve(stakingRewardsProxy.address, TEST_STAKING_VALUE);
 			await kwenta
 				.connect(addr1)
-				.approve(stakingRewardsProxy.address, TEST_VALUE);
+				.approve(stakingRewardsProxy.address, TEST_STAKING_VALUE);
 			await stakingRewardsProxy
 				.connect(TEST_SIGNER_WITH_sUSD)
-				.stake(TEST_VALUE);
-			await stakingRewardsProxy.connect(addr1).stake(TEST_VALUE);
+				.stake(TEST_STAKING_VALUE);
+			await stakingRewardsProxy.connect(addr1).stake(TEST_STAKING_VALUE);
 
 			// check KWENTA was staked
 			expect(await kwenta.balanceOf(TEST_ADDRESS_WITH_sUSD)).to.equal(0);
@@ -254,24 +289,12 @@ describe('Stake (fork)', () => {
 				await stakingRewardsProxy
 					.connect(TEST_SIGNER_WITH_sUSD)
 					.stakedBalanceOf(TEST_ADDRESS_WITH_sUSD)
-			).to.equal(TEST_VALUE);
+			).to.equal(TEST_STAKING_VALUE);
 			expect(
 				await stakingRewardsProxy
 					.connect(addr1)
 					.stakedBalanceOf(addr1.address)
-			).to.equal(TEST_VALUE);
-
-			// define DelegateApprovals contract for approvals
-			const IDelegateApprovals = (
-				await artifacts.readArtifact(
-					'contracts/interfaces/IDelegateApprovals.sol:IDelegateApprovals'
-				)
-			).abi;
-			delegateApprovals = new ethers.Contract(
-				DELEGATE_APPROVALS_OE,
-				IDelegateApprovals,
-				waffle.provider
-			);
+			).to.equal(TEST_STAKING_VALUE);
 		});
 
 		it('Confirm nil trade scores', async () => {
@@ -283,6 +306,21 @@ describe('Stake (fork)', () => {
 				await stakingRewardsProxy.rewardScoreOf(addr1.address)
 			).to.equal(0);
 		}).timeout(200000);
+
+		it('Can poll synth rate for sETH to sUSD', async () => {
+			// Given a quantity of a source currency, returns a quantity
+			// of a destination currency that is of equivalent value at
+			// current exchange rates
+			const rate = await exchangeRates
+				.connect(TEST_SIGNER_WITH_sUSD)
+				.effectiveValue(
+					ethers.utils.formatBytes32String('sETH'),
+					wei(1).toBN(),
+					ethers.utils.formatBytes32String('sUSD')
+				);
+
+			expect(rate).to.equal('2903367300000000000000'); // $2,903.367
+		});
 
 		it('Caller can approve swap on behalf of exchange', async () => {
 			// approve exchange to swap token on behalf of TEST_SIGNER_WITH_sUSD
@@ -312,7 +350,7 @@ describe('Stake (fork)', () => {
 			const sUSDBalancePreSwap = await sUSD.balanceOf(
 				TEST_ADDRESS_WITH_sUSD
 			);
-			expect(sUSDBalancePreSwap).to.be.above(ethers.constants.One);
+			expect(sUSDBalancePreSwap).to.be.above(TEST_SWAP_VALUE);
 
 			// confirm no balance of sETH
 			const sETH = new ethers.Contract(
@@ -320,10 +358,7 @@ describe('Stake (fork)', () => {
 				IERC20ABI,
 				waffle.provider
 			);
-			const sETHBalancePreSwap = await sETH.balanceOf(
-				TEST_ADDRESS_WITH_sUSD
-			);
-			expect(sETHBalancePreSwap).to.equal(0);
+			expect(await sETH.balanceOf(TEST_ADDRESS_WITH_sUSD)).to.equal(0);
 
 			// trade sUSD -> sETH
 			// @notice delegateApprovals.approveExchangeOnBehalf called previously
@@ -331,20 +366,35 @@ describe('Stake (fork)', () => {
 				.connect(TEST_SIGNER_WITH_sUSD)
 				.exchangeOnBehalfWithTraderScoreTracking(
 					ethers.utils.formatBytes32String('sUSD'),
-					wei(1000).toBN(),
+					TEST_SWAP_VALUE,
 					ethers.utils.formatBytes32String('sETH'),
 					ethers.constants.AddressZero,
 					ethers.utils.formatBytes32String('KWENTA')
 				);
 
+			// poll exchange rate
+			const rate = await exchangeRates
+				.connect(TEST_SIGNER_WITH_sUSD)
+				.effectiveValue(
+					ethers.utils.formatBytes32String('sUSD'),
+					TEST_SWAP_VALUE,
+					ethers.utils.formatBytes32String('sETH')
+				);
+
 			// confirm sUSD balance decreased
-			expect(await sUSD.balanceOf(TEST_ADDRESS_WITH_sUSD)).to.be.below(
-				sUSDBalancePreSwap
+			expect(await sUSD.balanceOf(TEST_ADDRESS_WITH_sUSD)).to.equal(
+				sUSDBalancePreSwap.sub(TEST_SWAP_VALUE)
 			);
 
 			// confirm sETH balance increased
-			expect(await sETH.balanceOf(TEST_ADDRESS_WITH_sUSD)).to.be.above(
-				sETHBalancePreSwap
+			expect(
+				(await sETH.balanceOf(TEST_ADDRESS_WITH_sUSD)) / 1e18
+			).to.be.closeTo(
+				rate / 1e18,
+				1e-1,
+				'numbers are close'
+				// expected:	0.3435665890430053
+				// actual: 		0.34442765818847654
 			);
 		}).timeout(200000);
 
@@ -376,7 +426,7 @@ describe('Stake (fork)', () => {
 			const sUSDBalancePreSwap = await sUSD.balanceOf(
 				TEST_ADDRESS_WITH_sUSD
 			);
-			expect(sUSDBalancePreSwap).to.be.above(ethers.constants.One);
+			expect(sUSDBalancePreSwap).to.be.above(TEST_SWAP_VALUE);
 
 			// confirm no balance of sLINK
 			const sLINK = new ethers.Contract(
@@ -384,10 +434,7 @@ describe('Stake (fork)', () => {
 				IERC20ABI,
 				waffle.provider
 			);
-			const sUNIBalancePreSwap = await sLINK.balanceOf(
-				TEST_ADDRESS_WITH_sUSD
-			);
-			expect(sUNIBalancePreSwap).to.equal(0);
+			expect(await sLINK.balanceOf(TEST_ADDRESS_WITH_sUSD)).to.equal(0);
 
 			// trade sUSD -> sLINK
 			// @notice delegateApprovals.removeExchangeOnBehalf called previously
@@ -396,12 +443,17 @@ describe('Stake (fork)', () => {
 					.connect(TEST_SIGNER_WITH_sUSD)
 					.exchangeOnBehalfWithTraderScoreTracking(
 						ethers.utils.formatBytes32String('sUSD'),
-						wei(1000).toBN(),
+						TEST_SWAP_VALUE,
 						ethers.utils.formatBytes32String('sLINK'),
 						ethers.constants.AddressZero,
 						ethers.utils.formatBytes32String('KWENTA')
 					)
 			).to.be.revertedWith('Not approved to act on behalf');
+
+			// confirm sUSD balance did not decrease
+			expect(await sUSD.balanceOf(TEST_ADDRESS_WITH_sUSD)).to.equal(
+				sUSDBalancePreSwap
+			);
 		}).timeout(200000);
 
 		it('Caller can approve swap *again* on behalf of exchange', async () => {
@@ -432,7 +484,7 @@ describe('Stake (fork)', () => {
 			const sUSDBalancePreSwap = await sUSD.balanceOf(
 				TEST_ADDRESS_WITH_sUSD
 			);
-			expect(sUSDBalancePreSwap).to.be.above(ethers.constants.One);
+			expect(sUSDBalancePreSwap).to.be.above(TEST_SWAP_VALUE);
 
 			// confirm no balance of sUNI
 			const sUNI = new ethers.Contract(
@@ -440,10 +492,7 @@ describe('Stake (fork)', () => {
 				IERC20ABI,
 				waffle.provider
 			);
-			const sUNIBalancePreSwap = await sUNI.balanceOf(
-				TEST_ADDRESS_WITH_sUSD
-			);
-			expect(sUNIBalancePreSwap).to.equal(0);
+			expect(await sUNI.balanceOf(TEST_ADDRESS_WITH_sUSD)).to.equal(0);
 
 			// trade sUSD -> sUNI
 			// @notice delegateApprovals.approveExchangeOnBehalf called previously
@@ -451,20 +500,35 @@ describe('Stake (fork)', () => {
 				.connect(TEST_SIGNER_WITH_sUSD)
 				.exchangeOnBehalfWithTraderScoreTracking(
 					ethers.utils.formatBytes32String('sUSD'),
-					wei(1000).toBN(),
+					TEST_SWAP_VALUE,
 					ethers.utils.formatBytes32String('sUNI'),
 					ethers.constants.AddressZero,
 					ethers.utils.formatBytes32String('KWENTA')
 				);
 
+			// poll exchange rate
+			const rate = await exchangeRates
+				.connect(TEST_SIGNER_WITH_sUSD)
+				.effectiveValue(
+					ethers.utils.formatBytes32String('sUSD'),
+					TEST_SWAP_VALUE,
+					ethers.utils.formatBytes32String('sUNI')
+				);
+
 			// confirm sUSD balance decreased
-			expect(await sUSD.balanceOf(TEST_ADDRESS_WITH_sUSD)).to.be.below(
-				sUSDBalancePreSwap
+			expect(await sUSD.balanceOf(TEST_ADDRESS_WITH_sUSD)).to.equal(
+				sUSDBalancePreSwap.sub(TEST_SWAP_VALUE)
 			);
 
 			// confirm sUNI balance increased
-			expect(await sUNI.balanceOf(TEST_ADDRESS_WITH_sUSD)).to.be.above(
-				sUNIBalancePreSwap
+			expect(
+				(await sUNI.balanceOf(TEST_ADDRESS_WITH_sUSD)) / 1e18
+			).to.be.closeTo(
+				rate / 1e18,
+				1,
+				'numbers are close'
+				// expected:	107.21516127413655
+				// actual: 		107.48387095151534
 			);
 		}).timeout(200000);
 
