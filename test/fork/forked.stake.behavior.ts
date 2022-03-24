@@ -396,7 +396,7 @@ describe('Stake (fork)', () => {
 				1,
 				'numbers are *very* close'
 				// actual sETH balance: 343566589043005340
-				// rate - fee: 343566589043005341
+				// rate - fee: 			343566589043005341
 			);
 		}).timeout(200000);
 
@@ -533,7 +533,7 @@ describe('Stake (fork)', () => {
 				1,
 				'numbers are *very* close'
 				// actual sUNI balance: 107215161274136549846
-				// rate - fee: 107215161274136549847
+				// rate - fee: 			107215161274136549847
 			);
 		}).timeout(200000);
 
