@@ -3,7 +3,7 @@ import { ethers } from 'hardhat';
 import { Contract } from '@ethersproject/contracts';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { wei } from '@synthetixio/wei';
-import { fastForward } from '../../utils/helpers';
+import { fastForward, impersonate } from '../../utils/helpers';
 import { deployKwenta } from '../../utils/kwenta';
 
 // constants
@@ -42,7 +42,7 @@ const fundAndSetStakingRewards = async () => {
 	).to.changeTokenBalance(kwenta, stakingRewardsProxy, rewards);
 
 	// set the rewards for the next epoch (1)
-	await stakingRewardsProxy.setRewardNEpochs(rewards, 1);
+	await stakingRewardsProxy.connect(await impersonate(supplySchedule.address)).setRewardNEpochs(rewards, 1);
 };
 
 const loadSetup = () => {
@@ -154,7 +154,7 @@ describe('Stake', () => {
 
 			// set the rewards for the next epoch (2)
 			const reward = wei(1).toBN();
-			await stakingRewardsProxy.setRewardNEpochs(reward, 1);
+			await stakingRewardsProxy.connect(await impersonate(supplySchedule.address)).setRewardNEpochs(reward, 1);
 
 			// increase KWENTA allowance for stakingRewards and stake
 			await kwenta

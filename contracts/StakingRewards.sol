@@ -9,6 +9,8 @@ import "./libraries/FixidityLib.sol";
 import "./libraries/ExponentLib.sol";
 import "./libraries/LogarithmLib.sol";
 import "./interfaces/IStakingRewards.sol";
+// Import SupplySchedule interface for access control of setRewardNEpochs
+import "./interfaces/ISupplySchedule.sol";
 
 // Inheritance
 import "./utils/Pausable.sol";
@@ -32,6 +34,9 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
 
     // Reward Escrow
     RewardEscrow public rewardEscrow;
+
+    // Reward Escrow
+    ISupplySchedule public supplySchedule;
 
     // ExchangerProxy
     address private exchangerProxy;
@@ -107,6 +112,7 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
         address _rewardsToken,
         address _stakingToken,
         address _rewardEscrow,
+        address _supplySchedule,
         uint256 _weeklyStartRewards
     ) public initializer {
         __Pausable_init(_owner);
@@ -124,6 +130,7 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
         fixidity.init(18);
 
         rewardEscrow = RewardEscrow(_rewardEscrow);
+        supplySchedule = ISupplySchedule(_supplySchedule);
 
         PERCENTAGE_STAKING = 8_000;
         PERCENTAGE_TRADING = 2_000;
@@ -465,7 +472,7 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
      * @param rewards, total amount to distribute
      * @param nEpochs, number of weeks with rewards
      */  
-    function setRewardNEpochs(uint256 reward, uint256 nEpochs) override external onlyOwner updateRewards(address(0)) {
+    function setRewardNEpochs(uint256 reward, uint256 nEpochs) override external onlySupplySchedule updateRewards(address(0)) {
         rewardRate = reward / nEpochs / WEEK;
         rewardRateStaking = rewardRate * PERCENTAGE_STAKING / MAX_BPS;
         rewardRateTrading = rewardRate * PERCENTAGE_TRADING / MAX_BPS;
@@ -584,6 +591,23 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
         bool isRE = msg.sender == address(rewardEscrow);
 
         require(isRE);
+    }
+
+    /*
+     * @notice access control modifier for rewardEscrow
+     */
+    modifier onlySupplySchedule() {
+        _onlySupplySchedule();
+        _;
+    }
+
+    /*
+     * @notice internal function used in the modifier with the same name to optimize bytecode
+     */
+    function _onlySupplySchedule() internal view {
+        bool isSS = msg.sender == address(supplySchedule);
+
+        require(isSS);
     }
 
 

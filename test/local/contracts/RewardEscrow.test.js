@@ -189,9 +189,11 @@ contract(
         let rewardsToken;
         let rewardsEscrow;
         let kwentaSmock;
+        let supplySchedule;
 
         before(async () => {
             kwentaSmock = await smock.fake("Kwenta");
+            supplySchedule = await smock.fake("SupplySchedule");
 
             // TODO: Remove if unused
             stakingToken = await TokenContract.new(
@@ -230,6 +232,7 @@ contract(
                 rewardsToken.address,
                 stakingToken.address,
                 rewardsEscrow.address,
+                supplySchedule.address,
                 3
             );
 

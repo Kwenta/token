@@ -123,6 +123,21 @@ const deployContract = async () => {
     return StakingRewards;
 };
 
+const deployProxy = async () => {
+    return await hre.upgrades.deployProxy(
+        StakingRewards,
+        [
+            owner.address,
+            kwentaToken.address,
+            kwentaToken.address,
+            rewardsEscrow.address,
+            supplySchedule.address,
+            3,
+        ],
+        { kind: "uups", unsafeAllow: ["external-library-linking"] }
+    );
+};
+
 const deployNewRewardsEscrow = async (owner, kwentaToken) => {
     RewardsEscrow = await await hre.ethers.getContractFactory("RewardEscrow");
     rewardsEscrow = await RewardsEscrow.deploy(
@@ -165,17 +180,7 @@ before(async () => {
 describe("Proxy deployment", async () => {
     it("should deploy the proxy", async () => {
         StakingRewards = await deployContract();
-        stProxy = await hre.upgrades.deployProxy(
-            StakingRewards,
-            [
-                owner.address,
-                kwentaToken.address,
-                kwentaToken.address,
-                rewardsEscrow.address,
-                3,
-            ],
-            { kind: "uups", unsafeAllow: ["external-library-linking"] }
-        );
+        stProxy = await deployProxy();
 
         admin_address = await hre.upgrades.erc1967.getAdminAddress(
             stProxy.address
@@ -305,7 +310,9 @@ describe("lastTimeRewardApplicable()", () => {
 
     describe("when updated", () => {
         it("should equal current timestamp", async () => {
-            await stProxy.connect(owner).setRewardNEpochs(toUnit(10), 4);
+            await stProxy
+                .connect(supplySchedule)
+                .setRewardNEpochs(toUnit(10), 4);
 
             const cur = await currentTime();
             const lastTimeReward = await stProxy.lastTimeRewardApplicable();
@@ -318,17 +325,7 @@ describe("lastTimeRewardApplicable()", () => {
 describe("rewardPerToken()", () => {
     it("should return 0", async () => {
         StakingRewards = await deployContract();
-        stProxy = await hre.upgrades.deployProxy(
-            StakingRewards,
-            [
-                owner.address,
-                kwentaToken.address,
-                kwentaToken.address,
-                rewardsEscrow.address,
-                3,
-            ],
-            { kind: "uups", unsafeAllow: ["external-library-linking"] }
-        );
+        stProxy = await deployProxy();
 
         await stProxy.connect(owner).setExchangerProxy(exchangerProxy.address);
 
@@ -342,7 +339,7 @@ describe("rewardPerToken()", () => {
             .connect(treasuryDAO)
             .transfer(stProxy.address, toUnit(10));
         await kwentaToken.connect(staker1).approve(stProxy.address, toUnit(10));
-        await stProxy.connect(owner).setRewardNEpochs(toUnit(10), 4);
+        await stProxy.connect(supplySchedule).setRewardNEpochs(toUnit(10), 4);
 
         await stProxy.connect(staker1).stake(totalToStake);
         await fastForward(1);
@@ -360,17 +357,7 @@ describe("earned()", () => {
         await deployNewRewardsEscrow(owner, kwentaToken);
 
         StakingRewards = await deployContract();
-        stProxy = await hre.upgrades.deployProxy(
-            StakingRewards,
-            [
-                owner.address,
-                kwentaToken.address,
-                kwentaToken.address,
-                rewardsEscrow.address,
-                3,
-            ],
-            { kind: "uups", unsafeAllow: ["external-library-linking"] }
-        );
+        stProxy = await deployProxy();
 
         rewardsEscrow.setStakingRewards(stProxy.address);
         await kwentaToken
@@ -389,7 +376,7 @@ describe("earned()", () => {
 
         const rewardValue = toUnit(5.0);
 
-        await stProxy.setRewardNEpochs(rewardValue, 1);
+        await stProxy.connect(supplySchedule).setRewardNEpochs(rewardValue, 1);
 
         await fastForward(DAY * 7);
 
@@ -405,17 +392,7 @@ describe("earned()", () => {
         await deployNewRewardsEscrow(owner, kwentaToken);
 
         StakingRewards = await deployContract();
-        stProxy = await hre.upgrades.deployProxy(
-            StakingRewards,
-            [
-                owner.address,
-                kwentaToken.address,
-                kwentaToken.address,
-                rewardsEscrow.address,
-                3,
-            ],
-            { kind: "uups", unsafeAllow: ["external-library-linking"] }
-        );
+        stProxy = await deployProxy();
 
         await stProxy.connect(owner).setExchangerProxy(exchangerProxy.address);
         await rewardsEscrow.setStakingRewards(stProxy.address);
@@ -435,7 +412,7 @@ describe("earned()", () => {
 
         const rewardValue = toUnit(5.0);
 
-        await stProxy.setRewardNEpochs(rewardValue, 1);
+        await stProxy.connect(supplySchedule).setRewardNEpochs(rewardValue, 1);
 
         await fastForward(DAY);
 
@@ -451,17 +428,7 @@ describe("earned()", () => {
         await deployNewRewardsEscrow(owner, kwentaToken);
 
         StakingRewards = await deployContract();
-        stProxy = await hre.upgrades.deployProxy(
-            StakingRewards,
-            [
-                owner.address,
-                kwentaToken.address,
-                kwentaToken.address,
-                rewardsEscrow.address,
-                3,
-            ],
-            { kind: "uups", unsafeAllow: ["external-library-linking"] }
-        );
+        stProxy = await deployProxy();
 
         await stProxy.connect(owner).setExchangerProxy(exchangerProxy.address);
         await rewardsEscrow.setStakingRewards(stProxy.address);
@@ -477,7 +444,7 @@ describe("earned()", () => {
 
         const rewardValue = toUnit(5.0);
 
-        await stProxy.setRewardNEpochs(rewardValue, 1);
+        await stProxy.connect(supplySchedule).setRewardNEpochs(rewardValue, 1);
 
         await fastForward(DAY);
 
@@ -493,17 +460,7 @@ describe("earned()", () => {
         await deployNewRewardsEscrow(owner, kwentaToken);
 
         StakingRewards = await deployContract();
-        stProxy = await hre.upgrades.deployProxy(
-            StakingRewards,
-            [
-                owner.address,
-                kwentaToken.address,
-                kwentaToken.address,
-                rewardsEscrow.address,
-                3,
-            ],
-            { kind: "uups", unsafeAllow: ["external-library-linking"] }
-        );
+        stProxy = await deployProxy();
 
         await stProxy.connect(owner).setExchangerProxy(exchangerProxy.address);
         await rewardsEscrow.setStakingRewards(stProxy.address);
@@ -527,7 +484,7 @@ describe("earned()", () => {
 
         const rewardValue = toUnit(5.0);
 
-        await stProxy.setRewardNEpochs(rewardValue, 1);
+        await stProxy.connect(supplySchedule).setRewardNEpochs(rewardValue, 1);
 
         await fastForward(DAY);
 
@@ -540,7 +497,8 @@ describe("earned()", () => {
 describe("setRewardNEpochs()", () => {
     it("Reverts if the provided reward is greater than the balance.", async () => {
         const rewardValue = toUnit(100000000);
-        await stProxy.setRewardNEpochs(rewardValue, 1).should.be.rejected;
+        await stProxy.connect(supplySchedule).setRewardNEpochs(rewardValue, 1)
+            .should.be.rejected;
     });
 });
 
@@ -552,17 +510,7 @@ describe("rewardEpochs()", () => {
         await deployNewRewardsEscrow(owner, kwentaToken);
 
         StakingRewards = await deployContract();
-        stProxy = await hre.upgrades.deployProxy(
-            StakingRewards,
-            [
-                owner.address,
-                kwentaToken.address,
-                kwentaToken.address,
-                rewardsEscrow.address,
-                3,
-            ],
-            { kind: "uups", unsafeAllow: ["external-library-linking"] }
-        );
+        stProxy = await deployProxy();
         await stProxy.connect(owner).setExchangerProxy(exchangerProxy.address);
         await rewardsEscrow.setStakingRewards(stProxy.address);
         await kwentaToken
@@ -584,7 +532,7 @@ describe("rewardEpochs()", () => {
         } else {
             currEpoch = currEpoch - 3 * DAY;
         }
-        await stProxy.setRewardNEpochs(rewardValue, 1);
+        await stProxy.connect(supplySchedule).setRewardNEpochs(rewardValue, 1);
 
         await stProxy.connect(staker1).stake(totalToStake);
         await stProxy
@@ -611,17 +559,7 @@ describe("implementation test", () => {
         await deployNewRewardsEscrow(owner, kwentaToken);
 
         StakingRewards = await deployContract();
-        stProxy = await hre.upgrades.deployProxy(
-            StakingRewards,
-            [
-                owner.address,
-                kwentaToken.address,
-                kwentaToken.address,
-                rewardsEscrow.address,
-                3,
-            ],
-            { kind: "uups", unsafeAllow: ["external-library-linking"] }
-        );
+        stProxy = await deployProxy();
         await stProxy.connect(owner).setExchangerProxy(exchangerProxy.address);
         await rewardsEscrow.setStakingRewards(stProxy.address);
         await kwentaToken
@@ -648,7 +586,7 @@ describe("implementation test", () => {
         await stProxy.connect(staker1).stake(toUnit(10));
         await stProxy.connect(staker2).stake(toUnit(10));
 
-        await stProxy.setRewardNEpochs(toUnit(300), 3);
+        await stProxy.connect(supplySchedule).setRewardNEpochs(toUnit(300), 3);
 
         await fastForward(1 * DAY);
 
@@ -712,17 +650,7 @@ describe("ownership test", () => {
         await deployNewRewardsEscrow(owner, kwentaToken);
 
         StakingRewards = await deployContract();
-        stProxy = await hre.upgrades.deployProxy(
-            StakingRewards,
-            [
-                owner.address,
-                kwentaToken.address,
-                kwentaToken.address,
-                rewardsEscrow.address,
-                3,
-            ],
-            { kind: "uups", unsafeAllow: ["external-library-linking"] }
-        );
+        stProxy = await deployProxy();
 
         await stProxy.connect(owner).setExchangerProxy(exchangerProxy.address);
         await rewardsEscrow.setStakingRewards(stProxy.address);
@@ -766,6 +694,7 @@ describe("recoverERC20()", () => {
                 rewardsToken.address,
                 stakingToken.address,
                 rewardsEscrow.address,
+                supplySchedule.address,
                 3,
             ],
             { kind: "uups", unsafeAllow: ["external-library-linking"] }
