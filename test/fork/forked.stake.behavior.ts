@@ -15,6 +15,7 @@ const SYMBOL = 'KWENTA';
 const INITIAL_SUPPLY = ethers.utils.parseUnits('313373');
 const WEEKLY_START_REWARDS = 3;
 const SECONDS_IN_WEEK = 6048000;
+const FEE_BPS = 25;
 
 // deployed contract addresses on OE
 const ADDRESS_RESOLVER_OE = '0x95A6a3f44a70172E7d50a9e28c85Dfd712756B8C';
@@ -380,6 +381,9 @@ describe('Stake (fork)', () => {
 					TEST_SWAP_VALUE,
 					ethers.utils.formatBytes32String('sETH')
 				);
+			
+			// calculate fee taken from synth exchange
+			const fee = wei(rate, 18, true).mul(FEE_BPS / 10000).toBN();
 
 			// confirm sUSD balance decreased
 			expect(await sUSD.balanceOf(TEST_ADDRESS_WITH_sUSD)).to.equal(
@@ -387,14 +391,12 @@ describe('Stake (fork)', () => {
 			);
 
 			// confirm sETH balance increased
-			expect(
-				(await sETH.balanceOf(TEST_ADDRESS_WITH_sUSD)) / 1e18
-			).to.be.closeTo(
-				rate / 1e18,
-				1e-1,
-				'numbers are close'
-				// expected:	0.3435665890430053
-				// actual: 		0.34442765818847654
+			expect(await sETH.balanceOf(TEST_ADDRESS_WITH_sUSD)).to.be.closeTo(
+				rate.sub(fee),
+				1,
+				'numbers are *very* close'
+				// actual sETH balance: 343566589043005340
+				// rate - fee: 343566589043005341
 			);
 		}).timeout(200000);
 
@@ -514,6 +516,9 @@ describe('Stake (fork)', () => {
 					TEST_SWAP_VALUE,
 					ethers.utils.formatBytes32String('sUNI')
 				);
+			
+			// calculate fee taken from synth exchange
+			const fee = wei(rate, 18, true).mul(FEE_BPS / 10000).toBN();
 
 			// confirm sUSD balance decreased
 			expect(await sUSD.balanceOf(TEST_ADDRESS_WITH_sUSD)).to.equal(
@@ -522,13 +527,13 @@ describe('Stake (fork)', () => {
 
 			// confirm sUNI balance increased
 			expect(
-				(await sUNI.balanceOf(TEST_ADDRESS_WITH_sUSD)) / 1e18
+				await sUNI.balanceOf(TEST_ADDRESS_WITH_sUSD)
 			).to.be.closeTo(
-				rate / 1e18,
+				rate.sub(fee),
 				1,
-				'numbers are close'
-				// expected:	107.21516127413655
-				// actual: 		107.48387095151534
+				'numbers are *very* close'
+				// actual sUNI balance: 107215161274136549846
+				// rate - fee: 107215161274136549847
 			);
 		}).timeout(200000);
 
