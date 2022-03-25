@@ -66,6 +66,6 @@ export default {
     },
   },
   exposed: {
-    exclude: ["**/SafeDecimalMath.sol"]
+    exclude: ["**/libraries/SafeDecimalMath.sol"]
   },
 };

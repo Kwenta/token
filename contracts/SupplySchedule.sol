@@ -2,11 +2,11 @@
 pragma solidity ^0.8.0;
 
 // Inheritance
-import "./Owned.sol";
+import "./utils/Owned.sol";
 import "./interfaces/ISupplySchedule.sol";
 
 // Libraries
-import "./SafeDecimalMath.sol";
+import "./libraries/SafeDecimalMath.sol";
 import "./libraries/Math.sol";
 
 // Internal references
