@@ -349,7 +349,7 @@ describe('Stake', () => {
 			// trade
 			await exchangerProxy
 				.connect(addr1)
-				.exchangeWithTraderScoreTracking(
+				.exchangeOnBehalfWithTraderScoreTracking(
 					ethers.utils.formatBytes32String('sUSD'),
 					ethers.constants.One,
 					ethers.utils.formatBytes32String('sETH'),
