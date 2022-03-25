@@ -35,7 +35,7 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     // Reward Escrow
     RewardEscrow public rewardEscrow;
 
-    // Reward Escrow
+    // Supply Schedule
     ISupplySchedule public supplySchedule;
 
     // ExchangerProxy
