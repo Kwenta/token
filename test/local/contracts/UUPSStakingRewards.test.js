@@ -59,7 +59,7 @@ contract('UUPS Proxy for StakingRewards', ([owner, rewardsDistribution, supplySc
 				}
 			});
 			st_proxy = await hre.upgrades.deployProxy(StakingRewards,
-				[owner, kwentaToken.address, kwentaToken.address, rewardsEscrow.address, 3],
+				[owner, kwentaToken.address, kwentaToken.address, rewardsEscrow.address, supplySchedule, 3],
 				{kind: "uups",
 				unsafeAllow: ["external-library-linking"]
 				});
