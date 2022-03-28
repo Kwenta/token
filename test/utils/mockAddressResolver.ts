@@ -5,6 +5,7 @@ import { IAddressResolver } from "../../typechain/IAddressResolver";
 import { IERC20 } from "../../typechain/IERC20";
 import { IExchanger } from "../../typechain/IExchanger";
 import { ISynthetix } from "../../typechain/ISynthetix";
+import { IExchangeRates } from '../../typechain/IExchangeRates';
 
 /**
  * Deploys mock synthetix AddressResolver
@@ -21,10 +22,16 @@ export const mockAddressResolver = async () => {
 	const fakeExchanger = await smock.fake<IExchanger>('IExchanger');
 	fakeExchanger.feeRateForExchange.returns(FEE);
 
+	const fakeExchangeRates = await smock.fake<IExchangeRates>('IExchangeRates');
+	fakeExchangeRates.effectiveValue.returns(FEE);
+
 	const fakeAddressResolver = await smock.fake<IAddressResolver>(
 		'IAddressResolver'
 	);
+
 	fakeAddressResolver.requireAndGetAddress.reverts();
+
+	// Synthetix
 	fakeAddressResolver.requireAndGetAddress
 		.whenCalledWith(
 			ethers.utils.formatBytes32String('Synthetix'),
@@ -32,6 +39,7 @@ export const mockAddressResolver = async () => {
 		)
 		.returns(fakeSynthetix.address);
 
+	// Exchanger
 	fakeAddressResolver.requireAndGetAddress
 		.whenCalledWith(
 			ethers.utils.formatBytes32String('Exchanger'),
@@ -39,6 +47,15 @@ export const mockAddressResolver = async () => {
 		)
 		.returns(fakeExchanger.address);
 
+	// ExchangeRates
+	fakeAddressResolver.requireAndGetAddress
+		.whenCalledWith(
+			ethers.utils.formatBytes32String('ExchangeRates'),
+			'Could not get ExchangeRates'
+		)
+		.returns(fakeExchangeRates.address);
+
+	// sUSD
 	fakeAddressResolver.getSynth
 		.whenCalledWith(
 			ethers.utils.formatBytes32String('sUSD')

@@ -4,6 +4,7 @@ import { Contract } from '@ethersproject/contracts';
 import { FakeContract, smock } from '@defi-wonderland/smock';
 import { IExchanger } from '../../../typechain/IExchanger';
 import { ISynthetix } from '../../../typechain/ISynthetix';
+import { IExchangeRates } from '../../../typechain/IExchangeRates';
 import { IAddressResolver } from '../../../typechain/IAddressResolver';
 import { IStakingRewards } from '../../../typechain/IStakingRewards';
 import { IERC20 } from '../../../typechain/IERC20';
@@ -23,22 +24,39 @@ describe('Exchanger Proxy', function () {
 		const fakeExchanger = await smock.fake<IExchanger>('IExchanger');
 		fakeExchanger.feeRateForExchange.returns(0);
 
+		const fakeExchangeRates = await smock.fake<IExchangeRates>('IExchangeRates');
+		fakeExchangeRates.effectiveValue.returns(0);
+
 		const fakeAddressResolver = await smock.fake<IAddressResolver>(
 			'IAddressResolver'
 		);
+
 		fakeAddressResolver.requireAndGetAddress.reverts();
+		
+		// Synthetix
 		fakeAddressResolver.requireAndGetAddress
 			.whenCalledWith(
 				ethers.utils.formatBytes32String('Synthetix'),
 				'Could not get Synthetix'
 			)
 			.returns(fakeSynthetix.address);
+		
+		// Exchanger
 		fakeAddressResolver.requireAndGetAddress
 			.whenCalledWith(
 				ethers.utils.formatBytes32String('Exchanger'),
 				'Could not get Exchanger'
 			)
 			.returns(fakeExchanger.address);
+		
+		// ExchangeRates
+		fakeAddressResolver.requireAndGetAddress
+			.whenCalledWith(
+				ethers.utils.formatBytes32String('ExchangeRates'),
+				'Could not get ExchangeRates'
+			)
+			.returns(fakeExchangeRates.address);
+
 		fakeAddressResolver.getSynth
 			.whenCalledWith(
 				ethers.utils.formatBytes32String('sUSD')
