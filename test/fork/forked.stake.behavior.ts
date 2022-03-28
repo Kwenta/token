@@ -4,7 +4,7 @@ import { Contract } from '@ethersproject/contracts';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { wei } from '@synthetixio/wei';
 import { Signer } from 'ethers';
-import { fastForward } from '../utils/helpers';
+import { fastForward, impersonate } from '../utils/helpers';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -67,7 +67,7 @@ const fundAndSetStakingRewards = async () => {
 	).to.changeTokenBalance(kwenta, stakingRewardsProxy, rewards);
 
 	// set the rewards for the next epoch (1)
-	await stakingRewardsProxy.setRewardNEpochs(rewards, 1);
+	await stakingRewardsProxy.connect(await impersonate(supplySchedule.address)).setRewardNEpochs(rewards, 1);
 };
 
 // Fork Optimism Network for following tests
@@ -192,6 +192,7 @@ const loadSetup = () => {
 				kwenta.address,
 				kwenta.address,
 				rewardEscrow.address,
+				supplySchedule.address,
 				WEEKLY_START_REWARDS,
 			],
 			{
