@@ -5,6 +5,7 @@ import "./interfaces/IAddressResolver.sol";
 import "./interfaces/ISynthetix.sol";
 import "./interfaces/IExchanger.sol";
 import "./interfaces/IStakingRewards.sol";
+import "./interfaces/IExchangeRates.sol";
 import "./interfaces/IERC20.sol";
 
 contract ExchangerProxy {
@@ -12,6 +13,8 @@ contract ExchangerProxy {
     IStakingRewards stakingRewards;
     bytes32 private constant CONTRACT_SYNTHETIX = "Synthetix";
     bytes32 private constant CONTRACT_EXCHANGER = "Exchanger";
+    bytes32 private constant CONTRACT_EXRATES = "ExchangeRates";
+    bytes32 private constant sUSD_CURRENCY_KEY = "sUSD";
 
     constructor(address _addressResolver, address _stakingRewards) {
         addressResolver = IAddressResolver(_addressResolver);
@@ -32,6 +35,13 @@ contract ExchangerProxy {
         ));
     }
 
+    function exchangeRates() internal view returns (IExchangeRates) {
+        return IExchangeRates(addressResolver.requireAndGetAddress(
+            CONTRACT_EXRATES,
+            "Could not get ExchangeRates"
+        ));
+    }
+
     function exchangeOnBehalfWithTraderScoreTracking(
         bytes32 sourceCurrencyKey,
         uint sourceAmount,
@@ -39,16 +49,21 @@ contract ExchangerProxy {
         address rewardAddress,
         bytes32 trackingCode
     ) external returns (uint amountReceived) {
-        // Get fee
+        // Get fee denoted in destinationCurrencyKey
         uint fee = exchanger().feeRateForExchange(sourceCurrencyKey, destinationCurrencyKey);
+
+        // if fee is NOT denoted in sUSD, query Synthetix for exchange rate 
+        if (destinationCurrencyKey != sUSD_CURRENCY_KEY) {
+            fee = exchangeRates().effectiveValue(destinationCurrencyKey, fee, sUSD_CURRENCY_KEY);
+        }
 
         // Execute exchange on behalf of user
         uint received = synthetix().exchangeOnBehalfWithTracking(
             msg.sender,
-            sourceCurrencyKey, 
-            sourceAmount, 
-            destinationCurrencyKey, 
-            rewardAddress, 
+            sourceCurrencyKey,
+            sourceAmount,
+            destinationCurrencyKey,
+            rewardAddress,
             trackingCode
         );
 
@@ -56,5 +71,4 @@ contract ExchangerProxy {
         stakingRewards.updateTraderScore(msg.sender, fee);
         return received;
     }
-
 }
