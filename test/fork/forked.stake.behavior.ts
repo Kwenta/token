@@ -539,13 +539,10 @@ describe('Stake (fork)', () => {
 
 		it('Update reward scores properly', async () => {
 			// calculate expected reward score
-			const feesPaidByTestAddress = await stakingRewardsProxy.feesPaidBy(
-				TEST_ADDRESS_WITH_sUSD
-			);
+			const feesPaidByTestAddress = 
+				await stakingRewardsProxy.feesPaidBy(TEST_ADDRESS_WITH_sUSD);
 			const kwentaStakedByTestAddress =
 				await stakingRewardsProxy.stakedBalanceOf(TEST_ADDRESS_WITH_sUSD);
-
-			// expected reward score
 			const expectedRewardScoreTestAddress =
 				Math.pow(feesPaidByTestAddress, 0.7) *
 				Math.pow(kwentaStakedByTestAddress, 0.3);
