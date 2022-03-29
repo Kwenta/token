@@ -49,10 +49,10 @@ contract ExchangerProxy {
         address rewardAddress,
         bytes32 trackingCode
     ) external returns (uint amountReceived) {
-        // Get fee denoted in destinationCurrencyKey
+        // Get fee rate (denoted in destinationCurrencyKey)
         uint fee = exchanger().feeRateForExchange(sourceCurrencyKey, destinationCurrencyKey);
 
-        // if fee is NOT denoted in sUSD, query Synthetix for exchange rate 
+        // If fee is NOT denoted in sUSD, query Synthetix for exchange rate in sUSD
         if (destinationCurrencyKey != sUSD_CURRENCY_KEY) {
             fee = exchangeRates().effectiveValue(destinationCurrencyKey, fee, sUSD_CURRENCY_KEY);
         }
