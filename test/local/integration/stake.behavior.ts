@@ -1,13 +1,10 @@
 import { expect } from 'chai';
-import { ethers, upgrades } from 'hardhat';
+import { ethers } from 'hardhat';
 import { Contract } from '@ethersproject/contracts';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { wei } from '@synthetixio/wei';
-import { FakeContract, smock } from '@defi-wonderland/smock';
-import { IExchanger } from '../../../typechain/IExchanger';
-import { ISynthetix } from '../../../typechain/ISynthetix';
-import { IAddressResolver } from '../../../typechain/IAddressResolver';
-import { IERC20 } from '../../../typechain/IERC20';
+import { fastForward, impersonate } from '../../utils/helpers';
+import { deployKwenta } from '../../utils/kwenta';
 
 // constants
 const NAME = 'Kwenta';
@@ -34,60 +31,6 @@ let rewardEscrow: Contract;
 let stakingRewardsProxy: Contract;
 let exchangerProxy: Contract;
 
-// library contracts
-let fixidityLib: Contract;
-let logarithmLib: Contract;
-let exponentLib: Contract;
-
-// util contracts
-let safeDecimalMath: Contract;
-
-// fake contracts
-let fakeAddressResolver: FakeContract;
-
-// time/fast-forwarding Helper Methods
-const fastForward = async (sec: number) => {
-	const blockNumber = await ethers.provider.getBlockNumber();
-	const block = await ethers.provider.getBlock(blockNumber);
-	const currTime = block.timestamp;
-	await ethers.provider.send('evm_mine', [currTime + sec]);
-};
-
-// Mock Synthetix AddressResolver
-const mockAddressResolver = async () => {
-	const fakeERC20 = await smock.fake<IERC20>('IERC20');
-
-	const FEE = wei(10).toBN();
-
-	const fakeSynthetix = await smock.fake<ISynthetix>('ISynthetix');
-	fakeSynthetix.exchangeWithTracking.returns(FEE);
-
-	const fakeExchanger = await smock.fake<IExchanger>('IExchanger');
-	fakeExchanger.feeRateForExchange.returns(FEE);
-
-	const fakeAddressResolver = await smock.fake<IAddressResolver>(
-		'IAddressResolver'
-	);
-	fakeAddressResolver.requireAndGetAddress.reverts();
-	fakeAddressResolver.requireAndGetAddress
-		.whenCalledWith(
-			ethers.utils.formatBytes32String('Synthetix'),
-			'Could not get Synthetix'
-		)
-		.returns(fakeSynthetix.address);
-	fakeAddressResolver.requireAndGetAddress
-		.whenCalledWith(
-			ethers.utils.formatBytes32String('Exchanger'),
-			'Could not get Exchanger'
-		)
-		.returns(fakeExchanger.address);
-	fakeAddressResolver.getSynth
-		.whenCalledWith(ethers.utils.formatBytes32String('sUSD'))
-		.returns(fakeERC20.address);
-
-	return fakeAddressResolver;
-};
-
 // StakingRewards: fund with KWENTA and set the rewards
 const fundAndSetStakingRewards = async () => {
 	// fund StakingRewards with KWENTA
@@ -99,122 +42,26 @@ const fundAndSetStakingRewards = async () => {
 	).to.changeTokenBalance(kwenta, stakingRewardsProxy, rewards);
 
 	// set the rewards for the next epoch (1)
-	await stakingRewardsProxy.setRewardNEpochs(rewards, 1);
+	await stakingRewardsProxy.connect(await impersonate(supplySchedule.address)).setRewardNEpochs(rewards, 1);
 };
 
 const loadSetup = () => {
 	before('Deploy contracts', async () => {
 		[owner, addr1, addr2, TREASURY_DAO] = await ethers.getSigners();
-
-		// deploy FixidityLib
-		const FixidityLib = await ethers.getContractFactory('FixidityLib');
-		fixidityLib = await FixidityLib.deploy();
-		await fixidityLib.deployed();
-
-		// deploy LogarithmLib
-		const LogarithmLib = await ethers.getContractFactory('LogarithmLib', {
-			libraries: {
-				FixidityLib: fixidityLib.address,
-			},
-		});
-		logarithmLib = await LogarithmLib.deploy();
-		await logarithmLib.deployed();
-
-		// deploy ExponentLib
-		const ExponentLib = await ethers.getContractFactory('ExponentLib', {
-			libraries: {
-				FixidityLib: fixidityLib.address,
-				LogarithmLib: logarithmLib.address,
-			},
-		});
-		exponentLib = await ExponentLib.deploy();
-		await exponentLib.deployed();
-
-		// deploy SafeDecimalMath
-		const SafeDecimalMath = await ethers.getContractFactory(
-			'SafeDecimalMathV5'
-		);
-		safeDecimalMath = await SafeDecimalMath.deploy();
-		await safeDecimalMath.deployed();
-
-		// deploy SupplySchedule
-		const SupplySchedule = await ethers.getContractFactory('SupplySchedule', {
-			libraries: {
-				SafeDecimalMathV5: safeDecimalMath.address,
-			},
-		});
-		supplySchedule = await SupplySchedule.deploy(owner.address);
-		await supplySchedule.deployed();
-
-		// deploy Kwenta
-		const Kwenta = await ethers.getContractFactory('Kwenta');
-		kwenta = await Kwenta.deploy(
+		let deployments = await deployKwenta(
 			NAME,
 			SYMBOL,
 			INITIAL_SUPPLY,
-			owner.address,
-			TREASURY_DAO.address,
-			supplySchedule.address,
-			INFLATION_DIVERSION_BPS
+			INFLATION_DIVERSION_BPS,
+			WEEKLY_START_REWARDS,
+			owner,
+			TREASURY_DAO
 		);
-		await kwenta.deployed();
-		await supplySchedule.setKwenta(kwenta.address);
-
-		// deploy RewardEscrow
-		const RewardEscrow = await ethers.getContractFactory('RewardEscrow');
-		rewardEscrow = await RewardEscrow.deploy(owner.address, kwenta.address);
-		await rewardEscrow.deployed();
-
-		// deploy StakingRewards
-		const StakingRewards = await ethers.getContractFactory('StakingRewards', {
-			libraries: {
-				ExponentLib: exponentLib.address,
-				FixidityLib: fixidityLib.address,
-			},
-		});
-
-		// deploy UUPS Proxy using hardhat upgrades from OpenZeppelin
-		stakingRewardsProxy = await upgrades.deployProxy(
-			StakingRewards,
-			[
-				owner.address,
-				kwenta.address,
-				kwenta.address,
-				rewardEscrow.address,
-				WEEKLY_START_REWARDS,
-			],
-			{
-				kind: 'uups',
-				unsafeAllow: ['external-library-linking'],
-			}
-		);
-		await stakingRewardsProxy.deployed();
-
-		// get the address from the implementation (Staking Rewards Logic deployed)
-		let stakingRewardsProxyLogicAddress =
-			await upgrades.erc1967.getImplementationAddress(
-				stakingRewardsProxy.address
-			);
-
-		// set StakingRewards address in Kwenta token
-		await kwenta.setStakingRewards(stakingRewardsProxy.address);
-
-		// set StakingRewards address in RewardEscrow
-		await rewardEscrow.setStakingRewards(stakingRewardsProxy.address);
-
-		// Mock AddressResolver
-		fakeAddressResolver = await mockAddressResolver();
-
-		// deploy ExchangerProxy
-		const ExchangerProxy = await ethers.getContractFactory('ExchangerProxy');
-		exchangerProxy = await ExchangerProxy.deploy(
-			fakeAddressResolver.address,
-			stakingRewardsProxy.address
-		);
-		await exchangerProxy.deployed();
-
-		// set ExchangerProxy address in StakingRewards
-		await stakingRewardsProxy.setExchangerProxy(exchangerProxy.address);
+		kwenta = deployments.kwenta;
+		supplySchedule = deployments.supplySchedule;
+		rewardEscrow = deployments.rewardEscrow;
+		stakingRewardsProxy = deployments.stakingRewardsProxy;
+		exchangerProxy = deployments.exchangerProxy;
 	});
 };
 
@@ -307,7 +154,7 @@ describe('Stake', () => {
 
 			// set the rewards for the next epoch (2)
 			const reward = wei(1).toBN();
-			await stakingRewardsProxy.setRewardNEpochs(reward, 1);
+			await stakingRewardsProxy.connect(await impersonate(supplySchedule.address)).setRewardNEpochs(reward, 1);
 
 			// increase KWENTA allowance for stakingRewards and stake
 			await kwenta
@@ -502,7 +349,7 @@ describe('Stake', () => {
 			// trade
 			await exchangerProxy
 				.connect(addr1)
-				.exchangeWithTraderScoreTracking(
+				.exchangeOnBehalfWithTraderScoreTracking(
 					ethers.utils.formatBytes32String('sUSD'),
 					ethers.constants.One,
 					ethers.utils.formatBytes32String('sETH'),
@@ -531,7 +378,7 @@ describe('Stake', () => {
 			);
 
 			// expect reward score to be increase post-trade
-			expect(actualRewardScoreAddr1.div(wei(1).toBN())).to.be.closeTo(
+			expect(actualRewardScoreAddr1).to.be.closeTo(
 				wei(expectedRewardScoreAddr1.toString(), 18, true)
 					.toBN()
 					.toString(),
@@ -554,9 +401,22 @@ describe('Stake', () => {
 			await stakingRewardsProxy.connect(addr2).getReward();
 
 			// expect staker 1 to have greater rewards
-			expect(await rewardEscrow.balanceOf(addr1.address)).to.be.above(
-				await rewardEscrow.balanceOf(addr2.address)
+			var escrowedBalanceAddr1 = await rewardEscrow.balanceOf(addr1.address)
+			var escrowedBalanceAddr2 = await rewardEscrow.balanceOf(addr2.address)
+			expect(escrowedBalanceAddr1).to.be.above(
+				escrowedBalanceAddr2
 			);
+			
+			// multiple calls to getReward() should not produce any extra rewards
+			await stakingRewardsProxy.connect(addr1).getReward();
+			await stakingRewardsProxy.connect(addr2).getReward();
+			expect(await rewardEscrow.balanceOf(addr1.address)).to.equal(
+					escrowedBalanceAddr1
+				);
+			expect(await rewardEscrow.balanceOf(addr2.address)).to.equal(
+				escrowedBalanceAddr2
+			);
+
 		});
 	});
 });

@@ -1,10 +1,11 @@
-pragma solidity ^0.5.16;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
 
 // Libraries
-import "./SafeMath.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 // https://docs.synthetix.io/contracts/source/libraries/safedecimalmath
-library SafeDecimalMathV5 {
+library SafeDecimalMath {
     using SafeMath for uint;
 
     /* Number of decimal places in the representations. */

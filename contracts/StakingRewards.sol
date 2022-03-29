@@ -9,9 +9,11 @@ import "./libraries/FixidityLib.sol";
 import "./libraries/ExponentLib.sol";
 import "./libraries/LogarithmLib.sol";
 import "./interfaces/IStakingRewards.sol";
+// Import SupplySchedule interface for access control of setRewardNEpochs
+import "./interfaces/ISupplySchedule.sol";
 
 // Inheritance
-import "./Pausable.sol";
+import "./utils/Pausable.sol";
 // Import RewardEscrow contract for Escrow interactions
 import "./RewardEscrow.sol";
 
@@ -25,7 +27,6 @@ import "./RewardEscrow.sol";
 contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable {
     using FixidityLib for FixidityLib.Fixidity;
     using ExponentLib for FixidityLib.Fixidity;
-    using LogarithmLib for FixidityLib.Fixidity;
 
     /* ========== STATE VARIABLES ========== */
 
@@ -33,6 +34,9 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
 
     // Reward Escrow
     RewardEscrow public rewardEscrow;
+
+    // Supply Schedule
+    ISupplySchedule public supplySchedule;
 
     // ExchangerProxy
     address private exchangerProxy;
@@ -85,6 +89,8 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     // Decimals calculations
     uint256 private constant MAX_BPS = 10_000;
     uint256 private constant DECIMALS_DIFFERENCE = 1e30;
+    // Constant to return the reward scores with the correct decimal precision
+    uint256 private constant TOKEN_DECIMALS = 1e18;
     // Needs to be int256 for power library, root to calculate is equal to 0.7
     int256 public WEIGHT_FEES;
     // Needs to be int256 for power library, root to calculate is equal to 0.3
@@ -106,6 +112,7 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
         address _rewardsToken,
         address _stakingToken,
         address _rewardEscrow,
+        address _supplySchedule,
         uint256 _weeklyStartRewards
     ) public initializer {
         __Pausable_init(_owner);
@@ -113,7 +120,6 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
         __ReentrancyGuard_init();
 
         admin = _owner;
-        pendingAdmin = _owner;
 
         periodFinish = 0;
         rewardRate = 0;
@@ -124,6 +130,7 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
         fixidity.init(18);
 
         rewardEscrow = RewardEscrow(_rewardEscrow);
+        supplySchedule = ISupplySchedule(_supplySchedule);
 
         PERCENTAGE_STAKING = 8_000;
         PERCENTAGE_TRADING = 2_000;
@@ -138,10 +145,13 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
 
     /*
      * @notice Getter function for the state variable _totalRewardScore
+     * Divided by 1e18 as during the calculation we are multiplying two 18 decimal numbers, ending up with 
+     * a 36 precision number. To avoid losing any precision by scaling it down during internal calculations,
+     * we only scale it down for the getters
      * @return sum of all rewardScores
      */
     function totalRewardScore() override public view returns (uint256) {
-        return _totalRewardScore;
+        return _totalRewardScore / TOKEN_DECIMALS;
     }
 
     /*
@@ -155,11 +165,14 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
 
     /*
      * @notice Getter function for the reward score of an account
+     * Divided by 1e18 as during the calculation we are multiplying two 18 decimal numbers, ending up with 
+     * a 36 precision number. To avoid losing any precision by scaling it down during internal calculations,
+     * we only scale it down for the getters
      * @param account address to check the reward score of
      * @return reward score of specified account
      */
     function rewardScoreOf(address account) override external view returns (uint256) {
-        return _rewardScores[account];
+        return _rewardScores[account] / TOKEN_DECIMALS;
     }
 
     /*
@@ -407,6 +420,7 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
         uint256 reward = rewards[msg.sender];
         if (reward > 0) {
             rewards[msg.sender] = 0;
+            
             // Send the rewards to Escrow for 1 year
             stakingToken.transfer(address(rewardEscrow), reward);
             rewardEscrow.appendVestingEntry(msg.sender, reward, 52 weeks);
@@ -458,7 +472,7 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
      * @param rewards, total amount to distribute
      * @param nEpochs, number of weeks with rewards
      */  
-    function setRewardNEpochs(uint256 reward, uint256 nEpochs) override external onlyOwner updateRewards(address(0)) {
+    function setRewardNEpochs(uint256 reward, uint256 nEpochs) override external onlySupplySchedule updateRewards(address(0)) {
         rewardRate = reward / nEpochs / WEEK;
         rewardRateStaking = rewardRate * PERCENTAGE_STAKING / MAX_BPS;
         rewardRateTrading = rewardRate * PERCENTAGE_TRADING / MAX_BPS;
@@ -472,6 +486,7 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
 
     // @notice Added to support recovering LP Rewards from other systems such as BAL to be distributed to holders
     function recoverERC20(address tokenAddress, uint256 tokenAmount) external onlyOwner {
+        require(tokenAddress != address(rewardsToken));
         require(tokenAddress != address(stakingToken));
         IERC20(tokenAddress).transfer(owner, tokenAmount);
         emit Recovered(tokenAddress, tokenAmount);
@@ -535,6 +550,11 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
         if (account != address(0)) {
             // Add the rewards added during the last stint
             rewards[account] = earned(account);
+            // Reset the reward score as we have already paid these trading rewards
+            if (lastTradeUserEpoch[msg.sender] < currentEpoch) {
+                _rewardScores[msg.sender] = 0;
+            }
+            // Reset the reward per token as we have already paid these staking rewards
             userRewardPerTokenPaid[account] = rewardPerTokenStored;
         }
     }
@@ -571,6 +591,23 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
         bool isRE = msg.sender == address(rewardEscrow);
 
         require(isRE);
+    }
+
+    /*
+     * @notice access control modifier for rewardEscrow
+     */
+    modifier onlySupplySchedule() {
+        _onlySupplySchedule();
+        _;
+    }
+
+    /*
+     * @notice internal function used in the modifier with the same name to optimize bytecode
+     */
+    function _onlySupplySchedule() internal view {
+        bool isSS = msg.sender == address(supplySchedule);
+
+        require(isSS);
     }
 
 
@@ -623,6 +660,7 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
      */
     function pendingAdminAccept() external onlyPendingAdmin {
         admin = pendingAdmin;
+        pendingAdmin = address(0);
     }
 
     /*

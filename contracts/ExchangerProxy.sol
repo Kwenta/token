@@ -31,27 +31,20 @@ contract ExchangerProxy {
             "Could not get Exchanger"
         ));
     }
-    
-    function exchangeWithTraderScoreTracking(
+
+    function exchangeOnBehalfWithTraderScoreTracking(
         bytes32 sourceCurrencyKey,
         uint sourceAmount,
         bytes32 destinationCurrencyKey,
         address rewardAddress,
         bytes32 trackingCode
     ) external returns (uint amountReceived) {
-        // Establish synth
-        address synthAddress = addressResolver.getSynth(sourceCurrencyKey);
-        IERC20 synth = IERC20(synthAddress);
-
-        // Transfer synth and approve exchanger for spending
-        synth.transferFrom(msg.sender, address(this), sourceAmount);
-        synth.approve(address(exchanger()), sourceAmount);
-
         // Get fee
         uint fee = exchanger().feeRateForExchange(sourceCurrencyKey, destinationCurrencyKey);
 
-        // Execute typical exchange
-        uint received = synthetix().exchangeWithTracking(
+        // Execute exchange on behalf of user
+        uint received = synthetix().exchangeOnBehalfWithTracking(
+            msg.sender,
             sourceCurrencyKey, 
             sourceAmount, 
             destinationCurrencyKey, 

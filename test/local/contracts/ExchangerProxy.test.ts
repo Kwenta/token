@@ -14,11 +14,11 @@ describe('Exchanger Proxy', function () {
 	let exchangerProxy: Contract,
 		fakeStakingRewards: FakeContract<IStakingRewards>;
 	before(async () => {
-        const fakeERC20 = await smock.fake<IERC20>('IERC20');
+        const fakeERC20 = await smock.fake<IERC20>('contracts/interfaces/IERC20.sol:IERC20');
 
 		//// Synthetix AddressResolver mocking. TODO: make reusable
 		const fakeSynthetix = await smock.fake<ISynthetix>('ISynthetix');
-		fakeSynthetix.exchangeWithTracking.returns(0);
+		fakeSynthetix.exchangeOnBehalfWithTracking.returns(0);
 
 		const fakeExchanger = await smock.fake<IExchanger>('IExchanger');
 		fakeExchanger.feeRateForExchange.returns(0);
@@ -60,7 +60,7 @@ describe('Exchanger Proxy', function () {
 	});
 
 	it('updateTraderScore has been called', async function () {
-		await exchangerProxy.exchangeWithTraderScoreTracking(
+		await exchangerProxy.exchangeOnBehalfWithTraderScoreTracking(
 			ethers.utils.formatBytes32String('sUSD'),
 			ethers.constants.One,
 			ethers.utils.formatBytes32String('sETH'),

@@ -12,8 +12,6 @@ require("chai")
     .use(smock.matchers)
     .should();
 
-const weiFromBN = (bn) => wei(bn.toString(), 18, true);
-
 const send = (payload) => {
     if (!payload.jsonrpc) payload.jsonrpc = "2.0";
     if (!payload.id) payload.id = new Date().getTime();
@@ -191,9 +189,11 @@ contract(
         let rewardsToken;
         let rewardsEscrow;
         let kwentaSmock;
+        let supplySchedule;
 
         before(async () => {
             kwentaSmock = await smock.fake("Kwenta");
+            supplySchedule = await smock.fake("SupplySchedule");
 
             // TODO: Remove if unused
             stakingToken = await TokenContract.new(
@@ -202,8 +202,7 @@ contract(
                 INITIAL_SUPPLY,
                 owner,
                 treasuryDAO,
-                ethers.constants.AddressZero,
-                2000
+                ethers.constants.AddressZero
             );
             rewardsToken = await TokenContract.new(
                 NAME,
@@ -211,8 +210,7 @@ contract(
                 INITIAL_SUPPLY,
                 owner,
                 treasuryDAO,
-                ethers.constants.AddressZero,
-                2000
+                ethers.constants.AddressZero
             );
 
             fixidityLib = await FixidityLib.new();
@@ -234,6 +232,7 @@ contract(
                 rewardsToken.address,
                 stakingToken.address,
                 rewardsEscrow.address,
+                supplySchedule.address,
                 3
             );
 
@@ -293,16 +292,22 @@ contract(
                 assert.equal(ownerAddress, owner, "Wrong owner address");
             });
 
-            it("Should allow owner to set StakingRewards", async () => {
-                await rewardsEscrow.setStakingRewards(stakingRewards.address, {
-                    from: owner,
-                });
+            it("Should have set StakingRewards correctly", async () => {
                 const stakingRewardsAddress =
                     await rewardsEscrow.stakingRewards();
                 assert.equal(
                     stakingRewardsAddress,
                     stakingRewards.address,
                     "Wrong stakingRewards address"
+                );
+            });
+
+            it("Should NOT allow owner to set StakingRewards again", async () => {
+                await assert.revert(
+                    rewardsEscrow.setStakingRewards(stakingRewards.address, {
+                        from: owner,
+                    }),
+                    "Staking Rewards already set"
                 );
             });
 
@@ -627,7 +632,7 @@ contract(
                             from: staker1,
                         }
                     ),
-                    "token transfer failed"
+                    "Token transfer failed"
                 );
             });
             describe("when successfully creating a new escrow entry for staker1", () => {
@@ -783,8 +788,7 @@ contract(
                     INITIAL_SUPPLY,
                     owner,
                     treasuryDAO,
-                    ethers.constants.AddressZero,
-                    2000
+                    ethers.constants.AddressZero
                 );
 
                 rewardsEscrow = await RewardsEscrow.new(
