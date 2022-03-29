@@ -49,13 +49,8 @@ contract ExchangerProxy {
         address rewardAddress,
         bytes32 trackingCode
     ) external returns (uint amountReceived) {
-        // Get fee rate (denoted in destinationCurrencyKey)
-        uint fee = exchanger().feeRateForExchange(sourceCurrencyKey, destinationCurrencyKey);
-
-        // If fee is NOT denoted in sUSD, query Synthetix for exchange rate in sUSD
-        if (destinationCurrencyKey != sUSD_CURRENCY_KEY) {
-            fee = exchangeRates().effectiveValue(destinationCurrencyKey, fee, sUSD_CURRENCY_KEY);
-        }
+        // get fee
+        uint fee = calculateFee(sourceCurrencyKey, sourceAmount, destinationCurrencyKey);
 
         // Execute exchange on behalf of user
         uint received = synthetix().exchangeOnBehalfWithTracking(
@@ -70,5 +65,25 @@ contract ExchangerProxy {
         // Update StakingRewards trader score
         stakingRewards.updateTraderScore(msg.sender, fee);
         return received;
+    }
+
+    function calculateFee(
+        bytes32 sourceCurrencyKey,
+        uint sourceAmount,
+        bytes32 destinationCurrencyKey
+    ) internal view returns (uint fee) {
+        // Get fee rate
+        fee = exchanger().feeRateForExchange(sourceCurrencyKey, destinationCurrencyKey);
+
+        // Get value of source amount of source currency in dest. currency
+        uint effectiveValue = exchangeRates().effectiveValue(sourceCurrencyKey, sourceAmount, destinationCurrencyKey);
+        
+        // Standardize value to sUSD
+        if (destinationCurrencyKey != sUSD_CURRENCY_KEY) {
+            effectiveValue = exchangeRates().effectiveValue(destinationCurrencyKey, effectiveValue, sUSD_CURRENCY_KEY);
+        }
+        
+        // Return value that comprises both fee rate for synth pair and trade size
+        fee = (effectiveValue / 100) * (fee / 1000000000000000);
     }
 }

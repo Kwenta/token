@@ -316,6 +316,15 @@ describe('Stake (fork)', () => {
             ).to.equal(0);
         }).timeout(200000);
 
+		it('Confirm nil fees paid by trader', async () => {
+            expect(
+                await stakingRewardsProxy.feesPaidBy(TEST_ADDRESS_WITH_sUSD)
+            ).to.equal(0);
+			expect(
+                await stakingRewardsProxy.feesPaidBy(addr1.address)
+            ).to.equal(0);
+        }).timeout(200000);
+
         it('Can poll synth rate for sETH to sUSD', async () => {
             // Given a quantity of a source currency, returns a quantity
             // of a destination currency that is of equivalent value at
@@ -409,6 +418,10 @@ describe('Stake (fork)', () => {
                 // rate - fee: 			343566589043005341
             );
         }).timeout(200000);
+
+		it('Updates trader fee', async () => {
+			// TODO
+		});
 
         it('Caller can remove swap approval on behalf of exchange', async () => {
             // remove approval to swap token on behalf of TEST_SIGNER_WITH_sUSD
