@@ -5,7 +5,6 @@ import "./interfaces/IAddressResolver.sol";
 import "./interfaces/ISynthetix.sol";
 import "./interfaces/IExchanger.sol";
 import "./interfaces/IStakingRewards.sol";
-import "./interfaces/IExchangeRates.sol";
 import "./interfaces/IERC20.sol";
 
 contract ExchangerProxy {
@@ -13,7 +12,6 @@ contract ExchangerProxy {
     IStakingRewards stakingRewards;
     bytes32 private constant CONTRACT_SYNTHETIX = "Synthetix";
     bytes32 private constant CONTRACT_EXCHANGER = "Exchanger";
-    bytes32 private constant CONTRACT_EXRATES = "ExchangeRates";
     bytes32 private constant sUSD_CURRENCY_KEY = "sUSD";
 
     constructor(address _addressResolver, address _stakingRewards) {
@@ -35,13 +33,6 @@ contract ExchangerProxy {
         ));
     }
 
-    function exchangeRates() internal view returns (IExchangeRates) {
-        return IExchangeRates(addressResolver.requireAndGetAddress(
-            CONTRACT_EXRATES,
-            "Could not get ExchangeRates"
-        ));
-    }
-
     function exchangeOnBehalfWithTraderScoreTracking(
         bytes32 sourceCurrencyKey,
         uint sourceAmount,
@@ -49,8 +40,12 @@ contract ExchangerProxy {
         address rewardAddress,
         bytes32 trackingCode
     ) external returns (uint amountReceived) {
-        // get fee
-        uint fee = calculateFee(sourceCurrencyKey, sourceAmount, destinationCurrencyKey);
+        // Get fee
+        ( , uint fee, ) = exchanger().getAmountsForExchange(
+            sourceAmount, 
+            sourceCurrencyKey, 
+            destinationCurrencyKey
+        );
 
         // Execute exchange on behalf of user
         uint received = synthetix().exchangeOnBehalfWithTracking(
@@ -65,25 +60,5 @@ contract ExchangerProxy {
         // Update StakingRewards trader score
         stakingRewards.updateTraderScore(msg.sender, fee);
         return received;
-    }
-
-    function calculateFee(
-        bytes32 sourceCurrencyKey,
-        uint sourceAmount,
-        bytes32 destinationCurrencyKey
-    ) internal view returns (uint fee) {
-        // Get fee rate
-        fee = exchanger().feeRateForExchange(sourceCurrencyKey, destinationCurrencyKey);
-
-        // Get value of source amount of source currency in dest. currency
-        uint effectiveValue = exchangeRates().effectiveValue(sourceCurrencyKey, sourceAmount, destinationCurrencyKey);
-        
-        // Standardize value to sUSD
-        if (destinationCurrencyKey != sUSD_CURRENCY_KEY) {
-            effectiveValue = exchangeRates().effectiveValue(destinationCurrencyKey, effectiveValue, sUSD_CURRENCY_KEY);
-        }
-        
-        // Return value that comprises both fee rate for synth pair and trade size
-        fee = (effectiveValue / 100) * (fee / 1000000000000000);
     }
 }
