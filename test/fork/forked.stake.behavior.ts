@@ -420,8 +420,29 @@ describe('Stake (fork)', () => {
         }).timeout(200000);
 
 		it('Updates trader fee', async () => {
-			// TODO
-		});
+            // poll exchange rate
+            const rate = await exchangeRates
+                .connect(TEST_SIGNER_WITH_sUSD)
+                .effectiveValue(
+                    ethers.utils.formatBytes32String('sUSD'),
+                    TEST_SWAP_VALUE,
+                    ethers.utils.formatBytes32String('sETH')
+                );
+
+            // calculate fee taken from synth exchange
+            const fee = wei(rate, 18, true)
+                .mul(FEE_BPS / 10000)
+                .toBN();
+			
+			// check correct fees paid 
+			expect(await stakingRewardsProxy.feesPaidBy(TEST_ADDRESS_WITH_sUSD)).to.be.closeTo(
+                fee,
+                1,
+                'numbers are *very* close'
+                // 861069145471192
+                // 861069145471191
+            );
+        });
 
         it('Caller can remove swap approval on behalf of exchange', async () => {
             // remove approval to swap token on behalf of TEST_SIGNER_WITH_sUSD
