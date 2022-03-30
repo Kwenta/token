@@ -21,6 +21,7 @@ export const mockAddressResolver = async () => {
 
 	const fakeExchanger = await smock.fake<IExchanger>('IExchanger');
 	fakeExchanger.feeRateForExchange.returns(FEE);
+	fakeExchanger.getAmountsForExchange.returns([0, FEE, 0]);
 
 	const fakeExchangeRates = await smock.fake<IExchangeRates>('IExchangeRates');
 	fakeExchangeRates.effectiveValue.returns(FEE);
