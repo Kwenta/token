@@ -72,3 +72,21 @@ export const fastForwardTo = async (time: Date) => {
 
     await fastForward(secondsBetween);
 };
+
+/**
+ *  Use to send a TX from another smart contract to bypass access modifiers
+ *  Impersonates as an EOA
+ *  @param address Address of contract
+ */
+export const impersonate = async (address: string) => {
+    await network.provider.request({
+        method: "hardhat_impersonateAccount",
+        params: [address],
+    });
+    // Provide with ETH for TX
+    await network.provider.request({
+        method: "hardhat_setBalance",
+        params: [address, ethers.utils.parseEther("10").toHexString()],
+    });
+    return await ethers.getSigner(address);
+};
