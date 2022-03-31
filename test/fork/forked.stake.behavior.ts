@@ -418,36 +418,31 @@ describe('Stake (fork)', () => {
         }).timeout(200000);
 
         it('Updates trader fee', async () => {
-            const sETH = await getSynth(sETH_ADDRESS_OE);
-
-            // get rate of sETH from exchange
-            const rate = await exchangeRates
+            // sETH rate 
+            const sETHRate = await exchangeRates
                 .connect(TEST_SIGNER_WITH_sUSD)
                 .effectiveValue(
                     ethers.utils.formatBytes32String('sUSD'),
-                    TEST_SWAP_VALUE,
+                    wei(1).toBN(),
                     ethers.utils.formatBytes32String('sETH')
                 );
 
-            // calculate fee taken from synth exchange
-            // @notice, it is denoted in dest. synth
-            let balance = await sETH.balanceOf(TEST_ADDRESS_WITH_sUSD);
-            let fee = wei(rate, 18, true).sub(wei(balance, 18, true)).toBN();
+            const feeInSETH = wei(TEST_SWAP_VALUE, 18, true)
+                .mul(wei(sETHRate, 18, true))
+                .mul(FEE_BPS / 10000)
+                .toBN();
 
-            // @notice fee is standardized in sUSD, therefore, we need it's
-            // effective value is sUSD (not sETH in this example)
-            fee = await exchangeRates
+            const feeInSUSD = await exchangeRates
                 .connect(TEST_SIGNER_WITH_sUSD)
                 .effectiveValue(
                     ethers.utils.formatBytes32String('sETH'),
-                    fee,
+                    feeInSETH,
                     ethers.utils.formatBytes32String('sUSD')
                 );
 
-            // check correct fees paid
             expect(
                 await stakingRewardsProxy.feesPaidBy(TEST_ADDRESS_WITH_sUSD)
-            ).to.equal(fee);
+            ).to.equal(feeInSUSD);
         });
 
         it('Caller can remove swap approval on behalf of exchange', async () => {
