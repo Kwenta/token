@@ -1,16 +1,17 @@
-import * as mainnetMain from "./generated/mainnet-main";
-import * as optimismMain from "./generated/optimism-main";
-import preRegenesisSynthExchanges from "./preregenesis_snapshots/l2-trades-preregenesis.json";
-import { ethers } from "ethers";
-import { wei } from "@synthetixio/wei";
+import * as mainnetMain from './generated/mainnet-main';
+import * as optimismMain from './generated/optimism-main';
+import preRegenesisSynthExchanges from './preregenesis_snapshots/l2-trades-preregenesis.json';
+import {ethers} from 'ethers';
+import {wei} from '@synthetixio/wei';
+import _ from 'lodash';
 
 const L1_SUBGRAPH =
-    "https://api.thegraph.com/subgraphs/name/synthetixio-team/mainnet-main";
+    'https://api.thegraph.com/subgraphs/name/synthetixio-team/mainnet-main';
 const L2_SUBGRAPH =
-    "https://api.thegraph.com/subgraphs/name/synthetixio-team/optimism-main";
+    'https://api.thegraph.com/subgraphs/name/synthetixio-team/optimism-main';
 
 const getSynthExchangers = async (isOptimism?: boolean) => {
-    console.log("Gathering synth exchanges...");
+    console.log('Gathering synth exchanges...');
 
     const synthExchanges = await (isOptimism
         ? optimismMain
@@ -19,18 +20,28 @@ const getSynthExchangers = async (isOptimism?: boolean) => {
         isOptimism ? L2_SUBGRAPH : L1_SUBGRAPH,
         {
             first: 999999999999999,
-            orderBy: "timestamp",
-            orderDirection: "desc",
+            orderBy: 'timestamp',
+            orderDirection: 'desc',
             where: {
-                timestamp_gt: /*1577836800*/ /*1598918400*/ 1630454400,
-                timestamp_lt: 1642716000,
+                timestamp_gt: 1577836800,
+                timestamp_lt: 1643673600,
             },
         },
         {
             id: true,
-            /*account: true,
-            fromSynth: true,
-            toSynth: true,*/
+            //account: true,
+            fromSynth: {
+                id: true,
+                name: true,
+                symbol: true,
+                totalSupply: true,
+            },
+            toSynth: {
+                id: true,
+                name: true,
+                symbol: true,
+                totalSupply: true,
+            },
             fromAmount: true,
             fromAmountInUSD: true,
             toAmount: true,
@@ -41,13 +52,13 @@ const getSynthExchangers = async (isOptimism?: boolean) => {
             gasPrice: true,
         }
     );
-    console.log(synthExchanges.length, "synth exchange events gathered.");
+    console.log(synthExchanges.length, 'synth exchange events gathered.');
 
     return synthExchanges;
 };
 
 const getPreRegenesisSynthTraders = () => {
-    console.log("Gathering pre-regenesis synth exchanges...");
+    console.log('Gathering pre-regenesis synth exchanges...');
 
     type SerializedWei = {
         p: number;
@@ -69,9 +80,9 @@ const getPreRegenesisSynthTraders = () => {
     ).map((synthExchange: any) => {
         return {
             id: synthExchange.id,
-            /*account: true,
-            fromSynth: true,
-            toSynth: true,*/
+            //account: true,
+            fromSynth: synthExchange.fromSynth,
+            toSynth: synthExchange.toSynth,
             fromAmount: reconstructWei(synthExchange.fromAmount).toNumber(),
             fromAmountInUSD: reconstructWei(
                 synthExchange.fromAmountInUSD
@@ -89,60 +100,58 @@ const getPreRegenesisSynthTraders = () => {
 
     console.log(
         cleanedPreRegenesisSynthTraders.length,
-        "pre-regenesis synth exchange events gathered."
+        'pre-regenesis synth exchange events gathered.'
     );
     return cleanedPreRegenesisSynthTraders;
 };
 
 const filterTraders = (synthExchanges: any, minTrades = 1, minVolume = 0) => {
-    console.log("Begin aggregating unique traders");
+    console.log('Begin aggregating unique traders...');
     const addressesMapping = synthExchanges.reduce((acc: any, curr: any) => {
-        return {
-            ...acc,
-            [curr.toAddress]: acc[curr.toAddress]
-                ? {
-                      trades: acc[curr.toAddress].trades + 1,
-                      fromAmountInUSD:
-                          acc[curr.toAddress].fromAmountInUSD +
-                          Number(curr.fromAmountInUSD),
-                  }
-                : {
-                      trades: 1,
-                      fromAmountInUSD: Number(curr.fromAmountInUSD),
-                  },
-        };
+        acc[curr.toAddress] = acc[curr.toAddress]
+            ? {
+                  trades: acc[curr.toAddress].trades + 1,
+                  fromAmountInUSD:
+                      acc[curr.toAddress].fromAmountInUSD +
+                      Number(curr.fromAmountInUSD),
+              }
+            : {
+                  trades: 1,
+                  fromAmountInUSD: Number(curr.fromAmountInUSD),
+              };
+        return acc;
     }, {});
 
-    const filter = (obj: Object, predicate: ([]) => boolean) =>
-        Object.fromEntries(Object.entries(obj).filter(predicate));
+    console.log(
+        Object.keys(addressesMapping).length,
+        'unique address after aggregating.'
+    );
 
-    console.log("Begin filtering address");
-    const filteredAddressesMapping = filter(
+    console.log('Begin filtering address..');
+    const filteredAddressesMapping = _.filter(
         addressesMapping,
-        ([address, stats]) =>
+        (stats) =>
             stats.trades >= minTrades && stats.fromAmountInUSD >= minVolume
     );
 
     console.log(
-        Object.keys(addressesMapping).length,
-        "before filtering and",
         Object.keys(filteredAddressesMapping).length,
-        "traders after filtering."
+        'traders after filtering.'
     );
     return filteredAddressesMapping;
 };
 
 const main = async () => {
-    console.log("\n--Grabbing L1 Set--");
+    console.log('\n--Grabbing L1 Set--');
     const synthExchangesL1 = await getSynthExchangers();
     filterTraders(synthExchangesL1, 5, 1000);
-    console.log("\n--Grabbing L2 Set--");
+    console.log('\n--Grabbing L2 Set--');
     const synthExchangesL2PreRegenesis = getPreRegenesisSynthTraders();
     const synthExchangesL2 = await getSynthExchangers(true);
     filterTraders(
         [...synthExchangesL2PreRegenesis, ...synthExchangesL2],
-        5,
-        1000
+        10,
+        5000
     );
 };
 
