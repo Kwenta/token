@@ -106,7 +106,7 @@ const impersonateTestAccount = async () => {
     });
 };
 
-const deploySynth = async (address: string) => {
+const getSynth = async (address: string) => {
     const IERC20ABI = (
         await artifacts.readArtifact('contracts/interfaces/IERC20.sol:IERC20')
     ).abi;
@@ -366,14 +366,14 @@ describe('Stake (fork)', () => {
 
         it('Execute trade (sUSD -> sETH) on synthetix through proxy', async () => {
             // confirm pre-balance of sUSD
-            const sUSD = await deploySynth(sUSD_ADDRESS_OE);
+            const sUSD = await getSynth(sUSD_ADDRESS_OE);
             const sUSDBalancePreSwap = await sUSD.balanceOf(
                 TEST_ADDRESS_WITH_sUSD
             );
             expect(sUSDBalancePreSwap).to.be.above(TEST_SWAP_VALUE);
 
             // confirm no balance of sETH
-            const sETH = await deploySynth(sETH_ADDRESS_OE);
+            const sETH = await getSynth(sETH_ADDRESS_OE);
             expect(await sETH.balanceOf(TEST_ADDRESS_WITH_sUSD)).to.equal(0);
 
             // trade sUSD -> sETH
@@ -418,7 +418,7 @@ describe('Stake (fork)', () => {
         }).timeout(200000);
 
         it('Updates trader fee', async () => {
-            const sETH = await deploySynth(sETH_ADDRESS_OE);
+            const sETH = await getSynth(sETH_ADDRESS_OE);
 
             // get rate of sETH from exchange
             const rate = await exchangeRates
@@ -465,14 +465,14 @@ describe('Stake (fork)', () => {
 
         it('Expect trade (sUSD -> sLINK) to fail without approval', async () => {
             // confirm pre-balance of sUSD
-            const sUSD = await deploySynth(sUSD_ADDRESS_OE);
+            const sUSD = await getSynth(sUSD_ADDRESS_OE);
             const sUSDBalancePreSwap = await sUSD.balanceOf(
                 TEST_ADDRESS_WITH_sUSD
             );
             expect(sUSDBalancePreSwap).to.be.above(TEST_SWAP_VALUE);
 
             // confirm no balance of sLINK
-            const sLINK = await deploySynth(sLINK_ADDRESS_OE);
+            const sLINK = await getSynth(sLINK_ADDRESS_OE);
             expect(await sLINK.balanceOf(TEST_ADDRESS_WITH_sUSD)).to.equal(0);
 
             // trade sUSD -> sLINK
@@ -510,14 +510,14 @@ describe('Stake (fork)', () => {
 
         it('Execute trade (sUSD -> sUNI) on synthetix through proxy', async () => {
             // confirm pre-balance of sUSD
-            const sUSD = await deploySynth(sUSD_ADDRESS_OE);
+            const sUSD = await getSynth(sUSD_ADDRESS_OE);
             const sUSDBalancePreSwap = await sUSD.balanceOf(
                 TEST_ADDRESS_WITH_sUSD
             );
             expect(sUSDBalancePreSwap).to.be.above(TEST_SWAP_VALUE);
 
             // confirm no balance of sUNI
-            const sUNI = await deploySynth(sUNI_ADDRESS_OE);
+            const sUNI = await getSynth(sUNI_ADDRESS_OE);
             expect(await sUNI.balanceOf(TEST_ADDRESS_WITH_sUSD)).to.equal(0);
 
             // trade sUSD -> sUNI
