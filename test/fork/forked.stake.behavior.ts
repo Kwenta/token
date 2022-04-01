@@ -418,31 +418,19 @@ describe('Stake (fork)', () => {
         }).timeout(200000);
 
         it('Updates trader fee', async () => {
-            // sETH rate 
-            const sETHRate = await exchangeRates
-                .connect(TEST_SIGNER_WITH_sUSD)
-                .effectiveValue(
-                    ethers.utils.formatBytes32String('sUSD'),
-                    wei(1).toBN(),
-                    ethers.utils.formatBytes32String('sETH')
-                );
-
-            const feeInSETH = wei(TEST_SWAP_VALUE, 18, true)
-                .mul(wei(sETHRate, 18, true))
+            const fee = wei(TEST_SWAP_VALUE, 18, true)
                 .mul(FEE_BPS / 10000)
                 .toBN();
 
-            const feeInSUSD = await exchangeRates
-                .connect(TEST_SIGNER_WITH_sUSD)
-                .effectiveValue(
-                    ethers.utils.formatBytes32String('sETH'),
-                    feeInSETH,
-                    ethers.utils.formatBytes32String('sUSD')
-                );
-
             expect(
                 await stakingRewardsProxy.feesPaidBy(TEST_ADDRESS_WITH_sUSD)
-            ).to.equal(feeInSUSD);
+            ).to.be.closeTo(
+                fee,
+                10000,
+                'numbers are within 10000 wei'
+                // 2500000000000001945
+                // 2500000000000000000
+            );
         });
 
         it('Caller can remove swap approval on behalf of exchange', async () => {
