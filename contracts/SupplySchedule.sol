@@ -158,10 +158,7 @@ contract SupplySchedule is Owned, ISupplySchedule {
      * has passed since the lastMintEvent.
      * */
     function isMintable() override public view returns (bool) {
-        if (block.timestamp - lastMintEvent > MINT_PERIOD_DURATION) {
-            return true;
-        }
-        return false;
+        return block.timestamp - lastMintEvent > MINT_PERIOD_DURATION;
     }
 
     // ========== MUTATIVE FUNCTIONS ==========
@@ -184,19 +181,6 @@ contract SupplySchedule is Owned, ISupplySchedule {
 
         emit SupplyMinted(supplyMinted, numberOfWeeksIssued, lastMintEvent, block.timestamp);
         return true;
-    }
-
-    /**
-     * @notice Sets the reward amount of KWENTA for the caller of the public
-     * function Kwenta.mint().
-     * This incentivises anyone to mint the inflationary supply and the mintr
-     * Reward will be deducted from the inflationary supply and sent to the caller.
-     * @param amount the amount of KWENTA to reward the minter.
-     * */
-    function setMinterReward(uint amount) external onlyOwner {
-        require(amount <= MAX_MINTER_REWARD, "Reward cannot exceed max minter reward");
-        minterReward = amount;
-        emit MinterRewardUpdated(minterReward);
     }
 
     /**
@@ -233,6 +217,19 @@ contract SupplySchedule is Owned, ISupplySchedule {
         require(address(_kwenta) != address(0), "Address cannot be 0");
         kwenta = _kwenta;
         emit KwentaUpdated(address(kwenta));
+    }
+
+    /**
+     * @notice Sets the reward amount of KWENTA for the caller of the public
+     * function Kwenta.mint().
+     * This incentivises anyone to mint the inflationary supply and the mintr
+     * Reward will be deducted from the inflationary supply and sent to the caller.
+     * @param amount the amount of KWENTA to reward the minter.
+     * */
+    function setMinterReward(uint amount) external onlyOwner {
+        require(amount <= MAX_MINTER_REWARD, "Reward cannot exceed max minter reward");
+        minterReward = amount;
+        emit MinterRewardUpdated(minterReward);
     }
 
     function setTreasuryDiversion(uint _treasuryDiversion) override public onlyOwner {
