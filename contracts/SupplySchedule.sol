@@ -158,10 +158,7 @@ contract SupplySchedule is Owned, ISupplySchedule {
      * has passed since the lastMintEvent.
      * */
     function isMintable() override public view returns (bool) {
-        if (block.timestamp - lastMintEvent > MINT_PERIOD_DURATION) {
-            return true;
-        }
-        return false;
+        return block.timestamp - lastMintEvent > MINT_PERIOD_DURATION;
     }
 
     // ========== MUTATIVE FUNCTIONS ==========
