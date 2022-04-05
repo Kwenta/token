@@ -194,7 +194,8 @@ describe("Proxy deployment", async () => {
         assert.notEqual(implementation, stProxy.address);
 
         await stProxy.connect(owner).setExchangerProxy(exchangerProxy.address);
-
+        await stProxy.connect(owner).setRewardEscrow(rewardsEscrow.address);
+        
         await kwentaToken
             .connect(treasuryDAO)
             .transfer(stProxy.address, toUnit(500));
@@ -207,6 +208,7 @@ describe("StakingRewards deployment", async () => {
         assert.equal(await stProxy.rewardsToken(), kwentaToken.address);
         assert.equal(await stProxy.stakingToken(), kwentaToken.address);
         assert.equal(await stProxy.getAdmin(), owner.address);
+        assert.equal(await stProxy.rewardEscrow(), rewardsEscrow.address);
     });
 });
 
@@ -328,6 +330,7 @@ describe("rewardPerToken()", () => {
         stProxy = await deployProxy();
 
         await stProxy.connect(owner).setExchangerProxy(exchangerProxy.address);
+        await stProxy.connect(owner).setRewardEscrow(rewardsEscrow.address);
 
         assertBNEqual(await stProxy.rewardPerToken(), 0);
     });
@@ -395,6 +398,8 @@ describe("earned()", () => {
         stProxy = await deployProxy();
 
         await stProxy.connect(owner).setExchangerProxy(exchangerProxy.address);
+        await stProxy.connect(owner).setRewardEscrow(rewardsEscrow.address);
+
         await rewardsEscrow.setStakingRewards(stProxy.address);
         await kwentaToken
             .connect(treasuryDAO)
@@ -431,6 +436,8 @@ describe("earned()", () => {
         stProxy = await deployProxy();
 
         await stProxy.connect(owner).setExchangerProxy(exchangerProxy.address);
+        await stProxy.connect(owner).setRewardEscrow(rewardsEscrow.address);
+
         await rewardsEscrow.setStakingRewards(stProxy.address);
         await kwentaToken
             .connect(treasuryDAO)
@@ -463,6 +470,8 @@ describe("earned()", () => {
         stProxy = await deployProxy();
 
         await stProxy.connect(owner).setExchangerProxy(exchangerProxy.address);
+        await stProxy.connect(owner).setRewardEscrow(rewardsEscrow.address);
+
         await rewardsEscrow.setStakingRewards(stProxy.address);
         await kwentaToken
             .connect(treasuryDAO)
@@ -511,7 +520,10 @@ describe("rewardEpochs()", () => {
 
         StakingRewards = await deployContract();
         stProxy = await deployProxy();
+
         await stProxy.connect(owner).setExchangerProxy(exchangerProxy.address);
+        await stProxy.connect(owner).setRewardEscrow(rewardsEscrow.address);
+
         await rewardsEscrow.setStakingRewards(stProxy.address);
         await kwentaToken
             .connect(treasuryDAO)
@@ -560,7 +572,10 @@ describe("implementation test", () => {
 
         StakingRewards = await deployContract();
         stProxy = await deployProxy();
+
         await stProxy.connect(owner).setExchangerProxy(exchangerProxy.address);
+        await stProxy.connect(owner).setRewardEscrow(rewardsEscrow.address);
+
         await rewardsEscrow.setStakingRewards(stProxy.address);
         await kwentaToken
             .connect(treasuryDAO)
@@ -653,6 +668,8 @@ describe("ownership test", () => {
         stProxy = await deployProxy();
 
         await stProxy.connect(owner).setExchangerProxy(exchangerProxy.address);
+        await stProxy.connect(owner).setRewardEscrow(rewardsEscrow.address);
+        
         await rewardsEscrow.setStakingRewards(stProxy.address);
     });
 
@@ -719,5 +736,34 @@ describe("recoverERC20()", () => {
             .connect(owner)
             .recoverERC20(unrelatedToken.address, 1)
             .should.be.rejectedWith("ERC20: transfer amount exceeds balance");
+    });
+});
+
+describe('setRewardEscrow()', () => {
+    it("Reverts if the provided RewardEscrow's $kwenta does not match StakingRewards' $stakingToken", async () => {
+        // deploy a new kwenta token
+        NewKwentaToken = await hre.ethers.getContractFactory('Kwenta');
+        newKwentaToken = await KwentaToken.deploy(
+            NAME,
+            SYMBOL,
+            INITIAL_SUPPLY,
+            owner.address,
+            treasuryDAO.address,
+            supplySchedule.address
+        );
+
+        // deploy new RewardEscrow with newKwentaToken
+        // @notice StakingRewards.stakingToken address does NOT equal the newRewardsEscrow.kwenta address
+        const newRewardsEscrow = await RewardsEscrow.deploy(
+            owner.address,
+            newKwentaToken.address
+        );
+
+        await stProxy
+            .connect(owner)
+            .setRewardEscrow(newRewardsEscrow.address)
+            .should.be.rejectedWith(
+                'staking token address not equal to RewardEscrow KWENTA address'
+            );
     });
 });
