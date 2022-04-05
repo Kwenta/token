@@ -32,8 +32,6 @@ interface IStakingRewards {
 
     // Mutative
 
-    function setWeightsRewardScore(int256 _weightStaking, int256 _weightFees) external;
-
     function setPercentageRewards(uint256 _percentageStaking, uint256 _percentageTrading) external;
 
     function updateTraderScore(address _trader, uint256 _newFeesPaid) external;

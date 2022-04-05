@@ -277,18 +277,6 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     /* ========== MUTATIVE FUNCTIONS ========== */
 
     /**
-     * @notice Set the weights for the reward score formula
-     * @dev Only the owner can use this function and parameters should be in Units (100% = 1e18)
-     * @param _weightStaking the weight for tokens staked
-     * @param _weightFees the weight of fees paid in the epoch
-     */
-    function setWeightsRewardScore(int256 _weightStaking, int256 _weightFees) override external onlyOwner {
-        require(_weightStaking + _weightFees == 1e18);
-        WEIGHT_STAKING = _weightStaking;
-        WEIGHT_FEES = _weightFees;
-    }
-
-    /**
      * @notice Set the % distribution between staking and trading
      * @dev Only the owner can use this function and parameters should be in base 10_000 (80% = 8_000)
      * @param _percentageStaking the % of rewards to distribute to staking scores
