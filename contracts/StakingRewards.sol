@@ -52,8 +52,6 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     uint256 public rewardRate;
     uint256 public rewardRateStaking;
     uint256 public rewardRateTrading;
-    // Epoch default duration
-    uint256 public rewardsDuration;
     // Last Update Time for staking Rewards
     uint256 private lastUpdateTime;
     // Last reward per token staked
@@ -123,7 +121,6 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
 
         periodFinish = 0;
         rewardRate = 0;
-        rewardsDuration = 7 days;
 
         rewardsToken = IERC20(_rewardsToken);
         stakingToken = IERC20(_stakingToken);
@@ -247,14 +244,6 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
             tradingRewards = _rewardScores[account] * epochRewardPerRewardScore[lastTradeUserEpoch[account]] / DECIMALS_DIFFERENCE;
         }
         return stakingRewards + tradingRewards + rewards[account];
-    }
-
-    /*
-     * @notice Calculate the total rewards delivered in a specific duration, multiplying rewardRate x duration
-     * @return uint256 containing the total rewards to be delivered
-     */
-    function getRewardForDuration() override external view returns (uint256) {
-        return rewardRate * rewardsDuration;
     }
 
     /**
@@ -468,7 +457,7 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
         uint256 balance = rewardsToken.balanceOf(address(this));
         require(reward <= balance);
         lastUpdateTime = block.timestamp;
-        periodFinish = block.timestamp + rewardsDuration * nEpochs;
+        periodFinish = block.timestamp + WEEK * nEpochs;
         emit RewardAdded(reward, nEpochs);
     }
 
@@ -500,18 +489,6 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     function setExchangerProxy(address _exchangerProxy) external onlyOwner {
         exchangerProxy = _exchangerProxy;
         emit ExchangerProxyUpdated(_exchangerProxy);
-    }
-
-    /*
-     * @notice Function available for the owner to change the rewards duration via the state variable _rewardsDuration
-     * @param _rewardsDuration to set
-     */
-    function setRewardsDuration(uint256 _rewardsDuration) external onlyOwner {
-        require(
-            block.timestamp > periodFinish
-        );
-        rewardsDuration = _rewardsDuration;
-        emit RewardsDurationUpdated(rewardsDuration);
     }
 
     /* ========== MODIFIERS ========== */
@@ -610,7 +587,6 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     event Staked(address indexed user, uint256 amount);
     event Withdrawn(address indexed user, uint256 amount);
     event RewardPaid(address indexed user, uint256 reward);
-    event RewardsDurationUpdated(uint256 newDuration);
     event Recovered(address token, uint256 amount);
     event EscrowStaked(address account, uint256 amount);
     event EscrowUnstaked(address account, uint256 amount);
