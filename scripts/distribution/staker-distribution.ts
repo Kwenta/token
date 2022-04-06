@@ -1,12 +1,12 @@
-import * as mainnetMain from "./generated/mainnet-main";
-import * as optimismMain from "./generated/optimism-main";
-import preregenesisSNXHoldersSnapshot from "./preregenesis_snapshots/l2-snxholders-preregenesis.json";
-import { request, gql } from "graphql-request";
-import { BigNumber, ethers } from "ethers";
-import Synthetix from "@synthetixio/contracts-interface";
-import Wei, { wei } from "@synthetixio/wei";
-import { reconstructWei, SerializedWei } from "./utils";
-import fs from "fs";
+import * as mainnetMain from './generated/mainnet-main';
+import * as optimismMain from './generated/optimism-main';
+import preregenesisSNXHoldersSnapshot from './preregenesis_snapshots/l2-snxholders-preregenesis.json';
+import {request, gql} from 'graphql-request';
+import {BigNumber, ethers} from 'ethers';
+import Synthetix from '@synthetixio/contracts-interface';
+import Wei, {wei} from '@synthetixio/wei';
+import {reconstructWei, SerializedWei} from './utils';
+import fs from 'fs';
 
 type PreregenesisSNXHolder = {
     id: string;
@@ -39,12 +39,12 @@ const L1_BLOCK_SNAPSHOT = 14116761;
 const L2_BLOCK_SNAPSHOT = 3067128;
 
 const L1_SUBGRAPH =
-    "https://api.thegraph.com/subgraphs/name/synthetixio-team/mainnet-main";
+    'https://api.thegraph.com/subgraphs/name/synthetixio-team/mainnet-main';
 const L2_SUBGRAPH =
-    "https://api.thegraph.com/subgraphs/name/synthetixio-team/optimism-main";
+    'https://api.thegraph.com/subgraphs/name/synthetixio-team/optimism-main';
 
 const getUniqueFeesClaimers = async (isOptimism?: boolean) => {
-    console.log("Gathering fee claimers...");
+    console.log('Gathering fee claimers...');
 
     const feesClaimeds = await (isOptimism
         ? optimismMain
@@ -53,8 +53,8 @@ const getUniqueFeesClaimers = async (isOptimism?: boolean) => {
         isOptimism ? L2_SUBGRAPH : L1_SUBGRAPH,
         {
             first: 999999999999999,
-            orderBy: "timestamp",
-            orderDirection: "desc",
+            orderBy: 'timestamp',
+            orderDirection: 'desc',
             where: {
                 timestamp_gt: 1630454400,
                 timestamp_lt: 1643673600,
@@ -69,7 +69,7 @@ const getUniqueFeesClaimers = async (isOptimism?: boolean) => {
             rewards: true,
         }
     );
-    console.log(feesClaimeds.length, "fee claim events gathered.");
+    console.log(feesClaimeds.length, 'fee claim events gathered.');
 
     const uniqueAccounts = feesClaimeds.reduce((acc: Array<string>, curr) => {
         if (!acc.includes(curr.account)) acc.push(curr.account);
@@ -78,7 +78,7 @@ const getUniqueFeesClaimers = async (isOptimism?: boolean) => {
 
     console.log(
         uniqueAccounts.length,
-        "accounts claimed at least once during specified period."
+        'accounts claimed at least once during specified period.'
     );
 
     return uniqueAccounts;
@@ -89,7 +89,7 @@ const getSNXHoldersWithActiveDebt = async (
     block: number,
     isOptimism?: boolean
 ) => {
-    console.log("Gathering SNX holders...");
+    console.log('Gathering SNX holders...');
 
     let snxholders = [] as Array<SNXHolder>;
     for (let i = 0; i < accounts.length / 1000; i++) {
@@ -99,8 +99,8 @@ const getSNXHoldersWithActiveDebt = async (
                 query getSNXHolders($accounts: [String!], $block: Int!) {
                     snxholders(
                         first: 1000
-                        block: { number: $block }
-                        where: { id_in: $accounts }
+                        block: {number: $block}
+                        where: {id_in: $accounts}
                     ) {
                         id
                         block
@@ -126,7 +126,7 @@ const getSNXHoldersWithActiveDebt = async (
 
     console.log(
         snxholders.length,
-        `SNX ${isOptimism ? "post regenesis" : ""} holders found.`
+        `SNX ${isOptimism ? 'post regenesis' : ''} holders found.`
     );
 
     // Get missing preregenesis stakers
@@ -161,18 +161,18 @@ const getSNXHoldersWithActiveDebt = async (
         });
 
         console.log(
-            "Appending",
+            'Appending',
             cleanedPreregenesisStakers.length,
-            "pre-regenesis SNXHolders"
+            'pre-regenesis SNXHolders'
         );
         snxholders.push(...cleanedPreregenesisStakers);
     }
 
     const snxholdersWithDebt = snxholders.filter(
-        (snxholder) => snxholder.initialDebtOwnership != "0"
+        (snxholder) => snxholder.initialDebtOwnership != '0'
     );
 
-    console.log(snxholdersWithDebt.length, "with active debt.");
+    console.log(snxholdersWithDebt.length, 'with active debt.');
 
     return snxholdersWithDebt;
 };
@@ -183,11 +183,11 @@ const getTotalDebt = async (
     isL2?: boolean
 ) => {
     const synthetix = Synthetix({
-        network: isL2 ? "mainnet-ovm" : "mainnet",
+        network: isL2 ? 'mainnet-ovm' : 'mainnet',
         provider,
     });
 
-    const { DebtCache } = synthetix.contracts;
+    const {DebtCache} = synthetix.contracts;
     const currentDebt = await DebtCache.currentDebt({
         blockTag: block,
     });
@@ -201,11 +201,11 @@ const getLastDebtLedgerEntry = async (
     isL2?: boolean
 ) => {
     const synthetix = Synthetix({
-        network: isL2 ? "mainnet-ovm" : "mainnet",
+        network: isL2 ? 'mainnet-ovm' : 'mainnet',
         provider,
     });
 
-    const { SynthetixState } = synthetix.contracts;
+    const {SynthetixState} = synthetix.contracts;
     const lastDebtLedgerEntry: BigNumber =
         await SynthetixState.lastDebtLedgerEntry({
             blockTag: block,
@@ -236,10 +236,10 @@ const getDebtWeightedScore = (
 
 const main = async () => {
     const providerL1 = new ethers.providers.JsonRpcProvider(
-        "https://eth-mainnet.alchemyapi.io/v2/BxMdi15KTChUN673E1sigzV5EeBTzUlU"
+        'https://eth-mainnet.alchemyapi.io/v2/BxMdi15KTChUN673E1sigzV5EeBTzUlU'
     );
     const providerL2 = new ethers.providers.JsonRpcProvider(
-        "https://opt-mainnet.g.alchemy.com/v2/4jaqXoLzv_hTeuWJUmtzOp7H-axcyR9R"
+        'https://opt-mainnet.g.alchemy.com/v2/4jaqXoLzv_hTeuWJUmtzOp7H-axcyR9R'
     );
     const totalL1Debt = await getTotalDebt(providerL1, L1_BLOCK_SNAPSHOT);
     const totalL2Debt = await getTotalDebt(providerL2, L2_BLOCK_SNAPSHOT, true);
@@ -253,30 +253,30 @@ const main = async () => {
         true
     );
 
-    console.log("--System Info--");
+    console.log('--System Info--');
 
-    console.log("L1 Debt", totalL1Debt.toString());
-    console.log("L2 Debt", totalL2Debt.toString());
-    console.log("L1 Last Debt Ledger Entry", lastDebtLedgerEntryL1.toString());
-    console.log("L2 Last Debt Ledger Entry", lastDebtLedgerEntryL2.toString());
+    console.log('L1 Debt', totalL1Debt.toString());
+    console.log('L2 Debt', totalL2Debt.toString());
+    console.log('L1 Last Debt Ledger Entry', lastDebtLedgerEntryL1.toString());
+    console.log('L2 Last Debt Ledger Entry', lastDebtLedgerEntryL2.toString());
 
     const normalisedL2CRatio = 500 / 400;
     const scaledTotalL2Debt = totalL2Debt.mul(normalisedL2CRatio);
 
-    console.log("Scaled L2 Debt", scaledTotalL2Debt.toString());
+    console.log('Scaled L2 Debt', scaledTotalL2Debt.toString());
 
     console.log(
-        "Scaled L2 Debt Percentage",
+        'Scaled L2 Debt Percentage',
         scaledTotalL2Debt.div(scaledTotalL2Debt.add(totalL1Debt)).toString()
     );
 
-    console.log("\n--Grabbing L1 Set--");
+    console.log('\n--Grabbing L1 Set--');
     const eligibleAddressesL1 = await getUniqueFeesClaimers();
     const eligibleAddressesWithDebtL1 = await getSNXHoldersWithActiveDebt(
         eligibleAddressesL1,
         L1_BLOCK_SNAPSHOT
     );
-    console.log("\n--Grabbing L2 Set--");
+    console.log('\n--Grabbing L2 Set--');
     const eligibleAddressesL2 = await getUniqueFeesClaimers(true);
     const eligibleAddressesWithDebtL2 = await getSNXHoldersWithActiveDebt(
         eligibleAddressesL2,
@@ -285,7 +285,7 @@ const main = async () => {
     );
 
     const l1DebtScores = eligibleAddressesWithDebtL1.map(
-        ({ id, initialDebtOwnership, debtEntryAtIndex }) => ({
+        ({id, initialDebtOwnership, debtEntryAtIndex}) => ({
             address: id,
             debtScore: getDebtWeightedScore(
                 wei(initialDebtOwnership, 18, true),
@@ -299,7 +299,7 @@ const main = async () => {
     );
 
     const l2DebtScores = eligibleAddressesWithDebtL2.map(
-        ({ id, initialDebtOwnership, debtEntryAtIndex }) => ({
+        ({id, initialDebtOwnership, debtEntryAtIndex}) => ({
             address: id,
             debtScore: getDebtWeightedScore(
                 wei(initialDebtOwnership, 18, true),
@@ -333,7 +333,7 @@ const main = async () => {
 
     // Remove stakers below 1e-8 score
     const filteredDebtScores = (
-        mergedStakersDebtScores as Array<{ address: string; debtScore: number }>
+        mergedStakersDebtScores as Array<{address: string; debtScore: number}>
     ).filter((staker) => staker.debtScore >= 1e-8);
 
     // Sum total debt scores
@@ -364,17 +364,38 @@ const main = async () => {
     );
 
     console.log(
-        "\nFinal number of distribution recipients:",
+        '\nFinal number of distribution recipients:',
         sortedKwentaDistribution.length
     );
 
-    const csvString = sortedKwentaDistribution.reduce(
-        (acc, staker) => acc + `${staker.address},${staker.kwentaAmount}\n`,
-        ""
+    writeCSV(sortedKwentaDistribution);
+    writeCSV(sortedKwentaDistribution, true);
+
+    console.log('\n--JSON Generation Complete--');
+};
+
+const writeCSV = (
+    distributionData: {
+        kwentaAmount: number;
+        address: any;
+    }[],
+    amountsHidden: boolean = false
+) => {
+    const csvString = distributionData.reduce(
+        (acc, staker) =>
+            acc +
+            `${staker.address}${
+                amountsHidden ? '' : `,${staker.kwentaAmount}`
+            }\n`,
+        ''
     );
 
-    //fs.writeFileSync("./staker-distribution.csv", csvString);
-    console.log("\n--JSON Generation Complete--");
+    fs.writeFileSync(
+        `./scripts/distribution/staker-distribution${
+            amountsHidden ? '-ONLY-ADDRESSES' : ''
+        }.csv`,
+        csvString
+    );
 };
 
 main();

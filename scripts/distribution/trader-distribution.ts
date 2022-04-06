@@ -4,6 +4,7 @@ import preRegenesisSynthExchanges from './preregenesis_snapshots/l2-trades-prere
 import {ethers} from 'ethers';
 import {wei} from '@synthetixio/wei';
 import _ from 'lodash';
+import fs from 'fs';
 
 const L1_SUBGRAPH =
     'https://api.thegraph.com/subgraphs/name/synthetixio-team/mainnet-main';
@@ -110,12 +111,14 @@ const filterTraders = (synthExchanges: any, minTrades = 1, minVolume = 0) => {
     const addressesMapping = synthExchanges.reduce((acc: any, curr: any) => {
         acc[curr.toAddress] = acc[curr.toAddress]
             ? {
+                  address: curr.toAddress,
                   trades: acc[curr.toAddress].trades + 1,
                   fromAmountInUSD:
                       acc[curr.toAddress].fromAmountInUSD +
                       Number(curr.fromAmountInUSD),
               }
             : {
+                  address: curr.toAddress,
                   trades: 1,
                   fromAmountInUSD: Number(curr.fromAmountInUSD),
               };
@@ -144,14 +147,56 @@ const filterTraders = (synthExchanges: any, minTrades = 1, minVolume = 0) => {
 const main = async () => {
     console.log('\n--Grabbing L1 Set--');
     const synthExchangesL1 = await getSynthExchangers();
-    filterTraders(synthExchangesL1, 5, 1000);
+    const filteredL1 = filterTraders(synthExchangesL1, 5, 1000);
     console.log('\n--Grabbing L2 Set--');
     const synthExchangesL2PreRegenesis = getPreRegenesisSynthTraders();
     const synthExchangesL2 = await getSynthExchangers(true);
-    filterTraders(
+    const filteredL2 = filterTraders(
         [...synthExchangesL2PreRegenesis, ...synthExchangesL2],
         10,
         5000
+    );
+
+    // make unique by address
+    const mergedList = _.union(filteredL1, filteredL2, 'address').map(
+        ({address}) => ({address: address})
+    );
+
+    const kwentaDistribution = (313373 * 0.05) / mergedList.length;
+
+    // Assign KWENTA to stakers
+    const mappedDistribution = mergedList.map((trader) => ({
+        ...trader,
+        kwentaAmount: kwentaDistribution,
+    }));
+
+    writeCSV(mappedDistribution);
+    writeCSV(mappedDistribution, true);
+
+    console.log('\n--JSON Generation Complete--');
+};
+
+const writeCSV = (
+    distributionData: {
+        kwentaAmount: number;
+        address: any;
+    }[],
+    amountsHidden = false
+) => {
+    const csvString = distributionData.reduce(
+        (acc, trader) =>
+            acc +
+            `${trader.address}${
+                amountsHidden ? '' : `,${trader.kwentaAmount}`
+            }\n`,
+        ''
+    );
+
+    fs.writeFileSync(
+        `./scripts/distribution/trader-distribution${
+            amountsHidden ? '-ONLY-ADDRESSES' : ''
+        }.csv`,
+        csvString
     );
 };
 
