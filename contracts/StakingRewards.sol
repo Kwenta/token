@@ -485,6 +485,10 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
      * @param address of the rewardEsxrow contract to use
      */
     function setRewardEscrow(address _rewardEscrow) external onlyOwner {
+        require(
+            address(RewardEscrow(_rewardEscrow).kwenta()) == address(stakingToken), 
+            "staking token address not equal to RewardEscrow KWENTA address"
+        );
         rewardEscrow = RewardEscrow(_rewardEscrow);
         emit RewardEscrowUpdated(address(_rewardEscrow));
     }

@@ -1,8 +1,8 @@
-const { toBN, toWei } = require("web3-utils");
-const hardhat = require("hardhat");
+const {toBN, toWei} = require('web3-utils');
+const hardhat = require('hardhat');
 
 const send = (payload) => {
-    if (!payload.jsonrpc) payload.jsonrpc = "2.0";
+    if (!payload.jsonrpc) payload.jsonrpc = '2.0';
     if (!payload.id) payload.id = new Date().getTime();
 
     return new Promise((resolve, reject) => {
@@ -13,18 +13,18 @@ const send = (payload) => {
         });
     });
 };
-const mineBlock = () => send({ method: "evm_mine" });
+const mineBlock = () => send({method: 'evm_mine'});
 
-const NAME = "Kwenta";
-const SYMBOL = "KWENTA";
-const INITIAL_SUPPLY = hre.ethers.utils.parseUnits("313373");
+const NAME = 'Kwenta';
+const SYMBOL = 'KWENTA';
+const INITIAL_SUPPLY = hre.ethers.utils.parseUnits('313373');
 const DAY = 86400;
 const WEEK = DAY * 7;
 const ZERO_BN = toBN(0);
 
-const toUnit = (amount) => toBN(toWei(amount.toString(), "ether")).toString();
+const toUnit = (amount) => toBN(toWei(amount.toString(), 'ether')).toString();
 
-const assertBNClose = (actualBN, expectedBN, varianceParam = "10") => {
+const assertBNClose = (actualBN, expectedBN, varianceParam = '10') => {
     const actual = BN.isBN(actualBN) ? actualBN : new BN(actualBN);
     const expected = BN.isBN(expectedBN) ? expectedBN : new BN(expectedBN);
     const variance = BN.isBN(varianceParam)
@@ -50,7 +50,7 @@ const assertBNGreaterThan = (aBN, bBN) => {
 };
 
 const currentTime = async () => {
-    const { timestamp } = await web3.eth.getBlock("latest");
+    const {timestamp} = await web3.eth.getBlock('latest');
     return timestamp;
 };
 const fastForward = async (seconds) => {
@@ -60,16 +60,16 @@ const fastForward = async (seconds) => {
     if (BN.isBN(seconds)) seconds = seconds.toNumber();
 
     // And same with strings.
-    if (typeof seconds === "string") seconds = parseFloat(seconds);
+    if (typeof seconds === 'string') seconds = parseFloat(seconds);
 
     let params = {
-        method: "evm_increaseTime",
+        method: 'evm_increaseTime',
         params: [seconds],
     };
 
     if (hardhat.ovm) {
         params = {
-            method: "evm_setNextBlockTimestamp",
+            method: 'evm_setNextBlockTimestamp',
             params: [(await currentTime()) + seconds],
         };
     }
@@ -81,11 +81,11 @@ const fastForward = async (seconds) => {
 const assertBNEqual = (actualBN, expectedBN, context) => {
     assert.strictEqual(actualBN.toString(), expectedBN.toString(), context);
 };
-const BN = require("bn.js");
+const BN = require('bn.js');
 
-require("chai")
-    .use(require("chai-as-promised"))
-    .use(require("chai-bn-equal"))
+require('chai')
+    .use(require('chai-as-promised'))
+    .use(require('chai-bn-equal'))
     .should();
 
 let owner;
@@ -99,14 +99,14 @@ let exchangerProxy;
 let rewardsEscrow;
 
 const deployContract = async () => {
-    FixidityLib = await hre.ethers.getContractFactory("FixidityLib");
+    FixidityLib = await hre.ethers.getContractFactory('FixidityLib');
     fixidityLib = await FixidityLib.deploy();
 
-    LogarithmLib = await hre.ethers.getContractFactory("LogarithmLib", {
-        libraries: { FixidityLib: fixidityLib.address },
+    LogarithmLib = await hre.ethers.getContractFactory('LogarithmLib', {
+        libraries: {FixidityLib: fixidityLib.address},
     });
     logarithmLib = await LogarithmLib.deploy();
-    ExponentLib = await hre.ethers.getContractFactory("ExponentLib", {
+    ExponentLib = await hre.ethers.getContractFactory('ExponentLib', {
         libraries: {
             FixidityLib: fixidityLib.address,
             LogarithmLib: logarithmLib.address,
@@ -114,7 +114,7 @@ const deployContract = async () => {
     });
     exponentLib = await ExponentLib.deploy();
 
-    StakingRewards = await hre.ethers.getContractFactory("StakingRewards", {
+    StakingRewards = await hre.ethers.getContractFactory('StakingRewards', {
         libraries: {
             FixidityLib: fixidityLib.address,
             ExponentLib: exponentLib.address,
@@ -134,12 +134,12 @@ const deployProxy = async () => {
             supplySchedule.address,
             3,
         ],
-        { kind: "uups", unsafeAllow: ["external-library-linking"] }
+        {kind: 'uups', unsafeAllow: ['external-library-linking']}
     );
 };
 
 const deployNewRewardsEscrow = async (owner, kwentaToken) => {
-    RewardsEscrow = await await hre.ethers.getContractFactory("RewardEscrow");
+    RewardsEscrow = await await hre.ethers.getContractFactory('RewardEscrow');
     rewardsEscrow = await RewardsEscrow.deploy(
         owner.address,
         kwentaToken.address
@@ -157,7 +157,7 @@ before(async () => {
         supplySchedule,
         owner2,
     ] = await hre.ethers.getSigners();
-    KwentaToken = await hre.ethers.getContractFactory("Kwenta");
+    KwentaToken = await hre.ethers.getContractFactory('Kwenta');
     kwentaToken = await KwentaToken.deploy(
         NAME,
         SYMBOL,
@@ -177,8 +177,8 @@ before(async () => {
         .transfer(staker2.address, toUnit(100));
 });
 
-describe("Proxy deployment", async () => {
-    it("should deploy the proxy", async () => {
+describe('Proxy deployment', async () => {
+    it('should deploy the proxy', async () => {
         StakingRewards = await deployContract();
         stProxy = await deployProxy();
 
@@ -194,6 +194,7 @@ describe("Proxy deployment", async () => {
         assert.notEqual(implementation, stProxy.address);
 
         await stProxy.connect(owner).setExchangerProxy(exchangerProxy.address);
+        await stProxy.connect(owner).setRewardEscrow(rewardsEscrow.address);
 
         await kwentaToken
             .connect(treasuryDAO)
@@ -201,20 +202,21 @@ describe("Proxy deployment", async () => {
     });
 });
 
-describe("StakingRewards deployment", async () => {
-    it("deploys with correct addresses", async () => {
+describe('StakingRewards deployment', async () => {
+    it('deploys with correct addresses', async () => {
         assert.equal(await stProxy.owner(), owner.address);
         assert.equal(await stProxy.rewardsToken(), kwentaToken.address);
         assert.equal(await stProxy.stakingToken(), kwentaToken.address);
         assert.equal(await stProxy.getAdmin(), owner.address);
+        assert.equal(await stProxy.rewardEscrow(), rewardsEscrow.address);
     });
 });
 
-describe("stake()", async () => {
-    it("fails with zero amounts", async () => {
+describe('stake()', async () => {
+    it('fails with zero amounts', async () => {
         await stProxy.connect(staker1).stake(0).should.be.rejected;
     });
-    it("fails when staking below safety limit", async () => {
+    it('fails when staking below safety limit', async () => {
         const stakingMinimum = await stProxy.STAKING_SAFETY_MINIMUM();
         await kwentaToken
             .connect(staker1)
@@ -222,7 +224,7 @@ describe("stake()", async () => {
         await stProxy.connect(staker1).stake(stakingMinimum.sub(1)).should.be
             .rejected;
     });
-    it("stakes the correct amount", async () => {
+    it('stakes the correct amount', async () => {
         await kwentaToken
             .connect(staker1)
             .approve(stProxy.address, toUnit(100));
@@ -233,54 +235,54 @@ describe("stake()", async () => {
         await stProxy.connect(staker1).stake(toUnit(15));
 
         let bal = await stProxy.stakedBalanceOf(staker1.address);
-        assert.equal(bal, toUnit(15), "Incorrect amount");
+        assert.equal(bal, toUnit(15), 'Incorrect amount');
 
         await stProxy.connect(staker2).stake(toUnit(50));
         bal = await stProxy.stakedBalanceOf(staker2.address);
-        assert.equal(bal, toUnit(50), "Incorrect amount");
+        assert.equal(bal, toUnit(50), 'Incorrect amount');
     });
 });
 
-describe("withdraw()", async () => {
-    it("fails with zero amounts", async () => {
+describe('withdraw()', async () => {
+    it('fails with zero amounts', async () => {
         await stProxy.connect(staker1).withdraw(0).should.be.rejected;
     });
-    it("fails with amounts too large", async () => {
+    it('fails with amounts too large', async () => {
         await stProxy.connect(staker1).withdraw(toUnit(100)).should.be.rejected;
     });
-    it("fails when withdrawing results in a balance below safety limit", async () => {
+    it('fails when withdrawing results in a balance below safety limit', async () => {
         const stakingMinimum = await stProxy.STAKING_SAFETY_MINIMUM();
         const stakedAmount = await stProxy.totalBalanceOf(staker1.address);
         const invalidWithdrawalAmount = stakedAmount.sub(stakingMinimum).add(1);
         await stProxy.connect(staker1).withdraw(invalidWithdrawalAmount).should
             .be.rejected;
     });
-    it("withdraws the correct amount", async () => {
+    it('withdraws the correct amount', async () => {
         await stProxy.connect(staker1).withdraw(toUnit(15));
         let bal = await stProxy.stakedBalanceOf(staker1.address);
-        assert.equal(bal, 0, "Incorrect amount");
+        assert.equal(bal, 0, 'Incorrect amount');
 
         await stProxy.connect(staker2).withdraw(toUnit(50));
         bal = await stProxy.stakedBalanceOf(staker2.address);
-        assert.equal(bal, 0, "Incorrect amount");
+        assert.equal(bal, 0, 'Incorrect amount');
     });
 });
 
-describe("feesPaid()", async () => {
-    it("initializes updatesTraderScore correctly", async () => {
+describe('feesPaid()', async () => {
+    it('initializes updatesTraderScore correctly', async () => {
         let ts1 = await stProxy.feesPaidBy(staker1.address);
         let ts2 = await stProxy.feesPaidBy(staker2.address);
         assert.equal(ts1, 0);
         assert.equal(ts2, 0);
     });
-    it("fails when fees update is below safety limit", async () => {
+    it('fails when fees update is below safety limit', async () => {
         const feesPaidMinimum = await stProxy.FEES_PAID_SAFETY_MINIMUM();
         await stProxy
             .connect(exchangerProxy)
             .updateTraderScore(staker1.address, feesPaidMinimum.sub(1)).should
             .be.rejected;
     });
-    it("updates updatesTraderScore correctly", async () => {
+    it('updates updatesTraderScore correctly', async () => {
         await stProxy.connect(staker1).stake(toUnit(5));
         await stProxy.connect(staker2).stake(toUnit(5));
 
@@ -303,13 +305,13 @@ describe("feesPaid()", async () => {
     });
 });
 
-describe("lastTimeRewardApplicable()", () => {
-    it("should return 0", async () => {
+describe('lastTimeRewardApplicable()', () => {
+    it('should return 0', async () => {
         assert.equal(await stProxy.lastTimeRewardApplicable(), 0);
     });
 
-    describe("when updated", () => {
-        it("should equal current timestamp", async () => {
+    describe('when updated', () => {
+        it('should equal current timestamp', async () => {
             await stProxy
                 .connect(supplySchedule)
                 .setRewardNEpochs(toUnit(10), 4);
@@ -322,17 +324,18 @@ describe("lastTimeRewardApplicable()", () => {
     });
 });
 
-describe("rewardPerToken()", () => {
-    it("should return 0", async () => {
+describe('rewardPerToken()', () => {
+    it('should return 0', async () => {
         StakingRewards = await deployContract();
         stProxy = await deployProxy();
 
         await stProxy.connect(owner).setExchangerProxy(exchangerProxy.address);
+        await stProxy.connect(owner).setRewardEscrow(rewardsEscrow.address);
 
         assertBNEqual(await stProxy.rewardPerToken(), 0);
     });
 
-    it("should be > 0", async () => {
+    it('should be > 0', async () => {
         const totalToStake = toUnit(10);
 
         await kwentaToken
@@ -349,8 +352,8 @@ describe("rewardPerToken()", () => {
     });
 });
 
-describe("earned()", () => {
-    it("should not be 0 when staking but not trading", async () => {
+describe('earned()', () => {
+    it('should not be 0 when staking but not trading', async () => {
         // RewardsEscrow only allows for StakingRewards to be set *once*,
         // thus requiring new deployment when StakingRewards needs to change
         // for testing purposes
@@ -385,7 +388,7 @@ describe("earned()", () => {
         assertBNClose(earned.toString(), toUnit(4), toUnit(0.001));
     });
 
-    it("should be 0 when trading and not staking", async () => {
+    it('should be 0 when trading and not staking', async () => {
         // RewardsEscrow only allows for StakingRewards to be set *once*,
         // thus requiring new deployment when StakingRewards needs to change
         // for testing purposes
@@ -395,6 +398,8 @@ describe("earned()", () => {
         stProxy = await deployProxy();
 
         await stProxy.connect(owner).setExchangerProxy(exchangerProxy.address);
+        await stProxy.connect(owner).setRewardEscrow(rewardsEscrow.address);
+
         await rewardsEscrow.setStakingRewards(stProxy.address);
         await kwentaToken
             .connect(treasuryDAO)
@@ -421,7 +426,7 @@ describe("earned()", () => {
         assertBNEqual(earned, ZERO_BN);
     });
 
-    it("should be 0 when not trading and not staking", async () => {
+    it('should be 0 when not trading and not staking', async () => {
         // RewardsEscrow only allows for StakingRewards to be set *once*,
         // thus requiring new deployment when StakingRewards needs to change
         // for testing purposes
@@ -431,6 +436,8 @@ describe("earned()", () => {
         stProxy = await deployProxy();
 
         await stProxy.connect(owner).setExchangerProxy(exchangerProxy.address);
+        await stProxy.connect(owner).setRewardEscrow(rewardsEscrow.address);
+
         await rewardsEscrow.setStakingRewards(stProxy.address);
         await kwentaToken
             .connect(treasuryDAO)
@@ -453,7 +460,7 @@ describe("earned()", () => {
         assertBNEqual(earned, ZERO_BN);
     });
 
-    it("should be > 0 when trading and staking", async () => {
+    it('should be > 0 when trading and staking', async () => {
         // RewardsEscrow only allows for StakingRewards to be set *once*,
         // thus requiring new deployment when StakingRewards needs to change
         // for testing purposes
@@ -463,6 +470,8 @@ describe("earned()", () => {
         stProxy = await deployProxy();
 
         await stProxy.connect(owner).setExchangerProxy(exchangerProxy.address);
+        await stProxy.connect(owner).setRewardEscrow(rewardsEscrow.address);
+
         await rewardsEscrow.setStakingRewards(stProxy.address);
         await kwentaToken
             .connect(treasuryDAO)
@@ -494,16 +503,16 @@ describe("earned()", () => {
     });
 });
 
-describe("setRewardNEpochs()", () => {
-    it("Reverts if the provided reward is greater than the balance.", async () => {
+describe('setRewardNEpochs()', () => {
+    it('Reverts if the provided reward is greater than the balance.', async () => {
         const rewardValue = toUnit(100000000);
         await stProxy.connect(supplySchedule).setRewardNEpochs(rewardValue, 1)
             .should.be.rejected;
     });
 });
 
-describe("rewardEpochs()", () => {
-    it("Updates the reward Epoch mapping after the week is finished", async () => {
+describe('rewardEpochs()', () => {
+    it('Updates the reward Epoch mapping after the week is finished', async () => {
         // RewardsEscrow only allows for StakingRewards to be set *once*,
         // thus requiring new deployment when StakingRewards needs to change
         // for testing purposes
@@ -511,7 +520,10 @@ describe("rewardEpochs()", () => {
 
         StakingRewards = await deployContract();
         stProxy = await deployProxy();
+
         await stProxy.connect(owner).setExchangerProxy(exchangerProxy.address);
+        await stProxy.connect(owner).setRewardEscrow(rewardsEscrow.address);
+
         await rewardsEscrow.setStakingRewards(stProxy.address);
         await kwentaToken
             .connect(treasuryDAO)
@@ -551,8 +563,8 @@ describe("rewardEpochs()", () => {
     });
 });
 
-describe("implementation test", () => {
-    it("calculates rewards correctly", async () => {
+describe('implementation test', () => {
+    it('calculates rewards correctly', async () => {
         // RewardsEscrow only allows for StakingRewards to be set *once*,
         // thus requiring new deployment when StakingRewards needs to change
         // for testing purposes
@@ -560,7 +572,10 @@ describe("implementation test", () => {
 
         StakingRewards = await deployContract();
         stProxy = await deployProxy();
+
         await stProxy.connect(owner).setExchangerProxy(exchangerProxy.address);
+        await stProxy.connect(owner).setRewardEscrow(rewardsEscrow.address);
+
         await rewardsEscrow.setStakingRewards(stProxy.address);
         await kwentaToken
             .connect(treasuryDAO)
@@ -645,7 +660,7 @@ describe("implementation test", () => {
     });
 });
 
-describe("ownership test", () => {
+describe('ownership test', () => {
     beforeEach(async () => {
         await deployNewRewardsEscrow(owner, kwentaToken);
 
@@ -653,17 +668,19 @@ describe("ownership test", () => {
         stProxy = await deployProxy();
 
         await stProxy.connect(owner).setExchangerProxy(exchangerProxy.address);
+        await stProxy.connect(owner).setRewardEscrow(rewardsEscrow.address);
+
         await rewardsEscrow.setStakingRewards(stProxy.address);
     });
 
-    it("pending address should be 0", async () => {
+    it('pending address should be 0', async () => {
         assert.equal(
             await stProxy.getPendingAdmin(),
             hre.ethers.constants.AddressZero
         );
     });
 
-    it("transfer ownership, pending address should be 0", async () => {
+    it('transfer ownership, pending address should be 0', async () => {
         await stProxy.connect(owner).setPendingAdmin(owner2.address);
         assert.equal(await stProxy.getPendingAdmin(), owner2.address);
         await stProxy.connect(owner2).pendingAdminAccept();
@@ -674,10 +691,10 @@ describe("ownership test", () => {
     });
 });
 
-describe("recoverERC20()", () => {
+describe('recoverERC20()', () => {
     let rewardsToken, stakingToken;
     beforeEach(async () => {
-        ERC20 = await hre.ethers.getContractFactory("ERC20");
+        ERC20 = await hre.ethers.getContractFactory('ERC20');
         rewardsToken = await ERC20.deploy(NAME, SYMBOL);
 
         stakingToken = await ERC20.deploy(NAME, SYMBOL);
@@ -697,27 +714,56 @@ describe("recoverERC20()", () => {
                 supplySchedule.address,
                 3,
             ],
-            { kind: "uups", unsafeAllow: ["external-library-linking"] }
+            {kind: 'uups', unsafeAllow: ['external-library-linking']}
         );
 
         await stProxy.connect(owner).setExchangerProxy(exchangerProxy.address);
         await rewardsEscrow.setStakingRewards(stProxy.address);
     });
 
-    it("sweeping the rewards token", async () => {
+    it('sweeping the rewards token', async () => {
         await stProxy.connect(owner).recoverERC20(rewardsToken.address, 1)
             .should.be.rejected;
     });
 
-    it("sweeping the staking token", async () => {
+    it('sweeping the staking token', async () => {
         await stProxy.connect(owner).recoverERC20(stakingToken.address, 1)
             .should.be.rejected;
     });
 
-    it("sweeping unrelated token", async () => {
+    it('sweeping unrelated token', async () => {
         await stProxy
             .connect(owner)
             .recoverERC20(unrelatedToken.address, 1)
-            .should.be.rejectedWith("ERC20: transfer amount exceeds balance");
+            .should.be.rejectedWith('ERC20: transfer amount exceeds balance');
+    });
+});
+
+describe('setRewardEscrow()', () => {
+    it("Reverts if the provided RewardEscrow's $kwenta does not match StakingRewards' $stakingToken", async () => {
+        // deploy a new kwenta token
+        NewKwentaToken = await hre.ethers.getContractFactory('Kwenta');
+        newKwentaToken = await KwentaToken.deploy(
+            NAME,
+            SYMBOL,
+            INITIAL_SUPPLY,
+            owner.address,
+            treasuryDAO.address,
+            supplySchedule.address
+        );
+
+        // deploy new RewardEscrow with newKwentaToken
+        // @notice StakingRewards.stakingToken address does NOT equal the newRewardsEscrow.kwenta address
+        const newRewardsEscrow = await RewardsEscrow.deploy(
+            owner.address,
+            newKwentaToken.address
+        );
+
+        await stProxy
+            .connect(owner)
+            .setRewardEscrow(newRewardsEscrow.address)
+            .should.be.rejectedWith(
+                'staking token address not equal to RewardEscrow KWENTA address'
+            );
     });
 });

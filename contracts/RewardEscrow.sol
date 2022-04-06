@@ -17,7 +17,7 @@ import "./interfaces/IStakingRewards.sol";
 contract RewardEscrow is Owned, IRewardEscrow {
     using SafeDecimalMath for uint;
 
-    IKwenta public kwenta;
+    IKwenta public immutable kwenta;
 
     IStakingRewards public stakingRewards;
     bool private stakingRewardsSet = false;
