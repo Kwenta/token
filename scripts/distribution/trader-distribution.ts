@@ -2,7 +2,7 @@ import * as mainnetMain from './generated/mainnet-main';
 import * as optimismMain from './generated/optimism-main';
 import preRegenesisSynthExchanges from './preregenesis_snapshots/l2-trades-preregenesis.json';
 import {ethers} from 'ethers';
-import {wei} from '@synthetixio/wei';
+import Wei, {wei} from '@synthetixio/wei';
 import _ from 'lodash';
 import fs from 'fs';
 
@@ -162,23 +162,36 @@ const main = async () => {
         ({address}) => ({address: address})
     );
 
-    const kwentaDistribution = (313373 * 0.05) / mergedList.length;
+    const kwentaDistribution = wei(313373).mul(0.05).div(mergedList.length);
 
     // Assign KWENTA to stakers
     const mappedDistribution = mergedList.map((trader) => ({
         ...trader,
-        kwentaAmount: kwentaDistribution,
+        amount: kwentaDistribution,
     }));
 
     writeCSV(mappedDistribution);
     writeCSV(mappedDistribution, true);
+    writeJSON(mappedDistribution);
 
     console.log('\n--JSON Generation Complete--');
 };
 
+const writeJSON = (
+    distributionData: {
+        amount: Wei;
+        address: any;
+    }[]
+) => {
+    fs.writeFileSync(
+        `./scripts/distribution/trader-distribution.json`,
+        JSON.stringify(distributionData, null, 2)
+    );
+};
+
 const writeCSV = (
     distributionData: {
-        kwentaAmount: number;
+        amount: Wei;
         address: any;
     }[],
     amountsHidden = false
@@ -187,7 +200,7 @@ const writeCSV = (
         (acc, trader) =>
             acc +
             `${trader.address}${
-                amountsHidden ? '' : `,${trader.kwentaAmount}`
+                amountsHidden ? '' : `,${trader.amount.toString()}`
             }\n`,
         ''
     );

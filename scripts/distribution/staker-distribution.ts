@@ -334,7 +334,7 @@ const main = async () => {
     // Remove stakers below 1e-8 score
     const filteredDebtScores = (
         mergedStakersDebtScores as Array<{address: string; debtScore: number}>
-    ).filter((staker) => staker.debtScore >= 1e-8);
+    ).filter((staker) => staker.debtScore >= 1e-7);
 
     // Sum total debt scores
     const totalDebtScore = filteredDebtScores.reduce(
@@ -348,19 +348,21 @@ const main = async () => {
         debtScoreShare: staker.debtScore / totalDebtScore,
     }));
 
-    const floorKwentaAmount = 5;
-    const remainingKwentaAmount =
-        313373 * 0.3 - floorKwentaAmount * distributionShare.length;
+    const floorKwentaAmount = wei(5);
+    const remainingKwentaAmount = wei(313373)
+        .mul(0.3)
+        .sub(floorKwentaAmount.mul(distributionShare.length));
 
     // Assign KWENTA to stakers
     const realDistributionAmounts = distributionShare.map((staker) => ({
         ...staker,
-        kwentaAmount:
-            floorKwentaAmount + staker.debtScoreShare * remainingKwentaAmount,
+        amount: floorKwentaAmount.add(
+            wei(staker.debtScoreShare).mul(remainingKwentaAmount)
+        ),
     }));
 
-    const sortedKwentaDistribution = realDistributionAmounts.sort(
-        (a, b) => b.kwentaAmount - a.kwentaAmount
+    const sortedKwentaDistribution = realDistributionAmounts.sort((a, b) =>
+        b.amount.sub(a.amount).toNumber()
     );
 
     console.log(
@@ -368,15 +370,32 @@ const main = async () => {
         sortedKwentaDistribution.length
     );
 
-    writeCSV(sortedKwentaDistribution);
-    writeCSV(sortedKwentaDistribution, true);
+    const finalDistribution = sortedKwentaDistribution.map(
+        ({address, amount}) => ({address, amount})
+    );
+
+    writeCSV(finalDistribution);
+    writeCSV(finalDistribution, true);
+    writeJSON(finalDistribution);
 
     console.log('\n--JSON Generation Complete--');
 };
 
+const writeJSON = (
+    distributionData: {
+        amount: Wei;
+        address: any;
+    }[]
+) => {
+    fs.writeFileSync(
+        `./scripts/distribution/staker-distribution.json`,
+        JSON.stringify(distributionData, null, 2)
+    );
+};
+
 const writeCSV = (
     distributionData: {
-        kwentaAmount: number;
+        amount: Wei;
         address: any;
     }[],
     amountsHidden: boolean = false
@@ -385,7 +404,7 @@ const writeCSV = (
         (acc, staker) =>
             acc +
             `${staker.address}${
-                amountsHidden ? '' : `,${staker.kwentaAmount}`
+                amountsHidden ? '' : `,${staker.amount.toString()}`
             }\n`,
         ''
     );
