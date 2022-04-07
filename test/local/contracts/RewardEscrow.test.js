@@ -1668,7 +1668,7 @@ contract(
 
                 // ensure Issuer.debtBalanceOf returns 0
                 //mocks['Issuer'].smocked.debtBalanceOf.will.return.with('0');
-            });
+            }).timeout(200000);
             it("should return the vesting schedules for staker1", async () => {
                 const entries = await rewardsEscrow.getVestingSchedules(
                     staker1,

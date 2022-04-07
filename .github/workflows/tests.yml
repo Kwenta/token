@@ -1,7 +1,7 @@
 name: Automated Tests
 on: [push]
 env:
-  NODE_OPTIONS: --max-old-space-size=6144
+  NODE_OPTIONS: --max-old-space-size=5120
 jobs:
   Contract:
     runs-on: ubuntu-latest
