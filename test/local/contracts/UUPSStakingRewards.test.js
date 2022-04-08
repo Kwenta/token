@@ -58,11 +58,17 @@ contract('UUPS Proxy for StakingRewards', ([owner, rewardsDistribution, supplySc
 							ExponentLib: exponentLib.address
 				}
 			});
-			st_proxy = await hre.upgrades.deployProxy(StakingRewards,
-				[owner, kwentaToken.address, kwentaToken.address, rewardsEscrow.address, supplySchedule, 3],
-				{kind: "uups",
-				unsafeAllow: ["external-library-linking"]
-				});
+			st_proxy = await hre.upgrades.deployProxy(
+                StakingRewards,
+                [
+                    owner,
+                    kwentaToken.address,
+                    rewardsEscrow.address,
+                    supplySchedule,
+                    3,
+                ],
+                {kind: 'uups', unsafeAllow: ['external-library-linking']}
+            );
 
 			admin_address = await hre.upgrades.erc1967.getAdminAddress(st_proxy.address);
 			implementation = await hre.upgrades.erc1967.getImplementationAddress(st_proxy.address);
