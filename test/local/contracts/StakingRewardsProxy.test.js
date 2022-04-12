@@ -207,7 +207,7 @@ describe('StakingRewards deployment', async () => {
         assert.equal(await stProxy.owner(), owner.address);
         assert.equal(await stProxy.rewardsToken(), kwentaToken.address);
         assert.equal(await stProxy.stakingToken(), kwentaToken.address);
-        assert.equal(await stProxy.getAdmin(), owner.address);
+        assert.equal(await stProxy.owner(), owner.address);
         assert.equal(await stProxy.rewardEscrow(), rewardsEscrow.address);
     });
 });
@@ -675,17 +675,17 @@ describe('ownership test', () => {
 
     it('pending address should be 0', async () => {
         assert.equal(
-            await stProxy.getPendingAdmin(),
+            await stProxy.nominatedOwner(),
             hre.ethers.constants.AddressZero
         );
     });
 
     it('transfer ownership, pending address should be 0', async () => {
-        await stProxy.connect(owner).setPendingAdmin(owner2.address);
-        assert.equal(await stProxy.getPendingAdmin(), owner2.address);
-        await stProxy.connect(owner2).pendingAdminAccept();
+        await stProxy.connect(owner).nominateNewOwner(owner2.address);
+        assert.equal(await stProxy.nominatedOwner(), owner2.address);
+        await stProxy.connect(owner2).acceptOwnership();
         assert.equal(
-            await stProxy.getPendingAdmin(),
+            await stProxy.nominatedOwner(),
             hre.ethers.constants.AddressZero
         );
     });
