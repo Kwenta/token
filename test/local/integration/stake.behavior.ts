@@ -219,7 +219,8 @@ describe('Stake', () => {
 			await rewardEscrow.connect(addr1).stakeEscrow(TEST_VALUE);
 			await rewardEscrow.connect(addr2).stakeEscrow(SMALLER_TEST_VALUE);
 
-			// check escrow balance(s) and expect balance of staked escrow to be > 0
+			// check escrow balance(s) and expect balance of 
+			// staked escrow to be what was staked above
 			expect(
 				await stakingRewardsProxy.escrowedBalanceOf(addr1.address)
 			).to.equal(TEST_VALUE);
