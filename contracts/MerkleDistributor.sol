@@ -46,7 +46,7 @@ contract MerkleDistributor is IMerkleDistributor {
         // Mark it claimed and send the token to RewardEscrow
         _setClaimed(index);
         IERC20(token).approve(rewardEscrow, amount);
-        IRewardEscrow(rewardEscrow).createEscrowEntry(account, amount, 365 days);
+        IRewardEscrow(rewardEscrow).createEscrowEntry(account, amount, 52 weeks);
         
         emit Claimed(index, account, amount);
     }

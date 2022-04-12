@@ -144,8 +144,6 @@ describe('MerkleDistributor', () => {
 			it('successful claim and transfer', async () => {
 				const proof0 = tree.getProof(0, addr0.address, BigNumber.from(100));
 				
-				// rewardEscrow.balanceOf(addr) TODO
-				
 				await expect(distributor.claim(0, addr0.address, 100, proof0))
 					.to.emit(distributor, 'Claimed')
 					.withArgs(0, addr0.address, 100);
