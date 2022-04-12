@@ -12,7 +12,7 @@ const SYMBOL = 'KWENTA';
 const INITIAL_SUPPLY = ethers.utils.parseUnits('313373');
 const INFLATION_DIVERSION_BPS = 2000;
 const WEEKLY_START_REWARDS = 3;
-const SECONDS_IN_WEEK = 6048000;
+const SECONDS_IN_WEEK = 604800;
 
 // test values for staking
 const TEST_VALUE = wei(2000).toBN();
