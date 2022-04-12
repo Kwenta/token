@@ -60,6 +60,7 @@ describe('MerkleDistributor', () => {
 			);
 			distributor = await MerkleDistributor.deploy(
 				kwenta.address,
+				rewardEscrow.address,
 				ZERO_BYTES32
 			);
 			await distributor.deployed();
@@ -74,6 +75,7 @@ describe('MerkleDistributor', () => {
 			);
 			distributor = await MerkleDistributor.deploy(
 				kwenta.address,
+				rewardEscrow.address,
 				ZERO_BYTES32
 			);
 			await distributor.deployed();
@@ -88,6 +90,7 @@ describe('MerkleDistributor', () => {
 			);
 			distributor = await MerkleDistributor.deploy(
 				kwenta.address,
+				rewardEscrow.address,
 				ZERO_BYTES32
 			);
 			await distributor.deployed();
@@ -102,6 +105,7 @@ describe('MerkleDistributor', () => {
 			);
 			distributor = await MerkleDistributor.deploy(
 				kwenta.address,
+				rewardEscrow.address,
 				ZERO_BYTES32
 			);
 			await distributor.deployed();
@@ -127,6 +131,7 @@ describe('MerkleDistributor', () => {
 				);
 				distributor = await MerkleDistributor.deploy(
 					kwenta.address,
+					rewardEscrow.address,
 					tree.getHexRoot()
 				);
 				await distributor.deployed();
@@ -139,17 +144,21 @@ describe('MerkleDistributor', () => {
 			it('successful claim and transfer', async () => {
 				const proof0 = tree.getProof(0, addr0.address, BigNumber.from(100));
 				
+				// rewardEscrow.balanceOf(addr) TODO
+				
 				await expect(distributor.claim(0, addr0.address, 100, proof0))
 					.to.emit(distributor, 'Claimed')
 					.withArgs(0, addr0.address, 100);
-				expect(await kwenta.balanceOf(addr0.address)).to.equal(100);
+
+				expect(await rewardEscrow.balanceOf(addr0.address)).to.equal(100);
 
 				const proof1 = tree.getProof(1, addr1.address, BigNumber.from(101));
 
 				await expect(distributor.claim(1, addr1.address, 101, proof1))
 					.to.emit(distributor, 'Claimed')
 					.withArgs(1, addr1.address, 101);
-				expect(await kwenta.balanceOf(addr1.address)).to.equal(101);
+
+				expect(await rewardEscrow.balanceOf(addr1.address)).to.equal(101);
 
 				expect(await kwenta.balanceOf(distributor.address)).to.equal(0);
 			});
@@ -254,7 +263,7 @@ describe('MerkleDistributor', () => {
 				const proof = tree.getProof(0, addr0.address, BigNumber.from(100));
 				const tx = await distributor.claim(0, addr0.address, 100, proof);
 				const receipt = await tx.wait();
-				expect(receipt.gasUsed).to.equal(69003);
+				expect(receipt.gasUsed).to.equal(197149);
 			});
 		});
 
@@ -281,6 +290,7 @@ describe('MerkleDistributor', () => {
 				);
 				distributor = await MerkleDistributor.deploy(
 					kwenta.address,
+					rewardEscrow.address,
 					tree.getHexRoot()
 				);
 				await distributor.deployed();
@@ -327,7 +337,7 @@ describe('MerkleDistributor', () => {
 					proof
 				);
 				const receipt = await tx.wait();
-				expect(receipt.gasUsed).to.eq(72796);
+				expect(receipt.gasUsed).to.eq(200942);
 			});
 
 			it('gas second down about 15k', async () => {
@@ -345,7 +355,7 @@ describe('MerkleDistributor', () => {
 					tree.getProof(1, accounts[1].address, BigNumber.from(2))
 				);
 				const receipt = await tx.wait();
-				expect(receipt.gasUsed).to.eq(55696);
+				expect(receipt.gasUsed).to.eq(183842);
 			});
 		});
 
@@ -390,6 +400,7 @@ describe('MerkleDistributor', () => {
 				);
 				distributor = await MerkleDistributor.deploy(
 					kwenta.address,
+					rewardEscrow.address,
 					tree.getHexRoot()
 				);
 				await distributor.deployed();
@@ -414,7 +425,7 @@ describe('MerkleDistributor', () => {
 					proof
 				);
 				const receipt = await tx.wait();
-				expect(receipt.gasUsed).to.eq(87890);
+				expect(receipt.gasUsed).to.eq(216036);
 			});
 
 			it('gas deeper node', async () => {
@@ -431,7 +442,7 @@ describe('MerkleDistributor', () => {
 					proof
 				);
 				const receipt = await tx.wait();
-				expect(receipt.gasUsed).to.eq(87924);
+				expect(receipt.gasUsed).to.eq(216070);
 			});
 
 			it('gas average random distribution', async () => {
@@ -449,7 +460,7 @@ describe('MerkleDistributor', () => {
 					count++;
 				}
 				const average = total.div(count);
-				expect(average).to.eq(87877);
+				expect(average).to.eq(216023);
 			});
 
 			// this is what we gas golfed by packing the bitmap
@@ -468,7 +479,7 @@ describe('MerkleDistributor', () => {
 					count++;
 				}
 				const average = total.div(count);
-				expect(average).to.eq(71450);
+				expect(average).to.eq(199596);
 			});
 
 			it('no double claims in random distribution', async () => {
@@ -524,6 +535,7 @@ describe('MerkleDistributor', () => {
 			);
 			distributor = await MerkleDistributor.deploy(
 				kwenta.address,
+				rewardEscrow.address,
 				merkleRoot
 			);
 			await distributor.deployed();
