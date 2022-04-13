@@ -42,7 +42,7 @@ interface IStakingRewards {
 
     function withdraw(uint256 amount) external;
 
-    function setRewardNEpochs(uint256 reward, uint256 nEpochs) external;
+    function setRewards(uint256 reward) external;
 
     function stakeEscrow(address _account, uint256 _amount) external;
 
