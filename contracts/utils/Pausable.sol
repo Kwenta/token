@@ -43,7 +43,7 @@ abstract contract Pausable is OwnedUpgradeable {
         _;
     }
 
-    function _notPaused() internal {
+    function _notPaused() internal view {
         require(!paused, "This action cannot be performed while the contract is paused");
     }
 }

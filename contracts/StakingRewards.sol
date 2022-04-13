@@ -100,11 +100,21 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     uint256 public constant STAKING_SAFETY_MINIMUM = 1e4;
     uint256 public constant FEES_PAID_SAFETY_MINIMUM = 1e12;
 
-    /* ========== PROXY VARIABLES ========== */
-    address private admin;
-    address private pendingAdmin;
+    /* ========== EVENTS ========== */
+
+    event RewardAdded(uint256 reward, uint256 nEpochs);
+    event Staked(address indexed user, uint256 amount);
+    event Withdrawn(address indexed user, uint256 amount);
+    event RewardPaid(address indexed user, uint256 reward);
+    event RewardsDurationUpdated(uint256 newDuration);
+    event Recovered(address token, uint256 amount);
+    event EscrowStaked(address account, uint256 amount);
+    event EscrowUnstaked(address account, uint256 amount);
+    event RewardEscrowUpdated(address account);
+    event ExchangerProxyUpdated(address account);
     
     /* ========== INITIALIZER ========== */
+    
     function initialize(
         address _owner,
         address _rewardsToken,
@@ -116,8 +126,6 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
         __Pausable_init(_owner);
 
         __ReentrancyGuard_init();
-
-        admin = _owner;
 
         periodFinish = 0;
         rewardRate = 0;
@@ -587,90 +595,13 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
         require(isSS);
     }
 
-
-
-    /* ========== EVENTS ========== */
-
-    event RewardAdded(uint256 reward);
-    event Staked(address indexed user, uint256 amount);
-    event Withdrawn(address indexed user, uint256 amount);
-    event RewardPaid(address indexed user, uint256 reward);
-    event Recovered(address token, uint256 amount);
-    event EscrowStaked(address account, uint256 amount);
-    event EscrowUnstaked(address account, uint256 amount);
-    event RewardEscrowUpdated(address account);
-    event ExchangerProxyUpdated(address account);
-
     /* ========== PROXY FUNCTIONS ========== */
     
     /*
-     * @notice Necessary override for Open Zeppelin UUPS proxy to make sure the admin logic is included
+     * @notice Necessary override for Open Zeppelin UUPS proxy to make sure the owner logic is included
      */
-    function _authorizeUpgrade(address newImplementation) internal override onlyAdmin {
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {
 
-    }
-
-    /*
-     * @notice Getter function for current admin of stakingRewards Proxy
-     */
-    function getAdmin() external view returns(address) {
-        return admin;
-    }
-
-    /*
-     * @notice Getter function for current proposed new admin of stakingRewards Proxy
-     */
-    function getPendingAdmin() external view returns(address) {
-        return pendingAdmin;
-    }
-
-    /*
-     * @notice Propose a new admin for the staking rewards proxy (only the owner can do this)
-     */
-    function setPendingAdmin(address _newAdmin) external onlyOwner {
-        pendingAdmin = _newAdmin;
-    }
-
-    /*
-     * @notice Pending admin accepts the new role as admin
-     */
-    function pendingAdminAccept() external onlyPendingAdmin {
-        admin = pendingAdmin;
-        pendingAdmin = address(0);
-    }
-
-    /*
-     * @notice access control modifier for admin
-     */
-    modifier onlyAdmin() {
-        _onlyAdmin();
-        _;
-    }
-
-    /*
-     * @notice internal function used in the modifier with the same name to optimize bytecode
-     */
-    function _onlyAdmin() internal view {
-        bool isAdmin = msg.sender == admin;
-
-        require(isAdmin);
-    }
-
-    /*
-     * @notice access control modifier for pending admin
-     */
-    modifier onlyPendingAdmin() {
-        _onlyPendingAdmin();
-        _;
-    }
-
-    /*
-     * @notice internal function used in the modifier with the same name to optimize bytecode
-     */
-    function _onlyPendingAdmin() internal view {
-        bool isPendingAdmin = msg.sender == pendingAdmin;
-
-        require(isPendingAdmin);
     }
 
 }

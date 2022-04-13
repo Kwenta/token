@@ -1677,7 +1677,7 @@ contract(
                 );
                 // should be 260 entries
                 assert.equal(entries.length, numberOfEntries);
-            });
+            }).timeout(200000);
             it("should return the list of vesting entryIDs for staker1", async () => {
                 const vestingEntryIDs =
                     await rewardsEscrow.getAccountVestingEntryIDs(
@@ -1688,7 +1688,7 @@ contract(
 
                 // should be 260 entryID's in the list
                 assert.equal(vestingEntryIDs.length, numberOfEntries);
-            });
+            }).timeout(200000);
             it("should return a subset of vesting entryIDs for staker1", async () => {
                 const vestingEntryIDs =
                     await rewardsEscrow.getAccountVestingEntryIDs(
@@ -1699,7 +1699,7 @@ contract(
 
                 // should be 130 entryID's in the list
                 assert.equal(vestingEntryIDs.length, 130);
-            });
+            }).timeout(200000);
         });
 
         describe("Staking Escrow", () => {
