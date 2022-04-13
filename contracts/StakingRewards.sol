@@ -462,8 +462,6 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
         rewardRateStaking = rewardRate * PERCENTAGE_STAKING / MAX_BPS;
         rewardRateTrading = rewardRate * PERCENTAGE_TRADING / MAX_BPS;
 
-        uint256 balance = stakingToken.balanceOf(address(this));
-        require(reward <= balance);
         lastUpdateTime = block.timestamp;
         periodFinish = block.timestamp + rewardsDuration * nEpochs;
         emit RewardAdded(reward, nEpochs);
