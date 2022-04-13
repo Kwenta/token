@@ -202,7 +202,7 @@ contract SupplySchedule is Owned, ISupplySchedule {
 
         kwenta.mint(treasuryDAO, amountToTreasury);
         kwenta.mint(address(stakingRewards), amountToStakingRewards);
-        stakingRewards.setRewardNEpochs(amountToStakingRewards, 1);
+        stakingRewards.setRewards(amountToStakingRewards);
         kwenta.mint(msg.sender, minterReward);
     }
 
