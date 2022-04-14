@@ -501,14 +501,6 @@ describe('earned()', () => {
     });
 });
 
-describe('setRewardNEpochs()', () => {
-    it('Reverts if the provided reward is greater than the balance.', async () => {
-        const rewardValue = toUnit(100000000);
-        await stProxy.connect(supplySchedule).setRewardNEpochs(rewardValue, 1)
-            .should.be.rejected;
-    });
-});
-
 describe('rewardEpochs()', () => {
     it('Updates the reward Epoch mapping after the week is finished', async () => {
         // RewardsEscrow only allows for StakingRewards to be set *once*,
