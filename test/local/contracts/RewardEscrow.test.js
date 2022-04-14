@@ -186,7 +186,6 @@ contract(
         const YEAR = 31556926;
         let stakingRewards;
         let stakingToken;
-        let rewardsToken;
         let rewardsEscrow;
         let kwentaSmock;
         let supplySchedule;
@@ -197,14 +196,6 @@ contract(
 
             // TODO: Remove if unused
             stakingToken = await TokenContract.new(
-                NAME,
-                SYMBOL,
-                INITIAL_SUPPLY,
-                owner,
-                treasuryDAO,
-                ethers.constants.AddressZero
-            );
-            rewardsToken = await TokenContract.new(
                 NAME,
                 SYMBOL,
                 INITIAL_SUPPLY,
@@ -229,7 +220,6 @@ contract(
             // TODO: Remove if unused
             stakingRewards.initialize(
                 owner,
-                rewardsToken.address,
                 stakingToken.address,
                 rewardsEscrow.address,
                 supplySchedule.address,
@@ -256,12 +246,6 @@ contract(
             await stakingToken.transfer(owner, toUnit(31000), {
                 from: treasuryDAO,
             });
-
-            await rewardsToken.transfer(
-                stakingRewards.address,
-                toUnit(100000),
-                { from: treasuryDAO }
-            );
 
             await network.provider.send("hardhat_setBalance", [
                 stakingRewards.address,

@@ -129,7 +129,6 @@ const deployProxy = async () => {
         [
             owner.address,
             kwentaToken.address,
-            kwentaToken.address,
             rewardsEscrow.address,
             supplySchedule.address,
             3,
@@ -205,7 +204,6 @@ describe('Proxy deployment', async () => {
 describe('StakingRewards deployment', async () => {
     it('deploys with correct addresses', async () => {
         assert.equal(await stProxy.owner(), owner.address);
-        assert.equal(await stProxy.rewardsToken(), kwentaToken.address);
         assert.equal(await stProxy.stakingToken(), kwentaToken.address);
         assert.equal(await stProxy.owner(), owner.address);
         assert.equal(await stProxy.rewardEscrow(), rewardsEscrow.address);
@@ -503,14 +501,6 @@ describe('earned()', () => {
     });
 });
 
-describe('setRewardNEpochs()', () => {
-    it('Reverts if the provided reward is greater than the balance.', async () => {
-        const rewardValue = toUnit(100000000);
-        await stProxy.connect(supplySchedule).setRewardNEpochs(rewardValue, 1)
-            .should.be.rejected;
-    });
-});
-
 describe('rewardEpochs()', () => {
     it('Updates the reward Epoch mapping after the week is finished', async () => {
         // RewardsEscrow only allows for StakingRewards to be set *once*,
@@ -692,11 +682,9 @@ describe('ownership test', () => {
 });
 
 describe('recoverERC20()', () => {
-    let rewardsToken, stakingToken;
+    let stakingToken;
     beforeEach(async () => {
         ERC20 = await hre.ethers.getContractFactory('ERC20');
-        rewardsToken = await ERC20.deploy(NAME, SYMBOL);
-
         stakingToken = await ERC20.deploy(NAME, SYMBOL);
 
         unrelatedToken = await ERC20.deploy(NAME, SYMBOL);
@@ -708,7 +696,6 @@ describe('recoverERC20()', () => {
             StakingRewards,
             [
                 owner.address,
-                rewardsToken.address,
                 stakingToken.address,
                 rewardsEscrow.address,
                 supplySchedule.address,
@@ -719,11 +706,6 @@ describe('recoverERC20()', () => {
 
         await stProxy.connect(owner).setExchangerProxy(exchangerProxy.address);
         await rewardsEscrow.setStakingRewards(stProxy.address);
-    });
-
-    it('sweeping the rewards token', async () => {
-        await stProxy.connect(owner).recoverERC20(rewardsToken.address, 1)
-            .should.be.rejected;
     });
 
     it('sweeping the staking token', async () => {

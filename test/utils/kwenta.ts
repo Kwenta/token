@@ -106,7 +106,6 @@ export const deployKwenta = async (
 		[
 			owner.address,
 			kwenta.address,
-			kwenta.address,
 			rewardEscrow.address,
 			supplySchedule.address, 
 			WEEKLY_START_REWARDS,
