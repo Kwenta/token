@@ -6,10 +6,17 @@ import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "./interfaces/IRewardEscrow.sol";
 import "./interfaces/IMerkleDistributor.sol";
 
+import { ICrossDomainMessenger } from 
+    "@eth-optimism/contracts/libraries/bridge/ICrossDomainMessenger.sol";
+
 contract MerkleDistributor is IMerkleDistributor {
+    // communication between L1 and L2 is enabled by two special smart contracts called the "messengers"
+    // and below is the address for the messenger on L2
+    address constant crossDomainMessengerAddr = 0x4200000000000000000000000000000000000007;
+
     // escrow for tokens claimed
     address public immutable override rewardEscrow;
-    
+
     address public immutable override token;
     bytes32 public immutable override merkleRoot;
 
@@ -53,7 +60,10 @@ contract MerkleDistributor is IMerkleDistributor {
 
     function claimToAddress(uint256 index, address destAccount, uint256 amount, bytes32[] calldata merkleProof) external override {
         require(!isClaimed(index), 'MerkleDistributor: Drop already claimed.');
-        address caller = 0x0000000000000000000000000000000000000000;
+        require(msg.sender == crossDomainMessengerAddr, "Only the OVM-ICrossDomainMessenger can call this function");
+
+        // caller address from L1 (effectively the msg.sender on L1)
+        address caller = ICrossDomainMessenger(crossDomainMessengerAddr).xDomainMessageSender();
 
         // Verify the merkle proof with the caller's address
         bytes32 node = keccak256(abi.encodePacked(index, caller, amount));
