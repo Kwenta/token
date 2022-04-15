@@ -50,4 +50,21 @@ contract MerkleDistributor is IMerkleDistributor {
         
         emit Claimed(index, account, amount);
     }
+
+    function claimToAddress(uint256 index, address destAccount, uint256 amount, bytes32[] calldata merkleProof) external override {
+        require(!isClaimed(index), 'MerkleDistributor: Drop already claimed.');
+        address caller = 0x0000000000000000000000000000000000000000;
+
+        // Verify the merkle proof with the caller's address
+        bytes32 node = keccak256(abi.encodePacked(index, caller, amount));
+        require(MerkleProof.verify(merkleProof, merkleRoot, node), 'MerkleDistributor: Invalid proof.');
+
+        // Mark it claimed and send the token to RewardEscrow
+        _setClaimed(index);
+        IERC20(token).approve(rewardEscrow, amount);
+        // @notice destAccount is NOT necessarily the caller's address
+        IRewardEscrow(rewardEscrow).createEscrowEntry(destAccount, amount, 52 weeks);
+        
+        emit Claimed(index, caller, amount);
+    }
 }
