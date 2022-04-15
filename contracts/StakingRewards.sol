@@ -41,8 +41,7 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     // ExchangerProxy
     address private exchangerProxy;
 
-    // Tokens to stake and reward
-    IERC20 public override rewardsToken;
+    // Token to stake and reward
     IERC20 public stakingToken;
     // Time handling:
     // Time where new reward epoch finishes 
@@ -117,7 +116,6 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     
     function initialize(
         address _owner,
-        address _rewardsToken,
         address _stakingToken,
         address _rewardEscrow,
         address _supplySchedule,
@@ -130,7 +128,6 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
         periodFinish = 0;
         rewardRate = 0;
 
-        rewardsToken = IERC20(_rewardsToken);
         stakingToken = IERC20(_stakingToken);
         fixidity.init(18);
 
@@ -469,9 +466,6 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
         rewardRateStaking = rewardRate * PERCENTAGE_STAKING / MAX_BPS;
         rewardRateTrading = rewardRate * PERCENTAGE_TRADING / MAX_BPS;
 
-        uint256 balance = rewardsToken.balanceOf(address(this));
-        require(reward <= balance);
-
         lastUpdateTime = block.timestamp;
         periodFinish = block.timestamp + WEEK;
         emit RewardAdded(reward);
@@ -479,7 +473,6 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
 
     // @notice Added to support recovering LP Rewards from other systems such as BAL to be distributed to holders
     function recoverERC20(address tokenAddress, uint256 tokenAmount) external onlyOwner {
-        require(tokenAddress != address(rewardsToken));
         require(tokenAddress != address(stakingToken));
         IERC20(tokenAddress).transfer(owner, tokenAmount);
         emit Recovered(tokenAddress, tokenAmount);

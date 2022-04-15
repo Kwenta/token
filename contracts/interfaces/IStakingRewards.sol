@@ -26,8 +26,6 @@ interface IStakingRewards {
 
     function rewardPerToken() external view returns (uint256);
 
-    function rewardsToken() external view returns (IERC20);
-
     // Mutative
 
     function setPercentageRewards(uint256 _percentageStaking, uint256 _percentageTrading) external;
