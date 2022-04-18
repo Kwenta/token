@@ -3,9 +3,10 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import './interfaces/IERC20.sol';
+import './interfaces/IvKwentaRedeemer.sol';
+import './utils/ERC20.sol';
 
-contract vKwentaRedeemer is ReentrancyGuard {
+contract vKwentaRedeemer is IvKwentaRedeemer, ReentrancyGuard {
     // token to be burned
     address public immutable vToken;
     // token to be redeemed
@@ -24,7 +25,7 @@ contract vKwentaRedeemer is ReentrancyGuard {
      * @notice caller must approve this contract to spend vToken
      * @notice vToken is burned prior to transfer of token
      */
-    function redeem() external nonReentrant {
+    function redeem() override external nonReentrant {
         uint vTokenBalance = IERC20(vToken).balanceOf(msg.sender);
 
         // ensure valid balance
