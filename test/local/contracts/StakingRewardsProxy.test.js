@@ -642,7 +642,6 @@ describe('implementation test', () => {
 
         await stProxy.connect(staker2).exit();
         let escrowedSt2 = await kwentaToken.balanceOf(rewardsEscrow.address);
-        console.log(escrowedSt2.toString());
         assertBNClose(
             escrowedSt2.toString(),
             toUnit(122.85734126983 + 177.14265873015),
