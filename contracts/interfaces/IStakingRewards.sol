@@ -22,8 +22,6 @@ interface IStakingRewards {
 
     function earned(address account) external view returns (uint256);
 
-    function getRewardForDuration() external view returns (uint256);
-
     function lastTimeRewardApplicable() external view returns (uint256);
 
     function rewardPerToken() external view returns (uint256);
@@ -42,7 +40,7 @@ interface IStakingRewards {
 
     function withdraw(uint256 amount) external;
 
-    function setRewardNEpochs(uint256 reward, uint256 nEpochs) external;
+    function setRewards(uint256 reward) external;
 
     function stakeEscrow(address _account, uint256 _amount) external;
 

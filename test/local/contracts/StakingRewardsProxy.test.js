@@ -312,7 +312,7 @@ describe('lastTimeRewardApplicable()', () => {
         it('should equal current timestamp', async () => {
             await stProxy
                 .connect(supplySchedule)
-                .setRewardNEpochs(toUnit(10), 4);
+                .setRewards(toUnit(10));
 
             const cur = await currentTime();
             const lastTimeReward = await stProxy.lastTimeRewardApplicable();
@@ -340,7 +340,7 @@ describe('rewardPerToken()', () => {
             .connect(treasuryDAO)
             .transfer(stProxy.address, toUnit(10));
         await kwentaToken.connect(staker1).approve(stProxy.address, toUnit(10));
-        await stProxy.connect(supplySchedule).setRewardNEpochs(toUnit(10), 4);
+        await stProxy.connect(supplySchedule).setRewards(toUnit(10));
 
         await stProxy.connect(staker1).stake(totalToStake);
         await fastForward(1);
@@ -377,7 +377,7 @@ describe('earned()', () => {
 
         const rewardValue = toUnit(5.0);
 
-        await stProxy.connect(supplySchedule).setRewardNEpochs(rewardValue, 1);
+        await stProxy.connect(supplySchedule).setRewards(rewardValue);
 
         await fastForward(DAY * 7);
 
@@ -415,7 +415,7 @@ describe('earned()', () => {
 
         const rewardValue = toUnit(5.0);
 
-        await stProxy.connect(supplySchedule).setRewardNEpochs(rewardValue, 1);
+        await stProxy.connect(supplySchedule).setRewards(rewardValue);
 
         await fastForward(DAY);
 
@@ -449,7 +449,7 @@ describe('earned()', () => {
 
         const rewardValue = toUnit(5.0);
 
-        await stProxy.connect(supplySchedule).setRewardNEpochs(rewardValue, 1);
+        await stProxy.connect(supplySchedule).setRewards(rewardValue);
 
         await fastForward(DAY);
 
@@ -491,7 +491,7 @@ describe('earned()', () => {
 
         const rewardValue = toUnit(5.0);
 
-        await stProxy.connect(supplySchedule).setRewardNEpochs(rewardValue, 1);
+        await stProxy.connect(supplySchedule).setRewards(rewardValue);
 
         await fastForward(DAY);
 
@@ -534,7 +534,7 @@ describe('rewardEpochs()', () => {
         } else {
             currEpoch = currEpoch - 3 * DAY;
         }
-        await stProxy.connect(supplySchedule).setRewardNEpochs(rewardValue, 1);
+        await stProxy.connect(supplySchedule).setRewards(rewardValue);
 
         await stProxy.connect(staker1).stake(totalToStake);
         await stProxy
@@ -591,7 +591,7 @@ describe('implementation test', () => {
         await stProxy.connect(staker1).stake(toUnit(10));
         await stProxy.connect(staker2).stake(toUnit(10));
 
-        await stProxy.connect(supplySchedule).setRewardNEpochs(toUnit(300), 3);
+        await stProxy.connect(supplySchedule).setRewards(toUnit(300));
 
         await fastForward(1 * DAY);
 
@@ -636,7 +636,7 @@ describe('implementation test', () => {
         let escrowedSt1 = await kwentaToken.balanceOf(rewardsEscrow.address);
         assertBNClose(
             escrowedSt1.toString(),
-            toUnit(140.10276354425),
+            toUnit(122.85734126983),
             toUnit(0.001)
         );
 
@@ -644,7 +644,7 @@ describe('implementation test', () => {
         let escrowedSt2 = await kwentaToken.balanceOf(rewardsEscrow.address);
         assertBNClose(
             escrowedSt2.toString(),
-            toUnit(140.10276354425 + 139.89723645575),
+            toUnit(122.85734126983 + 177.14265873015),
             toUnit(0.001)
         );
     });

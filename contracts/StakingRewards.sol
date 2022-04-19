@@ -9,7 +9,7 @@ import "./libraries/FixidityLib.sol";
 import "./libraries/ExponentLib.sol";
 import "./libraries/LogarithmLib.sol";
 import "./interfaces/IStakingRewards.sol";
-// Import SupplySchedule interface for access control of setRewardNEpochs
+// Import SupplySchedule interface for access control of setReward
 import "./interfaces/ISupplySchedule.sol";
 
 // Inheritance
@@ -51,8 +51,6 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     uint256 public rewardRate;
     uint256 public rewardRateStaking;
     uint256 public rewardRateTrading;
-    // Epoch default duration
-    uint256 public rewardsDuration;
     // Last Update Time for staking Rewards
     uint256 private lastUpdateTime;
     // Last reward per token staked
@@ -103,7 +101,7 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
 
     /* ========== EVENTS ========== */
 
-    event RewardAdded(uint256 reward, uint256 nEpochs);
+    event RewardAdded(uint256 reward);
     event Staked(address indexed user, uint256 amount);
     event Withdrawn(address indexed user, uint256 amount);
     event RewardPaid(address indexed user, uint256 reward);
@@ -129,7 +127,6 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
 
         periodFinish = 0;
         rewardRate = 0;
-        rewardsDuration = 7 days;
 
         stakingToken = IERC20(_stakingToken);
         fixidity.init(18);
@@ -248,31 +245,23 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     function earned(address account) override public view returns(uint256) {
         uint256 stakingRewards = _totalBalances[account] * (rewardPerToken() - userRewardPerTokenPaid[account]) / DECIMALS_DIFFERENCE;
         uint256 tradingRewards = 0;
-        if(lastTradeUserEpoch[account] < currentEpoch) {
+        if (lastTradeUserEpoch[account] < currentEpoch) {
             tradingRewards = _rewardScores[account] * epochRewardPerRewardScore[lastTradeUserEpoch[account]] / DECIMALS_DIFFERENCE;
         }
         return stakingRewards + tradingRewards + rewards[account];
     }
 
-    /*
-     * @notice Calculate the total rewards delivered in a specific duration, multiplying rewardRate x duration
-     * @return uint256 containing the total rewards to be delivered
-     */
-    function getRewardForDuration() override external view returns (uint256) {
-        return rewardRate * rewardsDuration;
-    }
-
     /**
      * @notice Calculate the reward epoch for a specific date, taking into account the day they start
      * @param _date to calculate the reward epoch for
-     * @ return uint256 containing the date of the start of the epoch
+     * @return uint256 containing the date of the start of the epoch
      */
     function getEpochForDate(uint256 _date) internal view returns(uint256) {
         _date = (_date / DAY) * DAY;
         uint256 naturalEpoch = (_date / WEEK) * WEEK;
 
-        if(_date - naturalEpoch >= (7-weeklyStartRewards)*DAY) {
-            return naturalEpoch + WEEK - weeklyStartRewards*DAY;
+        if (_date - naturalEpoch >= (7 - weeklyStartRewards) * DAY) {
+            return naturalEpoch + WEEK - weeklyStartRewards * DAY;
         } else {
             return naturalEpoch - weeklyStartRewards*DAY;
         }
@@ -461,18 +450,25 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     /* ========== RESTRICTED FUNCTIONS ========== */
 
     /*
-     * @notice Function used to set the rewards for the next N epochs
-     * @param rewards, total amount to distribute
-     * @param nEpochs, number of weeks with rewards
+     * @notice Function used to set the rewards for the next epoch
+     * @param reward, total amount to distribute
      */  
-    function setRewardNEpochs(uint256 reward, uint256 nEpochs) override external onlySupplySchedule updateRewards(address(0)) {
-        rewardRate = reward / nEpochs / WEEK;
+    function setRewards(uint256 reward) override external onlySupplySchedule updateRewards(address(0)) {
+        if (block.timestamp >= periodFinish) {
+            rewardRate = reward / WEEK;
+        } else {
+            uint256 remaining = periodFinish - block.timestamp;
+            // @notice this is previous rewardRate
+            uint256 leftover = remaining * rewardRate;
+            rewardRate = reward + (leftover / WEEK);
+        }
+
         rewardRateStaking = rewardRate * PERCENTAGE_STAKING / MAX_BPS;
         rewardRateTrading = rewardRate * PERCENTAGE_TRADING / MAX_BPS;
 
         lastUpdateTime = block.timestamp;
-        periodFinish = block.timestamp + rewardsDuration * nEpochs;
-        emit RewardAdded(reward, nEpochs);
+        periodFinish = block.timestamp + WEEK;
+        emit RewardAdded(reward);
     }
 
     // @notice Added to support recovering LP Rewards from other systems such as BAL to be distributed to holders
@@ -502,18 +498,6 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     function setExchangerProxy(address _exchangerProxy) external onlyOwner {
         exchangerProxy = _exchangerProxy;
         emit ExchangerProxyUpdated(_exchangerProxy);
-    }
-
-    /*
-     * @notice Function available for the owner to change the rewards duration via the state variable _rewardsDuration
-     * @param _rewardsDuration to set
-     */
-    function setRewardsDuration(uint256 _rewardsDuration) external onlyOwner {
-        require(
-            block.timestamp > periodFinish
-        );
-        rewardsDuration = _rewardsDuration;
-        emit RewardsDurationUpdated(rewardsDuration);
     }
 
     /* ========== MODIFIERS ========== */

@@ -69,7 +69,7 @@ const fundAndSetStakingRewards = async () => {
     // set the rewards for the next epoch (1)
     await stakingRewardsProxy
         .connect(await impersonate(supplySchedule.address))
-        .setRewardNEpochs(rewards, 1);
+        .setRewards(rewards);
 };
 
 // Fork Optimism Network for following tests
