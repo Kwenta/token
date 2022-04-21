@@ -611,6 +611,9 @@ describe('MerkleDistributor', () => {
 
 			// address to be claimed to
 			accountClaimedTo = accounts[19]; // 19 is arbitrary
+			
+			// L1 account which is used in merkle proof 
+			XDOMAIN_SENDER = accounts[0];
 
 			const {
 				claims: innerClaims,
@@ -645,7 +648,6 @@ describe('MerkleDistributor', () => {
 		it('claim works when called by CrossDomainMessenger', async () => {
 			// mock crossDomainMessenger.xDomainMessageSender()
 			// @dev it is called to ensure msg.sender on L1 is valid
-			XDOMAIN_SENDER = accounts[0];
 			crossDomainMessenger.xDomainMessageSender.returns(XDOMAIN_SENDER.address);
 
             // get claim for XDOMAIN_SENDER
