@@ -12,7 +12,7 @@ import { ICrossDomainMessenger } from
 contract MerkleDistributor is IMerkleDistributor {
     // communication between L1 and L2 is enabled by two special smart contracts called the "messengers"
     // and below is the address for the messenger on L2
-    address constant crossDomainMessengerAddr = 0x4200000000000000000000000000000000000007;
+    address immutable crossDomainMessengerAddr;
 
     // escrow for tokens claimed
     address public immutable override rewardEscrow;
@@ -23,10 +23,11 @@ contract MerkleDistributor is IMerkleDistributor {
     // This is a packed array of booleans.
     mapping(uint256 => uint256) private claimedBitMap;
 
-    constructor(address _token, address _rewardEscrow, bytes32 _merkleRoot) {
+    constructor(address _token, address _rewardEscrow, bytes32 _merkleRoot, address _crossDomainMessengerAddr) {
         token = _token;
         rewardEscrow = _rewardEscrow;
         merkleRoot = _merkleRoot;
+        crossDomainMessengerAddr = _crossDomainMessengerAddr;
     }
 
     function isClaimed(uint256 index) public view override returns (bool) {
@@ -60,7 +61,9 @@ contract MerkleDistributor is IMerkleDistributor {
 
     function claimToAddress(uint256 index, address destAccount, uint256 amount, bytes32[] calldata merkleProof) external override {
         require(!isClaimed(index), 'MerkleDistributor: Drop already claimed.');
-        require(msg.sender == crossDomainMessengerAddr, "Only the OVM-ICrossDomainMessenger can call this function");
+        require(msg.sender == crossDomainMessengerAddr, 
+            "MerkleDistributor: Only the OVM-ICrossDomainMessenger can call this function"
+        );
 
         // caller address from L1 (effectively the msg.sender on L1)
         address caller = ICrossDomainMessenger(crossDomainMessengerAddr).xDomainMessageSender();
