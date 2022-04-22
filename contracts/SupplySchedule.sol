@@ -60,11 +60,9 @@ contract SupplySchedule is Owned, ISupplySchedule {
 
     constructor(
         address _owner,
-        address _treasuryDAO,
-        address _stakingRewards
+        address _treasuryDAO
     ) Owned(_owner) {
         treasuryDAO = _treasuryDAO;
-        stakingRewards = IStakingRewards(_stakingRewards);
 
         INFLATION_START_DATE = block.timestamp; //Inflation starts as soon as the contract is deployed.
         lastMintEvent = block.timestamp;

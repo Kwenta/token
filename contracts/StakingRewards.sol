@@ -39,7 +39,7 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     ISupplySchedule public supplySchedule;
 
     // ExchangerProxy
-    address private exchangerProxy;
+    address public exchangerProxy;
 
     // Token to stake and reward
     IERC20 public stakingToken;

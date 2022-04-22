@@ -10,4 +10,6 @@ interface IKwenta is IERC20 {
 
     function burn(uint amount) external;
 
+    function setSupplySchedule(address _supplySchedule) external;
+
 }
