@@ -162,8 +162,7 @@ before(async () => {
         SYMBOL,
         INITIAL_SUPPLY,
         owner.address,
-        treasuryDAO.address,
-        supplySchedule.address
+        treasuryDAO.address
     );
 
     await deployNewRewardsEscrow(owner, kwentaToken);
@@ -730,8 +729,7 @@ describe('setRewardEscrow()', () => {
             SYMBOL,
             INITIAL_SUPPLY,
             owner.address,
-            treasuryDAO.address,
-            supplySchedule.address
+            treasuryDAO.address
         );
 
         // deploy new RewardEscrow with newKwentaToken

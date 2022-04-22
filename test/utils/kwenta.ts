@@ -61,6 +61,17 @@ export const deployKwenta = async (
 	const safeDecimalMath = await SafeDecimalMath.deploy();
 	await safeDecimalMath.deployed();
 
+	// deploy Kwenta
+	const Kwenta = await ethers.getContractFactory('Kwenta');
+	kwenta = await Kwenta.deploy(
+		NAME,
+		SYMBOL,
+		INITIAL_SUPPLY,
+		owner.address,
+		TREASURY_DAO.address
+	);
+	await kwenta.deployed();
+
 	// deploy SupplySchedule
 	const SupplySchedule = await ethers.getContractFactory('SupplySchedule', {
 		libraries: {
@@ -69,22 +80,11 @@ export const deployKwenta = async (
 	});
 	supplySchedule = await SupplySchedule.deploy(
 		owner.address, 
-		TREASURY_DAO.address, 
-		ethers.constants.AddressZero // StakingRewards address
+		TREASURY_DAO.address
 	);
 	await supplySchedule.deployed();
-
-	// deploy Kwenta
-	const Kwenta = await ethers.getContractFactory('Kwenta');
-	kwenta = await Kwenta.deploy(
-		NAME,
-		SYMBOL,
-		INITIAL_SUPPLY,
-		owner.address,
-		TREASURY_DAO.address,
-		supplySchedule.address
-	);
-	await kwenta.deployed();
+	
+	await kwenta.setSupplySchedule(supplySchedule.address);
 	await supplySchedule.setKwenta(kwenta.address);
 
 	// deploy RewardEscrow

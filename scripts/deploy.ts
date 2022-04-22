@@ -11,7 +11,23 @@ import {ethers, upgrades} from 'hardhat';
 const OWNER = '0xF510a2Ff7e9DD7e18629137adA4eb56B9c13E885';
 const TREASURY_DAO = '0x82d2242257115351899894eF384f779b5ba8c695';
 const INITIAL_SUPPLY = 313373;
-const WEEKLY_START_REWARDS = 3;
+
+// Pulled from StakingRewards.sol setWeeklyRewards()
+/**
+ * Friday: 6
+ * Saturday: 5
+ * Sunday: 4
+ * Monday: 3
+ * Tuesday: 2
+ * Wednesday: 1
+ * Thursday: 0
+ */
+const THURSDAY = 4; // Because EPOCH time starts on thursday
+const distanceFromThursday = THURSDAY - new Date().getDay(); // Use current day
+// Modulo expression to keep values within range:
+// https://stackoverflow.com/a/50055050
+// https://stackoverflow.com/a/4467559
+const WEEKLY_START_REWARDS = ((distanceFromThursday % 7) + 7) % 7; // Equivalent to distance from next Thursday
 
 const SYNTHETIX_ADDRESS_RESOLVER = '0x95A6a3f44a70172E7d50a9e28c85Dfd712756B8C';
 
@@ -21,13 +37,14 @@ async function main() {
     const [fixidityLib, logarithmLib, exponentLib, safeDecimalMath] =
         await deployLibraries();
 
-    console.log('Begin deployment...');
+    console.log('\nBeginning deployments...');
     const kwenta = await deployKwenta(deployer);
     const supplySchedule = await deploySupplySchedule(
         deployer,
         safeDecimalMath
     );
     const rewardEscrow = await deployRewardEscrow(deployer, kwenta);
+    console.log('EPOCH START DAY:', WEEKLY_START_REWARDS);
     const stakingRewards = await deployStakingRewards(
         deployer,
         fixidityLib,
@@ -37,7 +54,9 @@ async function main() {
         supplySchedule
     );
     const exchangerProxy = await deployExchangerProxy(stakingRewards);
+    console.log('Deployments complete!\n');
 
+    console.log('Configuring setters...');
     // set SupplySchedule for kwenta
     await kwenta.setSupplySchedule(supplySchedule.address);
     console.log(
@@ -65,6 +84,7 @@ async function main() {
         'StakingRewards: ExchangerProxy address set to:',
         await stakingRewards.exchangerProxy()
     );
+    console.log('Setters set!');
 
     // Switch ownership to multisig
 }
