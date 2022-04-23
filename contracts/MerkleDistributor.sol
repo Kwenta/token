@@ -10,24 +10,23 @@ import { ICrossDomainMessenger } from
     "@eth-optimism/contracts/libraries/bridge/ICrossDomainMessenger.sol";
 
 contract MerkleDistributor is IMerkleDistributor {
-    // communication between L1 and L2 is enabled by two special smart contracts called the "messengers"
-    // and below is the address for the messenger on L2
-    address immutable crossDomainMessengerAddr;
-
     // escrow for tokens claimed
     address public immutable override rewardEscrow;
 
     address public immutable override token;
     bytes32 public immutable override merkleRoot;
 
+    // communication between L1 and L2 is enabled by two special smart contracts called the "messengers"
+    // and below is the address for the messenger on L2
+    address private crossDomainMessengerAddr = 0x4200000000000000000000000000000000000007;
+
     // This is a packed array of booleans.
     mapping(uint256 => uint256) private claimedBitMap;
 
-    constructor(address _token, address _rewardEscrow, bytes32 _merkleRoot, address _crossDomainMessengerAddr) {
+    constructor(address _token, address _rewardEscrow, bytes32 _merkleRoot) {
         token = _token;
         rewardEscrow = _rewardEscrow;
         merkleRoot = _merkleRoot;
-        crossDomainMessengerAddr = _crossDomainMessengerAddr;
     }
 
     function isClaimed(uint256 index) public view override returns (bool) {
@@ -68,7 +67,7 @@ contract MerkleDistributor is IMerkleDistributor {
         // caller address from L1 (effectively the msg.sender on L1)
         address caller = ICrossDomainMessenger(crossDomainMessengerAddr).xDomainMessageSender();
 
-        // Verify the merkle proof with the caller's address
+        // Verify the merkle proof with the L1 caller's address
         bytes32 node = keccak256(abi.encodePacked(index, caller, amount));
         require(MerkleProof.verify(merkleProof, merkleRoot, node), 'MerkleDistributor: Invalid proof.');
 
