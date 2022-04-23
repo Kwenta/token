@@ -29,41 +29,59 @@ let addr0: SignerWithAddress;
 let addr1: SignerWithAddress;
 let addr2: SignerWithAddress;
 let TREASURY_DAO: SignerWithAddress;
-let XDOMAIN_SENDER: SignerWithAddress; // L1 account which is used in merkle proof 
-let accountClaimedTo: SignerWithAddress
 
 // core contracts
 let kwenta: Contract;
-let supplySchedule: Contract;
 let rewardEscrow: Contract;
-let stakingRewardsProxy: Contract;
-let exchangerProxy: Contract;
 let distributor: Contract;
 
 // mock contracts
 let crossDomainMessenger: FakeContract
 
+// multisig testing
+// CrossDomainMessenger address on L2
+const CD_MESSENGER_ADDR = "0x4200000000000000000000000000000000000007";
+// account on L2 which will effectively receive $KWENTA
+let accountClaimedTo: SignerWithAddress;
+// msg.sender on L1 (i.e. account with address in merkle tree that exists on L1)
+let xDomainMessageSender: SignerWithAddress;
+
 const loadSetup = () => {
 	before('Deploy contracts', async () => {
-		[owner, addr0, addr1, addr2, TREASURY_DAO] = await ethers.getSigners();
-		let deployments = await deployKwenta(
-			NAME,
-			SYMBOL,
-			INITIAL_SUPPLY,
-			INFLATION_DIVERSION_BPS,
-			WEEKLY_START_REWARDS,
-			owner,
-			TREASURY_DAO
-		);
-		kwenta = deployments.kwenta;
-		supplySchedule = deployments.supplySchedule;
-		rewardEscrow = deployments.rewardEscrow;
-		stakingRewardsProxy = deployments.stakingRewardsProxy;
-		exchangerProxy = deployments.exchangerProxy;
+        [
+            owner,
+            addr0,
+            addr1,
+            addr2,
+            TREASURY_DAO,
+            accountClaimedTo,
+            xDomainMessageSender,
+        ] = await ethers.getSigners();
 
-		// mock L2CrossDomainMessenger
-		crossDomainMessenger = await smock.fake(L2CrossDomainMessenger);
-	});
+        let deployments = await deployKwenta(
+            NAME,
+            SYMBOL,
+            INITIAL_SUPPLY,
+            INFLATION_DIVERSION_BPS,
+            WEEKLY_START_REWARDS,
+            owner,
+            TREASURY_DAO
+        );
+        kwenta = deployments.kwenta;
+        rewardEscrow = deployments.rewardEscrow;
+
+        // mock L2CrossDomainMessenger at proper address
+        crossDomainMessenger = await smock.fake(
+            L2CrossDomainMessenger,
+            {address: CD_MESSENGER_ADDR}
+        );
+
+        // mock crossDomainMessenger.xDomainMessageSender()
+        // @dev it is called to ensure msg.sender on L1 is valid
+        crossDomainMessenger.xDomainMessageSender.returns(
+            xDomainMessageSender.address
+        );
+    });
 };
 
 describe('MerkleDistributor', () => {
@@ -77,8 +95,7 @@ describe('MerkleDistributor', () => {
 			distributor = await MerkleDistributor.deploy(
 				kwenta.address,
 				rewardEscrow.address,
-				ZERO_BYTES32,
-				crossDomainMessenger.address
+				ZERO_BYTES32
 			);
 			await distributor.deployed();
 			expect(await distributor.token()).to.equal(kwenta.address);
@@ -93,8 +110,7 @@ describe('MerkleDistributor', () => {
 			distributor = await MerkleDistributor.deploy(
 				kwenta.address,
 				rewardEscrow.address,
-				ZERO_BYTES32,
-				crossDomainMessenger.address
+				ZERO_BYTES32
 			);
 			await distributor.deployed();
 			expect(await distributor.merkleRoot()).to.equal(ZERO_BYTES32);
@@ -109,8 +125,7 @@ describe('MerkleDistributor', () => {
 			distributor = await MerkleDistributor.deploy(
 				kwenta.address,
 				rewardEscrow.address,
-				ZERO_BYTES32,
-				crossDomainMessenger.address
+				ZERO_BYTES32
 			);
 			await distributor.deployed();
 			await expect(
@@ -125,8 +140,7 @@ describe('MerkleDistributor', () => {
 			distributor = await MerkleDistributor.deploy(
 				kwenta.address,
 				rewardEscrow.address,
-				ZERO_BYTES32,
-				crossDomainMessenger.address
+				ZERO_BYTES32
 			);
 			await distributor.deployed();
 			await expect(
@@ -152,8 +166,7 @@ describe('MerkleDistributor', () => {
 				distributor = await MerkleDistributor.deploy(
 					kwenta.address,
 					rewardEscrow.address,
-					tree.getHexRoot(),
-					crossDomainMessenger.address
+					tree.getHexRoot()
 				);
 				await distributor.deployed();
 
@@ -310,8 +323,7 @@ describe('MerkleDistributor', () => {
 				distributor = await MerkleDistributor.deploy(
 					kwenta.address,
 					rewardEscrow.address,
-					tree.getHexRoot(),
-					crossDomainMessenger.address
+					tree.getHexRoot()
 				);
 				await distributor.deployed();
 
@@ -421,8 +433,7 @@ describe('MerkleDistributor', () => {
 				distributor = await MerkleDistributor.deploy(
 					kwenta.address,
 					rewardEscrow.address,
-					tree.getHexRoot(),
-					crossDomainMessenger.address
+					tree.getHexRoot()
 				);
 				await distributor.deployed();
 
@@ -557,8 +568,7 @@ describe('MerkleDistributor', () => {
 			distributor = await MerkleDistributor.deploy(
 				kwenta.address,
 				rewardEscrow.address,
-				merkleRoot,
-				crossDomainMessenger.address
+				merkleRoot
 			);
 			await distributor.deployed();
 
@@ -596,8 +606,6 @@ describe('MerkleDistributor', () => {
 	});
 
 	describe('claimToAddress', () => {
-		let accounts: SignerWithAddress[];
-
 		let claims: {
 			[account: string]: {
 				index: number;
@@ -607,20 +615,12 @@ describe('MerkleDistributor', () => {
 		};
 
 		beforeEach('deploy', async () => {
-			accounts = await ethers.getSigners();
-
-			// address to be claimed to
-			accountClaimedTo = accounts[19]; // 19 is arbitrary
-			
-			// L1 account which is used in merkle proof 
-			XDOMAIN_SENDER = accounts[0];
-
 			const {
 				claims: innerClaims,
 				merkleRoot,
 				tokenTotal,
 			} = parseBalanceMap({
-				[XDOMAIN_SENDER.address]: 200,
+				[xDomainMessageSender.address]: 200, // L1 account which is used in merkle proof
 			});
 
 			expect(tokenTotal).to.equal('0xc8'); // 200
@@ -633,8 +633,7 @@ describe('MerkleDistributor', () => {
 			distributor = await MerkleDistributor.deploy(
 				kwenta.address,
 				rewardEscrow.address,
-				merkleRoot,
-				crossDomainMessenger.address
+				merkleRoot
 			);
 			await distributor.deployed();
 
@@ -646,12 +645,8 @@ describe('MerkleDistributor', () => {
 		});
 
 		it('claim works when called by CrossDomainMessenger', async () => {
-			// mock crossDomainMessenger.xDomainMessageSender()
-			// @dev it is called to ensure msg.sender on L1 is valid
-			crossDomainMessenger.xDomainMessageSender.returns(XDOMAIN_SENDER.address);
-
-            // get claim for XDOMAIN_SENDER
-            const claim = claims[XDOMAIN_SENDER.address];
+            // get claim for L1 address
+            const claim = claims[xDomainMessageSender.address];
 
             await hre.network.provider.send('hardhat_setBalance', [
                 crossDomainMessenger.address,
@@ -671,7 +666,7 @@ describe('MerkleDistributor', () => {
                 claim.proof
             )).to.emit(distributor, 'Claimed').withArgs(
 				claim.index, 
-				XDOMAIN_SENDER.address, 
+				xDomainMessageSender.address, 
 				claim.amount
 			);
 
