@@ -67,6 +67,20 @@ npm run test:integration
 npm run test:fork
 ```
 
+## Local Deployment & Interacting
+
+Run a local hardhat node
+```
+npx hardhat node
+```
+Deploy contracts to localhost
+```
+npx hardhat run --network localhost scripts/deploy.ts
+```
+Run the interact tool
+```
+npx hardhat interact --network localhost
+```
 ## Deployments
 
 | Contract | Address |

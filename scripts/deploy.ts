@@ -6,7 +6,7 @@
 import {SignerWithAddress} from '@nomiclabs/hardhat-ethers/signers';
 import {wei} from '@synthetixio/wei';
 import {Contract} from 'ethers';
-import {ethers, upgrades} from 'hardhat';
+import hre, {ethers, upgrades} from 'hardhat';
 
 const OWNER = '0xF510a2Ff7e9DD7e18629137adA4eb56B9c13E885';
 const TREASURY_DAO = '0x82d2242257115351899894eF384f779b5ba8c695';
@@ -86,7 +86,7 @@ async function main() {
     );
     console.log('Setters set!');
 
-    // Switch ownership to multisig
+    // @TODO: Switch ownership to multisig
 }
 
 async function deployLibraries() {
@@ -94,6 +94,7 @@ async function deployLibraries() {
     const FixidityLib = await ethers.getContractFactory('FixidityLib');
     const fixidityLib = await FixidityLib.deploy();
     await fixidityLib.deployed();
+    await saveDeployments('FixidityLib', fixidityLib);
 
     // deploy LogarithmLib
     const LogarithmLib = await ethers.getContractFactory('LogarithmLib', {
@@ -103,6 +104,7 @@ async function deployLibraries() {
     });
     const logarithmLib = await LogarithmLib.deploy();
     await logarithmLib.deployed();
+    await saveDeployments('LogarithmLib', logarithmLib);
 
     // deploy ExponentLib
     const ExponentLib = await ethers.getContractFactory('ExponentLib', {
@@ -113,11 +115,13 @@ async function deployLibraries() {
     });
     const exponentLib = await ExponentLib.deploy();
     await exponentLib.deployed();
+    await saveDeployments('ExponentLib', exponentLib);
 
     // deploy SafeDecimalMath
     const SafeDecimalMath = await ethers.getContractFactory('SafeDecimalMath');
     const safeDecimalMath = await SafeDecimalMath.deploy();
     await safeDecimalMath.deployed();
+    await saveDeployments('SafeDecimalMath', safeDecimalMath);
 
     return [fixidityLib, logarithmLib, exponentLib, safeDecimalMath];
 }
@@ -132,6 +136,7 @@ async function deployKwenta(owner: SignerWithAddress) {
         TREASURY_DAO
     );
     await kwenta.deployed();
+    await saveDeployments('Kwenta', kwenta);
     console.log('KWENTA token deployed to:', kwenta.address);
     return kwenta;
 }
@@ -149,8 +154,9 @@ async function deploySupplySchedule(
         owner.address,
         TREASURY_DAO
     );
-    console.log('SupplySchedule deployed to:', supplySchedule.address);
     await supplySchedule.deployed();
+    await saveDeployments('SupplySchedule', supplySchedule);
+    console.log('SupplySchedule deployed to:', supplySchedule.address);
     return supplySchedule;
 }
 
@@ -161,6 +167,7 @@ async function deployRewardEscrow(owner: SignerWithAddress, kwenta: Contract) {
         kwenta.address
     );
     await rewardEscrow.deployed();
+    await saveDeployments('RewardEscrow', rewardEscrow);
     console.log('RewardEscrow deployed to:', rewardEscrow.address);
     return rewardEscrow;
 }
@@ -195,6 +202,7 @@ async function deployStakingRewards(
         }
     );
     await stakingRewardsProxy.deployed();
+    await saveDeployments('StakingRewards', stakingRewardsProxy);
     console.log('StakingRewards deployed to:', stakingRewardsProxy.address);
     return stakingRewardsProxy;
 }
@@ -206,8 +214,23 @@ async function deployExchangerProxy(stakingRewards: Contract) {
         stakingRewards.address
     );
     await exchangerProxy.deployed();
+    await saveDeployments('ExchangerProxy', exchangerProxy);
     console.log('ExchangerProxy token deployed to:', exchangerProxy.address);
     return exchangerProxy;
+}
+
+async function saveDeployments(name: string, contract: Contract) {
+    // For hardhat-deploy plugin to save deployment artifacts
+    const {deployments} = hre;
+    const {save} = deployments;
+
+    const artifact = await deployments.getExtendedArtifact(name);
+    let deployment = {
+        address: contract.address,
+        ...artifact,
+    };
+
+    await save(name, deployment);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
