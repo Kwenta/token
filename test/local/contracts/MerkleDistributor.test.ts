@@ -1,10 +1,18 @@
 import { expect } from 'chai';
-import { ethers } from 'hardhat';
+import hre, { ethers } from 'hardhat';
 import { Contract, BigNumber } from 'ethers';
+import {FakeContract, smock} from '@defi-wonderland/smock';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import BalanceTree from '../../../scripts/balance-tree';
 import { parseBalanceMap } from '../../../scripts/parse-balance-map';
 import { deployKwenta } from '../../utils/kwenta';
+import L2CrossDomainMessenger from '@eth-optimism/contracts/artifacts/contracts/L2/messaging/L2CrossDomainMessenger.sol/L2CrossDomainMessenger.json';
+
+require('chai')
+    .use(require('chai-as-promised'))
+    .use(require('chai-bn-equal'))
+    .use(smock.matchers)
+    .should();
 
 // constants
 const NAME = 'Kwenta';
@@ -24,30 +32,56 @@ let TREASURY_DAO: SignerWithAddress;
 
 // core contracts
 let kwenta: Contract;
-let supplySchedule: Contract;
 let rewardEscrow: Contract;
-let stakingRewardsProxy: Contract;
-let exchangerProxy: Contract;
 let distributor: Contract;
+
+// mock contracts
+let crossDomainMessenger: FakeContract
+
+// multisig testing
+// CrossDomainMessenger address on L2
+const CD_MESSENGER_ADDR = "0x4200000000000000000000000000000000000007";
+// account on L2 which will effectively receive $KWENTA
+let accountClaimedTo: SignerWithAddress;
+// msg.sender on L1 (i.e. account with address in merkle tree that exists on L1)
+let xDomainMessageSender: SignerWithAddress;
 
 const loadSetup = () => {
 	before('Deploy contracts', async () => {
-		[owner, addr0, addr1, addr2, TREASURY_DAO] = await ethers.getSigners();
-		let deployments = await deployKwenta(
-			NAME,
-			SYMBOL,
-			INITIAL_SUPPLY,
-			INFLATION_DIVERSION_BPS,
-			WEEKLY_START_REWARDS,
-			owner,
-			TREASURY_DAO
-		);
-		kwenta = deployments.kwenta;
-		supplySchedule = deployments.supplySchedule;
-		rewardEscrow = deployments.rewardEscrow;
-		stakingRewardsProxy = deployments.stakingRewardsProxy;
-		exchangerProxy = deployments.exchangerProxy;
-	});
+        [
+            owner,
+            addr0,
+            addr1,
+            addr2,
+            TREASURY_DAO,
+            accountClaimedTo,
+            xDomainMessageSender,
+        ] = await ethers.getSigners();
+
+        let deployments = await deployKwenta(
+            NAME,
+            SYMBOL,
+            INITIAL_SUPPLY,
+            INFLATION_DIVERSION_BPS,
+            WEEKLY_START_REWARDS,
+            owner,
+            TREASURY_DAO
+        );
+        kwenta = deployments.kwenta;
+        rewardEscrow = deployments.rewardEscrow;
+
+        // mock L2CrossDomainMessenger at proper address
+        crossDomainMessenger = await smock.fake(
+            L2CrossDomainMessenger,
+            {address: CD_MESSENGER_ADDR}
+        );
+
+        // mock crossDomainMessenger.xDomainMessageSender()
+        // @dev it is called to ensure msg.sender on L1 is valid
+        crossDomainMessenger.xDomainMessageSender.returns(
+            xDomainMessageSender.address
+        );
+    });
 };
 
 describe('MerkleDistributor', () => {
@@ -569,5 +603,75 @@ describe('MerkleDistributor', () => {
 			}
 			expect(await kwenta.balanceOf(distributor.address)).to.equal(0);
 		});
+	});
+
+	describe('claimToAddress', () => {
+		let claims: {
+			[account: string]: {
+				index: number;
+				amount: string;
+				proof: string[];
+			};
+		};
+
+		beforeEach('deploy', async () => {
+			const {
+				claims: innerClaims,
+				merkleRoot,
+				tokenTotal,
+			} = parseBalanceMap({
+				[xDomainMessageSender.address]: 200, // L1 account which is used in merkle proof
+			});
+
+			expect(tokenTotal).to.equal('0xc8'); // 200
+
+			claims = innerClaims;
+
+			const MerkleDistributor = await ethers.getContractFactory(
+				'MerkleDistributor'
+			);
+			distributor = await MerkleDistributor.deploy(
+				kwenta.address,
+				rewardEscrow.address,
+				merkleRoot
+			);
+			await distributor.deployed();
+
+			await expect(() =>
+				kwenta
+					.connect(TREASURY_DAO)
+					.transfer(distributor.address, tokenTotal)
+			).to.changeTokenBalance(kwenta, distributor, tokenTotal);
+		});
+
+		it('claim works when called by CrossDomainMessenger', async () => {
+            // get claim for L1 address
+            const claim = claims[xDomainMessageSender.address];
+
+            await hre.network.provider.send('hardhat_setBalance', [
+                crossDomainMessenger.address,
+                ethers.utils.parseEther('10').toHexString(),
+            ]);
+            await hre.network.provider.request({
+                method: 'hardhat_impersonateAccount',
+                params: [crossDomainMessenger.address],
+            });
+            const signer = await ethers.getSigner(crossDomainMessenger.address);
+
+            // call MerkleDistributor.claimToAddress from crossDomainMessenger
+            expect(await distributor.connect(signer).claimToAddress(
+                claim.index,
+                accountClaimedTo.address,
+                claim.amount,
+                claim.proof
+            )).to.emit(distributor, 'Claimed').withArgs(
+				claim.index, 
+				xDomainMessageSender.address, 
+				claim.amount
+			);
+
+			// expect new entry for accountClaimedTo in reward escrow for correct amount
+			expect(await rewardEscrow.balanceOf(accountClaimedTo.address)).to.equal(200);
+        });
 	});
 });
