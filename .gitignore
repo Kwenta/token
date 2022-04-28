@@ -22,3 +22,4 @@ contracts/libraries/DecayRateLib.sol
 .openzeppelin/*
 
 package-lock*
+deployments/localhost

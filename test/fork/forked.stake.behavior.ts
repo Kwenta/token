@@ -166,8 +166,7 @@ const loadSetup = () => {
         );
         supplySchedule = await SupplySchedule.deploy(
             owner.address,
-            TREASURY_DAO.address,
-            ethers.constants.AddressZero // StakingRewards address
+            TREASURY_DAO.address
         );
         await supplySchedule.deployed();
 
@@ -178,10 +177,10 @@ const loadSetup = () => {
             SYMBOL,
             INITIAL_SUPPLY,
             owner.address,
-            TREASURY_DAO.address,
-            supplySchedule.address
+            TREASURY_DAO.address
         );
         await kwenta.deployed();
+        await kwenta.setSupplySchedule(supplySchedule.address);
         await supplySchedule.setKwenta(kwenta.address);
 
         // deploy RewardEscrow

@@ -35,8 +35,10 @@
     "graphql-request": "4.0.0",
     "hardhat": "^2.6.4",
     "hardhat-contract-sizer": "",
+    "hardhat-deploy": "^0.11.4",
     "hardhat-exposed": "0.2.3",
     "hardhat-gas-reporter": "",
+    "hardhat-interact": "^0.2.3",
     "lodash": "^4.17.21",
     "ts-node": "^10.2.1",
     "typescript": "^4.4.2"

@@ -95,8 +95,7 @@ describe("SupplySchedule", () => {
         const SupplySchedule = await setupSupplySchedule();
         supplySchedule = await SupplySchedule.deploy(
             owner.address,
-            TREASURY_DAO_ADDRESS,
-            ethers.constants.AddressZero
+            TREASURY_DAO_ADDRESS
         );
         await supplySchedule.deployed();
 
@@ -106,12 +105,12 @@ describe("SupplySchedule", () => {
             SYMBOL,
             INITIAL_SUPPLY.toBN(),
             owner.address,
-            TREASURY_DAO_ADDRESS, // Cannot mint to zero address
-            supplySchedule.address
+            TREASURY_DAO_ADDRESS
         );
 
         await kwenta.deployed();
         deploymentTime = (await ethers.provider.getBlock()).timestamp;
+        await kwenta.setSupplySchedule(supplySchedule.address);
         await supplySchedule.setKwenta(kwenta.address);
 
         decayRate = await supplySchedule.DECAY_RATE();
@@ -124,8 +123,7 @@ describe("SupplySchedule", () => {
         const SupplySchedule = await setupSupplySchedule();
         const instance = await SupplySchedule.deploy(
             owner.address,
-            TREASURY_DAO_ADDRESS,
-            ethers.constants.AddressZero
+            TREASURY_DAO_ADDRESS
         );
         await instance.deployed();
 

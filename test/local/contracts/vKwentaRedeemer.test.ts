@@ -41,10 +41,10 @@ describe('vKwenta Redemption', function () {
             SYMBOL,
             KWENTA_INITIAL_SUPPLY,
             owner.address,
-            treasuryDAO.address,
-            supplySchedule.address
+            treasuryDAO.address
         );
         await kwenta.deployed();
+        await kwenta.setSupplySchedule(supplySchedule.address);
 
         // Deploy vKwenta (i.e. vToken)
         const VKwenta = await ethers.getContractFactory('vKwenta');

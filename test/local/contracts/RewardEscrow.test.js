@@ -200,8 +200,7 @@ contract(
                 SYMBOL,
                 INITIAL_SUPPLY,
                 owner,
-                treasuryDAO,
-                ethers.constants.AddressZero
+                treasuryDAO
             );
 
             fixidityLib = await FixidityLib.new();
@@ -771,8 +770,7 @@ contract(
                     SYMBOL,
                     INITIAL_SUPPLY,
                     owner,
-                    treasuryDAO,
-                    ethers.constants.AddressZero
+                    treasuryDAO
                 );
 
                 rewardsEscrow = await RewardsEscrow.new(

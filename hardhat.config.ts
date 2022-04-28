@@ -8,6 +8,8 @@ import "@openzeppelin/hardhat-upgrades";
 import "solidity-coverage";
 import dotenv from "dotenv";
 import "hardhat-exposed";
+import "hardhat-interact";
+import "hardhat-deploy";
 
 dotenv.config();
 
