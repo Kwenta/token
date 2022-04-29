@@ -3,10 +3,14 @@
 //
 // When running the script with `npx hardhat run <script>` you'll find the Hardhat
 // Runtime Environment's members available in the global scope.
-import {SignerWithAddress} from '@nomiclabs/hardhat-ethers/signers';
-import {wei} from '@synthetixio/wei';
-import {Contract} from 'ethers';
-import hre, {ethers, upgrades} from 'hardhat';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import { wei } from '@synthetixio/wei';
+import { Contract } from 'ethers';
+import hre, { ethers, upgrades } from 'hardhat';
+import { NewFormat, parseBalanceMap } from './parse-balance-map';
+import stakerDistribution from './distribution/staker-distribution.json';
+import traderDistribution from './distribution/trader-distribution.json';
+import { mergeDistributions } from './distribution/utils';
 
 const OWNER = '0xF510a2Ff7e9DD7e18629137adA4eb56B9c13E885';
 const TREASURY_DAO = '0x82d2242257115351899894eF384f779b5ba8c695';
@@ -54,6 +58,12 @@ async function main() {
         supplySchedule
     );
     const exchangerProxy = await deployExchangerProxy(stakingRewards);
+    const vKwentaRedeemer = await deployvKwentaRedeemer(kwenta);
+    const merkleDistributor = await deployMerkleDistributor(
+        kwenta,
+        rewardEscrow,
+        mergeDistributions(stakerDistribution, traderDistribution)
+    );
     console.log('Deployments complete!\n');
 
     console.log('Configuring setters...');
@@ -215,14 +225,52 @@ async function deployExchangerProxy(stakingRewards: Contract) {
     );
     await exchangerProxy.deployed();
     await saveDeployments('ExchangerProxy', exchangerProxy);
-    console.log('ExchangerProxy token deployed to:', exchangerProxy.address);
+    console.log('ExchangerProxy deployed to:', exchangerProxy.address);
     return exchangerProxy;
+}
+
+async function deployvKwentaRedeemer(kwenta: Contract) {
+    const VKwentaRedeemer = await ethers.getContractFactory('vKwentaRedeemer');
+    const vKwentaRedeemer = await VKwentaRedeemer.deploy(
+        '0x6789D8a7a7871923Fc6430432A602879eCB6520a',
+        kwenta.address
+    );
+    await vKwentaRedeemer.deployed();
+    await saveDeployments('vKwentaRedeemer', vKwentaRedeemer);
+    console.log('vKwentaRedeemer deployed to:', vKwentaRedeemer.address);
+    return vKwentaRedeemer;
+}
+
+async function deployMerkleDistributor(
+    kwenta: Contract,
+    rewardEscrow: Contract,
+    distribution: NewFormat[]
+) {
+    const merkleDistributorInfo = parseBalanceMap(distribution);
+    const merkleRoot = merkleDistributorInfo.merkleRoot;
+    console.log(
+        'Total tokens in distribution: ',
+        wei(merkleDistributorInfo.tokenTotal, 18, true).toString()
+    );
+
+    const MerkleDistributor = await ethers.getContractFactory(
+        'MerkleDistributor'
+    );
+    const merkleDistributor = await MerkleDistributor.deploy(
+        kwenta.address,
+        rewardEscrow.address,
+        merkleRoot
+    );
+    await merkleDistributor.deployed();
+    await saveDeployments('MerkleDistributor', merkleDistributor);
+    console.log('MerkleDistributor deployed to:', merkleDistributor.address);
+    return merkleDistributor;
 }
 
 async function saveDeployments(name: string, contract: Contract) {
     // For hardhat-deploy plugin to save deployment artifacts
-    const {deployments} = hre;
-    const {save} = deployments;
+    const { deployments } = hre;
+    const { save } = deployments;
 
     const artifact = await deployments.getExtendedArtifact(name);
     let deployment = {
