@@ -338,14 +338,14 @@ const main = async () => {
 
     // Sum total debt scores
     const totalDebtScore = filteredDebtScores.reduce(
-        (total: number, curr) => total + curr.debtScore,
-        0
+        (total: Wei, curr) => total.add(curr.debtScore),
+        wei(0)
     );
 
     // Assign pro-rata weights for debt scores
     const distributionShare = filteredDebtScores.map((staker) => ({
         ...staker,
-        debtScoreShare: staker.debtScore / totalDebtScore,
+        debtScoreShare: wei(staker.debtScore).div(totalDebtScore),
     }));
 
     const floorKwentaAmount = wei(5);

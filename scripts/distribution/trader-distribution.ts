@@ -158,8 +158,8 @@ const main = async () => {
     );
 
     // make unique by address
-    const mergedList = _.union(filteredL1, filteredL2, 'address').map(
-        ({ address }) => ({ address: address })
+    const mergedList = _.unionBy(filteredL1, filteredL2, 'address').map(
+        ({ address }) => ({ address })
     );
 
     const kwentaDistribution = wei(313373).mul(0.05).div(mergedList.length);

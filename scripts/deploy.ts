@@ -96,6 +96,9 @@ async function main() {
     );
     console.log('Setters set!');
 
+    // Send KWENTA to respective contracts
+    await distributeKWENTA(deployer, kwenta, vKwentaRedeemer, merkleDistributor);
+
     // @TODO: Switch ownership to multisig
 }
 
@@ -143,7 +146,7 @@ async function deployKwenta(owner: SignerWithAddress) {
         'KWENTA',
         wei(INITIAL_SUPPLY).toBN(),
         owner.address,
-        TREASURY_DAO
+        owner.address // Send KWENTA to deployer first
     );
     await kwenta.deployed();
     await saveDeployments('Kwenta', kwenta);
@@ -265,6 +268,49 @@ async function deployMerkleDistributor(
     await saveDeployments('MerkleDistributor', merkleDistributor);
     console.log('MerkleDistributor deployed to:', merkleDistributor.address);
     return merkleDistributor;
+}
+
+async function distributeKWENTA(
+    signer: SignerWithAddress,
+    kwenta: Contract,
+    vKwentaRedeemer: Contract,
+    merkleDistributor: Contract
+) {
+    // Transfer 5% KWENTA to vKwentaRedeemer
+    await kwenta.transfer(
+        vKwentaRedeemer.address,
+        wei(INITIAL_SUPPLY).mul(0.05).toBN()
+    );
+
+    // Transfer 35% KWENTA to MerkleDistributor
+    await kwenta.transfer(
+        merkleDistributor.address,
+        wei(INITIAL_SUPPLY).mul(0.35).toBN()
+    );
+
+    // Transfer 60% KWENTA to Treasury
+    await kwenta.transfer(TREASURY_DAO, wei(INITIAL_SUPPLY).mul(0.6).toBN());
+
+    console.log(
+        'vKwentaRedeemer balance:',
+        ethers.utils.formatEther(
+            await kwenta.balanceOf(vKwentaRedeemer.address)
+        )
+    );
+    console.log(
+        'MerkleDistributor balance:',
+        ethers.utils.formatEther(
+            await kwenta.balanceOf(merkleDistributor.address)
+        )
+    );
+    console.log(
+        'TreasuryDAO balance:',
+        ethers.utils.formatEther(await kwenta.balanceOf(TREASURY_DAO))
+    );
+    console.log(
+        'Final signer balance:',
+        ethers.utils.formatEther(await kwenta.balanceOf(signer.address))
+    );
 }
 
 async function saveDeployments(name: string, contract: Contract) {
