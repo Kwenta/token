@@ -75,11 +75,11 @@ npx hardhat node
 ```
 Deploy contracts to localhost
 ```
-npx hardhat run --network localhost scripts/deploy.ts
+npm run deploy:local
 ```
 Run the interact tool
 ```
-npx hardhat interact --network localhost
+npm run interact:local
 ```
 ## Deployments
 

@@ -19,8 +19,8 @@ interface MerkleDistributorInfo {
 	};
 }
 
-type OldFormat = { [account: string]: number | string };
-type NewFormat = { address: string; earnings: string };
+export type OldFormat = { [account: string]: number | string };
+export type NewFormat = { address: string; earnings: string };
 
 export function parseBalanceMap(
 	balances: OldFormat | NewFormat[]

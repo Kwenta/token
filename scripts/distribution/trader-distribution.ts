@@ -1,8 +1,8 @@
 import * as mainnetMain from './generated/mainnet-main';
 import * as optimismMain from './generated/optimism-main';
 import preRegenesisSynthExchanges from './preregenesis_snapshots/l2-trades-preregenesis.json';
-import {ethers} from 'ethers';
-import Wei, {wei} from '@synthetixio/wei';
+import { ethers } from 'ethers';
+import Wei, { wei } from '@synthetixio/wei';
 import _ from 'lodash';
 import fs from 'fs';
 
@@ -158,8 +158,8 @@ const main = async () => {
     );
 
     // make unique by address
-    const mergedList = _.union(filteredL1, filteredL2, 'address').map(
-        ({address}) => ({address: address})
+    const mergedList = _.unionBy(filteredL1, filteredL2, 'address').map(
+        ({ address }) => ({ address })
     );
 
     const kwentaDistribution = wei(313373).mul(0.05).div(mergedList.length);
@@ -167,7 +167,7 @@ const main = async () => {
     // Assign KWENTA to stakers
     const mappedDistribution = mergedList.map((trader) => ({
         ...trader,
-        amount: kwentaDistribution,
+        earnings: kwentaDistribution.toBN().toString(),
     }));
 
     writeCSV(mappedDistribution);
@@ -179,8 +179,8 @@ const main = async () => {
 
 const writeJSON = (
     distributionData: {
-        amount: Wei;
-        address: any;
+        earnings: string;
+        address: string;
     }[]
 ) => {
     fs.writeFileSync(
@@ -191,8 +191,8 @@ const writeJSON = (
 
 const writeCSV = (
     distributionData: {
-        amount: Wei;
-        address: any;
+        earnings: string;
+        address: string;
     }[],
     amountsHidden = false
 ) => {
@@ -200,7 +200,7 @@ const writeCSV = (
         (acc, trader) =>
             acc +
             `${trader.address}${
-                amountsHidden ? '' : `,${trader.amount.toString()}`
+                amountsHidden ? '' : `,${trader.earnings.toString()}`
             }\n`,
         ''
     );

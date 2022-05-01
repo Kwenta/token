@@ -7,7 +7,9 @@
     "test:fork": "npx hardhat test test/fork/*",
     "coverage": "npx hardhat coverage",
     "generate-distribution:stakers": "npx ts-node ./scripts/distribution/staker-distribution.ts",
-    "generate-distribution:traders": "npx ts-node ./scripts/distribution/trader-distribution.ts"
+    "generate-distribution:traders": "npx ts-node ./scripts/distribution/trader-distribution.ts",
+    "deploy:local": "npx hardhat run --network localhost scripts/deploy.ts",
+    "interact:local": "npx hardhat interact --network localhost"
   },
   "devDependencies": {
     "@defi-wonderland/smock": "^2.0.7",

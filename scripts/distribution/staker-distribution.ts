@@ -1,11 +1,11 @@
 import * as mainnetMain from './generated/mainnet-main';
 import * as optimismMain from './generated/optimism-main';
 import preregenesisSNXHoldersSnapshot from './preregenesis_snapshots/l2-snxholders-preregenesis.json';
-import {request, gql} from 'graphql-request';
-import {BigNumber, ethers} from 'ethers';
+import { request, gql } from 'graphql-request';
+import { BigNumber, ethers } from 'ethers';
 import Synthetix from '@synthetixio/contracts-interface';
-import Wei, {wei} from '@synthetixio/wei';
-import {reconstructWei, SerializedWei} from './utils';
+import Wei, { wei } from '@synthetixio/wei';
+import { reconstructWei, SerializedWei } from './utils';
 import fs from 'fs';
 
 type PreregenesisSNXHolder = {
@@ -99,8 +99,8 @@ const getSNXHoldersWithActiveDebt = async (
                 query getSNXHolders($accounts: [String!], $block: Int!) {
                     snxholders(
                         first: 1000
-                        block: {number: $block}
-                        where: {id_in: $accounts}
+                        block: { number: $block }
+                        where: { id_in: $accounts }
                     ) {
                         id
                         block
@@ -187,7 +187,7 @@ const getTotalDebt = async (
         provider,
     });
 
-    const {DebtCache} = synthetix.contracts;
+    const { DebtCache } = synthetix.contracts;
     const currentDebt = await DebtCache.currentDebt({
         blockTag: block,
     });
@@ -205,7 +205,7 @@ const getLastDebtLedgerEntry = async (
         provider,
     });
 
-    const {SynthetixState} = synthetix.contracts;
+    const { SynthetixState } = synthetix.contracts;
     const lastDebtLedgerEntry: BigNumber =
         await SynthetixState.lastDebtLedgerEntry({
             blockTag: block,
@@ -285,7 +285,7 @@ const main = async () => {
     );
 
     const l1DebtScores = eligibleAddressesWithDebtL1.map(
-        ({id, initialDebtOwnership, debtEntryAtIndex}) => ({
+        ({ id, initialDebtOwnership, debtEntryAtIndex }) => ({
             address: id,
             debtScore: getDebtWeightedScore(
                 wei(initialDebtOwnership, 18, true),
@@ -299,7 +299,7 @@ const main = async () => {
     );
 
     const l2DebtScores = eligibleAddressesWithDebtL2.map(
-        ({id, initialDebtOwnership, debtEntryAtIndex}) => ({
+        ({ id, initialDebtOwnership, debtEntryAtIndex }) => ({
             address: id,
             debtScore: getDebtWeightedScore(
                 wei(initialDebtOwnership, 18, true),
@@ -333,19 +333,19 @@ const main = async () => {
 
     // Remove stakers below 1e-8 score
     const filteredDebtScores = (
-        mergedStakersDebtScores as Array<{address: string; debtScore: number}>
+        mergedStakersDebtScores as Array<{ address: string; debtScore: number }>
     ).filter((staker) => staker.debtScore >= 1e-7);
 
     // Sum total debt scores
     const totalDebtScore = filteredDebtScores.reduce(
-        (total: number, curr) => total + curr.debtScore,
-        0
+        (total: Wei, curr) => total.add(curr.debtScore),
+        wei(0)
     );
 
     // Assign pro-rata weights for debt scores
     const distributionShare = filteredDebtScores.map((staker) => ({
         ...staker,
-        debtScoreShare: staker.debtScore / totalDebtScore,
+        debtScoreShare: wei(staker.debtScore).div(totalDebtScore),
     }));
 
     const floorKwentaAmount = wei(5);
@@ -371,7 +371,10 @@ const main = async () => {
     );
 
     const finalDistribution = sortedKwentaDistribution.map(
-        ({address, amount}) => ({address, amount})
+        ({ address, amount }) => ({
+            address,
+            earnings: amount.toBN().toString(),
+        })
     );
 
     writeCSV(finalDistribution);
@@ -383,8 +386,8 @@ const main = async () => {
 
 const writeJSON = (
     distributionData: {
-        amount: Wei;
-        address: any;
+        earnings: string;
+        address: string;
     }[]
 ) => {
     fs.writeFileSync(
@@ -395,8 +398,8 @@ const writeJSON = (
 
 const writeCSV = (
     distributionData: {
-        amount: Wei;
-        address: any;
+        earnings: string;
+        address: string;
     }[],
     amountsHidden: boolean = false
 ) => {
@@ -404,7 +407,7 @@ const writeCSV = (
         (acc, staker) =>
             acc +
             `${staker.address}${
-                amountsHidden ? '' : `,${staker.amount.toString()}`
+                amountsHidden ? '' : `,${staker.earnings.toString()}`
             }\n`,
         ''
     );
