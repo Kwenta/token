@@ -1,0 +1,219 @@
+{
+  "address": "0xDA0C33402Fc1e10d18c532F0Ed9c1A6c5C9e386C",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_token",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_rewardEscrow",
+          "type": "address"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "_merkleRoot",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "index",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "Claimed",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "index",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes32[]",
+          "name": "merkleProof",
+          "type": "bytes32[]"
+        }
+      ],
+      "name": "claim",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "index",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "destAccount",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes32[]",
+          "name": "merkleProof",
+          "type": "bytes32[]"
+        }
+      ],
+      "name": "claimToAddress",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "index",
+          "type": "uint256"
+        }
+      ],
+      "name": "isClaimed",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "merkleRoot",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "rewardEscrow",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "token",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "numDeployments": 1,
+  "solcInputHash": "d7edc465b567a909b27bc1c3baab1ca8",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.7+commit.e28d00a7\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_token\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_rewardEscrow\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"_merkleRoot\",\"type\":\"bytes32\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"index\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"Claimed\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"index\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes32[]\",\"name\":\"merkleProof\",\"type\":\"bytes32[]\"}],\"name\":\"claim\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"index\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"destAccount\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes32[]\",\"name\":\"merkleProof\",\"type\":\"bytes32[]\"}],\"name\":\"claimToAddress\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"index\",\"type\":\"uint256\"}],\"name\":\"isClaimed\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"merkleRoot\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"rewardEscrow\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"token\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/MerkleDistributor.sol\":\"MerkleDistributor\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"@eth-optimism/contracts/libraries/bridge/ICrossDomainMessenger.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity >0.5.0 <0.9.0;\\n\\n/**\\n * @title ICrossDomainMessenger\\n */\\ninterface ICrossDomainMessenger {\\n    /**********\\n     * Events *\\n     **********/\\n\\n    event SentMessage(\\n        address indexed target,\\n        address sender,\\n        bytes message,\\n        uint256 messageNonce,\\n        uint256 gasLimit\\n    );\\n    event RelayedMessage(bytes32 indexed msgHash);\\n    event FailedRelayedMessage(bytes32 indexed msgHash);\\n\\n    /*************\\n     * Variables *\\n     *************/\\n\\n    function xDomainMessageSender() external view returns (address);\\n\\n    /********************\\n     * Public Functions *\\n     ********************/\\n\\n    /**\\n     * Sends a cross domain message to the target messenger.\\n     * @param _target Target contract address.\\n     * @param _message Message to send to the target.\\n     * @param _gasLimit Gas limit for the provided message.\\n     */\\n    function sendMessage(\\n        address _target,\\n        bytes calldata _message,\\n        uint32 _gasLimit\\n    ) external;\\n}\\n\",\"keccak256\":\"0x8f29ae23021345a20ccac7b5edb3fc38268aef943b65adc8a32e74b80bf1833a\",\"license\":\"MIT\"},\"@openzeppelin/contracts/token/ERC20/IERC20.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity ^0.8.0;\\n\\n/**\\n * @dev Interface of the ERC20 standard as defined in the EIP.\\n */\\ninterface IERC20 {\\n    /**\\n     * @dev Returns the amount of tokens in existence.\\n     */\\n    function totalSupply() external view returns (uint256);\\n\\n    /**\\n     * @dev Returns the amount of tokens owned by `account`.\\n     */\\n    function balanceOf(address account) external view returns (uint256);\\n\\n    /**\\n     * @dev Moves `amount` tokens from the caller's account to `recipient`.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * Emits a {Transfer} event.\\n     */\\n    function transfer(address recipient, uint256 amount) external returns (bool);\\n\\n    /**\\n     * @dev Returns the remaining number of tokens that `spender` will be\\n     * allowed to spend on behalf of `owner` through {transferFrom}. This is\\n     * zero by default.\\n     *\\n     * This value changes when {approve} or {transferFrom} are called.\\n     */\\n    function allowance(address owner, address spender) external view returns (uint256);\\n\\n    /**\\n     * @dev Sets `amount` as the allowance of `spender` over the caller's tokens.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * IMPORTANT: Beware that changing an allowance with this method brings the risk\\n     * that someone may use both the old and the new allowance by unfortunate\\n     * transaction ordering. One possible solution to mitigate this race\\n     * condition is to first reduce the spender's allowance to 0 and set the\\n     * desired value afterwards:\\n     * https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729\\n     *\\n     * Emits an {Approval} event.\\n     */\\n    function approve(address spender, uint256 amount) external returns (bool);\\n\\n    /**\\n     * @dev Moves `amount` tokens from `sender` to `recipient` using the\\n     * allowance mechanism. `amount` is then deducted from the caller's\\n     * allowance.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * Emits a {Transfer} event.\\n     */\\n    function transferFrom(\\n        address sender,\\n        address recipient,\\n        uint256 amount\\n    ) external returns (bool);\\n\\n    /**\\n     * @dev Emitted when `value` tokens are moved from one account (`from`) to\\n     * another (`to`).\\n     *\\n     * Note that `value` may be zero.\\n     */\\n    event Transfer(address indexed from, address indexed to, uint256 value);\\n\\n    /**\\n     * @dev Emitted when the allowance of a `spender` for an `owner` is set by\\n     * a call to {approve}. `value` is the new allowance.\\n     */\\n    event Approval(address indexed owner, address indexed spender, uint256 value);\\n}\\n\",\"keccak256\":\"0x027b891937d20ccf213fdb9c31531574256de774bda99d3a70ecef6e1913ed2a\",\"license\":\"MIT\"},\"@openzeppelin/contracts/utils/cryptography/MerkleProof.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity ^0.8.0;\\n\\n/**\\n * @dev These functions deal with verification of Merkle Trees proofs.\\n *\\n * The proofs can be generated using the JavaScript library\\n * https://github.com/miguelmota/merkletreejs[merkletreejs].\\n * Note: the hashing algorithm should be keccak256 and pair sorting should be enabled.\\n *\\n * See `test/utils/cryptography/MerkleProof.test.js` for some examples.\\n */\\nlibrary MerkleProof {\\n    /**\\n     * @dev Returns true if a `leaf` can be proved to be a part of a Merkle tree\\n     * defined by `root`. For this, a `proof` must be provided, containing\\n     * sibling hashes on the branch from the leaf to the root of the tree. Each\\n     * pair of leaves and each pair of pre-images are assumed to be sorted.\\n     */\\n    function verify(\\n        bytes32[] memory proof,\\n        bytes32 root,\\n        bytes32 leaf\\n    ) internal pure returns (bool) {\\n        bytes32 computedHash = leaf;\\n\\n        for (uint256 i = 0; i < proof.length; i++) {\\n            bytes32 proofElement = proof[i];\\n\\n            if (computedHash <= proofElement) {\\n                // Hash(current computed hash + current element of the proof)\\n                computedHash = keccak256(abi.encodePacked(computedHash, proofElement));\\n            } else {\\n                // Hash(current element of the proof + current computed hash)\\n                computedHash = keccak256(abi.encodePacked(proofElement, computedHash));\\n            }\\n        }\\n\\n        // Check if the computed hash (root) is equal to the provided root\\n        return computedHash == root;\\n    }\\n}\\n\",\"keccak256\":\"0x86c1bbdc6813c021e138da527c44d2615931b0e5c7fa2f58369846ed288324a8\",\"license\":\"MIT\"},\"contracts/MerkleDistributor.sol\":{\"content\":\"// SPDX-License-Identifier: UNLICENSED\\npragma solidity ^0.8.0;\\n\\nimport \\\"@openzeppelin/contracts/token/ERC20/IERC20.sol\\\";\\nimport \\\"@openzeppelin/contracts/utils/cryptography/MerkleProof.sol\\\";\\nimport \\\"./interfaces/IRewardEscrow.sol\\\";\\nimport \\\"./interfaces/IMerkleDistributor.sol\\\";\\n\\nimport { ICrossDomainMessenger } from \\n    \\\"@eth-optimism/contracts/libraries/bridge/ICrossDomainMessenger.sol\\\";\\n\\ncontract MerkleDistributor is IMerkleDistributor {\\n    // escrow for tokens claimed\\n    address public immutable override rewardEscrow;\\n\\n    address public immutable override token;\\n    bytes32 public immutable override merkleRoot;\\n\\n    // communication between L1 and L2 is enabled by two special smart contracts called the \\\"messengers\\\"\\n    // and below is the address for the messenger on L2\\n    address private crossDomainMessengerAddr = 0x4200000000000000000000000000000000000007;\\n\\n    // This is a packed array of booleans.\\n    mapping(uint256 => uint256) private claimedBitMap;\\n\\n    constructor(address _token, address _rewardEscrow, bytes32 _merkleRoot) {\\n        token = _token;\\n        rewardEscrow = _rewardEscrow;\\n        merkleRoot = _merkleRoot;\\n    }\\n\\n    function isClaimed(uint256 index) public view override returns (bool) {\\n        uint256 claimedWordIndex = index / 256;\\n        uint256 claimedBitIndex = index % 256;\\n        uint256 claimedWord = claimedBitMap[claimedWordIndex];\\n        uint256 mask = (1 << claimedBitIndex);\\n        return claimedWord & mask == mask;\\n    }\\n\\n    function _setClaimed(uint256 index) private {\\n        uint256 claimedWordIndex = index / 256;\\n        uint256 claimedBitIndex = index % 256;\\n        claimedBitMap[claimedWordIndex] = claimedBitMap[claimedWordIndex] | (1 << claimedBitIndex);\\n    }\\n\\n    function claim(uint256 index, address account, uint256 amount, bytes32[] calldata merkleProof) external override {\\n        require(!isClaimed(index), 'MerkleDistributor: Drop already claimed.');\\n\\n        // Verify the merkle proof.\\n        bytes32 node = keccak256(abi.encodePacked(index, account, amount));\\n        require(MerkleProof.verify(merkleProof, merkleRoot, node), 'MerkleDistributor: Invalid proof.');\\n\\n        // Mark it claimed and send the token to RewardEscrow\\n        _setClaimed(index);\\n        IERC20(token).approve(rewardEscrow, amount);\\n        IRewardEscrow(rewardEscrow).createEscrowEntry(account, amount, 52 weeks);\\n        \\n        emit Claimed(index, account, amount);\\n    }\\n\\n    function claimToAddress(uint256 index, address destAccount, uint256 amount, bytes32[] calldata merkleProof) external override {\\n        require(!isClaimed(index), 'MerkleDistributor: Drop already claimed.');\\n        require(msg.sender == crossDomainMessengerAddr, \\n            \\\"MerkleDistributor: Only the OVM-ICrossDomainMessenger can call this function\\\"\\n        );\\n\\n        // caller address from L1 (effectively the msg.sender on L1)\\n        address caller = ICrossDomainMessenger(crossDomainMessengerAddr).xDomainMessageSender();\\n\\n        // Verify the merkle proof with the L1 caller's address\\n        bytes32 node = keccak256(abi.encodePacked(index, caller, amount));\\n        require(MerkleProof.verify(merkleProof, merkleRoot, node), 'MerkleDistributor: Invalid proof.');\\n\\n        // Mark it claimed and send the token to RewardEscrow\\n        _setClaimed(index);\\n        IERC20(token).approve(rewardEscrow, amount);\\n        // @notice destAccount is NOT necessarily the caller's address\\n        IRewardEscrow(rewardEscrow).createEscrowEntry(destAccount, amount, 52 weeks);\\n        \\n        emit Claimed(index, caller, amount);\\n    }\\n}\",\"keccak256\":\"0x375b57b46006df90b283be9daea5d433b13a7850a52db3271590e281a0e054b2\",\"license\":\"UNLICENSED\"},\"contracts/interfaces/IMerkleDistributor.sol\":{\"content\":\"// SPDX-License-Identifier: UNLICENSED\\npragma solidity >=0.5.0;\\n\\n// Allows anyone to claim a token if they exist in a merkle root.\\ninterface IMerkleDistributor {\\n    // Returns the address of the token distributed by this contract\\n    function token() external view returns (address);\\n\\n    // Returns the address of the RewardEscrow used by this contract\\n    function rewardEscrow() external view returns (address);\\n\\n    // Returns the merkle root of the merkle tree containing account balances available to claim\\n    function merkleRoot() external view returns (bytes32);\\n\\n    // Returns true if the index has been marked claimed\\n    function isClaimed(uint256 index) external view returns (bool);\\n    \\n    // Claim the given amount of the token to the given address. Reverts if the inputs are invalid\\n    function claim(uint256 index, address account, uint256 amount, bytes32[] calldata merkleProof) external;\\n\\n    // Claim the given amount of the token to the given address. Reverts if the inputs are invalid\\n    function claimToAddress(uint256 index, address destAccount, uint256 amount, bytes32[] calldata merkleProof) external;\\n\\n    // This event is triggered whenever a call to #claim succeeds\\n    event Claimed(uint256 index, address account, uint256 amount);\\n}\",\"keccak256\":\"0x0ab7e2a0ae30d33ce86aea4d2370dc5d9a53f614e5de700938cd9daccf942d71\",\"license\":\"UNLICENSED\"},\"contracts/interfaces/IRewardEscrow.sol\":{\"content\":\"pragma solidity >=0.4.24;\\npragma experimental ABIEncoderV2;\\n\\nlibrary VestingEntries {\\n    struct VestingEntry {\\n        uint64 endTime;\\n        uint256 escrowAmount;\\n        uint256 duration;\\n    }\\n    struct VestingEntryWithID {\\n        uint64 endTime;\\n        uint256 escrowAmount;\\n        uint256 entryID;\\n    }\\n}\\n\\ninterface IRewardEscrow {\\n    // Views\\n    function balanceOf(address account) external view returns (uint);\\n\\n    function numVestingEntries(address account) external view returns (uint);\\n\\n    function totalEscrowedAccountBalance(address account) external view returns (uint);\\n\\n    function totalVestedAccountBalance(address account) external view returns (uint);\\n\\n    function getVestingQuantity(address account, uint256[] calldata entryIDs) external view returns (uint, uint);\\n\\n    function getVestingSchedules(\\n        address account,\\n        uint256 index,\\n        uint256 pageSize\\n    ) external view returns (VestingEntries.VestingEntryWithID[] memory);\\n\\n    function getAccountVestingEntryIDs(\\n        address account,\\n        uint256 index,\\n        uint256 pageSize\\n    ) external view returns (uint256[] memory);\\n\\n    function getVestingEntryClaimable(address account, uint256 entryID) external view returns (uint, uint);\\n\\n    function getVestingEntry(address account, uint256 entryID) external view returns (uint64, uint256, uint256);\\n\\n    // Mutative functions\\n    function vest(uint256[] calldata entryIDs) external;\\n\\n    function createEscrowEntry(\\n        address beneficiary,\\n        uint256 deposit,\\n        uint256 duration\\n    ) external;\\n\\n    function appendVestingEntry(\\n        address account,\\n        uint256 quantity,\\n        uint256 duration\\n    ) external;\\n\\n    function stakeEscrow(uint256 _amount) external;\\n\\n    function unstakeEscrow(uint256 _amount) external;\\n}\",\"keccak256\":\"0x6ff1870f076b4d177b0e846fdbb96fad761550d48fa92baf206866edf2a98e49\"}},\"version\":1}",
+  "bytecode": "0x60e06040527342000000000000000000000000000000000000076000806101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff1602179055503480156200006557600080fd5b50604051620014423803806200144283398181016040528101906200008b919062000138565b8273ffffffffffffffffffffffffffffffffffffffff1660a08173ffffffffffffffffffffffffffffffffffffffff1660601b815250508173ffffffffffffffffffffffffffffffffffffffff1660808173ffffffffffffffffffffffffffffffffffffffff1660601b815250508060c081815250505050506200020b565b6000815190506200011b81620001d7565b92915050565b6000815190506200013281620001f1565b92915050565b600080600060608486031215620001545762000153620001d2565b5b600062000164868287016200010a565b935050602062000177868287016200010a565b92505060406200018a8682870162000121565b9150509250925092565b6000620001a182620001b2565b9050919050565b6000819050919050565b600073ffffffffffffffffffffffffffffffffffffffff82169050919050565b600080fd5b620001e28162000194565b8114620001ee57600080fd5b50565b620001fc81620001a8565b81146200020857600080fd5b50565b60805160601c60a05160601c60c0516111c962000279600039600081816101e8015281816103fb015261060d0152600081816102570152818161067c015261089b01526000818161029301528181610325015281816106b80152818161074a015261087701526111c96000f3fe608060405234801561001057600080fd5b50600436106100625760003560e01c80632e7ba6ef146100675780632eb4a7ab1461008357806383bfcccc146100a15780639e34070f146100bd578063a430be6c146100ed578063fc0c546a1461010b575b600080fd5b610081600480360381019061007c9190610afe565b610129565b005b61008b6103f9565b6040516100989190610d7e565b60405180910390f35b6100bb60048036038101906100b69190610afe565b61041d565b005b6100d760048036038101906100d29190610ad1565b61081f565b6040516100e49190610d63565b60405180910390f35b6100f5610875565b6040516101029190610ce8565b60405180910390f35b610113610899565b6040516101209190610ce8565b60405180910390f35b6101328561081f565b15610172576040517f08c379a000000000000000000000000000000000000000000000000000000000815260040161016990610db9565b60405180910390fd5b600085858560405160200161018993929190610cab565b60405160208183030381529060405280519060200120905061020d838380806020026020016040519081016040528093929190818152602001838360200280828437600081840152601f19601f820116905080830192505050505050507f0000000000000000000000000000000000000000000000000000000000000000836108bd565b61024c576040517f08c379a000000000000000000000000000000000000000000000000000000000815260040161024390610dd9565b60405180910390fd5b61025586610973565b7f000000000000000000000000000000000000000000000000000000000000000073ffffffffffffffffffffffffffffffffffffffff1663095ea7b37f0000000000000000000000000000000000000000000000000000000000000000866040518363ffffffff1660e01b81526004016102d0929190610d03565b602060405180830381600087803b1580156102ea57600080fd5b505af11580156102fe573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906103229190610aa4565b507f000000000000000000000000000000000000000000000000000000000000000073ffffffffffffffffffffffffffffffffffffffff1663a0416ed386866301dfe2006040518463ffffffff1660e01b815260040161038493929190610d2c565b600060405180830381600087803b15801561039e57600080fd5b505af11580156103b2573d6000803e3d6000fd5b505050507f4ec90e965519d92681267467f775ada5bd214aa92c0dc93d90a5e880ce9ed0268686866040516103e993929190610df9565b60405180910390a1505050505050565b7f000000000000000000000000000000000000000000000000000000000000000081565b6104268561081f565b15610466576040517f08c379a000000000000000000000000000000000000000000000000000000000815260040161045d90610db9565b60405180910390fd5b60008054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff163373ffffffffffffffffffffffffffffffffffffffff16146104f4576040517f08c379a00000000000000000000000000000000000000000000000000000000081526004016104eb90610d99565b60405180910390fd5b60008060009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16636e296e456040518163ffffffff1660e01b815260040160206040518083038186803b15801561055d57600080fd5b505afa158015610571573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906105959190610a77565b905060008682866040516020016105ae93929190610cab565b604051602081830303815290604052805190602001209050610632848480806020026020016040519081016040528093929190818152602001838360200280828437600081840152601f19601f820116905080830192505050505050507f0000000000000000000000000000000000000000000000000000000000000000836108bd565b610671576040517f08c379a000000000000000000000000000000000000000000000000000000000815260040161066890610dd9565b60405180910390fd5b61067a87610973565b7f000000000000000000000000000000000000000000000000000000000000000073ffffffffffffffffffffffffffffffffffffffff1663095ea7b37f0000000000000000000000000000000000000000000000000000000000000000876040518363ffffffff1660e01b81526004016106f5929190610d03565b602060405180830381600087803b15801561070f57600080fd5b505af1158015610723573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906107479190610aa4565b507f000000000000000000000000000000000000000000000000000000000000000073ffffffffffffffffffffffffffffffffffffffff1663a0416ed387876301dfe2006040518463ffffffff1660e01b81526004016107a993929190610d2c565b600060405180830381600087803b1580156107c357600080fd5b505af11580156107d7573d6000803e3d6000fd5b505050507f4ec90e965519d92681267467f775ada5bd214aa92c0dc93d90a5e880ce9ed02687838760405161080e93929190610df9565b60405180910390a150505050505050565b600080610100836108309190610e41565b90506000610100846108429190610f57565b90506000600160008481526020019081526020016000205490506000826001901b90508081831614945050505050919050565b7f000000000000000000000000000000000000000000000000000000000000000081565b7f000000000000000000000000000000000000000000000000000000000000000081565b60008082905060005b85518110156109655760008682815181106108e4576108e3610fe6565b5b60200260200101519050808311610925578281604051602001610908929190610c7f565b604051602081830303815290604052805190602001209250610951565b8083604051602001610938929190610c7f565b6040516020818303038152906040528051906020012092505b50808061095d90610ed6565b9150506108c6565b508381149150509392505050565b6000610100826109839190610e41565b90506000610100836109959190610f57565b9050806001901b6001600084815260200190815260200160002054176001600084815260200190815260200160002081905550505050565b6000813590506109dc8161114e565b92915050565b6000815190506109f18161114e565b92915050565b60008083601f840112610a0d57610a0c61101a565b5b8235905067ffffffffffffffff811115610a2a57610a29611015565b5b602083019150836020820283011115610a4657610a4561101f565b5b9250929050565b600081519050610a5c81611165565b92915050565b600081359050610a718161117c565b92915050565b600060208284031215610a8d57610a8c611029565b5b6000610a9b848285016109e2565b91505092915050565b600060208284031215610aba57610ab9611029565b5b6000610ac884828501610a4d565b91505092915050565b600060208284031215610ae757610ae6611029565b5b6000610af584828501610a62565b91505092915050565b600080600080600060808688031215610b1a57610b19611029565b5b6000610b2888828901610a62565b9550506020610b39888289016109cd565b9450506040610b4a88828901610a62565b935050606086013567ffffffffffffffff811115610b6b57610b6a611024565b5b610b77888289016109f7565b92509250509295509295909350565b610b8f81610e72565b82525050565b610ba6610ba182610e72565b610f1f565b82525050565b610bb581610e84565b82525050565b610bc481610e90565b82525050565b610bdb610bd682610e90565b610f31565b82525050565b610bea81610ec4565b82525050565b6000610bfd604c83610e30565b9150610c088261103b565b606082019050919050565b6000610c20602883610e30565b9150610c2b826110b0565b604082019050919050565b6000610c43602183610e30565b9150610c4e826110ff565b604082019050919050565b610c6281610eba565b82525050565b610c79610c7482610eba565b610f4d565b82525050565b6000610c8b8285610bca565b602082019150610c9b8284610bca565b6020820191508190509392505050565b6000610cb78286610c68565b602082019150610cc78285610b95565b601482019150610cd78284610c68565b602082019150819050949350505050565b6000602082019050610cfd6000830184610b86565b92915050565b6000604082019050610d186000830185610b86565b610d256020830184610c59565b9392505050565b6000606082019050610d416000830186610b86565b610d4e6020830185610c59565b610d5b6040830184610be1565b949350505050565b6000602082019050610d786000830184610bac565b92915050565b6000602082019050610d936000830184610bbb565b92915050565b60006020820190508181036000830152610db281610bf0565b9050919050565b60006020820190508181036000830152610dd281610c13565b9050919050565b60006020820190508181036000830152610df281610c36565b9050919050565b6000606082019050610e0e6000830186610c59565b610e1b6020830185610b86565b610e286040830184610c59565b949350505050565b600082825260208201905092915050565b6000610e4c82610eba565b9150610e5783610eba565b925082610e6757610e66610fb7565b5b828204905092915050565b6000610e7d82610e9a565b9050919050565b60008115159050919050565b6000819050919050565b600073ffffffffffffffffffffffffffffffffffffffff82169050919050565b6000819050919050565b6000610ecf82610eba565b9050919050565b6000610ee182610eba565b91507fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff821415610f1457610f13610f88565b5b600182019050919050565b6000610f2a82610f3b565b9050919050565b6000819050919050565b6000610f468261102e565b9050919050565b6000819050919050565b6000610f6282610eba565b9150610f6d83610eba565b925082610f7d57610f7c610fb7565b5b828206905092915050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052601160045260246000fd5b7f4e487b7100000000000000000000000000000000000000000000000000000000600052601260045260246000fd5b7f4e487b7100000000000000000000000000000000000000000000000000000000600052603260045260246000fd5b600080fd5b600080fd5b600080fd5b600080fd5b600080fd5b60008160601b9050919050565b7f4d65726b6c654469737472696275746f723a204f6e6c7920746865204f564d2d60008201527f4943726f7373446f6d61696e4d657373656e6765722063616e2063616c6c207460208201527f6869732066756e6374696f6e0000000000000000000000000000000000000000604082015250565b7f4d65726b6c654469737472696275746f723a2044726f7020616c72656164792060008201527f636c61696d65642e000000000000000000000000000000000000000000000000602082015250565b7f4d65726b6c654469737472696275746f723a20496e76616c69642070726f6f6660008201527f2e00000000000000000000000000000000000000000000000000000000000000602082015250565b61115781610e72565b811461116257600080fd5b50565b61116e81610e84565b811461117957600080fd5b50565b61118581610eba565b811461119057600080fd5b5056fea26469706673582212207990db1dd167be03a5c68d1a1b45a6b1a95ff26bf4ed0a7105d963f441f15d3564736f6c63430008070033",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106100625760003560e01c80632e7ba6ef146100675780632eb4a7ab1461008357806383bfcccc146100a15780639e34070f146100bd578063a430be6c146100ed578063fc0c546a1461010b575b600080fd5b610081600480360381019061007c9190610afe565b610129565b005b61008b6103f9565b6040516100989190610d7e565b60405180910390f35b6100bb60048036038101906100b69190610afe565b61041d565b005b6100d760048036038101906100d29190610ad1565b61081f565b6040516100e49190610d63565b60405180910390f35b6100f5610875565b6040516101029190610ce8565b60405180910390f35b610113610899565b6040516101209190610ce8565b60405180910390f35b6101328561081f565b15610172576040517f08c379a000000000000000000000000000000000000000000000000000000000815260040161016990610db9565b60405180910390fd5b600085858560405160200161018993929190610cab565b60405160208183030381529060405280519060200120905061020d838380806020026020016040519081016040528093929190818152602001838360200280828437600081840152601f19601f820116905080830192505050505050507f0000000000000000000000000000000000000000000000000000000000000000836108bd565b61024c576040517f08c379a000000000000000000000000000000000000000000000000000000000815260040161024390610dd9565b60405180910390fd5b61025586610973565b7f000000000000000000000000000000000000000000000000000000000000000073ffffffffffffffffffffffffffffffffffffffff1663095ea7b37f0000000000000000000000000000000000000000000000000000000000000000866040518363ffffffff1660e01b81526004016102d0929190610d03565b602060405180830381600087803b1580156102ea57600080fd5b505af11580156102fe573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906103229190610aa4565b507f000000000000000000000000000000000000000000000000000000000000000073ffffffffffffffffffffffffffffffffffffffff1663a0416ed386866301dfe2006040518463ffffffff1660e01b815260040161038493929190610d2c565b600060405180830381600087803b15801561039e57600080fd5b505af11580156103b2573d6000803e3d6000fd5b505050507f4ec90e965519d92681267467f775ada5bd214aa92c0dc93d90a5e880ce9ed0268686866040516103e993929190610df9565b60405180910390a1505050505050565b7f000000000000000000000000000000000000000000000000000000000000000081565b6104268561081f565b15610466576040517f08c379a000000000000000000000000000000000000000000000000000000000815260040161045d90610db9565b60405180910390fd5b60008054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff163373ffffffffffffffffffffffffffffffffffffffff16146104f4576040517f08c379a00000000000000000000000000000000000000000000000000000000081526004016104eb90610d99565b60405180910390fd5b60008060009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16636e296e456040518163ffffffff1660e01b815260040160206040518083038186803b15801561055d57600080fd5b505afa158015610571573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906105959190610a77565b905060008682866040516020016105ae93929190610cab565b604051602081830303815290604052805190602001209050610632848480806020026020016040519081016040528093929190818152602001838360200280828437600081840152601f19601f820116905080830192505050505050507f0000000000000000000000000000000000000000000000000000000000000000836108bd565b610671576040517f08c379a000000000000000000000000000000000000000000000000000000000815260040161066890610dd9565b60405180910390fd5b61067a87610973565b7f000000000000000000000000000000000000000000000000000000000000000073ffffffffffffffffffffffffffffffffffffffff1663095ea7b37f0000000000000000000000000000000000000000000000000000000000000000876040518363ffffffff1660e01b81526004016106f5929190610d03565b602060405180830381600087803b15801561070f57600080fd5b505af1158015610723573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906107479190610aa4565b507f000000000000000000000000000000000000000000000000000000000000000073ffffffffffffffffffffffffffffffffffffffff1663a0416ed387876301dfe2006040518463ffffffff1660e01b81526004016107a993929190610d2c565b600060405180830381600087803b1580156107c357600080fd5b505af11580156107d7573d6000803e3d6000fd5b505050507f4ec90e965519d92681267467f775ada5bd214aa92c0dc93d90a5e880ce9ed02687838760405161080e93929190610df9565b60405180910390a150505050505050565b600080610100836108309190610e41565b90506000610100846108429190610f57565b90506000600160008481526020019081526020016000205490506000826001901b90508081831614945050505050919050565b7f000000000000000000000000000000000000000000000000000000000000000081565b7f000000000000000000000000000000000000000000000000000000000000000081565b60008082905060005b85518110156109655760008682815181106108e4576108e3610fe6565b5b60200260200101519050808311610925578281604051602001610908929190610c7f565b604051602081830303815290604052805190602001209250610951565b8083604051602001610938929190610c7f565b6040516020818303038152906040528051906020012092505b50808061095d90610ed6565b9150506108c6565b508381149150509392505050565b6000610100826109839190610e41565b90506000610100836109959190610f57565b9050806001901b6001600084815260200190815260200160002054176001600084815260200190815260200160002081905550505050565b6000813590506109dc8161114e565b92915050565b6000815190506109f18161114e565b92915050565b60008083601f840112610a0d57610a0c61101a565b5b8235905067ffffffffffffffff811115610a2a57610a29611015565b5b602083019150836020820283011115610a4657610a4561101f565b5b9250929050565b600081519050610a5c81611165565b92915050565b600081359050610a718161117c565b92915050565b600060208284031215610a8d57610a8c611029565b5b6000610a9b848285016109e2565b91505092915050565b600060208284031215610aba57610ab9611029565b5b6000610ac884828501610a4d565b91505092915050565b600060208284031215610ae757610ae6611029565b5b6000610af584828501610a62565b91505092915050565b600080600080600060808688031215610b1a57610b19611029565b5b6000610b2888828901610a62565b9550506020610b39888289016109cd565b9450506040610b4a88828901610a62565b935050606086013567ffffffffffffffff811115610b6b57610b6a611024565b5b610b77888289016109f7565b92509250509295509295909350565b610b8f81610e72565b82525050565b610ba6610ba182610e72565b610f1f565b82525050565b610bb581610e84565b82525050565b610bc481610e90565b82525050565b610bdb610bd682610e90565b610f31565b82525050565b610bea81610ec4565b82525050565b6000610bfd604c83610e30565b9150610c088261103b565b606082019050919050565b6000610c20602883610e30565b9150610c2b826110b0565b604082019050919050565b6000610c43602183610e30565b9150610c4e826110ff565b604082019050919050565b610c6281610eba565b82525050565b610c79610c7482610eba565b610f4d565b82525050565b6000610c8b8285610bca565b602082019150610c9b8284610bca565b6020820191508190509392505050565b6000610cb78286610c68565b602082019150610cc78285610b95565b601482019150610cd78284610c68565b602082019150819050949350505050565b6000602082019050610cfd6000830184610b86565b92915050565b6000604082019050610d186000830185610b86565b610d256020830184610c59565b9392505050565b6000606082019050610d416000830186610b86565b610d4e6020830185610c59565b610d5b6040830184610be1565b949350505050565b6000602082019050610d786000830184610bac565b92915050565b6000602082019050610d936000830184610bbb565b92915050565b60006020820190508181036000830152610db281610bf0565b9050919050565b60006020820190508181036000830152610dd281610c13565b9050919050565b60006020820190508181036000830152610df281610c36565b9050919050565b6000606082019050610e0e6000830186610c59565b610e1b6020830185610b86565b610e286040830184610c59565b949350505050565b600082825260208201905092915050565b6000610e4c82610eba565b9150610e5783610eba565b925082610e6757610e66610fb7565b5b828204905092915050565b6000610e7d82610e9a565b9050919050565b60008115159050919050565b6000819050919050565b600073ffffffffffffffffffffffffffffffffffffffff82169050919050565b6000819050919050565b6000610ecf82610eba565b9050919050565b6000610ee182610eba565b91507fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff821415610f1457610f13610f88565b5b600182019050919050565b6000610f2a82610f3b565b9050919050565b6000819050919050565b6000610f468261102e565b9050919050565b6000819050919050565b6000610f6282610eba565b9150610f6d83610eba565b925082610f7d57610f7c610fb7565b5b828206905092915050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052601160045260246000fd5b7f4e487b7100000000000000000000000000000000000000000000000000000000600052601260045260246000fd5b7f4e487b7100000000000000000000000000000000000000000000000000000000600052603260045260246000fd5b600080fd5b600080fd5b600080fd5b600080fd5b600080fd5b60008160601b9050919050565b7f4d65726b6c654469737472696275746f723a204f6e6c7920746865204f564d2d60008201527f4943726f7373446f6d61696e4d657373656e6765722063616e2063616c6c207460208201527f6869732066756e6374696f6e0000000000000000000000000000000000000000604082015250565b7f4d65726b6c654469737472696275746f723a2044726f7020616c72656164792060008201527f636c61696d65642e000000000000000000000000000000000000000000000000602082015250565b7f4d65726b6c654469737472696275746f723a20496e76616c69642070726f6f6660008201527f2e00000000000000000000000000000000000000000000000000000000000000602082015250565b61115781610e72565b811461116257600080fd5b50565b61116e81610e84565b811461117957600080fd5b50565b61118581610eba565b811461119057600080fd5b5056fea26469706673582212207990db1dd167be03a5c68d1a1b45a6b1a95ff26bf4ed0a7105d963f441f15d3564736f6c63430008070033",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {},
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {},
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 364,
+        "contract": "contracts/MerkleDistributor.sol:MerkleDistributor",
+        "label": "crossDomainMessengerAddr",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_address"
+      },
+      {
+        "astId": 368,
+        "contract": "contracts/MerkleDistributor.sol:MerkleDistributor",
+        "label": "claimedBitMap",
+        "offset": 0,
+        "slot": "1",
+        "type": "t_mapping(t_uint256,t_uint256)"
+      }
+    ],
+    "types": {
+      "t_address": {
+        "encoding": "inplace",
+        "label": "address",
+        "numberOfBytes": "20"
+      },
+      "t_mapping(t_uint256,t_uint256)": {
+        "encoding": "mapping",
+        "key": "t_uint256",
+        "label": "mapping(uint256 => uint256)",
+        "numberOfBytes": "32",
+        "value": "t_uint256"
+      },
+      "t_uint256": {
+        "encoding": "inplace",
+        "label": "uint256",
+        "numberOfBytes": "32"
+      }
+    }
+  }
+}

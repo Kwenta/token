@@ -71,28 +71,37 @@ async function main() {
 
     console.log('\nConfiguring setters...');
     // set SupplySchedule for kwenta
-    await kwenta.setSupplySchedule(supplySchedule.address);
+    const kwentaSetSupplyScheduleTx = await kwenta.setSupplySchedule(
+        supplySchedule.address
+    );
+    await kwentaSetSupplyScheduleTx.wait();
     console.log(
         'Kwenta: SupplySchedule address set to:',
         await kwenta.supplySchedule()
     );
 
     // set StakingRewards address in SupplySchedule
-    await supplySchedule.setStakingRewards(stakingRewards.address);
+    const supplyScheduleSetStakingRewardsTx =
+        await supplySchedule.setStakingRewards(stakingRewards.address);
+    await supplyScheduleSetStakingRewardsTx.wait();
     console.log(
         'SupplySchedule: StakingRewards address set to:',
         await supplySchedule.stakingRewards()
     );
 
     // set StakingRewards address in RewardEscrow
-    await rewardEscrow.setStakingRewards(stakingRewards.address);
+    const rewardEscrowSetStakingRewardsTx =
+        await rewardEscrow.setStakingRewards(stakingRewards.address);
+    await rewardEscrowSetStakingRewardsTx.wait();
     console.log(
         'RewardEscrow: StakingRewards address set to:',
         await rewardEscrow.stakingRewards()
     );
 
     // set ExchangerProxy address in StakingRewards
-    await stakingRewards.setExchangerProxy(exchangerProxy.address);
+    const stakingRewardsSetExchangerProxyTx =
+        await stakingRewards.setExchangerProxy(exchangerProxy.address);
+    await stakingRewardsSetExchangerProxyTx.wait();
     console.log(
         'StakingRewards: ExchangerProxy address set to:',
         await stakingRewards.exchangerProxy()

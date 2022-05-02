@@ -1,0 +1,884 @@
+{
+  "address": "0x6477129FaC5B241A336a8D3da533Bf73F7502a80",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_owner",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_kwenta",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "oldOwner",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnerChanged",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnerNominated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "rewardEscrow",
+          "type": "address"
+        }
+      ],
+      "name": "StakingRewardsSet",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "beneficiary",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "time",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "Vested",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "beneficiary",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "time",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "duration",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "entryID",
+          "type": "uint256"
+        }
+      ],
+      "name": "VestingEntryCreated",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "acceptOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "accountVestingEntryIDs",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "quantity",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "duration",
+          "type": "uint256"
+        }
+      ],
+      "name": "appendVestingEntry",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "balanceOf",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "beneficiary",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "deposit",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "duration",
+          "type": "uint256"
+        }
+      ],
+      "name": "createEscrowEntry",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "index",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "pageSize",
+          "type": "uint256"
+        }
+      ],
+      "name": "getAccountVestingEntryIDs",
+      "outputs": [
+        {
+          "internalType": "uint256[]",
+          "name": "",
+          "type": "uint256[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "entryID",
+          "type": "uint256"
+        }
+      ],
+      "name": "getVestingEntry",
+      "outputs": [
+        {
+          "internalType": "uint64",
+          "name": "endTime",
+          "type": "uint64"
+        },
+        {
+          "internalType": "uint256",
+          "name": "escrowAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "duration",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "entryID",
+          "type": "uint256"
+        }
+      ],
+      "name": "getVestingEntryClaimable",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "entryIDs",
+          "type": "uint256[]"
+        }
+      ],
+      "name": "getVestingQuantity",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "total",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "totalFee",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "index",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "pageSize",
+          "type": "uint256"
+        }
+      ],
+      "name": "getVestingSchedules",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint64",
+              "name": "endTime",
+              "type": "uint64"
+            },
+            {
+              "internalType": "uint256",
+              "name": "escrowAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "entryID",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct VestingEntries.VestingEntryWithID[]",
+          "name": "",
+          "type": "tuple[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "kwenta",
+      "outputs": [
+        {
+          "internalType": "contract IKwenta",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "max_duration",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "nextEntryId",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_owner",
+          "type": "address"
+        }
+      ],
+      "name": "nominateNewOwner",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "nominatedOwner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "numVestingEntries",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_stakingRewards",
+          "type": "address"
+        }
+      ],
+      "name": "setStakingRewards",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "stakeEscrow",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "stakingRewards",
+      "outputs": [
+        {
+          "internalType": "contract IStakingRewards",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "totalEscrowedAccountBalance",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "totalEscrowedBalance",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "totalVestedAccountBalance",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "unstakeEscrow",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256[]",
+          "name": "entryIDs",
+          "type": "uint256[]"
+        }
+      ],
+      "name": "vest",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "vestingSchedules",
+      "outputs": [
+        {
+          "internalType": "uint64",
+          "name": "endTime",
+          "type": "uint64"
+        },
+        {
+          "internalType": "uint256",
+          "name": "escrowAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "duration",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "numDeployments": 1,
+  "solcInputHash": "ee7a47eef76e566acaa3fa51ec176ca2",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.7+commit.e28d00a7\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_owner\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_kwenta\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"oldOwner\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnerChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnerNominated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"rewardEscrow\",\"type\":\"address\"}],\"name\":\"StakingRewardsSet\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"beneficiary\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"time\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"Vested\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"beneficiary\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"time\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"duration\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"entryID\",\"type\":\"uint256\"}],\"name\":\"VestingEntryCreated\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"acceptOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"accountVestingEntryIDs\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"quantity\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"duration\",\"type\":\"uint256\"}],\"name\":\"appendVestingEntry\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"balanceOf\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"beneficiary\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"deposit\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"duration\",\"type\":\"uint256\"}],\"name\":\"createEscrowEntry\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"index\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"pageSize\",\"type\":\"uint256\"}],\"name\":\"getAccountVestingEntryIDs\",\"outputs\":[{\"internalType\":\"uint256[]\",\"name\":\"\",\"type\":\"uint256[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"entryID\",\"type\":\"uint256\"}],\"name\":\"getVestingEntry\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"endTime\",\"type\":\"uint64\"},{\"internalType\":\"uint256\",\"name\":\"escrowAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"duration\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"entryID\",\"type\":\"uint256\"}],\"name\":\"getVestingEntryClaimable\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"internalType\":\"uint256[]\",\"name\":\"entryIDs\",\"type\":\"uint256[]\"}],\"name\":\"getVestingQuantity\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"total\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"totalFee\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"index\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"pageSize\",\"type\":\"uint256\"}],\"name\":\"getVestingSchedules\",\"outputs\":[{\"components\":[{\"internalType\":\"uint64\",\"name\":\"endTime\",\"type\":\"uint64\"},{\"internalType\":\"uint256\",\"name\":\"escrowAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"entryID\",\"type\":\"uint256\"}],\"internalType\":\"struct VestingEntries.VestingEntryWithID[]\",\"name\":\"\",\"type\":\"tuple[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"kwenta\",\"outputs\":[{\"internalType\":\"contract IKwenta\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"max_duration\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"nextEntryId\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_owner\",\"type\":\"address\"}],\"name\":\"nominateNewOwner\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"nominatedOwner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"numVestingEntries\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_stakingRewards\",\"type\":\"address\"}],\"name\":\"setStakingRewards\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"}],\"name\":\"stakeEscrow\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"stakingRewards\",\"outputs\":[{\"internalType\":\"contract IStakingRewards\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"totalEscrowedAccountBalance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"totalEscrowedBalance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"totalVestedAccountBalance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_amount\",\"type\":\"uint256\"}],\"name\":\"unstakeEscrow\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256[]\",\"name\":\"entryIDs\",\"type\":\"uint256[]\"}],\"name\":\"vest\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"vestingSchedules\",\"outputs\":[{\"internalType\":\"uint64\",\"name\":\"endTime\",\"type\":\"uint64\"},{\"internalType\":\"uint256\",\"name\":\"escrowAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"duration\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"appendVestingEntry(address,uint256,uint256)\":{\"details\":\"A call to this should accompany a previous successful call to kwenta.transfer(rewardEscrow, amount), to ensure that when the funds are withdrawn, there is enough balance.\",\"params\":{\"account\":\"The account to append a new vesting entry to.\",\"duration\":\"The duration that KWENTA will be emitted.\",\"quantity\":\"The quantity of KWENTA that will be escrowed.\"}},\"createEscrowEntry(address,uint256,uint256)\":{\"details\":\"This call expects that the depositor (msg.sender) has already approved the Reward escrow contract to spend the the amount being escrowed.\"},\"getVestingEntry(address,uint256)\":{\"returns\":{\"endTime\":\"the vesting entry object \",\"escrowAmount\":\"rate per second emission.\"}},\"stakeEscrow(uint256)\":{\"details\":\"No tokens are transfered during this process, but the StakingRewards escrowed balance is updated.\",\"params\":{\"_amount\":\"The amount of escrowed KWENTA to be staked.\"}},\"unstakeEscrow(uint256)\":{\"details\":\"No tokens are transfered during this process, but the StakingRewards escrowed balance is updated.\",\"params\":{\"_amount\":\"The amount of escrowed KWENTA to be unstaked.\"}}},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"appendVestingEntry(address,uint256,uint256)\":{\"notice\":\"Add a new vesting entry at a given time and quantity to an account's schedule.\"},\"balanceOf(address)\":{\"notice\":\"A simple alias to totalEscrowedAccountBalance: provides ERC20 balance integration.\"},\"createEscrowEntry(address,uint256,uint256)\":{\"notice\":\"Create an escrow entry to lock KWENTA for a given duration in seconds\"},\"getVestingEntry(address,uint256)\":{\"notice\":\"Get a particular schedule entry for an account.\"},\"numVestingEntries(address)\":{\"notice\":\"The number of vesting dates in an account's schedule.\"},\"stakeEscrow(uint256)\":{\"notice\":\"Stakes escrowed KWENTA.\"},\"unstakeEscrow(uint256)\":{\"notice\":\"Unstakes escrowed KWENTA.\"},\"vest(uint256[])\":{\"notice\":\"Vest escrowed amounts that are claimable Allows users to vest their vesting entries based on msg.sender\"}},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/RewardEscrow.sol\":\"RewardEscrow\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"@openzeppelin/contracts/utils/math/SafeMath.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity ^0.8.0;\\n\\n// CAUTION\\n// This version of SafeMath should only be used with Solidity 0.8 or later,\\n// because it relies on the compiler's built in overflow checks.\\n\\n/**\\n * @dev Wrappers over Solidity's arithmetic operations.\\n *\\n * NOTE: `SafeMath` is no longer needed starting with Solidity 0.8. The compiler\\n * now has built in overflow checking.\\n */\\nlibrary SafeMath {\\n    /**\\n     * @dev Returns the addition of two unsigned integers, with an overflow flag.\\n     *\\n     * _Available since v3.4._\\n     */\\n    function tryAdd(uint256 a, uint256 b) internal pure returns (bool, uint256) {\\n        unchecked {\\n            uint256 c = a + b;\\n            if (c < a) return (false, 0);\\n            return (true, c);\\n        }\\n    }\\n\\n    /**\\n     * @dev Returns the substraction of two unsigned integers, with an overflow flag.\\n     *\\n     * _Available since v3.4._\\n     */\\n    function trySub(uint256 a, uint256 b) internal pure returns (bool, uint256) {\\n        unchecked {\\n            if (b > a) return (false, 0);\\n            return (true, a - b);\\n        }\\n    }\\n\\n    /**\\n     * @dev Returns the multiplication of two unsigned integers, with an overflow flag.\\n     *\\n     * _Available since v3.4._\\n     */\\n    function tryMul(uint256 a, uint256 b) internal pure returns (bool, uint256) {\\n        unchecked {\\n            // Gas optimization: this is cheaper than requiring 'a' not being zero, but the\\n            // benefit is lost if 'b' is also tested.\\n            // See: https://github.com/OpenZeppelin/openzeppelin-contracts/pull/522\\n            if (a == 0) return (true, 0);\\n            uint256 c = a * b;\\n            if (c / a != b) return (false, 0);\\n            return (true, c);\\n        }\\n    }\\n\\n    /**\\n     * @dev Returns the division of two unsigned integers, with a division by zero flag.\\n     *\\n     * _Available since v3.4._\\n     */\\n    function tryDiv(uint256 a, uint256 b) internal pure returns (bool, uint256) {\\n        unchecked {\\n            if (b == 0) return (false, 0);\\n            return (true, a / b);\\n        }\\n    }\\n\\n    /**\\n     * @dev Returns the remainder of dividing two unsigned integers, with a division by zero flag.\\n     *\\n     * _Available since v3.4._\\n     */\\n    function tryMod(uint256 a, uint256 b) internal pure returns (bool, uint256) {\\n        unchecked {\\n            if (b == 0) return (false, 0);\\n            return (true, a % b);\\n        }\\n    }\\n\\n    /**\\n     * @dev Returns the addition of two unsigned integers, reverting on\\n     * overflow.\\n     *\\n     * Counterpart to Solidity's `+` operator.\\n     *\\n     * Requirements:\\n     *\\n     * - Addition cannot overflow.\\n     */\\n    function add(uint256 a, uint256 b) internal pure returns (uint256) {\\n        return a + b;\\n    }\\n\\n    /**\\n     * @dev Returns the subtraction of two unsigned integers, reverting on\\n     * overflow (when the result is negative).\\n     *\\n     * Counterpart to Solidity's `-` operator.\\n     *\\n     * Requirements:\\n     *\\n     * - Subtraction cannot overflow.\\n     */\\n    function sub(uint256 a, uint256 b) internal pure returns (uint256) {\\n        return a - b;\\n    }\\n\\n    /**\\n     * @dev Returns the multiplication of two unsigned integers, reverting on\\n     * overflow.\\n     *\\n     * Counterpart to Solidity's `*` operator.\\n     *\\n     * Requirements:\\n     *\\n     * - Multiplication cannot overflow.\\n     */\\n    function mul(uint256 a, uint256 b) internal pure returns (uint256) {\\n        return a * b;\\n    }\\n\\n    /**\\n     * @dev Returns the integer division of two unsigned integers, reverting on\\n     * division by zero. The result is rounded towards zero.\\n     *\\n     * Counterpart to Solidity's `/` operator.\\n     *\\n     * Requirements:\\n     *\\n     * - The divisor cannot be zero.\\n     */\\n    function div(uint256 a, uint256 b) internal pure returns (uint256) {\\n        return a / b;\\n    }\\n\\n    /**\\n     * @dev Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),\\n     * reverting when dividing by zero.\\n     *\\n     * Counterpart to Solidity's `%` operator. This function uses a `revert`\\n     * opcode (which leaves remaining gas untouched) while Solidity uses an\\n     * invalid opcode to revert (consuming all remaining gas).\\n     *\\n     * Requirements:\\n     *\\n     * - The divisor cannot be zero.\\n     */\\n    function mod(uint256 a, uint256 b) internal pure returns (uint256) {\\n        return a % b;\\n    }\\n\\n    /**\\n     * @dev Returns the subtraction of two unsigned integers, reverting with custom message on\\n     * overflow (when the result is negative).\\n     *\\n     * CAUTION: This function is deprecated because it requires allocating memory for the error\\n     * message unnecessarily. For custom revert reasons use {trySub}.\\n     *\\n     * Counterpart to Solidity's `-` operator.\\n     *\\n     * Requirements:\\n     *\\n     * - Subtraction cannot overflow.\\n     */\\n    function sub(\\n        uint256 a,\\n        uint256 b,\\n        string memory errorMessage\\n    ) internal pure returns (uint256) {\\n        unchecked {\\n            require(b <= a, errorMessage);\\n            return a - b;\\n        }\\n    }\\n\\n    /**\\n     * @dev Returns the integer division of two unsigned integers, reverting with custom message on\\n     * division by zero. The result is rounded towards zero.\\n     *\\n     * Counterpart to Solidity's `/` operator. Note: this function uses a\\n     * `revert` opcode (which leaves remaining gas untouched) while Solidity\\n     * uses an invalid opcode to revert (consuming all remaining gas).\\n     *\\n     * Requirements:\\n     *\\n     * - The divisor cannot be zero.\\n     */\\n    function div(\\n        uint256 a,\\n        uint256 b,\\n        string memory errorMessage\\n    ) internal pure returns (uint256) {\\n        unchecked {\\n            require(b > 0, errorMessage);\\n            return a / b;\\n        }\\n    }\\n\\n    /**\\n     * @dev Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),\\n     * reverting with custom message when dividing by zero.\\n     *\\n     * CAUTION: This function is deprecated because it requires allocating memory for the error\\n     * message unnecessarily. For custom revert reasons use {tryMod}.\\n     *\\n     * Counterpart to Solidity's `%` operator. This function uses a `revert`\\n     * opcode (which leaves remaining gas untouched) while Solidity uses an\\n     * invalid opcode to revert (consuming all remaining gas).\\n     *\\n     * Requirements:\\n     *\\n     * - The divisor cannot be zero.\\n     */\\n    function mod(\\n        uint256 a,\\n        uint256 b,\\n        string memory errorMessage\\n    ) internal pure returns (uint256) {\\n        unchecked {\\n            require(b > 0, errorMessage);\\n            return a % b;\\n        }\\n    }\\n}\\n\",\"keccak256\":\"0x8666f020bd8fc9dc14f07e2ebc52b5f236ab4cdde7c77679b08cb2f94730043b\",\"license\":\"MIT\"},\"contracts/RewardEscrow.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.0;\\npragma experimental ABIEncoderV2;\\n\\n// Inheritance\\nimport \\\"./utils/Owned.sol\\\";\\nimport \\\"./interfaces/IRewardEscrow.sol\\\";\\n\\n// Libraries\\nimport \\\"./libraries/SafeDecimalMath.sol\\\";\\n\\n// Internal references\\nimport \\\"./interfaces/IERC20.sol\\\";\\nimport \\\"./interfaces/IKwenta.sol\\\";\\nimport \\\"./interfaces/IStakingRewards.sol\\\";\\n\\ncontract RewardEscrow is Owned, IRewardEscrow {\\n    using SafeDecimalMath for uint;\\n\\n    IKwenta public immutable kwenta;\\n\\n    IStakingRewards public stakingRewards;\\n    bool private stakingRewardsSet = false;\\n\\n    mapping(address => mapping(uint256 => VestingEntries.VestingEntry)) public vestingSchedules;\\n\\n    mapping(address => uint256[]) public accountVestingEntryIDs;\\n\\n    /*Counter for new vesting entry ids. */\\n    uint256 public nextEntryId;\\n\\n    /* An account's total escrowed KWENTA balance to save recomputing this for fee extraction purposes. */\\n    mapping(address => uint256) override public totalEscrowedAccountBalance;\\n\\n    /* An account's total vested reward KWENTA. */\\n    mapping(address => uint256) override public totalVestedAccountBalance;\\n\\n    /* The total remaining escrowed balance, for verifying the actual KWENTA balance of this contract against. */\\n    uint256 public totalEscrowedBalance;\\n\\n    /* Max escrow duration */\\n    uint public constant max_duration = 2 * 52 weeks; // Default max 2 years duration\\n\\n    /* ========== CONSTRUCTOR ========== */\\n\\n    constructor(address _owner, address _kwenta) Owned(_owner) {\\n        nextEntryId = 1;\\n\\n        // set the Kwenta contract address as we need to transfer KWENTA when the user vests\\n        kwenta = IKwenta(_kwenta);\\n    }\\n\\n    /* ========== SETTERS ========== */\\n\\n    /*\\n    * @notice Function used to define the StakingRewards to use\\n    */\\n    function setStakingRewards(address _stakingRewards) public onlyOwner {\\n        require(!stakingRewardsSet, \\\"Staking Rewards already set\\\");\\n        stakingRewardsSet = true;\\n        \\n        stakingRewards = IStakingRewards(_stakingRewards);\\n        emit StakingRewardsSet(address(_stakingRewards));\\n    }\\n\\n    /* ========== VIEW FUNCTIONS ========== */\\n\\n    /**\\n     * @notice A simple alias to totalEscrowedAccountBalance: provides ERC20 balance integration.\\n     */\\n    function balanceOf(address account) override public view returns (uint) {\\n        return totalEscrowedAccountBalance[account];\\n    }\\n\\n    /**\\n     * @notice The number of vesting dates in an account's schedule.\\n     */\\n    function numVestingEntries(address account) override external view returns (uint) {\\n        return accountVestingEntryIDs[account].length;\\n    }\\n\\n    /**\\n     * @notice Get a particular schedule entry for an account.\\n     * @return endTime the vesting entry object \\n     * @return escrowAmount rate per second emission.\\n     */\\n    function getVestingEntry(address account, uint256 entryID) override external view returns (uint64 endTime, uint256 escrowAmount, uint256 duration) {\\n        endTime = vestingSchedules[account][entryID].endTime;\\n        escrowAmount = vestingSchedules[account][entryID].escrowAmount;\\n        duration = vestingSchedules[account][entryID].duration;\\n    }\\n\\n    function getVestingSchedules(\\n        address account,\\n        uint256 index,\\n        uint256 pageSize\\n    ) override external view returns (VestingEntries.VestingEntryWithID[] memory) {\\n        uint256 endIndex = index + pageSize;\\n\\n        // If index starts after the endIndex return no results\\n        if (endIndex <= index) {\\n            return new VestingEntries.VestingEntryWithID[](0);\\n        }\\n\\n        // If the page extends past the end of the accountVestingEntryIDs, truncate it.\\n        if (endIndex > accountVestingEntryIDs[account].length) {\\n            endIndex = accountVestingEntryIDs[account].length;\\n        }\\n\\n        uint256 n = endIndex - index;\\n        VestingEntries.VestingEntryWithID[] memory vestingEntries = new VestingEntries.VestingEntryWithID[](n);\\n        for (uint256 i; i < n; i++) {\\n            uint256 entryID = accountVestingEntryIDs[account][i + index];\\n\\n            VestingEntries.VestingEntry memory entry = vestingSchedules[account][entryID];\\n\\n            vestingEntries[i] = VestingEntries.VestingEntryWithID({\\n                endTime: uint64(entry.endTime),\\n                escrowAmount: entry.escrowAmount,\\n                entryID: entryID\\n            });\\n        }\\n        return vestingEntries;\\n    }\\n\\n    function getAccountVestingEntryIDs(\\n        address account,\\n        uint256 index,\\n        uint256 pageSize\\n    ) override external view returns (uint256[] memory) {\\n        uint256 endIndex = index + pageSize;\\n\\n        // If the page extends past the end of the accountVestingEntryIDs, truncate it.\\n        if (endIndex > accountVestingEntryIDs[account].length) {\\n            endIndex = accountVestingEntryIDs[account].length;\\n        }\\n        if (endIndex <= index) {\\n            return new uint256[](0);\\n        }\\n\\n        uint256 n = endIndex - index;\\n        uint256[] memory page = new uint256[](n);\\n        for (uint256 i; i < n; i++) {\\n            page[i] = accountVestingEntryIDs[account][i + index];\\n        }\\n        return page;\\n    }\\n\\n    function getVestingQuantity(address account, uint256[] calldata entryIDs) override external view returns (uint total, uint totalFee) {\\n        for (uint i = 0; i < entryIDs.length; i++) {\\n            VestingEntries.VestingEntry memory entry = vestingSchedules[account][entryIDs[i]];\\n\\n            /* Skip entry if escrowAmount == 0 */\\n            if (entry.escrowAmount != 0) {\\n                (uint256 quantity, uint256 fee) = _claimableAmount(entry);\\n\\n                /* add quantity to total */\\n                total += quantity;\\n                totalFee += fee;\\n            }\\n        }\\n    }\\n\\n    function getVestingEntryClaimable(address account, uint256 entryID) override external view returns (uint, uint) {\\n        VestingEntries.VestingEntry memory entry = vestingSchedules[account][entryID];\\n        return _claimableAmount(entry);\\n    }\\n\\n    function _claimableAmount(VestingEntries.VestingEntry memory _entry) internal view returns (uint256, uint256) {\\n        uint256 escrowAmount = _entry.escrowAmount;\\n        uint256 quantity;\\n        uint256 fee;\\n        if (escrowAmount != 0) {\\n            /* Full escrow amounts claimable if block.timestamp equal to or after entry endTime */\\n            if (block.timestamp >= _entry.endTime) {\\n                quantity = escrowAmount;\\n            } else {\\n                fee = _earlyVestFee(_entry);\\n                quantity = escrowAmount - fee;\\n            }\\n        }\\n        return (quantity, fee);\\n    }\\n\\n    function _earlyVestFee(VestingEntries.VestingEntry memory _entry) internal view returns (uint256) {\\n        uint timeUntilVest = _entry.endTime - block.timestamp;\\n        // Fee starts at 80% and falls linearly\\n        uint initialFee = _entry.escrowAmount * 8 / 10;\\n        return initialFee * timeUntilVest / _entry.duration;\\n    }\\n\\n    function _isStaked(address _account) internal view returns (bool) {\\n        return stakingRewards.escrowedBalanceOf(_account) > 0;\\n    }\\n\\n    /* ========== MUTATIVE FUNCTIONS ========== */\\n\\n    /**\\n     * Vest escrowed amounts that are claimable\\n     * Allows users to vest their vesting entries based on msg.sender\\n     */\\n\\n    function vest(uint256[] calldata entryIDs) override external {\\n        uint256 total;\\n        uint256 totalFee;\\n        for (uint i = 0; i < entryIDs.length; i++) {\\n            VestingEntries.VestingEntry storage entry = vestingSchedules[msg.sender][entryIDs[i]];\\n\\n            /* Skip entry if escrowAmount == 0 already vested */\\n            if (entry.escrowAmount != 0) {\\n                (uint256 quantity, uint256 fee) = _claimableAmount(entry);\\n\\n                /* update entry to remove escrowAmount */\\n                entry.escrowAmount = 0;\\n\\n                /* add quantity to total */\\n                total += quantity;\\n                totalFee += fee;\\n            }\\n        }\\n\\n        /* Transfer vested tokens. Will revert if total > totalEscrowedAccountBalance */\\n        if (total != 0) {\\n            // Withdraw staked escrowed kwenta if needed for reward\\n            if (_isStaked(msg.sender)) {\\n                uint totalWithFee = total + totalFee;\\n                uint unstakedEscrow = totalEscrowedAccountBalance[msg.sender] - stakingRewards.escrowedBalanceOf(msg.sender);\\n                if (totalWithFee > unstakedEscrow) {\\n                    uint amountToUnstake = totalWithFee - unstakedEscrow;\\n                    unstakeEscrow(amountToUnstake);\\n                }\\n            }\\n\\n            // Burn kwenta if fee\\n            if (totalFee != 0) {\\n                _reduceAccountEscrowBalances(msg.sender, totalFee);\\n                kwenta.burn(totalFee);\\n            }\\n\\n            // Transfer kwenta\\n            _transferVestedTokens(msg.sender, total);\\n        }\\n        \\n    }\\n\\n    /**\\n     * @notice Create an escrow entry to lock KWENTA for a given duration in seconds\\n     * @dev This call expects that the depositor (msg.sender) has already approved the Reward escrow contract\\n     to spend the the amount being escrowed.\\n     */\\n    function createEscrowEntry(\\n        address beneficiary,\\n        uint256 deposit,\\n        uint256 duration\\n    ) override external {\\n        require(beneficiary != address(0), \\\"Cannot create escrow with address(0)\\\");\\n\\n        /* Transfer KWENTA from msg.sender */\\n        require(IERC20(kwenta).transferFrom(msg.sender, address(this), deposit), \\\"Token transfer failed\\\");\\n\\n        /* Append vesting entry for the beneficiary address */\\n        _appendVestingEntry(beneficiary, deposit, duration);\\n    }\\n\\n    /**\\n     * @notice Add a new vesting entry at a given time and quantity to an account's schedule.\\n     * @dev A call to this should accompany a previous successful call to kwenta.transfer(rewardEscrow, amount),\\n     * to ensure that when the funds are withdrawn, there is enough balance.\\n     * @param account The account to append a new vesting entry to.\\n     * @param quantity The quantity of KWENTA that will be escrowed.\\n     * @param duration The duration that KWENTA will be emitted.\\n     */\\n    function appendVestingEntry(\\n        address account,\\n        uint256 quantity,\\n        uint256 duration\\n    ) override external onlyStakingRewards {\\n        _appendVestingEntry(account, quantity, duration);\\n    }\\n\\n    /**\\n     * @notice Stakes escrowed KWENTA.\\n     * @dev No tokens are transfered during this process, but the StakingRewards escrowed balance is updated.\\n     * @param _amount The amount of escrowed KWENTA to be staked.\\n     */\\n    function stakeEscrow(uint256 _amount) override external {\\n        require(_amount + stakingRewards.escrowedBalanceOf(msg.sender) <= totalEscrowedAccountBalance[msg.sender], \\\"Insufficient unstaked escrow\\\");\\n        stakingRewards.stakeEscrow(msg.sender, _amount);\\n    }\\n\\n    /**\\n     * @notice Unstakes escrowed KWENTA.\\n     * @dev No tokens are transfered during this process, but the StakingRewards escrowed balance is updated.\\n     * @param _amount The amount of escrowed KWENTA to be unstaked.\\n     */\\n    function unstakeEscrow(uint256 _amount) override public {\\n        stakingRewards.unstakeEscrow(msg.sender, _amount);\\n    }\\n\\n    /* Transfer vested tokens and update totalEscrowedAccountBalance, totalVestedAccountBalance */\\n    function _transferVestedTokens(address _account, uint256 _amount) internal {\\n        _reduceAccountEscrowBalances(_account, _amount);\\n        totalVestedAccountBalance[_account] += _amount;\\n        IERC20(address(kwenta)).transfer(_account, _amount);\\n        emit Vested(_account, block.timestamp, _amount);\\n    }\\n\\n    function _reduceAccountEscrowBalances(address _account, uint256 _amount) internal {\\n        // Reverts if amount being vested is greater than the account's existing totalEscrowedAccountBalance\\n        totalEscrowedBalance -= _amount;\\n        totalEscrowedAccountBalance[_account] -= _amount;\\n    }\\n\\n    /* ========== INTERNALS ========== */\\n\\n    function _appendVestingEntry(\\n        address account,\\n        uint256 quantity,\\n        uint256 duration\\n    ) internal {\\n        /* No empty or already-passed vesting entries allowed. */\\n        require(quantity != 0, \\\"Quantity cannot be zero\\\");\\n        require(duration > 0 && duration <= max_duration, \\\"Cannot escrow with 0 duration OR above max_duration\\\");\\n\\n        /* There must be enough balance in the contract to provide for the vesting entry. */\\n        totalEscrowedBalance += quantity;\\n\\n        require(\\n            totalEscrowedBalance <= IERC20(address(kwenta)).balanceOf(address(this)),\\n            \\\"Must be enough balance in the contract to provide for the vesting entry\\\"\\n        );\\n\\n        /* Escrow the tokens for duration. */\\n        uint endTime = block.timestamp + duration;\\n\\n        /* Add quantity to account's escrowed balance */\\n        totalEscrowedAccountBalance[account] += quantity;\\n\\n        uint entryID = nextEntryId;\\n        vestingSchedules[account][entryID] = VestingEntries.VestingEntry({endTime: uint64(endTime), escrowAmount: quantity, duration: duration});\\n\\n        accountVestingEntryIDs[account].push(entryID);\\n\\n        /* Increment the next entry id. */\\n        nextEntryId++;\\n\\n        emit VestingEntryCreated(account, block.timestamp, quantity, duration, entryID);\\n    }\\n\\n    /* ========== MODIFIERS ========== */\\n    modifier onlyStakingRewards() {\\n        require(msg.sender == address(stakingRewards), \\\"Only the StakingRewards can perform this action\\\");\\n        _;\\n    }\\n\\n    /* ========== EVENTS ========== */\\n    event Vested(address indexed beneficiary, uint time, uint value);\\n    event VestingEntryCreated(address indexed beneficiary, uint time, uint value, uint duration, uint entryID);\\n    event StakingRewardsSet(address rewardEscrow);\\n}\\n\",\"keccak256\":\"0xf767171f1280829977dbfc600caa1ae8f58a76c00d23b91d74985903f84b21c8\",\"license\":\"MIT\"},\"contracts/interfaces/IERC20.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity >=0.5.0 <0.9.0;\\n\\n/**\\n * @dev Interface of the ERC20 standard as defined in the EIP.\\n */\\ninterface IERC20 {\\n    /**\\n     * @dev Returns the amount of tokens in existence.\\n     */\\n    function totalSupply() external view returns (uint256);\\n\\n    /**\\n     * @dev Returns the amount of tokens owned by `account`.\\n     */\\n    function balanceOf(address account) external view returns (uint256);\\n\\n    /**\\n     * @dev Moves `amount` tokens from the caller's account to `recipient`.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * Emits a {Transfer} event.\\n     */\\n    function transfer(address recipient, uint256 amount) external returns (bool);\\n\\n    /**\\n     * @dev Returns the remaining number of tokens that `spender` will be\\n     * allowed to spend on behalf of `owner` through {transferFrom}. This is\\n     * zero by default.\\n     *\\n     * This value changes when {approve} or {transferFrom} are called.\\n     */\\n    function allowance(address owner, address spender) external view returns (uint256);\\n\\n    /**\\n     * @dev Sets `amount` as the allowance of `spender` over the caller's tokens.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * IMPORTANT: Beware that changing an allowance with this method brings the risk\\n     * that someone may use both the old and the new allowance by unfortunate\\n     * transaction ordering. One possible solution to mitigate this race\\n     * condition is to first reduce the spender's allowance to 0 and set the\\n     * desired value afterwards:\\n     * https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729\\n     *\\n     * Emits an {Approval} event.\\n     */\\n    function approve(address spender, uint256 amount) external returns (bool);\\n\\n    /**\\n     * @dev Moves `amount` tokens from `sender` to `recipient` using the\\n     * allowance mechanism. `amount` is then deducted from the caller's\\n     * allowance.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * Emits a {Transfer} event.\\n     */\\n    function transferFrom(\\n        address sender,\\n        address recipient,\\n        uint256 amount\\n    ) external returns (bool);\\n\\n    /**\\n     * @dev Emitted when `value` tokens are moved from one account (`from`) to\\n     * another (`to`).\\n     *\\n     * Note that `value` may be zero.\\n     */\\n    event Transfer(address indexed from, address indexed to, uint256 value);\\n\\n    /**\\n     * @dev Emitted when the allowance of a `spender` for an `owner` is set by\\n     * a call to {approve}. `value` is the new allowance.\\n     */\\n    event Approval(address indexed owner, address indexed spender, uint256 value);\\n}\",\"keccak256\":\"0x4f9e4c0035dd4fe6cc864ed0754f6de06bcd4333c0ce762803856054e8ca4ed8\",\"license\":\"MIT\"},\"contracts/interfaces/IKwenta.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity ^0.8.0;\\n\\nimport \\\"./IERC20.sol\\\";\\n\\ninterface IKwenta is IERC20 {\\n\\n    function mint(address account, uint amount) external;\\n\\n    function burn(uint amount) external;\\n\\n    function setSupplySchedule(address _supplySchedule) external;\\n\\n}\",\"keccak256\":\"0x53e96730a3089130ac55caef8b3e650bccd165fc1f0e261e9ef5bae93157686b\",\"license\":\"MIT\"},\"contracts/interfaces/IRewardEscrow.sol\":{\"content\":\"pragma solidity >=0.4.24;\\npragma experimental ABIEncoderV2;\\n\\nlibrary VestingEntries {\\n    struct VestingEntry {\\n        uint64 endTime;\\n        uint256 escrowAmount;\\n        uint256 duration;\\n    }\\n    struct VestingEntryWithID {\\n        uint64 endTime;\\n        uint256 escrowAmount;\\n        uint256 entryID;\\n    }\\n}\\n\\ninterface IRewardEscrow {\\n    // Views\\n    function balanceOf(address account) external view returns (uint);\\n\\n    function numVestingEntries(address account) external view returns (uint);\\n\\n    function totalEscrowedAccountBalance(address account) external view returns (uint);\\n\\n    function totalVestedAccountBalance(address account) external view returns (uint);\\n\\n    function getVestingQuantity(address account, uint256[] calldata entryIDs) external view returns (uint, uint);\\n\\n    function getVestingSchedules(\\n        address account,\\n        uint256 index,\\n        uint256 pageSize\\n    ) external view returns (VestingEntries.VestingEntryWithID[] memory);\\n\\n    function getAccountVestingEntryIDs(\\n        address account,\\n        uint256 index,\\n        uint256 pageSize\\n    ) external view returns (uint256[] memory);\\n\\n    function getVestingEntryClaimable(address account, uint256 entryID) external view returns (uint, uint);\\n\\n    function getVestingEntry(address account, uint256 entryID) external view returns (uint64, uint256, uint256);\\n\\n    // Mutative functions\\n    function vest(uint256[] calldata entryIDs) external;\\n\\n    function createEscrowEntry(\\n        address beneficiary,\\n        uint256 deposit,\\n        uint256 duration\\n    ) external;\\n\\n    function appendVestingEntry(\\n        address account,\\n        uint256 quantity,\\n        uint256 duration\\n    ) external;\\n\\n    function stakeEscrow(uint256 _amount) external;\\n\\n    function unstakeEscrow(uint256 _amount) external;\\n}\",\"keccak256\":\"0x6ff1870f076b4d177b0e846fdbb96fad761550d48fa92baf206866edf2a98e49\"},\"contracts/interfaces/IStakingRewards.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.0;\\n\\nimport \\\"./IERC20.sol\\\";\\n\\ninterface IStakingRewards {\\n    // Views\\n\\n    function escrowedBalanceOf(address account) external view returns (uint256);\\n\\n    function totalRewardScore() external view returns (uint256);\\n    \\n    function stakedBalanceOf(address account) external view returns (uint256);\\n    \\n    function totalBalanceOf(address account) external view returns (uint256);\\n\\n    function rewardScoreOf(address account) external view returns (uint256);\\n\\n    function rewardPerRewardScoreOfEpoch(uint256 _epoch) external view returns (uint256);\\n\\n    function feesPaidBy(address account) external view returns (uint256);\\n\\n    function earned(address account) external view returns (uint256);\\n\\n    function lastTimeRewardApplicable() external view returns (uint256);\\n\\n    function rewardPerToken() external view returns (uint256);\\n\\n    // Mutative\\n\\n    function setPercentageRewards(uint256 _percentageStaking, uint256 _percentageTrading) external;\\n\\n    function updateTraderScore(address _trader, uint256 _newFeesPaid) external;\\n\\n    function exit() external;\\n\\n    function getReward() external;\\n\\n    function stake(uint256 amount) external;\\n\\n    function withdraw(uint256 amount) external;\\n\\n    function setRewards(uint256 reward) external;\\n\\n    function stakeEscrow(address _account, uint256 _amount) external;\\n\\n    function unstakeEscrow(address _account, uint256 _amount) external;\\n\\n}\",\"keccak256\":\"0xbf8bf27c74da99d419a8497c1a13be2970996e03cb90b8b5c714051d7b0cdfc7\",\"license\":\"MIT\"},\"contracts/libraries/SafeDecimalMath.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.0;\\n\\n// Libraries\\nimport \\\"@openzeppelin/contracts/utils/math/SafeMath.sol\\\";\\n\\n// https://docs.synthetix.io/contracts/source/libraries/safedecimalmath\\nlibrary SafeDecimalMath {\\n    using SafeMath for uint;\\n\\n    /* Number of decimal places in the representations. */\\n    uint8 public constant decimals = 18;\\n    uint8 public constant highPrecisionDecimals = 27;\\n\\n    /* The number representing 1.0. */\\n    uint public constant UNIT = 10**uint(decimals);\\n\\n    /* The number representing 1.0 for higher fidelity numbers. */\\n    uint public constant PRECISE_UNIT = 10**uint(highPrecisionDecimals);\\n    uint private constant UNIT_TO_HIGH_PRECISION_CONVERSION_FACTOR = 10**uint(highPrecisionDecimals - decimals);\\n\\n    /**\\n     * @return Provides an interface to UNIT.\\n     */\\n    function unit() external pure returns (uint) {\\n        return UNIT;\\n    }\\n\\n    /**\\n     * @return Provides an interface to PRECISE_UNIT.\\n     */\\n    function preciseUnit() external pure returns (uint) {\\n        return PRECISE_UNIT;\\n    }\\n\\n    /**\\n     * @return The result of multiplying x and y, interpreting the operands as fixed-point\\n     * decimals.\\n     *\\n     * @dev A unit factor is divided out after the product of x and y is evaluated,\\n     * so that product must be less than 2**256. As this is an integer division,\\n     * the internal division always rounds down. This helps save on gas. Rounding\\n     * is more expensive on gas.\\n     */\\n    function multiplyDecimal(uint x, uint y) internal pure returns (uint) {\\n        /* Divide by UNIT to remove the extra factor introduced by the product. */\\n        return x.mul(y) / UNIT;\\n    }\\n\\n    /**\\n     * @return The result of safely multiplying x and y, interpreting the operands\\n     * as fixed-point decimals of the specified precision unit.\\n     *\\n     * @dev The operands should be in the form of a the specified unit factor which will be\\n     * divided out after the product of x and y is evaluated, so that product must be\\n     * less than 2**256.\\n     *\\n     * Unlike multiplyDecimal, this function rounds the result to the nearest increment.\\n     * Rounding is useful when you need to retain fidelity for small decimal numbers\\n     * (eg. small fractions or percentages).\\n     */\\n    function _multiplyDecimalRound(\\n        uint x,\\n        uint y,\\n        uint precisionUnit\\n    ) private pure returns (uint) {\\n        /* Divide by UNIT to remove the extra factor introduced by the product. */\\n        uint quotientTimesTen = x.mul(y) / (precisionUnit / 10);\\n\\n        if (quotientTimesTen % 10 >= 5) {\\n            quotientTimesTen += 10;\\n        }\\n\\n        return quotientTimesTen / 10;\\n    }\\n\\n    /**\\n     * @return The result of safely multiplying x and y, interpreting the operands\\n     * as fixed-point decimals of a precise unit.\\n     *\\n     * @dev The operands should be in the precise unit factor which will be\\n     * divided out after the product of x and y is evaluated, so that product must be\\n     * less than 2**256.\\n     *\\n     * Unlike multiplyDecimal, this function rounds the result to the nearest increment.\\n     * Rounding is useful when you need to retain fidelity for small decimal numbers\\n     * (eg. small fractions or percentages).\\n     */\\n    function multiplyDecimalRoundPrecise(uint x, uint y) internal pure returns (uint) {\\n        return _multiplyDecimalRound(x, y, PRECISE_UNIT);\\n    }\\n\\n    /**\\n     * @return The result of safely multiplying x and y, interpreting the operands\\n     * as fixed-point decimals of a standard unit.\\n     *\\n     * @dev The operands should be in the standard unit factor which will be\\n     * divided out after the product of x and y is evaluated, so that product must be\\n     * less than 2**256.\\n     *\\n     * Unlike multiplyDecimal, this function rounds the result to the nearest increment.\\n     * Rounding is useful when you need to retain fidelity for small decimal numbers\\n     * (eg. small fractions or percentages).\\n     */\\n    function multiplyDecimalRound(uint x, uint y) internal pure returns (uint) {\\n        return _multiplyDecimalRound(x, y, UNIT);\\n    }\\n\\n    /**\\n     * @return The result of safely dividing x and y. The return value is a high\\n     * precision decimal.\\n     *\\n     * @dev y is divided after the product of x and the standard precision unit\\n     * is evaluated, so the product of x and UNIT must be less than 2**256. As\\n     * this is an integer division, the result is always rounded down.\\n     * This helps save on gas. Rounding is more expensive on gas.\\n     */\\n    function divideDecimal(uint x, uint y) internal pure returns (uint) {\\n        /* Reintroduce the UNIT factor that will be divided out by y. */\\n        return x.mul(UNIT).div(y);\\n    }\\n\\n    /**\\n     * @return The result of safely dividing x and y. The return value is as a rounded\\n     * decimal in the precision unit specified in the parameter.\\n     *\\n     * @dev y is divided after the product of x and the specified precision unit\\n     * is evaluated, so the product of x and the specified precision unit must\\n     * be less than 2**256. The result is rounded to the nearest increment.\\n     */\\n    function _divideDecimalRound(\\n        uint x,\\n        uint y,\\n        uint precisionUnit\\n    ) private pure returns (uint) {\\n        uint resultTimesTen = x.mul(precisionUnit * 10).div(y);\\n\\n        if (resultTimesTen % 10 >= 5) {\\n            resultTimesTen += 10;\\n        }\\n\\n        return resultTimesTen / 10;\\n    }\\n\\n    /**\\n     * @return The result of safely dividing x and y. The return value is as a rounded\\n     * standard precision decimal.\\n     *\\n     * @dev y is divided after the product of x and the standard precision unit\\n     * is evaluated, so the product of x and the standard precision unit must\\n     * be less than 2**256. The result is rounded to the nearest increment.\\n     */\\n    function divideDecimalRound(uint x, uint y) internal pure returns (uint) {\\n        return _divideDecimalRound(x, y, UNIT);\\n    }\\n\\n    /**\\n     * @return The result of safely dividing x and y. The return value is as a rounded\\n     * high precision decimal.\\n     *\\n     * @dev y is divided after the product of x and the high precision unit\\n     * is evaluated, so the product of x and the high precision unit must\\n     * be less than 2**256. The result is rounded to the nearest increment.\\n     */\\n    function divideDecimalRoundPrecise(uint x, uint y) internal pure returns (uint) {\\n        return _divideDecimalRound(x, y, PRECISE_UNIT);\\n    }\\n\\n    /**\\n     * @dev Convert a standard decimal representation to a high precision one.\\n     */\\n    function decimalToPreciseDecimal(uint i) internal pure returns (uint) {\\n        return i.mul(UNIT_TO_HIGH_PRECISION_CONVERSION_FACTOR);\\n    }\\n\\n    /**\\n     * @dev Convert a high precision decimal to a standard decimal representation.\\n     */\\n    function preciseDecimalToDecimal(uint i) internal pure returns (uint) {\\n        uint quotientTimesTen = i / (UNIT_TO_HIGH_PRECISION_CONVERSION_FACTOR / 10);\\n\\n        if (quotientTimesTen % 10 >= 5) {\\n            quotientTimesTen += 10;\\n        }\\n\\n        return quotientTimesTen / 10;\\n    }\\n\\n    // Computes `a - b`, setting the value to 0 if b > a.\\n    function floorsub(uint a, uint b) internal pure returns (uint) {\\n        return b >= a ? 0 : a - b;\\n    }\\n}\\n\",\"keccak256\":\"0x0bc64bd3f85d7f45c2a096fc24c3d137cbb3a985d5747725a0874e694cb8d892\",\"license\":\"MIT\"},\"contracts/utils/Owned.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.0;\\n\\n// https://docs.synthetix.io/contracts/source/contracts/owned\\ncontract Owned {\\n    address public owner;\\n    address public nominatedOwner;\\n\\n    constructor(address _owner) {\\n        require(_owner != address(0), \\\"Owner address cannot be 0\\\");\\n        owner = _owner;\\n        emit OwnerChanged(address(0), _owner);\\n    }\\n\\n    function nominateNewOwner(address _owner) external onlyOwner {\\n        nominatedOwner = _owner;\\n        emit OwnerNominated(_owner);\\n    }\\n\\n    function acceptOwnership() external {\\n        require(msg.sender == nominatedOwner, \\\"You must be nominated before you can accept ownership\\\");\\n        emit OwnerChanged(owner, nominatedOwner);\\n        owner = nominatedOwner;\\n        nominatedOwner = address(0);\\n    }\\n\\n    modifier onlyOwner {\\n        _onlyOwner();\\n        _;\\n    }\\n\\n    function _onlyOwner() private view {\\n        require(msg.sender == owner, \\\"Only the contract owner may perform this action\\\");\\n    }\\n\\n    event OwnerNominated(address newOwner);\\n    event OwnerChanged(address oldOwner, address newOwner);\\n}\\n\",\"keccak256\":\"0x9f51a9dd99cc51a332f0a635628dc89262c126c358e4e89041aadbe9a519b06a\",\"license\":\"MIT\"}},\"version\":1}",
+  "bytecode": "0x60a06040526000600260146101000a81548160ff0219169083151502179055503480156200002c57600080fd5b50604051620033e9380380620033e98339818101604052810190620000529190620001a1565b81600073ffffffffffffffffffffffffffffffffffffffff168173ffffffffffffffffffffffffffffffffffffffff161415620000c6576040517f08c379a0000000000000000000000000000000000000000000000000000000008152600401620000bd906200024d565b60405180910390fd5b806000806101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff1602179055507fb532073b38c83145e3e5135377a08bf9aab55bc0fd7c1179cd4fb995d2a5159c6000826040516200013a92919062000220565b60405180910390a15060016005819055508073ffffffffffffffffffffffffffffffffffffffff1660808173ffffffffffffffffffffffffffffffffffffffff1660601b815250505050620002fc565b6000815190506200019b81620002e2565b92915050565b60008060408385031215620001bb57620001ba620002b4565b5b6000620001cb858286016200018a565b9250506020620001de858286016200018a565b9150509250929050565b620001f38162000280565b82525050565b6000620002086019836200026f565b91506200021582620002b9565b602082019050919050565b6000604082019050620002376000830185620001e8565b620002466020830184620001e8565b9392505050565b600060208201905081810360008301526200026881620001f9565b9050919050565b600082825260208201905092915050565b60006200028d8262000294565b9050919050565b600073ffffffffffffffffffffffffffffffffffffffff82169050919050565b600080fd5b7f4f776e657220616464726573732063616e6e6f74206265203000000000000000600082015250565b620002ed8162000280565b8114620002f957600080fd5b50565b60805160601c6130b26200033760003960008181610a27015281816113b60152818161144a01528181611b250152611ff901526130b26000f3fe608060405234801561001057600080fd5b506004361061018e5760003560e01c80636fb83a57116100de5780639034802b11610097578063ae58254911610071578063ae582549146104af578063e6b2cf6c146104df578063eac62489146104fd578063eddaee921461052d5761018e565b80639034802b14610459578063a0416ed314610477578063a86c3cde146104935761018e565b80636fb83a571461039757806370a08231146103b357806371e780f3146103e3578063773ab39f1461040157806379ba5097146104315780638da5cb5b1461043b5761018e565b806334c7fec91161014b5780635eb8cf25116101255780635eb8cf25146102f85780636154c3431461031657806364b87a70146103485780636dc05bd3146103665761018e565b806334c7fec91461028c57806345626bd6146102a857806353a47bb7146102da5761018e565b80631627540c146101935780631bb47b44146101af578063204b676a146101cb578063227d517a146101fb57806330104c5f1461022b578063326a3cfb1461025c575b600080fd5b6101ad60048036038101906101a89190612232565b610549565b005b6101c960048036038101906101c491906122ff565b6105cc565b005b6101e560048036038101906101e09190612232565b61066c565b6040516101f29190612979565b60405180910390f35b61021560048036038101906102109190612232565b6106b8565b6040516102229190612979565b60405180910390f35b610245600480360381019061024091906122bf565b6106d0565b604051610253929190612994565b60405180910390f35b61027660048036038101906102719190612232565b61078d565b6040516102839190612979565b60405180910390f35b6102a660048036038101906102a19190612352565b6107a5565b005b6102c260048036038101906102bd91906122bf565b610ac2565b6040516102d193929190612a02565b60405180910390f35b6102e2610b0d565b6040516102ef919061271b565b60405180910390f35b610300610b33565b60405161030d9190612979565b60405180910390f35b610330600480360381019061032b91906122bf565b610b3b565b60405161033f93929190612a02565b60405180910390f35b610350610c5d565b60405161035d919061281e565b60405180910390f35b610380600480360381019061037b919061225f565b610c83565b60405161038e929190612994565b60405180910390f35b6103b160048036038101906103ac9190612232565b610daa565b005b6103cd60048036038101906103c89190612232565b610e98565b6040516103da9190612979565b60405180910390f35b6103eb610ee1565b6040516103f89190612979565b60405180910390f35b61041b600480360381019061041691906122ff565b610ee7565b60405161042891906127bf565b60405180910390f35b6104396111df565b005b610443611390565b604051610450919061271b565b60405180910390f35b6104616113b4565b60405161046e9190612803565b60405180910390f35b610491600480360381019061048c91906122ff565b6113d8565b005b6104ad60048036038101906104a891906123cc565b611546565b005b6104c960048036038101906104c491906122bf565b6115d8565b6040516104d69190612979565b60405180910390f35b6104e7611609565b6040516104f49190612979565b60405180910390f35b610517600480360381019061051291906122ff565b61160f565b60405161052491906127e1565b60405180910390f35b610547600480360381019061054291906123cc565b61181a565b005b6105516119e3565b80600160006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff1602179055507f906a1c6bd7e3091ea86693dd029a831c19049ce77f1dce2ce0bab1cacbabce22816040516105c1919061271b565b60405180910390a150565b600260009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff163373ffffffffffffffffffffffffffffffffffffffff161461065c576040517f08c379a000000000000000000000000000000000000000000000000000000000815260040161065390612839565b60405180910390fd5b610667838383611a73565b505050565b6000600460008373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020805490509050919050565b60076020528060005260406000206000915090505481565b6000806000600360008673ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060008581526020019081526020016000206040518060600160405290816000820160009054906101000a900467ffffffffffffffff1667ffffffffffffffff1667ffffffffffffffff16815260200160018201548152602001600282015481525050905061078181611e11565b92509250509250929050565b60066020528060005260406000206000915090505481565b60008060005b848490508110156108cd576000600360003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020600087878581811061080c5761080b612d1c565b5b905060200201358152602001908152602001600020905060008160010154146108b95760008061088c836040518060600160405290816000820160009054906101000a900467ffffffffffffffff1667ffffffffffffffff1667ffffffffffffffff16815260200160018201548152602001600282015481525050611e11565b915091506000836001018190555081866108a69190612abc565b955080856108b49190612abc565b945050505b5080806108c590612c75565b9150506107ab565b5060008214610abc576108df33611e6e565b15610a1357600081836108f29190612abc565b90506000600260009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1663057a601b336040518263ffffffff1660e01b8152600401610951919061271b565b60206040518083038186803b15801561096957600080fd5b505afa15801561097d573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906109a191906123f9565b600660003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020546109eb9190612b9d565b905080821115610a105760008183610a039190612b9d565b9050610a0e81611546565b505b50505b60008114610ab157610a253382611f24565b7f000000000000000000000000000000000000000000000000000000000000000073ffffffffffffffffffffffffffffffffffffffff166342966c68826040518263ffffffff1660e01b8152600401610a7e9190612979565b600060405180830381600087803b158015610a9857600080fd5b505af1158015610aac573d6000803e3d6000fd5b505050505b610abb3383611f97565b5b50505050565b6003602052816000526040600020602052806000526040600020600091509150508060000160009054906101000a900467ffffffffffffffff16908060010154908060020154905083565b600160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1681565b6303bfc40081565b6000806000600360008673ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020600085815260200190815260200160002060000160009054906101000a900467ffffffffffffffff169250600360008673ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020016000206000858152602001908152602001600020600101549150600360008673ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060008581526020019081526020016000206002015490509250925092565b600260009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1681565b60008060005b84849050811015610da1576000600360008873ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020016000206000878785818110610cea57610ce9612d1c565b5b9050602002013581526020019081526020016000206040518060600160405290816000820160009054906101000a900467ffffffffffffffff1667ffffffffffffffff1667ffffffffffffffff1681526020016001820154815260200160028201548152505090506000816020015114610d8d57600080610d6a83611e11565b915091508186610d7a9190612abc565b95508085610d889190612abc565b945050505b508080610d9990612c75565b915050610c89565b50935093915050565b610db26119e3565b600260149054906101000a900460ff1615610e02576040517f08c379a0000000000000000000000000000000000000000000000000000000008152600401610df990612919565b60405180910390fd5b6001600260146101000a81548160ff02191690831515021790555080600260006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff1602179055507fb63c81227c62f4cb3e2b1120e3afbf3a2ed5dd8b9d99b8bef7275b084e6a98cb81604051610e8d919061271b565b60405180910390a150565b6000600660008373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020549050919050565b60085481565b606060008284610ef79190612abc565b9050838111610f5d57600067ffffffffffffffff811115610f1b57610f1a612d4b565b5b604051908082528060200260200182016040528015610f5457816020015b610f4161215d565b815260200190600190039081610f395790505b509150506111d8565b600460008673ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002080549050811115610fed57600460008673ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020016000208054905090505b60008482610ffb9190612b9d565b905060008167ffffffffffffffff81111561101957611018612d4b565b5b60405190808252806020026020018201604052801561105257816020015b61103f61215d565b8152602001906001900390816110375790505b50905060005b828110156111d0576000600460008a73ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002088836110ad9190612abc565b815481106110be576110bd612d1c565b5b906000526020600020015490506000600360008b73ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060008381526020019081526020016000206040518060600160405290816000820160009054906101000a900467ffffffffffffffff1667ffffffffffffffff1667ffffffffffffffff1681526020016001820154815260200160028201548152505090506040518060600160405280826000015167ffffffffffffffff16815260200182602001518152602001838152508484815181106111b0576111af612d1c565b5b6020026020010181905250505080806111c890612c75565b915050611058565b508093505050505b9392505050565b600160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff163373ffffffffffffffffffffffffffffffffffffffff161461126f576040517f08c379a000000000000000000000000000000000000000000000000000000000815260040161126690612859565b60405180910390fd5b7fb532073b38c83145e3e5135377a08bf9aab55bc0fd7c1179cd4fb995d2a5159c60008054906101000a900473ffffffffffffffffffffffffffffffffffffffff16600160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff166040516112e2929190612736565b60405180910390a1600160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff166000806101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff1602179055506000600160006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff160217905550565b60008054906101000a900473ffffffffffffffffffffffffffffffffffffffff1681565b7f000000000000000000000000000000000000000000000000000000000000000081565b600073ffffffffffffffffffffffffffffffffffffffff168373ffffffffffffffffffffffffffffffffffffffff161415611448576040517f08c379a000000000000000000000000000000000000000000000000000000000815260040161143f90612899565b60405180910390fd5b7f000000000000000000000000000000000000000000000000000000000000000073ffffffffffffffffffffffffffffffffffffffff166323b872dd3330856040518463ffffffff1660e01b81526004016114a59392919061275f565b602060405180830381600087803b1580156114bf57600080fd5b505af11580156114d3573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906114f7919061239f565b611536576040517f08c379a000000000000000000000000000000000000000000000000000000000815260040161152d906128f9565b60405180910390fd5b611541838383611a73565b505050565b600260009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1663c9c7da1633836040518363ffffffff1660e01b81526004016115a3929190612796565b600060405180830381600087803b1580156115bd57600080fd5b505af11580156115d1573d6000803e3d6000fd5b5050505050565b600460205281600052604060002081815481106115f457600080fd5b90600052602060002001600091509150505481565b60055481565b60606000828461161f9190612abc565b9050600460008673ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020805490508111156116b157600460008673ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020016000208054905090505b83811161170a57600067ffffffffffffffff8111156116d3576116d2612d4b565b5b6040519080825280602002602001820160405280156117015781602001602082028036833780820191505090505b50915050611813565b600084826117189190612b9d565b905060008167ffffffffffffffff81111561173657611735612d4b565b5b6040519080825280602002602001820160405280156117645781602001602082028036833780820191505090505b50905060005b8281101561180b57600460008973ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002087826117bd9190612abc565b815481106117ce576117cd612d1c565b5b90600052602060002001548282815181106117ec576117eb612d1c565b5b602002602001018181525050808061180390612c75565b91505061176a565b508093505050505b9392505050565b600660003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002054600260009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1663057a601b336040518263ffffffff1660e01b81526004016118b5919061271b565b60206040518083038186803b1580156118cd57600080fd5b505afa1580156118e1573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061190591906123f9565b826119109190612abc565b1115611951576040517f08c379a000000000000000000000000000000000000000000000000000000000815260040161194890612959565b60405180910390fd5b600260009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1663985134fb33836040518363ffffffff1660e01b81526004016119ae929190612796565b600060405180830381600087803b1580156119c857600080fd5b505af11580156119dc573d6000803e3d6000fd5b5050505050565b60008054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff163373ffffffffffffffffffffffffffffffffffffffff1614611a71576040517f08c379a0000000000000000000000000000000000000000000000000000000008152600401611a6890612939565b60405180910390fd5b565b6000821415611ab7576040517f08c379a0000000000000000000000000000000000000000000000000000000008152600401611aae906128b9565b60405180910390fd5b600081118015611acb57506303bfc4008111155b611b0a576040517f08c379a0000000000000000000000000000000000000000000000000000000008152600401611b0190612879565b60405180910390fd5b8160086000828254611b1c9190612abc565b925050819055507f000000000000000000000000000000000000000000000000000000000000000073ffffffffffffffffffffffffffffffffffffffff166370a08231306040518263ffffffff1660e01b8152600401611b7c919061271b565b60206040518083038186803b158015611b9457600080fd5b505afa158015611ba8573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190611bcc91906123f9565b6008541115611c10576040517f08c379a0000000000000000000000000000000000000000000000000000000008152600401611c07906128d9565b60405180910390fd5b60008142611c1e9190612abc565b905082600660008673ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020016000206000828254611c6f9190612abc565b925050819055506000600554905060405180606001604052808367ffffffffffffffff16815260200185815260200184815250600360008773ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020600083815260200190815260200160002060008201518160000160006101000a81548167ffffffffffffffff021916908367ffffffffffffffff1602179055506020820151816001015560408201518160020155905050600460008673ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002081908060018154018082558091505060019003906000526020600020016000909190919091505560056000815480929190611db190612c75565b91905055508473ffffffffffffffffffffffffffffffffffffffff167f2cc016694185d38abbe28d9e9baea2e9d95a321ae43475e5ea7b643756840bc042868685604051611e0294939291906129bd565b60405180910390a25050505050565b60008060008360200151905060008060008314611e6057856000015167ffffffffffffffff164210611e4557829150611e5f565b611e4e866120f9565b90508083611e5c9190612b9d565b91505b5b818194509450505050915091565b600080600260009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1663057a601b846040518263ffffffff1660e01b8152600401611ecc919061271b565b60206040518083038186803b158015611ee457600080fd5b505afa158015611ef8573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190611f1c91906123f9565b119050919050565b8060086000828254611f369190612b9d565b9250508190555080600660008473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020016000206000828254611f8c9190612b9d565b925050819055505050565b611fa18282611f24565b80600760008473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020016000206000828254611ff09190612abc565b925050819055507f000000000000000000000000000000000000000000000000000000000000000073ffffffffffffffffffffffffffffffffffffffff1663a9059cbb83836040518363ffffffff1660e01b8152600401612052929190612796565b602060405180830381600087803b15801561206c57600080fd5b505af1158015612080573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906120a4919061239f565b508173ffffffffffffffffffffffffffffffffffffffff167ffbeff59d2bfda0d79ea8a29f8c57c66d48c7a13eabbdb90908d9115ec41c9dc642836040516120ed929190612994565b60405180910390a25050565b60008042836000015167ffffffffffffffff166121169190612b9d565b90506000600a6008856020015161212d9190612b43565b6121379190612b12565b90508360400151828261214a9190612b43565b6121549190612b12565b92505050919050565b6040518060600160405280600067ffffffffffffffff16815260200160008152602001600081525090565b60008135905061219781613037565b92915050565b60008083601f8401126121b3576121b2612d7f565b5b8235905067ffffffffffffffff8111156121d0576121cf612d7a565b5b6020830191508360208202830111156121ec576121eb612d84565b5b9250929050565b6000815190506122028161304e565b92915050565b60008135905061221781613065565b92915050565b60008151905061222c81613065565b92915050565b60006020828403121561224857612247612d8e565b5b600061225684828501612188565b91505092915050565b60008060006040848603121561227857612277612d8e565b5b600061228686828701612188565b935050602084013567ffffffffffffffff8111156122a7576122a6612d89565b5b6122b38682870161219d565b92509250509250925092565b600080604083850312156122d6576122d5612d8e565b5b60006122e485828601612188565b92505060206122f585828601612208565b9150509250929050565b60008060006060848603121561231857612317612d8e565b5b600061232686828701612188565b935050602061233786828701612208565b925050604061234886828701612208565b9150509250925092565b6000806020838503121561236957612368612d8e565b5b600083013567ffffffffffffffff81111561238757612386612d89565b5b6123938582860161219d565b92509250509250929050565b6000602082840312156123b5576123b4612d8e565b5b60006123c3848285016121f3565b91505092915050565b6000602082840312156123e2576123e1612d8e565b5b60006123f084828501612208565b91505092915050565b60006020828403121561240f5761240e612d8e565b5b600061241d8482850161221d565b91505092915050565b6000612432838361269d565b60608301905092915050565b600061244a83836126df565b60208301905092915050565b61245f81612bd1565b82525050565b600061247082612a59565b61247a8185612a89565b935061248583612a39565b8060005b838110156124b657815161249d8882612426565b97506124a883612a6f565b925050600181019050612489565b5085935050505092915050565b60006124ce82612a64565b6124d88185612a9a565b93506124e383612a49565b8060005b838110156125145781516124fb888261243e565b975061250683612a7c565b9250506001810190506124e7565b5085935050505092915050565b61252a81612c2d565b82525050565b61253981612c3f565b82525050565b600061254c602f83612aab565b915061255782612d93565b604082019050919050565b600061256f603583612aab565b915061257a82612de2565b604082019050919050565b6000612592603383612aab565b915061259d82612e31565b604082019050919050565b60006125b5602483612aab565b91506125c082612e80565b604082019050919050565b60006125d8601783612aab565b91506125e382612ecf565b602082019050919050565b60006125fb604783612aab565b915061260682612ef8565b606082019050919050565b600061261e601583612aab565b915061262982612f6d565b602082019050919050565b6000612641601b83612aab565b915061264c82612f96565b602082019050919050565b6000612664602f83612aab565b915061266f82612fbf565b604082019050919050565b6000612687601c83612aab565b91506126928261300e565b602082019050919050565b6060820160008201516126b360008501826126fd565b5060208201516126c660208501826126df565b5060408201516126d960408501826126df565b50505050565b6126e881612c0f565b82525050565b6126f781612c0f565b82525050565b61270681612c19565b82525050565b61271581612c19565b82525050565b60006020820190506127306000830184612456565b92915050565b600060408201905061274b6000830185612456565b6127586020830184612456565b9392505050565b60006060820190506127746000830186612456565b6127816020830185612456565b61278e60408301846126ee565b949350505050565b60006040820190506127ab6000830185612456565b6127b860208301846126ee565b9392505050565b600060208201905081810360008301526127d98184612465565b905092915050565b600060208201905081810360008301526127fb81846124c3565b905092915050565b60006020820190506128186000830184612521565b92915050565b60006020820190506128336000830184612530565b92915050565b600060208201905081810360008301526128528161253f565b9050919050565b6000602082019050818103600083015261287281612562565b9050919050565b6000602082019050818103600083015261289281612585565b9050919050565b600060208201905081810360008301526128b2816125a8565b9050919050565b600060208201905081810360008301526128d2816125cb565b9050919050565b600060208201905081810360008301526128f2816125ee565b9050919050565b6000602082019050818103600083015261291281612611565b9050919050565b6000602082019050818103600083015261293281612634565b9050919050565b6000602082019050818103600083015261295281612657565b9050919050565b600060208201905081810360008301526129728161267a565b9050919050565b600060208201905061298e60008301846126ee565b92915050565b60006040820190506129a960008301856126ee565b6129b660208301846126ee565b9392505050565b60006080820190506129d260008301876126ee565b6129df60208301866126ee565b6129ec60408301856126ee565b6129f960608301846126ee565b95945050505050565b6000606082019050612a17600083018661270c565b612a2460208301856126ee565b612a3160408301846126ee565b949350505050565b6000819050602082019050919050565b6000819050602082019050919050565b600081519050919050565b600081519050919050565b6000602082019050919050565b6000602082019050919050565b600082825260208201905092915050565b600082825260208201905092915050565b600082825260208201905092915050565b6000612ac782612c0f565b9150612ad283612c0f565b9250827fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff03821115612b0757612b06612cbe565b5b828201905092915050565b6000612b1d82612c0f565b9150612b2883612c0f565b925082612b3857612b37612ced565b5b828204905092915050565b6000612b4e82612c0f565b9150612b5983612c0f565b9250817fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0483118215151615612b9257612b91612cbe565b5b828202905092915050565b6000612ba882612c0f565b9150612bb383612c0f565b925082821015612bc657612bc5612cbe565b5b828203905092915050565b6000612bdc82612bef565b9050919050565b60008115159050919050565b600073ffffffffffffffffffffffffffffffffffffffff82169050919050565b6000819050919050565b600067ffffffffffffffff82169050919050565b6000612c3882612c51565b9050919050565b6000612c4a82612c51565b9050919050565b6000612c5c82612c63565b9050919050565b6000612c6e82612bef565b9050919050565b6000612c8082612c0f565b91507fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff821415612cb357612cb2612cbe565b5b600182019050919050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052601160045260246000fd5b7f4e487b7100000000000000000000000000000000000000000000000000000000600052601260045260246000fd5b7f4e487b7100000000000000000000000000000000000000000000000000000000600052603260045260246000fd5b7f4e487b7100000000000000000000000000000000000000000000000000000000600052604160045260246000fd5b600080fd5b600080fd5b600080fd5b600080fd5b600080fd5b7f4f6e6c7920746865205374616b696e67526577617264732063616e207065726660008201527f6f726d207468697320616374696f6e0000000000000000000000000000000000602082015250565b7f596f75206d757374206265206e6f6d696e61746564206265666f726520796f7560008201527f2063616e20616363657074206f776e6572736869700000000000000000000000602082015250565b7f43616e6e6f7420657363726f7720776974682030206475726174696f6e204f5260008201527f2061626f7665206d61785f6475726174696f6e00000000000000000000000000602082015250565b7f43616e6e6f742063726561746520657363726f7720776974682061646472657360008201527f7328302900000000000000000000000000000000000000000000000000000000602082015250565b7f5175616e746974792063616e6e6f74206265207a65726f000000000000000000600082015250565b7f4d75737420626520656e6f7567682062616c616e636520696e2074686520636f60008201527f6e747261637420746f2070726f7669646520666f72207468652076657374696e60208201527f6720656e74727900000000000000000000000000000000000000000000000000604082015250565b7f546f6b656e207472616e73666572206661696c65640000000000000000000000600082015250565b7f5374616b696e67205265776172647320616c7265616479207365740000000000600082015250565b7f4f6e6c792074686520636f6e7472616374206f776e6572206d6179207065726660008201527f6f726d207468697320616374696f6e0000000000000000000000000000000000602082015250565b7f496e73756666696369656e7420756e7374616b656420657363726f7700000000600082015250565b61304081612bd1565b811461304b57600080fd5b50565b61305781612be3565b811461306257600080fd5b50565b61306e81612c0f565b811461307957600080fd5b5056fea2646970667358221220b3b902b813f0a77ba97946fc7bd3db60359f24a0405255a82f204c7f2685bc5a64736f6c63430008070033",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b506004361061018e5760003560e01c80636fb83a57116100de5780639034802b11610097578063ae58254911610071578063ae582549146104af578063e6b2cf6c146104df578063eac62489146104fd578063eddaee921461052d5761018e565b80639034802b14610459578063a0416ed314610477578063a86c3cde146104935761018e565b80636fb83a571461039757806370a08231146103b357806371e780f3146103e3578063773ab39f1461040157806379ba5097146104315780638da5cb5b1461043b5761018e565b806334c7fec91161014b5780635eb8cf25116101255780635eb8cf25146102f85780636154c3431461031657806364b87a70146103485780636dc05bd3146103665761018e565b806334c7fec91461028c57806345626bd6146102a857806353a47bb7146102da5761018e565b80631627540c146101935780631bb47b44146101af578063204b676a146101cb578063227d517a146101fb57806330104c5f1461022b578063326a3cfb1461025c575b600080fd5b6101ad60048036038101906101a89190612232565b610549565b005b6101c960048036038101906101c491906122ff565b6105cc565b005b6101e560048036038101906101e09190612232565b61066c565b6040516101f29190612979565b60405180910390f35b61021560048036038101906102109190612232565b6106b8565b6040516102229190612979565b60405180910390f35b610245600480360381019061024091906122bf565b6106d0565b604051610253929190612994565b60405180910390f35b61027660048036038101906102719190612232565b61078d565b6040516102839190612979565b60405180910390f35b6102a660048036038101906102a19190612352565b6107a5565b005b6102c260048036038101906102bd91906122bf565b610ac2565b6040516102d193929190612a02565b60405180910390f35b6102e2610b0d565b6040516102ef919061271b565b60405180910390f35b610300610b33565b60405161030d9190612979565b60405180910390f35b610330600480360381019061032b91906122bf565b610b3b565b60405161033f93929190612a02565b60405180910390f35b610350610c5d565b60405161035d919061281e565b60405180910390f35b610380600480360381019061037b919061225f565b610c83565b60405161038e929190612994565b60405180910390f35b6103b160048036038101906103ac9190612232565b610daa565b005b6103cd60048036038101906103c89190612232565b610e98565b6040516103da9190612979565b60405180910390f35b6103eb610ee1565b6040516103f89190612979565b60405180910390f35b61041b600480360381019061041691906122ff565b610ee7565b60405161042891906127bf565b60405180910390f35b6104396111df565b005b610443611390565b604051610450919061271b565b60405180910390f35b6104616113b4565b60405161046e9190612803565b60405180910390f35b610491600480360381019061048c91906122ff565b6113d8565b005b6104ad60048036038101906104a891906123cc565b611546565b005b6104c960048036038101906104c491906122bf565b6115d8565b6040516104d69190612979565b60405180910390f35b6104e7611609565b6040516104f49190612979565b60405180910390f35b610517600480360381019061051291906122ff565b61160f565b60405161052491906127e1565b60405180910390f35b610547600480360381019061054291906123cc565b61181a565b005b6105516119e3565b80600160006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff1602179055507f906a1c6bd7e3091ea86693dd029a831c19049ce77f1dce2ce0bab1cacbabce22816040516105c1919061271b565b60405180910390a150565b600260009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff163373ffffffffffffffffffffffffffffffffffffffff161461065c576040517f08c379a000000000000000000000000000000000000000000000000000000000815260040161065390612839565b60405180910390fd5b610667838383611a73565b505050565b6000600460008373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020805490509050919050565b60076020528060005260406000206000915090505481565b6000806000600360008673ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060008581526020019081526020016000206040518060600160405290816000820160009054906101000a900467ffffffffffffffff1667ffffffffffffffff1667ffffffffffffffff16815260200160018201548152602001600282015481525050905061078181611e11565b92509250509250929050565b60066020528060005260406000206000915090505481565b60008060005b848490508110156108cd576000600360003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020600087878581811061080c5761080b612d1c565b5b905060200201358152602001908152602001600020905060008160010154146108b95760008061088c836040518060600160405290816000820160009054906101000a900467ffffffffffffffff1667ffffffffffffffff1667ffffffffffffffff16815260200160018201548152602001600282015481525050611e11565b915091506000836001018190555081866108a69190612abc565b955080856108b49190612abc565b945050505b5080806108c590612c75565b9150506107ab565b5060008214610abc576108df33611e6e565b15610a1357600081836108f29190612abc565b90506000600260009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1663057a601b336040518263ffffffff1660e01b8152600401610951919061271b565b60206040518083038186803b15801561096957600080fd5b505afa15801561097d573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906109a191906123f9565b600660003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020546109eb9190612b9d565b905080821115610a105760008183610a039190612b9d565b9050610a0e81611546565b505b50505b60008114610ab157610a253382611f24565b7f000000000000000000000000000000000000000000000000000000000000000073ffffffffffffffffffffffffffffffffffffffff166342966c68826040518263ffffffff1660e01b8152600401610a7e9190612979565b600060405180830381600087803b158015610a9857600080fd5b505af1158015610aac573d6000803e3d6000fd5b505050505b610abb3383611f97565b5b50505050565b6003602052816000526040600020602052806000526040600020600091509150508060000160009054906101000a900467ffffffffffffffff16908060010154908060020154905083565b600160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1681565b6303bfc40081565b6000806000600360008673ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020600085815260200190815260200160002060000160009054906101000a900467ffffffffffffffff169250600360008673ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020016000206000858152602001908152602001600020600101549150600360008673ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060008581526020019081526020016000206002015490509250925092565b600260009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1681565b60008060005b84849050811015610da1576000600360008873ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020016000206000878785818110610cea57610ce9612d1c565b5b9050602002013581526020019081526020016000206040518060600160405290816000820160009054906101000a900467ffffffffffffffff1667ffffffffffffffff1667ffffffffffffffff1681526020016001820154815260200160028201548152505090506000816020015114610d8d57600080610d6a83611e11565b915091508186610d7a9190612abc565b95508085610d889190612abc565b945050505b508080610d9990612c75565b915050610c89565b50935093915050565b610db26119e3565b600260149054906101000a900460ff1615610e02576040517f08c379a0000000000000000000000000000000000000000000000000000000008152600401610df990612919565b60405180910390fd5b6001600260146101000a81548160ff02191690831515021790555080600260006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff1602179055507fb63c81227c62f4cb3e2b1120e3afbf3a2ed5dd8b9d99b8bef7275b084e6a98cb81604051610e8d919061271b565b60405180910390a150565b6000600660008373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020549050919050565b60085481565b606060008284610ef79190612abc565b9050838111610f5d57600067ffffffffffffffff811115610f1b57610f1a612d4b565b5b604051908082528060200260200182016040528015610f5457816020015b610f4161215d565b815260200190600190039081610f395790505b509150506111d8565b600460008673ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002080549050811115610fed57600460008673ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020016000208054905090505b60008482610ffb9190612b9d565b905060008167ffffffffffffffff81111561101957611018612d4b565b5b60405190808252806020026020018201604052801561105257816020015b61103f61215d565b8152602001906001900390816110375790505b50905060005b828110156111d0576000600460008a73ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002088836110ad9190612abc565b815481106110be576110bd612d1c565b5b906000526020600020015490506000600360008b73ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002060008381526020019081526020016000206040518060600160405290816000820160009054906101000a900467ffffffffffffffff1667ffffffffffffffff1667ffffffffffffffff1681526020016001820154815260200160028201548152505090506040518060600160405280826000015167ffffffffffffffff16815260200182602001518152602001838152508484815181106111b0576111af612d1c565b5b6020026020010181905250505080806111c890612c75565b915050611058565b508093505050505b9392505050565b600160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff163373ffffffffffffffffffffffffffffffffffffffff161461126f576040517f08c379a000000000000000000000000000000000000000000000000000000000815260040161126690612859565b60405180910390fd5b7fb532073b38c83145e3e5135377a08bf9aab55bc0fd7c1179cd4fb995d2a5159c60008054906101000a900473ffffffffffffffffffffffffffffffffffffffff16600160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff166040516112e2929190612736565b60405180910390a1600160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff166000806101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff1602179055506000600160006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff160217905550565b60008054906101000a900473ffffffffffffffffffffffffffffffffffffffff1681565b7f000000000000000000000000000000000000000000000000000000000000000081565b600073ffffffffffffffffffffffffffffffffffffffff168373ffffffffffffffffffffffffffffffffffffffff161415611448576040517f08c379a000000000000000000000000000000000000000000000000000000000815260040161143f90612899565b60405180910390fd5b7f000000000000000000000000000000000000000000000000000000000000000073ffffffffffffffffffffffffffffffffffffffff166323b872dd3330856040518463ffffffff1660e01b81526004016114a59392919061275f565b602060405180830381600087803b1580156114bf57600080fd5b505af11580156114d3573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906114f7919061239f565b611536576040517f08c379a000000000000000000000000000000000000000000000000000000000815260040161152d906128f9565b60405180910390fd5b611541838383611a73565b505050565b600260009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1663c9c7da1633836040518363ffffffff1660e01b81526004016115a3929190612796565b600060405180830381600087803b1580156115bd57600080fd5b505af11580156115d1573d6000803e3d6000fd5b5050505050565b600460205281600052604060002081815481106115f457600080fd5b90600052602060002001600091509150505481565b60055481565b60606000828461161f9190612abc565b9050600460008673ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020805490508111156116b157600460008673ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020016000208054905090505b83811161170a57600067ffffffffffffffff8111156116d3576116d2612d4b565b5b6040519080825280602002602001820160405280156117015781602001602082028036833780820191505090505b50915050611813565b600084826117189190612b9d565b905060008167ffffffffffffffff81111561173657611735612d4b565b5b6040519080825280602002602001820160405280156117645781602001602082028036833780820191505090505b50905060005b8281101561180b57600460008973ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002087826117bd9190612abc565b815481106117ce576117cd612d1c565b5b90600052602060002001548282815181106117ec576117eb612d1c565b5b602002602001018181525050808061180390612c75565b91505061176a565b508093505050505b9392505050565b600660003373ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002054600260009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1663057a601b336040518263ffffffff1660e01b81526004016118b5919061271b565b60206040518083038186803b1580156118cd57600080fd5b505afa1580156118e1573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061190591906123f9565b826119109190612abc565b1115611951576040517f08c379a000000000000000000000000000000000000000000000000000000000815260040161194890612959565b60405180910390fd5b600260009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1663985134fb33836040518363ffffffff1660e01b81526004016119ae929190612796565b600060405180830381600087803b1580156119c857600080fd5b505af11580156119dc573d6000803e3d6000fd5b5050505050565b60008054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff163373ffffffffffffffffffffffffffffffffffffffff1614611a71576040517f08c379a0000000000000000000000000000000000000000000000000000000008152600401611a6890612939565b60405180910390fd5b565b6000821415611ab7576040517f08c379a0000000000000000000000000000000000000000000000000000000008152600401611aae906128b9565b60405180910390fd5b600081118015611acb57506303bfc4008111155b611b0a576040517f08c379a0000000000000000000000000000000000000000000000000000000008152600401611b0190612879565b60405180910390fd5b8160086000828254611b1c9190612abc565b925050819055507f000000000000000000000000000000000000000000000000000000000000000073ffffffffffffffffffffffffffffffffffffffff166370a08231306040518263ffffffff1660e01b8152600401611b7c919061271b565b60206040518083038186803b158015611b9457600080fd5b505afa158015611ba8573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190611bcc91906123f9565b6008541115611c10576040517f08c379a0000000000000000000000000000000000000000000000000000000008152600401611c07906128d9565b60405180910390fd5b60008142611c1e9190612abc565b905082600660008673ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020016000206000828254611c6f9190612abc565b925050819055506000600554905060405180606001604052808367ffffffffffffffff16815260200185815260200184815250600360008773ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff168152602001908152602001600020600083815260200190815260200160002060008201518160000160006101000a81548167ffffffffffffffff021916908367ffffffffffffffff1602179055506020820151816001015560408201518160020155905050600460008673ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16815260200190815260200160002081908060018154018082558091505060019003906000526020600020016000909190919091505560056000815480929190611db190612c75565b91905055508473ffffffffffffffffffffffffffffffffffffffff167f2cc016694185d38abbe28d9e9baea2e9d95a321ae43475e5ea7b643756840bc042868685604051611e0294939291906129bd565b60405180910390a25050505050565b60008060008360200151905060008060008314611e6057856000015167ffffffffffffffff164210611e4557829150611e5f565b611e4e866120f9565b90508083611e5c9190612b9d565b91505b5b818194509450505050915091565b600080600260009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1663057a601b846040518263ffffffff1660e01b8152600401611ecc919061271b565b60206040518083038186803b158015611ee457600080fd5b505afa158015611ef8573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190611f1c91906123f9565b119050919050565b8060086000828254611f369190612b9d565b9250508190555080600660008473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020016000206000828254611f8c9190612b9d565b925050819055505050565b611fa18282611f24565b80600760008473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1681526020019081526020016000206000828254611ff09190612abc565b925050819055507f000000000000000000000000000000000000000000000000000000000000000073ffffffffffffffffffffffffffffffffffffffff1663a9059cbb83836040518363ffffffff1660e01b8152600401612052929190612796565b602060405180830381600087803b15801561206c57600080fd5b505af1158015612080573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906120a4919061239f565b508173ffffffffffffffffffffffffffffffffffffffff167ffbeff59d2bfda0d79ea8a29f8c57c66d48c7a13eabbdb90908d9115ec41c9dc642836040516120ed929190612994565b60405180910390a25050565b60008042836000015167ffffffffffffffff166121169190612b9d565b90506000600a6008856020015161212d9190612b43565b6121379190612b12565b90508360400151828261214a9190612b43565b6121549190612b12565b92505050919050565b6040518060600160405280600067ffffffffffffffff16815260200160008152602001600081525090565b60008135905061219781613037565b92915050565b60008083601f8401126121b3576121b2612d7f565b5b8235905067ffffffffffffffff8111156121d0576121cf612d7a565b5b6020830191508360208202830111156121ec576121eb612d84565b5b9250929050565b6000815190506122028161304e565b92915050565b60008135905061221781613065565b92915050565b60008151905061222c81613065565b92915050565b60006020828403121561224857612247612d8e565b5b600061225684828501612188565b91505092915050565b60008060006040848603121561227857612277612d8e565b5b600061228686828701612188565b935050602084013567ffffffffffffffff8111156122a7576122a6612d89565b5b6122b38682870161219d565b92509250509250925092565b600080604083850312156122d6576122d5612d8e565b5b60006122e485828601612188565b92505060206122f585828601612208565b9150509250929050565b60008060006060848603121561231857612317612d8e565b5b600061232686828701612188565b935050602061233786828701612208565b925050604061234886828701612208565b9150509250925092565b6000806020838503121561236957612368612d8e565b5b600083013567ffffffffffffffff81111561238757612386612d89565b5b6123938582860161219d565b92509250509250929050565b6000602082840312156123b5576123b4612d8e565b5b60006123c3848285016121f3565b91505092915050565b6000602082840312156123e2576123e1612d8e565b5b60006123f084828501612208565b91505092915050565b60006020828403121561240f5761240e612d8e565b5b600061241d8482850161221d565b91505092915050565b6000612432838361269d565b60608301905092915050565b600061244a83836126df565b60208301905092915050565b61245f81612bd1565b82525050565b600061247082612a59565b61247a8185612a89565b935061248583612a39565b8060005b838110156124b657815161249d8882612426565b97506124a883612a6f565b925050600181019050612489565b5085935050505092915050565b60006124ce82612a64565b6124d88185612a9a565b93506124e383612a49565b8060005b838110156125145781516124fb888261243e565b975061250683612a7c565b9250506001810190506124e7565b5085935050505092915050565b61252a81612c2d565b82525050565b61253981612c3f565b82525050565b600061254c602f83612aab565b915061255782612d93565b604082019050919050565b600061256f603583612aab565b915061257a82612de2565b604082019050919050565b6000612592603383612aab565b915061259d82612e31565b604082019050919050565b60006125b5602483612aab565b91506125c082612e80565b604082019050919050565b60006125d8601783612aab565b91506125e382612ecf565b602082019050919050565b60006125fb604783612aab565b915061260682612ef8565b606082019050919050565b600061261e601583612aab565b915061262982612f6d565b602082019050919050565b6000612641601b83612aab565b915061264c82612f96565b602082019050919050565b6000612664602f83612aab565b915061266f82612fbf565b604082019050919050565b6000612687601c83612aab565b91506126928261300e565b602082019050919050565b6060820160008201516126b360008501826126fd565b5060208201516126c660208501826126df565b5060408201516126d960408501826126df565b50505050565b6126e881612c0f565b82525050565b6126f781612c0f565b82525050565b61270681612c19565b82525050565b61271581612c19565b82525050565b60006020820190506127306000830184612456565b92915050565b600060408201905061274b6000830185612456565b6127586020830184612456565b9392505050565b60006060820190506127746000830186612456565b6127816020830185612456565b61278e60408301846126ee565b949350505050565b60006040820190506127ab6000830185612456565b6127b860208301846126ee565b9392505050565b600060208201905081810360008301526127d98184612465565b905092915050565b600060208201905081810360008301526127fb81846124c3565b905092915050565b60006020820190506128186000830184612521565b92915050565b60006020820190506128336000830184612530565b92915050565b600060208201905081810360008301526128528161253f565b9050919050565b6000602082019050818103600083015261287281612562565b9050919050565b6000602082019050818103600083015261289281612585565b9050919050565b600060208201905081810360008301526128b2816125a8565b9050919050565b600060208201905081810360008301526128d2816125cb565b9050919050565b600060208201905081810360008301526128f2816125ee565b9050919050565b6000602082019050818103600083015261291281612611565b9050919050565b6000602082019050818103600083015261293281612634565b9050919050565b6000602082019050818103600083015261295281612657565b9050919050565b600060208201905081810360008301526129728161267a565b9050919050565b600060208201905061298e60008301846126ee565b92915050565b60006040820190506129a960008301856126ee565b6129b660208301846126ee565b9392505050565b60006080820190506129d260008301876126ee565b6129df60208301866126ee565b6129ec60408301856126ee565b6129f960608301846126ee565b95945050505050565b6000606082019050612a17600083018661270c565b612a2460208301856126ee565b612a3160408301846126ee565b949350505050565b6000819050602082019050919050565b6000819050602082019050919050565b600081519050919050565b600081519050919050565b6000602082019050919050565b6000602082019050919050565b600082825260208201905092915050565b600082825260208201905092915050565b600082825260208201905092915050565b6000612ac782612c0f565b9150612ad283612c0f565b9250827fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff03821115612b0757612b06612cbe565b5b828201905092915050565b6000612b1d82612c0f565b9150612b2883612c0f565b925082612b3857612b37612ced565b5b828204905092915050565b6000612b4e82612c0f565b9150612b5983612c0f565b9250817fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0483118215151615612b9257612b91612cbe565b5b828202905092915050565b6000612ba882612c0f565b9150612bb383612c0f565b925082821015612bc657612bc5612cbe565b5b828203905092915050565b6000612bdc82612bef565b9050919050565b60008115159050919050565b600073ffffffffffffffffffffffffffffffffffffffff82169050919050565b6000819050919050565b600067ffffffffffffffff82169050919050565b6000612c3882612c51565b9050919050565b6000612c4a82612c51565b9050919050565b6000612c5c82612c63565b9050919050565b6000612c6e82612bef565b9050919050565b6000612c8082612c0f565b91507fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff821415612cb357612cb2612cbe565b5b600182019050919050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052601160045260246000fd5b7f4e487b7100000000000000000000000000000000000000000000000000000000600052601260045260246000fd5b7f4e487b7100000000000000000000000000000000000000000000000000000000600052603260045260246000fd5b7f4e487b7100000000000000000000000000000000000000000000000000000000600052604160045260246000fd5b600080fd5b600080fd5b600080fd5b600080fd5b600080fd5b7f4f6e6c7920746865205374616b696e67526577617264732063616e207065726660008201527f6f726d207468697320616374696f6e0000000000000000000000000000000000602082015250565b7f596f75206d757374206265206e6f6d696e61746564206265666f726520796f7560008201527f2063616e20616363657074206f776e6572736869700000000000000000000000602082015250565b7f43616e6e6f7420657363726f7720776974682030206475726174696f6e204f5260008201527f2061626f7665206d61785f6475726174696f6e00000000000000000000000000602082015250565b7f43616e6e6f742063726561746520657363726f7720776974682061646472657360008201527f7328302900000000000000000000000000000000000000000000000000000000602082015250565b7f5175616e746974792063616e6e6f74206265207a65726f000000000000000000600082015250565b7f4d75737420626520656e6f7567682062616c616e636520696e2074686520636f60008201527f6e747261637420746f2070726f7669646520666f72207468652076657374696e60208201527f6720656e74727900000000000000000000000000000000000000000000000000604082015250565b7f546f6b656e207472616e73666572206661696c65640000000000000000000000600082015250565b7f5374616b696e67205265776172647320616c7265616479207365740000000000600082015250565b7f4f6e6c792074686520636f6e7472616374206f776e6572206d6179207065726660008201527f6f726d207468697320616374696f6e0000000000000000000000000000000000602082015250565b7f496e73756666696369656e7420756e7374616b656420657363726f7700000000600082015250565b61304081612bd1565b811461304b57600080fd5b50565b61305781612be3565b811461306257600080fd5b50565b61306e81612c0f565b811461307957600080fd5b5056fea2646970667358221220b3b902b813f0a77ba97946fc7bd3db60359f24a0405255a82f204c7f2685bc5a64736f6c63430008070033",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {
+      "appendVestingEntry(address,uint256,uint256)": {
+        "details": "A call to this should accompany a previous successful call to kwenta.transfer(rewardEscrow, amount), to ensure that when the funds are withdrawn, there is enough balance.",
+        "params": {
+          "account": "The account to append a new vesting entry to.",
+          "duration": "The duration that KWENTA will be emitted.",
+          "quantity": "The quantity of KWENTA that will be escrowed."
+        }
+      },
+      "createEscrowEntry(address,uint256,uint256)": {
+        "details": "This call expects that the depositor (msg.sender) has already approved the Reward escrow contract to spend the the amount being escrowed."
+      },
+      "getVestingEntry(address,uint256)": {
+        "returns": {
+          "endTime": "the vesting entry object ",
+          "escrowAmount": "rate per second emission."
+        }
+      },
+      "stakeEscrow(uint256)": {
+        "details": "No tokens are transfered during this process, but the StakingRewards escrowed balance is updated.",
+        "params": {
+          "_amount": "The amount of escrowed KWENTA to be staked."
+        }
+      },
+      "unstakeEscrow(uint256)": {
+        "details": "No tokens are transfered during this process, but the StakingRewards escrowed balance is updated.",
+        "params": {
+          "_amount": "The amount of escrowed KWENTA to be unstaked."
+        }
+      }
+    },
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {
+      "appendVestingEntry(address,uint256,uint256)": {
+        "notice": "Add a new vesting entry at a given time and quantity to an account's schedule."
+      },
+      "balanceOf(address)": {
+        "notice": "A simple alias to totalEscrowedAccountBalance: provides ERC20 balance integration."
+      },
+      "createEscrowEntry(address,uint256,uint256)": {
+        "notice": "Create an escrow entry to lock KWENTA for a given duration in seconds"
+      },
+      "getVestingEntry(address,uint256)": {
+        "notice": "Get a particular schedule entry for an account."
+      },
+      "numVestingEntries(address)": {
+        "notice": "The number of vesting dates in an account's schedule."
+      },
+      "stakeEscrow(uint256)": {
+        "notice": "Stakes escrowed KWENTA."
+      },
+      "unstakeEscrow(uint256)": {
+        "notice": "Unstakes escrowed KWENTA."
+      },
+      "vest(uint256[])": {
+        "notice": "Vest escrowed amounts that are claimable Allows users to vest their vesting entries based on msg.sender"
+      }
+    },
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 10091,
+        "contract": "contracts/RewardEscrow.sol:RewardEscrow",
+        "label": "owner",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_address"
+      },
+      {
+        "astId": 10093,
+        "contract": "contracts/RewardEscrow.sol:RewardEscrow",
+        "label": "nominatedOwner",
+        "offset": 0,
+        "slot": "1",
+        "type": "t_address"
+      },
+      {
+        "astId": 4081,
+        "contract": "contracts/RewardEscrow.sol:RewardEscrow",
+        "label": "stakingRewards",
+        "offset": 0,
+        "slot": "2",
+        "type": "t_contract(IStakingRewards)7691"
+      },
+      {
+        "astId": 4084,
+        "contract": "contracts/RewardEscrow.sol:RewardEscrow",
+        "label": "stakingRewardsSet",
+        "offset": 20,
+        "slot": "2",
+        "type": "t_bool"
+      },
+      {
+        "astId": 4091,
+        "contract": "contracts/RewardEscrow.sol:RewardEscrow",
+        "label": "vestingSchedules",
+        "offset": 0,
+        "slot": "3",
+        "type": "t_mapping(t_address,t_mapping(t_uint256,t_struct(VestingEntry)7442_storage))"
+      },
+      {
+        "astId": 4096,
+        "contract": "contracts/RewardEscrow.sol:RewardEscrow",
+        "label": "accountVestingEntryIDs",
+        "offset": 0,
+        "slot": "4",
+        "type": "t_mapping(t_address,t_array(t_uint256)dyn_storage)"
+      },
+      {
+        "astId": 4098,
+        "contract": "contracts/RewardEscrow.sol:RewardEscrow",
+        "label": "nextEntryId",
+        "offset": 0,
+        "slot": "5",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 4103,
+        "contract": "contracts/RewardEscrow.sol:RewardEscrow",
+        "label": "totalEscrowedAccountBalance",
+        "offset": 0,
+        "slot": "6",
+        "type": "t_mapping(t_address,t_uint256)"
+      },
+      {
+        "astId": 4108,
+        "contract": "contracts/RewardEscrow.sol:RewardEscrow",
+        "label": "totalVestedAccountBalance",
+        "offset": 0,
+        "slot": "7",
+        "type": "t_mapping(t_address,t_uint256)"
+      },
+      {
+        "astId": 4110,
+        "contract": "contracts/RewardEscrow.sol:RewardEscrow",
+        "label": "totalEscrowedBalance",
+        "offset": 0,
+        "slot": "8",
+        "type": "t_uint256"
+      }
+    ],
+    "types": {
+      "t_address": {
+        "encoding": "inplace",
+        "label": "address",
+        "numberOfBytes": "20"
+      },
+      "t_array(t_uint256)dyn_storage": {
+        "base": "t_uint256",
+        "encoding": "dynamic_array",
+        "label": "uint256[]",
+        "numberOfBytes": "32"
+      },
+      "t_bool": {
+        "encoding": "inplace",
+        "label": "bool",
+        "numberOfBytes": "1"
+      },
+      "t_contract(IStakingRewards)7691": {
+        "encoding": "inplace",
+        "label": "contract IStakingRewards",
+        "numberOfBytes": "20"
+      },
+      "t_mapping(t_address,t_array(t_uint256)dyn_storage)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => uint256[])",
+        "numberOfBytes": "32",
+        "value": "t_array(t_uint256)dyn_storage"
+      },
+      "t_mapping(t_address,t_mapping(t_uint256,t_struct(VestingEntry)7442_storage))": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => mapping(uint256 => struct VestingEntries.VestingEntry))",
+        "numberOfBytes": "32",
+        "value": "t_mapping(t_uint256,t_struct(VestingEntry)7442_storage)"
+      },
+      "t_mapping(t_address,t_uint256)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => uint256)",
+        "numberOfBytes": "32",
+        "value": "t_uint256"
+      },
+      "t_mapping(t_uint256,t_struct(VestingEntry)7442_storage)": {
+        "encoding": "mapping",
+        "key": "t_uint256",
+        "label": "mapping(uint256 => struct VestingEntries.VestingEntry)",
+        "numberOfBytes": "32",
+        "value": "t_struct(VestingEntry)7442_storage"
+      },
+      "t_struct(VestingEntry)7442_storage": {
+        "encoding": "inplace",
+        "label": "struct VestingEntries.VestingEntry",
+        "members": [
+          {
+            "astId": 7437,
+            "contract": "contracts/RewardEscrow.sol:RewardEscrow",
+            "label": "endTime",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint64"
+          },
+          {
+            "astId": 7439,
+            "contract": "contracts/RewardEscrow.sol:RewardEscrow",
+            "label": "escrowAmount",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 7441,
+            "contract": "contracts/RewardEscrow.sol:RewardEscrow",
+            "label": "duration",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_uint256"
+          }
+        ],
+        "numberOfBytes": "96"
+      },
+      "t_uint256": {
+        "encoding": "inplace",
+        "label": "uint256",
+        "numberOfBytes": "32"
+      },
+      "t_uint64": {
+        "encoding": "inplace",
+        "label": "uint64",
+        "numberOfBytes": "8"
+      }
+    }
+  }
+}
