@@ -7,6 +7,9 @@ import { mergeDistributions } from './distribution/utils';
 import { NewFormat } from './parse-balance-map';
 import { ethers } from 'ethers';
 
+// to run:
+// npx hardhat run --network localhost scripts/blacklist-finder.ts
+
 async function main() {
     let distributions: NewFormat[] = mergeDistributions(
         stakerDistribution,
