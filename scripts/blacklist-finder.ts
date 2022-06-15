@@ -1,5 +1,6 @@
 import stakerDistribution from './distribution/staker-distribution.json';
 import traderDistribution from './distribution/trader-distribution.json';
+import multisigWallets from './distribution/L1-multisig-addresses.json';
 import exploitedWallets from './distribution/gnosis_safe_wallets/exploited-wallets.json';
 import savedWallets1 from './distribution/gnosis_safe_wallets/saved-wallets-1.json';
 import savedWallets2 from './distribution/gnosis_safe_wallets/saved-wallets-2.json';
@@ -123,7 +124,7 @@ async function main() {
     logFindings(whitelisted, blacklisted, unaccounted);
 
     // UNCOMMENT BELOW LINE TO SEE ALL MULTISIG ADDRESSES IN DISTRIBUTION
-    logMultisigs(multisig);
+    // logMultisigs(multisig);
 }
 
 /*///////////////////////////////////////////////////////////////
