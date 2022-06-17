@@ -19,7 +19,8 @@ contract MerkleDistributor is IMerkleDistributor, Owned {
     address public immutable override token;
 
     /// @notice contract that initiates claim from L1 (called by address attempting to claim)
-    address public controlL2MerkleDistributor;
+    /// @dev can only be set by owner
+    address public override controlL2MerkleDistributor;
 
     /// @notice the merkle root of the merkle tree containing account balances available to claim
     bytes32 public immutable override merkleRoot;
@@ -57,6 +58,7 @@ contract MerkleDistributor is IMerkleDistributor, Owned {
     /// @param _controlL2MerkleDistributor: address of contract that initiates claim from L1
     function setControlL2MerkleDistributor(address _controlL2MerkleDistributor)
         external
+        override
         onlyOwner
     {
         controlL2MerkleDistributor = _controlL2MerkleDistributor;
@@ -64,7 +66,7 @@ contract MerkleDistributor is IMerkleDistributor, Owned {
 
     /// @notice determine if indexed claim has been claimed
     /// @param index: used for claim managment
-    /// @return true if indexed claim has been claimed 
+    /// @return true if indexed claim has been claimed
     function isClaimed(uint256 index) public view override returns (bool) {
         uint256 claimedWordIndex = index / 256;
         uint256 claimedBitIndex = index % 256;
