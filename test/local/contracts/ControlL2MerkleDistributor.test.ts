@@ -15,6 +15,7 @@ require('chai')
 // reproduces abi.encodeWithSignature()
 function generateMessage(
     index: number,
+    account: string,
     destAccount: string,
     amount: number,
     merkleProof: string[]
@@ -23,15 +24,15 @@ function generateMessage(
     const sig = ethers.utils
         .keccak256(
             ethers.utils.toUtf8Bytes(
-                'claimToAddress(uint256,address,uint256,bytes32[])'
+                'claimToAddress(uint256,address,address,uint256,bytes32[])'
             )
         )
         .substring(0, 10)
         .concat('00000000000000000000000000000000'); // 32 bytes
     const messageWithoutSig = abiCoder
         .encode(
-            ['uint256', 'address', 'uint256', 'bytes32[]'],
-            [index, destAccount, amount, merkleProof]
+            ['uint256', 'address', 'address', 'uint256', 'bytes32[]'],
+            [index, account, destAccount, amount, merkleProof]
         )
         .substring(34);
     return sig.concat(messageWithoutSig);
@@ -40,13 +41,12 @@ function generateMessage(
 describe('Control L2 MerkleDistributor from L1', function () {
     let controlL2MerkleDistributor: Contract;
     let crossDomainMessenger: FakeContract;
-    let owner: SignerWithAddress;
     let user1: SignerWithAddress;
     const MerkleDistributorL2Address =
         '0x0000000000000000000000000000000000000000';
 
     beforeEach(async () => {
-        [owner, user1] = await ethers.getSigners();
+        [user1] = await ethers.getSigners();
 
         crossDomainMessenger = await smock.fake(L1CrossDomainMessenger);
 
@@ -62,6 +62,7 @@ describe('Control L2 MerkleDistributor from L1', function () {
 
     it('Should call claimToAddress with correct parameters', async function () {
         const index = 0;
+        const account = user1.address;
         const destAccount = user1.address;
         const amount = 0;
         const merkleProof = [
@@ -70,7 +71,7 @@ describe('Control L2 MerkleDistributor from L1', function () {
             '0x6430c7c7042d2c643dd7db25384f984592d856412f1022a575fe2ea01b2ac59e',
         ];
 
-        const message = generateMessage(index, destAccount, amount, merkleProof);
+        const message = generateMessage(index, account, destAccount, amount, merkleProof);
 
         await controlL2MerkleDistributor.claimToAddress(
             index,
