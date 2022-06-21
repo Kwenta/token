@@ -61,6 +61,7 @@ async function main() {
     const exchangerProxy = await deployExchangerProxy(stakingRewards);
     const vKwentaRedeemer = await deployvKwentaRedeemer(kwenta);
     const merkleDistributor = await deployMerkleDistributor(
+        deployer,
         kwenta,
         rewardEscrow,
         mergeDistributions(stakerDistribution, traderDistribution)
@@ -97,7 +98,12 @@ async function main() {
         'StakingRewards: ExchangerProxy address set to:',
         await stakingRewards.exchangerProxy()
     );
-    console.log('Setters set!');
+    console.log("Setters set!");
+
+    /*
+     * @TODO: Deploy ControlL2MerkleDistributor on L1 passing deployed merkleDistributor as constructor param
+     * @TODO: Call MerkleDistributor.setControlL2MerkleDistributor(), setting ControlL2MerkleDistributor L1 address
+     */
 
     // ========== DISTRIBUTION ========== */
 
@@ -115,7 +121,12 @@ async function main() {
 
     console.log('\nNominating multisig as owner...');
     await kwenta.nominateNewOwner(MULTISIG);
-    console.log('Kwenta nominated owner:', await kwenta.nominatedOwner());
+    console.log("Kwenta nominated owner:", await kwenta.nominatedOwner());
+    await merkleDistributor.nominateNewOwner(MULTISIG);
+    console.log(
+        "MerkleDistributor nominated owner:",
+        await merkleDistributor.nominatedOwner()
+    );
     await supplySchedule.nominateNewOwner(MULTISIG);
     console.log(
         'SupplySchedule nominated owner:',
@@ -278,6 +289,7 @@ async function deployvKwentaRedeemer(kwenta: Contract) {
 }
 
 async function deployMerkleDistributor(
+    owner: SignerWithAddress,
     kwenta: Contract,
     rewardEscrow: Contract,
     distribution: NewFormat[]
@@ -293,6 +305,7 @@ async function deployMerkleDistributor(
         'MerkleDistributor'
     );
     const merkleDistributor = await MerkleDistributor.deploy(
+        owner.address,
         kwenta.address,
         rewardEscrow.address,
         merkleRoot
