@@ -9,8 +9,8 @@ import "./interfaces/IExchangeRates.sol";
 import "./interfaces/IERC20.sol";
 
 contract ExchangerProxy {
-    IAddressResolver addressResolver;
-    IStakingRewards stakingRewards;
+    IAddressResolver internal immutable addressResolver;
+    IStakingRewards internal immutable stakingRewards;
     bytes32 private constant CONTRACT_SYNTHETIX = "Synthetix";
     bytes32 private constant CONTRACT_EXCHANGER = "Exchanger";
     bytes32 private constant CONTRACT_EXRATES = "ExchangeRates";
