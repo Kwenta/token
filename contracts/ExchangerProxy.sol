@@ -61,7 +61,7 @@ contract ExchangerProxy {
             fee = exchangeRates().effectiveValue(destinationCurrencyKey, fee, sUSD_CURRENCY_KEY);
         }
 
-        // Execute exchange on behalf of user
+        /// @notice Execute exchange on behalf of user
         uint received = synthetix().exchangeOnBehalfWithTracking(
             msg.sender,
             sourceCurrencyKey,
@@ -70,6 +70,11 @@ contract ExchangerProxy {
             rewardAddress,
             trackingCode
         );
+
+        /// @dev few scenarios where synthetix().exchangeOnBehalfWithTracking() will return 0.
+        /// balance too low after settlement, exchange rate circuit breaker is broken, 
+        /// or if the exchange rates are too volatile
+        require(received > 0, "ExchangerProxy: Returned 0");
 
         // Update StakingRewards trader score
         stakingRewards.updateTraderScore(msg.sender, fee);
