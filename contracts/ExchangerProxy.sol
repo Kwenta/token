@@ -15,54 +15,67 @@ contract ExchangerProxy {
     bytes32 private constant CONTRACT_EXCHANGER = "Exchanger";
     bytes32 private constant CONTRACT_EXRATES = "ExchangeRates";
     bytes32 private constant sUSD_CURRENCY_KEY = "sUSD";
-    
+
     constructor(address _addressResolver, address _stakingRewards) {
         addressResolver = IAddressResolver(_addressResolver);
         stakingRewards = IStakingRewards(_stakingRewards);
     }
 
     function synthetix() internal view returns (ISynthetix) {
-        return ISynthetix(addressResolver.requireAndGetAddress(
-            CONTRACT_SYNTHETIX, 
-            "Could not get Synthetix"
-        ));
+        return
+            ISynthetix(
+                addressResolver.requireAndGetAddress(
+                    CONTRACT_SYNTHETIX,
+                    "Could not get Synthetix"
+                )
+            );
     }
 
     function exchanger() internal view returns (IExchanger) {
-        return IExchanger(addressResolver.requireAndGetAddress(
-            CONTRACT_EXCHANGER, 
-            "Could not get Exchanger"
-        ));
+        return
+            IExchanger(
+                addressResolver.requireAndGetAddress(
+                    CONTRACT_EXCHANGER,
+                    "Could not get Exchanger"
+                )
+            );
     }
 
     function exchangeRates() internal view returns (IExchangeRates) {
-        return IExchangeRates(addressResolver.requireAndGetAddress(
-            CONTRACT_EXRATES,
-            "Could not get ExchangeRates"
-        ));
+        return
+            IExchangeRates(
+                addressResolver.requireAndGetAddress(
+                    CONTRACT_EXRATES,
+                    "Could not get ExchangeRates"
+                )
+            );
     }
 
     function exchangeOnBehalfWithTraderScoreTracking(
         bytes32 sourceCurrencyKey,
-        uint sourceAmount,
+        uint256 sourceAmount,
         bytes32 destinationCurrencyKey,
         address rewardAddress,
         bytes32 trackingCode
-    ) external returns (uint amountReceived) {
+    ) external returns (uint256 amountReceived) {
         // Get fee
-        ( , uint fee, ) = exchanger().getAmountsForExchange(
-            sourceAmount, 
-            sourceCurrencyKey, 
+        (, uint256 fee, ) = exchanger().getAmountsForExchange(
+            sourceAmount,
+            sourceCurrencyKey,
             destinationCurrencyKey
         );
 
         // If fee is NOT denoted in sUSD, query Synthetix for exchange rate in sUSD
         if (destinationCurrencyKey != sUSD_CURRENCY_KEY) {
-            fee = exchangeRates().effectiveValue(destinationCurrencyKey, fee, sUSD_CURRENCY_KEY);
+            fee = exchangeRates().effectiveValue(
+                destinationCurrencyKey,
+                fee,
+                sUSD_CURRENCY_KEY
+            );
         }
 
         /// @notice Execute exchange on behalf of user
-        uint received = synthetix().exchangeOnBehalfWithTracking(
+        uint256 received = synthetix().exchangeOnBehalfWithTracking(
             msg.sender,
             sourceCurrencyKey,
             sourceAmount,
@@ -72,7 +85,7 @@ contract ExchangerProxy {
         );
 
         /// @dev few scenarios where synthetix().exchangeOnBehalfWithTracking() will return 0.
-        /// balance too low after settlement, exchange rate circuit breaker is broken, 
+        /// balance too low after settlement, exchange rate circuit breaker is broken,
         /// or if the exchange rates are too volatile
         require(received > 0, "ExchangerProxy: Returned 0");
 
