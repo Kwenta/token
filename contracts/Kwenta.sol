@@ -8,8 +8,14 @@ import './interfaces/ISupplySchedule.sol';
 import './interfaces/IKwenta.sol';
 
 contract Kwenta is ERC20, Owned, IKwenta {
-
+    /// @notice defines inflationary supply schedule, 
+    /// according to which the KWENTA inflationary supply is released
     ISupplySchedule public supplySchedule;
+
+    modifier onlySupplySchedule() {
+        require(msg.sender == address(supplySchedule), "Only SupplySchedule can perform this action");
+        _;
+    }
 
     constructor(
         string memory name, 
@@ -24,7 +30,6 @@ contract Kwenta is ERC20, Owned, IKwenta {
 
     // Mints inflationary supply
     function mint(address account, uint amount) override external onlySupplySchedule {
-        require(address(supplySchedule) != address(0), "SupplySchedule not set");
         _mint(account, amount);
     }
 
@@ -34,11 +39,6 @@ contract Kwenta is ERC20, Owned, IKwenta {
 
     function setSupplySchedule(address _supplySchedule) override external onlyOwner {
         supplySchedule = ISupplySchedule(_supplySchedule);
-    }
-
-    modifier onlySupplySchedule() {
-        require(msg.sender == address(supplySchedule), "Only SupplySchedule can perform this action");
-        _;
     }
 
 }
