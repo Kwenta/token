@@ -38,6 +38,7 @@ contract Kwenta is ERC20, Owned, IKwenta {
     }
 
     function setSupplySchedule(address _supplySchedule) override external onlyOwner {
+        require(_supplySchedule != address(0), "Kwenta: Invalid Address");
         supplySchedule = ISupplySchedule(_supplySchedule);
     }
 
