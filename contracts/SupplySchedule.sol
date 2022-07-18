@@ -236,6 +236,7 @@ contract SupplySchedule is Owned, ISupplySchedule {
     }
 
     function setStakingRewards(address _stakingRewards) override external onlyOwner {
+        require(_stakingRewards != address(0), "SupplySchedule: Invalid Address");
         stakingRewards = IStakingRewards(_stakingRewards);
         emit StakingRewardsUpdated(_stakingRewards);
     }
