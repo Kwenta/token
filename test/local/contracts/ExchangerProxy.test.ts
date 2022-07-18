@@ -86,8 +86,7 @@ describe('Exchanger Proxy', function () {
                 ethers.utils.formatBytes32String("sUSD"),
                 ethers.constants.One,
                 ethers.utils.formatBytes32String("sETH"),
-                ethers.constants.AddressZero,
-                ethers.utils.formatBytes32String("KWENTA")
+                ethers.constants.AddressZero
             )
         ).to.be.revertedWith("ExchangerProxy: Returned 0");
     });
@@ -99,8 +98,7 @@ describe('Exchanger Proxy', function () {
             ethers.utils.formatBytes32String("sUSD"),
             ethers.constants.One,
             ethers.utils.formatBytes32String("sETH"),
-            ethers.constants.AddressZero,
-            ethers.utils.formatBytes32String("KWENTA")
+            ethers.constants.AddressZero
         );
 
         expect(fakeStakingRewards.updateTraderScore).to.have.been.calledOnce;

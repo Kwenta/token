@@ -382,8 +382,7 @@ describe('Stake (fork)', () => {
                     ethers.utils.formatBytes32String('sUSD'),
                     TEST_SWAP_VALUE,
                     ethers.utils.formatBytes32String('sETH'),
-                    ethers.constants.AddressZero,
-                    ethers.utils.formatBytes32String('KWENTA')
+                    ethers.constants.AddressZero
                 );
 
             // poll exchange rate
@@ -465,8 +464,7 @@ describe('Stake (fork)', () => {
                         ethers.utils.formatBytes32String('sUSD'),
                         TEST_SWAP_VALUE,
                         ethers.utils.formatBytes32String('sLINK'),
-                        ethers.constants.AddressZero,
-                        ethers.utils.formatBytes32String('KWENTA')
+                        ethers.constants.AddressZero
                     )
             ).to.be.revertedWith('Not approved to act on behalf');
 
@@ -509,8 +507,7 @@ describe('Stake (fork)', () => {
                     ethers.utils.formatBytes32String('sUSD'),
                     TEST_SWAP_VALUE,
                     ethers.utils.formatBytes32String('sUNI'),
-                    ethers.constants.AddressZero,
-                    ethers.utils.formatBytes32String('KWENTA')
+                    ethers.constants.AddressZero
                 );
 
             // poll exchange rate
