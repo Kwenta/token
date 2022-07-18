@@ -174,15 +174,14 @@ contract RewardEscrow is Owned, IRewardEscrow {
         }
     }
 
-    function getVestingEntryClaimable(address account, uint256 entryID) override external view returns (uint, uint) {
+    function getVestingEntryClaimable(address account, uint256 entryID) override external view returns (uint quantity, uint fee) {
         VestingEntries.VestingEntry memory entry = vestingSchedules[account][entryID];
-        return _claimableAmount(entry);
+        (quantity, fee) = _claimableAmount(entry);
     }
 
-    function _claimableAmount(VestingEntries.VestingEntry memory _entry) internal view returns (uint256, uint256) {
+    function _claimableAmount(VestingEntries.VestingEntry memory _entry) internal view returns (uint256 quantity, uint256 fee) {
         uint256 escrowAmount = _entry.escrowAmount;
-        uint256 quantity;
-        uint256 fee;
+
         if (escrowAmount != 0) {
             /* Full escrow amounts claimable if block.timestamp equal to or after entry endTime */
             if (block.timestamp >= _entry.endTime) {
@@ -192,14 +191,13 @@ contract RewardEscrow is Owned, IRewardEscrow {
                 quantity = escrowAmount - fee;
             }
         }
-        return (quantity, fee);
     }
 
-    function _earlyVestFee(VestingEntries.VestingEntry memory _entry) internal view returns (uint256) {
+    function _earlyVestFee(VestingEntries.VestingEntry memory _entry) internal view returns (uint256 earlyVestFee) {
         uint timeUntilVest = _entry.endTime - block.timestamp;
         // Fee starts at 80% and falls linearly
         uint initialFee = _entry.escrowAmount * 8 / 10;
-        return initialFee * timeUntilVest / _entry.duration;
+        earlyVestFee = initialFee * timeUntilVest / _entry.duration;
     }
 
     function _isStaked(address _account) internal view returns (bool) {
