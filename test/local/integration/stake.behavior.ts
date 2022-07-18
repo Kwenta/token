@@ -352,8 +352,7 @@ describe('Stake', () => {
 					ethers.utils.formatBytes32String('sUSD'),
 					ethers.constants.One,
 					ethers.utils.formatBytes32String('sETH'),
-					ethers.constants.AddressZero,
-					ethers.utils.formatBytes32String('KWENTA')
+					ethers.constants.AddressZero
 				);
 
 			// calculate expected reward score
