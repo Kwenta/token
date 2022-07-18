@@ -12,14 +12,15 @@ import { IERC20 } from '../../../typechain/IERC20';
 chai.use(smock.matchers);
 
 describe('Exchanger Proxy', function () {
-	let exchangerProxy: Contract,
-		fakeStakingRewards: FakeContract<IStakingRewards>;
+	let exchangerProxy: Contract;
+	let fakeStakingRewards: FakeContract<IStakingRewards>;
+	let fakeSynthetix: FakeContract<ISynthetix>;
+
 	before(async () => {
         const fakeERC20 = await smock.fake<IERC20>('contracts/interfaces/IERC20.sol:IERC20');
 
-		//// Synthetix AddressResolver mocking. TODO: make reusable
-		const fakeSynthetix = await smock.fake<ISynthetix>('ISynthetix');
-		fakeSynthetix.exchangeOnBehalfWithTracking.returns(0);
+		//// Synthetix AddressResolver mocking
+		fakeSynthetix = await smock.fake<ISynthetix>('ISynthetix');
 
 		const fakeExchanger = await smock.fake<IExchanger>('IExchanger');
 		fakeExchanger.feeRateForExchange.returns(0);
@@ -77,15 +78,31 @@ describe('Exchanger Proxy', function () {
 		return exchangerProxy;
 	});
 
-	it('updateTraderScore has been called', async function () {
-		await exchangerProxy.exchangeOnBehalfWithTraderScoreTracking(
-			ethers.utils.formatBytes32String('sUSD'),
-			ethers.constants.One,
-			ethers.utils.formatBytes32String('sETH'),
-			ethers.constants.AddressZero,
-			ethers.utils.formatBytes32String('KWENTA')
-		);
+	it("updateTraderScore has NOT been called", async function () {
+        fakeSynthetix.exchangeOnBehalfWithTracking.returns(0);
 
-		expect(fakeStakingRewards.updateTraderScore).to.have.been.calledOnce;
-	});
+        await expect(
+            exchangerProxy.exchangeOnBehalfWithTraderScoreTracking(
+                ethers.utils.formatBytes32String("sUSD"),
+                ethers.constants.One,
+                ethers.utils.formatBytes32String("sETH"),
+                ethers.constants.AddressZero,
+                ethers.utils.formatBytes32String("KWENTA")
+            )
+        ).to.be.revertedWith("ExchangerProxy: Returned 0");
+    });
+
+    it("updateTraderScore has been called", async function () {
+        fakeSynthetix.exchangeOnBehalfWithTracking.returns(1);
+
+        await exchangerProxy.exchangeOnBehalfWithTraderScoreTracking(
+            ethers.utils.formatBytes32String("sUSD"),
+            ethers.constants.One,
+            ethers.utils.formatBytes32String("sETH"),
+            ethers.constants.AddressZero,
+            ethers.utils.formatBytes32String("KWENTA")
+        );
+
+        expect(fakeStakingRewards.updateTraderScore).to.have.been.calledOnce;
+    });
 });
