@@ -17,16 +17,22 @@ import "./interfaces/IStakingRewards.sol";
 contract RewardEscrow is Owned, IRewardEscrow {
     using SafeDecimalMath for uint;
 
+    /* ========== CONSTANTS/IMMUTABLES ========== */
+
+    /* Max escrow duration */
+    uint public constant MAX_DURATION = 2 * 52 weeks; // Default max 2 years duration
+
     IKwenta public immutable kwenta;
 
+    /* ========== STATE VARIABLES ========== */
+
     IStakingRewards public stakingRewards;
-    bool private stakingRewardsSet = false;
 
     mapping(address => mapping(uint256 => VestingEntries.VestingEntry)) public vestingSchedules;
 
     mapping(address => uint256[]) public accountVestingEntryIDs;
 
-    /*Counter for new vesting entry ids. */
+    /* Counter for new vesting entry ids. */
     uint256 public nextEntryId;
 
     /* An account's total escrowed KWENTA balance to save recomputing this for fee extraction purposes. */
@@ -38,8 +44,16 @@ contract RewardEscrow is Owned, IRewardEscrow {
     /* The total remaining escrowed balance, for verifying the actual KWENTA balance of this contract against. */
     uint256 public totalEscrowedBalance;
 
-    /* Max escrow duration */
-    uint public constant max_duration = 2 * 52 weeks; // Default max 2 years duration
+    /* ========== MODIFIERS ========== */
+    modifier onlyStakingRewards() {
+        require(msg.sender == address(stakingRewards), "Only the StakingRewards can perform this action");
+        _;
+    }
+
+    /* ========== EVENTS ========== */
+    event Vested(address indexed beneficiary, uint time, uint value);
+    event VestingEntryCreated(address indexed beneficiary, uint time, uint value, uint duration, uint entryID);
+    event StakingRewardsSet(address rewardEscrow);
 
     /* ========== CONSTRUCTOR ========== */
 
@@ -56,8 +70,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
     * @notice Function used to define the StakingRewards to use
     */
     function setStakingRewards(address _stakingRewards) public onlyOwner {
-        require(!stakingRewardsSet, "Staking Rewards already set");
-        stakingRewardsSet = true;
+        require(_stakingRewards == address(0), "Staking Rewards already set");
         
         stakingRewards = IStakingRewards(_stakingRewards);
         emit StakingRewardsSet(address(_stakingRewards));
@@ -320,7 +333,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
     ) internal {
         /* No empty or already-passed vesting entries allowed. */
         require(quantity != 0, "Quantity cannot be zero");
-        require(duration > 0 && duration <= max_duration, "Cannot escrow with 0 duration OR above max_duration");
+        require(duration > 0 && duration <= MAX_DURATION, "Cannot escrow with 0 duration OR above max_duration");
 
         /* There must be enough balance in the contract to provide for the vesting entry. */
         totalEscrowedBalance += quantity;
@@ -346,15 +359,4 @@ contract RewardEscrow is Owned, IRewardEscrow {
 
         emit VestingEntryCreated(account, block.timestamp, quantity, duration, entryID);
     }
-
-    /* ========== MODIFIERS ========== */
-    modifier onlyStakingRewards() {
-        require(msg.sender == address(stakingRewards), "Only the StakingRewards can perform this action");
-        _;
-    }
-
-    /* ========== EVENTS ========== */
-    event Vested(address indexed beneficiary, uint time, uint value);
-    event VestingEntryCreated(address indexed beneficiary, uint time, uint value, uint duration, uint entryID);
-    event StakingRewardsSet(address rewardEscrow);
 }
