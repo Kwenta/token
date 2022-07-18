@@ -86,7 +86,7 @@ contract SupplySchedule is Owned, ISupplySchedule {
         uint currentWeek = weekCounter;
 
         // Calculate total mintable supply from exponential decay function
-        // The decay function stops after week 234
+        // The decay function stops after week 208
         while (remainingWeeksToMint > 0) {
             currentWeek++;
 
