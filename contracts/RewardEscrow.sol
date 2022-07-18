@@ -200,7 +200,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
         earlyVestFee = initialFee * timeUntilVest / _entry.duration;
     }
 
-    function _isStaked(address _account) internal view returns (bool) {
+    function _isEscrowStake(address _account) internal view returns (bool) {
         return stakingRewards.escrowedBalanceOf(_account) > 0;
     }
 
@@ -233,7 +233,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
         /* Transfer vested tokens. Will revert if total > totalEscrowedAccountBalance */
         if (total != 0) {
             // Withdraw staked escrowed kwenta if needed for reward
-            if (_isStaked(msg.sender)) {
+            if (_isEscrowStake(msg.sender)) {
                 uint totalWithFee = total + totalFee;
                 uint unstakedEscrow = totalEscrowedAccountBalance[msg.sender] - stakingRewards.escrowedBalanceOf(msg.sender);
                 if (totalWithFee > unstakedEscrow) {
