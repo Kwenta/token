@@ -70,7 +70,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
     * @notice Function used to define the StakingRewards to use
     */
     function setStakingRewards(address _stakingRewards) public onlyOwner {
-        require(_stakingRewards == address(0), "Staking Rewards already set");
+        require(address(stakingRewards) == address(0), "Staking Rewards already set");
         
         stakingRewards = IStakingRewards(_stakingRewards);
         emit StakingRewardsSet(address(_stakingRewards));
