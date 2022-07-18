@@ -349,7 +349,7 @@ describe("MerkleDistributor", () => {
                     proof
                 );
                 const receipt = await tx.wait();
-                expect(receipt.gasUsed).to.equal(197216);
+                expect(receipt.gasUsed).to.equal(196858);
             });
         });
 
@@ -430,7 +430,7 @@ describe("MerkleDistributor", () => {
                     proof
                 );
                 const receipt = await tx.wait();
-                expect(receipt.gasUsed).to.eq(201009);
+                expect(receipt.gasUsed).to.eq(200651);
             });
 
             it("gas second down about 15k", async () => {
@@ -448,7 +448,7 @@ describe("MerkleDistributor", () => {
                     tree.getProof(1, accounts[1].address, BigNumber.from(2))
                 );
                 const receipt = await tx.wait();
-                expect(receipt.gasUsed).to.eq(183909);
+                expect(receipt.gasUsed).to.eq(183551);
             });
         });
 
@@ -519,7 +519,7 @@ describe("MerkleDistributor", () => {
                     proof
                 );
                 const receipt = await tx.wait();
-                expect(receipt.gasUsed).to.eq(216103);
+                expect(receipt.gasUsed).to.eq(215745);
             });
 
             it("gas deeper node", async () => {
@@ -536,7 +536,7 @@ describe("MerkleDistributor", () => {
                     proof
                 );
                 const receipt = await tx.wait();
-                expect(receipt.gasUsed).to.eq(216137);
+                expect(receipt.gasUsed).to.eq(215779);
             });
 
             it("gas average random distribution", async () => {
@@ -559,7 +559,7 @@ describe("MerkleDistributor", () => {
                     count++;
                 }
                 const average = total.div(count);
-                expect(average).to.eq(216090);
+                expect(average).to.eq(215732);
             });
 
             // this is what we gas golfed by packing the bitmap
@@ -583,7 +583,7 @@ describe("MerkleDistributor", () => {
                     count++;
                 }
                 const average = total.div(count);
-                expect(average).to.eq(199663);
+                expect(average).to.eq(199305);
             });
 
             it("no double claims in random distribution", async () => {

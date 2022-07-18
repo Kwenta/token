@@ -58,6 +58,33 @@ contract SupplySchedule is Owned, ISupplySchedule {
     address immutable treasuryDAO;
     IStakingRewards public stakingRewards;
 
+    /* ========== EVENTS ========== */
+    
+    /**
+     * @notice Emitted when the inflationary supply is minted
+     * */
+    event SupplyMinted(uint supplyMinted, uint numberOfWeeksIssued, uint lastMintEvent);
+
+    /**
+     * @notice Emitted when the KWENTA minter reward amount is updated
+     * */
+    event MinterRewardUpdated(uint newRewardAmount);
+
+    /**
+     * @notice Emitted when setKwenta is called changing the Kwenta Proxy address
+     * */
+    event KwentaUpdated(address newAddress);
+
+    /**
+     * @notice Emitted when setKwenta is called changing the Kwenta Proxy address
+     * */
+    event TreasuryDiversionUpdated(uint newPercentage);
+
+    /**
+     * @notice Emitted when setKwenta is called changing the Kwenta Proxy address
+     * */
+    event StakingRewardsUpdated(address newAddress);
+
     constructor(
         address _owner,
         address _treasuryDAO
@@ -176,7 +203,7 @@ contract SupplySchedule is Owned, ISupplySchedule {
         // 1 day time buffer is added so inflation is minted after feePeriod closes
         lastMintEvent = INFLATION_START_DATE.add(weekCounter.mul(MINT_PERIOD_DURATION)).add(MINT_BUFFER);
 
-        emit SupplyMinted(supplyMinted, numberOfWeeksIssued, lastMintEvent, block.timestamp);
+        emit SupplyMinted(supplyMinted, numberOfWeeksIssued, lastMintEvent);
         return true;
     }
 
@@ -240,30 +267,4 @@ contract SupplySchedule is Owned, ISupplySchedule {
         stakingRewards = IStakingRewards(_stakingRewards);
         emit StakingRewardsUpdated(_stakingRewards);
     }
-
-    /* ========== EVENTS ========== */
-    /**
-     * @notice Emitted when the inflationary supply is minted
-     * */
-    event SupplyMinted(uint supplyMinted, uint numberOfWeeksIssued, uint lastMintEvent, uint timestamp);
-
-    /**
-     * @notice Emitted when the KWENTA minter reward amount is updated
-     * */
-    event MinterRewardUpdated(uint newRewardAmount);
-
-    /**
-     * @notice Emitted when setKwenta is called changing the Kwenta Proxy address
-     * */
-    event KwentaUpdated(address newAddress);
-
-    /**
-     * @notice Emitted when setKwenta is called changing the Kwenta Proxy address
-     * */
-    event TreasuryDiversionUpdated(uint newPercentage);
-
-    /**
-     * @notice Emitted when setKwenta is called changing the Kwenta Proxy address
-     * */
-    event StakingRewardsUpdated(address newAddress);
 }
