@@ -241,19 +241,6 @@ contract SupplySchedule is Owned, ISupplySchedule {
         emit StakingRewardsUpdated(_stakingRewards);
     }
 
-    // ========== MODIFIERS ==========
-
-    /**
-     * @notice Only the Kwenta contract is authorised to call this function
-     * */
-    modifier onlyKwenta() {
-        require(
-            msg.sender == address(kwenta),
-            "Only the kwenta contract can perform this action"
-        );
-        _;
-    }
-
     /* ========== EVENTS ========== */
     /**
      * @notice Emitted when the inflationary supply is minted
