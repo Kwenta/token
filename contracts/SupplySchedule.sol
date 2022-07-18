@@ -12,7 +12,7 @@ import "./libraries/Math.sol";
 // Internal references
 import "./interfaces/IERC20.sol";
 import "./interfaces/IKwenta.sol";
-import './interfaces/IStakingRewards.sol';
+import "./interfaces/IStakingRewards.sol";
 
 // https://docs.synthetix.io/contracts/source/contracts/supplyschedule
 contract SupplySchedule is Owned, ISupplySchedule {
@@ -146,8 +146,7 @@ contract SupplySchedule is Owned, ISupplySchedule {
      */
     function weeksSinceLastIssuance() public view returns (uint) {
         // Get weeks since lastMintEvent
-        // If lastMintEvent not set or 0, then start from inflation start date.
-        uint timeDiff = lastMintEvent > 0 ? block.timestamp.sub(lastMintEvent) : block.timestamp.sub(INFLATION_START_DATE);
+        uint timeDiff = block.timestamp.sub(lastMintEvent);
         return timeDiff.div(MINT_PERIOD_DURATION);
     }
 
