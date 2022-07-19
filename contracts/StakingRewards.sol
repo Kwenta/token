@@ -105,13 +105,14 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     event Staked(address indexed user, uint256 amount);
     event Withdrawn(address indexed user, uint256 amount);
     event RewardPaid(address indexed user, uint256 reward);
-    event RewardsDurationUpdated(uint256 newDuration);
     event Recovered(address token, uint256 amount);
     event EscrowStaked(address account, uint256 amount);
     event EscrowUnstaked(address account, uint256 amount);
     event RewardEscrowUpdated(address account);
     event ExchangerProxyUpdated(address account);
-    
+    event WeeklyStartRewardsSet(uint256 newWeeklyStart);
+    event PercentageRewardsSet(uint256 percentageStaking, uint256 percentageTrading);
+
     /* ========== INITIALIZER ========== */
     
     function initialize(
@@ -277,9 +278,10 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
      * @param _percentageTrading the % of rewards to distribute to reward scores
      */
     function setPercentageRewards(uint256 _percentageStaking, uint256 _percentageTrading) override external onlyOwner {
-        require(_percentageTrading + _percentageStaking == 10_000);
+        require(_percentageTrading + _percentageStaking == 10_000, "StakingRewards: Invalid Percentage");
         PERCENTAGE_STAKING = _percentageStaking;
         PERCENTAGE_TRADING = _percentageTrading;
+        emit PercentageRewardsSet(_percentageStaking, _percentageTrading);
     }
 
     /**
@@ -296,8 +298,9 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
      * @param newWeeklyStart the number of days to shift
      */
     function setWeeklyStartRewards(uint256 newWeeklyStart) external onlyOwner {
-        require(newWeeklyStart < 7);
+        require(newWeeklyStart < 7, "StakingRewards: Invalid Start");
         weeklyStartRewards = newWeeklyStart;
+        emit WeeklyStartRewardsSet(newWeeklyStart);
     }
 
     /**
