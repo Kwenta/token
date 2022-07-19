@@ -16,7 +16,6 @@ import './interfaces/IStakingRewards.sol';
 
 // https://docs.synthetix.io/contracts/source/contracts/supplyschedule
 contract SupplySchedule is Owned, ISupplySchedule {
-    using SafeMath for uint;
     using SafeDecimalMath for uint;
     using Math for uint;
 
@@ -92,22 +91,22 @@ contract SupplySchedule is Owned, ISupplySchedule {
 
             if (currentWeek < SUPPLY_DECAY_START) {
                 // If current week is before supply decay we add initial supply to mintableSupply
-                totalAmount = totalAmount.add(INITIAL_WEEKLY_SUPPLY);
+                totalAmount = totalAmount + INITIAL_WEEKLY_SUPPLY;
                 remainingWeeksToMint--;
             } else if (currentWeek <= SUPPLY_DECAY_END) {
                 // if current week before supply decay ends we add the new supply for the week
                 // diff between current week and (supply decay start week - 1)
-                uint decayCount = currentWeek.sub(SUPPLY_DECAY_START - 1);
+                uint decayCount = currentWeek - (SUPPLY_DECAY_START - 1);
 
-                totalAmount = totalAmount.add(tokenDecaySupplyForWeek(decayCount));
+                totalAmount = totalAmount + tokenDecaySupplyForWeek(decayCount);
                 remainingWeeksToMint--;
             } else {
                 // Terminal supply is calculated on the total supply of Kwenta including any new supply
                 // We can compound the remaining week's supply at the fixed terminal rate
                 uint totalSupply = IERC20(kwenta).totalSupply();
-                uint currentTotalSupply = totalSupply.add(totalAmount);
+                uint currentTotalSupply = totalSupply + totalAmount;
 
-                totalAmount = totalAmount.add(terminalInflationSupply(currentTotalSupply, remainingWeeksToMint));
+                totalAmount = totalAmount + terminalInflationSupply(currentTotalSupply, remainingWeeksToMint);
                 remainingWeeksToMint = 0;
             }
         }
@@ -122,7 +121,7 @@ contract SupplySchedule is Owned, ISupplySchedule {
     function tokenDecaySupplyForWeek(uint counter) public pure returns (uint) {
         // Apply exponential decay function to number of weeks since
         // start of inflation smoothing to calculate diminishing supply for the week.
-        uint effectiveDecay = (SafeDecimalMath.unit().sub(DECAY_RATE)).powDecimal(counter);
+        uint effectiveDecay = (SafeDecimalMath.unit() - DECAY_RATE).powDecimal(counter);
         uint supplyForWeek = INITIAL_WEEKLY_SUPPLY.multiplyDecimal(effectiveDecay);
 
         return supplyForWeek;
@@ -134,10 +133,10 @@ contract SupplySchedule is Owned, ISupplySchedule {
      */
     function terminalInflationSupply(uint totalSupply, uint numOfWeeks) public pure returns (uint) {
         // rate = (1 + weekly rate) ^ num of weeks
-        uint effectiveCompoundRate = SafeDecimalMath.unit().add(TERMINAL_SUPPLY_RATE_ANNUAL.div(52)).powDecimal(numOfWeeks);
+        uint effectiveCompoundRate = (SafeDecimalMath.unit() + (TERMINAL_SUPPLY_RATE_ANNUAL / 52)).powDecimal(numOfWeeks);
 
         // return Supply * (effectiveRate - 1) for extra supply to issue based on number of weeks
-        return totalSupply.multiplyDecimal(effectiveCompoundRate.sub(SafeDecimalMath.unit()));
+        return totalSupply.multiplyDecimal(effectiveCompoundRate - SafeDecimalMath.unit());
     }
 
     /**
@@ -147,8 +146,8 @@ contract SupplySchedule is Owned, ISupplySchedule {
     function weeksSinceLastIssuance() public view returns (uint) {
         // Get weeks since lastMintEvent
         // If lastMintEvent not set or 0, then start from inflation start date.
-        uint timeDiff = lastMintEvent > 0 ? block.timestamp.sub(lastMintEvent) : block.timestamp.sub(INFLATION_START_DATE);
-        return timeDiff.div(MINT_PERIOD_DURATION);
+        uint timeDiff = lastMintEvent > 0 ? block.timestamp - lastMintEvent : block.timestamp - INFLATION_START_DATE;
+        return timeDiff / MINT_PERIOD_DURATION;
     }
 
     /**
@@ -171,11 +170,11 @@ contract SupplySchedule is Owned, ISupplySchedule {
         uint numberOfWeeksIssued = weeksSinceLastIssuance();
 
         // add number of weeks minted to weekCounter
-        weekCounter = weekCounter.add(numberOfWeeksIssued);
+        weekCounter = weekCounter + numberOfWeeksIssued;
 
         // Update mint event to latest week issued (start date + number of weeks issued * seconds in week)
         // 1 day time buffer is added so inflation is minted after feePeriod closes
-        lastMintEvent = INFLATION_START_DATE.add(weekCounter.mul(MINT_PERIOD_DURATION)).add(MINT_BUFFER);
+        lastMintEvent = INFLATION_START_DATE + (weekCounter * MINT_PERIOD_DURATION) + MINT_BUFFER;
 
         emit SupplyMinted(supplyMinted, numberOfWeeksIssued, lastMintEvent, block.timestamp);
         return true;
