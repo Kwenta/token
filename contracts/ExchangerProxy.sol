@@ -15,6 +15,7 @@ contract ExchangerProxy {
     bytes32 private constant CONTRACT_EXCHANGER = "Exchanger";
     bytes32 private constant CONTRACT_EXRATES = "ExchangeRates";
     bytes32 private constant sUSD_CURRENCY_KEY = "sUSD";
+    bytes32 private constant TRACKING_CODE = "KWENTA";
 
     constructor(address _addressResolver, address _stakingRewards) {
         addressResolver = IAddressResolver(_addressResolver);
@@ -55,8 +56,7 @@ contract ExchangerProxy {
         bytes32 sourceCurrencyKey,
         uint256 sourceAmount,
         bytes32 destinationCurrencyKey,
-        address rewardAddress,
-        bytes32 trackingCode
+        address rewardAddress
     ) external returns (uint256 amountReceived) {
         // Get fee
         (, uint256 fee, ) = exchanger().getAmountsForExchange(
@@ -81,7 +81,7 @@ contract ExchangerProxy {
             sourceAmount,
             destinationCurrencyKey,
             rewardAddress,
-            trackingCode
+            TRACKING_CODE
         );
 
         /// @dev few scenarios where synthetix().exchangeOnBehalfWithTracking() will return 0.
