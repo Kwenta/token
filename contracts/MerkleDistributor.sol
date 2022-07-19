@@ -28,7 +28,7 @@ contract MerkleDistributor is IMerkleDistributor, Owned {
     /// @notice communication between L1 and L2 is enabled by two special
     /// smart contracts called the "messengers" and below is the
     /// address for the messenger on L2
-    address private crossDomainMessengerAddr =
+    address private constant crossDomainMessengerAddr =
         0x4200000000000000000000000000000000000007;
 
     /// @notice this is a packed array of booleans
