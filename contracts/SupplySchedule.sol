@@ -12,7 +12,7 @@ import "./libraries/Math.sol";
 // Internal references
 import "./interfaces/IERC20.sol";
 import "./interfaces/IKwenta.sol";
-import './interfaces/IStakingRewards.sol';
+import "./interfaces/IStakingRewards.sol";
 
 // https://docs.synthetix.io/contracts/source/contracts/supplyschedule
 contract SupplySchedule is Owned, ISupplySchedule {
@@ -58,6 +58,33 @@ contract SupplySchedule is Owned, ISupplySchedule {
     address immutable treasuryDAO;
     IStakingRewards public stakingRewards;
 
+    /* ========== EVENTS ========== */
+    
+    /**
+     * @notice Emitted when the inflationary supply is minted
+     * */
+    event SupplyMinted(uint supplyMinted, uint numberOfWeeksIssued, uint lastMintEvent);
+
+    /**
+     * @notice Emitted when the KWENTA minter reward amount is updated
+     * */
+    event MinterRewardUpdated(uint newRewardAmount);
+
+    /**
+     * @notice Emitted when setKwenta is called changing the Kwenta Proxy address
+     * */
+    event KwentaUpdated(address newAddress);
+
+    /**
+     * @notice Emitted when setKwenta is called changing the Kwenta Proxy address
+     * */
+    event TreasuryDiversionUpdated(uint newPercentage);
+
+    /**
+     * @notice Emitted when setKwenta is called changing the Kwenta Proxy address
+     * */
+    event StakingRewardsUpdated(address newAddress);
+
     constructor(
         address _owner,
         address _treasuryDAO
@@ -86,7 +113,7 @@ contract SupplySchedule is Owned, ISupplySchedule {
         uint currentWeek = weekCounter;
 
         // Calculate total mintable supply from exponential decay function
-        // The decay function stops after week 234
+        // The decay function stops after week 208
         while (remainingWeeksToMint > 0) {
             currentWeek++;
 
@@ -146,8 +173,7 @@ contract SupplySchedule is Owned, ISupplySchedule {
      */
     function weeksSinceLastIssuance() public view returns (uint) {
         // Get weeks since lastMintEvent
-        // If lastMintEvent not set or 0, then start from inflation start date.
-        uint timeDiff = lastMintEvent > 0 ? block.timestamp.sub(lastMintEvent) : block.timestamp.sub(INFLATION_START_DATE);
+        uint timeDiff = block.timestamp.sub(lastMintEvent);
         return timeDiff.div(MINT_PERIOD_DURATION);
     }
 
@@ -177,7 +203,7 @@ contract SupplySchedule is Owned, ISupplySchedule {
         // 1 day time buffer is added so inflation is minted after feePeriod closes
         lastMintEvent = INFLATION_START_DATE.add(weekCounter.mul(MINT_PERIOD_DURATION)).add(MINT_BUFFER);
 
-        emit SupplyMinted(supplyMinted, numberOfWeeksIssued, lastMintEvent, block.timestamp);
+        emit SupplyMinted(supplyMinted, numberOfWeeksIssued, lastMintEvent);
         return true;
     }
 
@@ -237,46 +263,8 @@ contract SupplySchedule is Owned, ISupplySchedule {
     }
 
     function setStakingRewards(address _stakingRewards) override external onlyOwner {
+        require(_stakingRewards != address(0), "SupplySchedule: Invalid Address");
         stakingRewards = IStakingRewards(_stakingRewards);
         emit StakingRewardsUpdated(_stakingRewards);
     }
-
-    // ========== MODIFIERS ==========
-
-    /**
-     * @notice Only the Kwenta contract is authorised to call this function
-     * */
-    modifier onlyKwenta() {
-        require(
-            msg.sender == address(kwenta),
-            "Only the kwenta contract can perform this action"
-        );
-        _;
-    }
-
-    /* ========== EVENTS ========== */
-    /**
-     * @notice Emitted when the inflationary supply is minted
-     * */
-    event SupplyMinted(uint supplyMinted, uint numberOfWeeksIssued, uint lastMintEvent, uint timestamp);
-
-    /**
-     * @notice Emitted when the KWENTA minter reward amount is updated
-     * */
-    event MinterRewardUpdated(uint newRewardAmount);
-
-    /**
-     * @notice Emitted when setKwenta is called changing the Kwenta Proxy address
-     * */
-    event KwentaUpdated(address newAddress);
-
-    /**
-     * @notice Emitted when setKwenta is called changing the Kwenta Proxy address
-     * */
-    event TreasuryDiversionUpdated(uint newPercentage);
-
-    /**
-     * @notice Emitted when setKwenta is called changing the Kwenta Proxy address
-     * */
-    event StakingRewardsUpdated(address newAddress);
 }

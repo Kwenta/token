@@ -1,6 +1,8 @@
+import { FakeContract, smock } from '@defi-wonderland/smock';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { BigNumber, Contract } from 'ethers';
 import { ethers, upgrades } from 'hardhat';
+import { ISynthetix } from '../../typechain/ISynthetix';
 import { mockAddressResolver } from '../utils/mockAddressResolver';
 
 // core contracts
@@ -10,6 +12,8 @@ let rewardEscrow: Contract;
 let stakingRewardsProxy: Contract;
 let exchangerProxy: Contract;
 
+// mocking
+let fakeSynthetix: FakeContract<ISynthetix>;
 
 /**
  * Deploys core contracts
@@ -123,8 +127,18 @@ export const deployKwenta = async (
 	// set StakingRewards address in RewardEscrow
 	await rewardEscrow.setStakingRewards(stakingRewardsProxy.address);
 
+	//// Mock Synthetix
+	fakeSynthetix = await smock.fake<ISynthetix>('ISynthetix');
+	fakeSynthetix.exchangeOnBehalfWithTracking.returns(1);
+
 	// Mock AddressResolver
 	const fakeAddressResolver = await mockAddressResolver();
+	fakeAddressResolver.requireAndGetAddress
+			.whenCalledWith(
+				ethers.utils.formatBytes32String('Synthetix'),
+				'Could not get Synthetix'
+			)
+			.returns(fakeSynthetix.address);	
 
 	// deploy ExchangerProxy
 	const ExchangerProxy = await ethers.getContractFactory('ExchangerProxy');
