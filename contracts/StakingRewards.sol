@@ -80,8 +80,10 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     // Save the rewardScore per address
     mapping(address => uint256) private _rewardScores;
     // Division of rewards between staking and trading
-    uint256 public PERCENTAGE_STAKING;
-    uint256 public PERCENTAGE_TRADING;
+
+    /// @dev s refers to state variable (see)
+    uint256 public percentageStaking;
+    uint256 public percentageTrading;
     
     // Decimals calculations
     uint256 private constant MAX_BPS = 10_000;
@@ -135,8 +137,8 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
         rewardEscrow = RewardEscrow(_rewardEscrow);
         supplySchedule = ISupplySchedule(_supplySchedule);
 
-        PERCENTAGE_STAKING = 8_000;
-        PERCENTAGE_TRADING = 2_000;
+        percentageStaking = 8_000;
+        percentageTrading = 2_000;
 
         WEIGHT_STAKING = 3e17;
         WEIGHT_FEES = 7e17;
@@ -279,8 +281,8 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
      */
     function setPercentageRewards(uint256 _percentageStaking, uint256 _percentageTrading) override external onlyOwner {
         require(_percentageTrading + _percentageStaking == 10_000, "StakingRewards: Invalid Percentage");
-        PERCENTAGE_STAKING = _percentageStaking;
-        PERCENTAGE_TRADING = _percentageTrading;
+        percentageStaking = _percentageStaking;
+        percentageTrading = _percentageTrading;
         emit PercentageRewardsSet(_percentageStaking, _percentageTrading);
     }
 
@@ -466,8 +468,8 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
             rewardRate = reward + (leftover / WEEK);
         }
 
-        rewardRateStaking = rewardRate * PERCENTAGE_STAKING / MAX_BPS;
-        rewardRateTrading = rewardRate * PERCENTAGE_TRADING / MAX_BPS;
+        rewardRateStaking = rewardRate * percentageStaking / MAX_BPS;
+        rewardRateTrading = rewardRate * percentageTrading / MAX_BPS;
 
         lastUpdateTime = block.timestamp;
         periodFinish = block.timestamp + WEEK;
