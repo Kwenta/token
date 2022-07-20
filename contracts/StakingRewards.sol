@@ -103,9 +103,9 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     uint256 public percentageTrading;
     
     // Needs to be int256 for power library, root to calculate is equal to 0.7
-    int256 public WEIGHT_FEES;
+    int256 public constant WEIGHT_FEES = 7e17;
     // Needs to be int256 for power library, root to calculate is equal to 0.3
-    int256 public WEIGHT_STAKING;
+    int256 public constant WEIGHT_STAKING = 3e17;
 
     /* ========== EVENTS ========== */
 
@@ -145,9 +145,6 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
 
         percentageStaking = 8_000;
         percentageTrading = 2_000;
-
-        WEIGHT_STAKING = 3e17;
-        WEIGHT_FEES = 7e17;
 
         weeklyStartRewards = _weeklyStartRewards;
     }
@@ -552,51 +549,36 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
      * @notice access control modifier for exchanger proxy
      */
     modifier onlyExchangerProxy() {
-        _onlyExchangerProxy();
+        // solhint-disable-next-line
+        require(
+            msg.sender == address(exchangerProxy),
+            "StakingRewards: Only Exchanger Proxy"
+        );
         _;
-    }
-
-    /*
-     * @notice internal function used in the modifier with the same name to optimize bytecode
-     */
-    function _onlyExchangerProxy() internal view {
-        bool isEP = msg.sender == address(exchangerProxy);
-
-        require(isEP);
     }
 
     /*
      * @notice access control modifier for rewardEscrow
      */
     modifier onlyRewardEscrow() {
-        _onlyRewardEscrow();
+        // solhint-disable-next-line
+        require(
+            msg.sender == address(rewardEscrow),
+            "StakingRewards: Only Reward Escrow"
+        );
         _;
-    }
-
-    /*
-     * @notice internal function used in the modifier with the same name to optimize bytecode
-     */
-    function _onlyRewardEscrow() internal view {
-        bool isRE = msg.sender == address(rewardEscrow);
-
-        require(isRE);
     }
 
     /*
      * @notice access control modifier for rewardEscrow
      */
     modifier onlySupplySchedule() {
-        _onlySupplySchedule();
+        // solhint-disable-next-line
+        require(
+            msg.sender == address(supplySchedule),
+            "StakingRewards: Only Supply Schedule"
+        );
         _;
-    }
-
-    /*
-     * @notice internal function used in the modifier with the same name to optimize bytecode
-     */
-    function _onlySupplySchedule() internal view {
-        bool isSS = msg.sender == address(supplySchedule);
-
-        require(isSS);
     }
 
     /* ========== PROXY FUNCTIONS ========== */
