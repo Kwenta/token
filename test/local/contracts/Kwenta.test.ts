@@ -52,7 +52,7 @@ describe("KWENTA Token", function () {
 
     it("Cannot mint from address other than supply schedule", async () => {
         await expect(kwenta.mint(owner.address, 100)).to.be.revertedWith(
-            "Only SupplySchedule can perform this action"
+            'Kwenta: Only SupplySchedule can perform this action'
         );
     });
 

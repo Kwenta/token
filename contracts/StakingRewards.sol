@@ -28,6 +28,23 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     using FixidityLib for FixidityLib.Fixidity;
     using ExponentLib for FixidityLib.Fixidity;
 
+    /* ========== CONSTANTS ========== */
+
+    /// @notice decimals calculations
+    uint256 private constant MAX_BPS = 10_000;
+    uint256 private constant DECIMALS_DIFFERENCE = 1e30;
+
+    /// @notice constant to return the reward scores with the correct decimal precision
+    uint256 private constant TOKEN_DECIMALS = 1e18;
+
+    /// @notice time constants
+    uint256 private constant DAY = 1 days;
+    uint256 private constant WEEK = 7 days;
+
+    /// @notice safety constants
+    uint256 public constant STAKING_SAFETY_MINIMUM = 1e4;
+    uint256 public constant FEES_PAID_SAFETY_MINIMUM = 1e12;
+
     /* ========== STATE VARIABLES ========== */
 
     FixidityLib.Fixidity private fixidity;
@@ -85,21 +102,10 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     uint256 public percentageStaking;
     uint256 public percentageTrading;
     
-    // Decimals calculations
-    uint256 private constant MAX_BPS = 10_000;
-    uint256 private constant DECIMALS_DIFFERENCE = 1e30;
-    // Constant to return the reward scores with the correct decimal precision
-    uint256 private constant TOKEN_DECIMALS = 1e18;
     // Needs to be int256 for power library, root to calculate is equal to 0.7
     int256 public WEIGHT_FEES;
     // Needs to be int256 for power library, root to calculate is equal to 0.3
     int256 public WEIGHT_STAKING;
-    // Time constants
-    uint256 private constant DAY = 1 days;
-    uint256 private constant WEEK = 7 days;
-
-    uint256 public constant STAKING_SAFETY_MINIMUM = 1e4;
-    uint256 public constant FEES_PAID_SAFETY_MINIMUM = 1e12;
 
     /* ========== EVENTS ========== */
 

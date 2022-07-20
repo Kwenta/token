@@ -426,7 +426,7 @@ contract(
                     );
                 });
                 it("should revert appending a vesting entry if the duration is > max_duration", async () => {
-                    duration = (await rewardsEscrow.max_duration()).add(
+                    duration = (await rewardsEscrow.MAX_DURATION()).add(
                         toUnit(1)
                     );
 
@@ -573,7 +573,7 @@ contract(
                 duration = 1 * YEAR;
             });
             it("should revert if escrow duration is greater than max_duration", async () => {
-                const maxDuration = await rewardsEscrow.max_duration();
+                const maxDuration = await rewardsEscrow.MAX_DURATION();
                 await assert.revert(
                     rewardsEscrow.createEscrowEntry(
                         staker1,
