@@ -313,7 +313,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
         _reduceAccountEscrowBalances(_account, _amount);
         totalVestedAccountBalance[_account] += _amount;
         IERC20(address(kwenta)).transfer(_account, _amount);
-        emit Vested(_account, block.timestamp, _amount);
+        emit Vested(_account, _amount);
     }
 
     function _reduceAccountEscrowBalances(address _account, uint256 _amount) internal {
@@ -355,6 +355,6 @@ contract RewardEscrow is Owned, IRewardEscrow {
         /* Increment the next entry id. */
         nextEntryId++;
 
-        emit VestingEntryCreated(account, block.timestamp, quantity, duration, entryID);
+        emit VestingEntryCreated(account, quantity, duration, entryID);
     }
 }
