@@ -1,5 +1,5 @@
-pragma solidity >=0.4.24;
-pragma experimental ABIEncoderV2;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
 
 library VestingEntries {
     struct VestingEntry {
@@ -16,6 +16,8 @@ library VestingEntries {
 
 interface IRewardEscrow {
     // Views
+    function getKwentaAddress() external view returns (address);
+
     function balanceOf(address account) external view returns (uint);
 
     function numVestingEntries(address account) external view returns (uint);
