@@ -22,7 +22,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
     /* Max escrow duration */
     uint public constant MAX_DURATION = 2 * 52 weeks; // Default max 2 years duration
 
-    IKwenta public immutable kwenta;
+    IKwenta private immutable kwenta;
 
     /* ========== STATE VARIABLES ========== */
 
@@ -78,6 +78,13 @@ contract RewardEscrow is Owned, IRewardEscrow {
     }
 
     /* ========== VIEW FUNCTIONS ========== */
+
+    /**
+     * @notice helper function to return kwenta address
+     */
+    function getKwentaAddress() override external view returns (address) {
+        return address(kwenta);
+    }
 
     /**
      * @notice A simple alias to totalEscrowedAccountBalance: provides ERC20 balance integration.

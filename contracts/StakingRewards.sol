@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-// Import necessary contracts for math operations and Token handling
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
@@ -9,13 +8,9 @@ import "./libraries/FixidityLib.sol";
 import "./libraries/ExponentLib.sol";
 import "./libraries/LogarithmLib.sol";
 import "./interfaces/IStakingRewards.sol";
-// Import SupplySchedule interface for access control of setReward
 import "./interfaces/ISupplySchedule.sol";
-
-// Inheritance
+import "./interfaces/IRewardEscrow.sol";
 import "./utils/Pausable.sol";
-// Import RewardEscrow contract for Escrow interactions
-import "./RewardEscrow.sol";
 
 /*
     StakingRewards contract for Kwenta responsible for:
@@ -50,7 +45,7 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     FixidityLib.Fixidity private fixidity;
 
     // Reward Escrow
-    RewardEscrow public rewardEscrow;
+    IRewardEscrow public rewardEscrow;
 
     // Supply Schedule
     ISupplySchedule public supplySchedule;
@@ -140,7 +135,7 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
         stakingToken = IERC20(_stakingToken);
         fixidity.init(18);
 
-        rewardEscrow = RewardEscrow(_rewardEscrow);
+        rewardEscrow = IRewardEscrow(_rewardEscrow);
         supplySchedule = ISupplySchedule(_supplySchedule);
 
         percentageStaking = 8_000;
@@ -500,11 +495,12 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
      * @param address of the rewardEsxrow contract to use
      */
     function setRewardEscrow(address _rewardEscrow) external onlyOwner {
+        // solhint-disable-next-line
         require(
-            address(RewardEscrow(_rewardEscrow).kwenta()) == address(stakingToken), 
+            IRewardEscrow(_rewardEscrow).getKwentaAddress() == address(stakingToken), 
             "staking token address not equal to RewardEscrow KWENTA address"
         );
-        rewardEscrow = RewardEscrow(_rewardEscrow);
+        rewardEscrow = IRewardEscrow(_rewardEscrow);
         emit RewardEscrowUpdated(address(_rewardEscrow));
     }
 
