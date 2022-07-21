@@ -512,6 +512,7 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
      * @param address of the exchanger proxy to use
      */
     function setExchangerProxy(address _exchangerProxy) external onlyOwner {
+        require(_exchangerProxy != address(0), "StakingRewards: Invalid Address");
         exchangerProxy = _exchangerProxy;
         emit ExchangerProxyUpdated(_exchangerProxy);
     }
