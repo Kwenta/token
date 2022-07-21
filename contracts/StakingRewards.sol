@@ -404,7 +404,7 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
      * @notice Function transferring the accumulated rewards for the caller address and updating the state mapping 
      * containing the current rewards
      */
-    function getReward() override public updateRewards(msg.sender) nonReentrant {
+    function getRewards() override public updateRewards(msg.sender) nonReentrant {
         uint256 reward = rewards[msg.sender];
         if (reward > 0) {
             rewards[msg.sender] = 0;
@@ -423,7 +423,7 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
      */
     function exit() override external {
         unstake(stakedBalanceOf(msg.sender));
-        getReward();
+        getRewards();
     }
 
     /*

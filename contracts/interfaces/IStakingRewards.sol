@@ -34,7 +34,7 @@ interface IStakingRewards {
 
     function exit() external;
 
-    function getReward() external;
+    function getRewards() external;
 
     function stake(uint256 amount) external;
 
