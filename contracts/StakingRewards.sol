@@ -129,9 +129,6 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
 
         __ReentrancyGuard_init();
 
-        periodFinish = 0;
-        rewardRate = 0;
-
         stakingToken = IERC20(_stakingToken);
         fixidity.init(18);
 
