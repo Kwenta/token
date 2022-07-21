@@ -15,7 +15,7 @@ import "./utils/Pausable.sol";
 /*
     StakingRewards contract for Kwenta responsible for:
     - Staking KWENTA tokens
-    - Withdrawing KWENTA tokens
+    - Unstaking KWENTA tokens
     - Updating staker and trader scores
     - Calculating and notifying rewards
 */
@@ -106,7 +106,7 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
 
     event RewardAdded(uint256 reward);
     event Staked(address indexed user, uint256 amount);
-    event Withdrawn(address indexed user, uint256 amount);
+    event Unstaked(address indexed user, uint256 amount);
     event RewardPaid(address indexed user, uint256 reward);
     event Recovered(address token, uint256 amount);
     event EscrowStaked(address account, uint256 amount);
@@ -366,32 +366,38 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
 
 
     /*
-     * @notice Function staking the requested tokens by the user.
+     * @notice stake the requested tokens by the user
      * @param _amount: uint256, containing the number of tokens to stake
      */
     function stake(uint256 _amount) override external nonReentrant notPaused updateRewards(msg.sender) {
-        require(_amount > 0);
+        require(_amount > 0, "StakingRewards: Cannot Stake 0");
+
         // Update caller balance
         _totalBalances[msg.sender] += _amount;
         _totalSupply += _amount;
+
         updateRewardScore(msg.sender, _rewardScores[msg.sender]);
         stakingToken.transferFrom(msg.sender, address(this), _amount);
+
         emit Staked(msg.sender, _amount);
     }
 
     /*
-     * @notice Function withdrawing the requested tokens by the user.
+     * @notice unstake and withdraw the requested tokens by the user
      * @param _amount: uint256, containing the number of tokens to stake
      */
-    function withdraw(uint256 _amount) override public nonReentrant updateRewards(msg.sender) {
-        require(_amount > 0, "Cannot withdraw 0");
-        require(stakedBalanceOf(msg.sender) >= _amount);
+    function unstake(uint256 _amount) override public nonReentrant updateRewards(msg.sender) {
+        require(_amount > 0, "StakingRewards: Cannot Unstake 0");
+        require(stakedBalanceOf(msg.sender) >= _amount, "StakingRewards: Invalid Amount");
+
         // Update caller balance
         _totalBalances[msg.sender] -= _amount;
         _totalSupply -=  _amount;
+
         updateRewardScore(msg.sender, _rewardScores[msg.sender]);
         stakingToken.transfer(msg.sender, _amount);
-        emit Withdrawn(msg.sender, _amount);
+
+        emit Unstaked(msg.sender, _amount);
     }
 
     /*
@@ -412,11 +418,11 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
 
     /*
      * @notice Function handling the exit of the protocol of the caller:
-     * - Withdraws all tokens
+     * - Unstake and withdraw all tokens
      * - Transfers all rewards to caller's address
      */
     function exit() override external {
-        withdraw(stakedBalanceOf(msg.sender));
+        unstake(stakedBalanceOf(msg.sender));
         getReward();
     }
 

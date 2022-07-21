@@ -240,26 +240,26 @@ describe('stake()', async () => {
     });
 });
 
-describe('withdraw()', async () => {
+describe('unstake()', async () => {
     it('fails with zero amounts', async () => {
-        await stProxy.connect(staker1).withdraw(0).should.be.rejected;
+        await stProxy.connect(staker1).unstake(0).should.be.rejected;
     });
     it('fails with amounts too large', async () => {
-        await stProxy.connect(staker1).withdraw(toUnit(100)).should.be.rejected;
+        await stProxy.connect(staker1).unstake(toUnit(100)).should.be.rejected;
     });
-    it('fails when withdrawing results in a balance below safety limit', async () => {
+    it('fails when unstaking results in a balance below safety limit', async () => {
         const stakingMinimum = await stProxy.STAKING_SAFETY_MINIMUM();
         const stakedAmount = await stProxy.totalBalanceOf(staker1.address);
         const invalidWithdrawalAmount = stakedAmount.sub(stakingMinimum).add(1);
-        await stProxy.connect(staker1).withdraw(invalidWithdrawalAmount).should
+        await stProxy.connect(staker1).unstake(invalidWithdrawalAmount).should
             .be.rejected;
     });
-    it('withdraws the correct amount', async () => {
-        await stProxy.connect(staker1).withdraw(toUnit(15));
+    it('unstakes the correct amount', async () => {
+        await stProxy.connect(staker1).unstake(toUnit(15));
         let bal = await stProxy.stakedBalanceOf(staker1.address);
         assert.equal(bal, 0, 'Incorrect amount');
 
-        await stProxy.connect(staker2).withdraw(toUnit(50));
+        await stProxy.connect(staker2).unstake(toUnit(50));
         bal = await stProxy.stakedBalanceOf(staker2.address);
         assert.equal(bal, 0, 'Incorrect amount');
     });
@@ -603,11 +603,11 @@ describe('implementation test', () => {
 
         await fastForward(3 * DAY);
 
-        await stProxy.connect(staker1).withdraw(toUnit(5));
+        await stProxy.connect(staker1).unstake(toUnit(5));
 
         await fastForward(3 * DAY);
 
-        await stProxy.connect(staker2).withdraw(toUnit(10));
+        await stProxy.connect(staker2).unstake(toUnit(10));
 
         await fastForward(1 * DAY);
 

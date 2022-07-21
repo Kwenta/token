@@ -68,7 +68,7 @@ const loadSetup = () => {
 describe('Stake', () => {
 	describe('Regular staking', async () => {
 		loadSetup();
-		it('Stake and withdraw all', async () => {
+		it('Stake and then unstake all', async () => {
 			// initial balance should be 0
 			expect(await kwenta.balanceOf(addr1.address)).to.equal(0);
 
@@ -91,8 +91,8 @@ describe('Stake', () => {
 					.stakedBalanceOf(addr1.address)
 			).to.equal(TEST_VALUE);
 
-			// withdraw ALL KWENTA staked
-			await stakingRewardsProxy.connect(addr1).withdraw(TEST_VALUE);
+			// unstake ALL KWENTA staked
+			await stakingRewardsProxy.connect(addr1).unstake(TEST_VALUE);
 			expect(await kwenta.balanceOf(addr1.address)).to.equal(TEST_VALUE);
 			expect(
 				await stakingRewardsProxy
