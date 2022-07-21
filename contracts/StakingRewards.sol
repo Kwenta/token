@@ -433,7 +433,16 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
      * @param _account: address escrowing the rewards
      * @param _amount: uint256, amount escrowed
      */
-    function stakeEscrow(address _account, uint256 _amount) override public onlyRewardEscrow updateRewards(_account) {
+    function stakeEscrow(
+        address _account, 
+        uint256 _amount
+    ) 
+        override 
+        public 
+        notPaused 
+        onlyRewardEscrow 
+        updateRewards(_account) 
+    {
         _totalBalances[_account] +=  _amount;
         _totalSupply +=  _amount;
         _escrowedBalances[_account] +=  _amount;
