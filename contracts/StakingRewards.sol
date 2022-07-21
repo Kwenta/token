@@ -30,7 +30,7 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     uint256 private constant DECIMALS_DIFFERENCE = 1e30;
 
     /// @notice constant to return the reward scores with the correct decimal precision
-    uint256 private constant TOKEN_DECIMALS = 1e18;
+    uint256 private constant UNIT = 1e18;
 
     /// @notice time constants
     uint256 private constant DAY = 1 days;
@@ -154,7 +154,7 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
      * @return sum of all rewardScores
      */
     function totalRewardScore() override public view returns (uint256) {
-        return _totalRewardScore / TOKEN_DECIMALS;
+        return _totalRewardScore / UNIT;
     }
 
     /*
@@ -175,7 +175,7 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
      * @return reward score of specified account
      */
     function rewardScoreOf(address account) override external view returns (uint256) {
-        return _rewardScores[account] / TOKEN_DECIMALS;
+        return _rewardScores[account] / UNIT;
     }
 
     /*
