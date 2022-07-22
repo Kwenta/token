@@ -58,6 +58,18 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     // Time handling:
     // Time where new reward epoch finishes 
     uint256 public periodFinish;
+    /**
+     * @notice Day of the week the reward epochs start
+     * @dev As UNIX times started on a Thursday (January 1st 1970), shift n days as necessary, e.g. to start
+     * on a Monday go 3 days prior (Wednesday, Tuesday, Monday), the remaining options are:
+     * Friday: 6
+     * Saturday: 5
+     * Sunday: 4 
+     * Monday: 3
+     * Tuesday: 2
+     * Wednesday: 1
+     * Thursday: 0
+     */
     uint256 public weeklyStartRewards;
     // Reward rate per second for next epoch
     uint256 public rewardRate;
@@ -352,25 +364,6 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
         percentageStaking = _percentageStaking;
         percentageTrading = _percentageTrading;
         emit PercentageRewardsSet(_percentageStaking, _percentageTrading);
-    }
-
-    /**
-     * @notice Set the day of the week the reward epochs start
-     * @dev As UNIX times started on a Thursday (January 1st 1970), shift n days as necessary, e.g. to start
-     * on a Monday go 3 days prior (Wednesday, Tuesday, Monday), the remaining options are:
-     * Friday: 6
-     * Saturday: 5
-     * Sunday: 4 
-     * Monday: 3
-     * Tuesday: 2
-     * Wednesday: 1
-     * Thursday: 0
-     * @param newWeeklyStart the number of days to shift
-     */
-    function setWeeklyStartRewards(uint256 newWeeklyStart) external onlyOwner {
-        require(newWeeklyStart < 7, "StakingRewards: Invalid Start");
-        weeklyStartRewards = newWeeklyStart;
-        emit WeeklyStartRewardsSet(newWeeklyStart);
     }
 
     /**
