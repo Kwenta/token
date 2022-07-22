@@ -169,10 +169,10 @@ before(async () => {
 
     await kwentaToken
         .connect(treasuryDAO)
-        .transfer(staker1.address, toUnit(100));
+        .transfer(staker1.address, toUnit(1000));
     await kwentaToken
         .connect(treasuryDAO)
-        .transfer(staker2.address, toUnit(100));
+        .transfer(staker2.address, toUnit(1000));
 });
 
 describe('Proxy deployment', async () => {
@@ -330,6 +330,42 @@ describe('rewardPerToken()', () => {
         await stProxy.connect(owner).setRewardEscrow(rewardsEscrow.address);
 
         assertBNEqual(await stProxy.rewardPerToken(), 0);
+    });
+
+    it("staking a small amount before setting rewards throws off next value", async () => {
+        await kwentaToken
+            .connect(staker1)
+            .approve(stProxy.address, 10000);
+        await kwentaToken
+            .connect(staker2)
+            .approve(stProxy.address, toUnit(100));
+
+        await kwentaToken
+            .connect(treasuryDAO)
+            .transfer(stProxy.address, toUnit(100));
+
+        // Stake staker1
+        await stProxy.connect(staker1).stake(10000);
+        console.log(`Staking ${ethers.utils.formatEther(10000)} from staker1`)
+
+        // setRewards
+        await stProxy.connect(supplySchedule).setRewards(toUnit(100));
+        console.log(`setRewards(100e18)`)
+        
+        // Stake staker 2
+        await stProxy.connect(staker2).stake(toUnit(100));
+        console.log(`Staking ${100} from staker2`)
+        console.log(`Fast forward a week`)
+        
+        // ff
+        await fastForward(WEEK);
+
+        // Check values
+        const earned1 = await stProxy.earned(staker1.address)
+        const earned2 = await stProxy.earned(staker2.address)
+
+        console.log(`earned (staker 1): ${ethers.utils.formatEther(earned1)}`)
+        console.log(`earned (staker 2): ${ethers.utils.formatEther(earned2)}`)
     });
 
     it('should be > 0', async () => {
