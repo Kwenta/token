@@ -321,18 +321,14 @@ describe('lastTimeRewardApplicable()', () => {
     });
 });
 
-describe('rewardPerToken()', () => {
-    it('should return 0', async () => {
+describe('staking before setRewards() edge case', () => {
+    it("staking a small amount before setting rewards throws off next value", async () => {
         StakingRewards = await deployContract();
         stProxy = await deployProxy();
 
         await stProxy.connect(owner).setExchangerProxy(exchangerProxy.address);
         await stProxy.connect(owner).setRewardEscrow(rewardsEscrow.address);
 
-        assertBNEqual(await stProxy.rewardPerToken(), 0);
-    });
-
-    it("staking a small amount before setting rewards throws off next value", async () => {
         await kwentaToken
             .connect(staker1)
             .approve(stProxy.address, 10000);
@@ -366,6 +362,18 @@ describe('rewardPerToken()', () => {
 
         console.log(`earned (staker 1): ${ethers.utils.formatEther(earned1)}`)
         console.log(`earned (staker 2): ${ethers.utils.formatEther(earned2)}`)
+    });
+});
+
+describe('rewardPerToken()', () => {
+    it('should return 0', async () => {
+        StakingRewards = await deployContract();
+        stProxy = await deployProxy();
+
+        await stProxy.connect(owner).setExchangerProxy(exchangerProxy.address);
+        await stProxy.connect(owner).setRewardEscrow(rewardsEscrow.address);
+
+        assertBNEqual(await stProxy.rewardPerToken(), 0);
     });
 
     it('should be > 0', async () => {

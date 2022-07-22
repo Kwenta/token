@@ -116,6 +116,79 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     event WeeklyStartRewardsSet(uint256 newWeeklyStart);
     event PercentageRewardsSet(uint256 percentageStaking, uint256 percentageTrading);
 
+    /* ========== MODIFIERS ========== */
+
+    /*
+     * @notice Modifier called each time an event changing the trading score is updated:
+     * - update trader score
+     * - notify reward amount
+     * The modifier saves the state of the reward rate per fee until this point for the specific 
+     * address to be able to calculate the marginal contribution to rewards afterwards and adds the accumulated
+     * rewards since the last change to the account rewards
+     * @param address to update rewards to
+     */  
+    modifier updateRewards(address account) {
+        _updateRewards(account);
+        _;
+    }
+
+    /*
+     * @notice internal function used in the modifier with the same name to optimize bytecode
+     */
+    function _updateRewards(address account) internal {
+        // Calculate the reward per unit of reward score applicable to the last stint of account
+        rewardPerTokenStored = rewardPerToken();
+        // Calculate if the epoch is finished or not
+        lastUpdateTime = lastTimeRewardApplicable();
+        updateRewardEpoch();
+        if (account != address(0)) {
+            // Add the rewards added during the last stint
+            rewards[account] = earned(account);
+            // Reset the reward score as we have already paid these trading rewards
+            if (lastTradeUserEpoch[msg.sender] < currentEpoch) {
+                _rewardScores[msg.sender] = 0;
+            }
+            // Reset the reward per token as we have already paid these staking rewards
+            userRewardPerTokenPaid[account] = rewardPerTokenStored;
+        }
+    }
+
+    /*
+     * @notice access control modifier for exchanger proxy
+     */
+    modifier onlyExchangerProxy() {
+        // solhint-disable-next-line
+        require(
+            msg.sender == address(exchangerProxy),
+            "StakingRewards: Only Exchanger Proxy"
+        );
+        _;
+    }
+
+    /*
+     * @notice access control modifier for rewardEscrow
+     */
+    modifier onlyRewardEscrow() {
+        // solhint-disable-next-line
+        require(
+            msg.sender == address(rewardEscrow),
+            "StakingRewards: Only Reward Escrow"
+        );
+        _;
+    }
+
+    /*
+     * @notice access control modifier for rewardEscrow
+     */
+    modifier onlySupplySchedule() {
+        // solhint-disable-next-line
+        require(
+            msg.sender == address(supplySchedule),
+            "StakingRewards: Only Supply Schedule"
+        );
+        _;
+    }
+
     /* ========== INITIALIZER ========== */
     
     function initialize(
@@ -364,7 +437,6 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
 
     }
 
-
     /*
      * @notice stake the requested tokens by the user
      * @param _amount: uint256, containing the number of tokens to stake
@@ -517,86 +589,10 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
         emit ExchangerProxyUpdated(_exchangerProxy);
     }
 
-    /* ========== MODIFIERS ========== */
-
-    /*
-     * @notice Modifier called each time an event changing the trading score is updated:
-     * - update trader score
-     * - notify reward amount
-     * The modifier saves the state of the reward rate per fee until this point for the specific 
-     * address to be able to calculate the marginal contribution to rewards afterwards and adds the accumulated
-     * rewards since the last change to the account rewards
-     * @param address to update rewards to
-     */  
-    modifier updateRewards(address account) {
-        _updateRewards(account);
-        _;
-    }
-
-    /*
-     * @notice internal function used in the modifier with the same name to optimize bytecode
-     */
-    function _updateRewards(address account) internal {
-        // Calculate the reward per unit of reward score applicable to the last stint of account
-        rewardPerTokenStored = rewardPerToken();
-        // Calculate if the epoch is finished or not
-        lastUpdateTime = lastTimeRewardApplicable();
-        updateRewardEpoch();
-        if (account != address(0)) {
-            // Add the rewards added during the last stint
-            rewards[account] = earned(account);
-            // Reset the reward score as we have already paid these trading rewards
-            if (lastTradeUserEpoch[msg.sender] < currentEpoch) {
-                _rewardScores[msg.sender] = 0;
-            }
-            // Reset the reward per token as we have already paid these staking rewards
-            userRewardPerTokenPaid[account] = rewardPerTokenStored;
-        }
-    }
-
-    /*
-     * @notice access control modifier for exchanger proxy
-     */
-    modifier onlyExchangerProxy() {
-        // solhint-disable-next-line
-        require(
-            msg.sender == address(exchangerProxy),
-            "StakingRewards: Only Exchanger Proxy"
-        );
-        _;
-    }
-
-    /*
-     * @notice access control modifier for rewardEscrow
-     */
-    modifier onlyRewardEscrow() {
-        // solhint-disable-next-line
-        require(
-            msg.sender == address(rewardEscrow),
-            "StakingRewards: Only Reward Escrow"
-        );
-        _;
-    }
-
-    /*
-     * @notice access control modifier for rewardEscrow
-     */
-    modifier onlySupplySchedule() {
-        // solhint-disable-next-line
-        require(
-            msg.sender == address(supplySchedule),
-            "StakingRewards: Only Supply Schedule"
-        );
-        _;
-    }
-
     /* ========== PROXY FUNCTIONS ========== */
     
     /*
      * @notice Necessary override for Open Zeppelin UUPS proxy to make sure the owner logic is included
      */
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {
-
-    }
-
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 }
