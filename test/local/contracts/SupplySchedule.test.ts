@@ -115,7 +115,7 @@ describe("SupplySchedule", () => {
 
         decayRate = await supplySchedule.DECAY_RATE();
         inflationStartDate = (
-            await supplySchedule.INFLATION_START_DATE()
+            await supplySchedule.inflationStartDate()
         ).toNumber();
     });
 

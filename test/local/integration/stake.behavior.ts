@@ -68,7 +68,7 @@ const loadSetup = () => {
 describe('Stake', () => {
 	describe('Regular staking', async () => {
 		loadSetup();
-		it('Stake and withdraw all', async () => {
+		it('Stake and then unstake all', async () => {
 			// initial balance should be 0
 			expect(await kwenta.balanceOf(addr1.address)).to.equal(0);
 
@@ -91,8 +91,8 @@ describe('Stake', () => {
 					.stakedBalanceOf(addr1.address)
 			).to.equal(TEST_VALUE);
 
-			// withdraw ALL KWENTA staked
-			await stakingRewardsProxy.connect(addr1).withdraw(TEST_VALUE);
+			// unstake ALL KWENTA staked
+			await stakingRewardsProxy.connect(addr1).unstake(TEST_VALUE);
 			expect(await kwenta.balanceOf(addr1.address)).to.equal(TEST_VALUE);
 			expect(
 				await stakingRewardsProxy
@@ -117,7 +117,7 @@ describe('Stake', () => {
 			expect(
 				await stakingRewardsProxy.totalBalanceOf(addr1.address)
 			).to.equal(TEST_VALUE);
-			await stakingRewardsProxy.connect(addr1).getReward();
+			await stakingRewardsProxy.connect(addr1).getRewards();
 			expect(await rewardEscrow.balanceOf(addr1.address)).to.equal(0);
 		});
 
@@ -134,7 +134,7 @@ describe('Stake', () => {
 			);
 
 			// claim rewards (expect > 0 rewards appended in escrow)
-			await stakingRewardsProxy.connect(addr1).getReward();
+			await stakingRewardsProxy.connect(addr1).getRewards();
 			expect(await rewardEscrow.balanceOf(addr1.address)).to.be.above(0);
 
 			// check that addr1 does have an escrow entry
@@ -245,8 +245,8 @@ describe('Stake', () => {
 			fastForward(SECONDS_IN_WEEK);
 
 			// claim reward(s)
-			await stakingRewardsProxy.connect(addr1).getReward();
-			await stakingRewardsProxy.connect(addr2).getReward();
+			await stakingRewardsProxy.connect(addr1).getRewards();
+			await stakingRewardsProxy.connect(addr2).getRewards();
 
 			// check escrow balance(s) have increased appropriately
 			expect(await rewardEscrow.balanceOf(addr1.address)).to.be.above(
@@ -395,8 +395,8 @@ describe('Stake', () => {
 			fastForward(SECONDS_IN_WEEK);
 
 			// claim reward(s)
-			await stakingRewardsProxy.connect(addr1).getReward();
-			await stakingRewardsProxy.connect(addr2).getReward();
+			await stakingRewardsProxy.connect(addr1).getRewards();
+			await stakingRewardsProxy.connect(addr2).getRewards();
 
 			// expect staker 1 to have greater rewards
 			var escrowedBalanceAddr1 = await rewardEscrow.balanceOf(addr1.address)
@@ -405,9 +405,9 @@ describe('Stake', () => {
 				escrowedBalanceAddr2
 			);
 			
-			// multiple calls to getReward() should not produce any extra rewards
-			await stakingRewardsProxy.connect(addr1).getReward();
-			await stakingRewardsProxy.connect(addr2).getReward();
+			// multiple calls to getRewards() should not produce any extra rewards
+			await stakingRewardsProxy.connect(addr1).getRewards();
+			await stakingRewardsProxy.connect(addr2).getRewards();
 			expect(await rewardEscrow.balanceOf(addr1.address)).to.equal(
 					escrowedBalanceAddr1
 				);

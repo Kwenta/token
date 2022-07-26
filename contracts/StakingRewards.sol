@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-// Import necessary contracts for math operations and Token handling
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
@@ -9,18 +8,14 @@ import "./libraries/FixidityLib.sol";
 import "./libraries/ExponentLib.sol";
 import "./libraries/LogarithmLib.sol";
 import "./interfaces/IStakingRewards.sol";
-// Import SupplySchedule interface for access control of setReward
 import "./interfaces/ISupplySchedule.sol";
-
-// Inheritance
+import "./interfaces/IRewardEscrow.sol";
 import "./utils/Pausable.sol";
-// Import RewardEscrow contract for Escrow interactions
-import "./RewardEscrow.sol";
 
 /*
     StakingRewards contract for Kwenta responsible for:
     - Staking KWENTA tokens
-    - Withdrawing KWENTA tokens
+    - Unstaking KWENTA tokens
     - Updating staker and trader scores
     - Calculating and notifying rewards
 */
@@ -35,7 +30,7 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     uint256 private constant DECIMALS_DIFFERENCE = 1e30;
 
     /// @notice constant to return the reward scores with the correct decimal precision
-    uint256 private constant TOKEN_DECIMALS = 1e18;
+    uint256 private constant UNIT = 1e18;
 
     /// @notice time constants
     uint256 private constant DAY = 1 days;
@@ -50,7 +45,7 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     FixidityLib.Fixidity private fixidity;
 
     // Reward Escrow
-    RewardEscrow public rewardEscrow;
+    IRewardEscrow public rewardEscrow;
 
     // Supply Schedule
     ISupplySchedule public supplySchedule;
@@ -110,27 +105,103 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     // Save the rewardScore per address
     mapping(address => uint256) private _rewardScores;
     // Division of rewards between staking and trading
-    uint256 public PERCENTAGE_STAKING;
-    uint256 public PERCENTAGE_TRADING;
+
+    /// @dev s refers to state variable (see)
+    uint256 public percentageStaking;
+    uint256 public percentageTrading;
     
     // Needs to be int256 for power library, root to calculate is equal to 0.7
-    int256 public WEIGHT_FEES;
+    int256 public constant WEIGHT_FEES = 7e17;
     // Needs to be int256 for power library, root to calculate is equal to 0.3
-    int256 public WEIGHT_STAKING;
+    int256 public constant WEIGHT_STAKING = 3e17;
 
     /* ========== EVENTS ========== */
 
     event RewardAdded(uint256 reward);
     event Staked(address indexed user, uint256 amount);
-    event Withdrawn(address indexed user, uint256 amount);
+    event Unstaked(address indexed user, uint256 amount);
     event RewardPaid(address indexed user, uint256 reward);
-    event RewardsDurationUpdated(uint256 newDuration);
     event Recovered(address token, uint256 amount);
     event EscrowStaked(address account, uint256 amount);
     event EscrowUnstaked(address account, uint256 amount);
     event RewardEscrowUpdated(address account);
     event ExchangerProxyUpdated(address account);
-    
+    event WeeklyStartRewardsSet(uint256 newWeeklyStart);
+    event PercentageRewardsSet(uint256 percentageStaking, uint256 percentageTrading);
+
+    /* ========== MODIFIERS ========== */
+
+    /*
+     * @notice Modifier called each time an event changing the trading score is updated:
+     * - update trader score
+     * - notify reward amount
+     * The modifier saves the state of the reward rate per fee until this point for the specific 
+     * address to be able to calculate the marginal contribution to rewards afterwards and adds the accumulated
+     * rewards since the last change to the account rewards
+     * @param address to update rewards to
+     */  
+    modifier updateRewards(address account) {
+        _updateRewards(account);
+        _;
+    }
+
+    /*
+     * @notice internal function used in the modifier with the same name to optimize bytecode
+     */
+    function _updateRewards(address account) internal {
+        // Calculate the reward per unit of reward score applicable to the last stint of account
+        rewardPerTokenStored = rewardPerToken();
+        // Calculate if the epoch is finished or not
+        lastUpdateTime = lastTimeRewardApplicable();
+        updateRewardEpoch();
+        if (account != address(0)) {
+            // Add the rewards added during the last stint
+            rewards[account] = earned(account);
+            // Reset the reward score as we have already paid these trading rewards
+            if (lastTradeUserEpoch[msg.sender] < currentEpoch) {
+                _rewardScores[msg.sender] = 0;
+            }
+            // Reset the reward per token as we have already paid these staking rewards
+            userRewardPerTokenPaid[account] = rewardPerTokenStored;
+        }
+    }
+
+    /*
+     * @notice access control modifier for exchanger proxy
+     */
+    modifier onlyExchangerProxy() {
+        // solhint-disable-next-line
+        require(
+            msg.sender == address(exchangerProxy),
+            "StakingRewards: Only Exchanger Proxy"
+        );
+        _;
+    }
+
+    /*
+     * @notice access control modifier for rewardEscrow
+     */
+    modifier onlyRewardEscrow() {
+        // solhint-disable-next-line
+        require(
+            msg.sender == address(rewardEscrow),
+            "StakingRewards: Only Reward Escrow"
+        );
+        _;
+    }
+
+    /*
+     * @notice access control modifier for rewardEscrow
+     */
+    modifier onlySupplySchedule() {
+        // solhint-disable-next-line
+        require(
+            msg.sender == address(supplySchedule),
+            "StakingRewards: Only Supply Schedule"
+        );
+        _;
+    }
+
     /* ========== INITIALIZER ========== */
     
     function initialize(
@@ -144,20 +215,14 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
 
         __ReentrancyGuard_init();
 
-        periodFinish = 0;
-        rewardRate = 0;
-
         stakingToken = IERC20(_stakingToken);
         fixidity.init(18);
 
-        rewardEscrow = RewardEscrow(_rewardEscrow);
+        rewardEscrow = IRewardEscrow(_rewardEscrow);
         supplySchedule = ISupplySchedule(_supplySchedule);
 
-        PERCENTAGE_STAKING = 8_000;
-        PERCENTAGE_TRADING = 2_000;
-
-        WEIGHT_STAKING = 3e17;
-        WEIGHT_FEES = 7e17;
+        percentageStaking = 8_000;
+        percentageTrading = 2_000;
 
         weeklyStartRewards = _weeklyStartRewards;
     }
@@ -172,7 +237,7 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
      * @return sum of all rewardScores
      */
     function totalRewardScore() override public view returns (uint256) {
-        return _totalRewardScore / TOKEN_DECIMALS;
+        return _totalRewardScore / UNIT;
     }
 
     /*
@@ -193,7 +258,7 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
      * @return reward score of specified account
      */
     function rewardScoreOf(address account) override external view returns (uint256) {
-        return _rewardScores[account] / TOKEN_DECIMALS;
+        return _rewardScores[account] / UNIT;
     }
 
     /*
@@ -296,9 +361,10 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
      * @param _percentageTrading the % of rewards to distribute to reward scores
      */
     function setPercentageRewards(uint256 _percentageStaking, uint256 _percentageTrading) override external onlyOwner {
-        require(_percentageTrading + _percentageStaking == 10_000);
-        PERCENTAGE_STAKING = _percentageStaking;
-        PERCENTAGE_TRADING = _percentageTrading;
+        require(_percentageTrading + _percentageStaking == 10_000, "StakingRewards: Invalid Percentage");
+        percentageStaking = _percentageStaking;
+        percentageTrading = _percentageTrading;
+        emit PercentageRewardsSet(_percentageStaking, _percentageTrading);
     }
 
     /**
@@ -365,41 +431,46 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
 
     }
 
-
     /*
-     * @notice Function staking the requested tokens by the user.
+     * @notice stake the requested tokens by the user
      * @param _amount: uint256, containing the number of tokens to stake
      */
     function stake(uint256 _amount) override external nonReentrant notPaused updateRewards(msg.sender) {
-        require(_amount > 0);
+        require(_amount > 0, "StakingRewards: Cannot Stake 0");
+
         // Update caller balance
         _totalBalances[msg.sender] += _amount;
         _totalSupply += _amount;
+
         updateRewardScore(msg.sender, _rewardScores[msg.sender]);
         stakingToken.transferFrom(msg.sender, address(this), _amount);
+
         emit Staked(msg.sender, _amount);
     }
 
     /*
-     * @notice Function withdrawing the requested tokens by the user.
+     * @notice unstake and withdraw the requested tokens by the user
      * @param _amount: uint256, containing the number of tokens to stake
      */
-    function withdraw(uint256 _amount) override public nonReentrant updateRewards(msg.sender) {
-        require(_amount > 0, "Cannot withdraw 0");
-        require(stakedBalanceOf(msg.sender) >= _amount);
+    function unstake(uint256 _amount) override public nonReentrant updateRewards(msg.sender) {
+        require(_amount > 0, "StakingRewards: Cannot Unstake 0");
+        require(stakedBalanceOf(msg.sender) >= _amount, "StakingRewards: Invalid Amount");
+
         // Update caller balance
         _totalBalances[msg.sender] -= _amount;
         _totalSupply -=  _amount;
+
         updateRewardScore(msg.sender, _rewardScores[msg.sender]);
         stakingToken.transfer(msg.sender, _amount);
-        emit Withdrawn(msg.sender, _amount);
+
+        emit Unstaked(msg.sender, _amount);
     }
 
     /*
      * @notice Function transferring the accumulated rewards for the caller address and updating the state mapping 
      * containing the current rewards
      */
-    function getReward() override public updateRewards(msg.sender) nonReentrant {
+    function getRewards() override public updateRewards(msg.sender) nonReentrant {
         uint256 reward = rewards[msg.sender];
         if (reward > 0) {
             rewards[msg.sender] = 0;
@@ -413,12 +484,12 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
 
     /*
      * @notice Function handling the exit of the protocol of the caller:
-     * - Withdraws all tokens
+     * - Unstake and withdraw all tokens
      * - Transfers all rewards to caller's address
      */
     function exit() override external {
-        withdraw(stakedBalanceOf(msg.sender));
-        getReward();
+        unstake(stakedBalanceOf(msg.sender));
+        getRewards();
     }
 
     /*
@@ -426,7 +497,16 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
      * @param _account: address escrowing the rewards
      * @param _amount: uint256, amount escrowed
      */
-    function stakeEscrow(address _account, uint256 _amount) override public onlyRewardEscrow updateRewards(_account) {
+    function stakeEscrow(
+        address _account, 
+        uint256 _amount
+    ) 
+        override 
+        public 
+        notPaused 
+        onlyRewardEscrow 
+        updateRewards(_account) 
+    {
         _totalBalances[_account] +=  _amount;
         _totalSupply +=  _amount;
         _escrowedBalances[_account] +=  _amount;
@@ -471,8 +551,8 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
             rewardRate = (reward + leftover) / WEEK;
         }
 
-        rewardRateStaking = rewardRate * PERCENTAGE_STAKING / MAX_BPS;
-        rewardRateTrading = rewardRate * PERCENTAGE_TRADING / MAX_BPS;
+        rewardRateStaking = rewardRate * percentageStaking / MAX_BPS;
+        rewardRateTrading = rewardRate * percentageTrading / MAX_BPS;
 
         lastUpdateTime = block.timestamp;
         lastEpochRewardsSet = currentEpoch;
@@ -482,7 +562,7 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
 
     // @notice Added to support recovering LP Rewards from other systems such as BAL to be distributed to holders
     function recoverERC20(address tokenAddress, uint256 tokenAmount) external onlyOwner {
-        require(tokenAddress != address(stakingToken));
+        require(tokenAddress != address(stakingToken), "StakingRewards: Invalid Token Address");
         IERC20(tokenAddress).transfer(owner, tokenAmount);
         emit Recovered(tokenAddress, tokenAmount);
     }
@@ -492,11 +572,12 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
      * @param address of the rewardEsxrow contract to use
      */
     function setRewardEscrow(address _rewardEscrow) external onlyOwner {
+        // solhint-disable-next-line
         require(
-            address(RewardEscrow(_rewardEscrow).kwenta()) == address(stakingToken), 
+            IRewardEscrow(_rewardEscrow).getKwentaAddress() == address(stakingToken), 
             "staking token address not equal to RewardEscrow KWENTA address"
         );
-        rewardEscrow = RewardEscrow(_rewardEscrow);
+        rewardEscrow = IRewardEscrow(_rewardEscrow);
         emit RewardEscrowUpdated(address(_rewardEscrow));
     }
 
@@ -505,96 +586,9 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
      * @param address of the exchanger proxy to use
      */
     function setExchangerProxy(address _exchangerProxy) external onlyOwner {
+        require(_exchangerProxy != address(0), "StakingRewards: Invalid Address");
         exchangerProxy = _exchangerProxy;
         emit ExchangerProxyUpdated(_exchangerProxy);
-    }
-
-    /* ========== MODIFIERS ========== */
-
-    /*
-     * @notice Modifier called each time an event changing the trading score is updated:
-     * - update trader score
-     * - notify reward amount
-     * The modifier saves the state of the reward rate per fee until this point for the specific 
-     * address to be able to calculate the marginal contribution to rewards afterwards and adds the accumulated
-     * rewards since the last change to the account rewards
-     * @param address to update rewards to
-     */  
-    modifier updateRewards(address account) {
-        _updateRewards(account);
-        _;
-    }
-
-    /*
-     * @notice internal function used in the modifier with the same name to optimize bytecode
-     */
-    function _updateRewards(address account) internal {
-        // Calculate the reward per unit of reward score applicable to the last stint of account
-        rewardPerTokenStored = rewardPerToken();
-        // Calculate if the epoch is finished or not
-        lastUpdateTime = lastTimeRewardApplicable();
-        updateRewardEpoch();
-        if (account != address(0)) {
-            // Add the rewards added during the last stint
-            rewards[account] = earned(account);
-            // Reset the reward score as we have already paid these trading rewards
-            if (lastTradeUserEpoch[msg.sender] < currentEpoch) {
-                _rewardScores[msg.sender] = 0;
-            }
-            // Reset the reward per token as we have already paid these staking rewards
-            userRewardPerTokenPaid[account] = rewardPerTokenStored;
-        }
-    }
-
-    /*
-     * @notice access control modifier for exchanger proxy
-     */
-    modifier onlyExchangerProxy() {
-        _onlyExchangerProxy();
-        _;
-    }
-
-    /*
-     * @notice internal function used in the modifier with the same name to optimize bytecode
-     */
-    function _onlyExchangerProxy() internal view {
-        bool isEP = msg.sender == address(exchangerProxy);
-
-        require(isEP);
-    }
-
-    /*
-     * @notice access control modifier for rewardEscrow
-     */
-    modifier onlyRewardEscrow() {
-        _onlyRewardEscrow();
-        _;
-    }
-
-    /*
-     * @notice internal function used in the modifier with the same name to optimize bytecode
-     */
-    function _onlyRewardEscrow() internal view {
-        bool isRE = msg.sender == address(rewardEscrow);
-
-        require(isRE);
-    }
-
-    /*
-     * @notice access control modifier for rewardEscrow
-     */
-    modifier onlySupplySchedule() {
-        _onlySupplySchedule();
-        _;
-    }
-
-    /*
-     * @notice internal function used in the modifier with the same name to optimize bytecode
-     */
-    function _onlySupplySchedule() internal view {
-        bool isSS = msg.sender == address(supplySchedule);
-
-        require(isSS);
     }
 
     /* ========== PROXY FUNCTIONS ========== */
@@ -602,8 +596,5 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     /*
      * @notice Necessary override for Open Zeppelin UUPS proxy to make sure the owner logic is included
      */
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {
-
-    }
-
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 }
