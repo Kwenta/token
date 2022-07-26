@@ -22,7 +22,8 @@ contract(
         let treasuryDAO;
 
         before(async () => {
-            [owner, nonOwner, staker1, treasuryDAO] = await hre.ethers.getSigners();
+            [owner, nonOwner, staker1, treasuryDAO] =
+                await hre.ethers.getSigners();
             let KwentaToken = await hre.ethers.getContractFactory("Kwenta");
             kwentaToken = await KwentaToken.deploy(
                 NAME,
@@ -31,7 +32,9 @@ contract(
                 owner.address,
                 treasuryDAO.address
             );
-            let RewardsEscrow = await hre.ethers.getContractFactory("RewardEscrow");
+            let RewardsEscrow = await hre.ethers.getContractFactory(
+                "RewardEscrow"
+            );
             rewardsEscrow = await RewardsEscrow.deploy(
                 owner.address,
                 kwentaToken.address
@@ -73,6 +76,7 @@ contract(
                         },
                     }
                 );
+
                 st_proxy = await hre.upgrades.deployProxy(
                     StakingRewards,
                     [
@@ -84,6 +88,7 @@ contract(
                     ],
                     { kind: "uups", unsafeAllow: ["external-library-linking"] }
                 );
+                await st_proxy.deployed();
 
                 admin_address = await hre.upgrades.erc1967.getAdminAddress(
                     st_proxy.address
@@ -198,6 +203,49 @@ contract(
                     staker1.address
                 );
                 assert.equal(balance.toString(), wei(50).toBN());
+            });
+
+            it("non-owner cannot call upgradeTo", async () => {
+                // deploy libraries
+                FixidityLib = await hre.ethers.getContractFactory(
+                    "FixidityLib"
+                );
+                fixidityLib = await FixidityLib.deploy();
+                LogarithmLib = await hre.ethers.getContractFactory(
+                    "LogarithmLib",
+                    {
+                        libraries: { FixidityLib: fixidityLib.address },
+                    }
+                );
+                logarithmLib = await LogarithmLib.deploy();
+                ExponentLib = await hre.ethers.getContractFactory(
+                    "ExponentLib",
+                    {
+                        libraries: {
+                            FixidityLib: fixidityLib.address,
+                            LogarithmLib: logarithmLib.address,
+                        },
+                    }
+                );
+                exponentLib = await ExponentLib.deploy();
+
+                // get staking rewards V4
+                let StakingRewardsV4 = await hre.ethers.getContractFactory(
+                    "StakingRewardsV4",
+                    {
+                        libraries: {
+                            FixidityLib: fixidityLib.address,
+                            ExponentLib: exponentLib.address,
+                        },
+                    }
+                );
+                let v4 = await StakingRewardsV4.deploy();
+
+                // call upgradeTo
+                let tx = st_proxy.connect(nonOwner).upgradeTo(v4.address);
+                await expect(tx).to.be.revertedWith(
+                    "Only the contract owner may perform this action"
+                );
             });
         });
     }
