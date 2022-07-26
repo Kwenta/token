@@ -1,5 +1,5 @@
-pragma solidity >=0.4.24;
-pragma experimental ABIEncoderV2;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
 
 library VestingEntries {
     struct VestingEntry {
@@ -16,15 +16,26 @@ library VestingEntries {
 
 interface IRewardEscrow {
     // Views
-    function balanceOf(address account) external view returns (uint);
+    function getKwentaAddress() external view returns (address);
 
-    function numVestingEntries(address account) external view returns (uint);
+    function balanceOf(address account) external view returns (uint256);
 
-    function totalEscrowedAccountBalance(address account) external view returns (uint);
+    function numVestingEntries(address account) external view returns (uint256);
 
-    function totalVestedAccountBalance(address account) external view returns (uint);
+    function totalEscrowedAccountBalance(address account)
+        external
+        view
+        returns (uint256);
 
-    function getVestingQuantity(address account, uint256[] calldata entryIDs) external view returns (uint, uint);
+    function totalVestedAccountBalance(address account)
+        external
+        view
+        returns (uint256);
+
+    function getVestingQuantity(address account, uint256[] calldata entryIDs)
+        external
+        view
+        returns (uint256, uint256);
 
     function getVestingSchedules(
         address account,
@@ -38,9 +49,19 @@ interface IRewardEscrow {
         uint256 pageSize
     ) external view returns (uint256[] memory);
 
-    function getVestingEntryClaimable(address account, uint256 entryID) external view returns (uint, uint);
+    function getVestingEntryClaimable(address account, uint256 entryID)
+        external
+        view
+        returns (uint256, uint256);
 
-    function getVestingEntry(address account, uint256 entryID) external view returns (uint64, uint256, uint256);
+    function getVestingEntry(address account, uint256 entryID)
+        external
+        view
+        returns (
+            uint64,
+            uint256,
+            uint256
+        );
 
     // Mutative functions
     function vest(uint256[] calldata entryIDs) external;

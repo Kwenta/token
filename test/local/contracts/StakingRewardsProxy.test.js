@@ -169,10 +169,10 @@ before(async () => {
 
     await kwentaToken
         .connect(treasuryDAO)
-        .transfer(staker1.address, toUnit(100));
+        .transfer(staker1.address, toUnit(1000));
     await kwentaToken
         .connect(treasuryDAO)
-        .transfer(staker2.address, toUnit(100));
+        .transfer(staker2.address, toUnit(1000));
 });
 
 describe('Proxy deployment', async () => {
@@ -240,31 +240,32 @@ describe('stake()', async () => {
     });
 });
 
-describe('withdraw()', async () => {
+describe('unstake()', async () => {
     it('fails with zero amounts', async () => {
-        await stProxy.connect(staker1).withdraw(0).should.be.rejected;
+        await stProxy.connect(staker1).unstake(0).should.be.rejected;
     });
     it('fails with amounts too large', async () => {
-        await stProxy.connect(staker1).withdraw(toUnit(100)).should.be.rejected;
+        await stProxy.connect(staker1).unstake(toUnit(100)).should.be.rejected;
     });
-    it('fails when withdrawing results in a balance below safety limit', async () => {
+    it('fails when unstaking results in a balance below safety limit', async () => {
         const stakingMinimum = await stProxy.STAKING_SAFETY_MINIMUM();
         const stakedAmount = await stProxy.totalBalanceOf(staker1.address);
         const invalidWithdrawalAmount = stakedAmount.sub(stakingMinimum).add(1);
-        await stProxy.connect(staker1).withdraw(invalidWithdrawalAmount).should
+        await stProxy.connect(staker1).unstake(invalidWithdrawalAmount).should
             .be.rejected;
     });
     it("fails when minimum stake period not met", async () => {
-        await stProxy.connect(staker1).withdraw(toUnit(15)).should.be.rejected;
+        await stProxy.connect(staker1).unstake(toUnit(15)).should.be.rejected;
     });
-    it("withdraws the correct amount", async () => {
+    it('unstakes the correct amount', async () => {
+        // ff
         await fastForward(DAY);
 
-        await stProxy.connect(staker1).withdraw(toUnit(15));
+        await stProxy.connect(staker1).unstake(toUnit(15));
         let bal = await stProxy.stakedBalanceOf(staker1.address);
         assert.equal(bal, 0, "Incorrect amount");
 
-        await stProxy.connect(staker2).withdraw(toUnit(50));
+        await stProxy.connect(staker2).unstake(toUnit(50));
         bal = await stProxy.stakedBalanceOf(staker2.address);
         assert.equal(bal, 0, "Incorrect amount");
     });
@@ -323,6 +324,50 @@ describe('lastTimeRewardApplicable()', () => {
 
             assert.equal(cur.toString(), lastTimeReward.toString());
         });
+    });
+});
+
+describe('staking before setRewards() edge case', () => {
+    it("staking a small amount before setting rewards throws off next value", async () => {
+        StakingRewards = await deployContract();
+        stProxy = await deployProxy();
+
+        await stProxy.connect(owner).setExchangerProxy(exchangerProxy.address);
+        await stProxy.connect(owner).setRewardEscrow(rewardsEscrow.address);
+
+        await kwentaToken
+            .connect(staker1)
+            .approve(stProxy.address, 10000);
+        await kwentaToken
+            .connect(staker2)
+            .approve(stProxy.address, toUnit(100));
+
+        await kwentaToken
+            .connect(treasuryDAO)
+            .transfer(stProxy.address, toUnit(100));
+
+        // Stake staker1
+        await stProxy.connect(staker1).stake(10000);
+        console.log(`Staking ${ethers.utils.formatEther(10000)} from staker1`)
+
+        // setRewards
+        await stProxy.connect(supplySchedule).setRewards(toUnit(100));
+        console.log(`setRewards(100e18)`)
+        
+        // Stake staker 2
+        await stProxy.connect(staker2).stake(toUnit(100));
+        console.log(`Staking ${100} from staker2`)
+        console.log(`Fast forward a week`)
+        
+        // ff
+        await fastForward(WEEK);
+
+        // Check values
+        const earned1 = await stProxy.earned(staker1.address)
+        const earned2 = await stProxy.earned(staker2.address)
+
+        console.log(`earned (staker 1): ${ethers.utils.formatEther(earned1)}`)
+        console.log(`earned (staker 2): ${ethers.utils.formatEther(earned2)}`)
     });
 });
 
@@ -608,11 +653,11 @@ describe('implementation test', () => {
 
         await fastForward(3 * DAY);
 
-        await stProxy.connect(staker1).withdraw(toUnit(5));
+        await stProxy.connect(staker1).unstake(toUnit(5));
 
         await fastForward(3 * DAY);
 
-        await stProxy.connect(staker2).withdraw(toUnit(10));
+        await stProxy.connect(staker2).unstake(toUnit(10));
 
         await fastForward(1 * DAY);
 

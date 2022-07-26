@@ -14,6 +14,7 @@ contract ExchangerProxy {
     bytes32 private constant CONTRACT_SYNTHETIX = "Synthetix";
     bytes32 private constant CONTRACT_EXCHANGER = "Exchanger";
     bytes32 private constant CONTRACT_EXRATES = "ExchangeRates";
+    // solhint-disable-next-line
     bytes32 private constant sUSD_CURRENCY_KEY = "sUSD";
     bytes32 private constant TRACKING_CODE = "KWENTA";
 
