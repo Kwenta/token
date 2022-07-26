@@ -40,6 +40,7 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     /// @notice time constants
     uint256 private constant DAY = 1 days;
     uint256 private constant WEEK = 7 days;
+    uint256 private constant MIN_STAKING_PERIOD = 1 days;
 
     /// @notice safety constants
     uint256 public constant STAKING_SAFETY_MINIMUM = 1e4;
@@ -94,6 +95,8 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     mapping(address => uint256) private userRewardPerTokenPaid;
     // Rewards due to each account
     mapping(address => uint256) public rewards;
+    // Save most recent date an address emitted Staked event
+    mapping(address => uint256) public lastStakingEvent;
 
     // Total RewardsScore
     uint256 private _totalRewardScore;
@@ -374,6 +377,10 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
         // Update caller balance
         _totalBalances[msg.sender] += _amount;
         _totalSupply += _amount;
+
+        // update addresses last staking event timestamp
+        lastStakingEvent[msg.sender] = block.timestamp;
+
         updateRewardScore(msg.sender, _rewardScores[msg.sender]);
         stakingToken.transferFrom(msg.sender, address(this), _amount);
         emit Staked(msg.sender, _amount);
@@ -386,6 +393,8 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     function withdraw(uint256 _amount) override public nonReentrant updateRewards(msg.sender) {
         require(_amount > 0, "Cannot withdraw 0");
         require(stakedBalanceOf(msg.sender) >= _amount);
+        require(block.timestamp - lastStakingEvent[msg.sender] >= DAY, "StakingRewards: Minimum Staking Period Not Met");
+
         // Update caller balance
         _totalBalances[msg.sender] -= _amount;
         _totalSupply -=  _amount;
@@ -429,6 +438,10 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
         _totalBalances[_account] +=  _amount;
         _totalSupply +=  _amount;
         _escrowedBalances[_account] +=  _amount;
+
+        // update addresses last staking event timestamp
+        lastStakingEvent[_account] = block.timestamp;
+
         updateRewardScore(msg.sender, _rewardScores[msg.sender]);
         emit EscrowStaked(_account, _amount);
     }
@@ -440,6 +453,8 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
      */
     function unstakeEscrow(address _account, uint256 _amount) override public nonReentrant onlyRewardEscrow updateRewards(_account) {
         require(_escrowedBalances[_account] >= _amount);
+        require(block.timestamp - lastStakingEvent[msg.sender] >= DAY, "StakingRewards: Minimum Staking Period Not Met");
+        
         _totalBalances[_account] -= _amount;
         _totalSupply -= _amount;
         _escrowedBalances[_account] -= _amount;
