@@ -99,6 +99,7 @@ contract(
                     );
 
                 owner_address = await st_proxy.owner();
+				assert.equal(owner_address, owner.address);
 
                 assert.notEqual(implementation, st_proxy.address);
             });
