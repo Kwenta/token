@@ -19,7 +19,12 @@ import "./utils/Pausable.sol";
     - Updating staker and trader scores
     - Calculating and notifying rewards
 */
-contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable, UUPSUpgradeable {
+contract StakingRewards is
+    IStakingRewards,
+    ReentrancyGuardUpgradeable,
+    Pausable,
+    UUPSUpgradeable
+{
     using FixidityLib for FixidityLib.Fixidity;
     using ExponentLib for FixidityLib.Fixidity;
 
@@ -57,7 +62,7 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     // Token to stake and reward
     IERC20 public stakingToken;
     // Time handling:
-    // Time where new reward epoch finishes 
+    // Time where new reward epoch finishes
     uint256 public periodFinish;
     /**
      * @notice Day of the week the reward epochs start
@@ -65,7 +70,7 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
      * on a Monday go 3 days prior (Wednesday, Tuesday, Monday), the remaining options are:
      * Friday: 6
      * Saturday: 5
-     * Sunday: 4 
+     * Sunday: 4
      * Monday: 3
      * Tuesday: 2
      * Wednesday: 1
@@ -81,7 +86,7 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     // Last reward per token staked
     uint256 private rewardPerTokenStored;
     uint256 public currentEpoch;
-    
+
     // Save the date of the latest interaction for each address (Trading Rewards)
     mapping(address => uint256) private lastTradeUserEpoch;
     // Save the rewardPerRewardScore of each epoch for backward reward calculation
@@ -97,7 +102,7 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     uint256 private _totalRewardScore;
     // Total tokens included in rewards (both staked and escrowed)
     uint256 private _totalSupply;
-    
+
     // Tokens escrowed for each address
     mapping(address => uint256) private _escrowedBalances;
     // Fees paid for each address
@@ -111,7 +116,7 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     /// @dev s refers to state variable (see)
     uint256 public percentageStaking;
     uint256 public percentageTrading;
-    
+
     // Needs to be int256 for power library, root to calculate is equal to 0.7
     int256 public constant WEIGHT_FEES = 7e17;
     // Needs to be int256 for power library, root to calculate is equal to 0.3
@@ -129,7 +134,10 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     event RewardEscrowUpdated(address account);
     event ExchangerProxyUpdated(address account);
     event WeeklyStartRewardsSet(uint256 newWeeklyStart);
-    event PercentageRewardsSet(uint256 percentageStaking, uint256 percentageTrading);
+    event PercentageRewardsSet(
+        uint256 percentageStaking,
+        uint256 percentageTrading
+    );
 
     /* ========== MODIFIERS ========== */
 
@@ -137,11 +145,11 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
      * @notice Modifier called each time an event changing the trading score is updated:
      * - update trader score
      * - notify reward amount
-     * The modifier saves the state of the reward rate per fee until this point for the specific 
+     * The modifier saves the state of the reward rate per fee until this point for the specific
      * address to be able to calculate the marginal contribution to rewards afterwards and adds the accumulated
      * rewards since the last change to the account rewards
      * @param address to update rewards to
-     */  
+     */
     modifier updateRewards(address account) {
         _updateRewards(account);
         _;
@@ -205,7 +213,7 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     }
 
     /* ========== INITIALIZER ========== */
-    
+
     function initialize(
         address _owner,
         address _stakingToken,
@@ -233,12 +241,12 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
 
     /*
      * @notice Getter function for the state variable _totalRewardScore
-     * Divided by 1e18 as during the calculation we are multiplying two 18 decimal numbers, ending up with 
+     * Divided by 1e18 as during the calculation we are multiplying two 18 decimal numbers, ending up with
      * a 36 precision number. To avoid losing any precision by scaling it down during internal calculations,
      * we only scale it down for the getters
      * @return sum of all rewardScores
      */
-    function totalRewardScore() override public view returns (uint256) {
+    function totalRewardScore() public view override returns (uint256) {
         return _totalRewardScore / UNIT;
     }
 
@@ -247,19 +255,29 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
      * @param account address to check token balance of
      * @return token balance of specified account
      */
-    function stakedBalanceOf(address account) override public view returns (uint256) {
+    function stakedBalanceOf(address account)
+        public
+        view
+        override
+        returns (uint256)
+    {
         return _totalBalances[account] - _escrowedBalances[account];
     }
 
     /*
      * @notice Getter function for the reward score of an account
-     * Divided by 1e18 as during the calculation we are multiplying two 18 decimal numbers, ending up with 
+     * Divided by 1e18 as during the calculation we are multiplying two 18 decimal numbers, ending up with
      * a 36 precision number. To avoid losing any precision by scaling it down during internal calculations,
      * we only scale it down for the getters
      * @param account address to check the reward score of
      * @return reward score of specified account
      */
-    function rewardScoreOf(address account) override external view returns (uint256) {
+    function rewardScoreOf(address account)
+        external
+        view
+        override
+        returns (uint256)
+    {
         return _rewardScores[account] / UNIT;
     }
 
@@ -268,7 +286,12 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
      * @param account address to check the total balance of
      * @return total balance of specified account
      */
-    function totalBalanceOf(address account) override external view returns (uint256) {
+    function totalBalanceOf(address account)
+        external
+        view
+        override
+        returns (uint256)
+    {
         return _totalBalances[account];
     }
 
@@ -277,7 +300,12 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
      * @param account address to check the escrowed balance of
      * @return escrowed balance of specified account
      */
-    function escrowedBalanceOf(address account) override external view returns (uint256) {
+    function escrowedBalanceOf(address account)
+        external
+        view
+        override
+        returns (uint256)
+    {
         return _escrowedBalances[account];
     }
 
@@ -286,7 +314,12 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
      * @param id of the week to get the reward
      * @return reward per reward score of specified week
      */
-    function rewardPerRewardScoreOfEpoch(uint256 _epoch) override external view returns (uint256) {
+    function rewardPerRewardScoreOfEpoch(uint256 _epoch)
+        external
+        view
+        override
+        returns (uint256)
+    {
         return epochRewardPerRewardScore[_epoch];
     }
 
@@ -295,7 +328,12 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
      * @param account address to check the fees balance of
      * @return fees of specified account
      */
-    function feesPaidBy(address account) override external view returns (uint256) {
+    function feesPaidBy(address account)
+        external
+        view
+        override
+        returns (uint256)
+    {
         return _feesPaid[account];
     }
 
@@ -303,7 +341,7 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
      * @notice Calculate if we are still in the reward epoch or we reached periodFinish
      * @return Max date to sum rewards, either now or period finish
      */
-    function lastTimeRewardApplicable() override public view returns (uint256) {
+    function lastTimeRewardApplicable() public view override returns (uint256) {
         return Math.min(block.timestamp, periodFinish);
     }
 
@@ -311,28 +349,34 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
      * @notice Calculate the reward distribution per token based on the time elapsed and current value of totalSupply
      * @return corresponding reward per token stored
      */
-    function rewardPerToken() override public view returns (uint256) {
+    function rewardPerToken() public view override returns (uint256) {
         if (_totalSupply == 0) {
             return rewardPerTokenStored;
         }
         return
-            rewardPerTokenStored + (
-                (lastTimeRewardApplicable() - lastUpdateTime) * rewardRateStaking * DECIMALS_DIFFERENCE / _totalSupply
-            );
+            rewardPerTokenStored +
+            (((lastTimeRewardApplicable() - lastUpdateTime) *
+                rewardRateStaking *
+                DECIMALS_DIFFERENCE) / _totalSupply);
     }
 
     /*
      * @notice Function calculating the rewards earned by an account between the current call moment and the latest change in
-     * reward score. The function divides the reward score by the total amount, accounts for the changes between now and the 
+     * reward score. The function divides the reward score by the total amount, accounts for the changes between now and the
      * last changes (deducting userRewardPerRewardScorePaid) and adds the result to the existing rewards balance of the account
      * @param account to calculate the earned rewards
      * @return uint256 containing the total rewards due to account
      */
-    function earned(address account) override public view returns(uint256) {
-        uint256 stakingRewards = _totalBalances[account] * (rewardPerToken() - userRewardPerTokenPaid[account]) / DECIMALS_DIFFERENCE;
+    function earned(address account) public view override returns (uint256) {
+        uint256 stakingRewards = (_totalBalances[account] *
+            (rewardPerToken() - userRewardPerTokenPaid[account])) /
+            DECIMALS_DIFFERENCE;
         uint256 tradingRewards = 0;
         if (lastTradeUserEpoch[account] < currentEpoch) {
-            tradingRewards = _rewardScores[account] * epochRewardPerRewardScore[lastTradeUserEpoch[account]] / DECIMALS_DIFFERENCE;
+            tradingRewards =
+                (_rewardScores[account] *
+                    epochRewardPerRewardScore[lastTradeUserEpoch[account]]) /
+                DECIMALS_DIFFERENCE;
         }
         return stakingRewards + tradingRewards + rewards[account];
     }
@@ -342,16 +386,15 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
      * @param _date to calculate the reward epoch for
      * @return uint256 containing the date of the start of the epoch
      */
-    function getEpochForDate(uint256 _date) internal view returns(uint256) {
+    function getEpochForDate(uint256 _date) internal view returns (uint256) {
         _date = (_date / DAY) * DAY;
         uint256 naturalEpoch = (_date / WEEK) * WEEK;
 
         if (_date - naturalEpoch >= (7 - weeklyStartRewards) * DAY) {
             return naturalEpoch + WEEK - weeklyStartRewards * DAY;
         } else {
-            return naturalEpoch - weeklyStartRewards*DAY;
+            return naturalEpoch - weeklyStartRewards * DAY;
         }
-
     }
 
     /* ========== MUTATIVE FUNCTIONS ========== */
@@ -362,8 +405,14 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
      * @param _percentageStaking the % of rewards to distribute to staking scores
      * @param _percentageTrading the % of rewards to distribute to reward scores
      */
-    function setPercentageRewards(uint256 _percentageStaking, uint256 _percentageTrading) override external onlyOwner {
-        require(_percentageTrading + _percentageStaking == 10_000, "StakingRewards: Invalid Percentage");
+    function setPercentageRewards(
+        uint256 _percentageStaking,
+        uint256 _percentageTrading
+    ) external override onlyOwner {
+        require(
+            _percentageTrading + _percentageStaking == 10_000,
+            "StakingRewards: Invalid Percentage"
+        );
         percentageStaking = _percentageStaking;
         percentageTrading = _percentageTrading;
         emit PercentageRewardsSet(_percentageStaking, _percentageTrading);
@@ -378,15 +427,19 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
         // go back 3 days to start a Monday
         uint256 newEpoch = getEpochForDate(block.timestamp);
 
-        if(newEpoch > currentEpoch) {
+        if (newEpoch > currentEpoch) {
             // Save rewardRateTrading * WEEK / _totalRewardScore to epoch mapping
-            if(_totalRewardScore > 0 && currentEpoch < getEpochForDate(periodFinish)) {
-                epochRewardPerRewardScore[currentEpoch] = rewardRateTrading * WEEK * DECIMALS_DIFFERENCE / _totalRewardScore;
+            if (
+                _totalRewardScore > 0 &&
+                currentEpoch < getEpochForDate(periodFinish)
+            ) {
+                epochRewardPerRewardScore[currentEpoch] =
+                    (rewardRateTrading * WEEK * DECIMALS_DIFFERENCE) /
+                    _totalRewardScore;
             }
             _totalRewardScore = 0;
             currentEpoch = newEpoch;
         }
-
     }
 
     /*
@@ -395,7 +448,12 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
      * @param _trader: address, for which to update the score
      * @param _feesPaid: uint256, total fees paid in this period
      */
-    function updateTraderScore(address _trader, uint256 _newFeesPaid) override external onlyExchangerProxy updateRewards(_trader) {
+    function updateTraderScore(address _trader, uint256 _newFeesPaid)
+        external
+        override
+        onlyExchangerProxy
+        updateRewards(_trader)
+    {
         uint256 oldRewardScore = _rewardScores[_trader];
         if (lastTradeUserEpoch[_trader] < currentEpoch) {
             _feesPaid[_trader] = _newFeesPaid;
@@ -413,31 +471,66 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
      * - if there has, update the reward score
      * @param _account, the user to update the reward score to
      */
-    function updateRewardScore(address _account, uint256 _oldRewardScore) internal {
+    function updateRewardScore(address _account, uint256 _oldRewardScore)
+        internal
+    {
         // Prevent any staking balance change from falling within the danger threshold
-        require(_totalBalances[_account] == 0 || _totalBalances[_account] >= STAKING_SAFETY_MINIMUM, "STAKING_SAFETY_MINIMUM");
+        require(
+            _totalBalances[_account] == 0 ||
+                _totalBalances[_account] >= STAKING_SAFETY_MINIMUM,
+            "STAKING_SAFETY_MINIMUM"
+        );
         // Prevent any fees paid change from falling witihin the danger threshold
-        require(_feesPaid[_account] == 0 || _feesPaid[_account] >= FEES_PAID_SAFETY_MINIMUM, "FEES_PAID_SAFETY_MINIMUM");
-        
+        require(
+            _feesPaid[_account] == 0 ||
+                _feesPaid[_account] >= FEES_PAID_SAFETY_MINIMUM,
+            "FEES_PAID_SAFETY_MINIMUM"
+        );
+
         uint256 newRewardScore = 0;
-        if((lastTradeUserEpoch[_account] == currentEpoch) && (_totalBalances[_account] > 0)) {
-            newRewardScore = uint256(fixidity.power_any(int256(_totalBalances[_account]), WEIGHT_STAKING)) * (uint256(fixidity.power_any(int256(_feesPaid[_account]), WEIGHT_FEES)));
+        if (
+            (lastTradeUserEpoch[_account] == currentEpoch) &&
+            (_totalBalances[_account] > 0)
+        ) {
+            newRewardScore =
+                uint256(
+                    fixidity.power_any(
+                        int256(_totalBalances[_account]),
+                        WEIGHT_STAKING
+                    )
+                ) *
+                (
+                    uint256(
+                        fixidity.power_any(
+                            int256(_feesPaid[_account]),
+                            WEIGHT_FEES
+                        )
+                    )
+                );
         }
 
-        if(lastTradeUserEpoch[_account] < currentEpoch) {
+        if (lastTradeUserEpoch[_account] < currentEpoch) {
             _oldRewardScore = 0;
         }
 
         _rewardScores[_account] = newRewardScore;
-        _totalRewardScore = _totalRewardScore  - _oldRewardScore + newRewardScore;
-
+        _totalRewardScore =
+            _totalRewardScore -
+            _oldRewardScore +
+            newRewardScore;
     }
 
     /*
      * @notice stake the requested tokens by the user
      * @param _amount: uint256, containing the number of tokens to stake
      */
-    function stake(uint256 _amount) override external nonReentrant notPaused updateRewards(msg.sender) {
+    function stake(uint256 _amount)
+        external
+        override
+        nonReentrant
+        notPaused
+        updateRewards(msg.sender)
+    {
         require(_amount > 0, "StakingRewards: Cannot Stake 0");
 
         // Update caller balance
@@ -456,16 +549,27 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     /*
      * @notice unstake and withdraw the requested tokens by the user
      * @param _amount: uint256, containing the number of tokens to stake
-     */ 
-    function unstake(uint256 _amount) override public nonReentrant updateRewards(msg.sender) {
+     */
+    function unstake(uint256 _amount)
+        public
+        override
+        nonReentrant
+        updateRewards(msg.sender)
+    {
         require(_amount > 0, "StakingRewards: Cannot Unstake 0");
-        require(stakedBalanceOf(msg.sender) >= _amount, "StakingRewards: Invalid Amount");
+        require(
+            stakedBalanceOf(msg.sender) >= _amount,
+            "StakingRewards: Invalid Amount"
+        );
         // solhint-disable-next-line
-        require(block.timestamp - lastStakingEvent[msg.sender] >= DAY, "StakingRewards: Minimum Staking Period Not Met");
+        require(
+            block.timestamp - lastStakingEvent[msg.sender] >= DAY,
+            "StakingRewards: Minimum Staking Period Not Met"
+        );
 
         // Update caller balance
         _totalBalances[msg.sender] -= _amount;
-        _totalSupply -=  _amount;
+        _totalSupply -= _amount;
 
         updateRewardScore(msg.sender, _rewardScores[msg.sender]);
         stakingToken.transfer(msg.sender, _amount);
@@ -474,14 +578,19 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     }
 
     /*
-     * @notice Function transferring the accumulated rewards for the caller address and updating the state mapping 
+     * @notice Function transferring the accumulated rewards for the caller address and updating the state mapping
      * containing the current rewards
      */
-    function getRewards() override public updateRewards(msg.sender) nonReentrant {
+    function getRewards()
+        public
+        override
+        updateRewards(msg.sender)
+        nonReentrant
+    {
         uint256 reward = rewards[msg.sender];
         if (reward > 0) {
             rewards[msg.sender] = 0;
-            
+
             // Send the rewards to Escrow for 1 year
             stakingToken.transfer(address(rewardEscrow), reward);
             rewardEscrow.appendVestingEntry(msg.sender, reward, 52 weeks);
@@ -494,7 +603,7 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
      * - Unstake and withdraw all tokens
      * - Transfers all rewards to caller's address
      */
-    function exit() override external {
+    function exit() external override {
         unstake(stakedBalanceOf(msg.sender));
         getRewards();
     }
@@ -504,19 +613,16 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
      * @param _account: address escrowing the rewards
      * @param _amount: uint256, amount escrowed
      */
-    function stakeEscrow(
-        address _account, 
-        uint256 _amount
-    ) 
-        override 
-        public 
-        notPaused 
-        onlyRewardEscrow 
-        updateRewards(_account) 
+    function stakeEscrow(address _account, uint256 _amount)
+        public
+        override
+        notPaused
+        onlyRewardEscrow
+        updateRewards(_account)
     {
-        _totalBalances[_account] +=  _amount;
-        _totalSupply +=  _amount;
-        _escrowedBalances[_account] +=  _amount;
+        _totalBalances[_account] += _amount;
+        _totalSupply += _amount;
+        _escrowedBalances[_account] += _amount;
 
         // update addresses last staking event timestamp
         lastStakingEvent[_account] = block.timestamp;
@@ -530,11 +636,23 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
      * @param _account: address escrowing the rewards
      * @param _amount: uint256, amount escrowed
      */
-    function unstakeEscrow(address _account, uint256 _amount) override public nonReentrant onlyRewardEscrow updateRewards(_account) {
-        require(_escrowedBalances[_account] >= _amount, "StakingRewards: Invalid Amount");
+    function unstakeEscrow(address _account, uint256 _amount)
+        public
+        override
+        nonReentrant
+        onlyRewardEscrow
+        updateRewards(_account)
+    {
+        require(
+            _escrowedBalances[_account] >= _amount,
+            "StakingRewards: Invalid Amount"
+        );
         // solhint-disable-next-line
-        require(block.timestamp - lastStakingEvent[msg.sender] >= DAY, "StakingRewards: Minimum Staking Period Not Met");
-        
+        require(
+            block.timestamp - lastStakingEvent[msg.sender] >= DAY,
+            "StakingRewards: Minimum Staking Period Not Met"
+        );
+
         _totalBalances[_account] -= _amount;
         _totalSupply -= _amount;
         _escrowedBalances[_account] -= _amount;
@@ -547,8 +665,13 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     /*
      * @notice Function used to set the rewards for the next epoch
      * @param reward, total amount to distribute
-     */  
-    function setRewards(uint256 reward) override external onlySupplySchedule updateRewards(address(0)) {
+     */
+    function setRewards(uint256 reward)
+        external
+        override
+        onlySupplySchedule
+        updateRewards(address(0))
+    {
         if (block.timestamp >= periodFinish) {
             rewardRate = reward / WEEK;
         } else {
@@ -558,8 +681,8 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
             rewardRate = reward + (leftover / WEEK);
         }
 
-        rewardRateStaking = rewardRate * percentageStaking / MAX_BPS;
-        rewardRateTrading = rewardRate * percentageTrading / MAX_BPS;
+        rewardRateStaking = (rewardRate * percentageStaking) / MAX_BPS;
+        rewardRateTrading = (rewardRate * percentageTrading) / MAX_BPS;
 
         lastUpdateTime = block.timestamp;
         periodFinish = block.timestamp + WEEK;
@@ -567,8 +690,14 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     }
 
     // @notice Added to support recovering LP Rewards from other systems such as BAL to be distributed to holders
-    function recoverERC20(address tokenAddress, uint256 tokenAmount) external onlyOwner {
-        require(tokenAddress != address(stakingToken), "StakingRewards: Invalid Token Address");
+    function recoverERC20(address tokenAddress, uint256 tokenAmount)
+        external
+        onlyOwner
+    {
+        require(
+            tokenAddress != address(stakingToken),
+            "StakingRewards: Invalid Token Address"
+        );
         IERC20(tokenAddress).transfer(owner, tokenAmount);
         emit Recovered(tokenAddress, tokenAmount);
     }
@@ -580,7 +709,8 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     function setRewardEscrow(address _rewardEscrow) external onlyOwner {
         // solhint-disable-next-line
         require(
-            IRewardEscrow(_rewardEscrow).getKwentaAddress() == address(stakingToken), 
+            IRewardEscrow(_rewardEscrow).getKwentaAddress() ==
+                address(stakingToken),
             "staking token address not equal to RewardEscrow KWENTA address"
         );
         rewardEscrow = IRewardEscrow(_rewardEscrow);
@@ -592,15 +722,22 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
      * @param address of the exchanger proxy to use
      */
     function setExchangerProxy(address _exchangerProxy) external onlyOwner {
-        require(_exchangerProxy != address(0), "StakingRewards: Invalid Address");
+        require(
+            _exchangerProxy != address(0),
+            "StakingRewards: Invalid Address"
+        );
         exchangerProxy = _exchangerProxy;
         emit ExchangerProxyUpdated(_exchangerProxy);
     }
 
     /* ========== PROXY FUNCTIONS ========== */
-    
+
     /*
      * @notice Necessary override for Open Zeppelin UUPS proxy to make sure the owner logic is included
      */
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
+    function _authorizeUpgrade(address newImplementation)
+        internal
+        override
+        onlyOwner
+    {}
 }
