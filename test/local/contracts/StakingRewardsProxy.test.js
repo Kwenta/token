@@ -552,6 +552,80 @@ describe('rewardEpochs()', () => {
     });
 });
 
+describe('mid-epoch rewards set', () => {
+    beforeEach(async () => {
+        // 1. setup
+        await deployNewRewardsEscrow(owner, kwentaToken);
+        StakingRewards = await deployContract();
+        stProxy = await deployProxy();
+        await stProxy.connect(owner).setExchangerProxy(exchangerProxy.address);
+        await stProxy.connect(owner).setRewardEscrow(rewardsEscrow.address);
+        await rewardsEscrow.setStakingRewards(stProxy.address);
+    });
+
+    // this is to prevent messing up the calculation of the current trading epoch
+    it('cannot update rewards twice mid trading epoch', async () => {
+        // 2. set rewards once
+        const rewardValue = toUnit(5.0);
+        await stProxy.connect(supplySchedule).setRewards(rewardValue);
+        const firstEpoch = await stProxy.currentEpoch();
+
+        // 3. attempt to set rewards 1 day later
+        await fastForward(DAY);
+        await stProxy.connect(supplySchedule).setRewards(rewardValue).should.be.rejectedWith(
+            'cannot set rewards twice within one trading epoch'
+        );
+
+        // 4. set rewards at the start of a new epoch
+        await fastForward(DAY * 6);
+        await stProxy.connect(supplySchedule).setRewards(rewardValue);
+        const secondEpoch = await stProxy.currentEpoch();
+
+        // make sure is new epoch
+        assertBNGreaterThan(secondEpoch, firstEpoch);
+
+        // make sure lastEpochRewardsSet is correctly equal
+        assertBNEqual(
+            secondEpoch, 
+            (await stProxy.lastEpochRewardsSet())
+        );
+    });
+
+    // this scenario setRewards period will be < WEEK
+    it('assert leftover rewards are used next time rewards are set', async () => {
+        // 2. set rewards 1 day after epoch start
+        await fastForward(DAY);
+        const rewardValue = toUnit(5.0);
+        await stProxy.connect(supplySchedule).setRewards(rewardValue);
+
+        // 3a. move to the start of a new epoch
+        await fastForward(DAY * 6);
+        const timestamp = hre.ethers.BigNumber.from(await currentTime());
+
+        const leftoverRewards = (await stProxy.rewardRate())
+            .mul((await stProxy.periodFinish()).sub(timestamp));
+        // this is to calculate the actual amount after rounding losses
+        let expectedLeftoverRewards = hre.ethers.BigNumber.from(rewardValue).div(WEEK).mul(DAY);
+
+        // check remaining rewards is correct
+        assertBNEqual(
+            leftoverRewards,
+            expectedLeftoverRewards,
+        );
+
+        // 3b. set rewards at the start of a new epoch
+        await stProxy.connect(supplySchedule).setRewards(rewardValue);
+        
+        // note setRewards moves blockchain 1 second forward
+        expectedLeftoverRewards = hre.ethers.BigNumber.from(rewardValue).div(WEEK).mul(DAY - 1);
+        // check new reward rate matches leftover rewards + new rewards
+        assertBNEqual(
+            expectedLeftoverRewards.add(rewardValue).div(WEEK),
+            await stProxy.rewardRate()
+        );
+    });
+})
+
 describe('implementation test', () => {
     it('calculates rewards correctly', async () => {
         // RewardsEscrow only allows for StakingRewards to be set *once*,

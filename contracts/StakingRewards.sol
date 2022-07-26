@@ -85,6 +85,7 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
     // Last reward per token staked
     uint256 private rewardPerTokenStored;
     uint256 public currentEpoch;
+    uint256 public lastEpochRewardsSet;
     
     // Save the date of the latest interaction for each address (Trading Rewards)
     mapping(address => uint256) private lastTradeUserEpoch;
@@ -457,16 +458,24 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
         if (block.timestamp >= periodFinish) {
             rewardRate = reward / WEEK;
         } else {
+            // @notice important to prevent an imbalance of rewards during trading epoch rewards calc
+            // @dev first setRewards will not go through this flow because periodFinish == 0
+            require(
+                lastEpochRewardsSet < currentEpoch, 
+                "cannot set rewards twice within one trading epoch"
+            );
+
             uint256 remaining = periodFinish - block.timestamp;
             // @notice this is previous rewardRate
             uint256 leftover = remaining * rewardRate;
-            rewardRate = reward + (leftover / WEEK);
+            rewardRate = (reward + leftover) / WEEK;
         }
 
         rewardRateStaking = rewardRate * PERCENTAGE_STAKING / MAX_BPS;
         rewardRateTrading = rewardRate * PERCENTAGE_TRADING / MAX_BPS;
 
         lastUpdateTime = block.timestamp;
+        lastEpochRewardsSet = currentEpoch;
         periodFinish = block.timestamp + WEEK;
         emit RewardAdded(reward);
     }
