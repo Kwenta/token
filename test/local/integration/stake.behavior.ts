@@ -68,7 +68,7 @@ const loadSetup = () => {
 describe('Stake', () => {
 	describe('Regular staking', async () => {
 		loadSetup();
-		it('Stake and withdraw all', async () => {
+		it('Stake and attempt to withdraw all immediately', async () => {
 			// initial balance should be 0
 			expect(await kwenta.balanceOf(addr1.address)).to.equal(0);
 
@@ -91,17 +91,17 @@ describe('Stake', () => {
 					.stakedBalanceOf(addr1.address)
 			).to.equal(TEST_VALUE);
 
-			// withdraw ALL KWENTA staked
-			await stakingRewardsProxy.connect(addr1).withdraw(TEST_VALUE);
-			expect(await kwenta.balanceOf(addr1.address)).to.equal(TEST_VALUE);
-			expect(
-				await stakingRewardsProxy
-					.connect(addr1)
-					.stakedBalanceOf(addr1.address)
-			).to.equal(0);
+			// attempt to withdraw ALL KWENTA staked
+			const tx = stakingRewardsProxy.connect(addr1).withdraw(TEST_VALUE);
+			await expect(tx).to.be.revertedWith("StakingRewards: Minimum Staking Period Not Met");
 		});
 
 		it('Stake and claim rewards', async () => {
+			// transfer KWENTA to addr1
+			await expect(() =>
+				kwenta.connect(TREASURY_DAO).transfer(addr1.address, TEST_VALUE)
+			).to.changeTokenBalance(kwenta, addr1, TEST_VALUE);
+
 			// increase KWENTA allowance for stakingRewards and stake
 			await kwenta
 				.connect(addr1)
@@ -113,10 +113,12 @@ describe('Stake', () => {
 				0
 			);
 
-			// claim rewards (expect 0 rewards)
+			// check total staked balance is TEST_VALUE * 2 (addr1 has staked twice up until this point)
 			expect(
 				await stakingRewardsProxy.totalBalanceOf(addr1.address)
-			).to.equal(TEST_VALUE);
+			).to.equal(TEST_VALUE.mul(2));
+
+			// claim rewards (expect 0 rewards)
 			await stakingRewardsProxy.connect(addr1).getReward();
 			expect(await rewardEscrow.balanceOf(addr1.address)).to.equal(0);
 		});
