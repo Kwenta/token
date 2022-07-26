@@ -41,7 +41,7 @@ contract SupplySchedule is Owned, ISupplySchedule {
     // How long each inflation period is before mint can be called
     uint public constant MINT_PERIOD_DURATION = 1 weeks;
 
-    uint public immutable INFLATION_START_DATE;
+    uint public immutable inflationStartDate;
     uint public constant MINT_BUFFER = 1 days;
     uint8 public constant SUPPLY_DECAY_START = 2; // Supply decay starts on the 2nd week of rewards
     uint8 public constant SUPPLY_DECAY_END = 208; // Inclusive of SUPPLY_DECAY_END week.
@@ -90,7 +90,7 @@ contract SupplySchedule is Owned, ISupplySchedule {
     ) Owned(_owner) {
         treasuryDAO = _treasuryDAO;
 
-        INFLATION_START_DATE = block.timestamp; //Inflation starts as soon as the contract is deployed.
+        inflationStartDate = block.timestamp; // inflation starts as soon as the contract is deployed.
         lastMintEvent = block.timestamp;
         weekCounter = 0;
     }
@@ -173,7 +173,7 @@ contract SupplySchedule is Owned, ISupplySchedule {
     function weeksSinceLastIssuance() public view returns (uint) {
         // Get weeks since lastMintEvent
         // If lastMintEvent not set or 0, then start from inflation start date.
-        uint timeDiff = lastMintEvent > 0 ? block.timestamp - lastMintEvent : block.timestamp - INFLATION_START_DATE;
+        uint timeDiff = block.timestamp - lastMintEvent;
         return timeDiff / MINT_PERIOD_DURATION;
     }
 
@@ -201,7 +201,7 @@ contract SupplySchedule is Owned, ISupplySchedule {
 
         // Update mint event to latest week issued (start date + number of weeks issued * seconds in week)
         // 1 day time buffer is added so inflation is minted after feePeriod closes
-        lastMintEvent = INFLATION_START_DATE + (weekCounter * MINT_PERIOD_DURATION) + MINT_BUFFER;
+        lastMintEvent = inflationStartDate + (weekCounter * MINT_PERIOD_DURATION) + MINT_BUFFER;
 
         emit SupplyMinted(supplyMinted, numberOfWeeksIssued, lastMintEvent);
         return true;

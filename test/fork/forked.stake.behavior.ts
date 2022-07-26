@@ -584,8 +584,8 @@ describe('Stake (fork)', () => {
             // claim reward(s)
             await stakingRewardsProxy
                 .connect(TEST_SIGNER_WITH_sUSD)
-                .getReward();
-            await stakingRewardsProxy.connect(addr1).getReward();
+                .getRewards();
+            await stakingRewardsProxy.connect(addr1).getRewards();
 
             // expect staker 1 to have greater rewards
             expect(

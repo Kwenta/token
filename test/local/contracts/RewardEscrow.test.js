@@ -262,7 +262,7 @@ contract(
 
         describe("Deploys correctly", async () => {
             it("Should have a KWENTA token", async () => {
-                const kwentaAddress = await rewardsEscrow.kwenta();
+                const kwentaAddress = await rewardsEscrow.getKwentaAddress();
                 assert.equal(
                     kwentaAddress,
                     kwentaSmock.address,
