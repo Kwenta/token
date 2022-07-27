@@ -254,14 +254,20 @@ describe('unstake()', async () => {
         await stProxy.connect(staker1).unstake(invalidWithdrawalAmount).should
             .be.rejected;
     });
+    it("fails when minimum stake period not met", async () => {
+        await stProxy.connect(staker1).unstake(toUnit(15)).should.be.rejected;
+    });
     it('unstakes the correct amount', async () => {
+        // ff
+        await fastForward(DAY);
+
         await stProxy.connect(staker1).unstake(toUnit(15));
         let bal = await stProxy.stakedBalanceOf(staker1.address);
-        assert.equal(bal, 0, 'Incorrect amount');
+        assert.equal(bal, 0, "Incorrect amount");
 
         await stProxy.connect(staker2).unstake(toUnit(50));
         bal = await stProxy.stakedBalanceOf(staker2.address);
-        assert.equal(bal, 0, 'Incorrect amount');
+        assert.equal(bal, 0, "Incorrect amount");
     });
 });
 
