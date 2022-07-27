@@ -563,7 +563,7 @@ contract StakingRewards is
         );
         // solhint-disable-next-line
         require(
-            block.timestamp - lastStakingEvent[msg.sender] >= DAY,
+            block.timestamp - lastStakingEvent[msg.sender] >= MIN_STAKING_PERIOD,
             "StakingRewards: Minimum Staking Period Not Met"
         );
 
@@ -649,7 +649,7 @@ contract StakingRewards is
         );
         // solhint-disable-next-line
         require(
-            block.timestamp - lastStakingEvent[msg.sender] >= DAY,
+            block.timestamp - lastStakingEvent[msg.sender] >= MIN_STAKING_PERIOD,
             "StakingRewards: Minimum Staking Period Not Met"
         );
 
