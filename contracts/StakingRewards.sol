@@ -534,20 +534,17 @@ contract StakingRewards is IStakingRewards, ReentrancyGuardUpgradeable, Pausable
      * @param reward, total amount to distribute
      */  
     function setRewards(uint256 reward) override external onlySupplySchedule updateRewards(address(0)) {
-        if (block.timestamp >= periodFinish) {
-            rewardRate = reward / WEEK;
-        } else {
-            uint256 remaining = periodFinish - block.timestamp;
-            // @notice this is previous rewardRate
-            uint256 leftover = remaining * rewardRate;
-            rewardRate = reward + (leftover / WEEK);
+        if (periodFinish < currentEpoch) {
+            periodFinish = currentEpoch;
         }
+        uint timeElapsedFromExpectedPeriodStart = (block.timestamp - periodFinish) % WEEK;
+        rewardRate = reward / (WEEK - timeElapsedFromExpectedPeriodStart);
 
         rewardRateStaking = rewardRate * percentageStaking / MAX_BPS;
         rewardRateTrading = rewardRate * percentageTrading / MAX_BPS;
 
         lastUpdateTime = block.timestamp;
-        periodFinish = block.timestamp + WEEK;
+        periodFinish = periodFinish + WEEK;
         emit RewardAdded(reward);
     }
 
