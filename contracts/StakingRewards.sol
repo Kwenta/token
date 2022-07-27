@@ -409,6 +409,7 @@ contract StakingRewards is
         uint256 _percentageStaking,
         uint256 _percentageTrading
     ) external override onlyOwner {
+        // solhint-disable-next-line
         require(
             _percentageTrading + _percentageStaking == 10_000,
             "StakingRewards: Invalid Percentage"
@@ -694,6 +695,7 @@ contract StakingRewards is
         external
         onlyOwner
     {
+        // solhint-disable-next-line
         require(
             tokenAddress != address(stakingToken),
             "StakingRewards: Invalid Token Address"

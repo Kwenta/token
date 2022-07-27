@@ -82,6 +82,7 @@ const assertBNEqual = (actualBN, expectedBN, context) => {
     assert.strictEqual(actualBN.toString(), expectedBN.toString(), context);
 };
 const BN = require('bn.js');
+const { expect } = require('chai');
 
 require('chai')
     .use(require('chai-as-promised'))
@@ -795,5 +796,52 @@ describe('setRewardEscrow()', () => {
             .should.be.rejectedWith(
                 'staking token address not equal to RewardEscrow KWENTA address'
             );
+    });
+
+    describe("setPercentageRewards()", () => {
+        it("Percentage rewards set in constructor", async () => {
+            const prePercentageStaking = await stProxy.percentageStaking();
+            const prePercentageTrading = await stProxy.percentageTrading();
+
+            // verify
+            expect(prePercentageStaking).to.equal(8_000); // defined in constructor
+            expect(prePercentageTrading).to.equal(2_000); // defined in constructor
+        });
+
+        it("Owner can set percentage rewards", async () => {
+            // update rewards (as owner)
+            await stProxy.connect(owner).setPercentageRewards(1_000, 9_000);
+
+            // post update rewards
+            const percentageStaking = await stProxy.percentageStaking();
+            const percentageTrading = await stProxy.percentageTrading();
+
+            // verify
+            expect(percentageStaking).to.equal(1_000);
+            expect(percentageTrading).to.equal(9_000);
+        });
+
+        it("Non-Owner cannot set percentage rewards", async () => {
+            // attempt to update rewards (as non-owner)
+            const tx = stProxy
+                .connect(staker1)
+                .setPercentageRewards(1_000, 9_000);
+            
+            // verify exception
+            await expect(tx).to.be.revertedWith("Only the contract owner may perform this action");
+        });
+    });
+
+    describe('setWeeklyStartRewards()', () => {
+        it("", async () => {});
+    });
+
+    describe('updateTraderScore() in current epoch', () => {
+        it("", async () => {});
+    });
+
+    // @TODO: Waiting on issues #116, #118
+    describe('setRewards()', () => {
+        it("", async () => {});
     });
 });
