@@ -774,7 +774,7 @@ describe('recoverERC20()', () => {
 describe('setRewardEscrow()', () => {
     it("Reverts if the provided RewardEscrow's $kwenta does not match StakingRewards' $stakingToken", async () => {
         // deploy a new kwenta token
-        NewKwentaToken = await hre.ethers.getContractFactory('Kwenta');
+        NewKwentaToken = await hre.ethers.getContractFactory("Kwenta");
         newKwentaToken = await KwentaToken.deploy(
             NAME,
             SYMBOL,
@@ -794,54 +794,111 @@ describe('setRewardEscrow()', () => {
             .connect(owner)
             .setRewardEscrow(newRewardsEscrow.address)
             .should.be.rejectedWith(
-                'staking token address not equal to RewardEscrow KWENTA address'
+                "staking token address not equal to RewardEscrow KWENTA address"
             );
     });
+});
 
-    describe("setPercentageRewards()", () => {
-        it("Percentage rewards set in constructor", async () => {
-            const prePercentageStaking = await stProxy.percentageStaking();
-            const prePercentageTrading = await stProxy.percentageTrading();
+describe("setPercentageRewards()", () => {
+    it("Percentage rewards set in constructor", async () => {
+        const prePercentageStaking = await stProxy.percentageStaking();
+        const prePercentageTrading = await stProxy.percentageTrading();
 
-            // verify
-            expect(prePercentageStaking).to.equal(8_000); // defined in constructor
-            expect(prePercentageTrading).to.equal(2_000); // defined in constructor
-        });
-
-        it("Owner can set percentage rewards", async () => {
-            // update rewards (as owner)
-            await stProxy.connect(owner).setPercentageRewards(1_000, 9_000);
-
-            // post update rewards
-            const percentageStaking = await stProxy.percentageStaking();
-            const percentageTrading = await stProxy.percentageTrading();
-
-            // verify
-            expect(percentageStaking).to.equal(1_000);
-            expect(percentageTrading).to.equal(9_000);
-        });
-
-        it("Non-Owner cannot set percentage rewards", async () => {
-            // attempt to update rewards (as non-owner)
-            const tx = stProxy
-                .connect(staker1)
-                .setPercentageRewards(1_000, 9_000);
-            
-            // verify exception
-            await expect(tx).to.be.revertedWith("Only the contract owner may perform this action");
-        });
+        // verify
+        expect(prePercentageStaking).to.equal(8_000); // defined in constructor
+        expect(prePercentageTrading).to.equal(2_000); // defined in constructor
     });
 
-    describe('setWeeklyStartRewards()', () => {
-        it("", async () => {});
+    it("Owner can set percentage rewards", async () => {
+        // update rewards (as owner)
+        await stProxy.connect(owner).setPercentageRewards(1_000, 9_000);
+
+        // post update rewards
+        const percentageStaking = await stProxy.percentageStaking();
+        const percentageTrading = await stProxy.percentageTrading();
+
+        // verify
+        expect(percentageStaking).to.equal(1_000);
+        expect(percentageTrading).to.equal(9_000);
     });
 
-    describe('updateTraderScore() in current epoch', () => {
-        it("", async () => {});
-    });
+    it("Non-Owner cannot set percentage rewards", async () => {
+        // attempt to update rewards (as non-owner)
+        const tx = stProxy.connect(staker1).setPercentageRewards(1_000, 9_000);
 
-    // @TODO: Waiting on issues #116, #118
-    describe('setRewards()', () => {
-        it("", async () => {});
+        // verify exception
+        await expect(tx).to.be.revertedWith(
+            "Only the contract owner may perform this action"
+        );
     });
+});
+
+describe("updateTraderScore() called in current epoch", () => {
+    it("calculates rewards correctly when updated in current epoch", async () => {
+        // RewardsEscrow only allows for StakingRewards to be set *once*,
+        // thus requiring new deployment when StakingRewards needs to change
+        // for testing purposes
+        await deployNewRewardsEscrow(owner, kwentaToken);
+
+        StakingRewards = await deployContract();
+        stProxy = await deployProxy();
+
+        await stProxy.connect(owner).setExchangerProxy(exchangerProxy.address);
+        await stProxy.connect(owner).setRewardEscrow(rewardsEscrow.address);
+        await rewardsEscrow.setStakingRewards(stProxy.address);
+
+        await kwentaToken
+            .connect(treasuryDAO)
+            .transfer(stProxy.address, toUnit(100));
+        await kwentaToken
+            .connect(staker1)
+            .approve(stProxy.address, toUnit(100));
+
+        // staker1 stakes
+        const amountStaked = 10;
+        await stProxy.connect(staker1).stake(toUnit(amountStaked));
+
+        // call updateTraderScore twice to trigger "else" logic in second call
+        const feePaid = 1;
+        await stProxy
+            .connect(exchangerProxy)
+            .updateTraderScore(staker1.address, toUnit(feePaid));
+        await stProxy
+            .connect(exchangerProxy)
+            .updateTraderScore(staker1.address, toUnit(feePaid));
+        const totalFeesPaid = feePaid * 2;
+
+        // verify fees paid
+        let feesPaid = await stProxy.feesPaidBy(staker1.address);
+        expect(feesPaid).to.equal(toUnit(totalFeesPaid));
+
+        // actual rewards score
+        let rewardScoreOfStaker1 = await stProxy.rewardScoreOf(staker1.address);
+        // calculate expected rewardScoreOfStaker1
+        const WEIGHT_FEES = 0.7;
+        const WEIGHT_STAKING = 0.3;
+        const expectedRewardScoreOfStaker1 = toUnit(
+            Math.pow(amountStaked, WEIGHT_STAKING) *
+                Math.pow(totalFeesPaid, WEIGHT_FEES)
+        );
+        // verfiy rewards score
+        expect(rewardScoreOfStaker1).to.be.closeTo(
+            expectedRewardScoreOfStaker1,
+            500 // very close
+        );
+
+        // actual total reward score
+        let totalRewardScore = await stProxy.totalRewardScore();
+        // verify total reward score
+        // @notice (since staker1 is the only trader/staker totalRewardScore should be the same)
+        expect(totalRewardScore).to.be.closeTo(
+            expectedRewardScoreOfStaker1,
+            500 // very close
+        );
+    });
+});
+
+// @TODO: Waiting on issues #116, #118
+describe("setRewards()", () => {
+    it("", async () => {});
 });
