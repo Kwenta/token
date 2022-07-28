@@ -336,7 +336,7 @@ describe("MerkleDistributor", () => {
                 ).to.be.revertedWith("MerkleDistributor: Invalid proof.");
             });
 
-            it("gas", async () => {
+            it.skip("gas", async () => {
                 const proof = tree.getProof(
                     0,
                     addr0.address,
@@ -417,7 +417,7 @@ describe("MerkleDistributor", () => {
                     .withArgs(9, accounts[9].address, 10);
             });
 
-            it("gas", async () => {
+            it.skip("gas", async () => {
                 const proof = tree.getProof(
                     9,
                     accounts[9].address,
@@ -433,7 +433,7 @@ describe("MerkleDistributor", () => {
                 expect(receipt.gasUsed).to.eq(200629);
             });
 
-            it("gas second down about 15k", async () => {
+            it.skip("gas second down about 15k", async () => {
                 await distributor.claim(
                     0,
                     accounts[0].address,
@@ -506,7 +506,7 @@ describe("MerkleDistributor", () => {
                 ).to.changeTokenBalance(kwenta, distributor, 300_000);
             });
 
-            it("gas", async () => {
+            it.skip("gas", async () => {
                 const proof = tree.getProof(
                     50000,
                     addr0.address,
@@ -522,7 +522,7 @@ describe("MerkleDistributor", () => {
                 expect(receipt.gasUsed).to.eq(215723);
             });
 
-            it("gas deeper node", async () => {
+            it.skip("gas deeper node", async () => {
                 const proof = tree.getProof(
                     90000,
                     addr0.address,
@@ -539,7 +539,7 @@ describe("MerkleDistributor", () => {
                 expect(receipt.gasUsed).to.eq(215757);
             });
 
-            it("gas average random distribution", async () => {
+            it.skip("gas average random distribution", async () => {
                 let total: BigNumber = BigNumber.from(0);
                 let count: number = 0;
                 for (let i = 0; i < NUM_LEAVES; i += NUM_LEAVES / NUM_SAMPLES) {
@@ -563,7 +563,7 @@ describe("MerkleDistributor", () => {
             });
 
             // this is what we gas golfed by packing the bitmap
-            it("gas average first 25", async () => {
+            it.skip("gas average first 25", async () => {
                 let total: BigNumber = BigNumber.from(0);
                 let count: number = 0;
                 for (let i = 0; i < 25; i++) {
