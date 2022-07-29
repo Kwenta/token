@@ -8,6 +8,7 @@ pragma solidity ^0.8.0;
  @TODO: Event docs
  @TODO: notifyRewardAmount (implementation review and docs)
  @TODO: pull/ref tests from snx and token v1
+ @TODO: trading vault integration
  */
 
 
