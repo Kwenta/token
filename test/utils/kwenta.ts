@@ -9,7 +9,7 @@ import { mockAddressResolver } from '../utils/mockAddressResolver';
 let kwenta: Contract;
 let supplySchedule: Contract;
 let rewardEscrow: Contract;
-let stakingRewardsProxy: Contract;
+let stakingRewards: Contract;
 let exchangerProxy: Contract;
 
 // mocking
@@ -97,37 +97,23 @@ export const deployKwenta = async (
 	await rewardEscrow.deployed();
 
 	// deploy StakingRewards
-	const StakingRewards = await ethers.getContractFactory('StakingRewards', {
-		libraries: {
-			ExponentLib: exponentLib.address,
-			FixidityLib: fixidityLib.address,
-		},
-	});
-
-	// deploy UUPS Proxy using hardhat upgrades from OpenZeppelin
-	stakingRewardsProxy = await upgrades.deployProxy(
-		StakingRewards,
-		[
-			owner.address,
-			kwenta.address,
-			rewardEscrow.address,
-			supplySchedule.address, 
-			WEEKLY_START_REWARDS,
-		],
-		{
-			kind: 'uups',
-			unsafeAllow: ['external-library-linking'],
-		}
-	);
-	await stakingRewardsProxy.deployed();
+	const StakingRewards = await ethers.getContractFactory("StakingRewards");
+    stakingRewards = await StakingRewards.deploy(
+        kwenta.address,
+        kwenta.address,
+        rewardEscrow.address,
+        supplySchedule.address
+    );
+    await stakingRewards.deployed();
 
 	// set StakingRewards address in SupplySchedule
-	await supplySchedule.setStakingRewards(stakingRewardsProxy.address);
+	await supplySchedule.setStakingRewards(stakingRewards.address);
 
 	// set StakingRewards address in RewardEscrow
-	await rewardEscrow.setStakingRewards(stakingRewardsProxy.address);
+	await rewardEscrow.setStakingRewards(stakingRewards.address);
 
 	//// Mock Synthetix
+	// @TODO strip from project
 	fakeSynthetix = await smock.fake<ISynthetix>('ISynthetix');
 	fakeSynthetix.exchangeOnBehalfWithTracking.returns(1);
 
@@ -140,22 +126,11 @@ export const deployKwenta = async (
 			)
 			.returns(fakeSynthetix.address);	
 
-	// deploy ExchangerProxy
-	const ExchangerProxy = await ethers.getContractFactory('ExchangerProxy');
-	exchangerProxy = await ExchangerProxy.deploy(
-		fakeAddressResolver.address,
-		stakingRewardsProxy.address
-	);
-	await exchangerProxy.deployed();
-
-	// set ExchangerProxy address in StakingRewards
-	await stakingRewardsProxy.setExchangerProxy(exchangerProxy.address);
-
 	return {
 		kwenta,
 		supplySchedule,
 		rewardEscrow,
-		stakingRewardsProxy,
+		stakingRewards,
 		exchangerProxy,
 	};
 };
