@@ -1,19 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-/**
- @TODO: Interface Update
- @TODO: Integrate with other contracts ):
- @TODO: notifyRewardAmount (implementation review and docs)
- @TODO: pull/ref tests from snx and token v1
- @TODO: trading vault integration
- @TODO: variable visibility refactor
- */
-
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "./interfaces/IStakingRewards.sol";
 import "./interfaces/ISupplySchedule.sol";
 import "./interfaces/IRewardEscrow.sol";
 
@@ -21,33 +13,29 @@ import "./interfaces/IRewardEscrow.sol";
 /// @author SYNTHETIX, JaredBorders (jaredborders@proton.me), JChiaramonte7 (jeremy@bytecode.llc)
 /// @notice Updated version of Synthetix's StakingRewards with new features supporting
 /// escrow staking, trading incentives disbursal, etc..
-contract StakingRewards is Ownable, ReentrancyGuard, Pausable {
+contract StakingRewards is IStakingRewards, Ownable, ReentrancyGuard, Pausable {
     using SafeERC20 for IERC20;
 
     /*///////////////////////////////////////////////////////////////
                                 CONSTANTS
     ///////////////////////////////////////////////////////////////*/
 
-    /// @notice minimum amount of time a user must stake
-    /// @dev used to prevent flashloans from temporarily inflating voting power
-    uint256 private constant MIN_STAKING_PERIOD = 1 days;
-
     /*///////////////////////////////////////////////////////////////
                                 STATE
     ///////////////////////////////////////////////////////////////*/
 
     /// @notice token used for rewards
-    IERC20 public rewardsToken;
+    IERC20 private rewardsToken;
 
     /// @notice token used to stake
     /// @dev staked token can/will be used for voting
-    IERC20 public stakingToken;
+    IERC20 private stakingToken;
 
     /// @notice escrow contract which holds (and may stake) reward tokens
-    IRewardEscrow public rewardEscrow;
+    IRewardEscrow private rewardEscrow;
 
     /// @notice handles reward token minting logic
-    ISupplySchedule public supplySchedule;
+    ISupplySchedule private supplySchedule;
 
     /// @notice marks applicable reward period finish time
     uint256 public periodFinish = 0;
@@ -64,12 +52,6 @@ contract StakingRewards is Ownable, ReentrancyGuard, Pausable {
     /// @notice summation of rewardRate divided by total staked tokens
     uint256 public rewardPerTokenStored;
 
-    /// @notice percent distributed for staking
-    uint256 public percentageStaking;
-
-    /// @notice percent distributed for trading
-    uint256 public percentageTrading;
-
     /// @notice total number of tokens staked in this contract
     uint256 public _totalSupply;
 
@@ -81,15 +63,15 @@ contract StakingRewards is Ownable, ReentrancyGuard, Pausable {
     mapping(address => uint256) public lastStakingEvent;
 
     /// @notice track rewards for a given user which changes when
-    /// a user stakes, withdraws, or claims rewards
+    /// a user stakes, unstakes, or claims rewards
     mapping(address => uint256) public rewards;
 
     /// @notice number of tokens staked by address
     /// @dev this includes escrowed tokens stake
-    mapping(address => uint256) public _balances;
+    mapping(address => uint256) private balances;
 
     /// @notice number of tokens escrowed by address
-    mapping(address => uint256) public _escrowedBalances;
+    mapping(address => uint256) private escrowedBalances;
 
     /*///////////////////////////////////////////////////////////////
                                 EVENTS
@@ -104,19 +86,19 @@ contract StakingRewards is Ownable, ReentrancyGuard, Pausable {
     /// @param amount: amount staked
     event Staked(address indexed user, uint256 amount);
 
-    /// @notice emitted when user withdraws tokens
-    /// @param user: address of user withdrawing
-    /// @param amount: amount withdrawn
-    event Withdrawn(address indexed user, uint256 amount);
+    /// @notice emitted when user unstakes tokens
+    /// @param user: address of user unstaking
+    /// @param amount: amount unstaked
+    event Unstaked(address indexed user, uint256 amount);
 
     /// @notice emitted when escrow staked
     /// @param user: owner of escrowed tokens address
     /// @param amount: amount staked
     event EscrowStaked(address indexed user, uint256 amount);
 
-    /// @notice emitted when staked escrow tokens are un-staked
+    /// @notice emitted when staked escrow tokens are unstaked
     /// @param user: owner of escrowed tokens address
-    /// @param amount: amount withdrawn
+    /// @param amount: amount unstaked
     event EscrowUnstaked(address user, uint256 amount);
 
     /// @notice emitted when user claims rewards
@@ -137,14 +119,6 @@ contract StakingRewards is Ownable, ReentrancyGuard, Pausable {
     /// @dev can only be updated by owner
     /// @param addr: address of new RewardEscrow
     event RewardEscrowUpdated(address addr);
-
-    /// @notice emitted when percentage of rewards are set
-    /// @param percentageStaking: percent of inflation distributed to stakers
-    /// @param percentageTrading: percent of inflation distributed to traders
-    event PercentageRewardsSet(
-        uint256 percentageStaking,
-        uint256 percentageTrading
-    );
 
     /*///////////////////////////////////////////////////////////////
                                 AUTH
@@ -198,14 +172,19 @@ contract StakingRewards is Ownable, ReentrancyGuard, Pausable {
     ///////////////////////////////////////////////////////////////*/
 
     /// @return total supply of staked tokens
-    function totalSupply() external view returns (uint256) {
+    function totalSupply() external view override returns (uint256) {
         return _totalSupply;
     }
 
     /// @param account: address of potential staker
     /// @return amount of tokens staked by account
-    function balanceOf(address account) external view returns (uint256) {
-        return _balances[account];
+    function balanceOf(address account)
+        external
+        view
+        override
+        returns (uint256)
+    {
+        return balances[account];
     }
 
     /// @notice Getter function for the escrowed balance of an account
@@ -214,18 +193,39 @@ contract StakingRewards is Ownable, ReentrancyGuard, Pausable {
     function escrowedBalanceOf(address account)
         external
         view
+        override
         returns (uint256)
     {
-        return _escrowedBalances[account];
+        return escrowedBalances[account];
     }
 
     /// @return rewards for the duration specified by rewardsDuration
-    function getRewardForDuration() external view returns (uint256) {
+    function getRewardForDuration() external view override returns (uint256) {
         return rewardRate * rewardsDuration;
     }
 
+    /// @return address of stakingToken
+    function getStakingToken() external view override returns (address) {
+        return address(stakingToken);
+    }
+
+    /// @return address of rewardsToken
+    function getRewardsToken() external view override returns (address) {
+        return address(rewardsToken);
+    }
+
+    /// @return address of RewardEscrow
+    function getRewardEscrow() external view override returns (address) {
+        return address(rewardEscrow);
+    }
+
+    /// @return address of SupplySchedule
+    function getSupplySchedule() external view override returns (address) {
+        return address(supplySchedule);
+    }
+
     /*///////////////////////////////////////////////////////////////
-                            STAKE/WITHDRAW
+                            STAKE/UNSTAKE
     ///////////////////////////////////////////////////////////////*/
 
     /// @notice stake token
@@ -233,6 +233,7 @@ contract StakingRewards is Ownable, ReentrancyGuard, Pausable {
     /// @dev updateReward() called prior to function logic
     function stake(uint256 amount)
         external
+        override
         nonReentrant
         whenNotPaused
         updateReward(msg.sender)
@@ -241,7 +242,7 @@ contract StakingRewards is Ownable, ReentrancyGuard, Pausable {
 
         // update state
         _totalSupply = _totalSupply + amount;
-        _balances[msg.sender] = _balances[msg.sender] + amount;
+        balances[msg.sender] = balances[msg.sender] + amount;
 
         // update addresses last staking event timestamp
         lastStakingEvent[msg.sender] = block.timestamp;
@@ -253,30 +254,26 @@ contract StakingRewards is Ownable, ReentrancyGuard, Pausable {
         emit Staked(msg.sender, amount);
     }
 
-    /// @notice withdraw token
-    /// @param amount: amount to withdraw
+    /// @notice unstake token
+    /// @param amount: amount to unstake
     /// @dev updateReward() called prior to function logic
-    function withdraw(uint256 amount)
+    function unstake(uint256 amount)
         public
+        override
         nonReentrant
         updateReward(msg.sender)
     {
-        require(amount > 0, "StakingRewards: Cannot withdraw 0");
-        require(
-            block.timestamp - lastStakingEvent[msg.sender] >=
-                MIN_STAKING_PERIOD,
-            "StakingRewards: Minimum Staking Period Not Met"
-        );
+        require(amount > 0, "StakingRewards: Cannot Unstake 0");
 
         // update state
         _totalSupply = _totalSupply - amount;
-        _balances[msg.sender] = _balances[msg.sender] - amount;
+        balances[msg.sender] = balances[msg.sender] - amount;
 
         // transfer token from this contract to the caller
         stakingToken.safeTransfer(msg.sender, amount);
 
-        // emit withdraw event and index msg.sender
-        emit Withdrawn(msg.sender, amount);
+        // emit unstake event and index msg.sender
+        emit Unstaked(msg.sender, amount);
     }
 
     /// @notice stake escrowed token
@@ -286,6 +283,7 @@ contract StakingRewards is Ownable, ReentrancyGuard, Pausable {
     /// @dev msg.sender NOT used (account is used)
     function stakeEscrow(address account, uint256 amount)
         public
+        override
         whenNotPaused
         onlyRewardEscrow
         updateReward(account)
@@ -293,10 +291,13 @@ contract StakingRewards is Ownable, ReentrancyGuard, Pausable {
         require(amount > 0, "StakingRewards: Cannot stake 0");
 
         // update state
-        _balances[account] += amount;
-        _escrowedBalances[account] += amount;
+        balances[account] += amount;
+        escrowedBalances[account] += amount;
+
+        // updates total supply despite no new staking token being transfered.
+        // escrowed tokens are locked in RewardEscrow
         _totalSupply += amount;
-        
+
         // update addresses last staking event timestamp
         lastStakingEvent[account] = block.timestamp;
 
@@ -304,40 +305,39 @@ contract StakingRewards is Ownable, ReentrancyGuard, Pausable {
         emit EscrowStaked(account, amount);
     }
 
-    /// @notice un-stake escrowed token
+    /// @notice unstake escrowed token
     /// @param account: address which owns token
-    /// @param amount: amount to un-stake
+    /// @param amount: amount to unstake
     /// @dev updateReward() called prior to function logic
     /// @dev msg.sender NOT used (account is used)
     function unstakeEscrow(address account, uint256 amount)
         public
+        override
         nonReentrant
         onlyRewardEscrow
         updateReward(account)
     {
         require(
-            _escrowedBalances[account] >= amount,
+            escrowedBalances[account] >= amount,
             "StakingRewards: Invalid Amount"
-        );
-        require(
-            block.timestamp - lastStakingEvent[msg.sender] >=
-                MIN_STAKING_PERIOD,
-            "StakingRewards: Minimum Staking Period Not Met"
         );
 
         // update state
-        _balances[account] -= amount;
-        _escrowedBalances[account] -= amount;
+        balances[account] -= amount;
+        escrowedBalances[account] -= amount;
+
+        // updates total supply despite no new staking token being transfered.
+        // escrowed tokens are locked in RewardEscrow
         _totalSupply -= amount;
 
         // emit escrow unstaked event and index account
         emit EscrowUnstaked(account, amount);
     }
 
-    /// @notice withdraw all available staked tokens and
+    /// @notice unstake all available staked tokens and
     /// claim any rewards
-    function exit() external {
-        withdraw(_balances[msg.sender]);
+    function exit() external override {
+        unstake(balances[msg.sender]);
         getReward();
     }
 
@@ -347,7 +347,7 @@ contract StakingRewards is Ownable, ReentrancyGuard, Pausable {
 
     /// @notice caller claims any rewards generated from staking
     /// @dev updateReward() called prior to function logic
-    function getReward() public nonReentrant updateReward(msg.sender) {
+    function getReward() public override nonReentrant updateReward(msg.sender) {
         uint256 reward = rewards[msg.sender];
         if (reward > 0) {
             // update state (first)
@@ -386,7 +386,7 @@ contract StakingRewards is Ownable, ReentrancyGuard, Pausable {
     /// @notice calculate running sum of reward per total tokens staked
     /// at this specific time
     /// @return running sum of reward per total tokens staked
-    function rewardPerToken() public view returns (uint256) {
+    function rewardPerToken() public view override returns (uint256) {
         if (_totalSupply == 0) {
             return rewardPerTokenStored;
         }
@@ -399,26 +399,29 @@ contract StakingRewards is Ownable, ReentrancyGuard, Pausable {
     }
 
     /// @return timestamp of the last time rewards are applicable
-    function lastTimeRewardApplicable() public view returns (uint256) {
+    function lastTimeRewardApplicable() public view override returns (uint256) {
         return block.timestamp < periodFinish ? block.timestamp : periodFinish;
     }
 
     /// @notice determine how much reward token an account has earned thus far
     /// @param account: address of account earned amount is being calculated for
-    function earned(address account) public view returns (uint256) {
+    function earned(address account) public view override returns (uint256) {
         return
-            ((_balances[account] *
+            ((balances[account] *
                 (rewardPerToken() - userRewardPerTokenPaid[account])) / 1e18) +
             rewards[account];
     }
 
     /*///////////////////////////////////////////////////////////////
-                            RESTRICTED FUNCTIONS
+                            SETTINGS
     ///////////////////////////////////////////////////////////////*/
 
-    // @TODO: Add docs
+    /// @notice configure reward rate
+    /// @param reward: amount of token to be distributed over a period
+    /// @dev updateReward() called prior to function logic (with zero address)
     function notifyRewardAmount(uint256 reward)
         external
+        override
         onlySupplySchedule
         updateReward(address(0))
     {
@@ -445,25 +448,13 @@ contract StakingRewards is Ownable, ReentrancyGuard, Pausable {
         emit RewardAdded(reward);
     }
 
-    /// @notice added to support recovering LP Rewards from other systems
-    /// such as BAL to be distributed to holders
-    /// @param tokenAddress: address of token to be recovered
-    /// @param tokenAmount: amount of token to be recovered
-    function recoverERC20(address tokenAddress, uint256 tokenAmount)
-        external
-        onlyOwner
-    {
-        require(
-            tokenAddress != address(stakingToken),
-            "StakingRewards: Cannot withdraw the staking token"
-        );
-        IERC20(tokenAddress).safeTransfer(owner(), tokenAmount);
-        emit Recovered(tokenAddress, tokenAmount);
-    }
-
     /// @notice set rewards duration
     /// @param _rewardsDuration: denoted in seconds
-    function setRewardsDuration(uint256 _rewardsDuration) external onlyOwner {
+    function setRewardsDuration(uint256 _rewardsDuration)
+        external
+        override
+        onlyOwner
+    {
         require(
             block.timestamp > periodFinish,
             "StakingRewards: Previous rewards period must be complete before changing the duration for the new period"
@@ -472,34 +463,40 @@ contract StakingRewards is Ownable, ReentrancyGuard, Pausable {
         emit RewardsDurationUpdated(rewardsDuration);
     }
 
-    /// @notice Set the % distribution between staking and trading
-    /// @dev Only the owner can use this function and parameters should be in base 10_000 (80% = 8_000)
-    /// @param _percentageStaking the % of rewards to distribute to staking scores
-    /// @param _percentageTrading the % of rewards to distribute to reward scores
-    function setPercentageRewards(
-        uint256 _percentageStaking,
-        uint256 _percentageTrading
-    ) external onlyOwner {
-        require(
-            _percentageTrading + _percentageStaking == 10_000,
-            "StakingRewards: Invalid Percentage"
-        );
-        percentageStaking = _percentageStaking;
-        percentageTrading = _percentageTrading;
-
-        emit PercentageRewardsSet(_percentageStaking, _percentageTrading);
-    }
-
     /// @notice function available for the owner to change the rewardEscrow contract to use
     /// @param _rewardEscrow: address of the rewardEsxrow contract to use
-    function setRewardEscrow(address _rewardEscrow) external onlyOwner {
-        // solhint-disable-next-line
+    function setRewardEscrow(address _rewardEscrow)
+        external
+        override
+        onlyOwner
+    {
         require(
             IRewardEscrow(_rewardEscrow).getKwentaAddress() ==
                 address(stakingToken),
-            "staking token address not equal to RewardEscrow KWENTA address"
+            "StakingRewards: Staking token address not equal to RewardEscrow KWENTA address"
         );
         rewardEscrow = IRewardEscrow(_rewardEscrow);
         emit RewardEscrowUpdated(address(_rewardEscrow));
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                            MISCELLANEOUS
+    ///////////////////////////////////////////////////////////////*/
+
+    /// @notice added to support recovering LP Rewards from other systems
+    /// such as BAL to be distributed to holders
+    /// @param tokenAddress: address of token to be recovered
+    /// @param tokenAmount: amount of token to be recovered
+    function recoverERC20(address tokenAddress, uint256 tokenAmount)
+        external
+        override
+        onlyOwner
+    {
+        require(
+            tokenAddress != address(stakingToken),
+            "StakingRewards: Cannot unstake the staking token"
+        );
+        IERC20(tokenAddress).safeTransfer(owner(), tokenAmount);
+        emit Recovered(tokenAddress, tokenAmount);
     }
 }
