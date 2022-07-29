@@ -109,8 +109,12 @@ describe("MultipleMerkleDistributor", () => {
                 rewardEscrow.address
             );
             await distributor.deployed();
-            await distributor.newMerkleRoot(tree.getHexRoot());
-            await distributor.newMerkleRoot(tree2.getHexRoot());
+            await expect(distributor.newMerkleRoot(tree.getHexRoot()))
+                .to.emit(distributor, "MerkleRootAdded")
+                .withArgs(EPOCH_ZERO);
+            await expect(distributor.newMerkleRoot(tree2.getHexRoot()))
+                .to.emit(distributor, "MerkleRootAdded")
+                .withArgs(EPOCH_ONE);
             expect(await distributor.merkleRoots(0)).to.equal(
                 tree.getHexRoot()
             );
