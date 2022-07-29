@@ -41,7 +41,7 @@ contract MultipleMerkleDistributor is IMultipleMerkleDistributor, Owned {
         rewardEscrow = _rewardEscrow;
     }
 
-    function newMerkleRoot(bytes32 _merkleRoot) external {
+    function newMerkleRoot(bytes32 _merkleRoot) external onlyOwner {
         merkleRoots[distributionEpoch] = _merkleRoot;
         emit MerkleRootAdded(distributionEpoch);
         distributionEpoch++;

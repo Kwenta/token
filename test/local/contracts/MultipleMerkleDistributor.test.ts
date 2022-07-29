@@ -87,6 +87,23 @@ describe("MultipleMerkleDistributor", () => {
             expect(await distributor.merkleRoots(0)).to.equal(ZERO_BYTES32);
         });
 
+        it("cannot add merkle roots as non owner", async () => {
+            const MultipleMerkleDistributor = await ethers.getContractFactory(
+                "MultipleMerkleDistributor"
+            );
+            distributor = await MultipleMerkleDistributor.deploy(
+                owner.address,
+                kwenta.address,
+                rewardEscrow.address
+            );
+            await distributor.deployed();
+            await expect(
+                distributor.connect(addr0).newMerkleRoot(ZERO_BYTES32)
+            ).to.be.revertedWith(
+                "Only the contract owner may perform this action"
+            );
+        });
+
         it("multiple roots stored and keyed by epoch", async () => {
             const tree = new BalanceTree([
                 { account: addr0.address, amount: BigNumber.from(100) },
