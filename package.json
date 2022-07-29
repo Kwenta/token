@@ -48,6 +48,7 @@
   "dependencies": {
     "@eth-optimism/contracts": "^0.5.21",
     "dotenv": "16.0.0",
+    "hardhat-interface-generator": "^0.0.6",
     "hardhat-typechain": "^0.3.5",
     "solidity-coverage": "^0.7.17"
   }
