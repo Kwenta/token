@@ -2,15 +2,13 @@
 pragma solidity ^0.8.0;
 
 /**
- @TODO: Escrow stuff (implement and docs)
  @TODO: Interface Update
  @TODO: Integrate with other contracts ):
- @TODO: Event docs
  @TODO: notifyRewardAmount (implementation review and docs)
  @TODO: pull/ref tests from snx and token v1
  @TODO: trading vault integration
+ @TODO: variable visibility refactor
  */
-
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
@@ -19,10 +17,10 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/ISupplySchedule.sol";
 import "./interfaces/IRewardEscrow.sol";
 
-/// @title KWENTA's Staking Rewards
-/// @author JaredBorders (jaredborders@proton.me), JChiaramonte7 (jeremy@bytecode.llc)
+/// @title KWENTA Staking Rewards
+/// @author SYNTHETIX, JaredBorders (jaredborders@proton.me), JChiaramonte7 (jeremy@bytecode.llc)
 /// @notice Updated version of Synthetix's StakingRewards with new features supporting
-/// escrow staking, incentives disbursal, etc..
+/// escrow staking, trading incentives disbursal, etc..
 contract StakingRewards is Ownable, ReentrancyGuard, Pausable {
     using SafeERC20 for IERC20;
 
@@ -66,28 +64,32 @@ contract StakingRewards is Ownable, ReentrancyGuard, Pausable {
     /// @notice summation of rewardRate divided by total staked tokens
     uint256 public rewardPerTokenStored;
 
-    /// @notice total number of tokens staked in this contract
-    uint256 private _totalSupply;
-
     /// @notice percent distributed for staking
     uint256 public percentageStaking;
 
     /// @notice percent distributed for trading
     uint256 public percentageTrading;
 
+    /// @notice total number of tokens staked in this contract
+    uint256 public _totalSupply;
+
     /// @notice track rewardPerTokenStored for a user and updates
     /// upon the user interacting with the contract (i.e. updateRewards())
     mapping(address => uint256) public userRewardPerTokenPaid;
+
+    /// @notice save most recent date an address emitted Staked event
+    mapping(address => uint256) public lastStakingEvent;
 
     /// @notice track rewards for a given user which changes when
     /// a user stakes, withdraws, or claims rewards
     mapping(address => uint256) public rewards;
 
     /// @notice number of tokens staked by address
-    mapping(address => uint256) private _balances;
+    /// @dev this includes escrowed tokens stake
+    mapping(address => uint256) public _balances;
 
-    /// @notice save most recent date an address emitted Staked event
-    mapping(address => uint256) public lastStakingEvent;
+    /// @notice number of tokens escrowed by address
+    mapping(address => uint256) public _escrowedBalances;
 
     /*///////////////////////////////////////////////////////////////
                                 EVENTS
@@ -131,8 +133,14 @@ contract StakingRewards is Ownable, ReentrancyGuard, Pausable {
     /// @param amount: amount of token recovered
     event Recovered(address token, uint256 amount);
 
-    event RewardEscrowUpdated(address account);
+    /// @notice emitted when address for RewardEscrow is updated
+    /// @dev can only be updated by owner
+    /// @param addr: address of new RewardEscrow
+    event RewardEscrowUpdated(address addr);
 
+    /// @notice emitted when percentage of rewards are set
+    /// @param percentageStaking: percent of inflation distributed to stakers
+    /// @param percentageTrading: percent of inflation distributed to traders
     event PercentageRewardsSet(
         uint256 percentageStaking,
         uint256 percentageTrading
@@ -200,6 +208,17 @@ contract StakingRewards is Ownable, ReentrancyGuard, Pausable {
         return _balances[account];
     }
 
+    /// @notice Getter function for the escrowed balance of an account
+    /// @param account address to check the escrowed balance of
+    /// @return escrowed balance of specified account
+    function escrowedBalanceOf(address account)
+        external
+        view
+        returns (uint256)
+    {
+        return _escrowedBalances[account];
+    }
+
     /// @return rewards for the duration specified by rewardsDuration
     function getRewardForDuration() external view returns (uint256) {
         return rewardRate * rewardsDuration;
@@ -210,7 +229,7 @@ contract StakingRewards is Ownable, ReentrancyGuard, Pausable {
     ///////////////////////////////////////////////////////////////*/
 
     /// @notice stake token
-    /// @param amount to stake
+    /// @param amount: amount to stake
     /// @dev updateReward() called prior to function logic
     function stake(uint256 amount)
         external
@@ -235,7 +254,7 @@ contract StakingRewards is Ownable, ReentrancyGuard, Pausable {
     }
 
     /// @notice withdraw token
-    /// @param amount to withdraw
+    /// @param amount: amount to withdraw
     /// @dev updateReward() called prior to function logic
     function withdraw(uint256 amount)
         public
@@ -243,9 +262,9 @@ contract StakingRewards is Ownable, ReentrancyGuard, Pausable {
         updateReward(msg.sender)
     {
         require(amount > 0, "StakingRewards: Cannot withdraw 0");
-
         require(
-            block.timestamp - lastStakingEvent[msg.sender] >= MIN_STAKING_PERIOD,
+            block.timestamp - lastStakingEvent[msg.sender] >=
+                MIN_STAKING_PERIOD,
             "StakingRewards: Minimum Staking Period Not Met"
         );
 
@@ -260,51 +279,59 @@ contract StakingRewards is Ownable, ReentrancyGuard, Pausable {
         emit Withdrawn(msg.sender, amount);
     }
 
-    // @TODO: Implement
-    // @TODO: Add docs
-    function stakeEscrow(address _account, uint256 _amount)
+    /// @notice stake escrowed token
+    /// @param account: address which owns token
+    /// @param amount: amount to stake
+    /// @dev updateReward() called prior to function logic
+    /// @dev msg.sender NOT used (account is used)
+    function stakeEscrow(address account, uint256 amount)
         public
         whenNotPaused
         onlyRewardEscrow
-        updateReward(_account)
-    {   
-        require(_amount > 0, "StakingRewards: Cannot stake 0");
+        updateReward(account)
+    {
+        require(amount > 0, "StakingRewards: Cannot stake 0");
 
         // update state
-        // _totalBalances[_account] += _amount;
-        _totalSupply += _amount;
-        // _escrowedBalances[_account] += _amount;
-
+        _balances[account] += amount;
+        _escrowedBalances[account] += amount;
+        _totalSupply += amount;
+        
         // update addresses last staking event timestamp
-        lastStakingEvent[_account] = block.timestamp;
+        lastStakingEvent[account] = block.timestamp;
 
-        // updateRewardScore(_account, _rewardScores[msg.sender]);
-        emit EscrowStaked(_account, _amount);
+        // emit escrow staking event and index _account
+        emit EscrowStaked(account, amount);
     }
 
-    // @TODO: Implement
-    // @TODO: Add docs
-    function unstakeEscrow(address _account, uint256 _amount)
+    /// @notice un-stake escrowed token
+    /// @param account: address which owns token
+    /// @param amount: amount to un-stake
+    /// @dev updateReward() called prior to function logic
+    /// @dev msg.sender NOT used (account is used)
+    function unstakeEscrow(address account, uint256 amount)
         public
         nonReentrant
         onlyRewardEscrow
-        updateReward(_account)
+        updateReward(account)
     {
-        // require(
-        //     _escrowedBalances[_account] >= _amount,
-        //     "StakingRewards: Invalid Amount"
-        // );
-       
         require(
-            block.timestamp - lastStakingEvent[msg.sender] >= MIN_STAKING_PERIOD,
+            _escrowedBalances[account] >= amount,
+            "StakingRewards: Invalid Amount"
+        );
+        require(
+            block.timestamp - lastStakingEvent[msg.sender] >=
+                MIN_STAKING_PERIOD,
             "StakingRewards: Minimum Staking Period Not Met"
         );
 
-        // _totalBalances[_account] -= _amount;
-        _totalSupply -= _amount;
-        // _escrowedBalances[_account] -= _amount;
-        // updateRewardScore(_account, _rewardScores[msg.sender]);
-        emit EscrowUnstaked(_account, _amount);
+        // update state
+        _balances[account] -= amount;
+        _escrowedBalances[account] -= amount;
+        _totalSupply -= amount;
+
+        // emit escrow unstaked event and index account
+        emit EscrowUnstaked(account, amount);
     }
 
     /// @notice withdraw all available staked tokens and
