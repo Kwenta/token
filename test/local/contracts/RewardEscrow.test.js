@@ -210,19 +210,13 @@ contract(
             await ExponentLib.link(logarithmLib);
             exponentLib = await ExponentLib.new();
 
-            await StakingRewards.link(fixidityLib);
-            await StakingRewards.link(exponentLib);
             rewardsEscrow = await RewardsEscrow.new(owner, kwentaSmock.address);
 
-            stakingRewards = await StakingRewards.new();
-
-            // TODO: Remove if unused
-            stakingRewards.initialize(
-                owner,
-                stakingToken.address,
+            stakingRewards = await StakingRewards.new(
+                kwentaSmock.address,
+                kwentaSmock.address,
                 rewardsEscrow.address,
-                supplySchedule.address,
-                3
+                supplySchedule.address
             );
 
             await hre.network.provider.request({
