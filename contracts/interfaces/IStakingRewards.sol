@@ -32,7 +32,6 @@ interface IStakingRewards {
     // settings
     function notifyRewardAmount(uint256 reward) external;
     function setRewardsDuration(uint256 _rewardsDuration) external;
-    function setRewardEscrow(address _rewardEscrow) external;
     // misc.
     function recoverERC20(address tokenAddress, uint256 tokenAmount) external;
 }

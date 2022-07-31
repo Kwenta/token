@@ -35,8 +35,6 @@ describe('Mint', () => {
 			NAME,
 			SYMBOL,
 			INITIAL_SUPPLY.toBN(),
-			INFLATION_DIVERSION_BPS,
-			WEEKLY_START_REWARDS,
 			owner,
 			TREASURY_DAO
 		);

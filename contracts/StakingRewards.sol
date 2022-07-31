@@ -20,22 +20,22 @@ contract StakingRewards is IStakingRewards, Ownable, ReentrancyGuard, Pausable {
                                 CONSTANTS
     ///////////////////////////////////////////////////////////////*/
 
-    /*///////////////////////////////////////////////////////////////
-                                STATE
-    ///////////////////////////////////////////////////////////////*/
-
     /// @notice token used for rewards
-    IERC20 private rewardsToken;
+    IERC20 private immutable rewardsToken;
 
     /// @notice token used to stake
     /// @dev staked token can/will be used for voting
-    IERC20 private stakingToken;
+    IERC20 private immutable stakingToken;
 
     /// @notice escrow contract which holds (and may stake) reward tokens
-    IRewardEscrow private rewardEscrow;
+    IRewardEscrow private immutable rewardEscrow;
 
     /// @notice handles reward token minting logic
-    ISupplySchedule private supplySchedule;
+    ISupplySchedule private immutable supplySchedule;
+
+    /*///////////////////////////////////////////////////////////////
+                                STATE
+    ///////////////////////////////////////////////////////////////*/
 
     /// @notice marks applicable reward period finish time
     uint256 public periodFinish = 0;
@@ -55,8 +55,8 @@ contract StakingRewards is IStakingRewards, Ownable, ReentrancyGuard, Pausable {
     /// @notice total number of tokens staked in this contract
     uint256 public _totalSupply;
 
-    /// @notice track rewardPerTokenStored for a user and updates
-    /// upon the user interacting with the contract (i.e. updateRewards())
+    /// @notice represents the rewardPerToken
+    /// value the last time the stake calculated earned() rewards
     mapping(address => uint256) public userRewardPerTokenPaid;
 
     /// @notice save most recent date an address emitted Staked event
@@ -114,11 +114,6 @@ contract StakingRewards is IStakingRewards, Ownable, ReentrancyGuard, Pausable {
     /// @param token: address of token recovered
     /// @param amount: amount of token recovered
     event Recovered(address token, uint256 amount);
-
-    /// @notice emitted when address for RewardEscrow is updated
-    /// @dev can only be updated by owner
-    /// @param addr: address of new RewardEscrow
-    event RewardEscrowUpdated(address addr);
 
     /*///////////////////////////////////////////////////////////////
                                 AUTH
@@ -346,6 +341,7 @@ contract StakingRewards is IStakingRewards, Ownable, ReentrancyGuard, Pausable {
     ///////////////////////////////////////////////////////////////*/
 
     /// @notice caller claims any rewards generated from staking
+    /// @dev rewards are escrowed in RewardEscrow
     /// @dev updateReward() called prior to function logic
     function getReward() public override nonReentrant updateReward(msg.sender) {
         uint256 reward = rewards[msg.sender];
@@ -354,8 +350,9 @@ contract StakingRewards is IStakingRewards, Ownable, ReentrancyGuard, Pausable {
             rewards[msg.sender] = 0;
 
             // transfer token from this contract to the caller
-            rewardsToken.safeTransfer(msg.sender, reward);
-
+            rewardsToken.safeTransfer(address(rewardEscrow), reward);
+            rewardEscrow.appendVestingEntry(msg.sender, reward, 52 weeks);
+            
             // emit reward claimed event and index msg.sender
             emit RewardPaid(msg.sender, reward);
         }
@@ -461,22 +458,6 @@ contract StakingRewards is IStakingRewards, Ownable, ReentrancyGuard, Pausable {
         );
         rewardsDuration = _rewardsDuration;
         emit RewardsDurationUpdated(rewardsDuration);
-    }
-
-    /// @notice function available for the owner to change the rewardEscrow contract to use
-    /// @param _rewardEscrow: address of the rewardEsxrow contract to use
-    function setRewardEscrow(address _rewardEscrow)
-        external
-        override
-        onlyOwner
-    {
-        require(
-            IRewardEscrow(_rewardEscrow).getKwentaAddress() ==
-                address(stakingToken),
-            "StakingRewards: Staking token address not equal to RewardEscrow KWENTA address"
-        );
-        rewardEscrow = IRewardEscrow(_rewardEscrow);
-        emit RewardEscrowUpdated(address(_rewardEscrow));
     }
 
     /*///////////////////////////////////////////////////////////////

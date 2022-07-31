@@ -1,9 +1,6 @@
-import { FakeContract, smock } from '@defi-wonderland/smock';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { BigNumber, Contract } from 'ethers';
-import { ethers, upgrades } from 'hardhat';
-import { ISynthetix } from '../../typechain/ISynthetix';
-import { mockAddressResolver } from '../utils/mockAddressResolver';
+import { ethers } from 'hardhat';
 
 // core contracts
 let kwenta: Contract;
@@ -12,17 +9,12 @@ let rewardEscrow: Contract;
 let stakingRewards: Contract;
 let exchangerProxy: Contract;
 
-// mocking
-let fakeSynthetix: FakeContract<ISynthetix>;
-
 /**
  * Deploys core contracts
  * @dev Libraries that the core contracts depend on are also deployed, but not returned
  * @param NAME: token name (ex: kwenta)
  * @param SYMBOL: symbol of token (ex: KWENTA)
  * @param INITIAL_SUPPLY: number of tokens
- * @param INFLATION_DIVERSION_BPS: used to calculate weekly inflation to treasury percentage
- * @param WEEKLY_START_REWARDS: used for reward calculation 
  * @param owner: EOA used to deploy contracts
  * @param TREASURY_DAO: contract address of TREASURY
  * @returns kwenta, supplySchedule, rewardEscrow, stakingRewardsProxy, exchangerProxy
@@ -31,8 +23,6 @@ export const deployKwenta = async (
 	NAME: string,
 	SYMBOL: string,
 	INITIAL_SUPPLY: BigNumber,
-	INFLATION_DIVERSION_BPS: number,
-	WEEKLY_START_REWARDS: number,
 	owner: SignerWithAddress,
 	TREASURY_DAO: SignerWithAddress
 ) => {
@@ -111,20 +101,6 @@ export const deployKwenta = async (
 
 	// set StakingRewards address in RewardEscrow
 	await rewardEscrow.setStakingRewards(stakingRewards.address);
-
-	//// Mock Synthetix
-	// @TODO strip from project
-	fakeSynthetix = await smock.fake<ISynthetix>('ISynthetix');
-	fakeSynthetix.exchangeOnBehalfWithTracking.returns(1);
-
-	// Mock AddressResolver
-	const fakeAddressResolver = await mockAddressResolver();
-	fakeAddressResolver.requireAndGetAddress
-			.whenCalledWith(
-				ethers.utils.formatBytes32String('Synthetix'),
-				'Could not get Synthetix'
-			)
-			.returns(fakeSynthetix.address);	
 
 	return {
 		kwenta,

@@ -264,7 +264,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
     /**
      * @notice Create an escrow entry to lock KWENTA for a given duration in seconds
      * @dev This call expects that the depositor (msg.sender) has already approved the Reward escrow contract
-     to spend the the amount being escrowed.
+     * to spend the the amount being escrowed.
      */
     function createEscrowEntry(
         address beneficiary,
