@@ -1,6 +1,6 @@
-import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import { BigNumber, Contract } from 'ethers';
-import { ethers } from 'hardhat';
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { BigNumber, Contract } from "ethers";
+import { ethers } from "hardhat";
 
 // core contracts
 let kwenta: Contract;
@@ -20,75 +20,78 @@ let exchangerProxy: Contract;
  * @returns kwenta, supplySchedule, rewardEscrow, stakingRewardsProxy, exchangerProxy
  */
 export const deployKwenta = async (
-	NAME: string,
-	SYMBOL: string,
-	INITIAL_SUPPLY: BigNumber,
-	owner: SignerWithAddress,
-	TREASURY_DAO: SignerWithAddress
+    NAME: string,
+    SYMBOL: string,
+    INITIAL_SUPPLY: BigNumber,
+    owner: SignerWithAddress,
+    TREASURY_DAO: SignerWithAddress
 ) => {
-	// deploy FixidityLib
-	const FixidityLib = await ethers.getContractFactory('FixidityLib');
-	const fixidityLib = await FixidityLib.deploy();
-	await fixidityLib.deployed();
+    // deploy FixidityLib
+    const FixidityLib = await ethers.getContractFactory("FixidityLib");
+    const fixidityLib = await FixidityLib.connect(owner).deploy();
+    await fixidityLib.deployed();
 
-	// deploy LogarithmLib
-	const LogarithmLib = await ethers.getContractFactory('LogarithmLib', {
-		libraries: {
-			FixidityLib: fixidityLib.address,
-		},
-	});
-	const logarithmLib = await LogarithmLib.deploy();
-	await logarithmLib.deployed();
+    // deploy LogarithmLib
+    const LogarithmLib = await ethers.getContractFactory("LogarithmLib", {
+        libraries: {
+            FixidityLib: fixidityLib.address,
+        },
+    });
+    const logarithmLib = await LogarithmLib.connect(owner).deploy();
+    await logarithmLib.deployed();
 
-	// deploy ExponentLib
-	const ExponentLib = await ethers.getContractFactory('ExponentLib', {
-		libraries: {
-			FixidityLib: fixidityLib.address,
-			LogarithmLib: logarithmLib.address,
-		},
-	});
-	const exponentLib = await ExponentLib.deploy();
-	await exponentLib.deployed();
+    // deploy ExponentLib
+    const ExponentLib = await ethers.getContractFactory("ExponentLib", {
+        libraries: {
+            FixidityLib: fixidityLib.address,
+            LogarithmLib: logarithmLib.address,
+        },
+    });
+    const exponentLib = await ExponentLib.connect(owner).deploy();
+    await exponentLib.deployed();
 
-	// deploy SafeDecimalMath
-	const SafeDecimalMath = await ethers.getContractFactory('SafeDecimalMath');
-	const safeDecimalMath = await SafeDecimalMath.deploy();
-	await safeDecimalMath.deployed();
+    // deploy SafeDecimalMath
+    const SafeDecimalMath = await ethers.getContractFactory("SafeDecimalMath");
+    const safeDecimalMath = await SafeDecimalMath.connect(owner).deploy();
+    await safeDecimalMath.deployed();
 
-	// deploy Kwenta
-	const Kwenta = await ethers.getContractFactory('Kwenta');
-	kwenta = await Kwenta.deploy(
-		NAME,
-		SYMBOL,
-		INITIAL_SUPPLY,
-		owner.address,
-		TREASURY_DAO.address
-	);
-	await kwenta.deployed();
+    // deploy Kwenta
+    const Kwenta = await ethers.getContractFactory("Kwenta");
+    kwenta = await Kwenta.connect(owner).deploy(
+        NAME,
+        SYMBOL,
+        INITIAL_SUPPLY,
+        owner.address,
+        TREASURY_DAO.address
+    );
+    await kwenta.deployed();
 
-	// deploy SupplySchedule
-	const SupplySchedule = await ethers.getContractFactory('SupplySchedule', {
-		libraries: {
-			SafeDecimalMath: safeDecimalMath.address,
-		},
-	});
-	supplySchedule = await SupplySchedule.deploy(
-		owner.address, 
-		TREASURY_DAO.address
-	);
-	await supplySchedule.deployed();
-	
-	await kwenta.setSupplySchedule(supplySchedule.address);
-	await supplySchedule.setKwenta(kwenta.address);
+    // deploy SupplySchedule
+    const SupplySchedule = await ethers.getContractFactory("SupplySchedule", {
+        libraries: {
+            SafeDecimalMath: safeDecimalMath.address,
+        },
+    });
+    supplySchedule = await SupplySchedule.connect(owner).deploy(
+        owner.address,
+        TREASURY_DAO.address
+    );
+    await supplySchedule.deployed();
 
-	// deploy RewardEscrow
-	const RewardEscrow = await ethers.getContractFactory('RewardEscrow');
-	rewardEscrow = await RewardEscrow.deploy(owner.address, kwenta.address);
-	await rewardEscrow.deployed();
+    await kwenta.setSupplySchedule(supplySchedule.address);
+    await supplySchedule.setKwenta(kwenta.address);
 
-	// deploy StakingRewards
-	const StakingRewards = await ethers.getContractFactory("StakingRewards");
-    stakingRewards = await StakingRewards.deploy(
+    // deploy RewardEscrow
+    const RewardEscrow = await ethers.getContractFactory("RewardEscrow");
+    rewardEscrow = await RewardEscrow.connect(owner).deploy(
+        owner.address,
+        kwenta.address
+    );
+    await rewardEscrow.deployed();
+
+    // deploy StakingRewards
+    const StakingRewards = await ethers.getContractFactory("StakingRewards");
+    stakingRewards = await StakingRewards.connect(owner).deploy(
         kwenta.address,
         kwenta.address,
         rewardEscrow.address,
@@ -96,17 +99,17 @@ export const deployKwenta = async (
     );
     await stakingRewards.deployed();
 
-	// set StakingRewards address in SupplySchedule
-	await supplySchedule.setStakingRewards(stakingRewards.address);
+    // set StakingRewards address in SupplySchedule
+    await supplySchedule.setStakingRewards(stakingRewards.address);
 
-	// set StakingRewards address in RewardEscrow
-	await rewardEscrow.setStakingRewards(stakingRewards.address);
+    // set StakingRewards address in RewardEscrow
+    await rewardEscrow.setStakingRewards(stakingRewards.address);
 
-	return {
-		kwenta,
-		supplySchedule,
-		rewardEscrow,
-		stakingRewards,
-		exchangerProxy,
-	};
+    return {
+        kwenta,
+        supplySchedule,
+        rewardEscrow,
+        stakingRewards,
+        exchangerProxy,
+    };
 };

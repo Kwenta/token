@@ -5,8 +5,6 @@ interface IStakingRewards {
 
     /// VIEWS
     // addresses
-    function getStakingToken() external view returns (address);
-    function getRewardsToken() external view returns (address);
     function getRewardEscrow() external view returns (address);
     function getSupplySchedule() external view returns (address);
     // token state
@@ -32,6 +30,9 @@ interface IStakingRewards {
     // settings
     function notifyRewardAmount(uint256 reward) external;
     function setRewardsDuration(uint256 _rewardsDuration) external;
+    // pausable
+    function pause() external;
+    function unpause() external;
     // misc.
     function recoverERC20(address tokenAddress, uint256 tokenAmount) external;
 }
