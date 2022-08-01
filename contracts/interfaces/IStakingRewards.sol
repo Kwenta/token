@@ -31,8 +31,8 @@ interface IStakingRewards {
     function notifyRewardAmount(uint256 reward) external;
     function setRewardsDuration(uint256 _rewardsDuration) external;
     // pausable
-    function pause() external;
-    function unpause() external;
+    function pauseStakingRewards() external;
+    function unpauseStakingRewards() external;
     // misc.
     function recoverERC20(address tokenAddress, uint256 tokenAmount) external;
 }

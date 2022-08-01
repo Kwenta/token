@@ -20,6 +20,12 @@ contract StakingRewards is IStakingRewards, Ownable, ReentrancyGuard, Pausable {
                                 CONSTANTS
     ///////////////////////////////////////////////////////////////*/
 
+    /// @notice escrow contract which holds (and may stake) reward tokens
+    IRewardEscrow private immutable rewardEscrow;
+
+    /// @notice handles reward token minting logic
+    ISupplySchedule private immutable supplySchedule;
+
     /// @notice token used for rewards
     IERC20 public immutable rewardsToken;
 
@@ -27,15 +33,16 @@ contract StakingRewards is IStakingRewards, Ownable, ReentrancyGuard, Pausable {
     /// @dev staked token can/will be used for voting
     IERC20 public immutable stakingToken;
 
-    /// @notice escrow contract which holds (and may stake) reward tokens
-    IRewardEscrow private immutable rewardEscrow;
-
-    /// @notice handles reward token minting logic
-    ISupplySchedule private immutable supplySchedule;
-
     /*///////////////////////////////////////////////////////////////
                                 STATE
     ///////////////////////////////////////////////////////////////*/
+
+    /// @notice number of tokens staked by address
+    /// @dev this includes escrowed tokens stake
+    mapping(address => uint256) private balances;
+
+    /// @notice number of tokens escrowed by address
+    mapping(address => uint256) private escrowedBalances;
 
     /// @notice marks applicable reward period finish time
     uint256 public periodFinish = 0;
@@ -65,13 +72,6 @@ contract StakingRewards is IStakingRewards, Ownable, ReentrancyGuard, Pausable {
     /// @notice track rewards for a given user which changes when
     /// a user stakes, unstakes, or claims rewards
     mapping(address => uint256) public rewards;
-
-    /// @notice number of tokens staked by address
-    /// @dev this includes escrowed tokens stake
-    mapping(address => uint256) private balances;
-
-    /// @notice number of tokens escrowed by address
-    mapping(address => uint256) private escrowedBalances;
 
     /*///////////////////////////////////////////////////////////////
                                 EVENTS
@@ -455,12 +455,12 @@ contract StakingRewards is IStakingRewards, Ownable, ReentrancyGuard, Pausable {
     ///////////////////////////////////////////////////////////////*/
 
     /// @dev Triggers stopped state
-    function pause() external override onlyOwner {
+    function pauseStakingRewards() external override onlyOwner {
         Pausable._pause();
     }
 
     /// @dev Returns to normal state.
-    function unpause() external override onlyOwner {
+    function unpauseStakingRewards() external override onlyOwner {
         Pausable._unpause();
     }
 
