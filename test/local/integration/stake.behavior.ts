@@ -108,23 +108,21 @@ describe("Stake", () => {
 
             // claim rewards (expect > 0 rewards appended in escrow)
             await stakingRewards.connect(addr1).getReward();
-            expect(await rewardEscrow.balanceOf(addr1.address)).to.be.above(0); 
+            expect(await rewardEscrow.balanceOf(addr1.address)).to.be.above(0);
 
-			// @TODO: should be SECONDS_IN_WEEK (i.e. 604800 but turns out to be 604000... 800 stuck in StakingRewards... why?)
-			// expect(await rewardEscrow.balanceOf(addr1.address)).to.equal(SECONDS_IN_WEEK); 
+            // @TODO: should be SECONDS_IN_WEEK (i.e. 604800 but turns out to be 604000... 800 stuck in StakingRewards... why?)
+            // expect(await rewardEscrow.balanceOf(addr1.address)).to.equal(SECONDS_IN_WEEK);
 
             // check that addr1 does have an escrow entry
             expect(
                 await rewardEscrow.numVestingEntries(addr1.address)
             ).to.equal(1);
-			
-			// not tested here
-			await stakingRewards.connect(addr1).exit();
+
+            // not tested here
+            await stakingRewards.connect(addr1).exit();
         });
 
         it("Stake, Wait, and then Exit", async () => {
-			console.log("before: " + await kwenta.balanceOf(stakingRewards.address));
-
             // initial balance should be 0
             expect(await kwenta.balanceOf(addr2.address)).to.equal(0);
 
@@ -149,8 +147,6 @@ describe("Stake", () => {
             await stakingRewards.connect(addr2).exit();
             expect(await rewardEscrow.balanceOf(addr2.address)).to.be.above(0);
             expect(await kwenta.balanceOf(addr2.address)).to.equal(TEST_VALUE);
-
-			console.log("after: " + await kwenta.balanceOf(stakingRewards.address));
         });
     });
 
