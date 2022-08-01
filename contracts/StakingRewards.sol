@@ -21,11 +21,11 @@ contract StakingRewards is IStakingRewards, Ownable, ReentrancyGuard, Pausable {
     ///////////////////////////////////////////////////////////////*/
 
     /// @notice token used for rewards
-    IERC20 private immutable rewardsToken;
+    IERC20 public immutable rewardsToken;
 
     /// @notice token used to stake
     /// @dev staked token can/will be used for voting
-    IERC20 private immutable stakingToken;
+    IERC20 public immutable stakingToken;
 
     /// @notice escrow contract which holds (and may stake) reward tokens
     IRewardEscrow private immutable rewardEscrow;
@@ -199,16 +199,6 @@ contract StakingRewards is IStakingRewards, Ownable, ReentrancyGuard, Pausable {
         return rewardRate * rewardsDuration;
     }
 
-    /// @return address of stakingToken
-    function getStakingToken() external view override returns (address) {
-        return address(stakingToken);
-    }
-
-    /// @return address of rewardsToken
-    function getRewardsToken() external view override returns (address) {
-        return address(rewardsToken);
-    }
-
     /// @return address of RewardEscrow
     function getRewardEscrow() external view override returns (address) {
         return address(rewardEscrow);
@@ -352,7 +342,7 @@ contract StakingRewards is IStakingRewards, Ownable, ReentrancyGuard, Pausable {
             // transfer token from this contract to the caller
             rewardsToken.safeTransfer(address(rewardEscrow), reward);
             rewardEscrow.appendVestingEntry(msg.sender, reward, 52 weeks);
-            
+
             // emit reward claimed event and index msg.sender
             emit RewardPaid(msg.sender, reward);
         }
@@ -458,6 +448,20 @@ contract StakingRewards is IStakingRewards, Ownable, ReentrancyGuard, Pausable {
         );
         rewardsDuration = _rewardsDuration;
         emit RewardsDurationUpdated(rewardsDuration);
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                            PAUSABLE
+    ///////////////////////////////////////////////////////////////*/
+
+    /// @dev Triggers stopped state
+    function pause() external override onlyOwner {
+        Pausable._pause();
+    }
+
+    /// @dev Returns to normal state.
+    function unpause() external override onlyOwner {
+        Pausable._unpause();
     }
 
     /*///////////////////////////////////////////////////////////////
