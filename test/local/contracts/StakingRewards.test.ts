@@ -12,7 +12,8 @@ import { add } from "lodash";
 const NAME = "Kwenta";
 const SYMBOL = "KWENTA";
 const INITIAL_SUPPLY = ethers.utils.parseUnits("313373");
-const SECONDS_IN_WEEK = 604800;
+const SECONDS_IN_WEEK = 604_800;
+const SECONDS_IN_THIRTY_DAYS = 2_592_000;
 
 // test values for staking
 const TEST_VALUE = wei(2000).toBN();
@@ -385,17 +386,17 @@ describe("StakingRewards", () => {
         });
     });
 
-    describe('earned()', () => {
+    describe("earned()", () => {
         beforeEach("Setup", async () => {
             await setupStakingRewards();
         });
 
-    	it('should be 0 when not staking', async () => {
-    		expect(await stakingRewards.earned(addr1.address)).to.be.equal(0);
-    	});
+        it("should be 0 when not staking", async () => {
+            expect(await stakingRewards.earned(addr1.address)).to.be.equal(0);
+        });
 
-    	it('should be > 0 when staking', async () => {
-    		await kwenta
+        it("should be > 0 when staking", async () => {
+            await kwenta
                 .connect(TREASURY_DAO)
                 .transfer(addr1.address, SECONDS_IN_WEEK);
             await kwenta
@@ -405,19 +406,19 @@ describe("StakingRewards", () => {
             // stake
             await stakingRewards.connect(addr1).stake(SECONDS_IN_WEEK);
 
-    		// set rewards
+            // set rewards
             await stakingRewards
                 .connect(await impersonate(supplySchedule.address))
                 .notifyRewardAmount(SECONDS_IN_WEEK);
 
-    		await fastForward(SECONDS_IN_WEEK * 2);
+            await fastForward(SECONDS_IN_WEEK * 2);
 
-    		const earned = await stakingRewards.earned(addr1.address);
+            const earned = await stakingRewards.earned(addr1.address);
 
-    		expect(earned).to.be.above(0);
-    	});
+            expect(earned).to.be.above(0);
+        });
 
-    	it("rewardRate should increase if new rewards come before DURATION ends", async () => {
+        it("rewardRate should increase if new rewards come before DURATION ends", async () => {
             const totalToDistribute = wei(5000).toBN();
 
             await kwenta
@@ -452,277 +453,356 @@ describe("StakingRewards", () => {
             expect(rewardRateLater).to.be.above(rewardRateInitial);
         });
 
-    	it('rewards token balance should rollover after DURATION', async () => {
-    		await kwenta
+        it("rewards token balance should rollover after DURATION", async () => {
+            await kwenta
                 .connect(TREASURY_DAO)
                 .transfer(addr1.address, SECONDS_IN_WEEK);
             await kwenta
                 .connect(addr1)
                 .approve(stakingRewards.address, SECONDS_IN_WEEK);
 
-    		// stake
+            // stake
             await stakingRewards.connect(addr1).stake(SECONDS_IN_WEEK);
 
-    		await stakingRewards
-                .connect(await impersonate(supplySchedule.address))
-                .notifyRewardAmount(SECONDS_IN_WEEK);
-
-    		await fastForward(SECONDS_IN_WEEK);
-    		const earnedFirst = await stakingRewards.earned(addr1.address);
-
-    		await stakingRewards
+            await stakingRewards
                 .connect(await impersonate(supplySchedule.address))
                 .notifyRewardAmount(SECONDS_IN_WEEK);
 
             await fastForward(SECONDS_IN_WEEK);
-    		const earnedSecond = await stakingRewards.earned(addr1.address);
+            const earnedFirst = await stakingRewards.earned(addr1.address);
 
-    		expect(earnedSecond).to.equal(earnedFirst.add(earnedFirst));
-    	});
+            await stakingRewards
+                .connect(await impersonate(supplySchedule.address))
+                .notifyRewardAmount(SECONDS_IN_WEEK);
+
+            await fastForward(SECONDS_IN_WEEK);
+            const earnedSecond = await stakingRewards.earned(addr1.address);
+
+            expect(earnedSecond).to.equal(earnedFirst.add(earnedFirst));
+        });
     });
 
-    // describe('getReward()', () => {
-    // 	it('should increase rewards token balance', async () => {
-    // 		const totalToStake = toUnit('100');
-    // 		const totalToDistribute = toUnit('5000');
+    describe("getReward()", () => {
+        beforeEach("Setup", async () => {
+            await setupStakingRewards();
+        });
 
-    // 		await stakingToken.transfer(stakingAccount1, totalToStake, { from: owner });
-    // 		await stakingToken.approve(stakingRewards.address, totalToStake, { from: stakingAccount1 });
-    // 		await stakingRewards.stake(totalToStake, { from: stakingAccount1 });
+        /**
+         * @dev notice difference in this functionality compared to Synthetix's version
+         */
+        it("should increase kwenta balance in escrow", async () => {
+            const preEscrowBalance = await kwenta.balanceOf(
+                rewardEscrow.address
+            );
 
-    // 		await rewardsToken.transfer(stakingRewards.address, totalToDistribute, { from: owner });
-    // 		await stakingRewards.notifyRewardAmount(totalToDistribute, {
-    // 			from: mockRewardsDistributionAddress,
-    // 		});
+            await kwenta
+                .connect(TREASURY_DAO)
+                .transfer(addr1.address, SECONDS_IN_WEEK);
+            await kwenta
+                .connect(addr1)
+                .approve(stakingRewards.address, SECONDS_IN_WEEK);
 
-    // 		await fastForward(DAY);
+            // stake
+            await stakingRewards.connect(addr1).stake(SECONDS_IN_WEEK);
 
-    // 		const initialRewardBal = await rewardsToken.balanceOf(stakingAccount1);
-    // 		const initialEarnedBal = await stakingRewards.earned(stakingAccount1);
-    // 		await stakingRewards.getReward({ from: stakingAccount1 });
-    // 		const postRewardBal = await rewardsToken.balanceOf(stakingAccount1);
-    // 		const postEarnedBal = await stakingRewards.earned(stakingAccount1);
+            await stakingRewards
+                .connect(await impersonate(supplySchedule.address))
+                .notifyRewardAmount(SECONDS_IN_WEEK);
 
-    // 		assert.bnLt(postEarnedBal, initialEarnedBal);
-    // 		assert.bnGt(postRewardBal, initialRewardBal);
-    // 	});
-    // });
+            await fastForward(SECONDS_IN_WEEK * 2);
 
-    // describe('setRewardsDuration()', () => {
-    // 	const sevenDays = DAY * 7;
-    // 	const seventyDays = DAY * 70;
-    // 	it('should increase rewards duration before starting distribution', async () => {
-    // 		const defaultDuration = await stakingRewards.rewardsDuration();
-    // 		assert.bnEqual(defaultDuration, sevenDays);
+            await stakingRewards.connect(addr1).getReward();
 
-    // 		await stakingRewards.setRewardsDuration(seventyDays, { from: owner });
-    // 		const newDuration = await stakingRewards.rewardsDuration();
-    // 		assert.bnEqual(newDuration, seventyDays);
-    // 	});
-    // 	it('should revert when setting setRewardsDuration before the period has finished', async () => {
-    // 		const totalToStake = toUnit('100');
-    // 		const totalToDistribute = toUnit('5000');
+            const postEscrowBalance = await kwenta.balanceOf(
+                rewardEscrow.address
+            );
 
-    // 		await stakingToken.transfer(stakingAccount1, totalToStake, { from: owner });
-    // 		await stakingToken.approve(stakingRewards.address, totalToStake, { from: stakingAccount1 });
-    // 		await stakingRewards.stake(totalToStake, { from: stakingAccount1 });
+            expect(postEscrowBalance).to.be.above(preEscrowBalance);
+        });
+    });
 
-    // 		await rewardsToken.transfer(stakingRewards.address, totalToDistribute, { from: owner });
-    // 		await stakingRewards.notifyRewardAmount(totalToDistribute, {
-    // 			from: mockRewardsDistributionAddress,
-    // 		});
+    describe("setRewardsDuration()", () => {
+        beforeEach("Setup", async () => {
+            await setupStakingRewards();
+        });
 
-    // 		await fastForward(DAY);
+        it("should increase rewards duration before starting distribution", async () => {
+            const defaultDuration = await stakingRewards.rewardsDuration();
+            expect(defaultDuration).to.equal(SECONDS_IN_WEEK);
 
-    // 		await assert.revert(
-    // 			stakingRewards.setRewardsDuration(seventyDays, { from: owner }),
-    // 			'Previous rewards period must be complete before changing the duration for the new period'
-    // 		);
-    // 	});
-    // 	it('should update when setting setRewardsDuration after the period has finished', async () => {
-    // 		const totalToStake = toUnit('100');
-    // 		const totalToDistribute = toUnit('5000');
+            await stakingRewards
+                .connect(owner)
+                .setRewardsDuration(SECONDS_IN_THIRTY_DAYS);
+            const newDuration = await stakingRewards.rewardsDuration();
+            expect(newDuration).to.equal(SECONDS_IN_THIRTY_DAYS);
+        });
 
-    // 		await stakingToken.transfer(stakingAccount1, totalToStake, { from: owner });
-    // 		await stakingToken.approve(stakingRewards.address, totalToStake, { from: stakingAccount1 });
-    // 		await stakingRewards.stake(totalToStake, { from: stakingAccount1 });
+        it("should revert when setting setRewardsDuration before the period has finished", async () => {
+            await kwenta
+                .connect(TREASURY_DAO)
+                .transfer(addr1.address, SECONDS_IN_WEEK);
+            await kwenta
+                .connect(addr1)
+                .approve(stakingRewards.address, SECONDS_IN_WEEK);
 
-    // 		await rewardsToken.transfer(stakingRewards.address, totalToDistribute, { from: owner });
-    // 		await stakingRewards.notifyRewardAmount(totalToDistribute, {
-    // 			from: mockRewardsDistributionAddress,
-    // 		});
+            // stake
+            await stakingRewards.connect(addr1).stake(SECONDS_IN_WEEK);
 
-    // 		await fastForward(DAY * 8);
+            await stakingRewards
+                .connect(await impersonate(supplySchedule.address))
+                .notifyRewardAmount(SECONDS_IN_WEEK);
 
-    // 		const transaction = await stakingRewards.setRewardsDuration(seventyDays, { from: owner });
-    // 		assert.eventEqual(transaction, 'RewardsDurationUpdated', {
-    // 			newDuration: seventyDays,
-    // 		});
+            await fastForward(SECONDS_IN_WEEK / 7);
 
-    // 		const newDuration = await stakingRewards.rewardsDuration();
-    // 		assert.bnEqual(newDuration, seventyDays);
+            let tx = stakingRewards
+                .connect(owner)
+                .setRewardsDuration(SECONDS_IN_THIRTY_DAYS);
+            await expect(tx).to.be.revertedWith(
+                "StakingRewards: Previous rewards period must be complete before changing the duration for the new period"
+            );
+        });
 
-    // 		await stakingRewards.notifyRewardAmount(totalToDistribute, {
-    // 			from: mockRewardsDistributionAddress,
-    // 		});
-    // 	});
+        it("should update when setting setRewardsDuration after the period has finished", async () => {
+            await kwenta
+                .connect(TREASURY_DAO)
+                .transfer(addr1.address, TEST_VALUE);
+            await kwenta
+                .connect(addr1)
+                .approve(stakingRewards.address, TEST_VALUE);
 
-    // 	it('should update when setting setRewardsDuration after the period has finished', async () => {
-    // 		const totalToStake = toUnit('100');
-    // 		const totalToDistribute = toUnit('5000');
+            // stake
+            await stakingRewards.connect(addr1).stake(TEST_VALUE);
 
-    // 		await stakingToken.transfer(stakingAccount1, totalToStake, { from: owner });
-    // 		await stakingToken.approve(stakingRewards.address, totalToStake, { from: stakingAccount1 });
-    // 		await stakingRewards.stake(totalToStake, { from: stakingAccount1 });
+            await stakingRewards
+                .connect(await impersonate(supplySchedule.address))
+                .notifyRewardAmount(SECONDS_IN_WEEK);
 
-    // 		await rewardsToken.transfer(stakingRewards.address, totalToDistribute, { from: owner });
-    // 		await stakingRewards.notifyRewardAmount(totalToDistribute, {
-    // 			from: mockRewardsDistributionAddress,
-    // 		});
+            await fastForward(SECONDS_IN_WEEK * 2);
 
-    // 		await fastForward(DAY * 4);
-    // 		await stakingRewards.getReward({ from: stakingAccount1 });
-    // 		await fastForward(DAY * 4);
+            const tx = await stakingRewards
+                .connect(owner)
+                .setRewardsDuration(SECONDS_IN_THIRTY_DAYS);
+            expect(tx).to.emit(stakingRewards, "RewardsDurationUpdated");
 
-    // 		// New Rewards period much lower
-    // 		await rewardsToken.transfer(stakingRewards.address, totalToDistribute, { from: owner });
-    // 		const transaction = await stakingRewards.setRewardsDuration(seventyDays, { from: owner });
-    // 		assert.eventEqual(transaction, 'RewardsDurationUpdated', {
-    // 			newDuration: seventyDays,
-    // 		});
+            const newDuration = await stakingRewards.rewardsDuration();
+            expect(newDuration).to.equal(SECONDS_IN_THIRTY_DAYS);
 
-    // 		const newDuration = await stakingRewards.rewardsDuration();
-    // 		assert.bnEqual(newDuration, seventyDays);
+            await stakingRewards
+                .connect(await impersonate(supplySchedule.address))
+                .notifyRewardAmount(TEST_VALUE);
+        });
 
-    // 		await stakingRewards.notifyRewardAmount(totalToDistribute, {
-    // 			from: mockRewardsDistributionAddress,
-    // 		});
+        it("should update when setting setRewardsDuration after the period has finished", async () => {
+            await kwenta
+                .connect(TREASURY_DAO)
+                .transfer(addr1.address, TEST_VALUE);
+            await kwenta
+                .connect(addr1)
+                .approve(stakingRewards.address, TEST_VALUE);
 
-    // 		await fastForward(DAY * 71);
-    // 		await stakingRewards.getReward({ from: stakingAccount1 });
-    // 	});
-    // });
+            // stake
+            await stakingRewards.connect(addr1).stake(TEST_VALUE);
 
-    // describe('getRewardForDuration()', () => {
-    // 	it('should increase rewards token balance', async () => {
-    // 		const totalToDistribute = toUnit('5000');
-    // 		await rewardsToken.transfer(stakingRewards.address, totalToDistribute, { from: owner });
-    // 		await stakingRewards.notifyRewardAmount(totalToDistribute, {
-    // 			from: mockRewardsDistributionAddress,
-    // 		});
+            await stakingRewards
+                .connect(await impersonate(supplySchedule.address))
+                .notifyRewardAmount(SECONDS_IN_THIRTY_DAYS);
 
-    // 		const rewardForDuration = await stakingRewards.getRewardForDuration();
+            await fastForward(SECONDS_IN_WEEK);
+            await stakingRewards.connect(addr1).getReward();
+            await fastForward(SECONDS_IN_WEEK);
 
-    // 		const duration = await stakingRewards.rewardsDuration();
-    // 		const rewardRate = await stakingRewards.rewardRate();
+            // New Rewards period much lower
+            const tx = await stakingRewards
+                .connect(owner)
+                .setRewardsDuration(SECONDS_IN_THIRTY_DAYS);
+            expect(tx).to.emit(stakingRewards, "RewardsDurationUpdated");
 
-    // 		assert.bnGt(rewardForDuration, ZERO_BN);
-    // 		assert.bnEqual(rewardForDuration, duration.mul(rewardRate));
-    // 	});
-    // });
+            const newDuration = await stakingRewards.rewardsDuration();
+            expect(newDuration).to.equal(SECONDS_IN_THIRTY_DAYS);
 
-    // describe('withdraw()', () => {
-    // 	it('cannot withdraw if nothing staked', async () => {
-    // 		await assert.revert(stakingRewards.withdraw(toUnit('100')), 'SafeMath: subtraction overflow');
-    // 	});
+            await stakingRewards
+                .connect(await impersonate(supplySchedule.address))
+                .notifyRewardAmount(SECONDS_IN_THIRTY_DAYS);
 
-    // 	it('should increases lp token balance and decreases staking balance', async () => {
-    // 		const totalToStake = toUnit('100');
-    // 		await stakingToken.transfer(stakingAccount1, totalToStake, { from: owner });
-    // 		await stakingToken.approve(stakingRewards.address, totalToStake, { from: stakingAccount1 });
-    // 		await stakingRewards.stake(totalToStake, { from: stakingAccount1 });
+            await fastForward(SECONDS_IN_THIRTY_DAYS);
+            await stakingRewards.connect(addr1).getReward();
+        });
+    });
 
-    // 		const initialStakingTokenBal = await stakingToken.balanceOf(stakingAccount1);
-    // 		const initialStakeBal = await stakingRewards.balanceOf(stakingAccount1);
+    describe("getRewardForDuration()", () => {
+        beforeEach("Setup", async () => {
+            await setupStakingRewards();
+        });
 
-    // 		await stakingRewards.withdraw(totalToStake, { from: stakingAccount1 });
+        it("should increase rewards token balance", async () => {
+            await kwenta
+                .connect(TREASURY_DAO)
+                .transfer(stakingRewards.address, TEST_VALUE);
+            await stakingRewards
+                .connect(await impersonate(supplySchedule.address))
+                .notifyRewardAmount(TEST_VALUE);
 
-    // 		const postStakingTokenBal = await stakingToken.balanceOf(stakingAccount1);
-    // 		const postStakeBal = await stakingRewards.balanceOf(stakingAccount1);
+            const rewardForDuration =
+                await stakingRewards.getRewardForDuration();
 
-    // 		assert.bnEqual(postStakeBal.add(toBN(totalToStake)), initialStakeBal);
-    // 		assert.bnEqual(initialStakingTokenBal.add(toBN(totalToStake)), postStakingTokenBal);
-    // 	});
+            const duration = await stakingRewards.rewardsDuration();
+            const rewardRate = await stakingRewards.rewardRate();
 
-    // 	it('cannot withdraw 0', async () => {
-    // 		await assert.revert(stakingRewards.withdraw('0'), 'Cannot withdraw 0');
-    // 	});
-    // });
+            expect(rewardForDuration).to.be.above(0);
+            expect(rewardForDuration).to.equal(duration.mul(rewardRate));
+        });
+    });
 
-    // describe('exit()', () => {
-    // 	it('should retrieve all earned and increase rewards bal', async () => {
-    // 		const totalToStake = toUnit('100');
-    // 		const totalToDistribute = toUnit('5000');
+    /**
+     * @dev notice difference in function name compared to Synthetix's version
+     */
+    describe("unstake()", () => {
+        beforeEach("Setup", async () => {
+            await setupStakingRewards();
+        });
 
-    // 		await stakingToken.transfer(stakingAccount1, totalToStake, { from: owner });
-    // 		await stakingToken.approve(stakingRewards.address, totalToStake, { from: stakingAccount1 });
-    // 		await stakingRewards.stake(totalToStake, { from: stakingAccount1 });
+        it("cannot unstake if nothing staked", async () => {
+            let tx = stakingRewards.connect(addr1).unstake(TEST_VALUE);
+            await expect(tx).to.be.reverted;
+        });
 
-    // 		await rewardsToken.transfer(stakingRewards.address, totalToDistribute, { from: owner });
-    // 		await stakingRewards.notifyRewardAmount(toUnit(5000.0), {
-    // 			from: mockRewardsDistributionAddress,
-    // 		});
+        it("should increases lp token balance and decreases staking balance", async () => {
+            await kwenta
+                .connect(TREASURY_DAO)
+                .transfer(addr1.address, TEST_VALUE);
+            await kwenta
+                .connect(addr1)
+                .approve(stakingRewards.address, TEST_VALUE);
 
-    // 		await fastForward(DAY);
+            // stake
+            await stakingRewards.connect(addr1).stake(TEST_VALUE);
 
-    // 		const initialRewardBal = await rewardsToken.balanceOf(stakingAccount1);
-    // 		const initialEarnedBal = await stakingRewards.earned(stakingAccount1);
-    // 		await stakingRewards.exit({ from: stakingAccount1 });
-    // 		const postRewardBal = await rewardsToken.balanceOf(stakingAccount1);
-    // 		const postEarnedBal = await stakingRewards.earned(stakingAccount1);
+            const initialStakingTokenBal = await kwenta.balanceOf(
+                addr1.address
+            );
+            const initialStakeBal = await stakingRewards.balanceOf(
+                addr1.address
+            );
 
-    // 		assert.bnLt(postEarnedBal, initialEarnedBal);
-    // 		assert.bnGt(postRewardBal, initialRewardBal);
-    // 		assert.bnEqual(postEarnedBal, ZERO_BN);
-    // 	});
-    // });
+            await stakingRewards.connect(addr1).unstake(TEST_VALUE);
 
-    // describe('notifyRewardAmount()', () => {
-    // 	let localStakingRewards;
+            const postStakingTokenBal = await kwenta.balanceOf(addr1.address);
+            const postStakeBal = await stakingRewards.balanceOf(addr1.address);
 
-    // 	before(async () => {
-    // 		localStakingRewards = await setupContract({
-    // 			accounts,
-    // 			contract: 'StakingRewards',
-    // 			args: [owner, rewardsDistribution.address, rewardsToken.address, stakingToken.address],
-    // 		});
+            expect(postStakeBal.add(TEST_VALUE)).to.equal(initialStakeBal);
+            expect(initialStakingTokenBal.add(TEST_VALUE)).to.equal(
+                postStakingTokenBal
+            );
+        });
 
-    // 		await localStakingRewards.setRewardsDistribution(mockRewardsDistributionAddress, {
-    // 			from: owner,
-    // 		});
-    // 	});
+        it("cannot unstake 0", async () => {
+            let tx = stakingRewards.connect(addr1).unstake(0);
+            await expect(tx).to.be.revertedWith(
+                "StakingRewards: Cannot Unstake 0"
+            );
+        });
+    });
 
-    // 	it('Reverts if the provided reward is greater than the balance.', async () => {
-    // 		const rewardValue = toUnit(1000);
-    // 		await rewardsToken.transfer(localStakingRewards.address, rewardValue, { from: owner });
-    // 		await assert.revert(
-    // 			localStakingRewards.notifyRewardAmount(rewardValue.add(toUnit(0.1)), {
-    // 				from: mockRewardsDistributionAddress,
-    // 			}),
-    // 			'Provided reward too high'
-    // 		);
-    // 	});
+    describe("exit()", () => {
+        beforeEach("Setup", async () => {
+            await setupStakingRewards();
+        });
 
-    // 	it('Reverts if the provided reward is greater than the balance, plus rolled-over balance.', async () => {
-    // 		const rewardValue = toUnit(1000);
-    // 		await rewardsToken.transfer(localStakingRewards.address, rewardValue, { from: owner });
-    // 		localStakingRewards.notifyRewardAmount(rewardValue, {
-    // 			from: mockRewardsDistributionAddress,
-    // 		});
-    // 		await rewardsToken.transfer(localStakingRewards.address, rewardValue, { from: owner });
-    // 		// Now take into account any leftover quantity.
-    // 		await assert.revert(
-    // 			localStakingRewards.notifyRewardAmount(rewardValue.add(toUnit(0.1)), {
-    // 				from: mockRewardsDistributionAddress,
-    // 			}),
-    // 			'Provided reward too high'
-    // 		);
-    // 	});
-    // });
+        it("should retrieve all earned and increase rewards bal", async () => {
+            await kwenta
+                .connect(TREASURY_DAO)
+                .transfer(addr1.address, TEST_VALUE);
+            await kwenta
+                .connect(addr1)
+                .approve(stakingRewards.address, TEST_VALUE);
 
-    //////
-    //////
-    //////
-    //////
-    //////
+            // stake
+            await stakingRewards.connect(addr1).stake(TEST_VALUE);
+
+            await stakingRewards
+                .connect(await impersonate(supplySchedule.address))
+                .notifyRewardAmount(TEST_VALUE);
+
+            await fastForward(SECONDS_IN_WEEK * 2);
+
+            const initialRewardBal = await kwenta.balanceOf(addr1.address);
+            const initialEarnedBal = await stakingRewards.earned(addr1.address);
+            await stakingRewards.connect(addr1).exit();
+            const postRewardBal = await kwenta.balanceOf(addr1.address);
+            const postEarnedBal = await stakingRewards.earned(addr1.address);
+
+            expect(postEarnedBal).to.be.below(initialEarnedBal);
+            expect(postRewardBal).to.be.above(initialRewardBal);
+            expect(postEarnedBal).to.be.equal(0);
+        });
+    });
+
+    describe("notifyRewardAmount()", () => {
+        beforeEach("Setup", async () => {
+            await setupStakingRewards();
+        });
+
+        it("Reverts if the provided reward is greater than the balance.", async () => {
+            const stakingRewardsKwentaBalance = await kwenta.balanceOf(
+                stakingRewards.address
+            );
+
+            let tx = stakingRewards
+                .connect(await impersonate(supplySchedule.address))
+                .notifyRewardAmount(
+                    stakingRewardsKwentaBalance.add(TEST_VALUE)
+                );
+            await expect(tx).to.be.revertedWith(
+                "StakingRewards: Provided reward too high"
+            );
+        });
+
+        it("Reverts if the provided reward is greater than the balance, plus rolled-over balance.", async () => {
+            const stakingRewardsKwentaBalance = await kwenta.balanceOf(
+                stakingRewards.address
+            );
+            await stakingRewards
+                .connect(await impersonate(supplySchedule.address))
+                .notifyRewardAmount(stakingRewardsKwentaBalance);
+
+            await kwenta
+                .connect(TREASURY_DAO)
+                .transfer(stakingRewards.address, stakingRewardsKwentaBalance);
+
+            // Now take into account any leftover quantity.
+            let tx = stakingRewards
+                .connect(await impersonate(supplySchedule.address))
+                .notifyRewardAmount(
+                    stakingRewardsKwentaBalance.add(TEST_VALUE)
+                );
+            await expect(tx).to.be.revertedWith(
+                "StakingRewards: Provided reward too high"
+            );
+        });
+    });
+
+    describe("problems...", () => {
+        beforeEach("Setup", async () => {
+            await setupStakingRewards();
+        });
+
+        /**
+         * @dev investigate this
+         */
+        it("Doesn't revert if the provided reward is greater than the balance by a very small amount.", async () => {
+            // max amount, theoretically, that new reward could be set to 
+            // (i.e. no rate would be high enough to meet any amount higher than this)
+            // balance: 100
+            // reward: 101
+            // rate (for a duration of 100 secs): 1.01/sec
+            const stakingRewardsKwentaBalance = await kwenta.balanceOf(
+                stakingRewards.address
+            );
+
+            let tx = stakingRewards
+                .connect(await impersonate(supplySchedule.address))
+                .notifyRewardAmount(stakingRewardsKwentaBalance.add(100_000));
+            await expect(tx).to.not.be.reverted;
+        });
+    });
 });
