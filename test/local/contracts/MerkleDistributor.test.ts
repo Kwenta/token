@@ -793,7 +793,7 @@ describe("MerkleDistributor", () => {
                 .to.emit(distributor, "Claimed")
                 .withArgs(
                     claim.index,
-                    xDomainMessageSender.address,
+                    accounts[0].address,
                     claim.amount
                 );
 
