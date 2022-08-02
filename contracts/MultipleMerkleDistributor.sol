@@ -6,7 +6,6 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "./interfaces/IRewardEscrow.sol";
 import "./interfaces/IMultipleMerkleDistributor.sol";
-import {ICrossDomainMessenger} from "@eth-optimism/contracts/libraries/bridge/ICrossDomainMessenger.sol";
 
 /// @title Kwenta MultipleMerkleDistributor
 /// @author JaredBorders and JChiaramonte7
@@ -21,10 +20,11 @@ contract MultipleMerkleDistributor is IMultipleMerkleDistributor, Owned {
     /// @notice an index that is incremented for each new merkle root
     uint256 distributionEpoch;
 
-    /// @notice the merkle root of the merkle tree containing account balances available to claim
+    /// @notice an epoch to merkle root mapping 
+    /// of a merkle tree containing account balances available to claim
     mapping(uint256 => bytes32) public override merkleRoots;
 
-    /// @notice this is a packed array of booleans
+    /// @notice an epoch to packed array of claimed booleans mapping
     mapping(uint256 => mapping(uint256 => uint256)) private claimedBitMaps;
 
     /// @notice set addresses for deployed rewardEscrow and KWENTA.
@@ -41,6 +41,9 @@ contract MultipleMerkleDistributor is IMultipleMerkleDistributor, Owned {
         rewardEscrow = _rewardEscrow;
     }
 
+    /// @notice set new merkle root for new distribution epoch
+    /// @dev calling this function will increment distributionEpoch
+    /// @param _merkleRoot: new merkle root
     function newMerkleRoot(bytes32 _merkleRoot) external onlyOwner {
         merkleRoots[distributionEpoch] = _merkleRoot;
         emit MerkleRootAdded(distributionEpoch);

@@ -600,6 +600,54 @@ describe("MultipleMerkleDistributor", () => {
                     "MultipleMerkleDistributor: Invalid proof."
                 );
             });
+
+            it("invalid (empty) proof w/ address zero for invalid epoch", async () => {
+                const EPOCH_TWO = 2;
+
+                await expect(
+                    distributor.claim(
+                        0,
+                        ethers.constants.AddressZero,
+                        0,
+                        [],
+                        EPOCH_TWO
+                    )
+                ).to.be.revertedWith(
+                    "MultipleMerkleDistributor: Invalid proof."
+                );
+            });
+
+            it("invalid (empty) proof for invalid epoch", async () => {
+                const EPOCH_TWO = 2;
+
+                await expect(
+                    distributor.claim(2, addr1.address, 202, [], EPOCH_TWO)
+                ).to.be.revertedWith(
+                    "MultipleMerkleDistributor: Invalid proof."
+                );
+            });
+
+            it("invalid proof for invalid epoch", async () => {
+                const EPOCH_TWO = 2;
+
+                const proofEpoch0 = tree.getProof(
+                    2,
+                    addr2.address,
+                    BigNumber.from(202)
+                );
+
+                await expect(
+                    distributor.claim(
+                        2,
+                        addr2.address,
+                        202,
+                        proofEpoch0,
+                        EPOCH_TWO
+                    )
+                ).to.be.revertedWith(
+                    "MultipleMerkleDistributor: Invalid proof."
+                );
+            });
         });
 
         describe("larger tree", () => {
