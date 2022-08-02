@@ -6,7 +6,6 @@ import { wei } from "@synthetixio/wei";
 import { loadFixture } from "ethereum-waffle";
 import { deployKwenta } from "../../utils/kwenta";
 import { impersonate, fastForward, currentTime } from "../../utils/helpers";
-import { add } from "lodash";
 
 // constants
 const NAME = "Kwenta";
@@ -17,7 +16,6 @@ const SECONDS_IN_THIRTY_DAYS = 2_592_000;
 
 // test values for staking
 const TEST_VALUE = wei(2000).toBN();
-const SMALLER_TEST_VALUE = wei(1000).toBN();
 
 // test accounts
 let owner: SignerWithAddress;
