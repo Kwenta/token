@@ -302,6 +302,7 @@ contract StakingRewards is IStakingRewards, Ownable, ReentrancyGuard, Pausable {
         onlyRewardEscrow
         updateReward(account)
     {
+        require(amount > 0, "StakingRewards: Cannot Unstake 0");
         require(
             escrowedBalances[account] >= amount,
             "StakingRewards: Invalid Amount"
