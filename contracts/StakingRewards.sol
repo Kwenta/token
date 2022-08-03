@@ -11,8 +11,8 @@ import "./interfaces/IRewardEscrow.sol";
 
 /// @title KWENTA Staking Rewards
 /// @author SYNTHETIX, JaredBorders (jaredborders@proton.me), JChiaramonte7 (jeremy@bytecode.llc)
-/// @notice Updated version of Synthetix's StakingRewards with new features supporting
-/// escrow staking, trading incentives disbursal, etc..
+/// @notice Updated version of Synthetix's StakingRewards with new features specific
+/// to Kwenta
 contract StakingRewards is IStakingRewards, Ownable, ReentrancyGuard, Pausable {
     using SafeERC20 for IERC20;
 
@@ -20,18 +20,14 @@ contract StakingRewards is IStakingRewards, Ownable, ReentrancyGuard, Pausable {
                                 CONSTANTS
     ///////////////////////////////////////////////////////////////*/
 
+    /// @notice token used for BOTH staking and rewards
+    IERC20 public immutable token;
+
     /// @notice escrow contract which holds (and may stake) reward tokens
-    IRewardEscrow private immutable rewardEscrow;
+    IRewardEscrow public immutable rewardEscrow;
 
     /// @notice handles reward token minting logic
-    ISupplySchedule private immutable supplySchedule;
-
-    /// @notice token used for rewards
-    IERC20 public immutable rewardsToken;
-
-    /// @notice token used to stake
-    /// @dev staked token can/will be used for voting
-    IERC20 public immutable stakingToken;
+    ISupplySchedule public immutable supplySchedule;
 
     /*///////////////////////////////////////////////////////////////
                                 STATE
@@ -143,19 +139,16 @@ contract StakingRewards is IStakingRewards, Ownable, ReentrancyGuard, Pausable {
 
     /// @notice configure StakingRewards state
     /// @dev owner set to address that deployed StakingRewards
-    /// @param _rewardsToken: token rewarded to staker
-    /// @param _stakingToken: token staked
+    /// @param _token: token used for staking and for rewards
     /// @param _rewardEscrow: escrow contract which holds (and may stake) reward tokens
     /// @param _supplySchedule: handles reward token minting logic
     constructor(
-        address _rewardsToken,
-        address _stakingToken,
+        address _token,
         address _rewardEscrow,
         address _supplySchedule
     ) {
         // define reward/staking token
-        rewardsToken = IERC20(_rewardsToken);
-        stakingToken = IERC20(_stakingToken);
+        token = IERC20(_token);
 
         // define contracts which will interact with StakingRewards
         rewardEscrow = IRewardEscrow(_rewardEscrow);
@@ -166,7 +159,9 @@ contract StakingRewards is IStakingRewards, Ownable, ReentrancyGuard, Pausable {
                                 VIEWS
     ///////////////////////////////////////////////////////////////*/
 
-    /// @return total supply of staked tokens
+    /// @dev returns staked tokens which will likely not be equal to total tokens
+    /// in the contract since reward and staking tokens are the same
+    /// @return total amount of tokens that are being staked
     function totalSupply() external view override returns (uint256) {
         return _totalSupply;
     }
@@ -199,16 +194,6 @@ contract StakingRewards is IStakingRewards, Ownable, ReentrancyGuard, Pausable {
         return rewardRate * rewardsDuration;
     }
 
-    /// @return address of RewardEscrow
-    function getRewardEscrow() external view override returns (address) {
-        return address(rewardEscrow);
-    }
-
-    /// @return address of SupplySchedule
-    function getSupplySchedule() external view override returns (address) {
-        return address(supplySchedule);
-    }
-
     /*///////////////////////////////////////////////////////////////
                             STAKE/UNSTAKE
     ///////////////////////////////////////////////////////////////*/
@@ -233,7 +218,7 @@ contract StakingRewards is IStakingRewards, Ownable, ReentrancyGuard, Pausable {
         lastStakingEvent[msg.sender] = block.timestamp;
 
         // transfer token to this contract from the caller
-        stakingToken.safeTransferFrom(msg.sender, address(this), amount);
+        token.safeTransferFrom(msg.sender, address(this), amount);
 
         // emit staking event and index msg.sender
         emit Staked(msg.sender, amount);
@@ -255,7 +240,7 @@ contract StakingRewards is IStakingRewards, Ownable, ReentrancyGuard, Pausable {
         balances[msg.sender] = balances[msg.sender] - amount;
 
         // transfer token from this contract to the caller
-        stakingToken.safeTransfer(msg.sender, amount);
+        token.safeTransfer(msg.sender, amount);
 
         // emit unstake event and index msg.sender
         emit Unstaked(msg.sender, amount);
@@ -341,7 +326,7 @@ contract StakingRewards is IStakingRewards, Ownable, ReentrancyGuard, Pausable {
             rewards[msg.sender] = 0;
 
             // transfer token from this contract to the caller
-            rewardsToken.safeTransfer(address(rewardEscrow), reward);
+            token.safeTransfer(address(rewardEscrow), reward);
             rewardEscrow.appendVestingEntry(msg.sender, reward, 52 weeks);
 
             // emit reward claimed event and index msg.sender
@@ -425,7 +410,7 @@ contract StakingRewards is IStakingRewards, Ownable, ReentrancyGuard, Pausable {
         // This keeps the reward rate in the right range, preventing overflows due to
         // very high values of rewardRate in the earned and rewardsPerToken functions;
         // Reward + leftover must be less than 2^256 / 10^18 to avoid overflow.
-        uint256 balance = rewardsToken.balanceOf(address(this));
+        uint256 balance = token.balanceOf(address(this));
         require(
             rewardRate <= balance / rewardsDuration,
             "StakingRewards: Provided reward too high"
@@ -479,7 +464,7 @@ contract StakingRewards is IStakingRewards, Ownable, ReentrancyGuard, Pausable {
         onlyOwner
     {
         require(
-            tokenAddress != address(stakingToken),
+            tokenAddress != address(token),
             "StakingRewards: Cannot unstake the staking token"
         );
         IERC20(tokenAddress).safeTransfer(owner(), tokenAmount);

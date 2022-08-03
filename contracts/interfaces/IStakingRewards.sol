@@ -3,9 +3,6 @@ pragma solidity ^0.8.0;
 
 interface IStakingRewards {
     /// VIEWS
-    // addresses
-    function getRewardEscrow() external view returns (address);
-    function getSupplySchedule() external view returns (address);
     // token state
     function totalSupply() external view returns (uint256);
     // staking state

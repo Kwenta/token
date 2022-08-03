@@ -93,7 +93,6 @@ export const deployKwenta = async (
     const StakingRewards = await ethers.getContractFactory("StakingRewards");
     stakingRewards = await StakingRewards.connect(owner).deploy(
         kwenta.address,
-        kwenta.address,
         rewardEscrow.address,
         supplySchedule.address
     );

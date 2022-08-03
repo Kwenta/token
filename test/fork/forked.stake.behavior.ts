@@ -145,7 +145,6 @@ const loadSetup = () => {
         );
         stakingRewards = await StakingRewards.deploy(
             kwenta.address,
-            kwenta.address,
             rewardEscrow.address,
             supplySchedule.address
         );

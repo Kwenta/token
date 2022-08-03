@@ -178,10 +178,8 @@ assert.bnGreaterThan = assertBNGreaterThan;
 
 contract(
     "RewardEscrow KWENTA",
-    ([owner, user1, staker1, staker2, treasuryDAO]) => {
+    ([owner, staker1, staker2, treasuryDAO]) => {
         console.log("Start tests");
-        const SECOND = 1000;
-        const DAY = 86400;
         const WEEK = 604800;
         const YEAR = 31556926;
         let stakingRewards;
@@ -213,7 +211,6 @@ contract(
             rewardsEscrow = await RewardsEscrow.new(owner, kwentaSmock.address);
 
             stakingRewards = await StakingRewards.new(
-                kwentaSmock.address,
                 kwentaSmock.address,
                 rewardsEscrow.address,
                 supplySchedule.address
