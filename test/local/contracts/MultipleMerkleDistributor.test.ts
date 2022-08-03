@@ -44,8 +44,6 @@ const loadSetup = () => {
             NAME,
             SYMBOL,
             INITIAL_SUPPLY,
-            INFLATION_DIVERSION_BPS,
-            WEEKLY_START_REWARDS,
             owner,
             TREASURY_DAO
         );
