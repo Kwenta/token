@@ -37,7 +37,7 @@ contract StakingRewards is IStakingRewards, Ownable, ReentrancyGuard, Pausable {
     /// @dev this includes escrowed tokens stake
     mapping(address => uint256) private balances;
 
-    /// @notice number of tokens escrowed by address
+    /// @notice number of staked escrow tokens by address
     mapping(address => uint256) private escrowedBalances;
 
     /// @notice marks applicable reward period finish time
@@ -177,9 +177,9 @@ contract StakingRewards is IStakingRewards, Ownable, ReentrancyGuard, Pausable {
         return balances[account];
     }
 
-    /// @notice Getter function for the escrowed balance of an account
-    /// @param account address to check the escrowed balance of
-    /// @return escrowed balance of specified account
+    /// @notice Getter function for number of staked escrow tokens
+    /// @param account address to check the escrowed tokens staked
+    /// @return amount of escrowed tokens staked
     function escrowedBalanceOf(address account)
         external
         view
@@ -187,6 +187,18 @@ contract StakingRewards is IStakingRewards, Ownable, ReentrancyGuard, Pausable {
         returns (uint256)
     {
         return escrowedBalances[account];
+    }
+
+    /// @notice Getter function for number of staked non-escrow tokens
+    /// @param account address to check the non-escrowed tokens staked
+    /// @return amount of non-escrowed tokens staked
+    function nonEscrowedBalanceOf(address account)
+        external
+        view
+        override
+        returns (uint256)
+    {
+        return balances[account] - escrowedBalances[account];
     }
 
     /// @return rewards for the duration specified by rewardsDuration
@@ -234,6 +246,10 @@ contract StakingRewards is IStakingRewards, Ownable, ReentrancyGuard, Pausable {
         updateReward(msg.sender)
     {
         require(amount > 0, "StakingRewards: Cannot Unstake 0");
+        require(
+            amount <= balances[msg.sender] - escrowedBalances[msg.sender],
+            "StakingRewards: Invalid Amount"
+        );
 
         // update state
         _totalSupply = _totalSupply - amount;
@@ -305,10 +321,10 @@ contract StakingRewards is IStakingRewards, Ownable, ReentrancyGuard, Pausable {
         emit EscrowUnstaked(account, amount);
     }
 
-    /// @notice unstake all available staked tokens and
+    /// @notice unstake all available staked non-escrowed tokens and
     /// claim any rewards
     function exit() external override {
-        unstake(balances[msg.sender]);
+        unstake(balances[msg.sender] - escrowedBalances[msg.sender]);
         getReward();
     }
 

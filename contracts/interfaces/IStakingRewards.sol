@@ -8,6 +8,7 @@ interface IStakingRewards {
     // staking state
     function balanceOf(address account) external view returns (uint256);
     function escrowedBalanceOf(address account) external view returns (uint256);
+    function nonEscrowedBalanceOf(address account) external view returns (uint256);
     // rewards
     function getRewardForDuration() external view returns (uint256);
     function rewardPerToken() external view returns (uint256);

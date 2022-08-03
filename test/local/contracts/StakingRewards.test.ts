@@ -543,6 +543,113 @@ describe("StakingRewards", () => {
                 "StakingRewards: Cannot stake 0"
             );
         });
+
+        it("stake escrow then call unstake()", async () => {
+            // fund rewardEscrow
+            await kwenta
+                .connect(TREASURY_DAO)
+                .transfer(rewardEscrow.address, SECONDS_IN_WEEK);
+
+            // approve StakingRewards
+            await kwenta
+                .connect(await impersonate(rewardEscrow.address))
+                .approve(stakingRewards.address, SECONDS_IN_WEEK);
+
+            // stake escrow
+            await stakingRewards
+                .connect(await impersonate(rewardEscrow.address))
+                .stakeEscrow(addr1.address, SECONDS_IN_WEEK);
+
+            // call unstake (not unstakeEscrow)
+            let tx = stakingRewards.connect(addr1).unstake(SECONDS_IN_WEEK);
+            await expect(tx).to.be.revertedWith(
+                "StakingRewards: Invalid Amount"
+            );
+        });
+
+        it("stake escrow then call exit()", async () => {
+            // fund rewardEscrow
+            await kwenta
+                .connect(TREASURY_DAO)
+                .transfer(rewardEscrow.address, SECONDS_IN_WEEK);
+
+            // approve StakingRewards
+            await kwenta
+                .connect(await impersonate(rewardEscrow.address))
+                .approve(stakingRewards.address, SECONDS_IN_WEEK);
+
+            // stake escrow
+            await stakingRewards
+                .connect(await impersonate(rewardEscrow.address))
+                .stakeEscrow(addr1.address, SECONDS_IN_WEEK);
+
+            // call unstake (not unstakeEscrow)
+            let tx = stakingRewards.connect(addr1).exit();
+            await expect(tx).to.be.revertedWith(
+                "StakingRewards: Cannot Unstake 0"
+            );
+        });
+
+        it("stake escrow, and then call exit()", async () => {
+            // fund rewardEscrow
+            await kwenta
+                .connect(TREASURY_DAO)
+                .transfer(rewardEscrow.address, SECONDS_IN_WEEK);
+
+            // approve StakingRewards
+            await kwenta
+                .connect(await impersonate(rewardEscrow.address))
+                .approve(stakingRewards.address, SECONDS_IN_WEEK);
+
+            // stake escrow
+            await stakingRewards
+                .connect(await impersonate(rewardEscrow.address))
+                .stakeEscrow(addr1.address, SECONDS_IN_WEEK);
+
+            // call unstake (not unstakeEscrow)
+            let tx = stakingRewards.connect(addr1).exit();
+            await expect(tx).to.be.revertedWith(
+                "StakingRewards: Cannot Unstake 0"
+            );
+        });
+
+        it("stake, stake escrow, and then call exit()", async () => {
+            let nonEscrowStakedBal = SECONDS_IN_WEEK / 2;
+
+            // fund addr1
+            await kwenta
+                .connect(TREASURY_DAO)
+                .transfer(addr1.address, nonEscrowStakedBal);
+
+            // approve StakingRewards
+            await kwenta
+                .connect(addr1)
+                .approve(stakingRewards.address, nonEscrowStakedBal);
+
+            // stake
+            await stakingRewards.connect(addr1).stake(nonEscrowStakedBal);
+
+            // fund rewardEscrow
+            await kwenta
+                .connect(TREASURY_DAO)
+                .transfer(rewardEscrow.address, SECONDS_IN_WEEK);
+
+            // approve StakingRewards
+            await kwenta
+                .connect(await impersonate(rewardEscrow.address))
+                .approve(stakingRewards.address, SECONDS_IN_WEEK);
+
+            // stake escrow
+            await stakingRewards
+                .connect(await impersonate(rewardEscrow.address))
+                .stakeEscrow(addr1.address, SECONDS_IN_WEEK);
+
+            await stakingRewards.connect(addr1).exit();
+
+            expect(await kwenta.balanceOf(addr1.address)).to.equal(
+                nonEscrowStakedBal
+            );
+        });
     });
 
     describe("earned()", () => {
