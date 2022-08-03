@@ -20,7 +20,7 @@ contract MultipleMerkleDistributor is IMultipleMerkleDistributor, Owned {
     /// @notice an index that is incremented for each new merkle root
     uint256 distributionEpoch;
 
-    /// @notice an epoch to merkle root mapping 
+    /// @notice an epoch to merkle root mapping
     /// of a merkle tree containing account balances available to claim
     mapping(uint256 => bytes32) public override merkleRoots;
 
@@ -54,7 +54,12 @@ contract MultipleMerkleDistributor is IMultipleMerkleDistributor, Owned {
     /// @param index: used for claim managment
     /// @param epoch: distribution index to check
     /// @return true if indexed claim has been claimed
-    function isClaimed(uint256 index, uint256 epoch) public view override returns (bool) {
+    function isClaimed(uint256 index, uint256 epoch)
+        public
+        view
+        override
+        returns (bool)
+    {
         uint256 claimedWordIndex = index / 256;
         uint256 claimedBitIndex = index % 256;
         uint256 claimedWord = claimedBitMaps[epoch][claimedWordIndex];
@@ -86,7 +91,10 @@ contract MultipleMerkleDistributor is IMultipleMerkleDistributor, Owned {
         bytes32[] calldata merkleProof,
         uint256 epoch
     ) public override {
-        require(!isClaimed(index, epoch), "MultipleMerkleDistributor: Drop already claimed.");
+        require(
+            !isClaimed(index, epoch),
+            "MultipleMerkleDistributor: Drop already claimed."
+        );
 
         // verify the merkle proof
         bytes32 node = keccak256(abi.encodePacked(index, account, amount));
