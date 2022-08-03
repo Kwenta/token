@@ -87,14 +87,24 @@ describe("StakingRewards", () => {
         });
 
         it("should set staking/rewards token on constructor", async () => {
-            expect(await stakingRewards.token()).to.equal(
-                kwenta.address
-            );
+            expect(await stakingRewards.token()).to.equal(kwenta.address);
         });
 
         it("should set owner on constructor", async () => {
             const ownerAddress = await stakingRewards.owner();
             expect(ownerAddress).to.equal(owner.address);
+        });
+
+        it("should set RewardEscrow on constructor", async () => {
+            expect(await stakingRewards.rewardEscrow()).to.equal(
+                rewardEscrow.address
+            );
+        });
+
+        it("should set supplySchedule on constructor", async () => {
+            expect(await stakingRewards.supplySchedule()).to.equal(
+                supplySchedule.address
+            );
         });
     });
 
@@ -826,9 +836,7 @@ describe("StakingRewards", () => {
             // stake
             await stakingRewards.connect(addr1).stake(TEST_VALUE);
 
-            const initialTokenBal = await kwenta.balanceOf(
-                addr1.address
-            );
+            const initialTokenBal = await kwenta.balanceOf(addr1.address);
             const initialStakeBal = await stakingRewards.balanceOf(
                 addr1.address
             );
@@ -839,9 +847,7 @@ describe("StakingRewards", () => {
             const postStakeBal = await stakingRewards.balanceOf(addr1.address);
 
             expect(postStakeBal.add(TEST_VALUE)).to.equal(initialStakeBal);
-            expect(initialTokenBal.add(TEST_VALUE)).to.equal(
-                postTokenBal
-            );
+            expect(initialTokenBal.add(TEST_VALUE)).to.equal(postTokenBal);
         });
 
         it("cannot unstake 0", async () => {
