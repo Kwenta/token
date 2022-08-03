@@ -1156,43 +1156,9 @@ describe("StakingRewards", () => {
             await setupStakingRewards();
         });
 
-        it("Reverts if the provided reward is greater than the balance.", async () => {
-            const stakingRewardsKwentaBalance = await kwenta.balanceOf(
-                stakingRewards.address
-            );
-
-            let tx = stakingRewards
-                .connect(await impersonate(supplySchedule.address))
-                .notifyRewardAmount(
-                    stakingRewardsKwentaBalance.add(TEST_VALUE)
-                );
-            await expect(tx).to.be.revertedWith(
-                "StakingRewards: Provided reward too high"
-            );
-        });
-
-        it("Reverts if the provided reward is greater than the balance, plus rolled-over balance.", async () => {
-            const stakingRewardsKwentaBalance = await kwenta.balanceOf(
-                stakingRewards.address
-            );
-            await stakingRewards
-                .connect(await impersonate(supplySchedule.address))
-                .notifyRewardAmount(stakingRewardsKwentaBalance);
-
-            await kwenta
-                .connect(TREASURY_DAO)
-                .transfer(stakingRewards.address, stakingRewardsKwentaBalance);
-
-            // Now take into account any leftover quantity.
-            let tx = stakingRewards
-                .connect(await impersonate(supplySchedule.address))
-                .notifyRewardAmount(
-                    stakingRewardsKwentaBalance.add(TEST_VALUE)
-                );
-            await expect(tx).to.be.revertedWith(
-                "StakingRewards: Provided reward too high"
-            );
-        });
+        /**
+         * @TODO add more coverage?
+         */
     });
 
     describe("problems...", () => {
