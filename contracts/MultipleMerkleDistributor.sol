@@ -85,7 +85,7 @@ contract MultipleMerkleDistributor is IMultipleMerkleDistributor, Owned {
         uint256 amount,
         bytes32[] calldata merkleProof,
         uint256 epoch
-    ) external override {
+    ) public override {
         require(!isClaimed(index, epoch), "MultipleMerkleDistributor: Drop already claimed.");
 
         // verify the merkle proof
@@ -105,5 +105,19 @@ contract MultipleMerkleDistributor is IMultipleMerkleDistributor, Owned {
         );
 
         emit Claimed(index, account, amount, epoch);
+    }
+
+    /// @notice function that aggregates multiple claims
+    /// @param claims: array of valid claims
+    function claimMultiple(Claims[] calldata claims) external override {
+        for (uint256 i = 0; i < claims.length; i++) {
+            claim(
+                claims[i].index,
+                claims[i].account,
+                claims[i].amount,
+                claims[i].merkleProof,
+                claims[i].epoch
+            );
+        }
     }
 }
