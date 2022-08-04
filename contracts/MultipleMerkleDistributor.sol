@@ -118,7 +118,8 @@ contract MultipleMerkleDistributor is IMultipleMerkleDistributor, Owned {
     /// @notice function that aggregates multiple claims
     /// @param claims: array of valid claims
     function claimMultiple(Claims[] calldata claims) external override {
-        for (uint256 i = 0; i < claims.length; i++) {
+        uint256 cacheLength = claims.length;
+        for (uint256 i = 0; i < cacheLength; ) {
             claim(
                 claims[i].index,
                 claims[i].account,
@@ -126,6 +127,9 @@ contract MultipleMerkleDistributor is IMultipleMerkleDistributor, Owned {
                 claims[i].merkleProof,
                 claims[i].epoch
             );
+            unchecked {
+                i++;
+            }
         }
     }
 }
