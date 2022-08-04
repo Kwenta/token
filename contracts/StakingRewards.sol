@@ -62,9 +62,6 @@ contract StakingRewards is IStakingRewards, Ownable, ReentrancyGuard, Pausable {
     /// value the last time the stake calculated earned() rewards
     mapping(address => uint256) public userRewardPerTokenPaid;
 
-    /// @notice save most recent date an address emitted Staked event
-    mapping(address => uint256) public lastStakingEvent;
-
     /// @notice track rewards for a given user which changes when
     /// a user stakes, unstakes, or claims rewards
     mapping(address => uint256) public rewards;
@@ -226,9 +223,6 @@ contract StakingRewards is IStakingRewards, Ownable, ReentrancyGuard, Pausable {
         _totalSupply += amount;
         balances[msg.sender] += amount;
 
-        // update addresses last staking event timestamp
-        lastStakingEvent[msg.sender] = block.timestamp;
-
         // transfer token to this contract from the caller
         token.safeTransferFrom(msg.sender, address(this), amount);
 
@@ -283,9 +277,6 @@ contract StakingRewards is IStakingRewards, Ownable, ReentrancyGuard, Pausable {
         // updates total supply despite no new staking token being transfered.
         // escrowed tokens are locked in RewardEscrow
         _totalSupply += amount;
-
-        // update addresses last staking event timestamp
-        lastStakingEvent[account] = block.timestamp;
 
         // emit escrow staking event and index _account
         emit EscrowStaked(account, amount);
