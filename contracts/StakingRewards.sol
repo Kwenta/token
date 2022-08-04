@@ -189,21 +189,21 @@ contract StakingRewards is IStakingRewards, Ownable, ReentrancyGuard, Pausable {
         return escrowedBalances[account];
     }
 
+    /// @return rewards for the duration specified by rewardsDuration
+    function getRewardForDuration() external view override returns (uint256) {
+        return rewardRate * rewardsDuration;
+    }
+
     /// @notice Getter function for number of staked non-escrow tokens
     /// @param account address to check the non-escrowed tokens staked
     /// @return amount of non-escrowed tokens staked
     function nonEscrowedBalanceOf(address account)
-        external
+        public
         view
         override
         returns (uint256)
     {
         return balances[account] - escrowedBalances[account];
-    }
-
-    /// @return rewards for the duration specified by rewardsDuration
-    function getRewardForDuration() external view override returns (uint256) {
-        return rewardRate * rewardsDuration;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -247,7 +247,7 @@ contract StakingRewards is IStakingRewards, Ownable, ReentrancyGuard, Pausable {
     {
         require(amount > 0, "StakingRewards: Cannot Unstake 0");
         require(
-            amount <= balances[msg.sender] - escrowedBalances[msg.sender],
+            amount <= nonEscrowedBalanceOf(msg.sender),
             "StakingRewards: Invalid Amount"
         );
 
@@ -324,9 +324,9 @@ contract StakingRewards is IStakingRewards, Ownable, ReentrancyGuard, Pausable {
     /// @notice unstake all available staked non-escrowed tokens and
     /// claim any rewards
     function exit() external override {
-        unstake(balances[msg.sender] - escrowedBalances[msg.sender]);
+        unstake(nonEscrowedBalanceOf(msg.sender));
         getReward();
-    }
+    }    
 
     /*///////////////////////////////////////////////////////////////
                             CLAIM REWARDS
