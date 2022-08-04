@@ -6,6 +6,7 @@ import { wei } from "@synthetixio/wei";
 import { loadFixture } from "ethereum-waffle";
 import { deployKwenta } from "../../utils/kwenta";
 import { impersonate, fastForward, currentTime } from "../../utils/helpers";
+import { BigNumber } from "ethers";
 
 // constants
 const NAME = "Kwenta";
@@ -32,7 +33,9 @@ let stakingRewards: Contract;
 // mock token
 let mockToken: Contract;
 
-// deploy contracts and transfer 1/4 supply of kwenta to staking rewards
+/**
+ * @notice deploy contracts and transfer 1/4 supply of kwenta to staking rewards
+ */
 const setupStakingRewards = async () => {
     // get signers
     [owner, addr1, addr2, TREASURY_DAO] = await ethers.getSigners();
@@ -56,8 +59,10 @@ const setupStakingRewards = async () => {
         .transfer(stakingRewards.address, INITIAL_SUPPLY.div(4));
 };
 
-// Using Kwenta.sol contract as a mock token for testing
-// Please notice: mockToken != kwenta
+/**
+ * @notice using Kwenta.sol contract as a mock token for testing.
+ * Please notice: mockToken != kwenta
+ */
 const deployMockToken = async () => {
     const MockToken = await ethers.getContractFactory("Kwenta");
     mockToken = await MockToken.deploy(
@@ -67,6 +72,33 @@ const deployMockToken = async () => {
         owner.address,
         TREASURY_DAO.address
     );
+};
+
+/**
+ * @noitce transfer kwenta to rewardEscrow contract and approve StakingRewards to spend amount
+ * @param amount - amount to transfer and approve
+ */
+const fundAndApproveRewardEscrow = async (amount: number) => {
+    // fund rewardEscrow
+    await kwenta.connect(TREASURY_DAO).transfer(rewardEscrow.address, amount);
+
+    // approve StakingRewards
+    await kwenta
+        .connect(await impersonate(rewardEscrow.address))
+        .approve(stakingRewards.address, amount);
+};
+
+/**
+ * @noitce transfer kwenta to account and approve StakingRewards to spend amount
+ * @param account - account to transfer amount to
+ * @param amount - amount to transfer and approve
+ */
+const fundAndApproveAccount = async (
+    account: SignerWithAddress,
+    amount: number | BigNumber
+) => {
+    await kwenta.connect(TREASURY_DAO).transfer(account.address, amount);
+    await kwenta.connect(account).approve(stakingRewards.address, amount);
 };
 
 /**
@@ -222,12 +254,7 @@ describe("StakingRewards", () => {
             await stakingRewards.connect(owner).pauseStakingRewards();
             expect(await stakingRewards.paused()).to.equal(true);
 
-            await kwenta
-                .connect(TREASURY_DAO)
-                .transfer(addr1.address, TEST_VALUE);
-            await kwenta
-                .connect(addr1)
-                .approve(stakingRewards.address, TEST_VALUE);
+            await fundAndApproveAccount(addr1, TEST_VALUE);
 
             let tx = stakingRewards.connect(addr1).stake(TEST_VALUE);
             await expect(tx).to.be.revertedWith("Pausable: paused");
@@ -241,12 +268,7 @@ describe("StakingRewards", () => {
             // unpause
             await stakingRewards.connect(owner).unpauseStakingRewards();
 
-            await kwenta
-                .connect(TREASURY_DAO)
-                .transfer(addr2.address, TEST_VALUE);
-            await kwenta
-                .connect(addr2)
-                .approve(stakingRewards.address, TEST_VALUE);
+            await fundAndApproveAccount(addr2, TEST_VALUE);
 
             let tx = stakingRewards.connect(addr2).stake(TEST_VALUE);
             await expect(tx).to.not.be.reverted;
@@ -322,6 +344,7 @@ describe("StakingRewards", () => {
     describe("rewardPerToken()", () => {
         beforeEach("Setup", async () => {
             await setupStakingRewards();
+            await fundAndApproveAccount(addr1, SECONDS_IN_WEEK);
         });
 
         it("should return 0", async () => {
@@ -329,13 +352,6 @@ describe("StakingRewards", () => {
         });
 
         it("should be > 0", async () => {
-            await kwenta
-                .connect(TREASURY_DAO)
-                .transfer(addr1.address, SECONDS_IN_WEEK);
-            await kwenta
-                .connect(addr1)
-                .approve(stakingRewards.address, SECONDS_IN_WEEK);
-
             // stake
             await stakingRewards.connect(addr1).stake(SECONDS_IN_WEEK);
 
@@ -358,16 +374,10 @@ describe("StakingRewards", () => {
     describe("stake()", () => {
         beforeEach("Setup", async () => {
             await setupStakingRewards();
+            await fundAndApproveAccount(addr1, SECONDS_IN_WEEK);
         });
 
         it("staking increases token balance", async () => {
-            await kwenta
-                .connect(TREASURY_DAO)
-                .transfer(addr1.address, SECONDS_IN_WEEK);
-            await kwenta
-                .connect(addr1)
-                .approve(stakingRewards.address, SECONDS_IN_WEEK);
-
             const preBal = await kwenta.balanceOf(stakingRewards.address);
 
             // stake
@@ -379,13 +389,6 @@ describe("StakingRewards", () => {
         });
 
         it("staking increases balances[] mapping", async () => {
-            await kwenta
-                .connect(TREASURY_DAO)
-                .transfer(addr1.address, SECONDS_IN_WEEK);
-            await kwenta
-                .connect(addr1)
-                .approve(stakingRewards.address, SECONDS_IN_WEEK);
-
             const preBal = await stakingRewards.balanceOf(addr1.address);
 
             // stake
@@ -397,13 +400,6 @@ describe("StakingRewards", () => {
         });
 
         it("staking does NOT increase escrowedBalances[] mapping", async () => {
-            await kwenta
-                .connect(TREASURY_DAO)
-                .transfer(addr1.address, SECONDS_IN_WEEK);
-            await kwenta
-                .connect(addr1)
-                .approve(stakingRewards.address, SECONDS_IN_WEEK);
-
             const preBal = await stakingRewards.escrowedBalanceOf(
                 addr1.address
             );
@@ -420,13 +416,6 @@ describe("StakingRewards", () => {
 
         // increase total supply AND token balance
         it("staking increases totalSupply", async () => {
-            await kwenta
-                .connect(TREASURY_DAO)
-                .transfer(addr1.address, SECONDS_IN_WEEK);
-            await kwenta
-                .connect(addr1)
-                .approve(stakingRewards.address, SECONDS_IN_WEEK);
-
             const preBal = await stakingRewards.totalSupply();
 
             // stake
@@ -448,16 +437,10 @@ describe("StakingRewards", () => {
     describe("stakeEscrow()", () => {
         beforeEach("Setup", async () => {
             await setupStakingRewards();
+            await fundAndApproveRewardEscrow(SECONDS_IN_WEEK);
         });
 
         it("escrowStaking does NOT increase token balance", async () => {
-            await kwenta
-                .connect(TREASURY_DAO)
-                .transfer(rewardEscrow.address, SECONDS_IN_WEEK);
-            await kwenta
-                .connect(await impersonate(rewardEscrow.address))
-                .approve(stakingRewards.address, SECONDS_IN_WEEK);
-
             const preBal = await kwenta.balanceOf(stakingRewards.address);
 
             // stake escrow
@@ -471,13 +454,6 @@ describe("StakingRewards", () => {
         });
 
         it("escrowStaking increases balances[] mapping", async () => {
-            await kwenta
-                .connect(TREASURY_DAO)
-                .transfer(rewardEscrow.address, SECONDS_IN_WEEK);
-            await kwenta
-                .connect(await impersonate(rewardEscrow.address))
-                .approve(stakingRewards.address, SECONDS_IN_WEEK);
-
             const preBal = await stakingRewards.balanceOf(addr1.address);
 
             // stake escrow
@@ -491,13 +467,6 @@ describe("StakingRewards", () => {
         });
 
         it("escrowStaking increases escrowedBalances[] mapping", async () => {
-            await kwenta
-                .connect(TREASURY_DAO)
-                .transfer(rewardEscrow.address, SECONDS_IN_WEEK);
-            await kwenta
-                .connect(await impersonate(rewardEscrow.address))
-                .approve(stakingRewards.address, SECONDS_IN_WEEK);
-
             const preBal = await stakingRewards.escrowedBalanceOf(
                 addr1.address
             );
@@ -516,13 +485,6 @@ describe("StakingRewards", () => {
 
         // increase total supply but not token balance
         it("escrowStaking increases totalSupply", async () => {
-            await kwenta
-                .connect(TREASURY_DAO)
-                .transfer(rewardEscrow.address, SECONDS_IN_WEEK);
-            await kwenta
-                .connect(await impersonate(rewardEscrow.address))
-                .approve(stakingRewards.address, SECONDS_IN_WEEK);
-
             const preBal = await stakingRewards.totalSupply();
 
             // stake escrow
@@ -545,16 +507,6 @@ describe("StakingRewards", () => {
         });
 
         it("stake escrow then call unstake()", async () => {
-            // fund rewardEscrow
-            await kwenta
-                .connect(TREASURY_DAO)
-                .transfer(rewardEscrow.address, SECONDS_IN_WEEK);
-
-            // approve StakingRewards
-            await kwenta
-                .connect(await impersonate(rewardEscrow.address))
-                .approve(stakingRewards.address, SECONDS_IN_WEEK);
-
             // stake escrow
             await stakingRewards
                 .connect(await impersonate(rewardEscrow.address))
@@ -568,16 +520,6 @@ describe("StakingRewards", () => {
         });
 
         it("stake escrow then call exit()", async () => {
-            // fund rewardEscrow
-            await kwenta
-                .connect(TREASURY_DAO)
-                .transfer(rewardEscrow.address, SECONDS_IN_WEEK);
-
-            // approve StakingRewards
-            await kwenta
-                .connect(await impersonate(rewardEscrow.address))
-                .approve(stakingRewards.address, SECONDS_IN_WEEK);
-
             // stake escrow
             await stakingRewards
                 .connect(await impersonate(rewardEscrow.address))
@@ -591,16 +533,6 @@ describe("StakingRewards", () => {
         });
 
         it("stake escrow, and then call exit()", async () => {
-            // fund rewardEscrow
-            await kwenta
-                .connect(TREASURY_DAO)
-                .transfer(rewardEscrow.address, SECONDS_IN_WEEK);
-
-            // approve StakingRewards
-            await kwenta
-                .connect(await impersonate(rewardEscrow.address))
-                .approve(stakingRewards.address, SECONDS_IN_WEEK);
-
             // stake escrow
             await stakingRewards
                 .connect(await impersonate(rewardEscrow.address))
@@ -629,16 +561,6 @@ describe("StakingRewards", () => {
             // stake
             await stakingRewards.connect(addr1).stake(nonEscrowStakedBal);
 
-            // fund rewardEscrow
-            await kwenta
-                .connect(TREASURY_DAO)
-                .transfer(rewardEscrow.address, SECONDS_IN_WEEK);
-
-            // approve StakingRewards
-            await kwenta
-                .connect(await impersonate(rewardEscrow.address))
-                .approve(stakingRewards.address, SECONDS_IN_WEEK);
-
             // stake escrow
             await stakingRewards
                 .connect(await impersonate(rewardEscrow.address))
@@ -655,6 +577,7 @@ describe("StakingRewards", () => {
     describe("earned()", () => {
         beforeEach("Setup", async () => {
             await setupStakingRewards();
+            await fundAndApproveAccount(addr1, SECONDS_IN_WEEK);
         });
 
         it("should be 0 when not staking", async () => {
@@ -662,13 +585,6 @@ describe("StakingRewards", () => {
         });
 
         it("should be > 0 when staking", async () => {
-            await kwenta
-                .connect(TREASURY_DAO)
-                .transfer(addr1.address, SECONDS_IN_WEEK);
-            await kwenta
-                .connect(addr1)
-                .approve(stakingRewards.address, SECONDS_IN_WEEK);
-
             // stake
             await stakingRewards.connect(addr1).stake(SECONDS_IN_WEEK);
 
@@ -686,13 +602,6 @@ describe("StakingRewards", () => {
 
         it("rewardRate should increase if new rewards come before DURATION ends", async () => {
             const totalToDistribute = wei(5000).toBN();
-
-            await kwenta
-                .connect(TREASURY_DAO)
-                .transfer(addr1.address, SECONDS_IN_WEEK);
-            await kwenta
-                .connect(addr1)
-                .approve(stakingRewards.address, SECONDS_IN_WEEK);
 
             // stake
             await stakingRewards.connect(addr1).stake(SECONDS_IN_WEEK);
@@ -720,13 +629,6 @@ describe("StakingRewards", () => {
         });
 
         it("rewards token balance should rollover after DURATION", async () => {
-            await kwenta
-                .connect(TREASURY_DAO)
-                .transfer(addr1.address, SECONDS_IN_WEEK);
-            await kwenta
-                .connect(addr1)
-                .approve(stakingRewards.address, SECONDS_IN_WEEK);
-
             // stake
             await stakingRewards.connect(addr1).stake(SECONDS_IN_WEEK);
 
@@ -751,6 +653,7 @@ describe("StakingRewards", () => {
     describe("getReward()", () => {
         beforeEach("Setup", async () => {
             await setupStakingRewards();
+            await fundAndApproveAccount(addr1, SECONDS_IN_WEEK);
         });
 
         /**
@@ -760,13 +663,6 @@ describe("StakingRewards", () => {
             const preEscrowBalance = await kwenta.balanceOf(
                 rewardEscrow.address
             );
-
-            await kwenta
-                .connect(TREASURY_DAO)
-                .transfer(addr1.address, SECONDS_IN_WEEK);
-            await kwenta
-                .connect(addr1)
-                .approve(stakingRewards.address, SECONDS_IN_WEEK);
 
             // stake
             await stakingRewards.connect(addr1).stake(SECONDS_IN_WEEK);
@@ -804,12 +700,7 @@ describe("StakingRewards", () => {
         });
 
         it("should revert when setting setRewardsDuration before the period has finished", async () => {
-            await kwenta
-                .connect(TREASURY_DAO)
-                .transfer(addr1.address, SECONDS_IN_WEEK);
-            await kwenta
-                .connect(addr1)
-                .approve(stakingRewards.address, SECONDS_IN_WEEK);
+            await fundAndApproveAccount(addr1, SECONDS_IN_WEEK);
 
             // stake
             await stakingRewards.connect(addr1).stake(SECONDS_IN_WEEK);
@@ -829,12 +720,7 @@ describe("StakingRewards", () => {
         });
 
         it("should update when setting setRewardsDuration after the period has finished", async () => {
-            await kwenta
-                .connect(TREASURY_DAO)
-                .transfer(addr1.address, TEST_VALUE);
-            await kwenta
-                .connect(addr1)
-                .approve(stakingRewards.address, TEST_VALUE);
+            await fundAndApproveAccount(addr1, TEST_VALUE);
 
             // stake
             await stakingRewards.connect(addr1).stake(TEST_VALUE);
@@ -859,12 +745,7 @@ describe("StakingRewards", () => {
         });
 
         it("should update when setting setRewardsDuration after the period has finished", async () => {
-            await kwenta
-                .connect(TREASURY_DAO)
-                .transfer(addr1.address, TEST_VALUE);
-            await kwenta
-                .connect(addr1)
-                .approve(stakingRewards.address, TEST_VALUE);
+            await fundAndApproveAccount(addr1, TEST_VALUE);
 
             // stake
             await stakingRewards.connect(addr1).stake(TEST_VALUE);
@@ -933,12 +814,7 @@ describe("StakingRewards", () => {
         });
 
         it("should increases lp token balance and decreases staking balance", async () => {
-            await kwenta
-                .connect(TREASURY_DAO)
-                .transfer(addr1.address, TEST_VALUE);
-            await kwenta
-                .connect(addr1)
-                .approve(stakingRewards.address, TEST_VALUE);
+            await fundAndApproveAccount(addr1, TEST_VALUE);
 
             // stake
             await stakingRewards.connect(addr1).stake(TEST_VALUE);
@@ -968,6 +844,7 @@ describe("StakingRewards", () => {
     describe("unstakEscrow()", () => {
         beforeEach("Setup", async () => {
             await setupStakingRewards();
+            await fundAndApproveRewardEscrow(SECONDS_IN_WEEK);
         });
 
         it("cannot unstake if nothing staked", async () => {
@@ -976,13 +853,6 @@ describe("StakingRewards", () => {
         });
 
         it("should not change token balance(s) for lp account nor contract", async () => {
-            await kwenta
-                .connect(TREASURY_DAO)
-                .transfer(rewardEscrow.address, SECONDS_IN_WEEK);
-            await kwenta
-                .connect(await impersonate(rewardEscrow.address))
-                .approve(stakingRewards.address, SECONDS_IN_WEEK);
-
             // stake escrow
             await stakingRewards
                 .connect(await impersonate(rewardEscrow.address))
@@ -1006,13 +876,6 @@ describe("StakingRewards", () => {
         });
 
         it("should change totalSupply", async () => {
-            await kwenta
-                .connect(TREASURY_DAO)
-                .transfer(rewardEscrow.address, SECONDS_IN_WEEK);
-            await kwenta
-                .connect(await impersonate(rewardEscrow.address))
-                .approve(stakingRewards.address, SECONDS_IN_WEEK);
-
             // stake escrow
             await stakingRewards
                 .connect(await impersonate(rewardEscrow.address))
@@ -1031,13 +894,6 @@ describe("StakingRewards", () => {
         });
 
         it("should change balances[] mapping", async () => {
-            await kwenta
-                .connect(TREASURY_DAO)
-                .transfer(rewardEscrow.address, SECONDS_IN_WEEK);
-            await kwenta
-                .connect(await impersonate(rewardEscrow.address))
-                .approve(stakingRewards.address, SECONDS_IN_WEEK);
-
             // stake escrow
             await stakingRewards
                 .connect(await impersonate(rewardEscrow.address))
@@ -1056,13 +912,6 @@ describe("StakingRewards", () => {
         });
 
         it("should change escrowedBalances[] mapping", async () => {
-            await kwenta
-                .connect(TREASURY_DAO)
-                .transfer(rewardEscrow.address, SECONDS_IN_WEEK);
-            await kwenta
-                .connect(await impersonate(rewardEscrow.address))
-                .approve(stakingRewards.address, SECONDS_IN_WEEK);
-
             // stake escrow
             await stakingRewards
                 .connect(await impersonate(rewardEscrow.address))
@@ -1085,13 +934,6 @@ describe("StakingRewards", () => {
         });
 
         it("cannot unstake more than escrow staked", async () => {
-            await kwenta
-                .connect(TREASURY_DAO)
-                .transfer(rewardEscrow.address, SECONDS_IN_WEEK);
-            await kwenta
-                .connect(await impersonate(rewardEscrow.address))
-                .approve(stakingRewards.address, SECONDS_IN_WEEK);
-
             // stake escrow
             await stakingRewards
                 .connect(await impersonate(rewardEscrow.address))
@@ -1120,16 +962,10 @@ describe("StakingRewards", () => {
     describe("exit()", () => {
         beforeEach("Setup", async () => {
             await setupStakingRewards();
+            await fundAndApproveAccount(addr1, TEST_VALUE);
         });
 
         it("should retrieve all earned and increase rewards bal", async () => {
-            await kwenta
-                .connect(TREASURY_DAO)
-                .transfer(addr1.address, TEST_VALUE);
-            await kwenta
-                .connect(addr1)
-                .approve(stakingRewards.address, TEST_VALUE);
-
             // stake
             await stakingRewards.connect(addr1).stake(TEST_VALUE);
 
@@ -1151,42 +987,16 @@ describe("StakingRewards", () => {
         });
     });
 
-    describe("notifyRewardAmount()", () => {
+    describe("Known Edge Case(s)", () => {
         beforeEach("Setup", async () => {
             await setupStakingRewards();
         });
 
         /**
-         * @TODO add more coverage?
-         */
-    });
-
-    describe("problems...", () => {
-        beforeEach("Setup", async () => {
-            await setupStakingRewards();
-        });
-
-        /**
-         * @TODO investigate this
-         */
-        it.skip("Doesn't revert if the provided reward is greater than the balance by a very small amount", async () => {
-            // max amount, theoretically, that new reward could be set to
-            // (i.e. no rate would be high enough to meet any amount higher than this)
-            // balance: 100
-            // reward: 101
-            // rate (for a duration of 100 secs): 1.01/sec
-            const stakingRewardsKwentaBalance = await kwenta.balanceOf(
-                stakingRewards.address
-            );
-
-            let tx = stakingRewards
-                .connect(await impersonate(supplySchedule.address))
-                .notifyRewardAmount(stakingRewardsKwentaBalance.add(100_000));
-            await expect(tx).to.be.reverted;
-        });
-
-        /**
-         * @TODO investigate this (why 2590000 and not 2588398 as 0xMacro found?)
+         * Minor issue discovered by 0xMacro
+         *
+         * Fix: Deployer can stake
+         * Fix: Accept edge case and ensure future cycles distribute "unused" tokens
          */
         it.skip("Inefficient Reward Distribution", async () => {
             await stakingRewards
@@ -1199,13 +1009,9 @@ describe("StakingRewards", () => {
             // delay
             await fastForward(3600);
 
+            await fundAndApproveAccount(addr1, TEST_VALUE);
+
             // stake
-            await kwenta
-                .connect(TREASURY_DAO)
-                .transfer(addr1.address, TEST_VALUE);
-            await kwenta
-                .connect(addr1)
-                .approve(stakingRewards.address, TEST_VALUE);
             await stakingRewards.connect(addr1).stake(TEST_VALUE);
 
             // reward distribution period is passed
