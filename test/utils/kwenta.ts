@@ -7,7 +7,6 @@ let kwenta: Contract;
 let supplySchedule: Contract;
 let rewardEscrow: Contract;
 let stakingRewards: Contract;
-let exchangerProxy: Contract;
 
 /**
  * Deploys core contracts
@@ -17,7 +16,7 @@ let exchangerProxy: Contract;
  * @param INITIAL_SUPPLY: number of tokens
  * @param owner: EOA used to deploy contracts
  * @param TREASURY_DAO: contract address of TREASURY
- * @returns kwenta, supplySchedule, rewardEscrow, stakingRewardsProxy, exchangerProxy
+ * @returns kwenta, supplySchedule, rewardEscrow, stakingRewardsProxy
  */
 export const deployKwenta = async (
     NAME: string,
@@ -26,30 +25,6 @@ export const deployKwenta = async (
     owner: SignerWithAddress,
     TREASURY_DAO: SignerWithAddress
 ) => {
-    // deploy FixidityLib
-    const FixidityLib = await ethers.getContractFactory("FixidityLib");
-    const fixidityLib = await FixidityLib.connect(owner).deploy();
-    await fixidityLib.deployed();
-
-    // deploy LogarithmLib
-    const LogarithmLib = await ethers.getContractFactory("LogarithmLib", {
-        libraries: {
-            FixidityLib: fixidityLib.address,
-        },
-    });
-    const logarithmLib = await LogarithmLib.connect(owner).deploy();
-    await logarithmLib.deployed();
-
-    // deploy ExponentLib
-    const ExponentLib = await ethers.getContractFactory("ExponentLib", {
-        libraries: {
-            FixidityLib: fixidityLib.address,
-            LogarithmLib: logarithmLib.address,
-        },
-    });
-    const exponentLib = await ExponentLib.connect(owner).deploy();
-    await exponentLib.deployed();
-
     // deploy SafeDecimalMath
     const SafeDecimalMath = await ethers.getContractFactory("SafeDecimalMath");
     const safeDecimalMath = await SafeDecimalMath.connect(owner).deploy();
@@ -108,7 +83,6 @@ export const deployKwenta = async (
         kwenta,
         supplySchedule,
         rewardEscrow,
-        stakingRewards,
-        exchangerProxy,
+        stakingRewards
     };
 };
