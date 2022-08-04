@@ -223,8 +223,8 @@ contract StakingRewards is IStakingRewards, Ownable, ReentrancyGuard, Pausable {
         require(amount > 0, "StakingRewards: Cannot stake 0");
 
         // update state
-        _totalSupply = _totalSupply + amount;
-        balances[msg.sender] = balances[msg.sender] + amount;
+        _totalSupply += amount;
+        balances[msg.sender] += amount;
 
         // update addresses last staking event timestamp
         lastStakingEvent[msg.sender] = block.timestamp;
@@ -252,8 +252,8 @@ contract StakingRewards is IStakingRewards, Ownable, ReentrancyGuard, Pausable {
         );
 
         // update state
-        _totalSupply = _totalSupply - amount;
-        balances[msg.sender] = balances[msg.sender] - amount;
+        _totalSupply -= amount;
+        balances[msg.sender] -= amount;
 
         // transfer token from this contract to the caller
         token.safeTransfer(msg.sender, amount);
