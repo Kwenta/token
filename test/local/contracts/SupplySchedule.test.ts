@@ -7,9 +7,9 @@ import { Kwenta } from "../../../typechain/Kwenta";
 import Wei from "@synthetixio/wei";
 import { FakeContract, smock } from "@defi-wonderland/smock";
 import { StakingRewards } from "../../../typechain/StakingRewards";
+import { MultipleMerkleDistributor } from "../../../typechain/MultipleMerkleDistributor";
 
 const { ethers } = require("hardhat");
-const { parseUnits } = ethers.utils;
 const { AddressZero } = ethers.constants;
 
 const {
@@ -26,7 +26,8 @@ describe("SupplySchedule", () => {
     const SYMBOL = "KWENTA";
     const INITIAL_SUPPLY = wei(313373);
     const TREASURY_DAO_ADDRESS = "0x0000000000000000000000000000000000000001";
-    const INFLATION_DIVERSION_BPS = 2000;
+    const TREASURY_INFLATION_DIVERSION_BPS = 2000;
+    const TRADING_REWARDS_INFLATION_DIVERSION_BPS = 2000;
     const initialWeeklySupply = wei(313373).mul(2.4).div(52);
     let inflationStartDate: number;
 
@@ -34,6 +35,7 @@ describe("SupplySchedule", () => {
     let owner: SignerWithAddress, account2: SignerWithAddress;
     let supplySchedule: SupplySchedule, kwenta: Kwenta;
     let stakingRewards: FakeContract<StakingRewards>;
+    let tradingRewards: FakeContract<MultipleMerkleDistributor>;
     let decayRate: BigNumber;
     let deploymentTime: number;
 
@@ -69,6 +71,9 @@ describe("SupplySchedule", () => {
 
     const setupSupplySchedule = async () => {
         stakingRewards = await smock.fake<StakingRewards>("StakingRewards");
+        tradingRewards = await smock.fake<MultipleMerkleDistributor>(
+            "MultipleMerkleDistributor"
+        );
 
         const SafeDecimalMath = await ethers.getContractFactory(
             "SafeDecimalMath"
@@ -165,7 +170,7 @@ describe("SupplySchedule", () => {
     });
 
     describe("mint & setters", async () => {
-        it("Test mint reverts because 'Staking rewards not set'", async function () {
+        it("mint reverts because 'Staking rewards not set'", async function () {
             expect(await supplySchedule.stakingRewards()).to.equal(
                 "0x0000000000000000000000000000000000000000"
             );
@@ -174,7 +179,17 @@ describe("SupplySchedule", () => {
             );
         });
 
-        it("Test setting the staking rewards address actually sets the address", async function () {
+        it("mint reverts because 'Trading rewards not set'", async function () {
+            await supplySchedule.setStakingRewards(stakingRewards.address);
+            expect(await supplySchedule.tradingRewards()).to.equal(
+                "0x0000000000000000000000000000000000000000"
+            );
+            await expect(supplySchedule.mint()).to.be.revertedWith(
+                "Trading rewards not set"
+            );
+        });
+
+        it("setting the staking rewards address actually sets the address", async function () {
             expect(
                 await supplySchedule.setStakingRewards(stakingRewards.address)
             )
@@ -185,47 +200,103 @@ describe("SupplySchedule", () => {
             );
         });
 
-        it("Test inflationary diversion", async function () {
+        it("setting the trading rewards address actually sets the address", async function () {
+            expect(
+                await supplySchedule.setTradingRewards(tradingRewards.address)
+            )
+                .to.emit(supplySchedule, "TradingRewardsUpdated")
+                .withArgs(tradingRewards.address);
+            expect(await supplySchedule.tradingRewards()).to.equal(
+                tradingRewards.address
+            );
+        });
+
+        it("Assert proper inflation streams", async function () {
             // Set first mintable period
             const firstMintableTime = inflationStartDate + 604800;
             await fastForwardTo(new Date(firstMintableTime * 1000));
             // Set distribution address to bypass require
             await supplySchedule.setStakingRewards(stakingRewards.address);
+            await supplySchedule.setTradingRewards(tradingRewards.address);
 
             //Calculate expected rewards to treasury
             const minterReward = wei(1);
+
+            const expectedTreasuryStream = initialWeeklySupply
+                .sub(minterReward)
+                .mul(TREASURY_INFLATION_DIVERSION_BPS)
+                .div(10000);
+
             const expectedTreasurySupplyWithDivertedRewards =
-                INITIAL_SUPPLY.add(
-                    initialWeeklySupply
-                        .sub(minterReward)
-                        .mul(INFLATION_DIVERSION_BPS)
-                        .div(10000)
-                );
+                INITIAL_SUPPLY.add(expectedTreasuryStream);
+
+            const expectedTradingRewardsStream = initialWeeklySupply
+                .sub(minterReward)
+                .mul(TRADING_REWARDS_INFLATION_DIVERSION_BPS)
+                .div(10000);
+
+            const expectedSupplyScheduleStream = initialWeeklySupply
+                .sub(minterReward)
+                .sub(expectedTreasuryStream)
+                .sub(expectedTradingRewardsStream);
 
             await supplySchedule.mint();
 
             expect(await kwenta.balanceOf(TREASURY_DAO_ADDRESS)).to.equal(
                 expectedTreasurySupplyWithDivertedRewards.toBN()
             );
+
+            expect(await kwenta.balanceOf(tradingRewards.address)).to.equal(
+                expectedTradingRewardsStream.toBN()
+            );
+
+            expect(await kwenta.balanceOf(stakingRewards.address)).to.equal(
+                expectedSupplyScheduleStream.toBN()
+            );
         });
 
-        it("Test unable to set treasury diversion as non-owner", async function () {
+        it("unable to set treasury diversion as non-owner", async function () {
             await expect(
                 supplySchedule.connect(account2).setTreasuryDiversion(3000)
             ).to.be.reverted;
         });
 
-        it("Test changing inflationary diversion percentage", async function () {
+        it("unable to set trading rewards diversion as non-owner", async function () {
+            await expect(
+                supplySchedule
+                    .connect(account2)
+                    .setTradingRewardsDiversion(3000)
+            ).to.be.reverted;
+        });
+
+        it("change treasury diversion percentage", async function () {
             expect(await supplySchedule.setTreasuryDiversion(3000))
                 .to.emit(supplySchedule, "TreasuryDiversionUpdated")
                 .withArgs(3000);
             expect(await supplySchedule.treasuryDiversion()).to.equal("3000");
         });
 
-        it("Test revert for setting inflationary diversion basis points greater than 10000", async function () {
+        it("change trading rewards diversion percentage", async function () {
+            expect(await supplySchedule.setTradingRewardsDiversion(3000))
+                .to.emit(supplySchedule, "TreasuryDiversionUpdated")
+                .withArgs(3000);
+            expect(await supplySchedule.tradingRewardsDiversion()).to.equal(
+                "3000"
+            );
+        });
+
+        it("revert for setting treasury diversion greater than 100%", async function () {
             await expect(
                 supplySchedule.setTreasuryDiversion(20000)
-            ).to.be.revertedWith("Represented in basis points");
+            ).to.be.revertedWith("Cannot be more than 100%");
+        });
+
+        it("revert for setting all diversions greater than 100%", async function () {
+            await supplySchedule.setTradingRewardsDiversion(5000);
+
+            await expect(
+                supplySchedule.setTreasuryDiversion(6000)
+            ).to.be.revertedWith("Cannot be more than 100%");
         });
     });
 
