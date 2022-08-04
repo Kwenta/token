@@ -262,7 +262,7 @@ contract StakingRewards is IStakingRewards, Ownable, ReentrancyGuard, Pausable {
     /// @dev updateReward() called prior to function logic
     /// @dev msg.sender NOT used (account is used)
     function stakeEscrow(address account, uint256 amount)
-        public
+        external
         override
         whenNotPaused
         onlyRewardEscrow
@@ -288,7 +288,7 @@ contract StakingRewards is IStakingRewards, Ownable, ReentrancyGuard, Pausable {
     /// @dev updateReward() called prior to function logic
     /// @dev msg.sender NOT used (account is used)
     function unstakeEscrow(address account, uint256 amount)
-        public
+        external
         override
         nonReentrant
         onlyRewardEscrow
