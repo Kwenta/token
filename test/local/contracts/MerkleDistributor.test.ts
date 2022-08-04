@@ -779,8 +779,8 @@ describe("MerkleDistributor", () => {
                 .setControlL2MerkleDistributor(xDomainMessageSender.address);
 
             // call MerkleDistributor.claimToAddress from crossDomainMessenger
-            expect(
-                await distributor
+            await expect(
+                distributor
                     .connect(crossDomainMessengerSigner)
                     .claimToAddress(
                         claim.index,
@@ -791,11 +791,7 @@ describe("MerkleDistributor", () => {
                     )
             )
                 .to.emit(distributor, "Claimed")
-                .withArgs(
-                    claim.index,
-                    accounts[0].address,
-                    claim.amount
-                );
+                .withArgs(claim.index, accounts[0].address, claim.amount);
 
             // expect new entry for accountClaimedTo in reward escrow for correct amount
             expect(
