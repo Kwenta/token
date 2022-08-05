@@ -245,16 +245,16 @@ describe("StakingRewards", () => {
 
         it("only owner can nominate new owner", async () => {
             // attempt to nominate new owner as addr1
-            let tx = stakingRewards.connect(addr1).nominateNewOwner(addr1);
+            let tx = stakingRewards.connect(addr1).nominateNewOwner(addr1.address);
             await expect(tx).to.be.revertedWith(
                 "Only the contract owner may perform this action"
             );
 
             // attempt to nominate new owner as owner
-            tx = stakingRewards.connect(owner).nominateNewOwner(addr1);
+            tx = stakingRewards.connect(owner).nominateNewOwner(addr1.address);
             await expect(tx).to.not.be.reverted;
 
-            await stakingRewards.connect(addr1).acceptOwnership(addr1);
+            await stakingRewards.connect(addr1).acceptOwnership();
 
             expect(await stakingRewards.owner()).to.equal(addr1.address);
         });

@@ -464,7 +464,7 @@ contract StakingRewards is IStakingRewards, Owned, ReentrancyGuard, Pausable {
             tokenAddress != address(token),
             "StakingRewards: Cannot unstake the staking token"
         );
-        IERC20(tokenAddress).safeTransfer(owner(), tokenAmount);
+        IERC20(tokenAddress).safeTransfer(owner, tokenAmount);
         emit Recovered(tokenAddress, tokenAmount);
     }
 }
