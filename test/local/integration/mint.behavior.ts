@@ -22,46 +22,35 @@ describe('Mint', () => {
 	let addr1: SignerWithAddress;
 	let addr2: SignerWithAddress;
 	let TREASURY_DAO: SignerWithAddress;
+	let tradingRewards: SignerWithAddress;
 
 	// core contracts
 	let kwenta: Contract;
 	let supplySchedule: Contract;
 	let rewardEscrow: Contract;
-	let mockStakingRewards: Contract;
-	let exchangerProxy: Contract;
+	let stakingRewards: Contract;
 
 	beforeEach(async () => {
-		[owner, addr1, addr2, TREASURY_DAO] = await ethers.getSigners();
+		[owner, addr1, addr2, TREASURY_DAO, tradingRewards] = await ethers.getSigners();
 		let deployments = await deployKwenta(
 			NAME,
 			SYMBOL,
 			INITIAL_SUPPLY.toBN(),
-			INFLATION_DIVERSION_BPS,
-			WEEKLY_START_REWARDS,
 			owner,
 			TREASURY_DAO
 		);
 		kwenta = deployments.kwenta;
 		supplySchedule = deployments.supplySchedule;
 		rewardEscrow = deployments.rewardEscrow;
-		exchangerProxy = deployments.exchangerProxy;
+		stakingRewards = deployments.stakingRewards;
 
-		/*
-		 * @notice in `deployKwenta`, StakingRewards (stakingRewardsProxy) is deployed.
-		 * Below, the address assigned to SupplySchedule for staking rewards is 
-		 * the mock version: MockStakingRewards (mockStakingRewards).
-		 */
-		const MockStakingRewards = await ethers.getContractFactory(
-			'MockStakingRewards'
-		);
-		mockStakingRewards = await MockStakingRewards.deploy();
-		await mockStakingRewards.deployed();
-		await supplySchedule.setStakingRewards(mockStakingRewards.address);
+		await supplySchedule.setStakingRewards(stakingRewards.address);
+		await supplySchedule.setTradingRewards(tradingRewards.address);
 	});
 
 	it('No inflationary supply to mint', async () => {
 		await expect(supplySchedule.mint()).to.be.revertedWith('No supply is mintable');
-		expect(await kwenta.balanceOf(mockStakingRewards.address)).to.equal(0);
+		expect(await kwenta.balanceOf(stakingRewards.address)).to.equal(0);
 	});
 
 	it('Mint inflationary supply 1 week later', async () => {
@@ -69,16 +58,15 @@ describe('Mint', () => {
 		const FIRST_WEEK_MINT = INITIAL_WEEKLY_EMISSION.sub(MINTER_REWARD);
 
 		// We subtract treasury inflationary diversion amount so that stakers get remainder (after truncation)
-		const FIRST_WEEK_STAKING_REWARDS = FIRST_WEEK_MINT.sub(
-			FIRST_WEEK_MINT.mul(INFLATION_DIVERSION_BPS).div(10000)
-		);
+		const FIRST_WEEK_STAKING_REWARDS = FIRST_WEEK_MINT
+			.sub(FIRST_WEEK_MINT.mul(INFLATION_DIVERSION_BPS*2).div(10000));
 
 		expect(await kwenta.balanceOf(owner.address)).to.equal(0);
 		await fastForward(604800);
 		await supplySchedule.mint();
 
 		// Make sure this is equivalent to first week distribution
-		expect(await kwenta.balanceOf(mockStakingRewards.address)).to.equal(
+		expect(await kwenta.balanceOf(stakingRewards.address)).to.equal(
 			FIRST_WEEK_STAKING_REWARDS.toBN()
 		);
 	});

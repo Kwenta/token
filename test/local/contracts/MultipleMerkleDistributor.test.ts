@@ -44,8 +44,6 @@ const loadSetup = () => {
             NAME,
             SYMBOL,
             INITIAL_SUPPLY,
-            INFLATION_DIVERSION_BPS,
-            WEEKLY_START_REWARDS,
             owner,
             TREASURY_DAO
         );
@@ -422,6 +420,32 @@ describe("MultipleMerkleDistributor", () => {
                     "MultipleMerkleDistributor: Invalid proof."
                 );
             });
+
+            it("can claim in batch", async () => {
+                let claims = [];
+
+                claims.push([
+                    0,
+                    addr0.address,
+                    100,
+                    tree.getProof(0, addr0.address, BigNumber.from(100)),
+                    EPOCH_ZERO,
+                ]);
+
+                claims.push([
+                    1,
+                    addr1.address,
+                    101,
+                    tree.getProof(1, addr1.address, BigNumber.from(101)),
+                    EPOCH_ZERO,
+                ]);
+
+                await expect(distributor.claimMultiple(claims))
+                    .to.emit(distributor, "Claimed")
+                    .withArgs(0, addr0.address, 100, EPOCH_ZERO)
+                    .to.emit(distributor, "Claimed")
+                    .withArgs(1, addr1.address, 101, EPOCH_ZERO);
+            });
         });
 
         describe("multiple tree", () => {
@@ -599,6 +623,32 @@ describe("MultipleMerkleDistributor", () => {
                 ).to.be.revertedWith(
                     "MultipleMerkleDistributor: Invalid proof."
                 );
+            });
+
+            it("can claim multiple epochs in batch", async () => {
+                let claims = [];
+
+                claims.push([
+                    0,
+                    addr0.address,
+                    100,
+                    tree.getProof(0, addr0.address, BigNumber.from(100)),
+                    EPOCH_ZERO,
+                ]);
+
+                claims.push([
+                    0,
+                    addr0.address,
+                    1100,
+                    tree2.getProof(0, addr0.address, BigNumber.from(1100)),
+                    EPOCH_ONE,
+                ]);
+
+                await expect(distributor.claimMultiple(claims))
+                    .to.emit(distributor, "Claimed")
+                    .withArgs(0, addr0.address, 100, EPOCH_ZERO)
+                    .to.emit(distributor, "Claimed")
+                    .withArgs(0, addr0.address, 1100, EPOCH_ONE);
             });
 
             it("invalid (empty) proof w/ address zero for invalid epoch", async () => {

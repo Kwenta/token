@@ -190,8 +190,8 @@ describe("SupplySchedule", () => {
         });
 
         it("setting the staking rewards address actually sets the address", async function () {
-            expect(
-                await supplySchedule.setStakingRewards(stakingRewards.address)
+            await expect(
+                supplySchedule.setStakingRewards(stakingRewards.address)
             )
                 .to.emit(supplySchedule, "StakingRewardsUpdated")
                 .withArgs(stakingRewards.address);
@@ -201,8 +201,8 @@ describe("SupplySchedule", () => {
         });
 
         it("setting the trading rewards address actually sets the address", async function () {
-            expect(
-                await supplySchedule.setTradingRewards(tradingRewards.address)
+            await expect(
+                supplySchedule.setTradingRewards(tradingRewards.address)
             )
                 .to.emit(supplySchedule, "TradingRewardsUpdated")
                 .withArgs(tradingRewards.address);
@@ -269,16 +269,16 @@ describe("SupplySchedule", () => {
             ).to.be.reverted;
         });
 
-        it("change treasury diversion percentage", async function () {
-            expect(await supplySchedule.setTreasuryDiversion(3000))
+        it("change inflationary diversion percentage", async function () {
+            await expect(supplySchedule.setTreasuryDiversion(3000))
                 .to.emit(supplySchedule, "TreasuryDiversionUpdated")
                 .withArgs(3000);
             expect(await supplySchedule.treasuryDiversion()).to.equal("3000");
         });
 
         it("change trading rewards diversion percentage", async function () {
-            expect(await supplySchedule.setTradingRewardsDiversion(3000))
-                .to.emit(supplySchedule, "TreasuryDiversionUpdated")
+            await expect(supplySchedule.setTradingRewardsDiversion(3000))
+                .to.emit(supplySchedule, "TradingRewardsDiversionUpdated")
                 .withArgs(3000);
             expect(await supplySchedule.tradingRewardsDiversion()).to.equal(
                 "3000"
@@ -580,15 +580,6 @@ describe("SupplySchedule", () => {
                             weekCounterAfter.toNumber() * WEEK +
                             1 * DAY
                 ).to.be.ok;
-
-                // check event emitted has correct amounts of supply
-                /*expect(transaction)
-                    .to.emit(transaction, "SupplyMinted")
-                    .withArgs(
-                        mintedSupply,
-                        wei(weeksIssued, 18, true).toBN(),
-                        lastMintEvent
-                    );*/
             }
 
             it("should calculate the mintable supply as 0 within 1st week", async () => {

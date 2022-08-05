@@ -20,7 +20,7 @@ contract MultipleMerkleDistributor is IMultipleMerkleDistributor, Owned {
     /// @notice an index that is incremented for each new merkle root
     uint256 distributionEpoch;
 
-    /// @notice an epoch to merkle root mapping 
+    /// @notice an epoch to merkle root mapping
     /// of a merkle tree containing account balances available to claim
     mapping(uint256 => bytes32) public override merkleRoots;
 
@@ -54,7 +54,12 @@ contract MultipleMerkleDistributor is IMultipleMerkleDistributor, Owned {
     /// @param index: used for claim managment
     /// @param epoch: distribution index to check
     /// @return true if indexed claim has been claimed
-    function isClaimed(uint256 index, uint256 epoch) public view override returns (bool) {
+    function isClaimed(uint256 index, uint256 epoch)
+        public
+        view
+        override
+        returns (bool)
+    {
         uint256 claimedWordIndex = index / 256;
         uint256 claimedBitIndex = index % 256;
         uint256 claimedWord = claimedBitMaps[epoch][claimedWordIndex];
@@ -85,8 +90,11 @@ contract MultipleMerkleDistributor is IMultipleMerkleDistributor, Owned {
         uint256 amount,
         bytes32[] calldata merkleProof,
         uint256 epoch
-    ) external override {
-        require(!isClaimed(index, epoch), "MultipleMerkleDistributor: Drop already claimed.");
+    ) public override {
+        require(
+            !isClaimed(index, epoch),
+            "MultipleMerkleDistributor: Drop already claimed."
+        );
 
         // verify the merkle proof
         bytes32 node = keccak256(abi.encodePacked(index, account, amount));
@@ -105,5 +113,23 @@ contract MultipleMerkleDistributor is IMultipleMerkleDistributor, Owned {
         );
 
         emit Claimed(index, account, amount, epoch);
+    }
+
+    /// @notice function that aggregates multiple claims
+    /// @param claims: array of valid claims
+    function claimMultiple(Claims[] calldata claims) external override {
+        uint256 cacheLength = claims.length;
+        for (uint256 i = 0; i < cacheLength; ) {
+            claim(
+                claims[i].index,
+                claims[i].account,
+                claims[i].amount,
+                claims[i].merkleProof,
+                claims[i].epoch
+            );
+            unchecked {
+                i++;
+            }
+        }
     }
 }

@@ -46,7 +46,6 @@ contract RewardEscrow is Owned, IRewardEscrow {
 
     /* ========== MODIFIERS ========== */
     modifier onlyStakingRewards() {
-        // solhint-disable-next-line
         require(msg.sender == address(stakingRewards), "Only the StakingRewards can perform this action");
         _;
     }
@@ -265,14 +264,13 @@ contract RewardEscrow is Owned, IRewardEscrow {
     /**
      * @notice Create an escrow entry to lock KWENTA for a given duration in seconds
      * @dev This call expects that the depositor (msg.sender) has already approved the Reward escrow contract
-     to spend the the amount being escrowed.
+     * to spend the the amount being escrowed.
      */
     function createEscrowEntry(
         address beneficiary,
         uint256 deposit,
         uint256 duration
     ) override external {
-        // solhint-disable-next-line
         require(beneficiary != address(0), "Cannot create escrow with address(0)");
 
         /* Transfer KWENTA from msg.sender */
@@ -340,13 +338,11 @@ contract RewardEscrow is Owned, IRewardEscrow {
     ) internal {
         /* No empty or already-passed vesting entries allowed. */
         require(quantity != 0, "Quantity cannot be zero");
-        // solhint-disable-next-line
         require(duration > 0 && duration <= MAX_DURATION, "Cannot escrow with 0 duration OR above max_duration");
 
         /* There must be enough balance in the contract to provide for the vesting entry. */
         totalEscrowedBalance += quantity;
 
-        // solhint-disable-next-line
         require(
             totalEscrowedBalance <= IERC20(address(kwenta)).balanceOf(address(this)),
             "Must be enough balance in the contract to provide for the vesting entry"

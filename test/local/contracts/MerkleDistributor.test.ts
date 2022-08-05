@@ -62,8 +62,6 @@ const loadSetup = () => {
             NAME,
             SYMBOL,
             INITIAL_SUPPLY,
-            INFLATION_DIVERSION_BPS,
-            WEEKLY_START_REWARDS,
             owner,
             TREASURY_DAO
         );
@@ -781,8 +779,8 @@ describe("MerkleDistributor", () => {
                 .setControlL2MerkleDistributor(xDomainMessageSender.address);
 
             // call MerkleDistributor.claimToAddress from crossDomainMessenger
-            expect(
-                await distributor
+            await expect(
+                distributor
                     .connect(crossDomainMessengerSigner)
                     .claimToAddress(
                         claim.index,
@@ -793,11 +791,7 @@ describe("MerkleDistributor", () => {
                     )
             )
                 .to.emit(distributor, "Claimed")
-                .withArgs(
-                    claim.index,
-                    xDomainMessageSender.address,
-                    claim.amount
-                );
+                .withArgs(claim.index, accounts[0].address, claim.amount);
 
             // expect new entry for accountClaimedTo in reward escrow for correct amount
             expect(

@@ -13,7 +13,6 @@ contract Kwenta is ERC20, Owned, IKwenta {
     ISupplySchedule public supplySchedule;
 
     modifier onlySupplySchedule() {
-        // solhint-disable-next-line
         require(
             msg.sender == address(supplySchedule),
             "Kwenta: Only SupplySchedule can perform this action"
