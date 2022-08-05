@@ -170,7 +170,7 @@ describe("StakingRewards", () => {
                 .connect(addr1)
                 .setRewardsDuration(SECONDS_IN_WEEK);
             await expect(tx).to.be.revertedWith(
-                "Ownable: caller is not the owner"
+                "Only the contract owner may perform this action"
             );
         });
 
@@ -179,7 +179,7 @@ describe("StakingRewards", () => {
                 .connect(addr1)
                 .recoverERC20(kwenta.address, 0);
             await expect(tx).to.be.revertedWith(
-                "Ownable: caller is not the owner"
+                "Only the contract owner may perform this action"
             );
 
             // notice following tx passes owner check despite ultimately failing
@@ -225,7 +225,7 @@ describe("StakingRewards", () => {
             // attempt to pause
             let tx = stakingRewards.connect(addr2).pauseStakingRewards();
             await expect(tx).to.be.revertedWith(
-                "Ownable: caller is not the owner"
+                "Only the contract owner may perform this action"
             );
 
             // pause
@@ -235,12 +235,28 @@ describe("StakingRewards", () => {
             // attempt to unpause
             tx = stakingRewards.connect(addr2).unpauseStakingRewards();
             await expect(tx).to.be.revertedWith(
-                "Ownable: caller is not the owner"
+                "Only the contract owner may perform this action"
             );
 
             // unpause
             tx = stakingRewards.connect(owner).unpauseStakingRewards();
             await expect(tx).to.not.be.reverted;
+        });
+
+        it("only owner can nominate new owner", async () => {
+            // attempt to nominate new owner as addr1
+            let tx = stakingRewards.connect(addr1).nominateNewOwner(addr1);
+            await expect(tx).to.be.revertedWith(
+                "Only the contract owner may perform this action"
+            );
+
+            // attempt to nominate new owner as owner
+            tx = stakingRewards.connect(owner).nominateNewOwner(addr1);
+            await expect(tx).to.not.be.reverted;
+
+            await stakingRewards.connect(addr1).acceptOwnership(addr1);
+
+            expect(await stakingRewards.owner()).to.equal(addr1.address);
         });
     });
 
