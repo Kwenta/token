@@ -58,7 +58,7 @@ contract SupplySchedule is Owned, ISupplySchedule {
     uint public treasuryDiversion = 2000; // 20% to treasury
     uint public tradingRewardsDiversion = 2000;
 
-    address immutable treasuryDAO;
+    address public immutable treasuryDAO;
 
     /* ========== EVENTS ========== */
     
