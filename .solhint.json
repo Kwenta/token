@@ -4,6 +4,7 @@
         "not-rely-on-time": "off",
         "reason-string": "off",
         "max-states-count": "off",
+        "contract-name-camelcase": "off",
         "compiler-version": [
             "error",
             "^0.8.0"
