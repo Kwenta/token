@@ -31,7 +31,7 @@ export const onlyGivenAddressCanInvoke = async (
 /**
  *  Gets the time of the last block.
  */
-const currentTime = async () => {
+export const currentTime = async () => {
     const { timestamp } = await ethers.provider.getBlock("latest");
     return timestamp;
 };

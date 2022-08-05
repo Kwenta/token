@@ -10,6 +10,7 @@ import dotenv from "dotenv";
 import "hardhat-exposed";
 import "hardhat-interact";
 import "hardhat-deploy";
+import "hardhat-interface-generator";
 
 dotenv.config();
 

@@ -27,8 +27,7 @@ describe('Mint', () => {
 	let kwenta: Contract;
 	let supplySchedule: Contract;
 	let rewardEscrow: Contract;
-	let mockStakingRewards: Contract;
-	let exchangerProxy: Contract;
+	let stakingRewards: Contract;
 
 	beforeEach(async () => {
 		[owner, addr1, addr2, TREASURY_DAO] = await ethers.getSigners();
@@ -36,32 +35,20 @@ describe('Mint', () => {
 			NAME,
 			SYMBOL,
 			INITIAL_SUPPLY.toBN(),
-			INFLATION_DIVERSION_BPS,
-			WEEKLY_START_REWARDS,
 			owner,
 			TREASURY_DAO
 		);
 		kwenta = deployments.kwenta;
 		supplySchedule = deployments.supplySchedule;
 		rewardEscrow = deployments.rewardEscrow;
-		exchangerProxy = deployments.exchangerProxy;
+		stakingRewards = deployments.stakingRewards;
 
-		/*
-		 * @notice in `deployKwenta`, StakingRewards (stakingRewardsProxy) is deployed.
-		 * Below, the address assigned to SupplySchedule for staking rewards is 
-		 * the mock version: MockStakingRewards (mockStakingRewards).
-		 */
-		const MockStakingRewards = await ethers.getContractFactory(
-			'MockStakingRewards'
-		);
-		mockStakingRewards = await MockStakingRewards.deploy();
-		await mockStakingRewards.deployed();
-		await supplySchedule.setStakingRewards(mockStakingRewards.address);
+		await supplySchedule.setStakingRewards(stakingRewards.address);
 	});
 
 	it('No inflationary supply to mint', async () => {
 		await expect(supplySchedule.mint()).to.be.revertedWith('No supply is mintable');
-		expect(await kwenta.balanceOf(mockStakingRewards.address)).to.equal(0);
+		expect(await kwenta.balanceOf(stakingRewards.address)).to.equal(0);
 	});
 
 	it('Mint inflationary supply 1 week later', async () => {
@@ -78,7 +65,7 @@ describe('Mint', () => {
 		await supplySchedule.mint();
 
 		// Make sure this is equivalent to first week distribution
-		expect(await kwenta.balanceOf(mockStakingRewards.address)).to.equal(
+		expect(await kwenta.balanceOf(stakingRewards.address)).to.equal(
 			FIRST_WEEK_STAKING_REWARDS.toBN()
 		);
 	});
