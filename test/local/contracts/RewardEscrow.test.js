@@ -98,10 +98,6 @@ const assertDeepEqual = (actual, expected, context) => {
 
 const mineBlock = () => send({ method: "evm_mine" });
 
-const FixidityLib = artifacts.require("FixidityLib");
-const ExponentLib = artifacts.require("ExponentLib");
-const LogarithmLib = artifacts.require("LogarithmLib");
-
 const StakingRewards = artifacts.require("StakingRewards");
 const TokenContract = artifacts.require("Kwenta");
 const RewardsEscrow = artifacts.require("RewardEscrow");
@@ -200,13 +196,6 @@ contract(
                 owner,
                 treasuryDAO
             );
-
-            fixidityLib = await FixidityLib.new();
-            await LogarithmLib.link(fixidityLib);
-            logarithmLib = await LogarithmLib.new();
-            await ExponentLib.link(fixidityLib);
-            await ExponentLib.link(logarithmLib);
-            exponentLib = await ExponentLib.new();
 
             rewardsEscrow = await RewardsEscrow.new(owner, kwentaSmock.address);
 

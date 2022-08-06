@@ -12,10 +12,10 @@ contract ControlL2MerkleDistributor is IControlL2MerkleDistributor {
     /// @notice communication between L1 and L2 is enabled by two special
     /// smart contracts called the "messengers"
     /// and below is the address for the messenger on L1
-    address immutable crossDomainMessengerAddr;
+    address internal immutable crossDomainMessengerAddr;
 
     /// @notice MerkleDistributor deployed on L2
-    address immutable merkleDistributorL2Address;
+    address internal immutable merkleDistributorL2Address;
 
     /// @notice set addresses for deployed MerkleDistributor on L2 and
     /// OE cross domain messenger address on L1
