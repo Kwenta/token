@@ -18,7 +18,7 @@ contract MultipleMerkleDistributor is IMultipleMerkleDistributor, Owned {
     address public immutable override token;
 
     /// @notice an index that is incremented for each new merkle root
-    uint256 distributionEpoch;
+    uint256 public distributionEpoch;
 
     /// @notice an epoch to merkle root mapping
     /// of a merkle tree containing account balances available to claim

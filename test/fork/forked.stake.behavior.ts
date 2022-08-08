@@ -30,10 +30,6 @@ let supplySchedule: Contract;
 let rewardEscrow: Contract;
 let stakingRewards: Contract;
 
-// library contracts
-let fixidityLib: Contract;
-let logarithmLib: Contract;
-let exponentLib: Contract;
 
 // util contracts
 let safeDecimalMath: Contract;
@@ -74,30 +70,6 @@ const loadSetup = () => {
         forkOptimismNetwork();
 
         [owner, addr1, addr2, TREASURY_DAO] = await ethers.getSigners();
-
-        // deploy FixidityLib
-        const FixidityLib = await ethers.getContractFactory("FixidityLib");
-        fixidityLib = await FixidityLib.deploy();
-        await fixidityLib.deployed();
-
-        // deploy LogarithmLib
-        const LogarithmLib = await ethers.getContractFactory("LogarithmLib", {
-            libraries: {
-                FixidityLib: fixidityLib.address,
-            },
-        });
-        logarithmLib = await LogarithmLib.deploy();
-        await logarithmLib.deployed();
-
-        // deploy ExponentLib
-        const ExponentLib = await ethers.getContractFactory("ExponentLib", {
-            libraries: {
-                FixidityLib: fixidityLib.address,
-                LogarithmLib: logarithmLib.address,
-            },
-        });
-        exponentLib = await ExponentLib.deploy();
-        await exponentLib.deployed();
 
         // deploy SafeDecimalMath
         const SafeDecimalMath = await ethers.getContractFactory(

@@ -6,7 +6,7 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { wei } from "@synthetixio/wei";
 import { Contract } from "ethers";
-import hre, { ethers, upgrades } from "hardhat";
+import hre, { ethers } from "hardhat";
 import { NewFormat, parseBalanceMap } from "./parse-balance-map";
 import stakerDistribution from "./distribution/staker-distribution.json";
 import traderDistribution from "./distribution/trader-distribution.json";
@@ -16,35 +16,14 @@ const MULTISIG = "0xF510a2Ff7e9DD7e18629137adA4eb56B9c13E885";
 const TREASURY_DAO = "0x82d2242257115351899894eF384f779b5ba8c695";
 const INITIAL_SUPPLY = 313373;
 
-// Pulled from StakingRewards.sol setWeeklyRewards()
-/**
- * Friday: 6
- * Saturday: 5
- * Sunday: 4
- * Monday: 3
- * Tuesday: 2
- * Wednesday: 1
- * Thursday: 0
- */
-const THURSDAY = 4; // Because EPOCH time starts on thursday
-const distanceFromThursday = THURSDAY - new Date().getDay(); // Use current day
-// Modulo expression to keep values within range:
-// https://stackoverflow.com/a/50055050
-// https://stackoverflow.com/a/4467559
-const WEEKLY_START_REWARDS = ((distanceFromThursday % 7) + 7) % 7; // Equivalent to distance from next Thursday
-
-const SYNTHETIX_ADDRESS_RESOLVER = "0x95A6a3f44a70172E7d50a9e28c85Dfd712756B8C";
-
 async function main() {
     const [deployer] = await ethers.getSigners();
 
-    const [fixidityLib, , exponentLib, safeDecimalMath] =
-        await deployLibraries();
-
     // ========== DEPLOYMENT ========== */
 
-    console.log("\nBeginning deployments...");
+    console.log("\n💥 Beginning deployments...");
     const kwenta = await deployKwenta(deployer);
+    const safeDecimalMath = await deploySafeDecimalMath();
     const supplySchedule = await deploySupplySchedule(
         deployer,
         safeDecimalMath
@@ -52,53 +31,55 @@ async function main() {
     const rewardEscrow = await deployRewardEscrow(deployer, kwenta);
     const stakingRewards = await deployStakingRewards(
         deployer,
-        fixidityLib,
-        exponentLib,
         kwenta,
         rewardEscrow,
         supplySchedule
     );
-    const exchangerProxy = await deployExchangerProxy(stakingRewards);
     const vKwentaRedeemer = await deployvKwentaRedeemer(kwenta);
+    const tradingRewards = await deployMultipleMerkleDistributor(
+        deployer,
+        kwenta,
+        rewardEscrow
+    );
     const merkleDistributor = await deployMerkleDistributor(
         deployer,
         kwenta,
         rewardEscrow,
         mergeDistributions(stakerDistribution, traderDistribution)
     );
-    console.log("Deployments complete!");
+    console.log("✅ Deployments complete!");
 
     // ========== SETTERS ========== */
 
-    console.log("\nConfiguring setters...");
+    console.log("\n🔩 Configuring setters...");
     // set SupplySchedule for kwenta
     await kwenta.setSupplySchedule(supplySchedule.address);
     console.log(
-        "Kwenta: SupplySchedule address set to:",
+        "Kwenta: SupplySchedule address set to:          ",
         await kwenta.supplySchedule()
     );
 
     // set StakingRewards address in SupplySchedule
     await supplySchedule.setStakingRewards(stakingRewards.address);
     console.log(
-        "SupplySchedule: StakingRewards address set to:",
+        "SupplySchedule: StakingRewards address set to:  ",
         await supplySchedule.stakingRewards()
+    );
+
+    // set TradingRewards (i.e. MultipleMerkleDistributor) address in SupplySchedule
+    await supplySchedule.setTradingRewards(tradingRewards.address);
+    console.log(
+        "SupplySchedule: TradingRewards address set to:  ",
+        await supplySchedule.tradingRewards()
     );
 
     // set StakingRewards address in RewardEscrow
     await rewardEscrow.setStakingRewards(stakingRewards.address);
     console.log(
-        "RewardEscrow: StakingRewards address set to:",
+        "RewardEscrow: StakingRewards address set to:    ",
         await rewardEscrow.stakingRewards()
     );
-
-    // set ExchangerProxy address in StakingRewards
-    await stakingRewards.setExchangerProxy(exchangerProxy.address);
-    console.log(
-        "StakingRewards: ExchangerProxy address set to:",
-        await stakingRewards.exchangerProxy()
-    );
-    console.log("Setters set!");
+    console.log("✅ Setters set!");
 
     /*
      * @TODO: Deploy ControlL2MerkleDistributor on L1 passing deployed merkleDistributor as constructor param
@@ -108,78 +89,63 @@ async function main() {
     // ========== DISTRIBUTION ========== */
 
     // Send KWENTA to respective contracts
-    console.log("\nDistributing KWENTA...");
+    console.log("\n🎉 Distributing KWENTA...");
     await distributeKWENTA(
         deployer,
         kwenta,
         vKwentaRedeemer,
         merkleDistributor
     );
-    console.log("KWENTA distributed!");
+    console.log("✅ KWENTA distributed!");
 
     // ========== OWNER NOMINATION ========== */
 
-    console.log("\nNominating multisig as owner...");
+    console.log("\n🔒 Nominating multisig as owner...");
     await kwenta.nominateNewOwner(MULTISIG);
-    console.log("Kwenta nominated owner:", await kwenta.nominatedOwner());
+    console.log(
+        "Kwenta nominated owner:                 ",
+        await kwenta.nominatedOwner()
+    );
     await merkleDistributor.nominateNewOwner(MULTISIG);
     console.log(
-        "MerkleDistributor nominated owner:",
+        "MerkleDistributor nominated owner:      ",
         await merkleDistributor.nominatedOwner()
+    );
+    await tradingRewards.nominateNewOwner(MULTISIG);
+    console.log(
+        "TradingRewards nominated owner:         ",
+        await tradingRewards.nominatedOwner()
     );
     await supplySchedule.nominateNewOwner(MULTISIG);
     console.log(
-        "SupplySchedule nominated owner:",
+        "SupplySchedule nominated owner:         ",
         await supplySchedule.nominatedOwner()
     );
     await rewardEscrow.nominateNewOwner(MULTISIG);
     console.log(
-        "RewardEscrow nominated owner:",
+        "RewardEscrow nominated owner:           ",
         await rewardEscrow.nominatedOwner()
     );
     await stakingRewards.nominateNewOwner(MULTISIG);
     console.log(
-        "StakingRewards nominated owner:",
+        "StakingRewards nominated owner:         ",
         await stakingRewards.nominatedOwner()
     );
-    console.log("Nomination complete!\n");
+    console.log("✅ Nomination complete!\n");
 }
 
-async function deployLibraries() {
-    // deploy FixidityLib
-    const FixidityLib = await ethers.getContractFactory("FixidityLib");
-    const fixidityLib = await FixidityLib.deploy();
-    await fixidityLib.deployed();
-    await saveDeployments("FixidityLib", fixidityLib);
+/************************************************
+ * @deployers
+ ************************************************/
 
-    // deploy LogarithmLib
-    const LogarithmLib = await ethers.getContractFactory("LogarithmLib", {
-        libraries: {
-            FixidityLib: fixidityLib.address,
-        },
-    });
-    const logarithmLib = await LogarithmLib.deploy();
-    await logarithmLib.deployed();
-    await saveDeployments("LogarithmLib", logarithmLib);
-
-    // deploy ExponentLib
-    const ExponentLib = await ethers.getContractFactory("ExponentLib", {
-        libraries: {
-            FixidityLib: fixidityLib.address,
-            LogarithmLib: logarithmLib.address,
-        },
-    });
-    const exponentLib = await ExponentLib.deploy();
-    await exponentLib.deployed();
-    await saveDeployments("ExponentLib", exponentLib);
-
+async function deploySafeDecimalMath() {
     // deploy SafeDecimalMath
     const SafeDecimalMath = await ethers.getContractFactory("SafeDecimalMath");
     const safeDecimalMath = await SafeDecimalMath.deploy();
     await safeDecimalMath.deployed();
     await saveDeployments("SafeDecimalMath", safeDecimalMath);
 
-    return [fixidityLib, logarithmLib, exponentLib, safeDecimalMath];
+    return safeDecimalMath;
 }
 
 async function deployKwenta(owner: SignerWithAddress) {
@@ -193,7 +159,7 @@ async function deployKwenta(owner: SignerWithAddress) {
     );
     await kwenta.deployed();
     await saveDeployments("Kwenta", kwenta);
-    console.log("KWENTA token deployed to:", kwenta.address);
+    console.log("KWENTA token deployed to:          ", kwenta.address);
     return kwenta;
 }
 
@@ -212,7 +178,7 @@ async function deploySupplySchedule(
     );
     await supplySchedule.deployed();
     await saveDeployments("SupplySchedule", supplySchedule);
-    console.log("SupplySchedule deployed to:", supplySchedule.address);
+    console.log("SupplySchedule deployed to:        ", supplySchedule.address);
     return supplySchedule;
 }
 
@@ -224,56 +190,26 @@ async function deployRewardEscrow(owner: SignerWithAddress, kwenta: Contract) {
     );
     await rewardEscrow.deployed();
     await saveDeployments("RewardEscrow", rewardEscrow);
-    console.log("RewardEscrow deployed to:", rewardEscrow.address);
+    console.log("RewardEscrow deployed to:          ", rewardEscrow.address);
     return rewardEscrow;
 }
 
 async function deployStakingRewards(
     owner: SignerWithAddress,
-    fixidityLib: Contract,
-    exponentLib: Contract,
     kwenta: Contract,
     rewardEscrow: Contract,
     supplySchedule: Contract
 ) {
-    console.log("EPOCH START DAY:", WEEKLY_START_REWARDS);
-    const StakingRewards = await ethers.getContractFactory("StakingRewards", {
-        libraries: {
-            ExponentLib: exponentLib.address,
-            FixidityLib: fixidityLib.address,
-        },
-    });
-
-    const stakingRewardsProxy = await upgrades.deployProxy(
-        StakingRewards,
-        [
-            owner.address,
-            kwenta.address,
-            rewardEscrow.address,
-            supplySchedule.address,
-            WEEKLY_START_REWARDS,
-        ],
-        {
-            kind: "uups",
-            unsafeAllow: ["external-library-linking"],
-        }
+    const StakingRewards = await ethers.getContractFactory("StakingRewards");
+    const stakingRewards = await StakingRewards.connect(owner).deploy(
+        kwenta.address,
+        rewardEscrow.address,
+        supplySchedule.address
     );
-    await stakingRewardsProxy.deployed();
-    await saveDeployments("StakingRewards", stakingRewardsProxy);
-    console.log("StakingRewards deployed to:", stakingRewardsProxy.address);
-    return stakingRewardsProxy;
-}
-
-async function deployExchangerProxy(stakingRewards: Contract) {
-    const ExchangerProxy = await ethers.getContractFactory("ExchangerProxy");
-    const exchangerProxy = await ExchangerProxy.deploy(
-        SYNTHETIX_ADDRESS_RESOLVER,
-        stakingRewards.address
-    );
-    await exchangerProxy.deployed();
-    await saveDeployments("ExchangerProxy", exchangerProxy);
-    console.log("ExchangerProxy deployed to:", exchangerProxy.address);
-    return exchangerProxy;
+    await stakingRewards.deployed();
+    await saveDeployments("StakingRewards", stakingRewards);
+    console.log("StakingRewards deployed to:        ", stakingRewards.address);
+    return stakingRewards;
 }
 
 async function deployvKwentaRedeemer(kwenta: Contract) {
@@ -284,7 +220,7 @@ async function deployvKwentaRedeemer(kwenta: Contract) {
     );
     await vKwentaRedeemer.deployed();
     await saveDeployments("vKwentaRedeemer", vKwentaRedeemer);
-    console.log("vKwentaRedeemer deployed to:", vKwentaRedeemer.address);
+    console.log("vKwentaRedeemer deployed to:       ", vKwentaRedeemer.address);
     return vKwentaRedeemer;
 }
 
@@ -296,10 +232,6 @@ async function deployMerkleDistributor(
 ) {
     const merkleDistributorInfo = parseBalanceMap(distribution);
     const merkleRoot = merkleDistributorInfo.merkleRoot;
-    console.log(
-        "Total tokens in distribution: ",
-        wei(merkleDistributorInfo.tokenTotal, 18, true).toString()
-    );
 
     const MerkleDistributor = await ethers.getContractFactory(
         "MerkleDistributor"
@@ -312,9 +244,47 @@ async function deployMerkleDistributor(
     );
     await merkleDistributor.deployed();
     await saveDeployments("MerkleDistributor", merkleDistributor);
-    console.log("MerkleDistributor deployed to:", merkleDistributor.address);
+    console.log(
+        "MerkleDistributor deployed to:     ",
+        merkleDistributor.address
+    );
+
+    console.log(
+        "Total tokens in distribution:      ",
+        wei(merkleDistributorInfo.tokenTotal, 18, true).toString()
+    );
+
     return merkleDistributor;
 }
+
+async function deployMultipleMerkleDistributor(
+    owner: SignerWithAddress,
+    kwenta: Contract,
+    rewardEscrow: Contract
+) {
+    const MultipleMerkleDistributor = await ethers.getContractFactory(
+        "MultipleMerkleDistributor"
+    );
+    const multipleMerkleDistributor = await MultipleMerkleDistributor.deploy(
+        owner.address,
+        kwenta.address,
+        rewardEscrow.address
+    );
+    await multipleMerkleDistributor.deployed();
+    await saveDeployments(
+        "MultipleMerkleDistributor",
+        multipleMerkleDistributor
+    );
+    console.log(
+        "TradingRewards deployed to:        ",
+        multipleMerkleDistributor.address
+    );
+    return multipleMerkleDistributor;
+}
+
+/************************************************
+ * @distributions
+ ************************************************/
 
 async function distributeKWENTA(
     signer: SignerWithAddress,
@@ -338,26 +308,30 @@ async function distributeKWENTA(
     await kwenta.transfer(TREASURY_DAO, wei(INITIAL_SUPPLY).mul(0.6).toBN());
 
     console.log(
-        "vKwentaRedeemer balance:",
+        "vKwentaRedeemer balance:     ",
         ethers.utils.formatEther(
             await kwenta.balanceOf(vKwentaRedeemer.address)
         )
     );
     console.log(
-        "MerkleDistributor balance:",
+        "MerkleDistributor balance:   ",
         ethers.utils.formatEther(
             await kwenta.balanceOf(merkleDistributor.address)
         )
     );
     console.log(
-        "TreasuryDAO balance:",
+        "TreasuryDAO balance:         ",
         ethers.utils.formatEther(await kwenta.balanceOf(TREASURY_DAO))
     );
     console.log(
-        "Final signer balance:",
+        "Final signer balance:        ",
         ethers.utils.formatEther(await kwenta.balanceOf(signer.address))
     );
 }
+
+/************************************************
+ * @saveDeployments
+ ************************************************/
 
 async function saveDeployments(name: string, contract: Contract) {
     // For hardhat-deploy plugin to save deployment artifacts

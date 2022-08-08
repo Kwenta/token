@@ -48,10 +48,6 @@ Any escrowed Kwenta can also be staked back into StakingRewards, boosting potent
 
 Another new feature introduced here is a linearly decaying vesting fee that allows beneficiaries to vest early – at a cost. Immediate vesting is subject to a fee that is 80% of the escrowed amount. It falls to 0% as the reward reaches the end of the escrow duration. The fee is burned. 
 
-### ExchangerProxy.sol
-
-A simple contract that forwards trades to the Synthetix Exchanger, but updates each person’s trader score (currently measured as fees paid), and subsequently `rewardScore` in StakingRewards.
-
 ## Testing
 
 ```

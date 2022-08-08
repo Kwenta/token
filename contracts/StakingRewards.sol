@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "./utils/Owned.sol";
 import "./interfaces/IStakingRewards.sol";
 import "./interfaces/ISupplySchedule.sol";
 import "./interfaces/IRewardEscrow.sol";
@@ -13,7 +13,7 @@ import "./interfaces/IRewardEscrow.sol";
 /// @author SYNTHETIX, JaredBorders (jaredborders@proton.me), JChiaramonte7 (jeremy@bytecode.llc)
 /// @notice Updated version of Synthetix's StakingRewards with new features specific
 /// to Kwenta
-contract StakingRewards is IStakingRewards, Ownable, ReentrancyGuard, Pausable {
+contract StakingRewards is IStakingRewards, Owned, ReentrancyGuard, Pausable {
     using SafeERC20 for IERC20;
 
     /*///////////////////////////////////////////////////////////////
@@ -143,7 +143,7 @@ contract StakingRewards is IStakingRewards, Ownable, ReentrancyGuard, Pausable {
         address _token,
         address _rewardEscrow,
         address _supplySchedule
-    ) {
+    ) Owned(msg.sender) {
         // define reward/staking token
         token = IERC20(_token);
 
@@ -464,7 +464,7 @@ contract StakingRewards is IStakingRewards, Ownable, ReentrancyGuard, Pausable {
             tokenAddress != address(token),
             "StakingRewards: Cannot unstake the staking token"
         );
-        IERC20(tokenAddress).safeTransfer(owner(), tokenAmount);
+        IERC20(tokenAddress).safeTransfer(owner, tokenAmount);
         emit Recovered(tokenAddress, tokenAmount);
     }
 }
