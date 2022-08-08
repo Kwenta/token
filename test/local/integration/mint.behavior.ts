@@ -22,6 +22,7 @@ describe('Mint', () => {
 	let addr1: SignerWithAddress;
 	let addr2: SignerWithAddress;
 	let TREASURY_DAO: SignerWithAddress;
+	let tradingRewards: SignerWithAddress;
 
 	// core contracts
 	let kwenta: Contract;
@@ -30,7 +31,7 @@ describe('Mint', () => {
 	let stakingRewards: Contract;
 
 	beforeEach(async () => {
-		[owner, addr1, addr2, TREASURY_DAO] = await ethers.getSigners();
+		[owner, addr1, addr2, TREASURY_DAO, tradingRewards] = await ethers.getSigners();
 		let deployments = await deployKwenta(
 			NAME,
 			SYMBOL,
@@ -44,6 +45,7 @@ describe('Mint', () => {
 		stakingRewards = deployments.stakingRewards;
 
 		await supplySchedule.setStakingRewards(stakingRewards.address);
+		await supplySchedule.setTradingRewards(tradingRewards.address);
 	});
 
 	it('No inflationary supply to mint', async () => {
@@ -56,9 +58,8 @@ describe('Mint', () => {
 		const FIRST_WEEK_MINT = INITIAL_WEEKLY_EMISSION.sub(MINTER_REWARD);
 
 		// We subtract treasury inflationary diversion amount so that stakers get remainder (after truncation)
-		const FIRST_WEEK_STAKING_REWARDS = FIRST_WEEK_MINT.sub(
-			FIRST_WEEK_MINT.mul(INFLATION_DIVERSION_BPS).div(10000)
-		);
+		const FIRST_WEEK_STAKING_REWARDS = FIRST_WEEK_MINT
+			.sub(FIRST_WEEK_MINT.mul(INFLATION_DIVERSION_BPS*2).div(10000));
 
 		expect(await kwenta.balanceOf(owner.address)).to.equal(0);
 		await fastForward(604800);

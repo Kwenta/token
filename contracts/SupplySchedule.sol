@@ -13,6 +13,7 @@ import "./libraries/Math.sol";
 import "./interfaces/IERC20.sol";
 import "./interfaces/IKwenta.sol";
 import "./interfaces/IStakingRewards.sol";
+import "./interfaces/IMultipleMerkleDistributor.sol";
 
 // https://docs.synthetix.io/contracts/source/contracts/supplyschedule
 contract SupplySchedule is Owned, ISupplySchedule {
@@ -20,6 +21,8 @@ contract SupplySchedule is Owned, ISupplySchedule {
     using Math for uint;
 
     IKwenta public kwenta;
+    IStakingRewards public stakingRewards;
+    IMultipleMerkleDistributor public tradingRewards;
 
     // Time of the last inflation supply mint event
     uint public lastMintEvent;
@@ -53,9 +56,9 @@ contract SupplySchedule is Owned, ISupplySchedule {
     uint public constant TERMINAL_SUPPLY_RATE_ANNUAL = 10000000000000000; // 1.0% pa
 
     uint public treasuryDiversion = 2000; // 20% to treasury
+    uint public tradingRewardsDiversion = 2000;
 
-    address immutable treasuryDAO;
-    IStakingRewards public stakingRewards;
+    address public immutable treasuryDAO;
 
     /* ========== EVENTS ========== */
     
@@ -75,14 +78,24 @@ contract SupplySchedule is Owned, ISupplySchedule {
     event KwentaUpdated(address newAddress);
 
     /**
-     * @notice Emitted when setKwenta is called changing the Kwenta Proxy address
+     * @notice Emitted when treasury inflation share is changed
      * */
     event TreasuryDiversionUpdated(uint newPercentage);
 
     /**
-     * @notice Emitted when setKwenta is called changing the Kwenta Proxy address
+     * @notice Emitted when trading rewards inflation share is changed
+     * */
+    event TradingRewardsDiversionUpdated(uint newPercentage);
+
+    /**
+     * @notice Emitted when StakingRewards is changed
      * */
     event StakingRewardsUpdated(address newAddress);
+
+    /**
+     * @notice Emitted when TradingRewards is changed
+     * */
+    event TradingRewardsUpdated(address newAddress);
 
     constructor(
         address _owner,
@@ -213,6 +226,7 @@ contract SupplySchedule is Owned, ISupplySchedule {
      * */
     function mint() override external {
         require(address(stakingRewards) != address(0), "Staking rewards not set");
+        require(address(tradingRewards) != address(0), "Trading rewards not set");
 
         uint supplyToMint = mintableSupply();
         require(supplyToMint > 0, "No supply is mintable");
@@ -222,9 +236,11 @@ contract SupplySchedule is Owned, ISupplySchedule {
 
         uint amountToDistribute = supplyToMint - minterReward;
         uint amountToTreasury = amountToDistribute * treasuryDiversion / 10000;
-        uint amountToStakingRewards = amountToDistribute - amountToTreasury;
+        uint amountToTradingRewards = amountToDistribute * tradingRewardsDiversion / 10000;
+        uint amountToStakingRewards = amountToDistribute - amountToTreasury - amountToTradingRewards;
 
         kwenta.mint(treasuryDAO, amountToTreasury);
+        kwenta.mint(address(tradingRewards), amountToTradingRewards);
         kwenta.mint(address(stakingRewards), amountToStakingRewards);
         stakingRewards.notifyRewardAmount(amountToStakingRewards);
         kwenta.mint(msg.sender, minterReward);
@@ -256,15 +272,27 @@ contract SupplySchedule is Owned, ISupplySchedule {
         emit MinterRewardUpdated(minterReward);
     }
 
-    function setTreasuryDiversion(uint _treasuryDiversion) override public onlyOwner {
-        require(_treasuryDiversion < 10000, "Represented in basis points");
+    function setTreasuryDiversion(uint _treasuryDiversion) override external onlyOwner {
+        require(_treasuryDiversion + tradingRewardsDiversion < 10000, "Cannot be more than 100%");
         treasuryDiversion = _treasuryDiversion;
         emit TreasuryDiversionUpdated(_treasuryDiversion);
+    }
+
+    function setTradingRewardsDiversion(uint _tradingRewardsDiversion) override external onlyOwner {
+        require(_tradingRewardsDiversion + treasuryDiversion < 10000, "Cannot be more than 100%");
+        tradingRewardsDiversion = _tradingRewardsDiversion;
+        emit TradingRewardsDiversionUpdated(_tradingRewardsDiversion);
     }
 
     function setStakingRewards(address _stakingRewards) override external onlyOwner {
         require(_stakingRewards != address(0), "SupplySchedule: Invalid Address");
         stakingRewards = IStakingRewards(_stakingRewards);
         emit StakingRewardsUpdated(_stakingRewards);
+    }
+
+    function setTradingRewards(address _tradingRewards) override external onlyOwner {
+        require(_tradingRewards != address(0), "SupplySchedule: Invalid Address");
+        tradingRewards = IMultipleMerkleDistributor(_tradingRewards);
+        emit TradingRewardsUpdated(_tradingRewards);
     }
 }
