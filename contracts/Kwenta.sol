@@ -25,10 +25,9 @@ contract Kwenta is ERC20, Owned, IKwenta {
         string memory symbol,
         uint256 _initialSupply,
         address _owner,
-        address _treasuryDAO
+        address _initialHolder
     ) ERC20(name, symbol) Owned(_owner) {
-        // Provide treasury with 100% of the initial supply
-        _mint(_treasuryDAO, _initialSupply);
+        _mint(_initialHolder, _initialSupply);
     }
 
     // Mints inflationary supply
