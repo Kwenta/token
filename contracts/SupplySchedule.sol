@@ -58,44 +58,50 @@ contract SupplySchedule is Owned, ISupplySchedule {
     uint public treasuryDiversion = 2000; // 20% to treasury
     uint public tradingRewardsDiversion = 2000;
 
-    address public immutable treasuryDAO;
+    // notice treasury address may change
+    address public treasuryDAO;
 
     /* ========== EVENTS ========== */
     
     /**
      * @notice Emitted when the inflationary supply is minted
-     * */
+     **/
     event SupplyMinted(uint supplyMinted, uint numberOfWeeksIssued, uint lastMintEvent);
 
     /**
      * @notice Emitted when the KWENTA minter reward amount is updated
-     * */
+     **/
     event MinterRewardUpdated(uint newRewardAmount);
 
     /**
      * @notice Emitted when setKwenta is called changing the Kwenta Proxy address
-     * */
+     **/
     event KwentaUpdated(address newAddress);
 
     /**
      * @notice Emitted when treasury inflation share is changed
-     * */
+     **/
     event TreasuryDiversionUpdated(uint newPercentage);
 
     /**
      * @notice Emitted when trading rewards inflation share is changed
-     * */
+     **/
     event TradingRewardsDiversionUpdated(uint newPercentage);
 
     /**
      * @notice Emitted when StakingRewards is changed
-     * */
+     **/
     event StakingRewardsUpdated(address newAddress);
 
     /**
      * @notice Emitted when TradingRewards is changed
-     * */
+     **/
     event TradingRewardsUpdated(address newAddress);
+
+    /**
+     * @notice Emitted when treasuryDAO address is changed
+     **/
+    event TreasuryDAOSet(address treasuryDAO);
 
     constructor(
         address _owner,
@@ -267,19 +273,19 @@ contract SupplySchedule is Owned, ISupplySchedule {
      * @param amount the amount of KWENTA to reward the minter.
      * */
     function setMinterReward(uint amount) external onlyOwner {
-        require(amount <= MAX_MINTER_REWARD, "Reward cannot exceed max minter reward");
+        require(amount <= MAX_MINTER_REWARD, "SupplySchedule: Reward cannot exceed max minter reward");
         minterReward = amount;
         emit MinterRewardUpdated(minterReward);
     }
 
     function setTreasuryDiversion(uint _treasuryDiversion) override external onlyOwner {
-        require(_treasuryDiversion + tradingRewardsDiversion < 10000, "Cannot be more than 100%");
+        require(_treasuryDiversion + tradingRewardsDiversion < 10000, "SupplySchedule: Cannot be more than 100%");
         treasuryDiversion = _treasuryDiversion;
         emit TreasuryDiversionUpdated(_treasuryDiversion);
     }
 
     function setTradingRewardsDiversion(uint _tradingRewardsDiversion) override external onlyOwner {
-        require(_tradingRewardsDiversion + treasuryDiversion < 10000, "Cannot be more than 100%");
+        require(_tradingRewardsDiversion + treasuryDiversion < 10000, "SupplySchedule: Cannot be more than 100%");
         tradingRewardsDiversion = _tradingRewardsDiversion;
         emit TradingRewardsDiversionUpdated(_tradingRewardsDiversion);
     }
@@ -294,5 +300,13 @@ contract SupplySchedule is Owned, ISupplySchedule {
         require(_tradingRewards != address(0), "SupplySchedule: Invalid Address");
         tradingRewards = IMultipleMerkleDistributor(_tradingRewards);
         emit TradingRewardsUpdated(_tradingRewards);
+    }
+
+    /// @notice set treasuryDAO address
+    /// @dev only owner may change address
+    function setTreasuryDAO(address _treasuryDAO) external onlyOwner {
+        require(_treasuryDAO != address(0), "SupplySchedule: Address cannot be 0");
+        treasuryDAO = _treasuryDAO;
+        emit TreasuryDAOSet(treasuryDAO);
     }
 }
