@@ -305,7 +305,7 @@ contract SupplySchedule is Owned, ISupplySchedule {
     /// @notice set treasuryDAO address
     /// @dev only owner may change address
     function setTreasuryDAO(address _treasuryDAO) external onlyOwner {
-        require(_treasuryDAO != address(0), "SupplySchedule: Address cannot be 0");
+        require(_treasuryDAO != address(0), "SupplySchedule: Zero Address");
         treasuryDAO = _treasuryDAO;
         emit TreasuryDAOSet(treasuryDAO);
     }

@@ -82,7 +82,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
     /// @notice set treasuryDAO address
     /// @dev only owner may change address
     function setTreasuryDAO(address _treasuryDAO) external onlyOwner {
-        require(_treasuryDAO != address(0), "RewardEscrow: Address cannot be 0");
+        require(_treasuryDAO != address(0), "RewardEscrow: Zero Address");
         treasuryDAO = _treasuryDAO;
         emit TreasuryDAOSet(treasuryDAO);
     }
@@ -260,11 +260,14 @@ contract RewardEscrow is Owned, IRewardEscrow {
                 }
             }
 
-            // Send fee to Treasury
+            // Send any fee to Treasury
             if (totalFee != 0) {
                 _reduceAccountEscrowBalances(msg.sender, totalFee);
-                kwenta.burn(totalFee);
-                // kwenta.transfer(treasuryDAO, amount);
+                require(
+                    IERC20(address(kwenta))
+                        .transfer(treasuryDAO, totalFee), 
+                        "RewardEscrow: Token Transfer Failed"
+                );
             }
 
             // Transfer kwenta
