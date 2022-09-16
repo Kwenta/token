@@ -106,6 +106,8 @@ const NAME = "Kwenta";
 const SYMBOL = "KWENTA";
 const INITIAL_SUPPLY = hre.ethers.utils.parseUnits("313373");
 
+
+
 const toUnit = (amount) => toBN(toWei(amount.toString(), "ether"));
 
 const currentTime = async () => {
@@ -238,6 +240,7 @@ contract(
             await rewardsEscrow.setStakingRewards(stakingRewards.address, {
                 from: owner,
             });
+            await rewardsEscrow.setTreasuryDAO(treasuryDAO);
         });
 
         describe("Deploys correctly", async () => {
@@ -262,6 +265,16 @@ contract(
                     stakingRewardsAddress,
                     stakingRewards.address,
                     "Wrong stakingRewards address"
+                );
+            });
+
+            it("Should have set Treasury set correctly", async () => {
+                const treasuryDAOAddress =
+                    await rewardsEscrow.treasuryDAO();
+                assert.equal(
+                    treasuryDAOAddress,
+                    treasuryDAO,
+                    "Wrong treasury address"
                 );
             });
 
@@ -760,6 +773,7 @@ contract(
                 await rewardsEscrow.setStakingRewards(stakingRewards.address, {
                     from: owner,
                 });
+                await rewardsEscrow.setTreasuryDAO(treasuryDAO);
 
                 // Transfer from treasury to owner
                 await mockedKwenta.transfer(owner, toUnit("1000"), {
@@ -855,13 +869,28 @@ contract(
                         wei(escrowAmount).mul(0.6).toString(0)
                     );
 
+                    const treasuryPreBalance = await mockedKwenta.balanceOf(
+                        treasuryDAO
+                    );
+
                     // Vest
                     await rewardsEscrow.vest([entryID], { from: staker1 });
+
+                    const treasuryPostBalance = await mockedKwenta.balanceOf(
+                        treasuryDAO
+                    );
 
                     // Check user has more than 60% vested KWENTA
                     assert.bnClose(
                         await mockedKwenta.balanceOf(staker1),
                         wei(escrowAmount).mul(0.6).toString(0),
+                        wei(1).toString()
+                    );
+
+                    // Check treasury has 40% vested KWENTA
+                    assert.bnClose(
+                        treasuryPostBalance.sub(treasuryPreBalance),
+                        wei(escrowAmount).mul(0.4).toString(0),
                         wei(1).toString()
                     );
 
@@ -916,7 +945,7 @@ contract(
                     // fast forward to after escrow.endTime
                     fastForward(duration + 10);
                 });
-                it("should vest and transfer all the snx to the user", async () => {
+                it("should vest and transfer all the $KWENTA to the user", async () => {
                     await rewardsEscrow.vest([entryID], {
                         from: staker1,
                     });
@@ -1074,7 +1103,7 @@ contract(
                 });
 
                 describe("When another user (account 1) vests all their entries", () => {
-                    it("should vest all entries and transfer snx to the user", async () => {
+                    it("should vest all entries and transfer $KWENTA to the user", async () => {
                         await rewardsEscrow.vest(
                             [entryID1, entryID2, entryID3],
                             {
@@ -1102,7 +1131,7 @@ contract(
                     });
                 });
 
-                it("should vest all entries and transfer snx from contract to the user", async () => {
+                it("should vest all entries and transfer $KWENTA from contract to the user", async () => {
                     await rewardsEscrow.vest([entryID1, entryID2, entryID3], {
                         from: staker1,
                     });
@@ -1282,7 +1311,7 @@ contract(
                 });
 
                 describe("When another user (account 1) vests all their entries", () => {
-                    it("should vest all entries and transfer snx to the user", async () => {
+                    it("should vest all entries and transfer $KWENTA to the user", async () => {
                         await rewardsEscrow.vest(
                             [entryID1, entryID2, entryID3],
                             {
@@ -1316,7 +1345,7 @@ contract(
                         await fastForward(duration);
                     });
 
-                    it("should vest only first 2 entries and transfer snx from contract to the user", async () => {
+                    it("should vest only first 2 entries and transfer $KWENTA from contract to the user", async () => {
                         await rewardsEscrow.vest([entryID1, entryID2], {
                             from: staker1,
                         });
@@ -1680,6 +1709,7 @@ contract(
                         from: owner,
                     }
                 );
+                await rewardsEscrow.setTreasuryDAO(treasuryDAO);
             });
 
             it("should revert because staker has no escrowed KWENTA", async () => {

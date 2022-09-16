@@ -117,6 +117,7 @@ describe("SupplySchedule", () => {
         deploymentTime = (await ethers.provider.getBlock()).timestamp;
         await kwenta.setSupplySchedule(supplySchedule.address);
         await supplySchedule.setKwenta(kwenta.address);
+        await supplySchedule.setTreasuryDAO(TREASURY_DAO_ADDRESS);
 
         decayRate = await supplySchedule.DECAY_RATE();
         inflationStartDate = (
@@ -165,6 +166,14 @@ describe("SupplySchedule", () => {
                 [account2.address],
                 accounts,
                 owner.address
+            );
+        });
+    });
+
+    describe("Treasury Set", async () => {
+        it("should have set kwenta", async () => {
+            expect(await supplySchedule.treasuryDAO()).to.equal(
+                TREASURY_DAO_ADDRESS
             );
         });
     });
