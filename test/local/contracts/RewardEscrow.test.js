@@ -857,7 +857,7 @@ contract(
                     );
                 });
 
-                it.only("should vest and transfer 0 KWENTA from contract to the user", async () => {
+                it("should vest and transfer 0 KWENTA from contract to the user", async () => {
                     claimableKWENTA =
                         await rewardsEscrow.getVestingEntryClaimable(
                             staker1,
