@@ -32,17 +32,20 @@ contract RewardEscrow is Owned, IRewardEscrow {
 
     mapping(address => uint256[]) public accountVestingEntryIDs;
 
-    /* Counter for new vesting entry ids. */
+    // Counter for new vesting entry ids 
     uint256 public nextEntryId;
 
-    /* An account's total escrowed KWENTA balance to save recomputing this for fee extraction purposes. */
+    // An account's total escrowed KWENTA balance to save recomputing this for fee extraction purposes
     mapping(address => uint256) override public totalEscrowedAccountBalance;
 
-    /* An account's total vested reward KWENTA. */
+    // An account's total vested reward KWENTA 
     mapping(address => uint256) override public totalVestedAccountBalance;
 
-    /* The total remaining escrowed balance, for verifying the actual KWENTA balance of this contract against. */
+    // The total remaining escrowed balance, for verifying the actual KWENTA balance of this contract against
     uint256 public totalEscrowedBalance;
+
+    // notice treasury address may change
+    address public treasuryDAO;
 
     /* ========== MODIFIERS ========== */
     modifier onlyStakingRewards() {
@@ -54,6 +57,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
     event Vested(address indexed beneficiary, uint value);
     event VestingEntryCreated(address indexed beneficiary, uint value, uint duration, uint entryID);
     event StakingRewardsSet(address rewardEscrow);
+    event TreasuryDAOSet(address treasuryDAO);
 
     /* ========== CONSTRUCTOR ========== */
 
@@ -71,9 +75,16 @@ contract RewardEscrow is Owned, IRewardEscrow {
     */
     function setStakingRewards(address _stakingRewards) public onlyOwner {
         require(address(stakingRewards) == address(0), "Staking Rewards already set");
-        
         stakingRewards = IStakingRewards(_stakingRewards);
         emit StakingRewardsSet(address(_stakingRewards));
+    }
+
+    /// @notice set treasuryDAO address
+    /// @dev only owner may change address
+    function setTreasuryDAO(address _treasuryDAO) external onlyOwner {
+        require(_treasuryDAO != address(0), "RewardEscrow: Zero Address");
+        treasuryDAO = _treasuryDAO;
+        emit TreasuryDAOSet(treasuryDAO);
     }
 
     /* ========== VIEW FUNCTIONS ========== */
@@ -202,7 +213,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
 
     function _earlyVestFee(VestingEntries.VestingEntry memory _entry) internal view returns (uint256 earlyVestFee) {
         uint timeUntilVest = _entry.endTime - block.timestamp;
-        // Fee starts at 80% and falls linearly
+        // Fee starts at 90% and falls linearly
         uint initialFee = _entry.escrowAmount * 9 / 10;
         earlyVestFee = initialFee * timeUntilVest / _entry.duration;
     }
@@ -249,10 +260,14 @@ contract RewardEscrow is Owned, IRewardEscrow {
                 }
             }
 
-            // Burn kwenta if fee
+            // Send any fee to Treasury
             if (totalFee != 0) {
                 _reduceAccountEscrowBalances(msg.sender, totalFee);
-                kwenta.burn(totalFee);
+                require(
+                    IKwenta(address(kwenta))
+                        .transfer(treasuryDAO, totalFee), 
+                        "RewardEscrow: Token Transfer Failed"
+                );
             }
 
             // Transfer kwenta
