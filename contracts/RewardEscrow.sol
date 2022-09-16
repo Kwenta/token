@@ -213,7 +213,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
 
     function _earlyVestFee(VestingEntries.VestingEntry memory _entry) internal view returns (uint256 earlyVestFee) {
         uint timeUntilVest = _entry.endTime - block.timestamp;
-        // Fee starts at 80% and falls linearly
+        // Fee starts at 90% and falls linearly
         uint initialFee = _entry.escrowAmount * 9 / 10;
         earlyVestFee = initialFee * timeUntilVest / _entry.duration;
     }
@@ -264,7 +264,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
             if (totalFee != 0) {
                 _reduceAccountEscrowBalances(msg.sender, totalFee);
                 require(
-                    IERC20(address(kwenta))
+                    IKwenta(address(kwenta))
                         .transfer(treasuryDAO, totalFee), 
                         "RewardEscrow: Token Transfer Failed"
                 );
