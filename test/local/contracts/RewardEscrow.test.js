@@ -1821,10 +1821,11 @@ contract(
                 ).to.have.been.calledWith(staker1, escrowAmount);
             });
 
-            it("should unstake escrow to partially vest, partially burn", async () => {
+            it("should unstake escrow to partially vest, partially impose fee and send to treaury", async () => {
                 const escrowAmount = wei(10).toBN();
                 // stub transferFrom
                 kwentaSmock.transferFrom.returns(true);
+                kwentaSmock.transfer.returns(true);
                 // stub balanceOf
                 kwentaSmock.balanceOf.returns(escrowAmount);
                 await rewardsEscrow.createEscrowEntry(
