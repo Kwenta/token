@@ -214,7 +214,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
     function _earlyVestFee(VestingEntries.VestingEntry memory _entry) internal view returns (uint256 earlyVestFee) {
         uint timeUntilVest = _entry.endTime - block.timestamp;
         // Fee starts at 80% and falls linearly
-        uint initialFee = _entry.escrowAmount * 8 / 10;
+        uint initialFee = _entry.escrowAmount * 9 / 10;
         earlyVestFee = initialFee * timeUntilVest / _entry.duration;
     }
 
