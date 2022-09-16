@@ -503,14 +503,14 @@ contract(
                             timeElapsed = YEAR / 2;
                             await fastForward(timeElapsed);
                         });
-                        // claimable = escrowedAmount - 80% escrowedAmount * vestingProgress
-                        it("then the vesting entry has 6 kwenta claimable", async () => {
+                        // claimable = escrowedAmount - 90% escrowedAmount * vestingProgress
+                        it("then the vesting entry has 5.5 kwenta claimable", async () => {
                             const claimable =
                                 await rewardsEscrow.getVestingEntryClaimable(
                                     staker1,
                                     entryID
                                 );
-                            assert.bnEqual(claimable["0"], wei(6).toBN());
+                            assert.bnEqual(claimable["0"], wei(5.5).toBN());
                         });
                     });
                     describe("When one year has passed after the vesting end time", () => {
@@ -828,9 +828,9 @@ contract(
                     assert.bnEqual(totalVestedAccountBalance, toUnit("0"));
                 });
 
-                it("should have 60% of the vesting entry claimable", async () => {
+                it("should have 55% of the vesting entry claimable", async () => {
                     const expectedAmount = wei(escrowAmount)
-                        .mul(0.6)
+                        .mul(0.55)
                         .toString(0);
                     assert.bnEqual(
                         (
@@ -852,16 +852,16 @@ contract(
 
                     assert.bnEqual(
                         claimableKWENTA["0"],
-                        wei(escrowAmount).mul(0.6).toString(0)
+                        wei(escrowAmount).mul(0.55).toString(0)
                     );
 
                     // Vest
                     await rewardsEscrow.vest([entryID], { from: staker1 });
 
-                    // Check user has more than 60% vested KWENTA
+                    // Check user has more than 55% vested KWENTA
                     assert.bnClose(
                         await mockedKwenta.balanceOf(staker1),
-                        wei(escrowAmount).mul(0.6).toString(0),
+                        wei(escrowAmount).mul(0.55).toString(0),
                         wei(1).toString()
                     );
 
@@ -1487,7 +1487,7 @@ contract(
                         assert.eventEqual(vestedEvent, "Vested", {
                             beneficiary: staker1,
                             value: wei(
-                                "808374841015466015467",
+                                "784421696142399267400",
                                 18,
                                 true
                             ).toBN(),
