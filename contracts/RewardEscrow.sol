@@ -288,8 +288,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
         require(beneficiary != address(0), "Cannot create escrow with address(0)");
 
         /* Transfer KWENTA from msg.sender */
-        require(
-            kwenta.transferFrom(msg.sender, address(this), deposit), "Token transfer failed");
+        require(kwenta.transferFrom(msg.sender, address(this), deposit), "Token transfer failed");
 
         /* Append vesting entry for the beneficiary address */
         _appendVestingEntry(beneficiary, deposit, duration);
