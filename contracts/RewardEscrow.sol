@@ -10,7 +10,6 @@ import "./interfaces/IRewardEscrow.sol";
 import "./libraries/SafeDecimalMath.sol";
 
 // Internal references
-import "./interfaces/IERC20.sol";
 import "./interfaces/IKwenta.sol";
 import "./interfaces/IStakingRewards.sol";
 
@@ -289,7 +288,8 @@ contract RewardEscrow is Owned, IRewardEscrow {
         require(beneficiary != address(0), "Cannot create escrow with address(0)");
 
         /* Transfer KWENTA from msg.sender */
-        require(IERC20(kwenta).transferFrom(msg.sender, address(this), deposit), "Token transfer failed");
+        require(
+            kwenta.transferFrom(msg.sender, address(this), deposit), "Token transfer failed");
 
         /* Append vesting entry for the beneficiary address */
         _appendVestingEntry(beneficiary, deposit, duration);
@@ -334,7 +334,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
     function _transferVestedTokens(address _account, uint256 _amount) internal {
         _reduceAccountEscrowBalances(_account, _amount);
         totalVestedAccountBalance[_account] += _amount;
-        IERC20(address(kwenta)).transfer(_account, _amount);
+        kwenta.transfer(_account, _amount);
         emit Vested(_account, _amount);
     }
 
@@ -359,7 +359,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
         totalEscrowedBalance += quantity;
 
         require(
-            totalEscrowedBalance <= IERC20(address(kwenta)).balanceOf(address(this)),
+            totalEscrowedBalance <= kwenta.balanceOf(address(this)),
             "Must be enough balance in the contract to provide for the vesting entry"
         );
 
