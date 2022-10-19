@@ -55,7 +55,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
     /* ========== EVENTS ========== */
     event Vested(address indexed beneficiary, uint value);
     event VestingEntryCreated(address indexed beneficiary, uint value, uint duration, uint entryID);
-    event StakingRewardsSet(address rewardEscrow);
+    event StakingRewardsSet(address stakingRewards);
     event TreasuryDAOSet(address treasuryDAO);
 
     /* ========== CONSTRUCTOR ========== */
