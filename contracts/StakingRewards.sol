@@ -332,7 +332,8 @@ contract StakingRewards is IStakingRewards, Owned, ReentrancyGuard, Pausable {
             // update state (first)
             rewards[msg.sender] = 0;
 
-            // transfer token from this contract to the caller
+            // transfer token from this contract to the rewardEscrow
+            // and create a vesting entry for the caller
             token.safeTransfer(address(rewardEscrow), reward);
             rewardEscrow.appendVestingEntry(msg.sender, reward, 52 weeks);
 
