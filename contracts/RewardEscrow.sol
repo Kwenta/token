@@ -64,7 +64,7 @@ contract RewardEscrow is Owned, IRewardEscrow {
         uint256 duration,
         uint256 entryID
     );
-    event StakingRewardsSet(address rewardEscrow);
+    event StakingRewardsSet(address stakingRewards);
     event TreasuryDAOSet(address treasuryDAO);
 
     /* ========== CONSTRUCTOR ========== */
