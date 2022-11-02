@@ -58,6 +58,13 @@ async function main() {
         await kwenta.supplySchedule()
     );
 
+    // set KWENTA address in SupplySchedule
+    await supplySchedule.setKwenta(kwenta.address);
+    console.log(
+        "SupplySchedule: Kwenta address set to:  ",
+        await supplySchedule.kwenta()
+    );
+
     // set StakingRewards address in SupplySchedule
     await supplySchedule.setStakingRewards(stakingRewards.address);
     console.log(
@@ -71,6 +78,14 @@ async function main() {
         "SupplySchedule: TradingRewards address set to:  ",
         await supplySchedule.tradingRewards()
     );
+
+    // set StakingRewards address in RewardEscrow
+    await rewardEscrow.setTreasuryDAO(TREASURY_DAO);
+    console.log(
+        "RewardEscrow: TreasuryDAO address set to:    ",
+        await rewardEscrow.treasuryDAO()
+    );
+    console.log("✅ Setters set!");
 
     // set StakingRewards address in RewardEscrow
     await rewardEscrow.setStakingRewards(stakingRewards.address);
