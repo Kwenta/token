@@ -5,6 +5,7 @@ import { smock } from "@defi-wonderland/smock";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { deployKwenta } from "../../utils/kwenta";
 import { wei } from "@synthetixio/wei";
+import { currentTime } from "../../utils/helpers";
 
 require("chai")
     .use(require("chai-as-promised"))
@@ -129,6 +130,8 @@ describe("EscrowDistributor", () => {
             .connect(owner)
             .approve(distributor.address, APPROVAL_AMOUNT);
 
+        const duration = DURATION_WEEKS.mul(SECONDS_IN_WEEK);
+
         await expect(
             distributor
                 .connect(owner)
@@ -139,11 +142,20 @@ describe("EscrowDistributor", () => {
                 )
         )
             .to.emit(distributor, "BatchEscrowed")
-            .withArgs(
-                "3",
-                wei(251).toBN(),
-                DURATION_WEEKS.mul(SECONDS_IN_WEEK)
-            );
+            .withArgs("3", wei(251).toBN(), duration);
+
+        const schedule = (
+            await rewardEscrow.getVestingSchedules(addr0.address, 0, 1)
+        )[0];
+
+        const entry = await rewardEscrow.getVestingEntry(
+            addr0.address,
+            schedule.entryID
+        );
+
+        const now = await currentTime();
+
+        expect(entry.endTime).to.equal(now + duration.toNumber());
 
         expect(await rewardEscrow.balanceOf(addr0.address)).to.equal(
             wei(1).toBN()
