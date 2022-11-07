@@ -11,6 +11,7 @@ import "hardhat-exposed";
 import "hardhat-interact";
 import "hardhat-deploy";
 import "hardhat-interface-generator";
+import "@nomiclabs/hardhat-etherscan";
 
 dotenv.config();
 
@@ -63,10 +64,27 @@ export default {
       url: `https://opt-kovan.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
       accounts: process.env.DEPLOYER_PRIVATE_KEY ? [process.env.DEPLOYER_PRIVATE_KEY] : undefined,
     },
+    "optimistic-goerli": {
+      url: `https://opt-goerli.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
+      accounts: process.env.DEPLOYER_PRIVATE_KEY ? [process.env.DEPLOYER_PRIVATE_KEY] : undefined,
+    },
     "optimistic-mainnet": {
       url: `https://opt-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
       accounts: process.env.DEPLOYER_PRIVATE_KEY ? [process.env.DEPLOYER_PRIVATE_KEY] : undefined,
     },
+  },
+  etherscan: {
+    apiKey: process.env.ETHERSCAN_API_KEY,
+    customChains: [
+      {
+        network: "optimistic-goerli",
+        chainId: 420,
+        urls: {
+          apiURL: "https://api-goerli-optimism.etherscan.io/api",
+          browserURL: "https://goerli-optimism.etherscan.io/"
+        }
+      }
+    ]
   },
   exposed: {
     exclude: ["**/libraries/SafeDecimalMath.sol"]
