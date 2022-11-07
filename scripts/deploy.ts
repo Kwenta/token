@@ -5,16 +5,21 @@
 // Runtime Environment's members available in the global scope.
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { wei } from "@synthetixio/wei";
-import { Contract } from "ethers";
+import { BigNumber, Contract } from "ethers";
 import hre, { ethers } from "hardhat";
-import { NewFormat, parseBalanceMap } from "./parse-balance-map";
-import stakerDistribution from "./distribution/staker-distribution.json";
-import traderDistribution from "./distribution/trader-distribution.json";
-import { mergeDistributions } from "./distribution/utils";
 
-const MULTISIG = "0xF510a2Ff7e9DD7e18629137adA4eb56B9c13E885";
-const TREASURY_DAO = "0x82d2242257115351899894eF384f779b5ba8c695";
+const isLocal = hre.network.name == "localhost";
+const isTestnet = hre.network.name == "optimistic-goerli";
+
+const TEST_WALLET = "0xC2ecD777d06FFDF8B3179286BEabF52B67E9d991";
+const MULTISIG = isTestnet
+    ? TEST_WALLET
+    : "0xF510a2Ff7e9DD7e18629137adA4eb56B9c13E885";
+const TREASURY_DAO = isTestnet
+    ? TEST_WALLET
+    : "0x82d2242257115351899894eF384f779b5ba8c695";
 const INITIAL_SUPPLY = 313373;
+const VKWENTA = "0x6789D8a7a7871923Fc6430432A602879eCB6520a";
 
 async function main() {
     const [deployer] = await ethers.getSigners();
@@ -41,12 +46,6 @@ async function main() {
         kwenta,
         rewardEscrow
     );
-    const merkleDistributor = await deployMerkleDistributor(
-        deployer,
-        kwenta,
-        rewardEscrow,
-        mergeDistributions(stakerDistribution, traderDistribution)
-    );
     console.log("✅ Deployments complete!");
 
     // ========== SETTERS ========== */
@@ -57,6 +56,13 @@ async function main() {
     console.log(
         "Kwenta: SupplySchedule address set to:          ",
         await kwenta.supplySchedule()
+    );
+
+    // set KWENTA address in SupplySchedule
+    await supplySchedule.setKwenta(kwenta.address);
+    console.log(
+        "SupplySchedule: Kwenta address set to:  ",
+        await supplySchedule.kwenta()
     );
 
     // set StakingRewards address in SupplySchedule
@@ -72,6 +78,14 @@ async function main() {
         "SupplySchedule: TradingRewards address set to:  ",
         await supplySchedule.tradingRewards()
     );
+
+    // set StakingRewards address in RewardEscrow
+    await rewardEscrow.setTreasuryDAO(TREASURY_DAO);
+    console.log(
+        "RewardEscrow: TreasuryDAO address set to:    ",
+        await rewardEscrow.treasuryDAO()
+    );
+    console.log("✅ Setters set!");
 
     // set StakingRewards address in RewardEscrow
     await rewardEscrow.setStakingRewards(stakingRewards.address);
@@ -90,12 +104,7 @@ async function main() {
 
     // Send KWENTA to respective contracts
     console.log("\n🎉 Distributing KWENTA...");
-    await distributeKWENTA(
-        deployer,
-        kwenta,
-        vKwentaRedeemer,
-        merkleDistributor
-    );
+    await distributeKWENTA(deployer, kwenta, vKwentaRedeemer);
     console.log("✅ KWENTA distributed!");
 
     // ========== OWNER NOMINATION ========== */
@@ -105,11 +114,6 @@ async function main() {
     console.log(
         "Kwenta nominated owner:                 ",
         await kwenta.nominatedOwner()
-    );
-    await merkleDistributor.nominateNewOwner(MULTISIG);
-    console.log(
-        "MerkleDistributor nominated owner:      ",
-        await merkleDistributor.nominatedOwner()
     );
     await tradingRewards.nominateNewOwner(MULTISIG);
     console.log(
@@ -145,6 +149,13 @@ async function deploySafeDecimalMath() {
     await safeDecimalMath.deployed();
     await saveDeployments("SafeDecimalMath", safeDecimalMath);
 
+    if (!isLocal) {
+        await hre.run("verify:verify", {
+            address: safeDecimalMath.address,
+            noCompile: true,
+        });
+    }
+
     return safeDecimalMath;
 }
 
@@ -160,6 +171,15 @@ async function deployKwenta(owner: SignerWithAddress) {
     await kwenta.deployed();
     await saveDeployments("Kwenta", kwenta);
     console.log("KWENTA token deployed to:          ", kwenta.address);
+
+    await verify(kwenta.address, [
+        "Kwenta",
+        "KWENTA",
+        wei(INITIAL_SUPPLY).toBN(),
+        owner.address,
+        owner.address,
+    ]);
+
     return kwenta;
 }
 
@@ -179,6 +199,9 @@ async function deploySupplySchedule(
     await supplySchedule.deployed();
     await saveDeployments("SupplySchedule", supplySchedule);
     console.log("SupplySchedule deployed to:        ", supplySchedule.address);
+
+    await verify(supplySchedule.address, [owner.address, TREASURY_DAO]);
+
     return supplySchedule;
 }
 
@@ -191,6 +214,9 @@ async function deployRewardEscrow(owner: SignerWithAddress, kwenta: Contract) {
     await rewardEscrow.deployed();
     await saveDeployments("RewardEscrow", rewardEscrow);
     console.log("RewardEscrow deployed to:          ", rewardEscrow.address);
+
+    await verify(rewardEscrow.address, [owner.address, kwenta.address]);
+
     return rewardEscrow;
 }
 
@@ -209,52 +235,33 @@ async function deployStakingRewards(
     await stakingRewards.deployed();
     await saveDeployments("StakingRewards", stakingRewards);
     console.log("StakingRewards deployed to:        ", stakingRewards.address);
+
+    await verify(stakingRewards.address, [
+        kwenta.address,
+        rewardEscrow.address,
+        supplySchedule.address,
+    ]);
+
     return stakingRewards;
 }
 
 async function deployvKwentaRedeemer(kwenta: Contract) {
     const VKwentaRedeemer = await ethers.getContractFactory("vKwentaRedeemer");
     const vKwentaRedeemer = await VKwentaRedeemer.deploy(
-        "0x6789D8a7a7871923Fc6430432A602879eCB6520a",
+        VKWENTA,
         kwenta.address
     );
     await vKwentaRedeemer.deployed();
     await saveDeployments("vKwentaRedeemer", vKwentaRedeemer);
     console.log("vKwentaRedeemer deployed to:       ", vKwentaRedeemer.address);
+
+    await verify(
+        vKwentaRedeemer.address,
+        [VKWENTA, kwenta.address],
+        "contracts/vKwentaRedeemer.sol:vKwentaRedeemer" // to prevent bytecode clashes with contracts-exposed versions
+    );
+
     return vKwentaRedeemer;
-}
-
-async function deployMerkleDistributor(
-    owner: SignerWithAddress,
-    kwenta: Contract,
-    rewardEscrow: Contract,
-    distribution: NewFormat[]
-) {
-    const merkleDistributorInfo = parseBalanceMap(distribution);
-    const merkleRoot = merkleDistributorInfo.merkleRoot;
-
-    const MerkleDistributor = await ethers.getContractFactory(
-        "MerkleDistributor"
-    );
-    const merkleDistributor = await MerkleDistributor.deploy(
-        owner.address,
-        kwenta.address,
-        rewardEscrow.address,
-        merkleRoot
-    );
-    await merkleDistributor.deployed();
-    await saveDeployments("MerkleDistributor", merkleDistributor);
-    console.log(
-        "MerkleDistributor deployed to:     ",
-        merkleDistributor.address
-    );
-
-    console.log(
-        "Total tokens in distribution:      ",
-        wei(merkleDistributorInfo.tokenTotal, 18, true).toString()
-    );
-
-    return merkleDistributor;
 }
 
 async function deployMultipleMerkleDistributor(
@@ -279,6 +286,13 @@ async function deployMultipleMerkleDistributor(
         "TradingRewards deployed to:        ",
         multipleMerkleDistributor.address
     );
+
+    await verify(multipleMerkleDistributor.address, [
+        owner.address,
+        kwenta.address,
+        rewardEscrow.address,
+    ]);
+
     return multipleMerkleDistributor;
 }
 
@@ -289,8 +303,7 @@ async function deployMultipleMerkleDistributor(
 async function distributeKWENTA(
     signer: SignerWithAddress,
     kwenta: Contract,
-    vKwentaRedeemer: Contract,
-    merkleDistributor: Contract
+    vKwentaRedeemer: Contract
 ) {
     // Transfer 5% KWENTA to vKwentaRedeemer
     await kwenta.transfer(
@@ -298,25 +311,13 @@ async function distributeKWENTA(
         wei(INITIAL_SUPPLY).mul(0.05).toBN()
     );
 
-    // Transfer 35% KWENTA to MerkleDistributor
-    await kwenta.transfer(
-        merkleDistributor.address,
-        wei(INITIAL_SUPPLY).mul(0.35).toBN()
-    );
-
-    // Transfer 60% KWENTA to Treasury
-    await kwenta.transfer(TREASURY_DAO, wei(INITIAL_SUPPLY).mul(0.6).toBN());
+    // Transfer 95% KWENTA to Treasury
+    await kwenta.transfer(TREASURY_DAO, wei(INITIAL_SUPPLY).mul(0.95).toBN());
 
     console.log(
         "vKwentaRedeemer balance:     ",
         ethers.utils.formatEther(
             await kwenta.balanceOf(vKwentaRedeemer.address)
-        )
-    );
-    console.log(
-        "MerkleDistributor balance:   ",
-        ethers.utils.formatEther(
-            await kwenta.balanceOf(merkleDistributor.address)
         )
     );
     console.log(
@@ -330,7 +331,7 @@ async function distributeKWENTA(
 }
 
 /************************************************
- * @saveDeployments
+ * @helpers
  ************************************************/
 
 async function saveDeployments(name: string, contract: Contract) {
@@ -345,6 +346,28 @@ async function saveDeployments(name: string, contract: Contract) {
     };
 
     await save(name, deployment);
+}
+
+type ConstructorArgs = string | BigNumber;
+async function verify(
+    address: string,
+    constructorArgs: Array<ConstructorArgs>,
+    contract?: string
+) {
+    if (isLocal) return;
+
+    try {
+        await hre.run("verify:verify", {
+            address: address,
+            constructorArguments: constructorArgs,
+            contract: contract,
+            noCompile: true,
+        });
+    } catch (e) {
+        // Can error out even if already verified
+        // We don't want this to halt execution
+        console.log(e);
+    }
 }
 
 // We recommend this pattern to be able to use async/await everywhere

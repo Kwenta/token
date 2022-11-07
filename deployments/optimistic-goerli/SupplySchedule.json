@@ -1,0 +1,852 @@
+{
+  "address": "0x671423b2e8a99882FD14BbD07e90Ae8B64A0E63A",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_owner",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_treasuryDAO",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "newAddress",
+          "type": "address"
+        }
+      ],
+      "name": "KwentaUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "newRewardAmount",
+          "type": "uint256"
+        }
+      ],
+      "name": "MinterRewardUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "oldOwner",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnerChanged",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnerNominated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "newAddress",
+          "type": "address"
+        }
+      ],
+      "name": "StakingRewardsUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "supplyMinted",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "numberOfWeeksIssued",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "lastMintEvent",
+          "type": "uint256"
+        }
+      ],
+      "name": "SupplyMinted",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "newPercentage",
+          "type": "uint256"
+        }
+      ],
+      "name": "TradingRewardsDiversionUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "newAddress",
+          "type": "address"
+        }
+      ],
+      "name": "TradingRewardsUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "treasuryDAO",
+          "type": "address"
+        }
+      ],
+      "name": "TreasuryDAOSet",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "newPercentage",
+          "type": "uint256"
+        }
+      ],
+      "name": "TreasuryDiversionUpdated",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "DECAY_RATE",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "INITIAL_SUPPLY",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "INITIAL_WEEKLY_SUPPLY",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "MAX_MINTER_REWARD",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "MINT_BUFFER",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "MINT_PERIOD_DURATION",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "SUPPLY_DECAY_END",
+      "outputs": [
+        {
+          "internalType": "uint8",
+          "name": "",
+          "type": "uint8"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "SUPPLY_DECAY_START",
+      "outputs": [
+        {
+          "internalType": "uint8",
+          "name": "",
+          "type": "uint8"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "TERMINAL_SUPPLY_RATE_ANNUAL",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "acceptOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "inflationStartDate",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "isMintable",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "kwenta",
+      "outputs": [
+        {
+          "internalType": "contract IKwenta",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "lastMintEvent",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "mint",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "mintableSupply",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "minterReward",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_owner",
+          "type": "address"
+        }
+      ],
+      "name": "nominateNewOwner",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "nominatedOwner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "contract IKwenta",
+          "name": "_kwenta",
+          "type": "address"
+        }
+      ],
+      "name": "setKwenta",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "setMinterReward",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_stakingRewards",
+          "type": "address"
+        }
+      ],
+      "name": "setStakingRewards",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_tradingRewards",
+          "type": "address"
+        }
+      ],
+      "name": "setTradingRewards",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_tradingRewardsDiversion",
+          "type": "uint256"
+        }
+      ],
+      "name": "setTradingRewardsDiversion",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_treasuryDAO",
+          "type": "address"
+        }
+      ],
+      "name": "setTreasuryDAO",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_treasuryDiversion",
+          "type": "uint256"
+        }
+      ],
+      "name": "setTreasuryDiversion",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "stakingRewards",
+      "outputs": [
+        {
+          "internalType": "contract IStakingRewards",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "totalSupply",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "numOfWeeks",
+          "type": "uint256"
+        }
+      ],
+      "name": "terminalInflationSupply",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "counter",
+          "type": "uint256"
+        }
+      ],
+      "name": "tokenDecaySupplyForWeek",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "tradingRewards",
+      "outputs": [
+        {
+          "internalType": "contract IMultipleMerkleDistributor",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "tradingRewardsDiversion",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "treasuryDAO",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "treasuryDiversion",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "weekCounter",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "weeksSinceLastIssuance",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "numDeployments": 1,
+  "solcInputHash": "913a088f466be536257e769b6e434718",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.7+commit.e28d00a7\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_owner\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_treasuryDAO\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"newAddress\",\"type\":\"address\"}],\"name\":\"KwentaUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"newRewardAmount\",\"type\":\"uint256\"}],\"name\":\"MinterRewardUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"oldOwner\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnerChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnerNominated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"newAddress\",\"type\":\"address\"}],\"name\":\"StakingRewardsUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"supplyMinted\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"numberOfWeeksIssued\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"lastMintEvent\",\"type\":\"uint256\"}],\"name\":\"SupplyMinted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"newPercentage\",\"type\":\"uint256\"}],\"name\":\"TradingRewardsDiversionUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"newAddress\",\"type\":\"address\"}],\"name\":\"TradingRewardsUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"treasuryDAO\",\"type\":\"address\"}],\"name\":\"TreasuryDAOSet\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"newPercentage\",\"type\":\"uint256\"}],\"name\":\"TreasuryDiversionUpdated\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"DECAY_RATE\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"INITIAL_SUPPLY\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"INITIAL_WEEKLY_SUPPLY\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"MAX_MINTER_REWARD\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"MINT_BUFFER\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"MINT_PERIOD_DURATION\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"SUPPLY_DECAY_END\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"SUPPLY_DECAY_START\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"TERMINAL_SUPPLY_RATE_ANNUAL\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"acceptOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"inflationStartDate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"isMintable\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"kwenta\",\"outputs\":[{\"internalType\":\"contract IKwenta\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"lastMintEvent\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"mint\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"mintableSupply\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"minterReward\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_owner\",\"type\":\"address\"}],\"name\":\"nominateNewOwner\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"nominatedOwner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"contract IKwenta\",\"name\":\"_kwenta\",\"type\":\"address\"}],\"name\":\"setKwenta\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"setMinterReward\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_stakingRewards\",\"type\":\"address\"}],\"name\":\"setStakingRewards\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_tradingRewards\",\"type\":\"address\"}],\"name\":\"setTradingRewards\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_tradingRewardsDiversion\",\"type\":\"uint256\"}],\"name\":\"setTradingRewardsDiversion\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_treasuryDAO\",\"type\":\"address\"}],\"name\":\"setTreasuryDAO\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_treasuryDiversion\",\"type\":\"uint256\"}],\"name\":\"setTreasuryDiversion\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"stakingRewards\",\"outputs\":[{\"internalType\":\"contract IStakingRewards\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"totalSupply\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"numOfWeeks\",\"type\":\"uint256\"}],\"name\":\"terminalInflationSupply\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"counter\",\"type\":\"uint256\"}],\"name\":\"tokenDecaySupplyForWeek\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"tradingRewards\",\"outputs\":[{\"internalType\":\"contract IMultipleMerkleDistributor\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"tradingRewardsDiversion\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"treasuryDAO\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"treasuryDiversion\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"weekCounter\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"weeksSinceLastIssuance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"isMintable()\":{\"returns\":{\"_0\":\"boolean whether the MINT_PERIOD_DURATION (7 days) has passed since the lastMintEvent. \"}},\"mintableSupply()\":{\"returns\":{\"_0\":\"The amount of KWENTA mintable for the inflationary supply\"}},\"setMinterReward(uint256)\":{\"params\":{\"amount\":\"the amount of KWENTA to reward the minter. \"}},\"setTreasuryDAO(address)\":{\"details\":\"only owner may change address\"},\"terminalInflationSupply(uint256,uint256)\":{\"details\":\"Weekly compound rate based on number of weeks\",\"returns\":{\"_0\":\"A unit amount of terminal inflation supply\"}},\"tokenDecaySupplyForWeek(uint256)\":{\"details\":\"New token supply reduces by the decay rate each week calculated as supply = INITIAL_WEEKLY_SUPPLY * ()\",\"returns\":{\"_0\":\"A unit amount of decaying inflationary supply from the INITIAL_WEEKLY_SUPPLY\"}},\"weeksSinceLastIssuance()\":{\"details\":\"Take timeDiff in seconds (Dividend) and MINT_PERIOD_DURATION as (Divisor)\",\"returns\":{\"_0\":\"Calculate the numberOfWeeks since last mint rounded down to 1 week\"}}},\"version\":1},\"userdoc\":{\"events\":{\"KwentaUpdated(address)\":{\"notice\":\"Emitted when setKwenta is called changing the Kwenta Proxy address*\"},\"MinterRewardUpdated(uint256)\":{\"notice\":\"Emitted when the KWENTA minter reward amount is updated*\"},\"StakingRewardsUpdated(address)\":{\"notice\":\"Emitted when StakingRewards is changed*\"},\"SupplyMinted(uint256,uint256,uint256)\":{\"notice\":\"Emitted when the inflationary supply is minted*\"},\"TradingRewardsDiversionUpdated(uint256)\":{\"notice\":\"Emitted when trading rewards inflation share is changed*\"},\"TradingRewardsUpdated(address)\":{\"notice\":\"Emitted when TradingRewards is changed*\"},\"TreasuryDAOSet(address)\":{\"notice\":\"Emitted when treasuryDAO address is changed*\"},\"TreasuryDiversionUpdated(uint256)\":{\"notice\":\"Emitted when treasury inflation share is changed*\"}},\"kind\":\"user\",\"methods\":{\"mint()\":{\"notice\":\"Mints new inflationary supply weekly New KWENTA is distributed between the minter, treasury, and StakingRewards contract \"},\"setKwenta(address)\":{\"notice\":\"Set the Kwenta should it ever change. SupplySchedule requires Kwenta address as it has the authority to record mint event. \"},\"setMinterReward(uint256)\":{\"notice\":\"Sets the reward amount of KWENTA for the caller of the public function Kwenta.mint(). This incentivises anyone to mint the inflationary supply and the mintr Reward will be deducted from the inflationary supply and sent to the caller.\"},\"setTreasuryDAO(address)\":{\"notice\":\"set treasuryDAO address\"}},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/SupplySchedule.sol\":\"SupplySchedule\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"contracts/SupplySchedule.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.0;\\n\\n// Inheritance\\nimport \\\"./utils/Owned.sol\\\";\\nimport \\\"./interfaces/ISupplySchedule.sol\\\";\\n\\n// Libraries\\nimport \\\"./libraries/SafeDecimalMath.sol\\\";\\nimport \\\"./libraries/Math.sol\\\";\\n\\n// Internal references\\nimport \\\"./interfaces/IERC20.sol\\\";\\nimport \\\"./interfaces/IKwenta.sol\\\";\\nimport \\\"./interfaces/IStakingRewards.sol\\\";\\nimport \\\"./interfaces/IMultipleMerkleDistributor.sol\\\";\\n\\n// https://docs.synthetix.io/contracts/source/contracts/supplyschedule\\ncontract SupplySchedule is Owned, ISupplySchedule {\\n    using SafeDecimalMath for uint;\\n    using Math for uint;\\n\\n    IKwenta public kwenta;\\n    IStakingRewards public stakingRewards;\\n    IMultipleMerkleDistributor public tradingRewards;\\n\\n    // Time of the last inflation supply mint event\\n    uint public lastMintEvent;\\n\\n    // Counter for number of weeks since the start of supply inflation\\n    uint public weekCounter;\\n\\n    // The number of KWENTA rewarded to the caller of Kwenta.mint()\\n    uint public minterReward = 1e18;\\n\\n    uint public constant INITIAL_SUPPLY = 313373e18;\\n\\n    // Initial Supply * 240% Initial Inflation Rate / 52 weeks.\\n    uint public constant INITIAL_WEEKLY_SUPPLY = INITIAL_SUPPLY * 240 / 100 / 52;\\n\\n    // Max KWENTA rewards for minter\\n    uint public constant MAX_MINTER_REWARD = 20 * 1e18;\\n\\n    // How long each inflation period is before mint can be called\\n    uint public constant MINT_PERIOD_DURATION = 1 weeks;\\n\\n    uint public immutable inflationStartDate;\\n    uint public constant MINT_BUFFER = 1 days;\\n    uint8 public constant SUPPLY_DECAY_START = 2; // Supply decay starts on the 2nd week of rewards\\n    uint8 public constant SUPPLY_DECAY_END = 208; // Inclusive of SUPPLY_DECAY_END week.\\n\\n    // Weekly percentage decay of inflationary supply\\n    uint public constant DECAY_RATE = 20500000000000000; // 2.05% weekly\\n\\n    // Percentage growth of terminal supply per annum\\n    uint public constant TERMINAL_SUPPLY_RATE_ANNUAL = 10000000000000000; // 1.0% pa\\n\\n    uint public treasuryDiversion = 2000; // 20% to treasury\\n    uint public tradingRewardsDiversion = 2000;\\n\\n    // notice treasury address may change\\n    address public treasuryDAO;\\n\\n    /* ========== EVENTS ========== */\\n    \\n    /**\\n     * @notice Emitted when the inflationary supply is minted\\n     **/\\n    event SupplyMinted(uint supplyMinted, uint numberOfWeeksIssued, uint lastMintEvent);\\n\\n    /**\\n     * @notice Emitted when the KWENTA minter reward amount is updated\\n     **/\\n    event MinterRewardUpdated(uint newRewardAmount);\\n\\n    /**\\n     * @notice Emitted when setKwenta is called changing the Kwenta Proxy address\\n     **/\\n    event KwentaUpdated(address newAddress);\\n\\n    /**\\n     * @notice Emitted when treasury inflation share is changed\\n     **/\\n    event TreasuryDiversionUpdated(uint newPercentage);\\n\\n    /**\\n     * @notice Emitted when trading rewards inflation share is changed\\n     **/\\n    event TradingRewardsDiversionUpdated(uint newPercentage);\\n\\n    /**\\n     * @notice Emitted when StakingRewards is changed\\n     **/\\n    event StakingRewardsUpdated(address newAddress);\\n\\n    /**\\n     * @notice Emitted when TradingRewards is changed\\n     **/\\n    event TradingRewardsUpdated(address newAddress);\\n\\n    /**\\n     * @notice Emitted when treasuryDAO address is changed\\n     **/\\n    event TreasuryDAOSet(address treasuryDAO);\\n\\n    constructor(\\n        address _owner,\\n        address _treasuryDAO\\n    ) Owned(_owner) {\\n        treasuryDAO = _treasuryDAO;\\n\\n        inflationStartDate = block.timestamp; // inflation starts as soon as the contract is deployed.\\n        lastMintEvent = block.timestamp;\\n        weekCounter = 0;\\n    }\\n\\n    // ========== VIEWS ==========\\n\\n    /**\\n     * @return The amount of KWENTA mintable for the inflationary supply\\n     */\\n    function mintableSupply() override public view returns (uint) {\\n        uint totalAmount;\\n\\n        if (!isMintable()) {\\n            return totalAmount;\\n        }\\n\\n        uint remainingWeeksToMint = weeksSinceLastIssuance();\\n\\n        uint currentWeek = weekCounter;\\n\\n        // Calculate total mintable supply from exponential decay function\\n        // The decay function stops after week 208\\n        while (remainingWeeksToMint > 0) {\\n            currentWeek++;\\n\\n            if (currentWeek < SUPPLY_DECAY_START) {\\n                // If current week is before supply decay we add initial supply to mintableSupply\\n                totalAmount = totalAmount + INITIAL_WEEKLY_SUPPLY;\\n                remainingWeeksToMint--;\\n            } else if (currentWeek <= SUPPLY_DECAY_END) {\\n                // if current week before supply decay ends we add the new supply for the week\\n                // diff between current week and (supply decay start week - 1)\\n                uint decayCount = currentWeek - (SUPPLY_DECAY_START - 1);\\n\\n                totalAmount = totalAmount + tokenDecaySupplyForWeek(decayCount);\\n                remainingWeeksToMint--;\\n            } else {\\n                // Terminal supply is calculated on the total supply of Kwenta including any new supply\\n                // We can compound the remaining week's supply at the fixed terminal rate\\n                uint totalSupply = IERC20(kwenta).totalSupply();\\n                uint currentTotalSupply = totalSupply + totalAmount;\\n\\n                totalAmount = totalAmount + terminalInflationSupply(currentTotalSupply, remainingWeeksToMint);\\n                remainingWeeksToMint = 0;\\n            }\\n        }\\n\\n        return totalAmount;\\n    }\\n\\n    /**\\n     * @return A unit amount of decaying inflationary supply from the INITIAL_WEEKLY_SUPPLY\\n     * @dev New token supply reduces by the decay rate each week calculated as supply = INITIAL_WEEKLY_SUPPLY * ()\\n     */\\n    function tokenDecaySupplyForWeek(uint counter) public pure returns (uint) {\\n        // Apply exponential decay function to number of weeks since\\n        // start of inflation smoothing to calculate diminishing supply for the week.\\n        uint effectiveDecay = (SafeDecimalMath.unit() - DECAY_RATE).powDecimal(counter);\\n        uint supplyForWeek = INITIAL_WEEKLY_SUPPLY.multiplyDecimal(effectiveDecay);\\n\\n        return supplyForWeek;\\n    }\\n\\n    /**\\n     * @return A unit amount of terminal inflation supply\\n     * @dev Weekly compound rate based on number of weeks\\n     */\\n    function terminalInflationSupply(uint totalSupply, uint numOfWeeks) public pure returns (uint) {\\n        // rate = (1 + weekly rate) ^ num of weeks\\n        uint effectiveCompoundRate = (SafeDecimalMath.unit() + (TERMINAL_SUPPLY_RATE_ANNUAL / 52)).powDecimal(numOfWeeks);\\n\\n        // return Supply * (effectiveRate - 1) for extra supply to issue based on number of weeks\\n        return totalSupply.multiplyDecimal(effectiveCompoundRate - SafeDecimalMath.unit());\\n    }\\n\\n    /**\\n     * @dev Take timeDiff in seconds (Dividend) and MINT_PERIOD_DURATION as (Divisor)\\n     * @return Calculate the numberOfWeeks since last mint rounded down to 1 week\\n     */\\n    function weeksSinceLastIssuance() public view returns (uint) {\\n        // Get weeks since lastMintEvent\\n        // If lastMintEvent not set or 0, then start from inflation start date.\\n        uint timeDiff = block.timestamp - lastMintEvent;\\n        return timeDiff / MINT_PERIOD_DURATION;\\n    }\\n\\n    /**\\n     * @return boolean whether the MINT_PERIOD_DURATION (7 days)\\n     * has passed since the lastMintEvent.\\n     * */\\n    function isMintable() override public view returns (bool) {\\n        return block.timestamp - lastMintEvent > MINT_PERIOD_DURATION;\\n    }\\n\\n    // ========== MUTATIVE FUNCTIONS ==========\\n\\n    /**\\n     * @notice Record the mint event from Kwenta by incrementing the inflation\\n     * week counter for the number of weeks minted (probabaly always 1)\\n     * and store the time of the event.\\n     * @param supplyMinted the amount of KWENTA the total supply was inflated by.\\n     * */\\n    function recordMintEvent(uint supplyMinted) internal returns (bool) {\\n        uint numberOfWeeksIssued = weeksSinceLastIssuance();\\n\\n        // add number of weeks minted to weekCounter\\n        weekCounter = weekCounter + numberOfWeeksIssued;\\n\\n        // Update mint event to latest week issued (start date + number of weeks issued * seconds in week)\\n        // 1 day time buffer is added so inflation is minted after feePeriod closes\\n        lastMintEvent = inflationStartDate + (weekCounter * MINT_PERIOD_DURATION) + MINT_BUFFER;\\n\\n        emit SupplyMinted(supplyMinted, numberOfWeeksIssued, lastMintEvent);\\n        return true;\\n    }\\n\\n    /**\\n     * @notice Mints new inflationary supply weekly\\n     * New KWENTA is distributed between the minter, treasury, and StakingRewards contract\\n     * */\\n    function mint() override external {\\n        require(address(stakingRewards) != address(0), \\\"Staking rewards not set\\\");\\n        require(address(tradingRewards) != address(0), \\\"Trading rewards not set\\\");\\n\\n        uint supplyToMint = mintableSupply();\\n        require(supplyToMint > 0, \\\"No supply is mintable\\\");\\n\\n        // record minting event before mutation to token supply\\n        recordMintEvent(supplyToMint);\\n\\n        uint amountToDistribute = supplyToMint - minterReward;\\n        uint amountToTreasury = amountToDistribute * treasuryDiversion / 10000;\\n        uint amountToTradingRewards = amountToDistribute * tradingRewardsDiversion / 10000;\\n        uint amountToStakingRewards = amountToDistribute - amountToTreasury - amountToTradingRewards;\\n\\n        kwenta.mint(treasuryDAO, amountToTreasury);\\n        kwenta.mint(address(tradingRewards), amountToTradingRewards);\\n        kwenta.mint(address(stakingRewards), amountToStakingRewards);\\n        stakingRewards.notifyRewardAmount(amountToStakingRewards);\\n        kwenta.mint(msg.sender, minterReward);\\n    }\\n\\n    // ========== SETTERS ========== */\\n\\n    /**\\n     * @notice Set the Kwenta should it ever change.\\n     * SupplySchedule requires Kwenta address as it has the authority\\n     * to record mint event.\\n     * */\\n    function setKwenta(IKwenta _kwenta) external onlyOwner {\\n        require(address(_kwenta) != address(0), \\\"Address cannot be 0\\\");\\n        kwenta = _kwenta;\\n        emit KwentaUpdated(address(kwenta));\\n    }\\n\\n    /**\\n     * @notice Sets the reward amount of KWENTA for the caller of the public\\n     * function Kwenta.mint().\\n     * This incentivises anyone to mint the inflationary supply and the mintr\\n     * Reward will be deducted from the inflationary supply and sent to the caller.\\n     * @param amount the amount of KWENTA to reward the minter.\\n     * */\\n    function setMinterReward(uint amount) external onlyOwner {\\n        require(amount <= MAX_MINTER_REWARD, \\\"SupplySchedule: Reward cannot exceed max minter reward\\\");\\n        minterReward = amount;\\n        emit MinterRewardUpdated(minterReward);\\n    }\\n\\n    function setTreasuryDiversion(uint _treasuryDiversion) override external onlyOwner {\\n        require(_treasuryDiversion + tradingRewardsDiversion < 10000, \\\"SupplySchedule: Cannot be more than 100%\\\");\\n        treasuryDiversion = _treasuryDiversion;\\n        emit TreasuryDiversionUpdated(_treasuryDiversion);\\n    }\\n\\n    function setTradingRewardsDiversion(uint _tradingRewardsDiversion) override external onlyOwner {\\n        require(_tradingRewardsDiversion + treasuryDiversion < 10000, \\\"SupplySchedule: Cannot be more than 100%\\\");\\n        tradingRewardsDiversion = _tradingRewardsDiversion;\\n        emit TradingRewardsDiversionUpdated(_tradingRewardsDiversion);\\n    }\\n\\n    function setStakingRewards(address _stakingRewards) override external onlyOwner {\\n        require(_stakingRewards != address(0), \\\"SupplySchedule: Invalid Address\\\");\\n        stakingRewards = IStakingRewards(_stakingRewards);\\n        emit StakingRewardsUpdated(_stakingRewards);\\n    }\\n\\n    function setTradingRewards(address _tradingRewards) override external onlyOwner {\\n        require(_tradingRewards != address(0), \\\"SupplySchedule: Invalid Address\\\");\\n        tradingRewards = IMultipleMerkleDistributor(_tradingRewards);\\n        emit TradingRewardsUpdated(_tradingRewards);\\n    }\\n\\n    /// @notice set treasuryDAO address\\n    /// @dev only owner may change address\\n    function setTreasuryDAO(address _treasuryDAO) external onlyOwner {\\n        require(_treasuryDAO != address(0), \\\"SupplySchedule: Zero Address\\\");\\n        treasuryDAO = _treasuryDAO;\\n        emit TreasuryDAOSet(treasuryDAO);\\n    }\\n}\",\"keccak256\":\"0xab512ee837c58d2438a40087dc461a7e3ea026934b622f3ebc1f1d3401e06aa4\",\"license\":\"MIT\"},\"contracts/interfaces/IERC20.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity >=0.5.0 <0.9.0;\\n\\n/**\\n * @dev Interface of the ERC20 standard as defined in the EIP.\\n */\\ninterface IERC20 {\\n    /**\\n     * @dev Returns the amount of tokens in existence.\\n     */\\n    function totalSupply() external view returns (uint256);\\n\\n    /**\\n     * @dev Returns the amount of tokens owned by `account`.\\n     */\\n    function balanceOf(address account) external view returns (uint256);\\n\\n    /**\\n     * @dev Moves `amount` tokens from the caller's account to `recipient`.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * Emits a {Transfer} event.\\n     */\\n    function transfer(address recipient, uint256 amount) external returns (bool);\\n\\n    /**\\n     * @dev Returns the remaining number of tokens that `spender` will be\\n     * allowed to spend on behalf of `owner` through {transferFrom}. This is\\n     * zero by default.\\n     *\\n     * This value changes when {approve} or {transferFrom} are called.\\n     */\\n    function allowance(address owner, address spender) external view returns (uint256);\\n\\n    /**\\n     * @dev Sets `amount` as the allowance of `spender` over the caller's tokens.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * IMPORTANT: Beware that changing an allowance with this method brings the risk\\n     * that someone may use both the old and the new allowance by unfortunate\\n     * transaction ordering. One possible solution to mitigate this race\\n     * condition is to first reduce the spender's allowance to 0 and set the\\n     * desired value afterwards:\\n     * https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729\\n     *\\n     * Emits an {Approval} event.\\n     */\\n    function approve(address spender, uint256 amount) external returns (bool);\\n\\n    /**\\n     * @dev Moves `amount` tokens from `sender` to `recipient` using the\\n     * allowance mechanism. `amount` is then deducted from the caller's\\n     * allowance.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * Emits a {Transfer} event.\\n     */\\n    function transferFrom(\\n        address sender,\\n        address recipient,\\n        uint256 amount\\n    ) external returns (bool);\\n\\n    /**\\n     * @dev Emitted when `value` tokens are moved from one account (`from`) to\\n     * another (`to`).\\n     *\\n     * Note that `value` may be zero.\\n     */\\n    event Transfer(address indexed from, address indexed to, uint256 value);\\n\\n    /**\\n     * @dev Emitted when the allowance of a `spender` for an `owner` is set by\\n     * a call to {approve}. `value` is the new allowance.\\n     */\\n    event Approval(address indexed owner, address indexed spender, uint256 value);\\n}\",\"keccak256\":\"0x4975dd08bb3659d99d2609a9395592b1abde8411a7181b3469aee3bc119b3bb0\",\"license\":\"MIT\"},\"contracts/interfaces/IKwenta.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity ^0.8.0;\\n\\nimport \\\"./IERC20.sol\\\";\\n\\ninterface IKwenta is IERC20 {\\n\\n    function mint(address account, uint amount) external;\\n\\n    function burn(uint amount) external;\\n\\n    function setSupplySchedule(address _supplySchedule) external;\\n\\n}\",\"keccak256\":\"0x53e96730a3089130ac55caef8b3e650bccd165fc1f0e261e9ef5bae93157686b\",\"license\":\"MIT\"},\"contracts/interfaces/IMultipleMerkleDistributor.sol\":{\"content\":\"// SPDX-License-Identifier: UNLICENSED\\npragma solidity >=0.8.0;\\n\\n// Allows anyone to claim a token if they exist in a merkle root.\\ninterface IMultipleMerkleDistributor {\\n    /// @notice data structure for aggregating multiple claims\\n    struct Claims {\\n        uint256 index;\\n        address account;\\n        uint256 amount;\\n        bytes32[] merkleProof;\\n        uint256 epoch;\\n    }\\n\\n    /// @notice event is triggered whenever a call to `claim` succeeds\\n    event Claimed(\\n        uint256 index,\\n        address account,\\n        uint256 amount,\\n        uint256 epoch\\n    );\\n\\n    /// @notice event is triggered whenever a new merkle root is added\\n    event MerkleRootAdded(uint256 epoch);\\n\\n    /// @return escrow for tokens claimed\\n    function rewardEscrow() external view returns (address);\\n\\n    /// @return token to be distributed (KWENTA)\\n    function token() external view returns (address);\\n\\n    // @return the merkle root of the merkle tree containing account balances available to claim\\n    function merkleRoots(uint256) external view returns (bytes32);\\n\\n    /// @notice determine if indexed claim has been claimed\\n    /// @param index: used for claim managment\\n    /// @param epoch: distribution index number\\n    /// @return true if indexed claim has been claimed\\n    function isClaimed(uint256 index, uint256 epoch)\\n        external\\n        view\\n        returns (bool);\\n\\n    /// @notice attempt to claim as `account` and escrow KWENTA for `account`\\n    /// @param index: used for merkle tree managment and verification\\n    /// @param account: address used for escrow entry\\n    /// @param amount: $KWENTA amount to be escrowed\\n    /// @param merkleProof: off-chain generated proof of merkle tree inclusion\\n    /// @param epoch: distribution index number\\n    function claim(\\n        uint256 index,\\n        address account,\\n        uint256 amount,\\n        bytes32[] calldata merkleProof,\\n        uint256 epoch\\n    ) external;\\n\\n    /// @notice function that aggregates multiple claims\\n    /// @param claims: array of valid claims\\n    function claimMultiple(Claims[] calldata claims) external;\\n}\\n\",\"keccak256\":\"0xc7ce087e1e52e6ed2aeb1527054478ddfb86898f24a9f2e7480d1927db53d6e1\",\"license\":\"UNLICENSED\"},\"contracts/interfaces/IStakingRewards.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.0;\\n\\ninterface IStakingRewards {\\n    /// VIEWS\\n    // token state\\n    function totalSupply() external view returns (uint256);\\n    // staking state\\n    function balanceOf(address account) external view returns (uint256);\\n    function escrowedBalanceOf(address account) external view returns (uint256);\\n    function nonEscrowedBalanceOf(address account) external view returns (uint256);\\n    // rewards\\n    function getRewardForDuration() external view returns (uint256);\\n    function rewardPerToken() external view returns (uint256);\\n    function lastTimeRewardApplicable() external view returns (uint256);\\n    function earned(address account) external view returns (uint256);\\n\\n    /// MUTATIVE\\n    // Staking/Unstaking\\n    function stake(uint256 amount) external;\\n    function unstake(uint256 amount) external;\\n    function stakeEscrow(address account, uint256 amount) external;\\n    function unstakeEscrow(address account, uint256 amount) external;\\n    function exit() external;\\n    // claim rewards\\n    function getReward() external;\\n    // settings\\n    function notifyRewardAmount(uint256 reward) external;\\n    function setRewardsDuration(uint256 _rewardsDuration) external;\\n    // pausable\\n    function pauseStakingRewards() external;\\n    function unpauseStakingRewards() external;\\n    // misc.\\n    function recoverERC20(address tokenAddress, uint256 tokenAmount) external;\\n}\\n\",\"keccak256\":\"0x013719683895bb417eda86625eef763dd0254a2dc7f93911a11c25a34b77a059\",\"license\":\"MIT\"},\"contracts/interfaces/ISupplySchedule.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity >=0.4.24;\\n\\ninterface ISupplySchedule {\\n    // Views\\n    function mintableSupply() external view returns (uint);\\n\\n    function isMintable() external view returns (bool);\\n\\n    // Mutative functions\\n\\n    function mint() external;\\n\\n    function setTreasuryDiversion(uint _treasuryDiversion) external;\\n\\n    function setTradingRewardsDiversion(uint _tradingRewardsDiversion) external;\\n    \\n    function setStakingRewards(address _stakingRewards) external;\\n\\n    function setTradingRewards(address _tradingRewards) external;\\n}\",\"keccak256\":\"0x9a0226bfbaa38fb9489133bcd16af7d2279745b725248cedf72261220892fed2\",\"license\":\"MIT\"},\"contracts/libraries/Math.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.0;\\n\\n// Libraries\\nimport \\\"./SafeDecimalMath.sol\\\";\\n\\n// https://docs.synthetix.io/contracts/source/libraries/math\\nlibrary Math {\\n    using SafeDecimalMath for uint;\\n\\n    /**\\n     * @dev Uses \\\"exponentiation by squaring\\\" algorithm where cost is 0(logN)\\n     * vs 0(N) for naive repeated multiplication.\\n     * Calculates x^n with x as fixed-point and n as regular unsigned int.\\n     * Calculates to 18 digits of precision with SafeDecimalMath.unit()\\n     */\\n    function powDecimal(uint x, uint n) internal pure returns (uint) {\\n        // https://mpark.github.io/programming/2014/08/18/exponentiation-by-squaring/\\n\\n        uint result = SafeDecimalMath.unit();\\n        while (n > 0) {\\n            if (n % 2 != 0) {\\n                result = result.multiplyDecimal(x);\\n            }\\n            x = x.multiplyDecimal(x);\\n            n /= 2;\\n        }\\n        return result;\\n    }\\n}\",\"keccak256\":\"0xc67a58428209dcfa355ad5e4ac4da375b9796af5801a0b4d78a12cf77134674b\",\"license\":\"MIT\"},\"contracts/libraries/SafeDecimalMath.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.0;\\n\\n// https://docs.synthetix.io/contracts/source/libraries/safedecimalmath\\nlibrary SafeDecimalMath {\\n    /* Number of decimal places in the representations. */\\n    uint8 public constant decimals = 18;\\n    uint8 public constant highPrecisionDecimals = 27;\\n\\n    /* The number representing 1.0. */\\n    uint256 public constant UNIT = 10**uint256(decimals);\\n\\n    /* The number representing 1.0 for higher fidelity numbers. */\\n    uint256 public constant PRECISE_UNIT = 10**uint256(highPrecisionDecimals);\\n    uint256 private constant UNIT_TO_HIGH_PRECISION_CONVERSION_FACTOR =\\n        10**uint256(highPrecisionDecimals - decimals);\\n\\n    /**\\n     * @return Provides an interface to UNIT.\\n     */\\n    function unit() external pure returns (uint256) {\\n        return UNIT;\\n    }\\n\\n    /**\\n     * @return Provides an interface to PRECISE_UNIT.\\n     */\\n    function preciseUnit() external pure returns (uint256) {\\n        return PRECISE_UNIT;\\n    }\\n\\n    /**\\n     * @return The result of multiplying x and y, interpreting the operands as fixed-point\\n     * decimals.\\n     *\\n     * @dev A unit factor is divided out after the product of x and y is evaluated,\\n     * so that product must be less than 2**256. As this is an integer division,\\n     * the internal division always rounds down. This helps save on gas. Rounding\\n     * is more expensive on gas.\\n     */\\n    function multiplyDecimal(uint256 x, uint256 y)\\n        internal\\n        pure\\n        returns (uint256)\\n    {\\n        /* Divide by UNIT to remove the extra factor introduced by the product. */\\n        return (x * y) / UNIT;\\n    }\\n\\n    /**\\n     * @return The result of safely dividing x and y. The return value is a high\\n     * precision decimal.\\n     *\\n     * @dev y is divided after the product of x and the standard precision unit\\n     * is evaluated, so the product of x and UNIT must be less than 2**256. As\\n     * this is an integer division, the result is always rounded down.\\n     * This helps save on gas. Rounding is more expensive on gas.\\n     */\\n    function divideDecimal(uint256 x, uint256 y)\\n        internal\\n        pure\\n        returns (uint256)\\n    {\\n        /* Reintroduce the UNIT factor that will be divided out by y. */\\n        return (x * UNIT) / y;\\n    }\\n\\n    /**\\n     * @dev Convert a standard decimal representation to a high precision one.\\n     */\\n    function decimalToPreciseDecimal(uint256 i)\\n        internal\\n        pure\\n        returns (uint256)\\n    {\\n        return i * UNIT_TO_HIGH_PRECISION_CONVERSION_FACTOR;\\n    }\\n\\n    /**\\n     * @dev Convert a high precision decimal to a standard decimal representation.\\n     */\\n    function preciseDecimalToDecimal(uint256 i)\\n        internal\\n        pure\\n        returns (uint256)\\n    {\\n        uint256 quotientTimesTen = i /\\n            (UNIT_TO_HIGH_PRECISION_CONVERSION_FACTOR / 10);\\n\\n        if (quotientTimesTen % 10 >= 5) {\\n            quotientTimesTen += 10;\\n        }\\n\\n        return quotientTimesTen / 10;\\n    }\\n\\n    // Computes `a - b`, setting the value to 0 if b > a.\\n    function floorsub(uint256 a, uint256 b) internal pure returns (uint256) {\\n        return b >= a ? 0 : a - b;\\n    }\\n}\\n\",\"keccak256\":\"0x7adb30d5dbb2b75f41e7b17e118731436a5454adf930295249df7b842fa10b04\",\"license\":\"MIT\"},\"contracts/utils/Owned.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.0;\\n\\n// https://docs.synthetix.io/contracts/source/contracts/owned\\ncontract Owned {\\n    address public owner;\\n    address public nominatedOwner;\\n\\n    constructor(address _owner) {\\n        require(_owner != address(0), \\\"Owner address cannot be 0\\\");\\n        owner = _owner;\\n        emit OwnerChanged(address(0), _owner);\\n    }\\n\\n    function nominateNewOwner(address _owner) external onlyOwner {\\n        nominatedOwner = _owner;\\n        emit OwnerNominated(_owner);\\n    }\\n\\n    function acceptOwnership() external {\\n        require(msg.sender == nominatedOwner, \\\"You must be nominated before you can accept ownership\\\");\\n        emit OwnerChanged(owner, nominatedOwner);\\n        owner = nominatedOwner;\\n        nominatedOwner = address(0);\\n    }\\n\\n    modifier onlyOwner {\\n        _onlyOwner();\\n        _;\\n    }\\n\\n    function _onlyOwner() private view {\\n        require(msg.sender == owner, \\\"Only the contract owner may perform this action\\\");\\n    }\\n\\n    event OwnerNominated(address newOwner);\\n    event OwnerChanged(address oldOwner, address newOwner);\\n}\\n\",\"keccak256\":\"0x9f51a9dd99cc51a332f0a635628dc89262c126c358e4e89041aadbe9a519b06a\",\"license\":\"MIT\"}},\"version\":1}",
+  "bytecode": "0x60a0604052670de0b6b3a76400006007556107d06008556107d06009553480156200002957600080fd5b5060405162002be938038062002be983398181016040528101906200004f9190620001b7565b81600073ffffffffffffffffffffffffffffffffffffffff168173ffffffffffffffffffffffffffffffffffffffff161415620000c3576040517f08c379a0000000000000000000000000000000000000000000000000000000008152600401620000ba9062000263565b60405180910390fd5b806000806101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff1602179055507fb532073b38c83145e3e5135377a08bf9aab55bc0fd7c1179cd4fb995d2a5159c6000826040516200013792919062000236565b60405180910390a15080600a60006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff1602179055504260808181525050426005819055506000600681905550505062000312565b600081519050620001b181620002f8565b92915050565b60008060408385031215620001d157620001d0620002ca565b5b6000620001e185828601620001a0565b9250506020620001f485828601620001a0565b9150509250929050565b620002098162000296565b82525050565b60006200021e60198362000285565b91506200022b82620002cf565b602082019050919050565b60006040820190506200024d6000830185620001fe565b6200025c6020830184620001fe565b9392505050565b600060208201905081810360008301526200027e816200020f565b9050919050565b600082825260208201905092915050565b6000620002a382620002aa565b9050919050565b600073ffffffffffffffffffffffffffffffffffffffff82169050919050565b600080fd5b7f4f776e657220616464726573732063616e6e6f74206265203000000000000000600082015250565b620003038162000296565b81146200030f57600080fd5b50565b6080516128b46200033560003960008181610d0501526119a901526128b46000f3fe608060405234801561001057600080fd5b506004361061021c5760003560e01c806379ba509711610125578063badef30a116100ad578063cc5c095c1161007c578063cc5c095c146105af578063d3bd4bde146105cd578063dbd3a6a7146105eb578063df5a9fc114610609578063f9fad053146106275761021c565b8063badef30a14610537578063bccdd03014610555578063be1ff71e14610573578063be801f01146105915761021c565b80639bdd7ac7116100f45780639bdd7ac7146104935780639df92eb7146104b1578063a46eddcf146104cd578063ad18e97e146104e9578063b3b2bcc0146105075761021c565b806379ba50971461042f5780637c060557146104395780638da5cb5b146104575780639034802b146104755761021c565b806346872a23116101a857806353a47bb71161017757806353a47bb71461039f57806364b87a70146103bd578063689fccc6146103db5780636fb83a57146103f7578063758b19d3146104135761021c565b806346872a231461031757806346b45af7146103355780634ae26521146103535780634e070f501461036f5761021c565b8063238fb77f116101ef578063238fb77f14610283578063251330f11461029f57806325542064146102bd57806326f75e05146102db5780632ff2e9dc146102f95761021c565b80631249c58b146102215780631627540c1461022b5780631de40e491461024757806322af2bab14610265575b600080fd5b610229610645565b005b61024560048036038101906102409190611c26565b610b65565b005b61024f610be8565b60405161025c91906120fa565b60405180910390f35b61026d610bf3565b60405161027a91906120fa565b60405180910390f35b61029d60048036038101906102989190611c26565b610c00565b005b6102a7610cf3565b6040516102b4919061214c565b60405180910390f35b6102c5610cf8565b6040516102d291906120fa565b60405180910390f35b6102e3610d03565b6040516102f091906120fa565b60405180910390f35b610301610d27565b60405161030e91906120fa565b60405180910390f35b61031f610d35565b60405161032c91906120fa565b60405180910390f35b61033d610d3c565b60405161034a9190611f4e565b60405180910390f35b61036d60048036038101906103689190611c80565b610d56565b005b61038960048036038101906103849190611c80565b610ded565b60405161039691906120fa565b60405180910390f35b6103a7610ee1565b6040516103b49190611ee1565b60405180910390f35b6103c5610f07565b6040516103d29190611f9f565b60405180910390f35b6103f560048036038101906103f09190611c80565b610f2d565b005b610411600480360381019061040c9190611c26565b610fc7565b005b61042d60048036038101906104289190611c53565b6110ba565b005b6104376111cf565b005b610441611380565b60405161044e919061214c565b60405180910390f35b61045f611385565b60405161046c9190611ee1565b60405180910390f35b61047d6113a9565b60405161048a9190611f69565b60405180910390f35b61049b6113cf565b6040516104a891906120fa565b60405180910390f35b6104cb60048036038101906104c69190611c80565b6113d5565b005b6104e760048036038101906104e29190611c26565b61146f565b005b6104f1611584565b6040516104fe9190611ee1565b60405180910390f35b610521600480360381019061051c9190611cda565b6115aa565b60405161052e91906120fa565b60405180910390f35b61053f6116fd565b60405161054c91906120fa565b60405180910390f35b61055d61172f565b60405161056a91906120fa565b60405180910390f35b61057b611735565b60405161058891906120fa565b60405180910390f35b61059961173b565b6040516105a691906120fa565b60405180910390f35b6105b7611741565b6040516105c491906120fa565b60405180910390f35b6105d5611916565b6040516105e291906120fa565b60405180910390f35b6105f361191c565b60405161060091906120fa565b60405180910390f35b610611611944565b60405161061e91906120fa565b60405180910390f35b61062f61194b565b60405161063c9190611f84565b60405180910390f35b600073ffffffffffffffffffffffffffffffffffffffff16600360009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1614156106d7576040517f08c379a00000000000000000000000000000000000000000000000000000000081526004016106ce90611ffa565b60405180910390fd5b600073ffffffffffffffffffffffffffffffffffffffff16600460009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff161415610769576040517f08c379a00000000000000000000000000000000000000000000000000000000081526004016107609061207a565b60405180910390fd5b6000610773611741565b9050600081116107b8576040517f08c379a00000000000000000000000000000000000000000000000000000000081526004016107af906120da565b60405180910390fd5b6107c181611971565b506000600754826107d291906123ca565b90506000612710600854836107e79190612370565b6107f191906121ce565b90506000612710600954846108069190612370565b61081091906121ce565b9050600081838561082191906123ca565b61082b91906123ca565b9050600260009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff166340c10f19600a60009054906101000a900473ffffffffffffffffffffffffffffffffffffffff16856040518363ffffffff1660e01b81526004016108ac929190611f25565b600060405180830381600087803b1580156108c657600080fd5b505af11580156108da573d6000803e3d6000fd5b50505050600260009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff166340c10f19600460009054906101000a900473ffffffffffffffffffffffffffffffffffffffff16846040518363ffffffff1660e01b815260040161095d929190611f25565b600060405180830381600087803b15801561097757600080fd5b505af115801561098b573d6000803e3d6000fd5b50505050600260009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff166340c10f19600360009054906101000a900473ffffffffffffffffffffffffffffffffffffffff16836040518363ffffffff1660e01b8152600401610a0e929190611f25565b600060405180830381600087803b158015610a2857600080fd5b505af1158015610a3c573d6000803e3d6000fd5b50505050600360009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16633c6b16ab826040518263ffffffff1660e01b8152600401610a9b91906120fa565b600060405180830381600087803b158015610ab557600080fd5b505af1158015610ac9573d6000803e3d6000fd5b50505050600260009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff166340c10f19336007546040518363ffffffff1660e01b8152600401610b2c929190611f25565b600060405180830381600087803b158015610b4657600080fd5b505af1158015610b5a573d6000803e3d6000fd5b505050505050505050565b610b6d611a29565b80600160006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff1602179055507f906a1c6bd7e3091ea86693dd029a831c19049ce77f1dce2ce0bab1cacbabce2281604051610bdd9190611ee1565b60405180910390a150565b6648d4a431e5400081565b6801158e460913d0000081565b610c08611a29565b600073ffffffffffffffffffffffffffffffffffffffff168173ffffffffffffffffffffffffffffffffffffffff161415610c78576040517f08c379a0000000000000000000000000000000000000000000000000000000008152600401610c6f906120ba565b60405180910390fd5b80600460006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff1602179055507f2600f737e588eec1a845714266bf64b2f65c9d3f624e452a2b64611c33108ab081604051610ce89190611ee1565b60405180910390a150565b600281565b662386f26fc1000081565b7f000000000000000000000000000000000000000000000000000000000000000081565b69425bfbffaab01654000081565b6201518081565b600062093a8060055442610d5091906123ca565b11905090565b610d5e611a29565b6801158e460913d00000811115610daa576040517f08c379a0000000000000000000000000000000000000000000000000000000008152600401610da19061201a565b60405180910390fd5b806007819055507f036e0c635f8b7d9314bb6f2a577046108ef0f8b5e3869fbd29fd5a448ed99d30600754604051610de291906120fa565b60405180910390a150565b600080610e90836648d4a431e5400073__$eafab6a382253e3d4dc0e94de940bead68$__63907af6c06040518163ffffffff1660e01b815260040160206040518083038186803b158015610e4057600080fd5b505af4158015610e54573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610e789190611cad565b610e8291906123ca565b611ab990919063ffffffff16565b90506000610ed5826034606460f069425bfbffaab016540000610eb39190612370565b610ebd91906121ce565b610ec791906121ce565b611ba190919063ffffffff16565b90508092505050919050565b600160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1681565b600360009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1681565b610f35611a29565b61271060085482610f469190612178565b10610f86576040517f08c379a0000000000000000000000000000000000000000000000000000000008152600401610f7d9061203a565b60405180910390fd5b806009819055507f3a6b6f816fda56a9f48af157a6f60d156254bc01c34e04fd31583013fb00a67f81604051610fbc91906120fa565b60405180910390a150565b610fcf611a29565b600073ffffffffffffffffffffffffffffffffffffffff168173ffffffffffffffffffffffffffffffffffffffff16141561103f576040517f08c379a0000000000000000000000000000000000000000000000000000000008152600401611036906120ba565b60405180910390fd5b80600360006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff1602179055507f551390b523f91b5d9df0281cbb04db779545fbfa265f5fcde47668f4d4e16006816040516110af9190611ee1565b60405180910390a150565b6110c2611a29565b600073ffffffffffffffffffffffffffffffffffffffff168173ffffffffffffffffffffffffffffffffffffffff161415611132576040517f08c379a00000000000000000000000000000000000000000000000000000000081526004016111299061209a565b60405180910390fd5b80600260006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff1602179055507fc81d567f41a0910d7cd4117a2960e9fbdf9a232a48e6b6fc94033ac6c4db7aa4600260009054906101000a900473ffffffffffffffffffffffffffffffffffffffff166040516111c49190611ee1565b60405180910390a150565b600160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff163373ffffffffffffffffffffffffffffffffffffffff161461125f576040517f08c379a000000000000000000000000000000000000000000000000000000000815260040161125690611fba565b60405180910390fd5b7fb532073b38c83145e3e5135377a08bf9aab55bc0fd7c1179cd4fb995d2a5159c60008054906101000a900473ffffffffffffffffffffffffffffffffffffffff16600160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff166040516112d2929190611efc565b60405180910390a1600160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff166000806101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff1602179055506000600160006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff160217905550565b60d081565b60008054906101000a900473ffffffffffffffffffffffffffffffffffffffff1681565b600260009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1681565b60075481565b6113dd611a29565b612710600954826113ee9190612178565b1061142e576040517f08c379a00000000000000000000000000000000000000000000000000000000081526004016114259061203a565b60405180910390fd5b806008819055507f57a9cd79e547e62257530ed181309acb795c4e6aab927735a3e2afe2ac4d93098160405161146491906120fa565b60405180910390a150565b611477611a29565b600073ffffffffffffffffffffffffffffffffffffffff168173ffffffffffffffffffffffffffffffffffffffff1614156114e7576040517f08c379a00000000000000000000000000000000000000000000000000000000081526004016114de90611fda565b60405180910390fd5b80600a60006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff1602179055507fd780e06c55efd6b3157e8c26704d2fd7bd2750bd9d0e71d2e5f675572dfad7a2600a60009054906101000a900473ffffffffffffffffffffffffffffffffffffffff166040516115799190611ee1565b60405180910390a150565b600a60009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1681565b600080611659836034662386f26fc100006115c591906121ce565b73__$eafab6a382253e3d4dc0e94de940bead68$__63907af6c06040518163ffffffff1660e01b815260040160206040518083038186803b15801561160957600080fd5b505af415801561161d573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906116419190611cad565b61164b9190612178565b611ab990919063ffffffff16565b90506116f473__$eafab6a382253e3d4dc0e94de940bead68$__63907af6c06040518163ffffffff1660e01b815260040160206040518083038186803b1580156116a257600080fd5b505af41580156116b6573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906116da9190611cad565b826116e591906123ca565b85611ba190919063ffffffff16565b91505092915050565b6034606460f069425bfbffaab0165400006117189190612370565b61172291906121ce565b61172c91906121ce565b81565b60085481565b60095481565b60055481565b60008061174c610d3c565b6117595780915050611913565b600061176361191c565b9050600060065490505b600082111561190c5780806117819061251d565b915050600260ff168110156117df576034606460f069425bfbffaab0165400006117ab9190612370565b6117b591906121ce565b6117bf91906121ce565b836117ca9190612178565b925081806117d7906124f3565b925050611907565b60d060ff168111611834576000600160026117fa91906123fe565b60ff168261180891906123ca565b905061181381610ded565b8461181e9190612178565b9350828061182b906124f3565b93505050611906565b6000600260009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff166318160ddd6040518163ffffffff1660e01b815260040160206040518083038186803b15801561189e57600080fd5b505afa1580156118b2573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906118d69190611cad565b9050600084826118e69190612178565b90506118f281856115aa565b856118fd9190612178565b94506000935050505b5b61176d565b8293505050505b90565b60065481565b6000806005544261192d91906123ca565b905062093a808161193e91906121ce565b91505090565b62093a8081565b600460009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1681565b60008061197c61191c565b90508060065461198c9190612178565b6006819055506201518062093a806006546119a79190612370565b7f00000000000000000000000000000000000000000000000000000000000000006119d29190612178565b6119dc9190612178565b6005819055507feae287c62f1ff4911334dee03f631d5dded5284b1b03ea7bc1d6282916c7249f8382600554604051611a1793929190612115565b60405180910390a16001915050919050565b60008054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff163373ffffffffffffffffffffffffffffffffffffffff1614611ab7576040517f08c379a0000000000000000000000000000000000000000000000000000000008152600401611aae9061205a565b60405180910390fd5b565b60008073__$eafab6a382253e3d4dc0e94de940bead68$__63907af6c06040518163ffffffff1660e01b815260040160206040518083038186803b158015611b0057600080fd5b505af4158015611b14573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190611b389190611cad565b90505b6000831115611b97576000600284611b539190612566565b14611b6e57611b6b8482611ba190919063ffffffff16565b90505b611b818485611ba190919063ffffffff16565b9350600283611b9091906121ce565b9250611b3b565b8091505092915050565b6000601260ff16600a611bb49190612252565b8284611bc09190612370565b611bca91906121ce565b905092915050565b600081359050611be181612839565b92915050565b600081359050611bf681612850565b92915050565b600081359050611c0b81612867565b92915050565b600081519050611c2081612867565b92915050565b600060208284031215611c3c57611c3b6125f5565b5b6000611c4a84828501611bd2565b91505092915050565b600060208284031215611c6957611c686125f5565b5b6000611c7784828501611be7565b91505092915050565b600060208284031215611c9657611c956125f5565b5b6000611ca484828501611bfc565b91505092915050565b600060208284031215611cc357611cc26125f5565b5b6000611cd184828501611c11565b91505092915050565b60008060408385031215611cf157611cf06125f5565b5b6000611cff85828601611bfc565b9250506020611d1085828601611bfc565b9150509250929050565b611d2381612432565b82525050565b611d3281612444565b82525050565b611d4181612499565b82525050565b611d50816124ab565b82525050565b611d5f816124bd565b82525050565b6000611d72603583612167565b9150611d7d82612607565b604082019050919050565b6000611d95601c83612167565b9150611da082612656565b602082019050919050565b6000611db8601783612167565b9150611dc38261267f565b602082019050919050565b6000611ddb603683612167565b9150611de6826126a8565b604082019050919050565b6000611dfe602883612167565b9150611e09826126f7565b604082019050919050565b6000611e21602f83612167565b9150611e2c82612746565b604082019050919050565b6000611e44601783612167565b9150611e4f82612795565b602082019050919050565b6000611e67601383612167565b9150611e72826127be565b602082019050919050565b6000611e8a601f83612167565b9150611e95826127e7565b602082019050919050565b6000611ead601583612167565b9150611eb882612810565b602082019050919050565b611ecc81612482565b82525050565b611edb8161248c565b82525050565b6000602082019050611ef66000830184611d1a565b92915050565b6000604082019050611f116000830185611d1a565b611f1e6020830184611d1a565b9392505050565b6000604082019050611f3a6000830185611d1a565b611f476020830184611ec3565b9392505050565b6000602082019050611f636000830184611d29565b92915050565b6000602082019050611f7e6000830184611d38565b92915050565b6000602082019050611f996000830184611d47565b92915050565b6000602082019050611fb46000830184611d56565b92915050565b60006020820190508181036000830152611fd381611d65565b9050919050565b60006020820190508181036000830152611ff381611d88565b9050919050565b6000602082019050818103600083015261201381611dab565b9050919050565b6000602082019050818103600083015261203381611dce565b9050919050565b6000602082019050818103600083015261205381611df1565b9050919050565b6000602082019050818103600083015261207381611e14565b9050919050565b6000602082019050818103600083015261209381611e37565b9050919050565b600060208201905081810360008301526120b381611e5a565b9050919050565b600060208201905081810360008301526120d381611e7d565b9050919050565b600060208201905081810360008301526120f381611ea0565b9050919050565b600060208201905061210f6000830184611ec3565b92915050565b600060608201905061212a6000830186611ec3565b6121376020830185611ec3565b6121446040830184611ec3565b949350505050565b60006020820190506121616000830184611ed2565b92915050565b600082825260208201905092915050565b600061218382612482565b915061218e83612482565b9250827fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff038211156121c3576121c2612597565b5b828201905092915050565b60006121d982612482565b91506121e483612482565b9250826121f4576121f36125c6565b5b828204905092915050565b6000808291508390505b60018511156122495780860481111561222557612224612597565b5b60018516156122345780820291505b8081029050612242856125fa565b9450612209565b94509492505050565b600061225d82612482565b915061226883612482565b92506122957fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff848461229d565b905092915050565b6000826122ad5760019050612369565b816122bb5760009050612369565b81600181146122d157600281146122db5761230a565b6001915050612369565b60ff8411156122ed576122ec612597565b5b8360020a91508482111561230457612303612597565b5b50612369565b5060208310610133831016604e8410600b841016171561233f5782820a90508381111561233a57612339612597565b5b612369565b61234c84848460016121ff565b9250905081840481111561236357612362612597565b5b81810290505b9392505050565b600061237b82612482565b915061238683612482565b9250817fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff04831182151516156123bf576123be612597565b5b828202905092915050565b60006123d582612482565b91506123e083612482565b9250828210156123f3576123f2612597565b5b828203905092915050565b60006124098261248c565b91506124148361248c565b92508282101561242757612426612597565b5b828203905092915050565b600061243d82612462565b9050919050565b60008115159050919050565b600061245b82612432565b9050919050565b600073ffffffffffffffffffffffffffffffffffffffff82169050919050565b6000819050919050565b600060ff82169050919050565b60006124a4826124cf565b9050919050565b60006124b6826124cf565b9050919050565b60006124c8826124cf565b9050919050565b60006124da826124e1565b9050919050565b60006124ec82612462565b9050919050565b60006124fe82612482565b9150600082141561251257612511612597565b5b600182039050919050565b600061252882612482565b91507fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff82141561255b5761255a612597565b5b600182019050919050565b600061257182612482565b915061257c83612482565b92508261258c5761258b6125c6565b5b828206905092915050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052601160045260246000fd5b7f4e487b7100000000000000000000000000000000000000000000000000000000600052601260045260246000fd5b600080fd5b60008160011c9050919050565b7f596f75206d757374206265206e6f6d696e61746564206265666f726520796f7560008201527f2063616e20616363657074206f776e6572736869700000000000000000000000602082015250565b7f537570706c795363686564756c653a205a65726f204164647265737300000000600082015250565b7f5374616b696e672072657761726473206e6f7420736574000000000000000000600082015250565b7f537570706c795363686564756c653a205265776172642063616e6e6f7420657860008201527f63656564206d6178206d696e7465722072657761726400000000000000000000602082015250565b7f537570706c795363686564756c653a2043616e6e6f74206265206d6f7265207460008201527f68616e2031303025000000000000000000000000000000000000000000000000602082015250565b7f4f6e6c792074686520636f6e7472616374206f776e6572206d6179207065726660008201527f6f726d207468697320616374696f6e0000000000000000000000000000000000602082015250565b7f54726164696e672072657761726473206e6f7420736574000000000000000000600082015250565b7f416464726573732063616e6e6f74206265203000000000000000000000000000600082015250565b7f537570706c795363686564756c653a20496e76616c6964204164647265737300600082015250565b7f4e6f20737570706c79206973206d696e7461626c650000000000000000000000600082015250565b61284281612432565b811461284d57600080fd5b50565b61285981612450565b811461286457600080fd5b50565b61287081612482565b811461287b57600080fd5b5056fea264697066735822122024fcaf1daac0cd706bf13d0538fefa4a77de1d0d849c3feb8afafb7c735693aa64736f6c63430008070033",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b506004361061021c5760003560e01c806379ba509711610125578063badef30a116100ad578063cc5c095c1161007c578063cc5c095c146105af578063d3bd4bde146105cd578063dbd3a6a7146105eb578063df5a9fc114610609578063f9fad053146106275761021c565b8063badef30a14610537578063bccdd03014610555578063be1ff71e14610573578063be801f01146105915761021c565b80639bdd7ac7116100f45780639bdd7ac7146104935780639df92eb7146104b1578063a46eddcf146104cd578063ad18e97e146104e9578063b3b2bcc0146105075761021c565b806379ba50971461042f5780637c060557146104395780638da5cb5b146104575780639034802b146104755761021c565b806346872a23116101a857806353a47bb71161017757806353a47bb71461039f57806364b87a70146103bd578063689fccc6146103db5780636fb83a57146103f7578063758b19d3146104135761021c565b806346872a231461031757806346b45af7146103355780634ae26521146103535780634e070f501461036f5761021c565b8063238fb77f116101ef578063238fb77f14610283578063251330f11461029f57806325542064146102bd57806326f75e05146102db5780632ff2e9dc146102f95761021c565b80631249c58b146102215780631627540c1461022b5780631de40e491461024757806322af2bab14610265575b600080fd5b610229610645565b005b61024560048036038101906102409190611c26565b610b65565b005b61024f610be8565b60405161025c91906120fa565b60405180910390f35b61026d610bf3565b60405161027a91906120fa565b60405180910390f35b61029d60048036038101906102989190611c26565b610c00565b005b6102a7610cf3565b6040516102b4919061214c565b60405180910390f35b6102c5610cf8565b6040516102d291906120fa565b60405180910390f35b6102e3610d03565b6040516102f091906120fa565b60405180910390f35b610301610d27565b60405161030e91906120fa565b60405180910390f35b61031f610d35565b60405161032c91906120fa565b60405180910390f35b61033d610d3c565b60405161034a9190611f4e565b60405180910390f35b61036d60048036038101906103689190611c80565b610d56565b005b61038960048036038101906103849190611c80565b610ded565b60405161039691906120fa565b60405180910390f35b6103a7610ee1565b6040516103b49190611ee1565b60405180910390f35b6103c5610f07565b6040516103d29190611f9f565b60405180910390f35b6103f560048036038101906103f09190611c80565b610f2d565b005b610411600480360381019061040c9190611c26565b610fc7565b005b61042d60048036038101906104289190611c53565b6110ba565b005b6104376111cf565b005b610441611380565b60405161044e919061214c565b60405180910390f35b61045f611385565b60405161046c9190611ee1565b60405180910390f35b61047d6113a9565b60405161048a9190611f69565b60405180910390f35b61049b6113cf565b6040516104a891906120fa565b60405180910390f35b6104cb60048036038101906104c69190611c80565b6113d5565b005b6104e760048036038101906104e29190611c26565b61146f565b005b6104f1611584565b6040516104fe9190611ee1565b60405180910390f35b610521600480360381019061051c9190611cda565b6115aa565b60405161052e91906120fa565b60405180910390f35b61053f6116fd565b60405161054c91906120fa565b60405180910390f35b61055d61172f565b60405161056a91906120fa565b60405180910390f35b61057b611735565b60405161058891906120fa565b60405180910390f35b61059961173b565b6040516105a691906120fa565b60405180910390f35b6105b7611741565b6040516105c491906120fa565b60405180910390f35b6105d5611916565b6040516105e291906120fa565b60405180910390f35b6105f361191c565b60405161060091906120fa565b60405180910390f35b610611611944565b60405161061e91906120fa565b60405180910390f35b61062f61194b565b60405161063c9190611f84565b60405180910390f35b600073ffffffffffffffffffffffffffffffffffffffff16600360009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1614156106d7576040517f08c379a00000000000000000000000000000000000000000000000000000000081526004016106ce90611ffa565b60405180910390fd5b600073ffffffffffffffffffffffffffffffffffffffff16600460009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff161415610769576040517f08c379a00000000000000000000000000000000000000000000000000000000081526004016107609061207a565b60405180910390fd5b6000610773611741565b9050600081116107b8576040517f08c379a00000000000000000000000000000000000000000000000000000000081526004016107af906120da565b60405180910390fd5b6107c181611971565b506000600754826107d291906123ca565b90506000612710600854836107e79190612370565b6107f191906121ce565b90506000612710600954846108069190612370565b61081091906121ce565b9050600081838561082191906123ca565b61082b91906123ca565b9050600260009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff166340c10f19600a60009054906101000a900473ffffffffffffffffffffffffffffffffffffffff16856040518363ffffffff1660e01b81526004016108ac929190611f25565b600060405180830381600087803b1580156108c657600080fd5b505af11580156108da573d6000803e3d6000fd5b50505050600260009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff166340c10f19600460009054906101000a900473ffffffffffffffffffffffffffffffffffffffff16846040518363ffffffff1660e01b815260040161095d929190611f25565b600060405180830381600087803b15801561097757600080fd5b505af115801561098b573d6000803e3d6000fd5b50505050600260009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff166340c10f19600360009054906101000a900473ffffffffffffffffffffffffffffffffffffffff16836040518363ffffffff1660e01b8152600401610a0e929190611f25565b600060405180830381600087803b158015610a2857600080fd5b505af1158015610a3c573d6000803e3d6000fd5b50505050600360009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16633c6b16ab826040518263ffffffff1660e01b8152600401610a9b91906120fa565b600060405180830381600087803b158015610ab557600080fd5b505af1158015610ac9573d6000803e3d6000fd5b50505050600260009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff166340c10f19336007546040518363ffffffff1660e01b8152600401610b2c929190611f25565b600060405180830381600087803b158015610b4657600080fd5b505af1158015610b5a573d6000803e3d6000fd5b505050505050505050565b610b6d611a29565b80600160006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff1602179055507f906a1c6bd7e3091ea86693dd029a831c19049ce77f1dce2ce0bab1cacbabce2281604051610bdd9190611ee1565b60405180910390a150565b6648d4a431e5400081565b6801158e460913d0000081565b610c08611a29565b600073ffffffffffffffffffffffffffffffffffffffff168173ffffffffffffffffffffffffffffffffffffffff161415610c78576040517f08c379a0000000000000000000000000000000000000000000000000000000008152600401610c6f906120ba565b60405180910390fd5b80600460006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff1602179055507f2600f737e588eec1a845714266bf64b2f65c9d3f624e452a2b64611c33108ab081604051610ce89190611ee1565b60405180910390a150565b600281565b662386f26fc1000081565b7f000000000000000000000000000000000000000000000000000000000000000081565b69425bfbffaab01654000081565b6201518081565b600062093a8060055442610d5091906123ca565b11905090565b610d5e611a29565b6801158e460913d00000811115610daa576040517f08c379a0000000000000000000000000000000000000000000000000000000008152600401610da19061201a565b60405180910390fd5b806007819055507f036e0c635f8b7d9314bb6f2a577046108ef0f8b5e3869fbd29fd5a448ed99d30600754604051610de291906120fa565b60405180910390a150565b600080610e90836648d4a431e5400073__$eafab6a382253e3d4dc0e94de940bead68$__63907af6c06040518163ffffffff1660e01b815260040160206040518083038186803b158015610e4057600080fd5b505af4158015610e54573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610e789190611cad565b610e8291906123ca565b611ab990919063ffffffff16565b90506000610ed5826034606460f069425bfbffaab016540000610eb39190612370565b610ebd91906121ce565b610ec791906121ce565b611ba190919063ffffffff16565b90508092505050919050565b600160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1681565b600360009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1681565b610f35611a29565b61271060085482610f469190612178565b10610f86576040517f08c379a0000000000000000000000000000000000000000000000000000000008152600401610f7d9061203a565b60405180910390fd5b806009819055507f3a6b6f816fda56a9f48af157a6f60d156254bc01c34e04fd31583013fb00a67f81604051610fbc91906120fa565b60405180910390a150565b610fcf611a29565b600073ffffffffffffffffffffffffffffffffffffffff168173ffffffffffffffffffffffffffffffffffffffff16141561103f576040517f08c379a0000000000000000000000000000000000000000000000000000000008152600401611036906120ba565b60405180910390fd5b80600360006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff1602179055507f551390b523f91b5d9df0281cbb04db779545fbfa265f5fcde47668f4d4e16006816040516110af9190611ee1565b60405180910390a150565b6110c2611a29565b600073ffffffffffffffffffffffffffffffffffffffff168173ffffffffffffffffffffffffffffffffffffffff161415611132576040517f08c379a00000000000000000000000000000000000000000000000000000000081526004016111299061209a565b60405180910390fd5b80600260006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff1602179055507fc81d567f41a0910d7cd4117a2960e9fbdf9a232a48e6b6fc94033ac6c4db7aa4600260009054906101000a900473ffffffffffffffffffffffffffffffffffffffff166040516111c49190611ee1565b60405180910390a150565b600160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff163373ffffffffffffffffffffffffffffffffffffffff161461125f576040517f08c379a000000000000000000000000000000000000000000000000000000000815260040161125690611fba565b60405180910390fd5b7fb532073b38c83145e3e5135377a08bf9aab55bc0fd7c1179cd4fb995d2a5159c60008054906101000a900473ffffffffffffffffffffffffffffffffffffffff16600160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff166040516112d2929190611efc565b60405180910390a1600160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff166000806101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff1602179055506000600160006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff160217905550565b60d081565b60008054906101000a900473ffffffffffffffffffffffffffffffffffffffff1681565b600260009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1681565b60075481565b6113dd611a29565b612710600954826113ee9190612178565b1061142e576040517f08c379a00000000000000000000000000000000000000000000000000000000081526004016114259061203a565b60405180910390fd5b806008819055507f57a9cd79e547e62257530ed181309acb795c4e6aab927735a3e2afe2ac4d93098160405161146491906120fa565b60405180910390a150565b611477611a29565b600073ffffffffffffffffffffffffffffffffffffffff168173ffffffffffffffffffffffffffffffffffffffff1614156114e7576040517f08c379a00000000000000000000000000000000000000000000000000000000081526004016114de90611fda565b60405180910390fd5b80600a60006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff1602179055507fd780e06c55efd6b3157e8c26704d2fd7bd2750bd9d0e71d2e5f675572dfad7a2600a60009054906101000a900473ffffffffffffffffffffffffffffffffffffffff166040516115799190611ee1565b60405180910390a150565b600a60009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1681565b600080611659836034662386f26fc100006115c591906121ce565b73__$eafab6a382253e3d4dc0e94de940bead68$__63907af6c06040518163ffffffff1660e01b815260040160206040518083038186803b15801561160957600080fd5b505af415801561161d573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906116419190611cad565b61164b9190612178565b611ab990919063ffffffff16565b90506116f473__$eafab6a382253e3d4dc0e94de940bead68$__63907af6c06040518163ffffffff1660e01b815260040160206040518083038186803b1580156116a257600080fd5b505af41580156116b6573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906116da9190611cad565b826116e591906123ca565b85611ba190919063ffffffff16565b91505092915050565b6034606460f069425bfbffaab0165400006117189190612370565b61172291906121ce565b61172c91906121ce565b81565b60085481565b60095481565b60055481565b60008061174c610d3c565b6117595780915050611913565b600061176361191c565b9050600060065490505b600082111561190c5780806117819061251d565b915050600260ff168110156117df576034606460f069425bfbffaab0165400006117ab9190612370565b6117b591906121ce565b6117bf91906121ce565b836117ca9190612178565b925081806117d7906124f3565b925050611907565b60d060ff168111611834576000600160026117fa91906123fe565b60ff168261180891906123ca565b905061181381610ded565b8461181e9190612178565b9350828061182b906124f3565b93505050611906565b6000600260009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff166318160ddd6040518163ffffffff1660e01b815260040160206040518083038186803b15801561189e57600080fd5b505afa1580156118b2573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906118d69190611cad565b9050600084826118e69190612178565b90506118f281856115aa565b856118fd9190612178565b94506000935050505b5b61176d565b8293505050505b90565b60065481565b6000806005544261192d91906123ca565b905062093a808161193e91906121ce565b91505090565b62093a8081565b600460009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1681565b60008061197c61191c565b90508060065461198c9190612178565b6006819055506201518062093a806006546119a79190612370565b7f00000000000000000000000000000000000000000000000000000000000000006119d29190612178565b6119dc9190612178565b6005819055507feae287c62f1ff4911334dee03f631d5dded5284b1b03ea7bc1d6282916c7249f8382600554604051611a1793929190612115565b60405180910390a16001915050919050565b60008054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff163373ffffffffffffffffffffffffffffffffffffffff1614611ab7576040517f08c379a0000000000000000000000000000000000000000000000000000000008152600401611aae9061205a565b60405180910390fd5b565b60008073__$eafab6a382253e3d4dc0e94de940bead68$__63907af6c06040518163ffffffff1660e01b815260040160206040518083038186803b158015611b0057600080fd5b505af4158015611b14573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190611b389190611cad565b90505b6000831115611b97576000600284611b539190612566565b14611b6e57611b6b8482611ba190919063ffffffff16565b90505b611b818485611ba190919063ffffffff16565b9350600283611b9091906121ce565b9250611b3b565b8091505092915050565b6000601260ff16600a611bb49190612252565b8284611bc09190612370565b611bca91906121ce565b905092915050565b600081359050611be181612839565b92915050565b600081359050611bf681612850565b92915050565b600081359050611c0b81612867565b92915050565b600081519050611c2081612867565b92915050565b600060208284031215611c3c57611c3b6125f5565b5b6000611c4a84828501611bd2565b91505092915050565b600060208284031215611c6957611c686125f5565b5b6000611c7784828501611be7565b91505092915050565b600060208284031215611c9657611c956125f5565b5b6000611ca484828501611bfc565b91505092915050565b600060208284031215611cc357611cc26125f5565b5b6000611cd184828501611c11565b91505092915050565b60008060408385031215611cf157611cf06125f5565b5b6000611cff85828601611bfc565b9250506020611d1085828601611bfc565b9150509250929050565b611d2381612432565b82525050565b611d3281612444565b82525050565b611d4181612499565b82525050565b611d50816124ab565b82525050565b611d5f816124bd565b82525050565b6000611d72603583612167565b9150611d7d82612607565b604082019050919050565b6000611d95601c83612167565b9150611da082612656565b602082019050919050565b6000611db8601783612167565b9150611dc38261267f565b602082019050919050565b6000611ddb603683612167565b9150611de6826126a8565b604082019050919050565b6000611dfe602883612167565b9150611e09826126f7565b604082019050919050565b6000611e21602f83612167565b9150611e2c82612746565b604082019050919050565b6000611e44601783612167565b9150611e4f82612795565b602082019050919050565b6000611e67601383612167565b9150611e72826127be565b602082019050919050565b6000611e8a601f83612167565b9150611e95826127e7565b602082019050919050565b6000611ead601583612167565b9150611eb882612810565b602082019050919050565b611ecc81612482565b82525050565b611edb8161248c565b82525050565b6000602082019050611ef66000830184611d1a565b92915050565b6000604082019050611f116000830185611d1a565b611f1e6020830184611d1a565b9392505050565b6000604082019050611f3a6000830185611d1a565b611f476020830184611ec3565b9392505050565b6000602082019050611f636000830184611d29565b92915050565b6000602082019050611f7e6000830184611d38565b92915050565b6000602082019050611f996000830184611d47565b92915050565b6000602082019050611fb46000830184611d56565b92915050565b60006020820190508181036000830152611fd381611d65565b9050919050565b60006020820190508181036000830152611ff381611d88565b9050919050565b6000602082019050818103600083015261201381611dab565b9050919050565b6000602082019050818103600083015261203381611dce565b9050919050565b6000602082019050818103600083015261205381611df1565b9050919050565b6000602082019050818103600083015261207381611e14565b9050919050565b6000602082019050818103600083015261209381611e37565b9050919050565b600060208201905081810360008301526120b381611e5a565b9050919050565b600060208201905081810360008301526120d381611e7d565b9050919050565b600060208201905081810360008301526120f381611ea0565b9050919050565b600060208201905061210f6000830184611ec3565b92915050565b600060608201905061212a6000830186611ec3565b6121376020830185611ec3565b6121446040830184611ec3565b949350505050565b60006020820190506121616000830184611ed2565b92915050565b600082825260208201905092915050565b600061218382612482565b915061218e83612482565b9250827fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff038211156121c3576121c2612597565b5b828201905092915050565b60006121d982612482565b91506121e483612482565b9250826121f4576121f36125c6565b5b828204905092915050565b6000808291508390505b60018511156122495780860481111561222557612224612597565b5b60018516156122345780820291505b8081029050612242856125fa565b9450612209565b94509492505050565b600061225d82612482565b915061226883612482565b92506122957fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff848461229d565b905092915050565b6000826122ad5760019050612369565b816122bb5760009050612369565b81600181146122d157600281146122db5761230a565b6001915050612369565b60ff8411156122ed576122ec612597565b5b8360020a91508482111561230457612303612597565b5b50612369565b5060208310610133831016604e8410600b841016171561233f5782820a90508381111561233a57612339612597565b5b612369565b61234c84848460016121ff565b9250905081840481111561236357612362612597565b5b81810290505b9392505050565b600061237b82612482565b915061238683612482565b9250817fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff04831182151516156123bf576123be612597565b5b828202905092915050565b60006123d582612482565b91506123e083612482565b9250828210156123f3576123f2612597565b5b828203905092915050565b60006124098261248c565b91506124148361248c565b92508282101561242757612426612597565b5b828203905092915050565b600061243d82612462565b9050919050565b60008115159050919050565b600061245b82612432565b9050919050565b600073ffffffffffffffffffffffffffffffffffffffff82169050919050565b6000819050919050565b600060ff82169050919050565b60006124a4826124cf565b9050919050565b60006124b6826124cf565b9050919050565b60006124c8826124cf565b9050919050565b60006124da826124e1565b9050919050565b60006124ec82612462565b9050919050565b60006124fe82612482565b9150600082141561251257612511612597565b5b600182039050919050565b600061252882612482565b91507fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff82141561255b5761255a612597565b5b600182019050919050565b600061257182612482565b915061257c83612482565b92508261258c5761258b6125c6565b5b828206905092915050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052601160045260246000fd5b7f4e487b7100000000000000000000000000000000000000000000000000000000600052601260045260246000fd5b600080fd5b60008160011c9050919050565b7f596f75206d757374206265206e6f6d696e61746564206265666f726520796f7560008201527f2063616e20616363657074206f776e6572736869700000000000000000000000602082015250565b7f537570706c795363686564756c653a205a65726f204164647265737300000000600082015250565b7f5374616b696e672072657761726473206e6f7420736574000000000000000000600082015250565b7f537570706c795363686564756c653a205265776172642063616e6e6f7420657860008201527f63656564206d6178206d696e7465722072657761726400000000000000000000602082015250565b7f537570706c795363686564756c653a2043616e6e6f74206265206d6f7265207460008201527f68616e2031303025000000000000000000000000000000000000000000000000602082015250565b7f4f6e6c792074686520636f6e7472616374206f776e6572206d6179207065726660008201527f6f726d207468697320616374696f6e0000000000000000000000000000000000602082015250565b7f54726164696e672072657761726473206e6f7420736574000000000000000000600082015250565b7f416464726573732063616e6e6f74206265203000000000000000000000000000600082015250565b7f537570706c795363686564756c653a20496e76616c6964204164647265737300600082015250565b7f4e6f20737570706c79206973206d696e7461626c650000000000000000000000600082015250565b61284281612432565b811461284d57600080fd5b50565b61285981612450565b811461286457600080fd5b50565b61287081612482565b811461287b57600080fd5b5056fea264697066735822122024fcaf1daac0cd706bf13d0538fefa4a77de1d0d849c3feb8afafb7c735693aa64736f6c63430008070033",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {
+      "isMintable()": {
+        "returns": {
+          "_0": "boolean whether the MINT_PERIOD_DURATION (7 days) has passed since the lastMintEvent. "
+        }
+      },
+      "mintableSupply()": {
+        "returns": {
+          "_0": "The amount of KWENTA mintable for the inflationary supply"
+        }
+      },
+      "setMinterReward(uint256)": {
+        "params": {
+          "amount": "the amount of KWENTA to reward the minter. "
+        }
+      },
+      "setTreasuryDAO(address)": {
+        "details": "only owner may change address"
+      },
+      "terminalInflationSupply(uint256,uint256)": {
+        "details": "Weekly compound rate based on number of weeks",
+        "returns": {
+          "_0": "A unit amount of terminal inflation supply"
+        }
+      },
+      "tokenDecaySupplyForWeek(uint256)": {
+        "details": "New token supply reduces by the decay rate each week calculated as supply = INITIAL_WEEKLY_SUPPLY * ()",
+        "returns": {
+          "_0": "A unit amount of decaying inflationary supply from the INITIAL_WEEKLY_SUPPLY"
+        }
+      },
+      "weeksSinceLastIssuance()": {
+        "details": "Take timeDiff in seconds (Dividend) and MINT_PERIOD_DURATION as (Divisor)",
+        "returns": {
+          "_0": "Calculate the numberOfWeeks since last mint rounded down to 1 week"
+        }
+      }
+    },
+    "version": 1
+  },
+  "userdoc": {
+    "events": {
+      "KwentaUpdated(address)": {
+        "notice": "Emitted when setKwenta is called changing the Kwenta Proxy address*"
+      },
+      "MinterRewardUpdated(uint256)": {
+        "notice": "Emitted when the KWENTA minter reward amount is updated*"
+      },
+      "StakingRewardsUpdated(address)": {
+        "notice": "Emitted when StakingRewards is changed*"
+      },
+      "SupplyMinted(uint256,uint256,uint256)": {
+        "notice": "Emitted when the inflationary supply is minted*"
+      },
+      "TradingRewardsDiversionUpdated(uint256)": {
+        "notice": "Emitted when trading rewards inflation share is changed*"
+      },
+      "TradingRewardsUpdated(address)": {
+        "notice": "Emitted when TradingRewards is changed*"
+      },
+      "TreasuryDAOSet(address)": {
+        "notice": "Emitted when treasuryDAO address is changed*"
+      },
+      "TreasuryDiversionUpdated(uint256)": {
+        "notice": "Emitted when treasury inflation share is changed*"
+      }
+    },
+    "kind": "user",
+    "methods": {
+      "mint()": {
+        "notice": "Mints new inflationary supply weekly New KWENTA is distributed between the minter, treasury, and StakingRewards contract "
+      },
+      "setKwenta(address)": {
+        "notice": "Set the Kwenta should it ever change. SupplySchedule requires Kwenta address as it has the authority to record mint event. "
+      },
+      "setMinterReward(uint256)": {
+        "notice": "Sets the reward amount of KWENTA for the caller of the public function Kwenta.mint(). This incentivises anyone to mint the inflationary supply and the mintr Reward will be deducted from the inflationary supply and sent to the caller."
+      },
+      "setTreasuryDAO(address)": {
+        "notice": "set treasuryDAO address"
+      }
+    },
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 6516,
+        "contract": "contracts/SupplySchedule.sol:SupplySchedule",
+        "label": "owner",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_address"
+      },
+      {
+        "astId": 6518,
+        "contract": "contracts/SupplySchedule.sol:SupplySchedule",
+        "label": "nominatedOwner",
+        "offset": 0,
+        "slot": "1",
+        "type": "t_address"
+      },
+      {
+        "astId": 4451,
+        "contract": "contracts/SupplySchedule.sol:SupplySchedule",
+        "label": "kwenta",
+        "offset": 0,
+        "slot": "2",
+        "type": "t_contract(IKwenta)5280"
+      },
+      {
+        "astId": 4454,
+        "contract": "contracts/SupplySchedule.sol:SupplySchedule",
+        "label": "stakingRewards",
+        "offset": 0,
+        "slot": "3",
+        "type": "t_contract(IStakingRewards)5692"
+      },
+      {
+        "astId": 4457,
+        "contract": "contracts/SupplySchedule.sol:SupplySchedule",
+        "label": "tradingRewards",
+        "offset": 0,
+        "slot": "4",
+        "type": "t_contract(IMultipleMerkleDistributor)5440"
+      },
+      {
+        "astId": 4459,
+        "contract": "contracts/SupplySchedule.sol:SupplySchedule",
+        "label": "lastMintEvent",
+        "offset": 0,
+        "slot": "5",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 4461,
+        "contract": "contracts/SupplySchedule.sol:SupplySchedule",
+        "label": "weekCounter",
+        "offset": 0,
+        "slot": "6",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 4464,
+        "contract": "contracts/SupplySchedule.sol:SupplySchedule",
+        "label": "minterReward",
+        "offset": 0,
+        "slot": "7",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 4504,
+        "contract": "contracts/SupplySchedule.sol:SupplySchedule",
+        "label": "treasuryDiversion",
+        "offset": 0,
+        "slot": "8",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 4507,
+        "contract": "contracts/SupplySchedule.sol:SupplySchedule",
+        "label": "tradingRewardsDiversion",
+        "offset": 0,
+        "slot": "9",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 4509,
+        "contract": "contracts/SupplySchedule.sol:SupplySchedule",
+        "label": "treasuryDAO",
+        "offset": 0,
+        "slot": "10",
+        "type": "t_address"
+      }
+    ],
+    "types": {
+      "t_address": {
+        "encoding": "inplace",
+        "label": "address",
+        "numberOfBytes": "20"
+      },
+      "t_contract(IKwenta)5280": {
+        "encoding": "inplace",
+        "label": "contract IKwenta",
+        "numberOfBytes": "20"
+      },
+      "t_contract(IMultipleMerkleDistributor)5440": {
+        "encoding": "inplace",
+        "label": "contract IMultipleMerkleDistributor",
+        "numberOfBytes": "20"
+      },
+      "t_contract(IStakingRewards)5692": {
+        "encoding": "inplace",
+        "label": "contract IStakingRewards",
+        "numberOfBytes": "20"
+      },
+      "t_uint256": {
+        "encoding": "inplace",
+        "label": "uint256",
+        "numberOfBytes": "32"
+      }
+    }
+  }
+}
