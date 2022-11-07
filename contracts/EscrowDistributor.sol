@@ -23,6 +23,13 @@ contract EscrowDistributor {
         rewardEscrowAddr = _rewardEscrowAddr;
     }
 
+    /**
+     * @notice Set escrow amounts in batches.
+     * @dev required to approve this contract address to spend senders tokens before calling
+     * @param accounts: list of accounts to escrow
+     * @param amounts: corresponding list of amounts to escrow
+     * @param durationWeeks: number of weeks to escrow
+     */
     function distirbuteEscrowed(
         address[] calldata accounts,
         uint256[] calldata amounts,
