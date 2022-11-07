@@ -334,7 +334,7 @@ async function distributeKWENTA(
  * @helpers
  ************************************************/
 
-async function saveDeployments(name: string, contract: Contract) {
+export async function saveDeployments(name: string, contract: Contract) {
     // For hardhat-deploy plugin to save deployment artifacts
     const { deployments } = hre;
     const { save } = deployments;

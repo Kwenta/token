@@ -10,6 +10,7 @@
     "generate-distribution:traders": "npx ts-node ./scripts/distribution/trader-distribution.ts",
     "deploy:local": "npx hardhat run --network localhost scripts/deploy.ts",
     "deploy:testnet": "npx hardhat run --network optimistic-goerli scripts/deploy.ts",
+    "deploy:escrow-distributor:testnet": "npx hardhat run --network optimistic-goerli scripts/deploy-escrow-distributor.ts",
     "interact:local": "npx hardhat interact --network localhost"
   },
   "devDependencies": {

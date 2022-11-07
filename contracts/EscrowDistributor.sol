@@ -6,11 +6,11 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./interfaces/IRewardEscrow.sol";
 
 contract EscrowDistributor {
-    /// @notice kwenta token contract
-    address public immutable kwentaAddr;
-
     /// @notice rewards escrow contract
-    address public immutable rewardEscrowAddr;
+    IRewardEscrow public immutable rewardEscrow;
+
+    /// @notice kwenta token contract
+    IERC20 public immutable kwenta;
 
     event BatchEscrowed(
         uint256 totalAccounts,
@@ -18,9 +18,9 @@ contract EscrowDistributor {
         uint256 durationWeeks
     );
 
-    constructor(address _kwentaAddr, address _rewardEscrowAddr) {
-        kwentaAddr = _kwentaAddr;
-        rewardEscrowAddr = _rewardEscrowAddr;
+    constructor(address kwentaAddr, address rewardEscrowAddr) {
+        kwenta = IERC20(kwentaAddr);
+        rewardEscrow = IRewardEscrow(rewardEscrowAddr);
     }
 
     /**
@@ -30,7 +30,7 @@ contract EscrowDistributor {
      * @param amounts: corresponding list of amounts to escrow
      * @param durationWeeks: number of weeks to escrow
      */
-    function distirbuteEscrowed(
+    function distributeEscrowed(
         address[] calldata accounts,
         uint256[] calldata amounts,
         uint256 durationWeeks
@@ -40,24 +40,37 @@ contract EscrowDistributor {
             "Number of accounts does not match number of values"
         );
 
-        uint256 totalTokens = 0;
+        uint256 length = accounts.length;
+        uint256 totalTokens;
         uint256 duration = durationWeeks * 1 weeks;
 
-        for (uint16 index = 0; index < accounts.length; index++) {
-            totalTokens += amounts[index];
-        }
-        IERC20 kwenta = IERC20(kwentaAddr);
-        kwenta.transferFrom(msg.sender, address(this), totalTokens);
-        kwenta.approve(rewardEscrowAddr, totalTokens);
+        do {
+            unchecked {
+                --length;
+            }
+            totalTokens += amounts[length];
+        } while (length != 0);
 
-        for (uint16 index = 0; index < accounts.length; index++) {
-            IRewardEscrow(rewardEscrowAddr).createEscrowEntry(
-                accounts[index],
-                amounts[index],
+        kwenta.transferFrom(msg.sender, address(this), totalTokens);
+        kwenta.approve(address(rewardEscrow), totalTokens);
+
+        length = accounts.length;
+
+        do {
+            unchecked {
+                --length;
+            }
+            rewardEscrow.createEscrowEntry(
+                accounts[length],
+                amounts[length],
                 duration
             );
-        }
+        } while (length != 0);
 
-        emit BatchEscrowed(totalTokens, accounts.length, durationWeeks);
+        emit BatchEscrowed({
+            totalAccounts: accounts.length,
+            totalTokens: totalTokens,
+            durationWeeks: duration
+        });
     }
 }
