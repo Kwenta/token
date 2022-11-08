@@ -113,7 +113,7 @@ const loadSetup = () => {
 
         // deploy StakingRewards
         const StakingRewards = await ethers.getContractFactory(
-            "StakingRewards"
+            "contracts/StakingRewards.sol:StakingRewards"
         );
         stakingRewards = await StakingRewards.deploy(
             kwenta.address,
