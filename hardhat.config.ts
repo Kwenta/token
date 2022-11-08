@@ -87,6 +87,6 @@ export default {
     ]
   },
   exposed: {
-    exclude: ["**/libraries/SafeDecimalMath.sol"]
+    exclude: ["**/libraries/SafeDecimalMath.sol", "**/misc/LPRewards.sol"]
   },
 };
