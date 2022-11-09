@@ -305,21 +305,9 @@ async function distributeKWENTA(
     kwenta: Contract,
     vKwentaRedeemer: Contract
 ) {
-    // Transfer 5% KWENTA to vKwentaRedeemer
-    await kwenta.transfer(
-        vKwentaRedeemer.address,
-        wei(INITIAL_SUPPLY).mul(0.05).toBN()
-    );
-
-    // Transfer 95% KWENTA to Treasury
-    await kwenta.transfer(TREASURY_DAO, wei(INITIAL_SUPPLY).mul(0.95).toBN());
-
-    console.log(
-        "vKwentaRedeemer balance:     ",
-        ethers.utils.formatEther(
-            await kwenta.balanceOf(vKwentaRedeemer.address)
-        )
-    );
+    // Transfer 100% KWENTA to Treasury
+    await kwenta.transfer(TREASURY_DAO, wei(INITIAL_SUPPLY).toBN());
+    
     console.log(
         "TreasuryDAO balance:         ",
         ethers.utils.formatEther(await kwenta.balanceOf(TREASURY_DAO))
