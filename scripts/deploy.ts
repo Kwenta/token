@@ -61,7 +61,7 @@ async function main() {
     // set KWENTA address in SupplySchedule
     await supplySchedule.setKwenta(kwenta.address);
     console.log(
-        "SupplySchedule: Kwenta address set to:  ",
+        "SupplySchedule: Kwenta address set to:          ",
         await supplySchedule.kwenta()
     );
 
@@ -82,7 +82,7 @@ async function main() {
     // set StakingRewards address in RewardEscrow
     await rewardEscrow.setTreasuryDAO(TREASURY_DAO);
     console.log(
-        "RewardEscrow: TreasuryDAO address set to:    ",
+        "RewardEscrow: TreasuryDAO address set to:       ",
         await rewardEscrow.treasuryDAO()
     );
     console.log("✅ Setters set!");
@@ -287,11 +287,11 @@ async function deployMultipleMerkleDistributor(
         multipleMerkleDistributor.address
     );
 
-    await verify(multipleMerkleDistributor.address, [
-        owner.address,
-        kwenta.address,
-        rewardEscrow.address,
-    ]);
+    await verify(
+        multipleMerkleDistributor.address,
+        [owner.address, kwenta.address, rewardEscrow.address],
+        "contracts/MultipleMerkleDistributor.sol:MultipleMerkleDistributor" // to prevent bytecode clashes with contracts-exposed versions
+    );
 
     return multipleMerkleDistributor;
 }
@@ -307,7 +307,7 @@ async function distributeKWENTA(
 ) {
     // Transfer 100% KWENTA to Treasury
     await kwenta.transfer(TREASURY_DAO, wei(INITIAL_SUPPLY).toBN());
-    
+
     console.log(
         "TreasuryDAO balance:         ",
         ethers.utils.formatEther(await kwenta.balanceOf(TREASURY_DAO))
