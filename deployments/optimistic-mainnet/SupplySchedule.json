@@ -1,0 +1,852 @@
+{
+  "address": "0x3e8b82326Ff5f2f10da8CEa117bD44343ccb9c26",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_owner",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_treasuryDAO",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "newAddress",
+          "type": "address"
+        }
+      ],
+      "name": "KwentaUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "newRewardAmount",
+          "type": "uint256"
+        }
+      ],
+      "name": "MinterRewardUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "oldOwner",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnerChanged",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnerNominated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "newAddress",
+          "type": "address"
+        }
+      ],
+      "name": "StakingRewardsUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "supplyMinted",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "numberOfWeeksIssued",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "lastMintEvent",
+          "type": "uint256"
+        }
+      ],
+      "name": "SupplyMinted",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "newPercentage",
+          "type": "uint256"
+        }
+      ],
+      "name": "TradingRewardsDiversionUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "newAddress",
+          "type": "address"
+        }
+      ],
+      "name": "TradingRewardsUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "treasuryDAO",
+          "type": "address"
+        }
+      ],
+      "name": "TreasuryDAOSet",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "newPercentage",
+          "type": "uint256"
+        }
+      ],
+      "name": "TreasuryDiversionUpdated",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "DECAY_RATE",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "INITIAL_SUPPLY",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "INITIAL_WEEKLY_SUPPLY",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "MAX_MINTER_REWARD",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "MINT_BUFFER",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "MINT_PERIOD_DURATION",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "SUPPLY_DECAY_END",
+      "outputs": [
+        {
+          "internalType": "uint8",
+          "name": "",
+          "type": "uint8"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "SUPPLY_DECAY_START",
+      "outputs": [
+        {
+          "internalType": "uint8",
+          "name": "",
+          "type": "uint8"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "TERMINAL_SUPPLY_RATE_ANNUAL",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "acceptOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "inflationStartDate",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "isMintable",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "kwenta",
+      "outputs": [
+        {
+          "internalType": "contract IKwenta",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "lastMintEvent",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "mint",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "mintableSupply",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "minterReward",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_owner",
+          "type": "address"
+        }
+      ],
+      "name": "nominateNewOwner",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "nominatedOwner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "contract IKwenta",
+          "name": "_kwenta",
+          "type": "address"
+        }
+      ],
+      "name": "setKwenta",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "setMinterReward",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_stakingRewards",
+          "type": "address"
+        }
+      ],
+      "name": "setStakingRewards",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_tradingRewards",
+          "type": "address"
+        }
+      ],
+      "name": "setTradingRewards",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_tradingRewardsDiversion",
+          "type": "uint256"
+        }
+      ],
+      "name": "setTradingRewardsDiversion",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_treasuryDAO",
+          "type": "address"
+        }
+      ],
+      "name": "setTreasuryDAO",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_treasuryDiversion",
+          "type": "uint256"
+        }
+      ],
+      "name": "setTreasuryDiversion",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "stakingRewards",
+      "outputs": [
+        {
+          "internalType": "contract IStakingRewards",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "totalSupply",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "numOfWeeks",
+          "type": "uint256"
+        }
+      ],
+      "name": "terminalInflationSupply",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "counter",
+          "type": "uint256"
+        }
+      ],
+      "name": "tokenDecaySupplyForWeek",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "tradingRewards",
+      "outputs": [
+        {
+          "internalType": "contract IMultipleMerkleDistributor",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "tradingRewardsDiversion",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "treasuryDAO",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "treasuryDiversion",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "weekCounter",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "weeksSinceLastIssuance",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "numDeployments": 1,
+  "solcInputHash": "b1aabb2d46588b62ce288280957a2b34",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.7+commit.e28d00a7\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_owner\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_treasuryDAO\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"newAddress\",\"type\":\"address\"}],\"name\":\"KwentaUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"newRewardAmount\",\"type\":\"uint256\"}],\"name\":\"MinterRewardUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"oldOwner\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnerChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnerNominated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"newAddress\",\"type\":\"address\"}],\"name\":\"StakingRewardsUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"supplyMinted\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"numberOfWeeksIssued\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"lastMintEvent\",\"type\":\"uint256\"}],\"name\":\"SupplyMinted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"newPercentage\",\"type\":\"uint256\"}],\"name\":\"TradingRewardsDiversionUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"newAddress\",\"type\":\"address\"}],\"name\":\"TradingRewardsUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"treasuryDAO\",\"type\":\"address\"}],\"name\":\"TreasuryDAOSet\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"newPercentage\",\"type\":\"uint256\"}],\"name\":\"TreasuryDiversionUpdated\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"DECAY_RATE\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"INITIAL_SUPPLY\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"INITIAL_WEEKLY_SUPPLY\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"MAX_MINTER_REWARD\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"MINT_BUFFER\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"MINT_PERIOD_DURATION\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"SUPPLY_DECAY_END\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"SUPPLY_DECAY_START\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"TERMINAL_SUPPLY_RATE_ANNUAL\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"acceptOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"inflationStartDate\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"isMintable\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"kwenta\",\"outputs\":[{\"internalType\":\"contract IKwenta\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"lastMintEvent\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"mint\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"mintableSupply\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"minterReward\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_owner\",\"type\":\"address\"}],\"name\":\"nominateNewOwner\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"nominatedOwner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"contract IKwenta\",\"name\":\"_kwenta\",\"type\":\"address\"}],\"name\":\"setKwenta\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"setMinterReward\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_stakingRewards\",\"type\":\"address\"}],\"name\":\"setStakingRewards\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_tradingRewards\",\"type\":\"address\"}],\"name\":\"setTradingRewards\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_tradingRewardsDiversion\",\"type\":\"uint256\"}],\"name\":\"setTradingRewardsDiversion\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_treasuryDAO\",\"type\":\"address\"}],\"name\":\"setTreasuryDAO\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_treasuryDiversion\",\"type\":\"uint256\"}],\"name\":\"setTreasuryDiversion\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"stakingRewards\",\"outputs\":[{\"internalType\":\"contract IStakingRewards\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"totalSupply\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"numOfWeeks\",\"type\":\"uint256\"}],\"name\":\"terminalInflationSupply\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"counter\",\"type\":\"uint256\"}],\"name\":\"tokenDecaySupplyForWeek\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"tradingRewards\",\"outputs\":[{\"internalType\":\"contract IMultipleMerkleDistributor\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"tradingRewardsDiversion\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"treasuryDAO\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"treasuryDiversion\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"weekCounter\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"weeksSinceLastIssuance\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"isMintable()\":{\"returns\":{\"_0\":\"boolean whether the MINT_PERIOD_DURATION (7 days) has passed since the lastMintEvent. \"}},\"mintableSupply()\":{\"returns\":{\"_0\":\"The amount of KWENTA mintable for the inflationary supply\"}},\"setMinterReward(uint256)\":{\"params\":{\"amount\":\"the amount of KWENTA to reward the minter. \"}},\"setTreasuryDAO(address)\":{\"details\":\"only owner may change address\"},\"terminalInflationSupply(uint256,uint256)\":{\"details\":\"Weekly compound rate based on number of weeks\",\"returns\":{\"_0\":\"A unit amount of terminal inflation supply\"}},\"tokenDecaySupplyForWeek(uint256)\":{\"details\":\"New token supply reduces by the decay rate each week calculated as supply = INITIAL_WEEKLY_SUPPLY * ()\",\"returns\":{\"_0\":\"A unit amount of decaying inflationary supply from the INITIAL_WEEKLY_SUPPLY\"}},\"weeksSinceLastIssuance()\":{\"details\":\"Take timeDiff in seconds (Dividend) and MINT_PERIOD_DURATION as (Divisor)\",\"returns\":{\"_0\":\"Calculate the numberOfWeeks since last mint rounded down to 1 week\"}}},\"version\":1},\"userdoc\":{\"events\":{\"KwentaUpdated(address)\":{\"notice\":\"Emitted when setKwenta is called changing the Kwenta Proxy address*\"},\"MinterRewardUpdated(uint256)\":{\"notice\":\"Emitted when the KWENTA minter reward amount is updated*\"},\"StakingRewardsUpdated(address)\":{\"notice\":\"Emitted when StakingRewards is changed*\"},\"SupplyMinted(uint256,uint256,uint256)\":{\"notice\":\"Emitted when the inflationary supply is minted*\"},\"TradingRewardsDiversionUpdated(uint256)\":{\"notice\":\"Emitted when trading rewards inflation share is changed*\"},\"TradingRewardsUpdated(address)\":{\"notice\":\"Emitted when TradingRewards is changed*\"},\"TreasuryDAOSet(address)\":{\"notice\":\"Emitted when treasuryDAO address is changed*\"},\"TreasuryDiversionUpdated(uint256)\":{\"notice\":\"Emitted when treasury inflation share is changed*\"}},\"kind\":\"user\",\"methods\":{\"mint()\":{\"notice\":\"Mints new inflationary supply weekly New KWENTA is distributed between the minter, treasury, and StakingRewards contract \"},\"setKwenta(address)\":{\"notice\":\"Set the Kwenta should it ever change. SupplySchedule requires Kwenta address as it has the authority to record mint event. \"},\"setMinterReward(uint256)\":{\"notice\":\"Sets the reward amount of KWENTA for the caller of the public function Kwenta.mint(). This incentivises anyone to mint the inflationary supply and the mintr Reward will be deducted from the inflationary supply and sent to the caller.\"},\"setTreasuryDAO(address)\":{\"notice\":\"set treasuryDAO address\"}},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/SupplySchedule.sol\":\"SupplySchedule\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":1000},\"remappings\":[]},\"sources\":{\"contracts/SupplySchedule.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.0;\\n\\n// Inheritance\\nimport \\\"./utils/Owned.sol\\\";\\nimport \\\"./interfaces/ISupplySchedule.sol\\\";\\n\\n// Libraries\\nimport \\\"./libraries/SafeDecimalMath.sol\\\";\\nimport \\\"./libraries/Math.sol\\\";\\n\\n// Internal references\\nimport \\\"./interfaces/IERC20.sol\\\";\\nimport \\\"./interfaces/IKwenta.sol\\\";\\nimport \\\"./interfaces/IStakingRewards.sol\\\";\\nimport \\\"./interfaces/IMultipleMerkleDistributor.sol\\\";\\n\\n// https://docs.synthetix.io/contracts/source/contracts/supplyschedule\\ncontract SupplySchedule is Owned, ISupplySchedule {\\n    using SafeDecimalMath for uint;\\n    using Math for uint;\\n\\n    IKwenta public kwenta;\\n    IStakingRewards public stakingRewards;\\n    IMultipleMerkleDistributor public tradingRewards;\\n\\n    // Time of the last inflation supply mint event\\n    uint public lastMintEvent;\\n\\n    // Counter for number of weeks since the start of supply inflation\\n    uint public weekCounter;\\n\\n    // The number of KWENTA rewarded to the caller of Kwenta.mint()\\n    uint public minterReward = 1e18;\\n\\n    uint public constant INITIAL_SUPPLY = 313373e18;\\n\\n    // Initial Supply * 240% Initial Inflation Rate / 52 weeks.\\n    uint public constant INITIAL_WEEKLY_SUPPLY = INITIAL_SUPPLY * 240 / 100 / 52;\\n\\n    // Max KWENTA rewards for minter\\n    uint public constant MAX_MINTER_REWARD = 20 * 1e18;\\n\\n    // How long each inflation period is before mint can be called\\n    uint public constant MINT_PERIOD_DURATION = 1 weeks;\\n\\n    uint public immutable inflationStartDate;\\n    uint public constant MINT_BUFFER = 1 days;\\n    uint8 public constant SUPPLY_DECAY_START = 2; // Supply decay starts on the 2nd week of rewards\\n    uint8 public constant SUPPLY_DECAY_END = 208; // Inclusive of SUPPLY_DECAY_END week.\\n\\n    // Weekly percentage decay of inflationary supply\\n    uint public constant DECAY_RATE = 20500000000000000; // 2.05% weekly\\n\\n    // Percentage growth of terminal supply per annum\\n    uint public constant TERMINAL_SUPPLY_RATE_ANNUAL = 10000000000000000; // 1.0% pa\\n\\n    uint public treasuryDiversion = 2000; // 20% to treasury\\n    uint public tradingRewardsDiversion = 2000;\\n\\n    // notice treasury address may change\\n    address public treasuryDAO;\\n\\n    /* ========== EVENTS ========== */\\n    \\n    /**\\n     * @notice Emitted when the inflationary supply is minted\\n     **/\\n    event SupplyMinted(uint supplyMinted, uint numberOfWeeksIssued, uint lastMintEvent);\\n\\n    /**\\n     * @notice Emitted when the KWENTA minter reward amount is updated\\n     **/\\n    event MinterRewardUpdated(uint newRewardAmount);\\n\\n    /**\\n     * @notice Emitted when setKwenta is called changing the Kwenta Proxy address\\n     **/\\n    event KwentaUpdated(address newAddress);\\n\\n    /**\\n     * @notice Emitted when treasury inflation share is changed\\n     **/\\n    event TreasuryDiversionUpdated(uint newPercentage);\\n\\n    /**\\n     * @notice Emitted when trading rewards inflation share is changed\\n     **/\\n    event TradingRewardsDiversionUpdated(uint newPercentage);\\n\\n    /**\\n     * @notice Emitted when StakingRewards is changed\\n     **/\\n    event StakingRewardsUpdated(address newAddress);\\n\\n    /**\\n     * @notice Emitted when TradingRewards is changed\\n     **/\\n    event TradingRewardsUpdated(address newAddress);\\n\\n    /**\\n     * @notice Emitted when treasuryDAO address is changed\\n     **/\\n    event TreasuryDAOSet(address treasuryDAO);\\n\\n    constructor(\\n        address _owner,\\n        address _treasuryDAO\\n    ) Owned(_owner) {\\n        treasuryDAO = _treasuryDAO;\\n\\n        inflationStartDate = block.timestamp; // inflation starts as soon as the contract is deployed.\\n        lastMintEvent = block.timestamp;\\n        weekCounter = 0;\\n    }\\n\\n    // ========== VIEWS ==========\\n\\n    /**\\n     * @return The amount of KWENTA mintable for the inflationary supply\\n     */\\n    function mintableSupply() override public view returns (uint) {\\n        uint totalAmount;\\n\\n        if (!isMintable()) {\\n            return totalAmount;\\n        }\\n\\n        uint remainingWeeksToMint = weeksSinceLastIssuance();\\n\\n        uint currentWeek = weekCounter;\\n\\n        // Calculate total mintable supply from exponential decay function\\n        // The decay function stops after week 208\\n        while (remainingWeeksToMint > 0) {\\n            currentWeek++;\\n\\n            if (currentWeek < SUPPLY_DECAY_START) {\\n                // If current week is before supply decay we add initial supply to mintableSupply\\n                totalAmount = totalAmount + INITIAL_WEEKLY_SUPPLY;\\n                remainingWeeksToMint--;\\n            } else if (currentWeek <= SUPPLY_DECAY_END) {\\n                // if current week before supply decay ends we add the new supply for the week\\n                // diff between current week and (supply decay start week - 1)\\n                uint decayCount = currentWeek - (SUPPLY_DECAY_START - 1);\\n\\n                totalAmount = totalAmount + tokenDecaySupplyForWeek(decayCount);\\n                remainingWeeksToMint--;\\n            } else {\\n                // Terminal supply is calculated on the total supply of Kwenta including any new supply\\n                // We can compound the remaining week's supply at the fixed terminal rate\\n                uint totalSupply = IERC20(kwenta).totalSupply();\\n                uint currentTotalSupply = totalSupply + totalAmount;\\n\\n                totalAmount = totalAmount + terminalInflationSupply(currentTotalSupply, remainingWeeksToMint);\\n                remainingWeeksToMint = 0;\\n            }\\n        }\\n\\n        return totalAmount;\\n    }\\n\\n    /**\\n     * @return A unit amount of decaying inflationary supply from the INITIAL_WEEKLY_SUPPLY\\n     * @dev New token supply reduces by the decay rate each week calculated as supply = INITIAL_WEEKLY_SUPPLY * ()\\n     */\\n    function tokenDecaySupplyForWeek(uint counter) public pure returns (uint) {\\n        // Apply exponential decay function to number of weeks since\\n        // start of inflation smoothing to calculate diminishing supply for the week.\\n        uint effectiveDecay = (SafeDecimalMath.unit() - DECAY_RATE).powDecimal(counter);\\n        uint supplyForWeek = INITIAL_WEEKLY_SUPPLY.multiplyDecimal(effectiveDecay);\\n\\n        return supplyForWeek;\\n    }\\n\\n    /**\\n     * @return A unit amount of terminal inflation supply\\n     * @dev Weekly compound rate based on number of weeks\\n     */\\n    function terminalInflationSupply(uint totalSupply, uint numOfWeeks) public pure returns (uint) {\\n        // rate = (1 + weekly rate) ^ num of weeks\\n        uint effectiveCompoundRate = (SafeDecimalMath.unit() + (TERMINAL_SUPPLY_RATE_ANNUAL / 52)).powDecimal(numOfWeeks);\\n\\n        // return Supply * (effectiveRate - 1) for extra supply to issue based on number of weeks\\n        return totalSupply.multiplyDecimal(effectiveCompoundRate - SafeDecimalMath.unit());\\n    }\\n\\n    /**\\n     * @dev Take timeDiff in seconds (Dividend) and MINT_PERIOD_DURATION as (Divisor)\\n     * @return Calculate the numberOfWeeks since last mint rounded down to 1 week\\n     */\\n    function weeksSinceLastIssuance() public view returns (uint) {\\n        // Get weeks since lastMintEvent\\n        // If lastMintEvent not set or 0, then start from inflation start date.\\n        uint timeDiff = block.timestamp - lastMintEvent;\\n        return timeDiff / MINT_PERIOD_DURATION;\\n    }\\n\\n    /**\\n     * @return boolean whether the MINT_PERIOD_DURATION (7 days)\\n     * has passed since the lastMintEvent.\\n     * */\\n    function isMintable() override public view returns (bool) {\\n        return block.timestamp - lastMintEvent > MINT_PERIOD_DURATION;\\n    }\\n\\n    // ========== MUTATIVE FUNCTIONS ==========\\n\\n    /**\\n     * @notice Record the mint event from Kwenta by incrementing the inflation\\n     * week counter for the number of weeks minted (probabaly always 1)\\n     * and store the time of the event.\\n     * @param supplyMinted the amount of KWENTA the total supply was inflated by.\\n     * */\\n    function recordMintEvent(uint supplyMinted) internal returns (bool) {\\n        uint numberOfWeeksIssued = weeksSinceLastIssuance();\\n\\n        // add number of weeks minted to weekCounter\\n        weekCounter = weekCounter + numberOfWeeksIssued;\\n\\n        // Update mint event to latest week issued (start date + number of weeks issued * seconds in week)\\n        // 1 day time buffer is added so inflation is minted after feePeriod closes\\n        lastMintEvent = inflationStartDate + (weekCounter * MINT_PERIOD_DURATION) + MINT_BUFFER;\\n\\n        emit SupplyMinted(supplyMinted, numberOfWeeksIssued, lastMintEvent);\\n        return true;\\n    }\\n\\n    /**\\n     * @notice Mints new inflationary supply weekly\\n     * New KWENTA is distributed between the minter, treasury, and StakingRewards contract\\n     * */\\n    function mint() override external {\\n        require(address(stakingRewards) != address(0), \\\"Staking rewards not set\\\");\\n        require(address(tradingRewards) != address(0), \\\"Trading rewards not set\\\");\\n\\n        uint supplyToMint = mintableSupply();\\n        require(supplyToMint > 0, \\\"No supply is mintable\\\");\\n\\n        // record minting event before mutation to token supply\\n        recordMintEvent(supplyToMint);\\n\\n        uint amountToDistribute = supplyToMint - minterReward;\\n        uint amountToTreasury = amountToDistribute * treasuryDiversion / 10000;\\n        uint amountToTradingRewards = amountToDistribute * tradingRewardsDiversion / 10000;\\n        uint amountToStakingRewards = amountToDistribute - amountToTreasury - amountToTradingRewards;\\n\\n        kwenta.mint(treasuryDAO, amountToTreasury);\\n        kwenta.mint(address(tradingRewards), amountToTradingRewards);\\n        kwenta.mint(address(stakingRewards), amountToStakingRewards);\\n        stakingRewards.notifyRewardAmount(amountToStakingRewards);\\n        kwenta.mint(msg.sender, minterReward);\\n    }\\n\\n    // ========== SETTERS ========== */\\n\\n    /**\\n     * @notice Set the Kwenta should it ever change.\\n     * SupplySchedule requires Kwenta address as it has the authority\\n     * to record mint event.\\n     * */\\n    function setKwenta(IKwenta _kwenta) external onlyOwner {\\n        require(address(_kwenta) != address(0), \\\"Address cannot be 0\\\");\\n        kwenta = _kwenta;\\n        emit KwentaUpdated(address(kwenta));\\n    }\\n\\n    /**\\n     * @notice Sets the reward amount of KWENTA for the caller of the public\\n     * function Kwenta.mint().\\n     * This incentivises anyone to mint the inflationary supply and the mintr\\n     * Reward will be deducted from the inflationary supply and sent to the caller.\\n     * @param amount the amount of KWENTA to reward the minter.\\n     * */\\n    function setMinterReward(uint amount) external onlyOwner {\\n        require(amount <= MAX_MINTER_REWARD, \\\"SupplySchedule: Reward cannot exceed max minter reward\\\");\\n        minterReward = amount;\\n        emit MinterRewardUpdated(minterReward);\\n    }\\n\\n    function setTreasuryDiversion(uint _treasuryDiversion) override external onlyOwner {\\n        require(_treasuryDiversion + tradingRewardsDiversion < 10000, \\\"SupplySchedule: Cannot be more than 100%\\\");\\n        treasuryDiversion = _treasuryDiversion;\\n        emit TreasuryDiversionUpdated(_treasuryDiversion);\\n    }\\n\\n    function setTradingRewardsDiversion(uint _tradingRewardsDiversion) override external onlyOwner {\\n        require(_tradingRewardsDiversion + treasuryDiversion < 10000, \\\"SupplySchedule: Cannot be more than 100%\\\");\\n        tradingRewardsDiversion = _tradingRewardsDiversion;\\n        emit TradingRewardsDiversionUpdated(_tradingRewardsDiversion);\\n    }\\n\\n    function setStakingRewards(address _stakingRewards) override external onlyOwner {\\n        require(_stakingRewards != address(0), \\\"SupplySchedule: Invalid Address\\\");\\n        stakingRewards = IStakingRewards(_stakingRewards);\\n        emit StakingRewardsUpdated(_stakingRewards);\\n    }\\n\\n    function setTradingRewards(address _tradingRewards) override external onlyOwner {\\n        require(_tradingRewards != address(0), \\\"SupplySchedule: Invalid Address\\\");\\n        tradingRewards = IMultipleMerkleDistributor(_tradingRewards);\\n        emit TradingRewardsUpdated(_tradingRewards);\\n    }\\n\\n    /// @notice set treasuryDAO address\\n    /// @dev only owner may change address\\n    function setTreasuryDAO(address _treasuryDAO) external onlyOwner {\\n        require(_treasuryDAO != address(0), \\\"SupplySchedule: Zero Address\\\");\\n        treasuryDAO = _treasuryDAO;\\n        emit TreasuryDAOSet(treasuryDAO);\\n    }\\n}\",\"keccak256\":\"0xab512ee837c58d2438a40087dc461a7e3ea026934b622f3ebc1f1d3401e06aa4\",\"license\":\"MIT\"},\"contracts/interfaces/IERC20.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity >=0.5.0 <0.9.0;\\n\\n/**\\n * @dev Interface of the ERC20 standard as defined in the EIP.\\n */\\ninterface IERC20 {\\n    /**\\n     * @dev Returns the amount of tokens in existence.\\n     */\\n    function totalSupply() external view returns (uint256);\\n\\n    /**\\n     * @dev Returns the amount of tokens owned by `account`.\\n     */\\n    function balanceOf(address account) external view returns (uint256);\\n\\n    /**\\n     * @dev Moves `amount` tokens from the caller's account to `recipient`.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * Emits a {Transfer} event.\\n     */\\n    function transfer(address recipient, uint256 amount) external returns (bool);\\n\\n    /**\\n     * @dev Returns the remaining number of tokens that `spender` will be\\n     * allowed to spend on behalf of `owner` through {transferFrom}. This is\\n     * zero by default.\\n     *\\n     * This value changes when {approve} or {transferFrom} are called.\\n     */\\n    function allowance(address owner, address spender) external view returns (uint256);\\n\\n    /**\\n     * @dev Sets `amount` as the allowance of `spender` over the caller's tokens.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * IMPORTANT: Beware that changing an allowance with this method brings the risk\\n     * that someone may use both the old and the new allowance by unfortunate\\n     * transaction ordering. One possible solution to mitigate this race\\n     * condition is to first reduce the spender's allowance to 0 and set the\\n     * desired value afterwards:\\n     * https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729\\n     *\\n     * Emits an {Approval} event.\\n     */\\n    function approve(address spender, uint256 amount) external returns (bool);\\n\\n    /**\\n     * @dev Moves `amount` tokens from `sender` to `recipient` using the\\n     * allowance mechanism. `amount` is then deducted from the caller's\\n     * allowance.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * Emits a {Transfer} event.\\n     */\\n    function transferFrom(\\n        address sender,\\n        address recipient,\\n        uint256 amount\\n    ) external returns (bool);\\n\\n    /**\\n     * @dev Emitted when `value` tokens are moved from one account (`from`) to\\n     * another (`to`).\\n     *\\n     * Note that `value` may be zero.\\n     */\\n    event Transfer(address indexed from, address indexed to, uint256 value);\\n\\n    /**\\n     * @dev Emitted when the allowance of a `spender` for an `owner` is set by\\n     * a call to {approve}. `value` is the new allowance.\\n     */\\n    event Approval(address indexed owner, address indexed spender, uint256 value);\\n}\",\"keccak256\":\"0x4975dd08bb3659d99d2609a9395592b1abde8411a7181b3469aee3bc119b3bb0\",\"license\":\"MIT\"},\"contracts/interfaces/IKwenta.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity ^0.8.0;\\n\\nimport \\\"./IERC20.sol\\\";\\n\\ninterface IKwenta is IERC20 {\\n\\n    function mint(address account, uint amount) external;\\n\\n    function burn(uint amount) external;\\n\\n    function setSupplySchedule(address _supplySchedule) external;\\n\\n}\",\"keccak256\":\"0x53e96730a3089130ac55caef8b3e650bccd165fc1f0e261e9ef5bae93157686b\",\"license\":\"MIT\"},\"contracts/interfaces/IMultipleMerkleDistributor.sol\":{\"content\":\"// SPDX-License-Identifier: UNLICENSED\\npragma solidity >=0.8.0;\\n\\n// Allows anyone to claim a token if they exist in a merkle root.\\ninterface IMultipleMerkleDistributor {\\n    /// @notice data structure for aggregating multiple claims\\n    struct Claims {\\n        uint256 index;\\n        address account;\\n        uint256 amount;\\n        bytes32[] merkleProof;\\n        uint256 epoch;\\n    }\\n\\n    /// @notice event is triggered whenever a call to `claim` succeeds\\n    event Claimed(\\n        uint256 index,\\n        address account,\\n        uint256 amount,\\n        uint256 epoch\\n    );\\n\\n    /// @notice event is triggered whenever a new merkle root is added\\n    event MerkleRootAdded(uint256 epoch);\\n\\n    /// @return escrow for tokens claimed\\n    function rewardEscrow() external view returns (address);\\n\\n    /// @return token to be distributed (KWENTA)\\n    function token() external view returns (address);\\n\\n    // @return the merkle root of the merkle tree containing account balances available to claim\\n    function merkleRoots(uint256) external view returns (bytes32);\\n\\n    /// @notice determine if indexed claim has been claimed\\n    /// @param index: used for claim managment\\n    /// @param epoch: distribution index number\\n    /// @return true if indexed claim has been claimed\\n    function isClaimed(uint256 index, uint256 epoch)\\n        external\\n        view\\n        returns (bool);\\n\\n    /// @notice attempt to claim as `account` and escrow KWENTA for `account`\\n    /// @param index: used for merkle tree managment and verification\\n    /// @param account: address used for escrow entry\\n    /// @param amount: $KWENTA amount to be escrowed\\n    /// @param merkleProof: off-chain generated proof of merkle tree inclusion\\n    /// @param epoch: distribution index number\\n    function claim(\\n        uint256 index,\\n        address account,\\n        uint256 amount,\\n        bytes32[] calldata merkleProof,\\n        uint256 epoch\\n    ) external;\\n\\n    /// @notice function that aggregates multiple claims\\n    /// @param claims: array of valid claims\\n    function claimMultiple(Claims[] calldata claims) external;\\n}\\n\",\"keccak256\":\"0xc7ce087e1e52e6ed2aeb1527054478ddfb86898f24a9f2e7480d1927db53d6e1\",\"license\":\"UNLICENSED\"},\"contracts/interfaces/IStakingRewards.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.0;\\n\\ninterface IStakingRewards {\\n    /// VIEWS\\n    // token state\\n    function totalSupply() external view returns (uint256);\\n    // staking state\\n    function balanceOf(address account) external view returns (uint256);\\n    function escrowedBalanceOf(address account) external view returns (uint256);\\n    function nonEscrowedBalanceOf(address account) external view returns (uint256);\\n    // rewards\\n    function getRewardForDuration() external view returns (uint256);\\n    function rewardPerToken() external view returns (uint256);\\n    function lastTimeRewardApplicable() external view returns (uint256);\\n    function earned(address account) external view returns (uint256);\\n\\n    /// MUTATIVE\\n    // Staking/Unstaking\\n    function stake(uint256 amount) external;\\n    function unstake(uint256 amount) external;\\n    function stakeEscrow(address account, uint256 amount) external;\\n    function unstakeEscrow(address account, uint256 amount) external;\\n    function exit() external;\\n    // claim rewards\\n    function getReward() external;\\n    // settings\\n    function notifyRewardAmount(uint256 reward) external;\\n    function setRewardsDuration(uint256 _rewardsDuration) external;\\n    // pausable\\n    function pauseStakingRewards() external;\\n    function unpauseStakingRewards() external;\\n    // misc.\\n    function recoverERC20(address tokenAddress, uint256 tokenAmount) external;\\n}\\n\",\"keccak256\":\"0x013719683895bb417eda86625eef763dd0254a2dc7f93911a11c25a34b77a059\",\"license\":\"MIT\"},\"contracts/interfaces/ISupplySchedule.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity >=0.4.24;\\n\\ninterface ISupplySchedule {\\n    // Views\\n    function mintableSupply() external view returns (uint);\\n\\n    function isMintable() external view returns (bool);\\n\\n    // Mutative functions\\n\\n    function mint() external;\\n\\n    function setTreasuryDiversion(uint _treasuryDiversion) external;\\n\\n    function setTradingRewardsDiversion(uint _tradingRewardsDiversion) external;\\n    \\n    function setStakingRewards(address _stakingRewards) external;\\n\\n    function setTradingRewards(address _tradingRewards) external;\\n}\",\"keccak256\":\"0x9a0226bfbaa38fb9489133bcd16af7d2279745b725248cedf72261220892fed2\",\"license\":\"MIT\"},\"contracts/libraries/Math.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.0;\\n\\n// Libraries\\nimport \\\"./SafeDecimalMath.sol\\\";\\n\\n// https://docs.synthetix.io/contracts/source/libraries/math\\nlibrary Math {\\n    using SafeDecimalMath for uint;\\n\\n    /**\\n     * @dev Uses \\\"exponentiation by squaring\\\" algorithm where cost is 0(logN)\\n     * vs 0(N) for naive repeated multiplication.\\n     * Calculates x^n with x as fixed-point and n as regular unsigned int.\\n     * Calculates to 18 digits of precision with SafeDecimalMath.unit()\\n     */\\n    function powDecimal(uint x, uint n) internal pure returns (uint) {\\n        // https://mpark.github.io/programming/2014/08/18/exponentiation-by-squaring/\\n\\n        uint result = SafeDecimalMath.unit();\\n        while (n > 0) {\\n            if (n % 2 != 0) {\\n                result = result.multiplyDecimal(x);\\n            }\\n            x = x.multiplyDecimal(x);\\n            n /= 2;\\n        }\\n        return result;\\n    }\\n}\",\"keccak256\":\"0xc67a58428209dcfa355ad5e4ac4da375b9796af5801a0b4d78a12cf77134674b\",\"license\":\"MIT\"},\"contracts/libraries/SafeDecimalMath.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.0;\\n\\n// https://docs.synthetix.io/contracts/source/libraries/safedecimalmath\\nlibrary SafeDecimalMath {\\n    /* Number of decimal places in the representations. */\\n    uint8 public constant decimals = 18;\\n    uint8 public constant highPrecisionDecimals = 27;\\n\\n    /* The number representing 1.0. */\\n    uint256 public constant UNIT = 10**uint256(decimals);\\n\\n    /* The number representing 1.0 for higher fidelity numbers. */\\n    uint256 public constant PRECISE_UNIT = 10**uint256(highPrecisionDecimals);\\n    uint256 private constant UNIT_TO_HIGH_PRECISION_CONVERSION_FACTOR =\\n        10**uint256(highPrecisionDecimals - decimals);\\n\\n    /**\\n     * @return Provides an interface to UNIT.\\n     */\\n    function unit() external pure returns (uint256) {\\n        return UNIT;\\n    }\\n\\n    /**\\n     * @return Provides an interface to PRECISE_UNIT.\\n     */\\n    function preciseUnit() external pure returns (uint256) {\\n        return PRECISE_UNIT;\\n    }\\n\\n    /**\\n     * @return The result of multiplying x and y, interpreting the operands as fixed-point\\n     * decimals.\\n     *\\n     * @dev A unit factor is divided out after the product of x and y is evaluated,\\n     * so that product must be less than 2**256. As this is an integer division,\\n     * the internal division always rounds down. This helps save on gas. Rounding\\n     * is more expensive on gas.\\n     */\\n    function multiplyDecimal(uint256 x, uint256 y)\\n        internal\\n        pure\\n        returns (uint256)\\n    {\\n        /* Divide by UNIT to remove the extra factor introduced by the product. */\\n        return (x * y) / UNIT;\\n    }\\n\\n    /**\\n     * @return The result of safely dividing x and y. The return value is a high\\n     * precision decimal.\\n     *\\n     * @dev y is divided after the product of x and the standard precision unit\\n     * is evaluated, so the product of x and UNIT must be less than 2**256. As\\n     * this is an integer division, the result is always rounded down.\\n     * This helps save on gas. Rounding is more expensive on gas.\\n     */\\n    function divideDecimal(uint256 x, uint256 y)\\n        internal\\n        pure\\n        returns (uint256)\\n    {\\n        /* Reintroduce the UNIT factor that will be divided out by y. */\\n        return (x * UNIT) / y;\\n    }\\n\\n    /**\\n     * @dev Convert a standard decimal representation to a high precision one.\\n     */\\n    function decimalToPreciseDecimal(uint256 i)\\n        internal\\n        pure\\n        returns (uint256)\\n    {\\n        return i * UNIT_TO_HIGH_PRECISION_CONVERSION_FACTOR;\\n    }\\n\\n    /**\\n     * @dev Convert a high precision decimal to a standard decimal representation.\\n     */\\n    function preciseDecimalToDecimal(uint256 i)\\n        internal\\n        pure\\n        returns (uint256)\\n    {\\n        uint256 quotientTimesTen = i /\\n            (UNIT_TO_HIGH_PRECISION_CONVERSION_FACTOR / 10);\\n\\n        if (quotientTimesTen % 10 >= 5) {\\n            quotientTimesTen += 10;\\n        }\\n\\n        return quotientTimesTen / 10;\\n    }\\n\\n    // Computes `a - b`, setting the value to 0 if b > a.\\n    function floorsub(uint256 a, uint256 b) internal pure returns (uint256) {\\n        return b >= a ? 0 : a - b;\\n    }\\n}\\n\",\"keccak256\":\"0x7adb30d5dbb2b75f41e7b17e118731436a5454adf930295249df7b842fa10b04\",\"license\":\"MIT\"},\"contracts/utils/Owned.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.0;\\n\\n// https://docs.synthetix.io/contracts/source/contracts/owned\\ncontract Owned {\\n    address public owner;\\n    address public nominatedOwner;\\n\\n    constructor(address _owner) {\\n        require(_owner != address(0), \\\"Owner address cannot be 0\\\");\\n        owner = _owner;\\n        emit OwnerChanged(address(0), _owner);\\n    }\\n\\n    function nominateNewOwner(address _owner) external onlyOwner {\\n        nominatedOwner = _owner;\\n        emit OwnerNominated(_owner);\\n    }\\n\\n    function acceptOwnership() external {\\n        require(msg.sender == nominatedOwner, \\\"You must be nominated before you can accept ownership\\\");\\n        emit OwnerChanged(owner, nominatedOwner);\\n        owner = nominatedOwner;\\n        nominatedOwner = address(0);\\n    }\\n\\n    modifier onlyOwner {\\n        _onlyOwner();\\n        _;\\n    }\\n\\n    function _onlyOwner() private view {\\n        require(msg.sender == owner, \\\"Only the contract owner may perform this action\\\");\\n    }\\n\\n    event OwnerNominated(address newOwner);\\n    event OwnerChanged(address oldOwner, address newOwner);\\n}\\n\",\"keccak256\":\"0x9f51a9dd99cc51a332f0a635628dc89262c126c358e4e89041aadbe9a519b06a\",\"license\":\"MIT\"}},\"version\":1}",
+  "bytecode": "0x60a0604052670de0b6b3a76400006007556107d06008556107d06009553480156200002957600080fd5b5060405162001920380380620019208339810160408190526200004c9162000152565b816001600160a01b038116620000a85760405162461bcd60e51b815260206004820152601960248201527f4f776e657220616464726573732063616e6e6f74206265203000000000000000604482015260640160405180910390fd5b600080546001600160a01b0319166001600160a01b03831690811782556040805192835260208301919091527fb532073b38c83145e3e5135377a08bf9aab55bc0fd7c1179cd4fb995d2a5159c910160405180910390a150600a80546001600160a01b0319166001600160a01b03929092169190911790555042608081905260055560006006556200018a565b80516001600160a01b03811681146200014d57600080fd5b919050565b600080604083850312156200016657600080fd5b620001718362000135565b9150620001816020840162000135565b90509250929050565b608051611773620001ad600039600081816102ef01526112e801526117736000f3fe608060405234801561001057600080fd5b506004361061025c5760003560e01c806379ba509711610145578063badef30a116100bd578063cc5c095c1161008c578063dbd3a6a711610071578063dbd3a6a7146104a0578063df5a9fc1146104a8578063f9fad053146104b257600080fd5b8063cc5c095c1461048f578063d3bd4bde1461049757600080fd5b8063badef30a1461046c578063bccdd03014610474578063be1ff71e1461047d578063be801f011461048657600080fd5b80639bdd7ac711610114578063a46eddcf116100f9578063a46eddcf14610433578063ad18e97e14610446578063b3b2bcc01461045957600080fd5b80639bdd7ac7146104175780639df92eb71461042057600080fd5b806379ba5097146103e15780637c060557146103e95780638da5cb5b146103f15780639034802b1461040457600080fd5b806346872a23116101d857806353a47bb7116101a7578063689fccc61161018c578063689fccc6146103a85780636fb83a57146103bb578063758b19d3146103ce57600080fd5b806353a47bb71461036a57806364b87a701461039557600080fd5b806346872a231461032257806346b45af71461032c5780634ae26521146103445780634e070f501461035757600080fd5b8063238fb77f1161022f578063255420641161021457806325542064146102dc57806326f75e05146102ea5780632ff2e9dc1461031157600080fd5b8063238fb77f146102af578063251330f1146102c257600080fd5b80631249c58b146102615780631627540c1461026b5780631de40e491461027e57806322af2bab1461029f575b600080fd5b6102696104c5565b005b6102696102793660046114d2565b61086b565b61028c6648d4a431e5400081565b6040519081526020015b60405180910390f35b61028c6801158e460913d0000081565b6102696102bd3660046114d2565b6108c8565b6102ca600281565b60405160ff9091168152602001610296565b61028c662386f26fc1000081565b61028c7f000000000000000000000000000000000000000000000000000000000000000081565b61028c69425bfbffaab01654000081565b61028c6201518081565b610334610974565b6040519015158152602001610296565b6102696103523660046114ef565b61098e565b61028c6103653660046114ef565b610a4a565b60015461037d906001600160a01b031681565b6040516001600160a01b039091168152602001610296565b60035461037d906001600160a01b031681565b6102696103b63660046114ef565b610b28565b6102696103c93660046114d2565b610bd4565b6102696103dc3660046114d2565b610c80565b610269610d2c565b6102ca60d081565b60005461037d906001600160a01b031681565b60025461037d906001600160a01b031681565b61028c60075481565b61026961042e3660046114ef565b610e1e565b6102696104413660046114d2565b610eca565b600a5461037d906001600160a01b031681565b61028c610467366004611521565b610f76565b61028c6110b1565b61028c60085481565b61028c60095481565b61028c60055481565b61028c6110e1565b61028c60065481565b61028c611289565b61028c62093a8081565b60045461037d906001600160a01b031681565b6003546001600160a01b03166105225760405162461bcd60e51b815260206004820152601760248201527f5374616b696e672072657761726473206e6f742073657400000000000000000060448201526064015b60405180910390fd5b6004546001600160a01b031661057a5760405162461bcd60e51b815260206004820152601760248201527f54726164696e672072657761726473206e6f74207365740000000000000000006044820152606401610519565b60006105846110e1565b9050600081116105d65760405162461bcd60e51b815260206004820152601560248201527f4e6f20737570706c79206973206d696e7461626c6500000000000000000000006044820152606401610519565b6105df816112af565b506000600754826105f09190611679565b9050600061271060085483610605919061165a565b61060f919061155b565b9050600061271060095484610624919061165a565b61062e919061155b565b905060008161063d8486611679565b6106479190611679565b600254600a546040516340c10f1960e01b81526001600160a01b0391821660048201526024810187905292935016906340c10f1990604401600060405180830381600087803b15801561069957600080fd5b505af11580156106ad573d6000803e3d6000fd5b5050600254600480546040516340c10f1960e01b81526001600160a01b03918216928101929092526024820187905290911692506340c10f199150604401600060405180830381600087803b15801561070557600080fd5b505af1158015610719573d6000803e3d6000fd5b50506002546003546040516340c10f1960e01b81526001600160a01b03918216600482015260248101869052911692506340c10f199150604401600060405180830381600087803b15801561076d57600080fd5b505af1158015610781573d6000803e3d6000fd5b50506003546040517f3c6b16ab000000000000000000000000000000000000000000000000000000008152600481018590526001600160a01b039091169250633c6b16ab9150602401600060405180830381600087803b1580156107e457600080fd5b505af11580156107f8573d6000803e3d6000fd5b50506002546007546040516340c10f1960e01b815233600482015260248101919091526001600160a01b0390911692506340c10f199150604401600060405180830381600087803b15801561084c57600080fd5b505af1158015610860573d6000803e3d6000fd5b505050505050505050565b610873611364565b600180546001600160a01b0319166001600160a01b0383169081179091556040519081527f906a1c6bd7e3091ea86693dd029a831c19049ce77f1dce2ce0bab1cacbabce22906020015b60405180910390a150565b6108d0611364565b6001600160a01b0381166109265760405162461bcd60e51b815260206004820152601f60248201527f537570706c795363686564756c653a20496e76616c69642041646472657373006044820152606401610519565b600480546001600160a01b0319166001600160a01b0383169081179091556040519081527f2600f737e588eec1a845714266bf64b2f65c9d3f624e452a2b64611c33108ab0906020016108bd565b600062093a80600554426109889190611679565b11905090565b610996611364565b6801158e460913d00000811115610a155760405162461bcd60e51b815260206004820152603660248201527f537570706c795363686564756c653a205265776172642063616e6e6f7420657860448201527f63656564206d6178206d696e74657220726577617264000000000000000000006064820152608401610519565b60078190556040518181527f036e0c635f8b7d9314bb6f2a577046108ef0f8b5e3869fbd29fd5a448ed99d30906020016108bd565b600080610ae5836648d4a431e5400073__$eafab6a382253e3d4dc0e94de940bead68$__63907af6c06040518163ffffffff1660e01b815260040160206040518083038186803b158015610a9d57600080fd5b505af4158015610ab1573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610ad59190611508565b610adf9190611679565b906113e6565b90506000610b208260346064610b0669425bfbffaab01654000060f061165a565b610b10919061155b565b610b1a919061155b565b906114b0565b949350505050565b610b30611364565b61271060085482610b419190611543565b10610b9f5760405162461bcd60e51b815260206004820152602860248201527f537570706c795363686564756c653a2043616e6e6f74206265206d6f7265207460448201526768616e203130302560c01b6064820152608401610519565b60098190556040518181527f3a6b6f816fda56a9f48af157a6f60d156254bc01c34e04fd31583013fb00a67f906020016108bd565b610bdc611364565b6001600160a01b038116610c325760405162461bcd60e51b815260206004820152601f60248201527f537570706c795363686564756c653a20496e76616c69642041646472657373006044820152606401610519565b600380546001600160a01b0319166001600160a01b0383169081179091556040519081527f551390b523f91b5d9df0281cbb04db779545fbfa265f5fcde47668f4d4e16006906020016108bd565b610c88611364565b6001600160a01b038116610cde5760405162461bcd60e51b815260206004820152601360248201527f416464726573732063616e6e6f742062652030000000000000000000000000006044820152606401610519565b600280546001600160a01b0319166001600160a01b0383169081179091556040519081527fc81d567f41a0910d7cd4117a2960e9fbdf9a232a48e6b6fc94033ac6c4db7aa4906020016108bd565b6001546001600160a01b03163314610dac5760405162461bcd60e51b815260206004820152603560248201527f596f75206d757374206265206e6f6d696e61746564206265666f726520796f7560448201527f2063616e20616363657074206f776e65727368697000000000000000000000006064820152608401610519565b600054600154604080516001600160a01b0393841681529290911660208301527fb532073b38c83145e3e5135377a08bf9aab55bc0fd7c1179cd4fb995d2a5159c910160405180910390a160018054600080546001600160a01b03199081166001600160a01b03841617909155169055565b610e26611364565b61271060095482610e379190611543565b10610e955760405162461bcd60e51b815260206004820152602860248201527f537570706c795363686564756c653a2043616e6e6f74206265206d6f7265207460448201526768616e203130302560c01b6064820152608401610519565b60088190556040518181527f57a9cd79e547e62257530ed181309acb795c4e6aab927735a3e2afe2ac4d9309906020016108bd565b610ed2611364565b6001600160a01b038116610f285760405162461bcd60e51b815260206004820152601c60248201527f537570706c795363686564756c653a205a65726f2041646472657373000000006044820152606401610519565b600a80546001600160a01b0319166001600160a01b0383169081179091556040519081527fd780e06c55efd6b3157e8c26704d2fd7bd2750bd9d0e71d2e5f675572dfad7a2906020016108bd565b60008061101583610f8f6034662386f26fc1000061155b565b73__$eafab6a382253e3d4dc0e94de940bead68$__63907af6c06040518163ffffffff1660e01b815260040160206040518083038186803b158015610fd357600080fd5b505af4158015610fe7573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061100b9190611508565b610adf9190611543565b90506110a773__$eafab6a382253e3d4dc0e94de940bead68$__63907af6c06040518163ffffffff1660e01b815260040160206040518083038186803b15801561105e57600080fd5b505af4158015611072573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906110969190611508565b6110a09083611679565b85906114b0565b9150505b92915050565b603460646110ca69425bfbffaab01654000060f061165a565b6110d4919061155b565b6110de919061155b565b81565b6000806110ec610974565b6110f557919050565b60006110ff611289565b6006549091505b81156112815780611116816116ca565b915050600281101561116d576034606461113b69425bfbffaab01654000060f061165a565b611145919061155b565b61114f919061155b565b6111599084611543565b925081611165816116b3565b925050611106565b60d081116111ba57600061118360016002611690565b6111909060ff1683611679565b905061119b81610a4a565b6111a59085611543565b9350826111b1816116b3565b93505050611106565b600254604080517f18160ddd00000000000000000000000000000000000000000000000000000000815290516000926001600160a01b0316916318160ddd916004808301926020929190829003018186803b15801561121857600080fd5b505afa15801561122c573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906112509190611508565b9050600061125e8583611543565b905061126a8185610f76565b6112749086611543565b9450600093505050611106565b509092915050565b6000806005544261129a9190611679565b90506112a962093a808261155b565b91505090565b6000806112ba611289565b9050806006546112ca9190611543565b600681905562015180906112e29062093a809061165a565b61130c907f0000000000000000000000000000000000000000000000000000000000000000611543565b6113169190611543565b6005819055604080518581526020810184905280820192909252517feae287c62f1ff4911334dee03f631d5dded5284b1b03ea7bc1d6282916c7249f9181900360600190a150600192915050565b6000546001600160a01b031633146113e45760405162461bcd60e51b815260206004820152602f60248201527f4f6e6c792074686520636f6e7472616374206f776e6572206d6179207065726660448201527f6f726d207468697320616374696f6e00000000000000000000000000000000006064820152608401610519565b565b60008073__$eafab6a382253e3d4dc0e94de940bead68$__63907af6c06040518163ffffffff1660e01b815260040160206040518083038186803b15801561142d57600080fd5b505af4158015611441573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906114659190611508565b90505b82156114a9576114796002846116e5565b1561148b5761148881856114b0565b90505b61149584806114b0565b93506114a260028461155b565b9250611468565b9392505050565b60006114be6012600a6115b2565b6114c8838561165a565b6114a9919061155b565b6000602082840312156114e457600080fd5b81356114a981611725565b60006020828403121561150157600080fd5b5035919050565b60006020828403121561151a57600080fd5b5051919050565b6000806040838503121561153457600080fd5b50508035926020909101359150565b60008219821115611556576115566116f9565b500190565b60008261156a5761156a61170f565b500490565b600181815b808511156115aa578160001904821115611590576115906116f9565b8085161561159d57918102915b93841c9390800290611574565b509250929050565b60006114a983836000826115c8575060016110ab565b816115d5575060006110ab565b81600181146115eb57600281146115f557611611565b60019150506110ab565b60ff841115611606576116066116f9565b50506001821b6110ab565b5060208310610133831016604e8410600b8410161715611634575081810a6110ab565b61163e838361156f565b8060001904821115611652576116526116f9565b029392505050565b6000816000190483118215151615611674576116746116f9565b500290565b60008282101561168b5761168b6116f9565b500390565b600060ff821660ff8416808210156116aa576116aa6116f9565b90039392505050565b6000816116c2576116c26116f9565b506000190190565b60006000198214156116de576116de6116f9565b5060010190565b6000826116f4576116f461170f565b500690565b634e487b7160e01b600052601160045260246000fd5b634e487b7160e01b600052601260045260246000fd5b6001600160a01b038116811461173a57600080fd5b5056fea26469706673582212208efeb14274172d55c44f2b76ea3b2d6ce5836c90f6445369e117a24c874a67e864736f6c63430008070033",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b506004361061025c5760003560e01c806379ba509711610145578063badef30a116100bd578063cc5c095c1161008c578063dbd3a6a711610071578063dbd3a6a7146104a0578063df5a9fc1146104a8578063f9fad053146104b257600080fd5b8063cc5c095c1461048f578063d3bd4bde1461049757600080fd5b8063badef30a1461046c578063bccdd03014610474578063be1ff71e1461047d578063be801f011461048657600080fd5b80639bdd7ac711610114578063a46eddcf116100f9578063a46eddcf14610433578063ad18e97e14610446578063b3b2bcc01461045957600080fd5b80639bdd7ac7146104175780639df92eb71461042057600080fd5b806379ba5097146103e15780637c060557146103e95780638da5cb5b146103f15780639034802b1461040457600080fd5b806346872a23116101d857806353a47bb7116101a7578063689fccc61161018c578063689fccc6146103a85780636fb83a57146103bb578063758b19d3146103ce57600080fd5b806353a47bb71461036a57806364b87a701461039557600080fd5b806346872a231461032257806346b45af71461032c5780634ae26521146103445780634e070f501461035757600080fd5b8063238fb77f1161022f578063255420641161021457806325542064146102dc57806326f75e05146102ea5780632ff2e9dc1461031157600080fd5b8063238fb77f146102af578063251330f1146102c257600080fd5b80631249c58b146102615780631627540c1461026b5780631de40e491461027e57806322af2bab1461029f575b600080fd5b6102696104c5565b005b6102696102793660046114d2565b61086b565b61028c6648d4a431e5400081565b6040519081526020015b60405180910390f35b61028c6801158e460913d0000081565b6102696102bd3660046114d2565b6108c8565b6102ca600281565b60405160ff9091168152602001610296565b61028c662386f26fc1000081565b61028c7f000000000000000000000000000000000000000000000000000000000000000081565b61028c69425bfbffaab01654000081565b61028c6201518081565b610334610974565b6040519015158152602001610296565b6102696103523660046114ef565b61098e565b61028c6103653660046114ef565b610a4a565b60015461037d906001600160a01b031681565b6040516001600160a01b039091168152602001610296565b60035461037d906001600160a01b031681565b6102696103b63660046114ef565b610b28565b6102696103c93660046114d2565b610bd4565b6102696103dc3660046114d2565b610c80565b610269610d2c565b6102ca60d081565b60005461037d906001600160a01b031681565b60025461037d906001600160a01b031681565b61028c60075481565b61026961042e3660046114ef565b610e1e565b6102696104413660046114d2565b610eca565b600a5461037d906001600160a01b031681565b61028c610467366004611521565b610f76565b61028c6110b1565b61028c60085481565b61028c60095481565b61028c60055481565b61028c6110e1565b61028c60065481565b61028c611289565b61028c62093a8081565b60045461037d906001600160a01b031681565b6003546001600160a01b03166105225760405162461bcd60e51b815260206004820152601760248201527f5374616b696e672072657761726473206e6f742073657400000000000000000060448201526064015b60405180910390fd5b6004546001600160a01b031661057a5760405162461bcd60e51b815260206004820152601760248201527f54726164696e672072657761726473206e6f74207365740000000000000000006044820152606401610519565b60006105846110e1565b9050600081116105d65760405162461bcd60e51b815260206004820152601560248201527f4e6f20737570706c79206973206d696e7461626c6500000000000000000000006044820152606401610519565b6105df816112af565b506000600754826105f09190611679565b9050600061271060085483610605919061165a565b61060f919061155b565b9050600061271060095484610624919061165a565b61062e919061155b565b905060008161063d8486611679565b6106479190611679565b600254600a546040516340c10f1960e01b81526001600160a01b0391821660048201526024810187905292935016906340c10f1990604401600060405180830381600087803b15801561069957600080fd5b505af11580156106ad573d6000803e3d6000fd5b5050600254600480546040516340c10f1960e01b81526001600160a01b03918216928101929092526024820187905290911692506340c10f199150604401600060405180830381600087803b15801561070557600080fd5b505af1158015610719573d6000803e3d6000fd5b50506002546003546040516340c10f1960e01b81526001600160a01b03918216600482015260248101869052911692506340c10f199150604401600060405180830381600087803b15801561076d57600080fd5b505af1158015610781573d6000803e3d6000fd5b50506003546040517f3c6b16ab000000000000000000000000000000000000000000000000000000008152600481018590526001600160a01b039091169250633c6b16ab9150602401600060405180830381600087803b1580156107e457600080fd5b505af11580156107f8573d6000803e3d6000fd5b50506002546007546040516340c10f1960e01b815233600482015260248101919091526001600160a01b0390911692506340c10f199150604401600060405180830381600087803b15801561084c57600080fd5b505af1158015610860573d6000803e3d6000fd5b505050505050505050565b610873611364565b600180546001600160a01b0319166001600160a01b0383169081179091556040519081527f906a1c6bd7e3091ea86693dd029a831c19049ce77f1dce2ce0bab1cacbabce22906020015b60405180910390a150565b6108d0611364565b6001600160a01b0381166109265760405162461bcd60e51b815260206004820152601f60248201527f537570706c795363686564756c653a20496e76616c69642041646472657373006044820152606401610519565b600480546001600160a01b0319166001600160a01b0383169081179091556040519081527f2600f737e588eec1a845714266bf64b2f65c9d3f624e452a2b64611c33108ab0906020016108bd565b600062093a80600554426109889190611679565b11905090565b610996611364565b6801158e460913d00000811115610a155760405162461bcd60e51b815260206004820152603660248201527f537570706c795363686564756c653a205265776172642063616e6e6f7420657860448201527f63656564206d6178206d696e74657220726577617264000000000000000000006064820152608401610519565b60078190556040518181527f036e0c635f8b7d9314bb6f2a577046108ef0f8b5e3869fbd29fd5a448ed99d30906020016108bd565b600080610ae5836648d4a431e5400073__$eafab6a382253e3d4dc0e94de940bead68$__63907af6c06040518163ffffffff1660e01b815260040160206040518083038186803b158015610a9d57600080fd5b505af4158015610ab1573d6000803e3d6000fd5b505050506040513d601f19601f82011682018060405250810190610ad59190611508565b610adf9190611679565b906113e6565b90506000610b208260346064610b0669425bfbffaab01654000060f061165a565b610b10919061155b565b610b1a919061155b565b906114b0565b949350505050565b610b30611364565b61271060085482610b419190611543565b10610b9f5760405162461bcd60e51b815260206004820152602860248201527f537570706c795363686564756c653a2043616e6e6f74206265206d6f7265207460448201526768616e203130302560c01b6064820152608401610519565b60098190556040518181527f3a6b6f816fda56a9f48af157a6f60d156254bc01c34e04fd31583013fb00a67f906020016108bd565b610bdc611364565b6001600160a01b038116610c325760405162461bcd60e51b815260206004820152601f60248201527f537570706c795363686564756c653a20496e76616c69642041646472657373006044820152606401610519565b600380546001600160a01b0319166001600160a01b0383169081179091556040519081527f551390b523f91b5d9df0281cbb04db779545fbfa265f5fcde47668f4d4e16006906020016108bd565b610c88611364565b6001600160a01b038116610cde5760405162461bcd60e51b815260206004820152601360248201527f416464726573732063616e6e6f742062652030000000000000000000000000006044820152606401610519565b600280546001600160a01b0319166001600160a01b0383169081179091556040519081527fc81d567f41a0910d7cd4117a2960e9fbdf9a232a48e6b6fc94033ac6c4db7aa4906020016108bd565b6001546001600160a01b03163314610dac5760405162461bcd60e51b815260206004820152603560248201527f596f75206d757374206265206e6f6d696e61746564206265666f726520796f7560448201527f2063616e20616363657074206f776e65727368697000000000000000000000006064820152608401610519565b600054600154604080516001600160a01b0393841681529290911660208301527fb532073b38c83145e3e5135377a08bf9aab55bc0fd7c1179cd4fb995d2a5159c910160405180910390a160018054600080546001600160a01b03199081166001600160a01b03841617909155169055565b610e26611364565b61271060095482610e379190611543565b10610e955760405162461bcd60e51b815260206004820152602860248201527f537570706c795363686564756c653a2043616e6e6f74206265206d6f7265207460448201526768616e203130302560c01b6064820152608401610519565b60088190556040518181527f57a9cd79e547e62257530ed181309acb795c4e6aab927735a3e2afe2ac4d9309906020016108bd565b610ed2611364565b6001600160a01b038116610f285760405162461bcd60e51b815260206004820152601c60248201527f537570706c795363686564756c653a205a65726f2041646472657373000000006044820152606401610519565b600a80546001600160a01b0319166001600160a01b0383169081179091556040519081527fd780e06c55efd6b3157e8c26704d2fd7bd2750bd9d0e71d2e5f675572dfad7a2906020016108bd565b60008061101583610f8f6034662386f26fc1000061155b565b73__$eafab6a382253e3d4dc0e94de940bead68$__63907af6c06040518163ffffffff1660e01b815260040160206040518083038186803b158015610fd357600080fd5b505af4158015610fe7573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061100b9190611508565b610adf9190611543565b90506110a773__$eafab6a382253e3d4dc0e94de940bead68$__63907af6c06040518163ffffffff1660e01b815260040160206040518083038186803b15801561105e57600080fd5b505af4158015611072573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906110969190611508565b6110a09083611679565b85906114b0565b9150505b92915050565b603460646110ca69425bfbffaab01654000060f061165a565b6110d4919061155b565b6110de919061155b565b81565b6000806110ec610974565b6110f557919050565b60006110ff611289565b6006549091505b81156112815780611116816116ca565b915050600281101561116d576034606461113b69425bfbffaab01654000060f061165a565b611145919061155b565b61114f919061155b565b6111599084611543565b925081611165816116b3565b925050611106565b60d081116111ba57600061118360016002611690565b6111909060ff1683611679565b905061119b81610a4a565b6111a59085611543565b9350826111b1816116b3565b93505050611106565b600254604080517f18160ddd00000000000000000000000000000000000000000000000000000000815290516000926001600160a01b0316916318160ddd916004808301926020929190829003018186803b15801561121857600080fd5b505afa15801561122c573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906112509190611508565b9050600061125e8583611543565b905061126a8185610f76565b6112749086611543565b9450600093505050611106565b509092915050565b6000806005544261129a9190611679565b90506112a962093a808261155b565b91505090565b6000806112ba611289565b9050806006546112ca9190611543565b600681905562015180906112e29062093a809061165a565b61130c907f0000000000000000000000000000000000000000000000000000000000000000611543565b6113169190611543565b6005819055604080518581526020810184905280820192909252517feae287c62f1ff4911334dee03f631d5dded5284b1b03ea7bc1d6282916c7249f9181900360600190a150600192915050565b6000546001600160a01b031633146113e45760405162461bcd60e51b815260206004820152602f60248201527f4f6e6c792074686520636f6e7472616374206f776e6572206d6179207065726660448201527f6f726d207468697320616374696f6e00000000000000000000000000000000006064820152608401610519565b565b60008073__$eafab6a382253e3d4dc0e94de940bead68$__63907af6c06040518163ffffffff1660e01b815260040160206040518083038186803b15801561142d57600080fd5b505af4158015611441573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906114659190611508565b90505b82156114a9576114796002846116e5565b1561148b5761148881856114b0565b90505b61149584806114b0565b93506114a260028461155b565b9250611468565b9392505050565b60006114be6012600a6115b2565b6114c8838561165a565b6114a9919061155b565b6000602082840312156114e457600080fd5b81356114a981611725565b60006020828403121561150157600080fd5b5035919050565b60006020828403121561151a57600080fd5b5051919050565b6000806040838503121561153457600080fd5b50508035926020909101359150565b60008219821115611556576115566116f9565b500190565b60008261156a5761156a61170f565b500490565b600181815b808511156115aa578160001904821115611590576115906116f9565b8085161561159d57918102915b93841c9390800290611574565b509250929050565b60006114a983836000826115c8575060016110ab565b816115d5575060006110ab565b81600181146115eb57600281146115f557611611565b60019150506110ab565b60ff841115611606576116066116f9565b50506001821b6110ab565b5060208310610133831016604e8410600b8410161715611634575081810a6110ab565b61163e838361156f565b8060001904821115611652576116526116f9565b029392505050565b6000816000190483118215151615611674576116746116f9565b500290565b60008282101561168b5761168b6116f9565b500390565b600060ff821660ff8416808210156116aa576116aa6116f9565b90039392505050565b6000816116c2576116c26116f9565b506000190190565b60006000198214156116de576116de6116f9565b5060010190565b6000826116f4576116f461170f565b500690565b634e487b7160e01b600052601160045260246000fd5b634e487b7160e01b600052601260045260246000fd5b6001600160a01b038116811461173a57600080fd5b5056fea26469706673582212208efeb14274172d55c44f2b76ea3b2d6ce5836c90f6445369e117a24c874a67e864736f6c63430008070033",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {
+      "isMintable()": {
+        "returns": {
+          "_0": "boolean whether the MINT_PERIOD_DURATION (7 days) has passed since the lastMintEvent. "
+        }
+      },
+      "mintableSupply()": {
+        "returns": {
+          "_0": "The amount of KWENTA mintable for the inflationary supply"
+        }
+      },
+      "setMinterReward(uint256)": {
+        "params": {
+          "amount": "the amount of KWENTA to reward the minter. "
+        }
+      },
+      "setTreasuryDAO(address)": {
+        "details": "only owner may change address"
+      },
+      "terminalInflationSupply(uint256,uint256)": {
+        "details": "Weekly compound rate based on number of weeks",
+        "returns": {
+          "_0": "A unit amount of terminal inflation supply"
+        }
+      },
+      "tokenDecaySupplyForWeek(uint256)": {
+        "details": "New token supply reduces by the decay rate each week calculated as supply = INITIAL_WEEKLY_SUPPLY * ()",
+        "returns": {
+          "_0": "A unit amount of decaying inflationary supply from the INITIAL_WEEKLY_SUPPLY"
+        }
+      },
+      "weeksSinceLastIssuance()": {
+        "details": "Take timeDiff in seconds (Dividend) and MINT_PERIOD_DURATION as (Divisor)",
+        "returns": {
+          "_0": "Calculate the numberOfWeeks since last mint rounded down to 1 week"
+        }
+      }
+    },
+    "version": 1
+  },
+  "userdoc": {
+    "events": {
+      "KwentaUpdated(address)": {
+        "notice": "Emitted when setKwenta is called changing the Kwenta Proxy address*"
+      },
+      "MinterRewardUpdated(uint256)": {
+        "notice": "Emitted when the KWENTA minter reward amount is updated*"
+      },
+      "StakingRewardsUpdated(address)": {
+        "notice": "Emitted when StakingRewards is changed*"
+      },
+      "SupplyMinted(uint256,uint256,uint256)": {
+        "notice": "Emitted when the inflationary supply is minted*"
+      },
+      "TradingRewardsDiversionUpdated(uint256)": {
+        "notice": "Emitted when trading rewards inflation share is changed*"
+      },
+      "TradingRewardsUpdated(address)": {
+        "notice": "Emitted when TradingRewards is changed*"
+      },
+      "TreasuryDAOSet(address)": {
+        "notice": "Emitted when treasuryDAO address is changed*"
+      },
+      "TreasuryDiversionUpdated(uint256)": {
+        "notice": "Emitted when treasury inflation share is changed*"
+      }
+    },
+    "kind": "user",
+    "methods": {
+      "mint()": {
+        "notice": "Mints new inflationary supply weekly New KWENTA is distributed between the minter, treasury, and StakingRewards contract "
+      },
+      "setKwenta(address)": {
+        "notice": "Set the Kwenta should it ever change. SupplySchedule requires Kwenta address as it has the authority to record mint event. "
+      },
+      "setMinterReward(uint256)": {
+        "notice": "Sets the reward amount of KWENTA for the caller of the public function Kwenta.mint(). This incentivises anyone to mint the inflationary supply and the mintr Reward will be deducted from the inflationary supply and sent to the caller."
+      },
+      "setTreasuryDAO(address)": {
+        "notice": "set treasuryDAO address"
+      }
+    },
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 5894,
+        "contract": "contracts/SupplySchedule.sol:SupplySchedule",
+        "label": "owner",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_address"
+      },
+      {
+        "astId": 5896,
+        "contract": "contracts/SupplySchedule.sol:SupplySchedule",
+        "label": "nominatedOwner",
+        "offset": 0,
+        "slot": "1",
+        "type": "t_address"
+      },
+      {
+        "astId": 3922,
+        "contract": "contracts/SupplySchedule.sol:SupplySchedule",
+        "label": "kwenta",
+        "offset": 0,
+        "slot": "2",
+        "type": "t_contract(IKwenta)4735"
+      },
+      {
+        "astId": 3925,
+        "contract": "contracts/SupplySchedule.sol:SupplySchedule",
+        "label": "stakingRewards",
+        "offset": 0,
+        "slot": "3",
+        "type": "t_contract(IStakingRewards)5070"
+      },
+      {
+        "astId": 3928,
+        "contract": "contracts/SupplySchedule.sol:SupplySchedule",
+        "label": "tradingRewards",
+        "offset": 0,
+        "slot": "4",
+        "type": "t_contract(IMultipleMerkleDistributor)4818"
+      },
+      {
+        "astId": 3930,
+        "contract": "contracts/SupplySchedule.sol:SupplySchedule",
+        "label": "lastMintEvent",
+        "offset": 0,
+        "slot": "5",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 3932,
+        "contract": "contracts/SupplySchedule.sol:SupplySchedule",
+        "label": "weekCounter",
+        "offset": 0,
+        "slot": "6",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 3935,
+        "contract": "contracts/SupplySchedule.sol:SupplySchedule",
+        "label": "minterReward",
+        "offset": 0,
+        "slot": "7",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 3975,
+        "contract": "contracts/SupplySchedule.sol:SupplySchedule",
+        "label": "treasuryDiversion",
+        "offset": 0,
+        "slot": "8",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 3978,
+        "contract": "contracts/SupplySchedule.sol:SupplySchedule",
+        "label": "tradingRewardsDiversion",
+        "offset": 0,
+        "slot": "9",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 3980,
+        "contract": "contracts/SupplySchedule.sol:SupplySchedule",
+        "label": "treasuryDAO",
+        "offset": 0,
+        "slot": "10",
+        "type": "t_address"
+      }
+    ],
+    "types": {
+      "t_address": {
+        "encoding": "inplace",
+        "label": "address",
+        "numberOfBytes": "20"
+      },
+      "t_contract(IKwenta)4735": {
+        "encoding": "inplace",
+        "label": "contract IKwenta",
+        "numberOfBytes": "20"
+      },
+      "t_contract(IMultipleMerkleDistributor)4818": {
+        "encoding": "inplace",
+        "label": "contract IMultipleMerkleDistributor",
+        "numberOfBytes": "20"
+      },
+      "t_contract(IStakingRewards)5070": {
+        "encoding": "inplace",
+        "label": "contract IStakingRewards",
+        "numberOfBytes": "20"
+      },
+      "t_uint256": {
+        "encoding": "inplace",
+        "label": "uint256",
+        "numberOfBytes": "32"
+      }
+    }
+  }
+}
