@@ -1,6 +1,6 @@
 import { wei } from '@synthetixio/wei';
 import { ethers } from 'ethers';
-import { NewFormat } from '../parse-balance-map';
+import { NewFormat } from '../merkle/parse-balance-map';
 
 export type SerializedWei = {
     p: number;

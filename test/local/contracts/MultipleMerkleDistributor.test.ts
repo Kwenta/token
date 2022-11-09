@@ -3,8 +3,8 @@ import hre, { ethers } from "hardhat";
 import { Contract, BigNumber } from "ethers";
 import { FakeContract, smock } from "@defi-wonderland/smock";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import BalanceTree from "../../../scripts/balance-tree";
-import { parseBalanceMap } from "../../../scripts/parse-balance-map";
+import BalanceTree from "../../../scripts/merkle/balance-tree";
+import { parseBalanceMap } from "../../../scripts/merkle/parse-balance-map";
 import { deployKwenta } from "../../utils/kwenta";
 
 require("chai")
