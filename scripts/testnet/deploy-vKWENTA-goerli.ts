@@ -6,6 +6,7 @@
 import { wei } from "@synthetixio/wei";
 import { BigNumber, Contract } from "ethers";
 import hre, { ethers } from "hardhat";
+import { saveDeployments } from "../utils";
 
 async function main() {
     const [deployer] = await ethers.getSigners();
@@ -89,20 +90,6 @@ async function verify(
         // We don't want this to halt execution
         console.log(e);
     }
-}
-
-async function saveDeployments(name: string, contract: Contract) {
-    // For hardhat-deploy plugin to save deployment artifacts
-    const { deployments } = hre;
-    const { save } = deployments;
-
-    const artifact = await deployments.getExtendedArtifact(name);
-    let deployment = {
-        address: contract.address,
-        ...artifact,
-    };
-
-    await save(name, deployment);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
