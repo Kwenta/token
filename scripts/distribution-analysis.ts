@@ -1,7 +1,7 @@
 import stakerDistribution from "./distribution/staker-distribution.json";
 import traderDistribution from "./distribution/trader-distribution.json";
 import { mergeDistributions } from "./distribution/utils";
-import { NewFormat } from "./parse-balance-map";
+import { NewFormat } from "./merkle/parse-balance-map";
 import { ethers } from "ethers";
 import dotenv from "dotenv";
 

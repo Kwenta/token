@@ -40,6 +40,9 @@ contract StakingRewards is IStakingRewards, Owned, ReentrancyGuard, Pausable {
     /// @notice number of staked escrow tokens by address
     mapping(address => uint256) private escrowedBalances;
 
+    /// @notice total number of tokens staked in this contract
+    uint256 private _totalSupply;
+
     /// @notice marks applicable reward period finish time
     uint256 public periodFinish = 0;
 
@@ -54,9 +57,6 @@ contract StakingRewards is IStakingRewards, Owned, ReentrancyGuard, Pausable {
 
     /// @notice summation of rewardRate divided by total staked tokens
     uint256 public rewardPerTokenStored;
-
-    /// @notice total number of tokens staked in this contract
-    uint256 public _totalSupply;
 
     /// @notice represents the rewardPerToken
     /// value the last time the stake calculated earned() rewards
