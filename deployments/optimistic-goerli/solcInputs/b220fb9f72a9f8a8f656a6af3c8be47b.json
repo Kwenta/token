@@ -1,0 +1,47 @@
+{
+  "language": "Solidity",
+  "sources": {
+    "contracts/EscrowDistributor.sol": {
+      "content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.0;\n\nimport \"@openzeppelin/contracts/token/ERC20/IERC20.sol\";\n\nimport \"./interfaces/IRewardEscrow.sol\";\n\ncontract EscrowDistributor {\n    /// @notice rewards escrow contract\n    IRewardEscrow public immutable rewardEscrow;\n\n    /// @notice kwenta token contract\n    IERC20 public immutable kwenta;\n\n    event BatchEscrowed(\n        uint256 totalAccounts,\n        uint256 totalTokens,\n        uint256 durationWeeks\n    );\n\n    constructor(address kwentaAddr, address rewardEscrowAddr) {\n        kwenta = IERC20(kwentaAddr);\n        rewardEscrow = IRewardEscrow(rewardEscrowAddr);\n    }\n\n    /**\n     * @notice Set escrow amounts in batches.\n     * @dev required to approve this contract address to spend senders tokens before calling\n     * @param accounts: list of accounts to escrow\n     * @param amounts: corresponding list of amounts to escrow\n     * @param durationWeeks: number of weeks to escrow\n     */\n    function distributeEscrowed(\n        address[] calldata accounts,\n        uint256[] calldata amounts,\n        uint256 durationWeeks\n    ) external {\n        require(\n            accounts.length == amounts.length,\n            \"Number of accounts does not match number of values\"\n        );\n\n        uint256 length = accounts.length;\n        uint256 totalTokens;\n        uint256 duration = durationWeeks * 1 weeks;\n\n        do {\n            unchecked {\n                --length;\n            }\n            totalTokens += amounts[length];\n        } while (length != 0);\n\n        kwenta.transferFrom(msg.sender, address(this), totalTokens);\n        kwenta.approve(address(rewardEscrow), totalTokens);\n\n        length = accounts.length;\n\n        do {\n            unchecked {\n                --length;\n            }\n            rewardEscrow.createEscrowEntry(\n                accounts[length],\n                amounts[length],\n                duration\n            );\n        } while (length != 0);\n\n        emit BatchEscrowed({\n            totalAccounts: accounts.length,\n            totalTokens: totalTokens,\n            durationWeeks: duration\n        });\n    }\n}\n"
+    },
+    "@openzeppelin/contracts/token/ERC20/IERC20.sol": {
+      "content": "// SPDX-License-Identifier: MIT\n\npragma solidity ^0.8.0;\n\n/**\n * @dev Interface of the ERC20 standard as defined in the EIP.\n */\ninterface IERC20 {\n    /**\n     * @dev Returns the amount of tokens in existence.\n     */\n    function totalSupply() external view returns (uint256);\n\n    /**\n     * @dev Returns the amount of tokens owned by `account`.\n     */\n    function balanceOf(address account) external view returns (uint256);\n\n    /**\n     * @dev Moves `amount` tokens from the caller's account to `recipient`.\n     *\n     * Returns a boolean value indicating whether the operation succeeded.\n     *\n     * Emits a {Transfer} event.\n     */\n    function transfer(address recipient, uint256 amount) external returns (bool);\n\n    /**\n     * @dev Returns the remaining number of tokens that `spender` will be\n     * allowed to spend on behalf of `owner` through {transferFrom}. This is\n     * zero by default.\n     *\n     * This value changes when {approve} or {transferFrom} are called.\n     */\n    function allowance(address owner, address spender) external view returns (uint256);\n\n    /**\n     * @dev Sets `amount` as the allowance of `spender` over the caller's tokens.\n     *\n     * Returns a boolean value indicating whether the operation succeeded.\n     *\n     * IMPORTANT: Beware that changing an allowance with this method brings the risk\n     * that someone may use both the old and the new allowance by unfortunate\n     * transaction ordering. One possible solution to mitigate this race\n     * condition is to first reduce the spender's allowance to 0 and set the\n     * desired value afterwards:\n     * https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729\n     *\n     * Emits an {Approval} event.\n     */\n    function approve(address spender, uint256 amount) external returns (bool);\n\n    /**\n     * @dev Moves `amount` tokens from `sender` to `recipient` using the\n     * allowance mechanism. `amount` is then deducted from the caller's\n     * allowance.\n     *\n     * Returns a boolean value indicating whether the operation succeeded.\n     *\n     * Emits a {Transfer} event.\n     */\n    function transferFrom(\n        address sender,\n        address recipient,\n        uint256 amount\n    ) external returns (bool);\n\n    /**\n     * @dev Emitted when `value` tokens are moved from one account (`from`) to\n     * another (`to`).\n     *\n     * Note that `value` may be zero.\n     */\n    event Transfer(address indexed from, address indexed to, uint256 value);\n\n    /**\n     * @dev Emitted when the allowance of a `spender` for an `owner` is set by\n     * a call to {approve}. `value` is the new allowance.\n     */\n    event Approval(address indexed owner, address indexed spender, uint256 value);\n}\n"
+    },
+    "contracts/interfaces/IRewardEscrow.sol": {
+      "content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.0;\n\nlibrary VestingEntries {\n    struct VestingEntry {\n        uint64 endTime;\n        uint256 escrowAmount;\n        uint256 duration;\n    }\n    struct VestingEntryWithID {\n        uint64 endTime;\n        uint256 escrowAmount;\n        uint256 entryID;\n    }\n}\n\ninterface IRewardEscrow {\n    // Views\n    function getKwentaAddress() external view returns (address);\n\n    function balanceOf(address account) external view returns (uint256);\n\n    function numVestingEntries(address account) external view returns (uint256);\n\n    function totalEscrowedAccountBalance(address account)\n        external\n        view\n        returns (uint256);\n\n    function totalVestedAccountBalance(address account)\n        external\n        view\n        returns (uint256);\n\n    function getVestingQuantity(address account, uint256[] calldata entryIDs)\n        external\n        view\n        returns (uint256, uint256);\n\n    function getVestingSchedules(\n        address account,\n        uint256 index,\n        uint256 pageSize\n    ) external view returns (VestingEntries.VestingEntryWithID[] memory);\n\n    function getAccountVestingEntryIDs(\n        address account,\n        uint256 index,\n        uint256 pageSize\n    ) external view returns (uint256[] memory);\n\n    function getVestingEntryClaimable(address account, uint256 entryID)\n        external\n        view\n        returns (uint256, uint256);\n\n    function getVestingEntry(address account, uint256 entryID)\n        external\n        view\n        returns (\n            uint64,\n            uint256,\n            uint256\n        );\n\n    // Mutative functions\n    function vest(uint256[] calldata entryIDs) external;\n\n    function createEscrowEntry(\n        address beneficiary,\n        uint256 deposit,\n        uint256 duration\n    ) external;\n\n    function appendVestingEntry(\n        address account,\n        uint256 quantity,\n        uint256 duration\n    ) external;\n\n    function stakeEscrow(uint256 _amount) external;\n\n    function unstakeEscrow(uint256 _amount) external;\n}\n"
+    },
+    "contracts-exposed/EscrowDistributor.sol": {
+      "content": "// SPDX-License-Identifier: UNLICENSED\n\npragma solidity >=0.6.0;\n\nimport \"../contracts/EscrowDistributor.sol\";\n\ncontract $EscrowDistributor is EscrowDistributor {\n    constructor(address kwentaAddr, address rewardEscrowAddr) EscrowDistributor(kwentaAddr, rewardEscrowAddr) {}\n}\n"
+    },
+    "contracts-exposed/interfaces/IRewardEscrow.sol": {
+      "content": "// SPDX-License-Identifier: UNLICENSED\n\npragma solidity >=0.6.0;\n\nimport \"../../contracts/interfaces/IRewardEscrow.sol\";\n\ncontract $VestingEntries {\n    constructor() {}\n}\n\nabstract contract $IRewardEscrow is IRewardEscrow {\n    constructor() {}\n}\n"
+    }
+  },
+  "settings": {
+    "optimizer": {
+      "enabled": false,
+      "runs": 200
+    },
+    "outputSelection": {
+      "*": {
+        "*": [
+          "abi",
+          "evm.bytecode",
+          "evm.deployedBytecode",
+          "evm.methodIdentifiers",
+          "metadata",
+          "devdoc",
+          "userdoc",
+          "storageLayout",
+          "evm.gasEstimates"
+        ],
+        "": [
+          "ast"
+        ]
+      }
+    },
+    "metadata": {
+      "useLiteralContent": true
+    }
+  }
+}
