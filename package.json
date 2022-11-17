@@ -8,8 +8,11 @@
     "coverage": "npx hardhat coverage",
     "generate-distribution:stakers": "npx ts-node ./scripts/distribution/staker-distribution.ts",
     "generate-distribution:traders": "npx ts-node ./scripts/distribution/trader-distribution.ts",
+    "generate:aelin-allowlist": "npx ts-node ./scripts/aelin-distribution/generate-allowlist-and-lono.ts",
+    "generate:proportional-distribution": "npx ts-node ./scripts/aelin-distribution/calculate-proportional-distribution.ts",
     "deploy:local": "npx hardhat run --network localhost scripts/deploy.ts",
     "deploy:testnet": "npx hardhat run --network optimistic-goerli scripts/deploy.ts",
+    "deploy:escrow-distributor:testnet": "npx hardhat run --network optimistic-goerli scripts/deploy-escrow-distributor.ts",
     "interact:local": "npx hardhat interact --network localhost"
   },
   "devDependencies": {

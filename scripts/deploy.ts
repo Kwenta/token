@@ -5,8 +5,9 @@
 // Runtime Environment's members available in the global scope.
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { wei } from "@synthetixio/wei";
-import { BigNumber, Contract } from "ethers";
+import { Contract } from "ethers";
 import hre, { ethers } from "hardhat";
+import { saveDeployments, verify } from "./utils";
 
 const isLocal = hre.network.name == "localhost";
 const isTestnet = hre.network.name == "optimistic-goerli";
@@ -61,7 +62,7 @@ async function main() {
     // set KWENTA address in SupplySchedule
     await supplySchedule.setKwenta(kwenta.address);
     console.log(
-        "SupplySchedule: Kwenta address set to:  ",
+        "SupplySchedule: Kwenta address set to:          ",
         await supplySchedule.kwenta()
     );
 
@@ -82,7 +83,7 @@ async function main() {
     // set StakingRewards address in RewardEscrow
     await rewardEscrow.setTreasuryDAO(TREASURY_DAO);
     console.log(
-        "RewardEscrow: TreasuryDAO address set to:    ",
+        "RewardEscrow: TreasuryDAO address set to:       ",
         await rewardEscrow.treasuryDAO()
     );
     console.log("✅ Setters set!");
@@ -287,11 +288,11 @@ async function deployMultipleMerkleDistributor(
         multipleMerkleDistributor.address
     );
 
-    await verify(multipleMerkleDistributor.address, [
-        owner.address,
-        kwenta.address,
-        rewardEscrow.address,
-    ]);
+    await verify(
+        multipleMerkleDistributor.address,
+        [owner.address, kwenta.address, rewardEscrow.address],
+        "contracts/MultipleMerkleDistributor.sol:MultipleMerkleDistributor" // to prevent bytecode clashes with contracts-exposed versions
+    );
 
     return multipleMerkleDistributor;
 }
@@ -305,21 +306,9 @@ async function distributeKWENTA(
     kwenta: Contract,
     vKwentaRedeemer: Contract
 ) {
-    // Transfer 5% KWENTA to vKwentaRedeemer
-    await kwenta.transfer(
-        vKwentaRedeemer.address,
-        wei(INITIAL_SUPPLY).mul(0.05).toBN()
-    );
+    // Transfer 100% KWENTA to Treasury
+    await kwenta.transfer(TREASURY_DAO, wei(INITIAL_SUPPLY).toBN());
 
-    // Transfer 95% KWENTA to Treasury
-    await kwenta.transfer(TREASURY_DAO, wei(INITIAL_SUPPLY).mul(0.95).toBN());
-
-    console.log(
-        "vKwentaRedeemer balance:     ",
-        ethers.utils.formatEther(
-            await kwenta.balanceOf(vKwentaRedeemer.address)
-        )
-    );
     console.log(
         "TreasuryDAO balance:         ",
         ethers.utils.formatEther(await kwenta.balanceOf(TREASURY_DAO))
@@ -328,46 +317,6 @@ async function distributeKWENTA(
         "Final signer balance:        ",
         ethers.utils.formatEther(await kwenta.balanceOf(signer.address))
     );
-}
-
-/************************************************
- * @helpers
- ************************************************/
-
-async function saveDeployments(name: string, contract: Contract) {
-    // For hardhat-deploy plugin to save deployment artifacts
-    const { deployments } = hre;
-    const { save } = deployments;
-
-    const artifact = await deployments.getExtendedArtifact(name);
-    let deployment = {
-        address: contract.address,
-        ...artifact,
-    };
-
-    await save(name, deployment);
-}
-
-type ConstructorArgs = string | BigNumber;
-async function verify(
-    address: string,
-    constructorArgs: Array<ConstructorArgs>,
-    contract?: string
-) {
-    if (isLocal) return;
-
-    try {
-        await hre.run("verify:verify", {
-            address: address,
-            constructorArguments: constructorArgs,
-            contract: contract,
-            noCompile: true,
-        });
-    } catch (e) {
-        // Can error out even if already verified
-        // We don't want this to halt execution
-        console.log(e);
-    }
 }
 
 // We recommend this pattern to be able to use async/await everywhere

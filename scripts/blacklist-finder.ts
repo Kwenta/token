@@ -5,7 +5,7 @@ import exploitedWallets from './distribution/gnosis_safe_wallets/exploited-walle
 import savedWallets1 from './distribution/gnosis_safe_wallets/saved-wallets-1.json';
 import savedWallets2 from './distribution/gnosis_safe_wallets/saved-wallets-2.json';
 import { mergeDistributions } from './distribution/utils';
-import { NewFormat } from './parse-balance-map';
+import { NewFormat } from './merkle/parse-balance-map';
 import { ethers } from 'ethers';
 import { network } from 'hardhat';
 import dotenv from 'dotenv';
