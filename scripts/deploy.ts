@@ -5,8 +5,9 @@
 // Runtime Environment's members available in the global scope.
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { wei } from "@synthetixio/wei";
-import { BigNumber, Contract } from "ethers";
+import { Contract } from "ethers";
 import hre, { ethers } from "hardhat";
+import { saveDeployments, verify } from "./utils";
 
 const isLocal = hre.network.name == "localhost";
 const isTestnet = hre.network.name == "optimistic-goerli";
@@ -226,7 +227,7 @@ async function deployStakingRewards(
     rewardEscrow: Contract,
     supplySchedule: Contract
 ) {
-    const StakingRewards = await ethers.getContractFactory("StakingRewards");
+    const StakingRewards = await ethers.getContractFactory("contracts/StakingRewards.sol:StakingRewards");
     const stakingRewards = await StakingRewards.connect(owner).deploy(
         kwenta.address,
         rewardEscrow.address,
@@ -316,46 +317,6 @@ async function distributeKWENTA(
         "Final signer balance:        ",
         ethers.utils.formatEther(await kwenta.balanceOf(signer.address))
     );
-}
-
-/************************************************
- * @helpers
- ************************************************/
-
-async function saveDeployments(name: string, contract: Contract) {
-    // For hardhat-deploy plugin to save deployment artifacts
-    const { deployments } = hre;
-    const { save } = deployments;
-
-    const artifact = await deployments.getExtendedArtifact(name);
-    let deployment = {
-        address: contract.address,
-        ...artifact,
-    };
-
-    await save(name, deployment);
-}
-
-type ConstructorArgs = string | BigNumber;
-async function verify(
-    address: string,
-    constructorArgs: Array<ConstructorArgs>,
-    contract?: string
-) {
-    if (isLocal) return;
-
-    try {
-        await hre.run("verify:verify", {
-            address: address,
-            constructorArguments: constructorArgs,
-            contract: contract,
-            noCompile: true,
-        });
-    } catch (e) {
-        // Can error out even if already verified
-        // We don't want this to halt execution
-        console.log(e);
-    }
 }
 
 // We recommend this pattern to be able to use async/await everywhere

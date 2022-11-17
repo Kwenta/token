@@ -8,9 +8,12 @@
     "coverage": "npx hardhat coverage",
     "generate-distribution:stakers": "npx ts-node ./scripts/distribution/staker-distribution.ts",
     "generate-distribution:traders": "npx ts-node ./scripts/distribution/trader-distribution.ts",
+    "generate:aelin-allowlist": "npx ts-node ./scripts/aelin-distribution/generate-allowlist-and-lono.ts",
+    "generate:proportional-distribution": "npx ts-node ./scripts/aelin-distribution/calculate-proportional-distribution.ts",
     "deploy:local": "npx hardhat run --network localhost scripts/deploy.ts",
     "deploy:testnet": "npx hardhat run --network optimistic-goerli scripts/deploy.ts",
     "deploy:mainnet": "npx hardhat run --network optimistic-mainnet scripts/deploy.ts",
+    "deploy:escrow-distributor:testnet": "npx hardhat run --network optimistic-goerli scripts/deploy-escrow-distributor.ts",
     "interact:local": "npx hardhat interact --network localhost"
   },
   "devDependencies": {
@@ -53,6 +56,7 @@
     "dotenv": "16.0.0",
     "hardhat-interface-generator": "^0.0.6",
     "hardhat-typechain": "^0.3.5",
-    "solidity-coverage": "^0.7.17"
+    "solidity-coverage": "^0.7.17",
+    "synthetix": "github:JChiaramonte7/synthetix#develop"
   }
 }

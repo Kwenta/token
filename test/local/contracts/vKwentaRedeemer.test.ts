@@ -32,7 +32,7 @@ describe('vKwenta Redemption', function () {
             await ethers.getSigners();
 
         supplySchedule = await smock.fake('SupplySchedule');
-        stakingRewards = await smock.fake('StakingRewards');
+        stakingRewards = await smock.fake('contracts/StakingRewards.sol:StakingRewards');
 
         // Deploy Kwenta (i.e. token)
         const Kwenta = await ethers.getContractFactory('Kwenta');
