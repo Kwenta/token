@@ -98,7 +98,7 @@ const assertDeepEqual = (actual, expected, context) => {
 
 const mineBlock = () => send({ method: "evm_mine" });
 
-const StakingRewards = artifacts.require("StakingRewards");
+const StakingRewards = artifacts.require("contracts/StakingRewards.sol:StakingRewards");
 const TokenContract = artifacts.require("Kwenta");
 const RewardsEscrow = artifacts.require("RewardEscrow");
 
@@ -1697,7 +1697,7 @@ contract(
             let stakingRewardsSmock;
 
             beforeEach(async () => {
-                stakingRewardsSmock = await smock.fake("StakingRewards");
+                stakingRewardsSmock = await smock.fake("contracts/StakingRewards.sol:StakingRewards");
 
                 rewardsEscrow = await RewardsEscrow.new(
                     owner,

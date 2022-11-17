@@ -227,7 +227,7 @@ async function deployStakingRewards(
     rewardEscrow: Contract,
     supplySchedule: Contract
 ) {
-    const StakingRewards = await ethers.getContractFactory("StakingRewards");
+    const StakingRewards = await ethers.getContractFactory("contracts/StakingRewards.sol:StakingRewards");
     const stakingRewards = await StakingRewards.connect(owner).deploy(
         kwenta.address,
         rewardEscrow.address,

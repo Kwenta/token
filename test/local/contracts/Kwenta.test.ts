@@ -24,7 +24,7 @@ describe("KWENTA Token", function () {
         [owner, treasuryDAO, user1] = await ethers.getSigners();
 
         supplySchedule = await smock.fake("SupplySchedule");
-        stakingRewards = await smock.fake("StakingRewards");
+        stakingRewards = await smock.fake("contracts/StakingRewards.sol:StakingRewards");
 
         const Kwenta = await ethers.getContractFactory("Kwenta");
         kwenta = await Kwenta.deploy(

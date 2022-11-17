@@ -70,7 +70,7 @@ describe("SupplySchedule", () => {
     }
 
     const setupSupplySchedule = async () => {
-        stakingRewards = await smock.fake<StakingRewards>("StakingRewards");
+        stakingRewards = await smock.fake<StakingRewards>("contracts/StakingRewards.sol:StakingRewards");
         tradingRewards = await smock.fake<MultipleMerkleDistributor>(
             "MultipleMerkleDistributor"
         );
