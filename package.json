@@ -12,6 +12,7 @@
     "generate:proportional-distribution": "npx ts-node ./scripts/aelin-distribution/calculate-proportional-distribution.ts",
     "deploy:local": "npx hardhat run --network localhost scripts/deploy.ts",
     "deploy:testnet": "npx hardhat run --network optimistic-goerli scripts/deploy.ts",
+    "deploy:mainnet": "npx hardhat run --network optimistic-mainnet scripts/deploy.ts",
     "deploy:escrow-distributor:testnet": "npx hardhat run --network optimistic-goerli scripts/deploy-escrow-distributor.ts",
     "interact:local": "npx hardhat interact --network localhost"
   },

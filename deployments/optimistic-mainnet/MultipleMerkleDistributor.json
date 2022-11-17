@@ -1,0 +1,489 @@
+{
+  "address": "0xf486A72E8c8143ACd9F65A104A16990fDb38be14",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_owner",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_token",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_rewardEscrow",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "index",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "epoch",
+          "type": "uint256"
+        }
+      ],
+      "name": "Claimed",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "epoch",
+          "type": "uint256"
+        }
+      ],
+      "name": "MerkleRootAdded",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "oldOwner",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnerChanged",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "name": "OwnerNominated",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "acceptOwnership",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "index",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes32[]",
+          "name": "merkleProof",
+          "type": "bytes32[]"
+        },
+        {
+          "internalType": "uint256",
+          "name": "epoch",
+          "type": "uint256"
+        }
+      ],
+      "name": "claim",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "index",
+              "type": "uint256"
+            },
+            {
+              "internalType": "address",
+              "name": "account",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes32[]",
+              "name": "merkleProof",
+              "type": "bytes32[]"
+            },
+            {
+              "internalType": "uint256",
+              "name": "epoch",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct IMultipleMerkleDistributor.Claims[]",
+          "name": "claims",
+          "type": "tuple[]"
+        }
+      ],
+      "name": "claimMultiple",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "distributionEpoch",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "index",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "epoch",
+          "type": "uint256"
+        }
+      ],
+      "name": "isClaimed",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "merkleRoots",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "_merkleRoot",
+          "type": "bytes32"
+        }
+      ],
+      "name": "newMerkleRoot",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_owner",
+          "type": "address"
+        }
+      ],
+      "name": "nominateNewOwner",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "nominatedOwner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "rewardEscrow",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "token",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "numDeployments": 1,
+  "solcInputHash": "b1aabb2d46588b62ce288280957a2b34",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.7+commit.e28d00a7\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_owner\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_token\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_rewardEscrow\",\"type\":\"address\"}],\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"index\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"epoch\",\"type\":\"uint256\"}],\"name\":\"Claimed\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"epoch\",\"type\":\"uint256\"}],\"name\":\"MerkleRootAdded\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"oldOwner\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnerChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnerNominated\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"acceptOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"index\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes32[]\",\"name\":\"merkleProof\",\"type\":\"bytes32[]\"},{\"internalType\":\"uint256\",\"name\":\"epoch\",\"type\":\"uint256\"}],\"name\":\"claim\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"index\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes32[]\",\"name\":\"merkleProof\",\"type\":\"bytes32[]\"},{\"internalType\":\"uint256\",\"name\":\"epoch\",\"type\":\"uint256\"}],\"internalType\":\"struct IMultipleMerkleDistributor.Claims[]\",\"name\":\"claims\",\"type\":\"tuple[]\"}],\"name\":\"claimMultiple\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"distributionEpoch\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"index\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"epoch\",\"type\":\"uint256\"}],\"name\":\"isClaimed\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"merkleRoots\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"_merkleRoot\",\"type\":\"bytes32\"}],\"name\":\"newMerkleRoot\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_owner\",\"type\":\"address\"}],\"name\":\"nominateNewOwner\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"nominatedOwner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"rewardEscrow\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"token\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"author\":\"JaredBorders and JChiaramonte7\",\"kind\":\"dev\",\"methods\":{\"claim(uint256,address,uint256,bytes32[],uint256)\":{\"params\":{\"account\":\": address used for escrow entry\",\"amount\":\": $KWENTA amount to be escrowed\",\"epoch\":\": distribution index to check\",\"index\":\": used for merkle tree managment and verification\",\"merkleProof\":\": off-chain generated proof of merkle tree inclusion\"}},\"claimMultiple((uint256,address,uint256,bytes32[],uint256)[])\":{\"params\":{\"claims\":\": array of valid claims\"}},\"constructor\":{\"params\":{\"_owner\":\": designated owner of this contract\",\"_rewardEscrow\":\": address of kwenta escrow for tokens claimed\",\"_token\":\": address of erc20 token to be distributed\"}},\"isClaimed(uint256,uint256)\":{\"params\":{\"epoch\":\": distribution index to check\",\"index\":\": used for claim managment\"},\"returns\":{\"_0\":\"true if indexed claim has been claimed\"}},\"newMerkleRoot(bytes32)\":{\"details\":\"calling this function will increment distributionEpoch\",\"params\":{\"_merkleRoot\":\": new merkle root\"}}},\"title\":\"Kwenta MultipleMerkleDistributor\",\"version\":1},\"userdoc\":{\"events\":{\"Claimed(uint256,address,uint256,uint256)\":{\"notice\":\"event is triggered whenever a call to `claim` succeeds\"},\"MerkleRootAdded(uint256)\":{\"notice\":\"event is triggered whenever a new merkle root is added\"}},\"kind\":\"user\",\"methods\":{\"claim(uint256,address,uint256,bytes32[],uint256)\":{\"notice\":\"attempt to claim as `account` and escrow KWENTA for `account`\"},\"claimMultiple((uint256,address,uint256,bytes32[],uint256)[])\":{\"notice\":\"function that aggregates multiple claims\"},\"constructor\":{\"notice\":\"set addresses for deployed rewardEscrow and KWENTA. Establish merkle root for verification\"},\"distributionEpoch()\":{\"notice\":\"an index that is incremented for each new merkle root\"},\"isClaimed(uint256,uint256)\":{\"notice\":\"determine if indexed claim has been claimed\"},\"merkleRoots(uint256)\":{\"notice\":\"an epoch to merkle root mapping of a merkle tree containing account balances available to claim\"},\"newMerkleRoot(bytes32)\":{\"notice\":\"set new merkle root for new distribution epoch\"},\"rewardEscrow()\":{\"notice\":\"escrow for tokens claimed\"},\"token()\":{\"notice\":\"token to be distributed (KWENTA)\"}},\"notice\":\"Facilitates trading incentives distribution over multiple periods.\",\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/MultipleMerkleDistributor.sol\":\"MultipleMerkleDistributor\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":1000},\"remappings\":[]},\"sources\":{\"@openzeppelin/contracts/token/ERC20/IERC20.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity ^0.8.0;\\n\\n/**\\n * @dev Interface of the ERC20 standard as defined in the EIP.\\n */\\ninterface IERC20 {\\n    /**\\n     * @dev Returns the amount of tokens in existence.\\n     */\\n    function totalSupply() external view returns (uint256);\\n\\n    /**\\n     * @dev Returns the amount of tokens owned by `account`.\\n     */\\n    function balanceOf(address account) external view returns (uint256);\\n\\n    /**\\n     * @dev Moves `amount` tokens from the caller's account to `recipient`.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * Emits a {Transfer} event.\\n     */\\n    function transfer(address recipient, uint256 amount) external returns (bool);\\n\\n    /**\\n     * @dev Returns the remaining number of tokens that `spender` will be\\n     * allowed to spend on behalf of `owner` through {transferFrom}. This is\\n     * zero by default.\\n     *\\n     * This value changes when {approve} or {transferFrom} are called.\\n     */\\n    function allowance(address owner, address spender) external view returns (uint256);\\n\\n    /**\\n     * @dev Sets `amount` as the allowance of `spender` over the caller's tokens.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * IMPORTANT: Beware that changing an allowance with this method brings the risk\\n     * that someone may use both the old and the new allowance by unfortunate\\n     * transaction ordering. One possible solution to mitigate this race\\n     * condition is to first reduce the spender's allowance to 0 and set the\\n     * desired value afterwards:\\n     * https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729\\n     *\\n     * Emits an {Approval} event.\\n     */\\n    function approve(address spender, uint256 amount) external returns (bool);\\n\\n    /**\\n     * @dev Moves `amount` tokens from `sender` to `recipient` using the\\n     * allowance mechanism. `amount` is then deducted from the caller's\\n     * allowance.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * Emits a {Transfer} event.\\n     */\\n    function transferFrom(\\n        address sender,\\n        address recipient,\\n        uint256 amount\\n    ) external returns (bool);\\n\\n    /**\\n     * @dev Emitted when `value` tokens are moved from one account (`from`) to\\n     * another (`to`).\\n     *\\n     * Note that `value` may be zero.\\n     */\\n    event Transfer(address indexed from, address indexed to, uint256 value);\\n\\n    /**\\n     * @dev Emitted when the allowance of a `spender` for an `owner` is set by\\n     * a call to {approve}. `value` is the new allowance.\\n     */\\n    event Approval(address indexed owner, address indexed spender, uint256 value);\\n}\\n\",\"keccak256\":\"0x027b891937d20ccf213fdb9c31531574256de774bda99d3a70ecef6e1913ed2a\",\"license\":\"MIT\"},\"@openzeppelin/contracts/utils/cryptography/MerkleProof.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity ^0.8.0;\\n\\n/**\\n * @dev These functions deal with verification of Merkle Trees proofs.\\n *\\n * The proofs can be generated using the JavaScript library\\n * https://github.com/miguelmota/merkletreejs[merkletreejs].\\n * Note: the hashing algorithm should be keccak256 and pair sorting should be enabled.\\n *\\n * See `test/utils/cryptography/MerkleProof.test.js` for some examples.\\n */\\nlibrary MerkleProof {\\n    /**\\n     * @dev Returns true if a `leaf` can be proved to be a part of a Merkle tree\\n     * defined by `root`. For this, a `proof` must be provided, containing\\n     * sibling hashes on the branch from the leaf to the root of the tree. Each\\n     * pair of leaves and each pair of pre-images are assumed to be sorted.\\n     */\\n    function verify(\\n        bytes32[] memory proof,\\n        bytes32 root,\\n        bytes32 leaf\\n    ) internal pure returns (bool) {\\n        bytes32 computedHash = leaf;\\n\\n        for (uint256 i = 0; i < proof.length; i++) {\\n            bytes32 proofElement = proof[i];\\n\\n            if (computedHash <= proofElement) {\\n                // Hash(current computed hash + current element of the proof)\\n                computedHash = keccak256(abi.encodePacked(computedHash, proofElement));\\n            } else {\\n                // Hash(current element of the proof + current computed hash)\\n                computedHash = keccak256(abi.encodePacked(proofElement, computedHash));\\n            }\\n        }\\n\\n        // Check if the computed hash (root) is equal to the provided root\\n        return computedHash == root;\\n    }\\n}\\n\",\"keccak256\":\"0x86c1bbdc6813c021e138da527c44d2615931b0e5c7fa2f58369846ed288324a8\",\"license\":\"MIT\"},\"contracts/MultipleMerkleDistributor.sol\":{\"content\":\"// SPDX-License-Identifier: UNLICENSED\\npragma solidity ^0.8.0;\\n\\nimport \\\"./utils/Owned.sol\\\";\\nimport \\\"@openzeppelin/contracts/token/ERC20/IERC20.sol\\\";\\nimport \\\"@openzeppelin/contracts/utils/cryptography/MerkleProof.sol\\\";\\nimport \\\"./interfaces/IRewardEscrow.sol\\\";\\nimport \\\"./interfaces/IMultipleMerkleDistributor.sol\\\";\\n\\n/// @title Kwenta MultipleMerkleDistributor\\n/// @author JaredBorders and JChiaramonte7\\n/// @notice Facilitates trading incentives distribution over multiple periods.\\ncontract MultipleMerkleDistributor is IMultipleMerkleDistributor, Owned {\\n    /// @notice escrow for tokens claimed\\n    address public immutable override rewardEscrow;\\n\\n    /// @notice token to be distributed (KWENTA)\\n    address public immutable override token;\\n\\n    /// @notice an index that is incremented for each new merkle root\\n    uint256 public distributionEpoch;\\n\\n    /// @notice an epoch to merkle root mapping\\n    /// of a merkle tree containing account balances available to claim\\n    mapping(uint256 => bytes32) public override merkleRoots;\\n\\n    /// @notice an epoch to packed array of claimed booleans mapping\\n    mapping(uint256 => mapping(uint256 => uint256)) private claimedBitMaps;\\n\\n    /// @notice set addresses for deployed rewardEscrow and KWENTA.\\n    /// Establish merkle root for verification\\n    /// @param _owner: designated owner of this contract\\n    /// @param _token: address of erc20 token to be distributed\\n    /// @param _rewardEscrow: address of kwenta escrow for tokens claimed\\n    constructor(\\n        address _owner,\\n        address _token,\\n        address _rewardEscrow\\n    ) Owned(_owner) {\\n        token = _token;\\n        rewardEscrow = _rewardEscrow;\\n    }\\n\\n    /// @notice set new merkle root for new distribution epoch\\n    /// @dev calling this function will increment distributionEpoch\\n    /// @param _merkleRoot: new merkle root\\n    function newMerkleRoot(bytes32 _merkleRoot) external onlyOwner {\\n        merkleRoots[distributionEpoch] = _merkleRoot;\\n        emit MerkleRootAdded(distributionEpoch);\\n        distributionEpoch++;\\n    }\\n\\n    /// @notice determine if indexed claim has been claimed\\n    /// @param index: used for claim managment\\n    /// @param epoch: distribution index to check\\n    /// @return true if indexed claim has been claimed\\n    function isClaimed(uint256 index, uint256 epoch)\\n        public\\n        view\\n        override\\n        returns (bool)\\n    {\\n        uint256 claimedWordIndex = index / 256;\\n        uint256 claimedBitIndex = index % 256;\\n        uint256 claimedWord = claimedBitMaps[epoch][claimedWordIndex];\\n        uint256 mask = (1 << claimedBitIndex);\\n        return claimedWord & mask == mask;\\n    }\\n\\n    /// @notice set claimed status for indexed claim to true\\n    /// @param index: used for claim managment\\n    /// @param epoch: distribution index to check\\n    function _setClaimed(uint256 index, uint256 epoch) private {\\n        uint256 claimedWordIndex = index / 256;\\n        uint256 claimedBitIndex = index % 256;\\n        claimedBitMaps[epoch][claimedWordIndex] =\\n            claimedBitMaps[epoch][claimedWordIndex] |\\n            (1 << claimedBitIndex);\\n    }\\n\\n    /// @notice attempt to claim as `account` and escrow KWENTA for `account`\\n    /// @param index: used for merkle tree managment and verification\\n    /// @param account: address used for escrow entry\\n    /// @param amount: $KWENTA amount to be escrowed\\n    /// @param merkleProof: off-chain generated proof of merkle tree inclusion\\n    /// @param epoch: distribution index to check\\n    function claim(\\n        uint256 index,\\n        address account,\\n        uint256 amount,\\n        bytes32[] calldata merkleProof,\\n        uint256 epoch\\n    ) public override {\\n        require(\\n            !isClaimed(index, epoch),\\n            \\\"MultipleMerkleDistributor: Drop already claimed.\\\"\\n        );\\n\\n        // verify the merkle proof\\n        bytes32 node = keccak256(abi.encodePacked(index, account, amount));\\n        require(\\n            MerkleProof.verify(merkleProof, merkleRoots[epoch], node),\\n            \\\"MultipleMerkleDistributor: Invalid proof.\\\"\\n        );\\n\\n        // mark it claimed and send the token to RewardEscrow\\n        _setClaimed(index, epoch);\\n        IERC20(token).approve(rewardEscrow, amount);\\n        IRewardEscrow(rewardEscrow).createEscrowEntry(\\n            account,\\n            amount,\\n            52 weeks\\n        );\\n\\n        emit Claimed(index, account, amount, epoch);\\n    }\\n\\n    /// @notice function that aggregates multiple claims\\n    /// @param claims: array of valid claims\\n    function claimMultiple(Claims[] calldata claims) external override {\\n        uint256 cacheLength = claims.length;\\n        for (uint256 i = 0; i < cacheLength; ) {\\n            claim(\\n                claims[i].index,\\n                claims[i].account,\\n                claims[i].amount,\\n                claims[i].merkleProof,\\n                claims[i].epoch\\n            );\\n            unchecked {\\n                i++;\\n            }\\n        }\\n    }\\n}\\n\",\"keccak256\":\"0x14c007b51bf0bf90bc4d0796b2b863e3d3bdecde4fc53543e7e993961d9be6c5\",\"license\":\"UNLICENSED\"},\"contracts/interfaces/IMultipleMerkleDistributor.sol\":{\"content\":\"// SPDX-License-Identifier: UNLICENSED\\npragma solidity >=0.8.0;\\n\\n// Allows anyone to claim a token if they exist in a merkle root.\\ninterface IMultipleMerkleDistributor {\\n    /// @notice data structure for aggregating multiple claims\\n    struct Claims {\\n        uint256 index;\\n        address account;\\n        uint256 amount;\\n        bytes32[] merkleProof;\\n        uint256 epoch;\\n    }\\n\\n    /// @notice event is triggered whenever a call to `claim` succeeds\\n    event Claimed(\\n        uint256 index,\\n        address account,\\n        uint256 amount,\\n        uint256 epoch\\n    );\\n\\n    /// @notice event is triggered whenever a new merkle root is added\\n    event MerkleRootAdded(uint256 epoch);\\n\\n    /// @return escrow for tokens claimed\\n    function rewardEscrow() external view returns (address);\\n\\n    /// @return token to be distributed (KWENTA)\\n    function token() external view returns (address);\\n\\n    // @return the merkle root of the merkle tree containing account balances available to claim\\n    function merkleRoots(uint256) external view returns (bytes32);\\n\\n    /// @notice determine if indexed claim has been claimed\\n    /// @param index: used for claim managment\\n    /// @param epoch: distribution index number\\n    /// @return true if indexed claim has been claimed\\n    function isClaimed(uint256 index, uint256 epoch)\\n        external\\n        view\\n        returns (bool);\\n\\n    /// @notice attempt to claim as `account` and escrow KWENTA for `account`\\n    /// @param index: used for merkle tree managment and verification\\n    /// @param account: address used for escrow entry\\n    /// @param amount: $KWENTA amount to be escrowed\\n    /// @param merkleProof: off-chain generated proof of merkle tree inclusion\\n    /// @param epoch: distribution index number\\n    function claim(\\n        uint256 index,\\n        address account,\\n        uint256 amount,\\n        bytes32[] calldata merkleProof,\\n        uint256 epoch\\n    ) external;\\n\\n    /// @notice function that aggregates multiple claims\\n    /// @param claims: array of valid claims\\n    function claimMultiple(Claims[] calldata claims) external;\\n}\\n\",\"keccak256\":\"0xc7ce087e1e52e6ed2aeb1527054478ddfb86898f24a9f2e7480d1927db53d6e1\",\"license\":\"UNLICENSED\"},\"contracts/interfaces/IRewardEscrow.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.0;\\n\\nlibrary VestingEntries {\\n    struct VestingEntry {\\n        uint64 endTime;\\n        uint256 escrowAmount;\\n        uint256 duration;\\n    }\\n    struct VestingEntryWithID {\\n        uint64 endTime;\\n        uint256 escrowAmount;\\n        uint256 entryID;\\n    }\\n}\\n\\ninterface IRewardEscrow {\\n    // Views\\n    function getKwentaAddress() external view returns (address);\\n\\n    function balanceOf(address account) external view returns (uint256);\\n\\n    function numVestingEntries(address account) external view returns (uint256);\\n\\n    function totalEscrowedAccountBalance(address account)\\n        external\\n        view\\n        returns (uint256);\\n\\n    function totalVestedAccountBalance(address account)\\n        external\\n        view\\n        returns (uint256);\\n\\n    function getVestingQuantity(address account, uint256[] calldata entryIDs)\\n        external\\n        view\\n        returns (uint256, uint256);\\n\\n    function getVestingSchedules(\\n        address account,\\n        uint256 index,\\n        uint256 pageSize\\n    ) external view returns (VestingEntries.VestingEntryWithID[] memory);\\n\\n    function getAccountVestingEntryIDs(\\n        address account,\\n        uint256 index,\\n        uint256 pageSize\\n    ) external view returns (uint256[] memory);\\n\\n    function getVestingEntryClaimable(address account, uint256 entryID)\\n        external\\n        view\\n        returns (uint256, uint256);\\n\\n    function getVestingEntry(address account, uint256 entryID)\\n        external\\n        view\\n        returns (\\n            uint64,\\n            uint256,\\n            uint256\\n        );\\n\\n    // Mutative functions\\n    function vest(uint256[] calldata entryIDs) external;\\n\\n    function createEscrowEntry(\\n        address beneficiary,\\n        uint256 deposit,\\n        uint256 duration\\n    ) external;\\n\\n    function appendVestingEntry(\\n        address account,\\n        uint256 quantity,\\n        uint256 duration\\n    ) external;\\n\\n    function stakeEscrow(uint256 _amount) external;\\n\\n    function unstakeEscrow(uint256 _amount) external;\\n}\\n\",\"keccak256\":\"0x982ccdf737fd3aa86031dd74db05ab789c1e9e72f1c1f57a3b5cd59b28378c3f\",\"license\":\"MIT\"},\"contracts/utils/Owned.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.0;\\n\\n// https://docs.synthetix.io/contracts/source/contracts/owned\\ncontract Owned {\\n    address public owner;\\n    address public nominatedOwner;\\n\\n    constructor(address _owner) {\\n        require(_owner != address(0), \\\"Owner address cannot be 0\\\");\\n        owner = _owner;\\n        emit OwnerChanged(address(0), _owner);\\n    }\\n\\n    function nominateNewOwner(address _owner) external onlyOwner {\\n        nominatedOwner = _owner;\\n        emit OwnerNominated(_owner);\\n    }\\n\\n    function acceptOwnership() external {\\n        require(msg.sender == nominatedOwner, \\\"You must be nominated before you can accept ownership\\\");\\n        emit OwnerChanged(owner, nominatedOwner);\\n        owner = nominatedOwner;\\n        nominatedOwner = address(0);\\n    }\\n\\n    modifier onlyOwner {\\n        _onlyOwner();\\n        _;\\n    }\\n\\n    function _onlyOwner() private view {\\n        require(msg.sender == owner, \\\"Only the contract owner may perform this action\\\");\\n    }\\n\\n    event OwnerNominated(address newOwner);\\n    event OwnerChanged(address oldOwner, address newOwner);\\n}\\n\",\"keccak256\":\"0x9f51a9dd99cc51a332f0a635628dc89262c126c358e4e89041aadbe9a519b06a\",\"license\":\"MIT\"}},\"version\":1}",
+  "bytecode": "0x60c060405234801561001057600080fd5b50604051610e75380380610e7583398101604081905261002f9161011d565b826001600160a01b03811661008a5760405162461bcd60e51b815260206004820152601960248201527f4f776e657220616464726573732063616e6e6f74206265203000000000000000604482015260640160405180910390fd5b600080546001600160a01b0319166001600160a01b03831690811782556040805192835260208301919091527fb532073b38c83145e3e5135377a08bf9aab55bc0fd7c1179cd4fb995d2a5159c910160405180910390a1506001600160601b0319606092831b811660a052911b1660805250610160565b80516001600160a01b038116811461011857600080fd5b919050565b60008060006060848603121561013257600080fd5b61013b84610101565b925061014960208501610101565b915061015760408501610101565b90509250925092565b60805160601c60a05160601c610cd56101a0600039600081816101f801526106de015260008181610188015281816106af01526107a40152610cd56000f3fe608060405234801561001057600080fd5b50600436106100d45760003560e01c80639350309911610081578063c02bb7ba1161005b578063c02bb7ba146101bd578063f364c90c146101d0578063fc0c546a146101f357600080fd5b80639350309914610170578063a430be6c14610183578063ab5943db146101aa57600080fd5b806371c5ecb1116100b257806371c5ecb11461013557806379ba5097146101555780638da5cb5b1461015d57600080fd5b80630b09d515146100d95780631627540c146100f557806353a47bb71461010a575b600080fd5b6100e260025481565b6040519081526020015b60405180910390f35b610108610103366004610a87565b61021a565b005b60015461011d906001600160a01b031681565b6040516001600160a01b0390911681526020016100ec565b6100e2610143366004610b0d565b60036020526000908152604090205481565b610108610283565b60005461011d906001600160a01b031681565b61010861017e366004610b0d565b610387565b61011d7f000000000000000000000000000000000000000000000000000000000000000081565b6101086101b8366004610aa9565b6103f2565b6101086101cb366004610b26565b6104f0565b6101e36101de366004610b96565b61085a565b60405190151581526020016100ec565b61011d7f000000000000000000000000000000000000000000000000000000000000000081565b6102226108a5565b6001805473ffffffffffffffffffffffffffffffffffffffff19166001600160a01b0383169081179091556040519081527f906a1c6bd7e3091ea86693dd029a831c19049ce77f1dce2ce0bab1cacbabce229060200160405180910390a150565b6001546001600160a01b031633146103085760405162461bcd60e51b815260206004820152603560248201527f596f75206d757374206265206e6f6d696e61746564206265666f726520796f7560448201527f2063616e20616363657074206f776e657273686970000000000000000000000060648201526084015b60405180910390fd5b600054600154604080516001600160a01b0393841681529290911660208301527fb532073b38c83145e3e5135377a08bf9aab55bc0fd7c1179cd4fb995d2a5159c910160405180910390a1600180546000805473ffffffffffffffffffffffffffffffffffffffff199081166001600160a01b03841617909155169055565b61038f6108a5565b60028054600090815260036020908152604091829020849055915490519081527ffa7a4543b160b1709fbf83816c0a0ea72a11709913c70902c457f0030af120e5910160405180910390a1600280549060006103ea83610c36565b919050555050565b8060005b818110156104ea576104e284848381811061041357610413610c89565b90506020028101906104259190610c02565b3585858481811061043857610438610c89565b905060200281019061044a9190610c02565b61045b906040810190602001610a87565b86868581811061046d5761046d610c89565b905060200281019061047f9190610c02565b6040013587878681811061049557610495610c89565b90506020028101906104a79190610c02565b6104b5906060810190610bb8565b8989888181106104c7576104c7610c89565b90506020028101906104d99190610c02565b608001356104f0565b6001016103f6565b50505050565b6104fa868261085a565b1561056d5760405162461bcd60e51b815260206004820152603060248201527f4d756c7469706c654d65726b6c654469737472696275746f723a2044726f702060448201527f616c726561647920636c61696d65642e0000000000000000000000000000000060648201526084016102ff565b60408051602081018890526bffffffffffffffffffffffff19606088901b16918101919091526054810185905260009060740160405160208183030381529060405280519060200120905061060384848080602002602001604051908101604052809392919081815260200183836020028082843760009201829052508781526003602052604090205492508591506109279050565b6106755760405162461bcd60e51b815260206004820152602960248201527f4d756c7469706c654d65726b6c654469737472696275746f723a20496e76616c60448201527f69642070726f6f662e000000000000000000000000000000000000000000000060648201526084016102ff565b61067f87836109d6565b6040517f095ea7b30000000000000000000000000000000000000000000000000000000081526001600160a01b037f000000000000000000000000000000000000000000000000000000000000000081166004830152602482018790527f0000000000000000000000000000000000000000000000000000000000000000169063095ea7b390604401602060405180830381600087803b15801561072257600080fd5b505af1158015610736573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061075a9190610aeb565b506040517fa0416ed30000000000000000000000000000000000000000000000000000000081526001600160a01b038781166004830152602482018790526301dfe20060448301527f0000000000000000000000000000000000000000000000000000000000000000169063a0416ed390606401600060405180830381600087803b1580156107e857600080fd5b505af11580156107fc573d6000803e3d6000fd5b5050604080518a81526001600160a01b038a166020820152908101889052606081018590527fd9cb1e2714d65a111c0f20f060176ad657496bd47a3de04ec7c3d4ca232112ac9250608001905060405180910390a150505050505050565b60008061086961010085610c22565b9050600061087961010086610c5f565b60009485526004602090815260408087209487529390529190932054600190911b908116149392505050565b6000546001600160a01b031633146109255760405162461bcd60e51b815260206004820152602f60248201527f4f6e6c792074686520636f6e7472616374206f776e6572206d6179207065726660448201527f6f726d207468697320616374696f6e000000000000000000000000000000000060648201526084016102ff565b565b600081815b85518110156109cb57600086828151811061094957610949610c89565b6020026020010151905080831161098b5760408051602081018590529081018290526060016040516020818303038152906040528051906020012092506109b8565b60408051602081018390529081018490526060016040516020818303038152906040528051906020012092505b50806109c381610c36565b91505061092c565b509092149392505050565b60006109e461010084610c22565b905060006109f461010085610c5f565b6000938452600460209081526040808620948652939052919092208054600190921b90911790555050565b80356001600160a01b0381168114610a3657600080fd5b919050565b60008083601f840112610a4d57600080fd5b50813567ffffffffffffffff811115610a6557600080fd5b6020830191508360208260051b8501011115610a8057600080fd5b9250929050565b600060208284031215610a9957600080fd5b610aa282610a1f565b9392505050565b60008060208385031215610abc57600080fd5b823567ffffffffffffffff811115610ad357600080fd5b610adf85828601610a3b565b90969095509350505050565b600060208284031215610afd57600080fd5b81518015158114610aa257600080fd5b600060208284031215610b1f57600080fd5b5035919050565b60008060008060008060a08789031215610b3f57600080fd5b86359550610b4f60208801610a1f565b945060408701359350606087013567ffffffffffffffff811115610b7257600080fd5b610b7e89828a01610a3b565b979a9699509497949695608090950135949350505050565b60008060408385031215610ba957600080fd5b50508035926020909101359150565b6000808335601e19843603018112610bcf57600080fd5b83018035915067ffffffffffffffff821115610bea57600080fd5b6020019150600581901b3603821315610a8057600080fd5b60008235609e19833603018112610c1857600080fd5b9190910192915050565b600082610c3157610c31610c73565b500490565b6000600019821415610c5857634e487b7160e01b600052601160045260246000fd5b5060010190565b600082610c6e57610c6e610c73565b500690565b634e487b7160e01b600052601260045260246000fd5b634e487b7160e01b600052603260045260246000fdfea264697066735822122044d2eaaef0991f23a23e00299f9db4e53e13ee3aab7df9f5fd53a0522578a49f64736f6c63430008070033",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b50600436106100d45760003560e01c80639350309911610081578063c02bb7ba1161005b578063c02bb7ba146101bd578063f364c90c146101d0578063fc0c546a146101f357600080fd5b80639350309914610170578063a430be6c14610183578063ab5943db146101aa57600080fd5b806371c5ecb1116100b257806371c5ecb11461013557806379ba5097146101555780638da5cb5b1461015d57600080fd5b80630b09d515146100d95780631627540c146100f557806353a47bb71461010a575b600080fd5b6100e260025481565b6040519081526020015b60405180910390f35b610108610103366004610a87565b61021a565b005b60015461011d906001600160a01b031681565b6040516001600160a01b0390911681526020016100ec565b6100e2610143366004610b0d565b60036020526000908152604090205481565b610108610283565b60005461011d906001600160a01b031681565b61010861017e366004610b0d565b610387565b61011d7f000000000000000000000000000000000000000000000000000000000000000081565b6101086101b8366004610aa9565b6103f2565b6101086101cb366004610b26565b6104f0565b6101e36101de366004610b96565b61085a565b60405190151581526020016100ec565b61011d7f000000000000000000000000000000000000000000000000000000000000000081565b6102226108a5565b6001805473ffffffffffffffffffffffffffffffffffffffff19166001600160a01b0383169081179091556040519081527f906a1c6bd7e3091ea86693dd029a831c19049ce77f1dce2ce0bab1cacbabce229060200160405180910390a150565b6001546001600160a01b031633146103085760405162461bcd60e51b815260206004820152603560248201527f596f75206d757374206265206e6f6d696e61746564206265666f726520796f7560448201527f2063616e20616363657074206f776e657273686970000000000000000000000060648201526084015b60405180910390fd5b600054600154604080516001600160a01b0393841681529290911660208301527fb532073b38c83145e3e5135377a08bf9aab55bc0fd7c1179cd4fb995d2a5159c910160405180910390a1600180546000805473ffffffffffffffffffffffffffffffffffffffff199081166001600160a01b03841617909155169055565b61038f6108a5565b60028054600090815260036020908152604091829020849055915490519081527ffa7a4543b160b1709fbf83816c0a0ea72a11709913c70902c457f0030af120e5910160405180910390a1600280549060006103ea83610c36565b919050555050565b8060005b818110156104ea576104e284848381811061041357610413610c89565b90506020028101906104259190610c02565b3585858481811061043857610438610c89565b905060200281019061044a9190610c02565b61045b906040810190602001610a87565b86868581811061046d5761046d610c89565b905060200281019061047f9190610c02565b6040013587878681811061049557610495610c89565b90506020028101906104a79190610c02565b6104b5906060810190610bb8565b8989888181106104c7576104c7610c89565b90506020028101906104d99190610c02565b608001356104f0565b6001016103f6565b50505050565b6104fa868261085a565b1561056d5760405162461bcd60e51b815260206004820152603060248201527f4d756c7469706c654d65726b6c654469737472696275746f723a2044726f702060448201527f616c726561647920636c61696d65642e0000000000000000000000000000000060648201526084016102ff565b60408051602081018890526bffffffffffffffffffffffff19606088901b16918101919091526054810185905260009060740160405160208183030381529060405280519060200120905061060384848080602002602001604051908101604052809392919081815260200183836020028082843760009201829052508781526003602052604090205492508591506109279050565b6106755760405162461bcd60e51b815260206004820152602960248201527f4d756c7469706c654d65726b6c654469737472696275746f723a20496e76616c60448201527f69642070726f6f662e000000000000000000000000000000000000000000000060648201526084016102ff565b61067f87836109d6565b6040517f095ea7b30000000000000000000000000000000000000000000000000000000081526001600160a01b037f000000000000000000000000000000000000000000000000000000000000000081166004830152602482018790527f0000000000000000000000000000000000000000000000000000000000000000169063095ea7b390604401602060405180830381600087803b15801561072257600080fd5b505af1158015610736573d6000803e3d6000fd5b505050506040513d601f19601f8201168201806040525081019061075a9190610aeb565b506040517fa0416ed30000000000000000000000000000000000000000000000000000000081526001600160a01b038781166004830152602482018790526301dfe20060448301527f0000000000000000000000000000000000000000000000000000000000000000169063a0416ed390606401600060405180830381600087803b1580156107e857600080fd5b505af11580156107fc573d6000803e3d6000fd5b5050604080518a81526001600160a01b038a166020820152908101889052606081018590527fd9cb1e2714d65a111c0f20f060176ad657496bd47a3de04ec7c3d4ca232112ac9250608001905060405180910390a150505050505050565b60008061086961010085610c22565b9050600061087961010086610c5f565b60009485526004602090815260408087209487529390529190932054600190911b908116149392505050565b6000546001600160a01b031633146109255760405162461bcd60e51b815260206004820152602f60248201527f4f6e6c792074686520636f6e7472616374206f776e6572206d6179207065726660448201527f6f726d207468697320616374696f6e000000000000000000000000000000000060648201526084016102ff565b565b600081815b85518110156109cb57600086828151811061094957610949610c89565b6020026020010151905080831161098b5760408051602081018590529081018290526060016040516020818303038152906040528051906020012092506109b8565b60408051602081018390529081018490526060016040516020818303038152906040528051906020012092505b50806109c381610c36565b91505061092c565b509092149392505050565b60006109e461010084610c22565b905060006109f461010085610c5f565b6000938452600460209081526040808620948652939052919092208054600190921b90911790555050565b80356001600160a01b0381168114610a3657600080fd5b919050565b60008083601f840112610a4d57600080fd5b50813567ffffffffffffffff811115610a6557600080fd5b6020830191508360208260051b8501011115610a8057600080fd5b9250929050565b600060208284031215610a9957600080fd5b610aa282610a1f565b9392505050565b60008060208385031215610abc57600080fd5b823567ffffffffffffffff811115610ad357600080fd5b610adf85828601610a3b565b90969095509350505050565b600060208284031215610afd57600080fd5b81518015158114610aa257600080fd5b600060208284031215610b1f57600080fd5b5035919050565b60008060008060008060a08789031215610b3f57600080fd5b86359550610b4f60208801610a1f565b945060408701359350606087013567ffffffffffffffff811115610b7257600080fd5b610b7e89828a01610a3b565b979a9699509497949695608090950135949350505050565b60008060408385031215610ba957600080fd5b50508035926020909101359150565b6000808335601e19843603018112610bcf57600080fd5b83018035915067ffffffffffffffff821115610bea57600080fd5b6020019150600581901b3603821315610a8057600080fd5b60008235609e19833603018112610c1857600080fd5b9190910192915050565b600082610c3157610c31610c73565b500490565b6000600019821415610c5857634e487b7160e01b600052601160045260246000fd5b5060010190565b600082610c6e57610c6e610c73565b500690565b634e487b7160e01b600052601260045260246000fd5b634e487b7160e01b600052603260045260246000fdfea264697066735822122044d2eaaef0991f23a23e00299f9db4e53e13ee3aab7df9f5fd53a0522578a49f64736f6c63430008070033",
+  "devdoc": {
+    "author": "JaredBorders and JChiaramonte7",
+    "kind": "dev",
+    "methods": {
+      "claim(uint256,address,uint256,bytes32[],uint256)": {
+        "params": {
+          "account": ": address used for escrow entry",
+          "amount": ": $KWENTA amount to be escrowed",
+          "epoch": ": distribution index to check",
+          "index": ": used for merkle tree managment and verification",
+          "merkleProof": ": off-chain generated proof of merkle tree inclusion"
+        }
+      },
+      "claimMultiple((uint256,address,uint256,bytes32[],uint256)[])": {
+        "params": {
+          "claims": ": array of valid claims"
+        }
+      },
+      "constructor": {
+        "params": {
+          "_owner": ": designated owner of this contract",
+          "_rewardEscrow": ": address of kwenta escrow for tokens claimed",
+          "_token": ": address of erc20 token to be distributed"
+        }
+      },
+      "isClaimed(uint256,uint256)": {
+        "params": {
+          "epoch": ": distribution index to check",
+          "index": ": used for claim managment"
+        },
+        "returns": {
+          "_0": "true if indexed claim has been claimed"
+        }
+      },
+      "newMerkleRoot(bytes32)": {
+        "details": "calling this function will increment distributionEpoch",
+        "params": {
+          "_merkleRoot": ": new merkle root"
+        }
+      }
+    },
+    "title": "Kwenta MultipleMerkleDistributor",
+    "version": 1
+  },
+  "userdoc": {
+    "events": {
+      "Claimed(uint256,address,uint256,uint256)": {
+        "notice": "event is triggered whenever a call to `claim` succeeds"
+      },
+      "MerkleRootAdded(uint256)": {
+        "notice": "event is triggered whenever a new merkle root is added"
+      }
+    },
+    "kind": "user",
+    "methods": {
+      "claim(uint256,address,uint256,bytes32[],uint256)": {
+        "notice": "attempt to claim as `account` and escrow KWENTA for `account`"
+      },
+      "claimMultiple((uint256,address,uint256,bytes32[],uint256)[])": {
+        "notice": "function that aggregates multiple claims"
+      },
+      "constructor": {
+        "notice": "set addresses for deployed rewardEscrow and KWENTA. Establish merkle root for verification"
+      },
+      "distributionEpoch()": {
+        "notice": "an index that is incremented for each new merkle root"
+      },
+      "isClaimed(uint256,uint256)": {
+        "notice": "determine if indexed claim has been claimed"
+      },
+      "merkleRoots(uint256)": {
+        "notice": "an epoch to merkle root mapping of a merkle tree containing account balances available to claim"
+      },
+      "newMerkleRoot(bytes32)": {
+        "notice": "set new merkle root for new distribution epoch"
+      },
+      "rewardEscrow()": {
+        "notice": "escrow for tokens claimed"
+      },
+      "token()": {
+        "notice": "token to be distributed (KWENTA)"
+      }
+    },
+    "notice": "Facilitates trading incentives distribution over multiple periods.",
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 5894,
+        "contract": "contracts/MultipleMerkleDistributor.sol:MultipleMerkleDistributor",
+        "label": "owner",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_address"
+      },
+      {
+        "astId": 5896,
+        "contract": "contracts/MultipleMerkleDistributor.sol:MultipleMerkleDistributor",
+        "label": "nominatedOwner",
+        "offset": 0,
+        "slot": "1",
+        "type": "t_address"
+      },
+      {
+        "astId": 1762,
+        "contract": "contracts/MultipleMerkleDistributor.sol:MultipleMerkleDistributor",
+        "label": "distributionEpoch",
+        "offset": 0,
+        "slot": "2",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 1768,
+        "contract": "contracts/MultipleMerkleDistributor.sol:MultipleMerkleDistributor",
+        "label": "merkleRoots",
+        "offset": 0,
+        "slot": "3",
+        "type": "t_mapping(t_uint256,t_bytes32)"
+      },
+      {
+        "astId": 1775,
+        "contract": "contracts/MultipleMerkleDistributor.sol:MultipleMerkleDistributor",
+        "label": "claimedBitMaps",
+        "offset": 0,
+        "slot": "4",
+        "type": "t_mapping(t_uint256,t_mapping(t_uint256,t_uint256))"
+      }
+    ],
+    "types": {
+      "t_address": {
+        "encoding": "inplace",
+        "label": "address",
+        "numberOfBytes": "20"
+      },
+      "t_bytes32": {
+        "encoding": "inplace",
+        "label": "bytes32",
+        "numberOfBytes": "32"
+      },
+      "t_mapping(t_uint256,t_bytes32)": {
+        "encoding": "mapping",
+        "key": "t_uint256",
+        "label": "mapping(uint256 => bytes32)",
+        "numberOfBytes": "32",
+        "value": "t_bytes32"
+      },
+      "t_mapping(t_uint256,t_mapping(t_uint256,t_uint256))": {
+        "encoding": "mapping",
+        "key": "t_uint256",
+        "label": "mapping(uint256 => mapping(uint256 => uint256))",
+        "numberOfBytes": "32",
+        "value": "t_mapping(t_uint256,t_uint256)"
+      },
+      "t_mapping(t_uint256,t_uint256)": {
+        "encoding": "mapping",
+        "key": "t_uint256",
+        "label": "mapping(uint256 => uint256)",
+        "numberOfBytes": "32",
+        "value": "t_uint256"
+      },
+      "t_uint256": {
+        "encoding": "inplace",
+        "label": "uint256",
+        "numberOfBytes": "32"
+      }
+    }
+  }
+}
