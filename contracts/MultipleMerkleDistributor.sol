@@ -50,6 +50,21 @@ contract MultipleMerkleDistributor is IMultipleMerkleDistributor, Owned {
         distributionEpoch++;
     }
 
+    /// @notice remove the most recent epoch
+    /// @dev calling this function will decrement distributionEpoch
+    function decrementEpoch() external onlyOwner {
+        distributionEpoch--;
+        delete merkleRoots[distributionEpoch];
+    }
+
+    /// @notice modify merkle root for existing distribution epoch
+    function setDistributionForEpoch(bytes32 merkleRoot, uint256 epoch)
+        external
+        onlyOwner
+    {
+        merkleRoots[epoch] = merkleRoot;
+    }
+
     /// @notice determine if indexed claim has been claimed
     /// @param index: used for claim managment
     /// @param epoch: distribution index to check
