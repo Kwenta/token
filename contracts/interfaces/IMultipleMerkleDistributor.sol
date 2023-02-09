@@ -23,6 +23,12 @@ interface IMultipleMerkleDistributor {
     /// @notice event is triggered whenever a new merkle root is added
     event MerkleRootAdded(uint256 epoch);
 
+    /// @notice event is triggered whenever a new merkle root is added
+    event MerkleRootRemoved(uint256 epoch);
+
+    /// @notice event is triggered whenever a new merkle root is added
+    event MerkleRootModified(uint256 epoch);
+
     /// @return escrow for tokens claimed
     function rewardEscrow() external view returns (address);
 

@@ -7,8 +7,9 @@ contract BatchClaimer {
     
     function claimMultiple(
         IMultipleMerkleDistributor[] calldata _distributors,
-        IMultipleMerkleDistributor.Claims[][] memory _claims
+        IMultipleMerkleDistributor.Claims[][] calldata _claims
     ) external {
+        require(_distributors.length == _claims.length, "BatchClaimer: invalid input");
         for (uint256 i = 0; i < _distributors.length; i++) {
             _distributors[i].claimMultiple(_claims[i]);
         }
