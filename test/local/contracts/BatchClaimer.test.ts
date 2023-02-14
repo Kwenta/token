@@ -92,9 +92,18 @@ describe("BatchClaimer", () => {
             batchClaimer = await BatchClaimer.deploy();
             await batchClaimer.deployed();
 
-            await distributor1.newMerkleRoot(tree.getHexRoot());
-            await distributor1.newMerkleRoot(tree2.getHexRoot());
-            await distributor2.newMerkleRoot(tree2.getHexRoot());
+            await distributor1.setMerkleRootForEpoch(
+                tree.getHexRoot(),
+                EPOCH_ZERO
+            );
+            await distributor1.setMerkleRootForEpoch(
+                tree2.getHexRoot(),
+                EPOCH_ONE
+            );
+            await distributor2.setMerkleRootForEpoch(
+                tree2.getHexRoot(),
+                EPOCH_ZERO
+            );
 
             await expect(() =>
                 kwenta

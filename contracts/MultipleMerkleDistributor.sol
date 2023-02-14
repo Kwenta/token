@@ -17,9 +17,6 @@ contract MultipleMerkleDistributor is IMultipleMerkleDistributor, Owned {
     /// @notice token to be distributed (KWENTA)
     address public immutable override token;
 
-    /// @notice an index that is incremented for each new merkle root
-    uint256 public distributionEpoch;
-
     /// @notice an epoch to merkle root mapping
     /// of a merkle tree containing account balances available to claim
     mapping(uint256 => bytes32) public override merkleRoots;
@@ -41,25 +38,8 @@ contract MultipleMerkleDistributor is IMultipleMerkleDistributor, Owned {
         rewardEscrow = _rewardEscrow;
     }
 
-    /// @notice set new merkle root for new distribution epoch
-    /// @dev calling this function will increment distributionEpoch
-    /// @param _merkleRoot: new merkle root
-    function newMerkleRoot(bytes32 _merkleRoot) external onlyOwner {
-        merkleRoots[distributionEpoch] = _merkleRoot;
-        emit MerkleRootAdded(distributionEpoch);
-        distributionEpoch++;
-    }
-
-    /// @notice remove the most recent epoch
-    /// @dev calling this function will decrement distributionEpoch
-    function removeLatestMerkleRootAndDecrementEpoch() external onlyOwner {
-        distributionEpoch--;
-        delete merkleRoots[distributionEpoch];
-        emit MerkleRootRemoved(distributionEpoch);
-    }
-
     /// @notice modify merkle root for existing distribution epoch
-    function modifyMerkleRootForEpoch(bytes32 merkleRoot, uint256 epoch)
+    function setMerkleRootForEpoch(bytes32 merkleRoot, uint256 epoch)
         external
         onlyOwner
     {
