@@ -1,0 +1,69 @@
+{
+  "address": "0x6Fd879830D9b1EE5d4f9ef12f8D5deE916bebD0b",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "contract IMultipleMerkleDistributor[]",
+          "name": "_distributors",
+          "type": "address[]"
+        },
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "index",
+              "type": "uint256"
+            },
+            {
+              "internalType": "address",
+              "name": "account",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes32[]",
+              "name": "merkleProof",
+              "type": "bytes32[]"
+            },
+            {
+              "internalType": "uint256",
+              "name": "epoch",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct IMultipleMerkleDistributor.Claims[][]",
+          "name": "_claims",
+          "type": "tuple[][]"
+        }
+      ],
+      "name": "claimMultiple",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "numDeployments": 1,
+  "solcInputHash": "83ff09c7e532e84abf52ec2446a68708",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.7+commit.e28d00a7\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"contract IMultipleMerkleDistributor[]\",\"name\":\"_distributors\",\"type\":\"address[]\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"index\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes32[]\",\"name\":\"merkleProof\",\"type\":\"bytes32[]\"},{\"internalType\":\"uint256\",\"name\":\"epoch\",\"type\":\"uint256\"}],\"internalType\":\"struct IMultipleMerkleDistributor.Claims[][]\",\"name\":\"_claims\",\"type\":\"tuple[][]\"}],\"name\":\"claimMultiple\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/misc/BatchClaimer.sol\":\"BatchClaimer\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":1000},\"remappings\":[]},\"sources\":{\"contracts/interfaces/IMultipleMerkleDistributor.sol\":{\"content\":\"// SPDX-License-Identifier: UNLICENSED\\npragma solidity >=0.8.0;\\n\\n// Allows anyone to claim a token if they exist in a merkle root.\\ninterface IMultipleMerkleDistributor {\\n    /// @notice data structure for aggregating multiple claims\\n    struct Claims {\\n        uint256 index;\\n        address account;\\n        uint256 amount;\\n        bytes32[] merkleProof;\\n        uint256 epoch;\\n    }\\n\\n    /// @notice event is triggered whenever a call to `claim` succeeds\\n    event Claimed(\\n        uint256 index,\\n        address account,\\n        uint256 amount,\\n        uint256 epoch\\n    );\\n\\n    /// @notice event is triggered whenever a merkle root is set\\n    event MerkleRootModified(uint256 epoch);\\n\\n    /// @return escrow for tokens claimed\\n    function rewardEscrow() external view returns (address);\\n\\n    /// @return token to be distributed (KWENTA)\\n    function token() external view returns (address);\\n\\n    // @return the merkle root of the merkle tree containing account balances available to claim\\n    function merkleRoots(uint256) external view returns (bytes32);\\n\\n    /// @notice determine if indexed claim has been claimed\\n    /// @param index: used for claim managment\\n    /// @param epoch: distribution index number\\n    /// @return true if indexed claim has been claimed\\n    function isClaimed(uint256 index, uint256 epoch)\\n        external\\n        view\\n        returns (bool);\\n\\n    /// @notice attempt to claim as `account` and escrow KWENTA for `account`\\n    /// @param index: used for merkle tree managment and verification\\n    /// @param account: address used for escrow entry\\n    /// @param amount: $KWENTA amount to be escrowed\\n    /// @param merkleProof: off-chain generated proof of merkle tree inclusion\\n    /// @param epoch: distribution index number\\n    function claim(\\n        uint256 index,\\n        address account,\\n        uint256 amount,\\n        bytes32[] calldata merkleProof,\\n        uint256 epoch\\n    ) external;\\n\\n    /// @notice function that aggregates multiple claims\\n    /// @param claims: array of valid claims\\n    function claimMultiple(Claims[] calldata claims) external;\\n}\\n\",\"keccak256\":\"0xc8e9d7b1bbd8831244198504fd1074936e22fa749e2002de87c0210231928d8e\",\"license\":\"UNLICENSED\"},\"contracts/misc/BatchClaimer.sol\":{\"content\":\"// SPDX-License-Identifier: UNLICENSED\\npragma solidity ^0.8.0;\\n\\nimport \\\"../interfaces/IMultipleMerkleDistributor.sol\\\";\\n\\ncontract BatchClaimer {\\n    \\n    function claimMultiple(\\n        IMultipleMerkleDistributor[] calldata _distributors,\\n        IMultipleMerkleDistributor.Claims[][] calldata _claims\\n    ) external {\\n        require(_distributors.length == _claims.length, \\\"BatchClaimer: invalid input\\\");\\n        for (uint256 i = 0; i < _distributors.length; i++) {\\n            _distributors[i].claimMultiple(_claims[i]);\\n        }\\n    }\\n}\\n\",\"keccak256\":\"0x6d36f42815753068efa70b96d3c1e57a1e4294e9a220dc851a2fd4cb91575973\",\"license\":\"UNLICENSED\"}},\"version\":1}",
+  "bytecode": "0x608060405234801561001057600080fd5b506104a0806100206000396000f3fe608060405234801561001057600080fd5b506004361061002b5760003560e01c806394f8c3f314610030575b600080fd5b61004361003e3660046101d8565b610045565b005b8281146100b2576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152601b60248201527f4261746368436c61696d65723a20696e76616c696420696e7075740000000000604482015260640160405180910390fd5b60005b83811015610185578484828181106100cf576100cf61042f565b90506020020160208101906100e49190610244565b73ffffffffffffffffffffffffffffffffffffffff1663ab5943db8484848181106101115761011161042f565b905060200281019061012391906103bc565b6040518363ffffffff1660e01b81526004016101409291906102b7565b600060405180830381600087803b15801561015a57600080fd5b505af115801561016e573d6000803e3d6000fd5b50505050808061017d90610406565b9150506100b5565b5050505050565b60008083601f84011261019e57600080fd5b50813567ffffffffffffffff8111156101b657600080fd5b6020830191508360208260051b85010111156101d157600080fd5b9250929050565b600080600080604085870312156101ee57600080fd5b843567ffffffffffffffff8082111561020657600080fd5b6102128883890161018c565b9096509450602087013591508082111561022b57600080fd5b506102388782880161018c565b95989497509550505050565b60006020828403121561025657600080fd5b813561026181610445565b9392505050565b81835260007f07ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff83111561029a57600080fd5b8260051b8083602087013760009401602001938452509192915050565b60208082528181018390526000906040808401600586811b8601830188865b898110156103ad57888303603f190185528135368c9003609e190181126102fc57600080fd5b8b018035845260a08882013561031181610445565b73ffffffffffffffffffffffffffffffffffffffff16858a0152818801358886015260608083013536849003601e1901811261034c57600080fd5b8301803567ffffffffffffffff81111561036557600080fd5b80891b360385131561037657600080fd5b838389015261038a848901828e8501610268565b6080958601359890950197909752505050948701949250908601906001016102d6565b50909998505050505050505050565b6000808335601e198436030181126103d357600080fd5b83018035915067ffffffffffffffff8211156103ee57600080fd5b6020019150600581901b36038213156101d157600080fd5b600060001982141561042857634e487b7160e01b600052601160045260246000fd5b5060010190565b634e487b7160e01b600052603260045260246000fd5b73ffffffffffffffffffffffffffffffffffffffff8116811461046757600080fd5b5056fea26469706673582212204f083055bfb90a574210ac74b702666c06031b0642349ed349c6eda3a579e7f764736f6c63430008070033",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b506004361061002b5760003560e01c806394f8c3f314610030575b600080fd5b61004361003e3660046101d8565b610045565b005b8281146100b2576040517f08c379a000000000000000000000000000000000000000000000000000000000815260206004820152601b60248201527f4261746368436c61696d65723a20696e76616c696420696e7075740000000000604482015260640160405180910390fd5b60005b83811015610185578484828181106100cf576100cf61042f565b90506020020160208101906100e49190610244565b73ffffffffffffffffffffffffffffffffffffffff1663ab5943db8484848181106101115761011161042f565b905060200281019061012391906103bc565b6040518363ffffffff1660e01b81526004016101409291906102b7565b600060405180830381600087803b15801561015a57600080fd5b505af115801561016e573d6000803e3d6000fd5b50505050808061017d90610406565b9150506100b5565b5050505050565b60008083601f84011261019e57600080fd5b50813567ffffffffffffffff8111156101b657600080fd5b6020830191508360208260051b85010111156101d157600080fd5b9250929050565b600080600080604085870312156101ee57600080fd5b843567ffffffffffffffff8082111561020657600080fd5b6102128883890161018c565b9096509450602087013591508082111561022b57600080fd5b506102388782880161018c565b95989497509550505050565b60006020828403121561025657600080fd5b813561026181610445565b9392505050565b81835260007f07ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff83111561029a57600080fd5b8260051b8083602087013760009401602001938452509192915050565b60208082528181018390526000906040808401600586811b8601830188865b898110156103ad57888303603f190185528135368c9003609e190181126102fc57600080fd5b8b018035845260a08882013561031181610445565b73ffffffffffffffffffffffffffffffffffffffff16858a0152818801358886015260608083013536849003601e1901811261034c57600080fd5b8301803567ffffffffffffffff81111561036557600080fd5b80891b360385131561037657600080fd5b838389015261038a848901828e8501610268565b6080958601359890950197909752505050948701949250908601906001016102d6565b50909998505050505050505050565b6000808335601e198436030181126103d357600080fd5b83018035915067ffffffffffffffff8211156103ee57600080fd5b6020019150600581901b36038213156101d157600080fd5b600060001982141561042857634e487b7160e01b600052601160045260246000fd5b5060010190565b634e487b7160e01b600052603260045260246000fd5b73ffffffffffffffffffffffffffffffffffffffff8116811461046757600080fd5b5056fea26469706673582212204f083055bfb90a574210ac74b702666c06031b0642349ed349c6eda3a579e7f764736f6c63430008070033",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {},
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {},
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [],
+    "types": null
+  }
+}
