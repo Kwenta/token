@@ -12,6 +12,7 @@ import "hardhat-interact";
 import "hardhat-deploy";
 import "hardhat-interface-generator";
 import "@nomiclabs/hardhat-etherscan";
+import "./scripts/tasks/create-claim";
 
 dotenv.config();
 
