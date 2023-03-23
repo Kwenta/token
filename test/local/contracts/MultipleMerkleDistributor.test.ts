@@ -1,7 +1,7 @@
 import { expect } from "chai";
-import hre, { ethers } from "hardhat";
+import { ethers } from "hardhat";
 import { Contract, BigNumber } from "ethers";
-import { FakeContract, smock } from "@defi-wonderland/smock";
+import { smock } from "@defi-wonderland/smock";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import BalanceTree from "../../../scripts/merkle/balance-tree";
 import { parseBalanceMap } from "../../../scripts/merkle/parse-balance-map";
@@ -17,8 +17,6 @@ require("chai")
 const NAME = "Kwenta";
 const SYMBOL = "KWENTA";
 const INITIAL_SUPPLY = ethers.utils.parseUnits("313373");
-const INFLATION_DIVERSION_BPS = 2000;
-const WEEKLY_START_REWARDS = 3;
 const ZERO_BYTES32 =
     "0x0000000000000000000000000000000000000000000000000000000000000000";
 const EPOCH_ZERO = 0;
@@ -72,6 +70,21 @@ describe("MultipleMerkleDistributor", () => {
     });
 
     describe("merkleRoot", () => {
+        let tree: BalanceTree, tree2: BalanceTree;
+
+        beforeEach(async () => {
+            tree = new BalanceTree([
+                { account: addr0.address, amount: BigNumber.from(100) },
+                { account: addr1.address, amount: BigNumber.from(101) },
+                { account: addr2.address, amount: BigNumber.from(202) },
+            ]);
+            tree2 = new BalanceTree([
+                { account: addr0.address, amount: BigNumber.from(1100) },
+                { account: addr1.address, amount: BigNumber.from(1101) },
+                { account: addr2.address, amount: BigNumber.from(1202) },
+            ]);
+        });
+
         it("returns the zero merkle root", async () => {
             const MultipleMerkleDistributor = await ethers.getContractFactory(
                 "MultipleMerkleDistributor"
@@ -96,25 +109,15 @@ describe("MultipleMerkleDistributor", () => {
             );
             await distributor.deployed();
             await expect(
-                distributor.connect(addr0).newMerkleRoot(ZERO_BYTES32)
+                distributor
+                    .connect(addr0)
+                    .setMerkleRootForEpoch(ZERO_BYTES32, EPOCH_ZERO)
             ).to.be.revertedWith(
                 "Only the contract owner may perform this action"
             );
         });
 
         it("multiple roots stored and keyed by epoch", async () => {
-            const tree = new BalanceTree([
-                { account: addr0.address, amount: BigNumber.from(100) },
-                { account: addr1.address, amount: BigNumber.from(101) },
-                { account: addr2.address, amount: BigNumber.from(202) },
-            ]);
-
-            const tree2 = new BalanceTree([
-                { account: addr0.address, amount: BigNumber.from(1100) },
-                { account: addr1.address, amount: BigNumber.from(1101) },
-                { account: addr2.address, amount: BigNumber.from(1202) },
-            ]);
-
             const MultipleMerkleDistributor = await ethers.getContractFactory(
                 "MultipleMerkleDistributor"
             );
@@ -124,11 +127,15 @@ describe("MultipleMerkleDistributor", () => {
                 rewardEscrow.address
             );
             await distributor.deployed();
-            await expect(distributor.newMerkleRoot(tree.getHexRoot()))
-                .to.emit(distributor, "MerkleRootAdded")
+            await expect(
+                distributor.setMerkleRootForEpoch(tree.getHexRoot(), EPOCH_ZERO)
+            )
+                .to.emit(distributor, "MerkleRootModified")
                 .withArgs(EPOCH_ZERO);
-            await expect(distributor.newMerkleRoot(tree2.getHexRoot()))
-                .to.emit(distributor, "MerkleRootAdded")
+            await expect(
+                distributor.setMerkleRootForEpoch(tree2.getHexRoot(), EPOCH_ONE)
+            )
+                .to.emit(distributor, "MerkleRootModified")
                 .withArgs(EPOCH_ONE);
             expect(await distributor.merkleRoots(0)).to.equal(
                 tree.getHexRoot()
@@ -139,18 +146,6 @@ describe("MultipleMerkleDistributor", () => {
         });
 
         it("verify roots are distinct", async () => {
-            const tree = new BalanceTree([
-                { account: addr0.address, amount: BigNumber.from(100) },
-                { account: addr1.address, amount: BigNumber.from(101) },
-                { account: addr2.address, amount: BigNumber.from(202) },
-            ]);
-
-            const tree2 = new BalanceTree([
-                { account: addr0.address, amount: BigNumber.from(1100) },
-                { account: addr1.address, amount: BigNumber.from(1101) },
-                { account: addr2.address, amount: BigNumber.from(1202) },
-            ]);
-
             const MultipleMerkleDistributor = await ethers.getContractFactory(
                 "MultipleMerkleDistributor"
             );
@@ -160,10 +155,76 @@ describe("MultipleMerkleDistributor", () => {
                 rewardEscrow.address
             );
             await distributor.deployed();
-            await distributor.newMerkleRoot(tree.getHexRoot());
-            await distributor.newMerkleRoot(tree2.getHexRoot());
+            await distributor.setMerkleRootForEpoch(
+                tree.getHexRoot(),
+                EPOCH_ZERO
+            );
+            await distributor.setMerkleRootForEpoch(
+                tree2.getHexRoot(),
+                EPOCH_ONE
+            );
             expect(await distributor.merkleRoots(0)).to.not.equal(
                 await distributor.merkleRoots(1)
+            );
+        });
+
+        it("can modify existing root", async () => {
+            const MultipleMerkleDistributor = await ethers.getContractFactory(
+                "MultipleMerkleDistributor"
+            );
+            distributor = await MultipleMerkleDistributor.deploy(
+                owner.address,
+                kwenta.address,
+                rewardEscrow.address
+            );
+            await distributor.deployed();
+            await distributor.setMerkleRootForEpoch(
+                tree.getHexRoot(),
+                EPOCH_ZERO
+            );
+            await distributor.setMerkleRootForEpoch(
+                tree2.getHexRoot(),
+                EPOCH_ONE
+            );
+
+            await expect(
+                distributor.setMerkleRootForEpoch(tree.getHexRoot(), 1)
+            )
+                .to.emit(distributor, "MerkleRootModified")
+                .withArgs(1);
+            expect(await distributor.merkleRoots(0)).to.equal(
+                tree.getHexRoot()
+            );
+            expect(await distributor.merkleRoots(1)).to.equal(
+                tree.getHexRoot()
+            );
+        });
+
+        it("cannot modify root as non owner", async () => {
+            const MultipleMerkleDistributor = await ethers.getContractFactory(
+                "MultipleMerkleDistributor"
+            );
+            distributor = await MultipleMerkleDistributor.deploy(
+                owner.address,
+                kwenta.address,
+                rewardEscrow.address
+            );
+            await distributor.deployed();
+            await distributor.setMerkleRootForEpoch(
+                tree.getHexRoot(),
+                EPOCH_ZERO
+            );
+            await distributor.setMerkleRootForEpoch(
+                tree2.getHexRoot(),
+                EPOCH_ONE
+            );
+
+            await expect(
+                distributor
+                    .connect(addr0)
+                    .setMerkleRootForEpoch(tree.getHexRoot(), 1)
+            ).to.be.revertedWith(
+                "Only the contract owner may perform this action"
             );
         });
     });
@@ -195,7 +256,7 @@ describe("MultipleMerkleDistributor", () => {
                 rewardEscrow.address
             );
             await distributor.deployed();
-            await distributor.newMerkleRoot(ZERO_BYTES32);
+            await distributor.setMerkleRootForEpoch(ZERO_BYTES32, EPOCH_ZERO);
 
             await expect(
                 distributor.claim(0, addr0.address, 10, [], 0)
@@ -224,7 +285,10 @@ describe("MultipleMerkleDistributor", () => {
                     rewardEscrow.address
                 );
                 await distributor.deployed();
-                await distributor.newMerkleRoot(tree.getHexRoot());
+                await distributor.setMerkleRootForEpoch(
+                    tree.getHexRoot(),
+                    EPOCH_ZERO
+                );
 
                 await expect(() =>
                     kwenta
@@ -476,8 +540,8 @@ describe("MultipleMerkleDistributor", () => {
                     rewardEscrow.address
                 );
                 await distributor.deployed();
-                await distributor.newMerkleRoot(tree.getHexRoot());
-                await distributor.newMerkleRoot(tree2.getHexRoot());
+                await distributor.setMerkleRootForEpoch(tree.getHexRoot(), 0);
+                await distributor.setMerkleRootForEpoch(tree2.getHexRoot(), 1);
 
                 await expect(() =>
                     kwenta
@@ -728,7 +792,10 @@ describe("MultipleMerkleDistributor", () => {
                     rewardEscrow.address
                 );
                 await distributor.deployed();
-                await distributor.newMerkleRoot(tree.getHexRoot());
+                await distributor.setMerkleRootForEpoch(
+                    tree.getHexRoot(),
+                    EPOCH_ZERO
+                );
 
                 await expect(() =>
                     kwenta
@@ -824,7 +891,10 @@ describe("MultipleMerkleDistributor", () => {
                     rewardEscrow.address
                 );
                 await distributor.deployed();
-                await distributor.newMerkleRoot(tree.getHexRoot());
+                await distributor.setMerkleRootForEpoch(
+                    tree.getHexRoot(),
+                    EPOCH_ZERO
+                );
 
                 await expect(() =>
                     kwenta
@@ -904,7 +974,7 @@ describe("MultipleMerkleDistributor", () => {
                 rewardEscrow.address
             );
             await distributor.deployed();
-            await distributor.newMerkleRoot(merkleRoot);
+            await distributor.setMerkleRootForEpoch(merkleRoot, EPOCH_ZERO);
 
             await expect(() =>
                 kwenta
