@@ -31,6 +31,7 @@ let TREASURY_DAO: SignerWithAddress;
 
 // core contracts
 let kwenta: Contract;
+let rewardEscrow: Contract;
 let distributor: Contract;
 
 const loadSetup = () => {
@@ -45,20 +46,23 @@ const loadSetup = () => {
             TREASURY_DAO
         );
         kwenta = deployments.kwenta;
+        rewardEscrow = deployments.rewardEscrow;
     });
 };
 
-describe("MultipleMerkleDistributor", () => {
+describe("EscrowedMultipleMerkleDistributor", () => {
     loadSetup();
 
     describe("kwenta", () => {
         it("returns the token address", async () => {
-            const MultipleMerkleDistributor = await ethers.getContractFactory(
-                "MultipleMerkleDistributor"
-            );
-            distributor = await MultipleMerkleDistributor.deploy(
+            const EscrowedMultipleMerkleDistributor =
+                await ethers.getContractFactory(
+                    "EscrowedMultipleMerkleDistributor"
+                );
+            distributor = await EscrowedMultipleMerkleDistributor.deploy(
                 owner.address,
-                kwenta.address
+                kwenta.address,
+                rewardEscrow.address
             );
             await distributor.deployed();
             expect(await distributor.token()).to.equal(kwenta.address);
@@ -83,24 +87,28 @@ describe("MultipleMerkleDistributor", () => {
         });
 
         it("returns the zero merkle root", async () => {
-            const MultipleMerkleDistributor = await ethers.getContractFactory(
-                "MultipleMerkleDistributor"
-            );
-            distributor = await MultipleMerkleDistributor.deploy(
+            const EscrowedMultipleMerkleDistributor =
+                await ethers.getContractFactory(
+                    "EscrowedMultipleMerkleDistributor"
+                );
+            distributor = await EscrowedMultipleMerkleDistributor.deploy(
                 owner.address,
-                kwenta.address
+                kwenta.address,
+                rewardEscrow.address
             );
             await distributor.deployed();
             expect(await distributor.merkleRoots(0)).to.equal(ZERO_BYTES32);
         });
 
         it("cannot add merkle roots as non owner", async () => {
-            const MultipleMerkleDistributor = await ethers.getContractFactory(
-                "MultipleMerkleDistributor"
-            );
-            distributor = await MultipleMerkleDistributor.deploy(
+            const EscrowedMultipleMerkleDistributor =
+                await ethers.getContractFactory(
+                    "EscrowedMultipleMerkleDistributor"
+                );
+            distributor = await EscrowedMultipleMerkleDistributor.deploy(
                 owner.address,
-                kwenta.address
+                kwenta.address,
+                rewardEscrow.address
             );
             await distributor.deployed();
             await expect(
@@ -113,12 +121,14 @@ describe("MultipleMerkleDistributor", () => {
         });
 
         it("multiple roots stored and keyed by epoch", async () => {
-            const MultipleMerkleDistributor = await ethers.getContractFactory(
-                "MultipleMerkleDistributor"
-            );
-            distributor = await MultipleMerkleDistributor.deploy(
+            const EscrowedMultipleMerkleDistributor =
+                await ethers.getContractFactory(
+                    "EscrowedMultipleMerkleDistributor"
+                );
+            distributor = await EscrowedMultipleMerkleDistributor.deploy(
                 owner.address,
-                kwenta.address
+                kwenta.address,
+                rewardEscrow.address
             );
             await distributor.deployed();
             await expect(
@@ -140,12 +150,14 @@ describe("MultipleMerkleDistributor", () => {
         });
 
         it("verify roots are distinct", async () => {
-            const MultipleMerkleDistributor = await ethers.getContractFactory(
-                "MultipleMerkleDistributor"
-            );
-            distributor = await MultipleMerkleDistributor.deploy(
+            const EscrowedMultipleMerkleDistributor =
+                await ethers.getContractFactory(
+                    "EscrowedMultipleMerkleDistributor"
+                );
+            distributor = await EscrowedMultipleMerkleDistributor.deploy(
                 owner.address,
-                kwenta.address
+                kwenta.address,
+                rewardEscrow.address
             );
             await distributor.deployed();
             await distributor.setMerkleRootForEpoch(
@@ -162,12 +174,14 @@ describe("MultipleMerkleDistributor", () => {
         });
 
         it("can modify existing root", async () => {
-            const MultipleMerkleDistributor = await ethers.getContractFactory(
-                "MultipleMerkleDistributor"
-            );
-            distributor = await MultipleMerkleDistributor.deploy(
+            const EscrowedMultipleMerkleDistributor =
+                await ethers.getContractFactory(
+                    "EscrowedMultipleMerkleDistributor"
+                );
+            distributor = await EscrowedMultipleMerkleDistributor.deploy(
                 owner.address,
-                kwenta.address
+                kwenta.address,
+                rewardEscrow.address
             );
             await distributor.deployed();
             await distributor.setMerkleRootForEpoch(
@@ -193,12 +207,14 @@ describe("MultipleMerkleDistributor", () => {
         });
 
         it("cannot modify root as non owner", async () => {
-            const MultipleMerkleDistributor = await ethers.getContractFactory(
-                "MultipleMerkleDistributor"
-            );
-            distributor = await MultipleMerkleDistributor.deploy(
+            const EscrowedMultipleMerkleDistributor =
+                await ethers.getContractFactory(
+                    "EscrowedMultipleMerkleDistributor"
+                );
+            distributor = await EscrowedMultipleMerkleDistributor.deploy(
                 owner.address,
-                kwenta.address
+                kwenta.address,
+                rewardEscrow.address
             );
             await distributor.deployed();
             await distributor.setMerkleRootForEpoch(
@@ -222,34 +238,42 @@ describe("MultipleMerkleDistributor", () => {
 
     describe("claim", () => {
         it("fails for empty proof", async () => {
-            const MultipleMerkleDistributor = await ethers.getContractFactory(
-                "MultipleMerkleDistributor"
-            );
-            distributor = await MultipleMerkleDistributor.deploy(
+            const EscrowedMultipleMerkleDistributor =
+                await ethers.getContractFactory(
+                    "EscrowedMultipleMerkleDistributor"
+                );
+            distributor = await EscrowedMultipleMerkleDistributor.deploy(
                 owner.address,
-                kwenta.address
+                kwenta.address,
+                rewardEscrow.address
             );
             await distributor.deployed();
 
             await expect(
                 distributor.claim(0, addr0.address, 10, [], 0)
-            ).to.be.revertedWith("MultipleMerkleDistributor: Invalid proof.");
+            ).to.be.revertedWith(
+                "EscrowedMultipleMerkleDistributor: Invalid proof."
+            );
         });
 
         it("fails for invalid index", async () => {
-            const MultipleMerkleDistributor = await ethers.getContractFactory(
-                "MultipleMerkleDistributor"
-            );
-            distributor = await MultipleMerkleDistributor.deploy(
+            const EscrowedMultipleMerkleDistributor =
+                await ethers.getContractFactory(
+                    "EscrowedMultipleMerkleDistributor"
+                );
+            distributor = await EscrowedMultipleMerkleDistributor.deploy(
                 owner.address,
-                kwenta.address
+                kwenta.address,
+                rewardEscrow.address
             );
             await distributor.deployed();
             await distributor.setMerkleRootForEpoch(ZERO_BYTES32, EPOCH_ZERO);
 
             await expect(
                 distributor.claim(0, addr0.address, 10, [], 0)
-            ).to.be.revertedWith("MultipleMerkleDistributor: Invalid proof.");
+            ).to.be.revertedWith(
+                "EscrowedMultipleMerkleDistributor: Invalid proof."
+            );
         });
 
         describe("two account tree", () => {
@@ -264,13 +288,14 @@ describe("MultipleMerkleDistributor", () => {
                     { account: addr2.address, amount: BigNumber.from(202) },
                 ]);
 
-                const MultipleMerkleDistributor =
+                const EscrowedMultipleMerkleDistributor =
                     await ethers.getContractFactory(
-                        "MultipleMerkleDistributor"
+                        "EscrowedMultipleMerkleDistributor"
                     );
-                distributor = await MultipleMerkleDistributor.deploy(
+                distributor = await EscrowedMultipleMerkleDistributor.deploy(
                     owner.address,
-                    kwenta.address
+                    kwenta.address,
+                    rewardEscrow.address
                 );
                 await distributor.deployed();
                 await distributor.setMerkleRootForEpoch(
@@ -298,7 +323,9 @@ describe("MultipleMerkleDistributor", () => {
                     .to.emit(distributor, "Claimed")
                     .withArgs(0, addr0.address, 100, EPOCH_ZERO);
 
-                expect(await kwenta.balanceOf(addr0.address)).to.equal(100);
+                expect(await rewardEscrow.balanceOf(addr0.address)).to.equal(
+                    100
+                );
 
                 const proof1 = tree.getProof(
                     1,
@@ -312,7 +339,9 @@ describe("MultipleMerkleDistributor", () => {
                     .to.emit(distributor, "Claimed")
                     .withArgs(1, addr1.address, 101, EPOCH_ZERO);
 
-                expect(await kwenta.balanceOf(addr1.address)).to.equal(101);
+                expect(await rewardEscrow.balanceOf(addr1.address)).to.equal(
+                    101
+                );
 
                 expect(await kwenta.balanceOf(distributor.address)).to.equal(0);
             });
@@ -377,7 +406,7 @@ describe("MultipleMerkleDistributor", () => {
                 await expect(
                     distributor.claim(0, addr0.address, 100, proof0, EPOCH_ZERO)
                 ).to.be.revertedWith(
-                    "MultipleMerkleDistributor: Drop already claimed."
+                    "EscrowedMultipleMerkleDistributor: Drop already claimed."
                 );
             });
 
@@ -407,7 +436,7 @@ describe("MultipleMerkleDistributor", () => {
                         EPOCH_ZERO
                     )
                 ).to.be.revertedWith(
-                    "MultipleMerkleDistributor: Drop already claimed."
+                    "EscrowedMultipleMerkleDistributor: Drop already claimed."
                 );
             });
 
@@ -437,7 +466,7 @@ describe("MultipleMerkleDistributor", () => {
                         EPOCH_ZERO
                     )
                 ).to.be.revertedWith(
-                    "MultipleMerkleDistributor: Drop already claimed."
+                    "EscrowedMultipleMerkleDistributor: Drop already claimed."
                 );
             });
 
@@ -451,7 +480,7 @@ describe("MultipleMerkleDistributor", () => {
                 await expect(
                     distributor.claim(1, addr1.address, 101, proof0, EPOCH_ZERO)
                 ).to.be.revertedWith(
-                    "MultipleMerkleDistributor: Invalid proof."
+                    "EscrowedMultipleMerkleDistributor: Invalid proof."
                 );
             });
 
@@ -465,7 +494,7 @@ describe("MultipleMerkleDistributor", () => {
                 await expect(
                     distributor.claim(0, addr0.address, 101, proof0, EPOCH_ZERO)
                 ).to.be.revertedWith(
-                    "MultipleMerkleDistributor: Invalid proof."
+                    "EscrowedMultipleMerkleDistributor: Invalid proof."
                 );
             });
 
@@ -514,13 +543,14 @@ describe("MultipleMerkleDistributor", () => {
                     { account: addr1.address, amount: BigNumber.from(1101) },
                 ]);
 
-                const MultipleMerkleDistributor =
+                const EscrowedMultipleMerkleDistributor =
                     await ethers.getContractFactory(
-                        "MultipleMerkleDistributor"
+                        "EscrowedMultipleMerkleDistributor"
                     );
-                distributor = await MultipleMerkleDistributor.deploy(
+                distributor = await EscrowedMultipleMerkleDistributor.deploy(
                     owner.address,
-                    kwenta.address
+                    kwenta.address,
+                    rewardEscrow.address
                 );
                 await distributor.deployed();
                 await distributor.setMerkleRootForEpoch(tree.getHexRoot(), 0);
@@ -668,7 +698,7 @@ describe("MultipleMerkleDistributor", () => {
                         EPOCH_ONE
                     )
                 ).to.be.revertedWith(
-                    "MultipleMerkleDistributor: Invalid proof."
+                    "EscrowedMultipleMerkleDistributor: Invalid proof."
                 );
             });
 
@@ -710,7 +740,7 @@ describe("MultipleMerkleDistributor", () => {
                         EPOCH_TWO
                     )
                 ).to.be.revertedWith(
-                    "MultipleMerkleDistributor: Invalid proof."
+                    "EscrowedMultipleMerkleDistributor: Invalid proof."
                 );
             });
 
@@ -720,7 +750,7 @@ describe("MultipleMerkleDistributor", () => {
                 await expect(
                     distributor.claim(2, addr1.address, 202, [], EPOCH_TWO)
                 ).to.be.revertedWith(
-                    "MultipleMerkleDistributor: Invalid proof."
+                    "EscrowedMultipleMerkleDistributor: Invalid proof."
                 );
             });
 
@@ -742,7 +772,7 @@ describe("MultipleMerkleDistributor", () => {
                         EPOCH_TWO
                     )
                 ).to.be.revertedWith(
-                    "MultipleMerkleDistributor: Invalid proof."
+                    "EscrowedMultipleMerkleDistributor: Invalid proof."
                 );
             });
         });
@@ -765,13 +795,14 @@ describe("MultipleMerkleDistributor", () => {
                     })
                 );
 
-                const MultipleMerkleDistributor =
+                const EscrowedMultipleMerkleDistributor =
                     await ethers.getContractFactory(
-                        "MultipleMerkleDistributor"
+                        "EscrowedMultipleMerkleDistributor"
                     );
-                distributor = await MultipleMerkleDistributor.deploy(
+                distributor = await EscrowedMultipleMerkleDistributor.deploy(
                     owner.address,
-                    kwenta.address
+                    kwenta.address,
+                    rewardEscrow.address
                 );
                 await distributor.deployed();
                 await distributor.setMerkleRootForEpoch(
@@ -863,13 +894,14 @@ describe("MultipleMerkleDistributor", () => {
             });
 
             beforeEach("deploy", async () => {
-                const MultipleMerkleDistributor =
+                const EscrowedMultipleMerkleDistributor =
                     await ethers.getContractFactory(
-                        "MultipleMerkleDistributor"
+                        "EscrowedMultipleMerkleDistributor"
                     );
-                distributor = await MultipleMerkleDistributor.deploy(
+                distributor = await EscrowedMultipleMerkleDistributor.deploy(
                     owner.address,
-                    kwenta.address
+                    kwenta.address,
+                    rewardEscrow.address
                 );
                 await distributor.deployed();
                 await distributor.setMerkleRootForEpoch(
@@ -911,7 +943,7 @@ describe("MultipleMerkleDistributor", () => {
                             EPOCH_ZERO
                         )
                     ).to.be.revertedWith(
-                        "MultipleMerkleDistributor: Drop already claimed."
+                        "EscrowedMultipleMerkleDistributor: Drop already claimed."
                     );
                 }
             });
@@ -946,12 +978,14 @@ describe("MultipleMerkleDistributor", () => {
 
             claims = innerClaims;
 
-            const MultipleMerkleDistributor = await ethers.getContractFactory(
-                "MultipleMerkleDistributor"
-            );
-            distributor = await MultipleMerkleDistributor.deploy(
+            const EscrowedMultipleMerkleDistributor =
+                await ethers.getContractFactory(
+                    "EscrowedMultipleMerkleDistributor"
+                );
+            distributor = await EscrowedMultipleMerkleDistributor.deploy(
                 owner.address,
-                kwenta.address
+                kwenta.address,
+                rewardEscrow.address
             );
             await distributor.deployed();
             await distributor.setMerkleRootForEpoch(merkleRoot, EPOCH_ZERO);
@@ -986,7 +1020,7 @@ describe("MultipleMerkleDistributor", () => {
                         EPOCH_ZERO
                     )
                 ).to.be.revertedWith(
-                    "MultipleMerkleDistributor: Drop already claimed."
+                    "EscrowedMultipleMerkleDistributor: Drop already claimed."
                 );
             }
             expect(await kwenta.balanceOf(distributor.address)).to.equal(0);
