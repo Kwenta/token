@@ -5,13 +5,19 @@ import "./utils/Owned.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "./interfaces/IRewardEscrow.sol";
-import "./interfaces/IMultipleMerkleDistributor.sol";
+import "./interfaces/IEscrowedMultipleMerkleDistributor.sol";
 
-/// @title Kwenta MultipleMerkleDistributor
+/// @title Kwenta EscrowedMultipleMerkleDistributor
 /// @author JaredBorders and JChiaramonte7
 /// @notice Facilitates trading incentives distribution over multiple periods.
-contract MultipleMerkleDistributor is IMultipleMerkleDistributor, Owned {
-    /// @notice token to be distributed
+contract EscrowedMultipleMerkleDistributor is
+    IEscrowedMultipleMerkleDistributor,
+    Owned
+{
+    /// @notice escrow for tokens claimed
+    address public immutable override rewardEscrow;
+
+    /// @notice token to be distributed (KWENTA)
     address public immutable override token;
 
     /// @notice an epoch to merkle root mapping
@@ -21,12 +27,18 @@ contract MultipleMerkleDistributor is IMultipleMerkleDistributor, Owned {
     /// @notice an epoch to packed array of claimed booleans mapping
     mapping(uint256 => mapping(uint256 => uint256)) private claimedBitMaps;
 
-    /// @notice set addresses ERC20 contract
+    /// @notice set addresses for deployed rewardEscrow and KWENTA.
     /// Establish merkle root for verification
     /// @param _owner: designated owner of this contract
     /// @param _token: address of erc20 token to be distributed
-    constructor(address _owner, address _token) Owned(_owner) {
+    /// @param _rewardEscrow: address of kwenta escrow for tokens claimed
+    constructor(
+        address _owner,
+        address _token,
+        address _rewardEscrow
+    ) Owned(_owner) {
         token = _token;
+        rewardEscrow = _rewardEscrow;
     }
 
     /// @notice modify merkle root for existing distribution epoch
@@ -66,10 +78,10 @@ contract MultipleMerkleDistributor is IMultipleMerkleDistributor, Owned {
             (1 << claimedBitIndex);
     }
 
-    /// @notice attempt to claim as `account` and transfer `amount` to `account`
+    /// @notice attempt to claim as `account` and escrow KWENTA for `account`
     /// @param index: used for merkle tree managment and verification
     /// @param account: address used for escrow entry
-    /// @param amount: token amount to be escrowed
+    /// @param amount: $KWENTA amount to be escrowed
     /// @param merkleProof: off-chain generated proof of merkle tree inclusion
     /// @param epoch: distribution index to check
     function claim(
@@ -81,19 +93,24 @@ contract MultipleMerkleDistributor is IMultipleMerkleDistributor, Owned {
     ) public override {
         require(
             !isClaimed(index, epoch),
-            "MultipleMerkleDistributor: Drop already claimed."
+            "EscrowedMultipleMerkleDistributor: Drop already claimed."
         );
 
         // verify the merkle proof
         bytes32 node = keccak256(abi.encodePacked(index, account, amount));
         require(
             MerkleProof.verify(merkleProof, merkleRoots[epoch], node),
-            "MultipleMerkleDistributor: Invalid proof."
+            "EscrowedMultipleMerkleDistributor: Invalid proof."
         );
 
-        // mark it claimed and send the token
+        // mark it claimed and send the token to RewardEscrow
         _setClaimed(index, epoch);
-        IERC20(token).transfer(account, amount);
+        IERC20(token).approve(rewardEscrow, amount);
+        IRewardEscrow(rewardEscrow).createEscrowEntry(
+            account,
+            amount,
+            52 weeks
+        );
 
         emit Claimed(index, account, amount, epoch);
     }
