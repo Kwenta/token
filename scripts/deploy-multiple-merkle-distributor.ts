@@ -2,7 +2,6 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ethers } from "hardhat";
 import { saveDeployments, verify } from "./utils";
 import { address as KWENTA_ADDRESS } from "../deployments/optimistic-mainnet/Kwenta.json";
-import { address as REWARD_ESCROW_ADDRESS } from "../deployments/optimistic-mainnet/RewardEscrow.json";
 
 const REWARD_DISTRIBUTOR = "0x246100EC9dfCF22194316A187B38905906539B41";
 
@@ -13,8 +12,7 @@ async function main() {
 
     const tradingRewards = await deployMultipleMerkleDistributor(
         deployer,
-        KWENTA_ADDRESS,
-        REWARD_ESCROW_ADDRESS
+        KWENTA_ADDRESS
     );
 
     await tradingRewards.nominateNewOwner(REWARD_DISTRIBUTOR);
@@ -26,16 +24,14 @@ async function main() {
 
 async function deployMultipleMerkleDistributor(
     owner: SignerWithAddress,
-    kwenta: string,
-    rewardEscrow: string
+    kwenta: string
 ) {
     const MultipleMerkleDistributor = await ethers.getContractFactory(
         "MultipleMerkleDistributor"
     );
     const multipleMerkleDistributor = await MultipleMerkleDistributor.deploy(
         owner.address,
-        kwenta,
-        rewardEscrow
+        kwenta
     );
     await multipleMerkleDistributor.deployed();
     await saveDeployments(
@@ -49,7 +45,7 @@ async function deployMultipleMerkleDistributor(
 
     await verify(
         multipleMerkleDistributor.address,
-        [owner.address, kwenta, rewardEscrow],
+        [owner.address, kwenta],
         "contracts/MultipleMerkleDistributor.sol:MultipleMerkleDistributor" // to prevent bytecode clashes with contracts-exposed versions
     );
 
