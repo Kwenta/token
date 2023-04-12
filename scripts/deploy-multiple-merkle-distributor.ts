@@ -24,14 +24,14 @@ async function main() {
 
 async function deployMultipleMerkleDistributor(
     owner: SignerWithAddress,
-    kwenta: string
+    token: string
 ) {
     const MultipleMerkleDistributor = await ethers.getContractFactory(
         "MultipleMerkleDistributor"
     );
     const multipleMerkleDistributor = await MultipleMerkleDistributor.deploy(
         owner.address,
-        kwenta
+        token
     );
     await multipleMerkleDistributor.deployed();
     await saveDeployments(
@@ -45,7 +45,7 @@ async function deployMultipleMerkleDistributor(
 
     await verify(
         multipleMerkleDistributor.address,
-        [owner.address, kwenta],
+        [owner.address, token],
         "contracts/MultipleMerkleDistributor.sol:MultipleMerkleDistributor" // to prevent bytecode clashes with contracts-exposed versions
     );
 
