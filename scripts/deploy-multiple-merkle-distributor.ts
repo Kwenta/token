@@ -2,7 +2,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ethers } from "hardhat";
 import { saveDeployments, verify } from "./utils";
 
-const REWARD_DISTRIBUTOR = "0x246100EC9dfCF22194316A187B38905906539B41";
+const REWARD_DISTRIBUTOR = "0xbA49be134D5dA836EC1be90A4E29c237a3a758A6";
 const OP_TOKEN_ADDRESS = "0x4200000000000000000000000000000000000042";
 
 async function main() {
