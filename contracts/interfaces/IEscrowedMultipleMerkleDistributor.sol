@@ -58,4 +58,9 @@ interface IEscrowedMultipleMerkleDistributor {
     /// @notice function that aggregates multiple claims
     /// @param claims: array of valid claims
     function claimMultiple(Claims[] calldata claims) external;
+
+    /// @notice modify merkle root for existing distribution epoch
+    /// @param merkleRoot: new merkle root
+    /// @param epoch: distribution index number
+    function setMerkleRootForEpoch(bytes32 merkleRoot, uint256 epoch) external;
 }

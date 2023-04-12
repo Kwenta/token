@@ -11,11 +11,10 @@ import "./interfaces/IMultipleMerkleDistributor.sol";
 /// @author JaredBorders and JChiaramonte7
 /// @notice Facilitates trading incentives distribution over multiple periods.
 contract MultipleMerkleDistributor is IMultipleMerkleDistributor, Owned {
-    /// @notice token to be distributed
+    /// @inheritdoc IMultipleMerkleDistributor
     address public immutable override token;
 
-    /// @notice an epoch to merkle root mapping
-    /// of a merkle tree containing account balances available to claim
+    /// @inheritdoc IMultipleMerkleDistributor
     mapping(uint256 => bytes32) public override merkleRoots;
 
     /// @notice an epoch to packed array of claimed booleans mapping
@@ -29,7 +28,7 @@ contract MultipleMerkleDistributor is IMultipleMerkleDistributor, Owned {
         token = _token;
     }
 
-    /// @notice modify merkle root for existing distribution epoch
+    /// @inheritdoc IMultipleMerkleDistributor
     function setMerkleRootForEpoch(bytes32 merkleRoot, uint256 epoch)
         external
         onlyOwner
@@ -38,10 +37,7 @@ contract MultipleMerkleDistributor is IMultipleMerkleDistributor, Owned {
         emit MerkleRootModified(epoch);
     }
 
-    /// @notice determine if indexed claim has been claimed
-    /// @param index: used for claim managment
-    /// @param epoch: distribution index to check
-    /// @return true if indexed claim has been claimed
+    /// @inheritdoc IMultipleMerkleDistributor
     function isClaimed(uint256 index, uint256 epoch)
         public
         view
@@ -66,12 +62,7 @@ contract MultipleMerkleDistributor is IMultipleMerkleDistributor, Owned {
             (1 << claimedBitIndex);
     }
 
-    /// @notice attempt to claim as `account` and transfer `amount` to `account`
-    /// @param index: used for merkle tree managment and verification
-    /// @param account: address used for escrow entry
-    /// @param amount: token amount to be escrowed
-    /// @param merkleProof: off-chain generated proof of merkle tree inclusion
-    /// @param epoch: distribution index to check
+    /// @inheritdoc IMultipleMerkleDistributor
     function claim(
         uint256 index,
         address account,
@@ -98,8 +89,7 @@ contract MultipleMerkleDistributor is IMultipleMerkleDistributor, Owned {
         emit Claimed(index, account, amount, epoch);
     }
 
-    /// @notice function that aggregates multiple claims
-    /// @param claims: array of valid claims
+    /// @inheritdoc IMultipleMerkleDistributor
     function claimMultiple(Claims[] calldata claims) external override {
         uint256 cacheLength = claims.length;
         for (uint256 i = 0; i < cacheLength; ) {
@@ -111,7 +101,7 @@ contract MultipleMerkleDistributor is IMultipleMerkleDistributor, Owned {
                 claims[i].epoch
             );
             unchecked {
-                i++;
+                ++i;
             }
         }
     }

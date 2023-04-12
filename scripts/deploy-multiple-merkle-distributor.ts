@@ -1,9 +1,9 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ethers } from "hardhat";
 import { saveDeployments, verify } from "./utils";
-import { address as KWENTA_ADDRESS } from "../deployments/optimistic-mainnet/Kwenta.json";
 
 const REWARD_DISTRIBUTOR = "0x246100EC9dfCF22194316A187B38905906539B41";
+const OP_TOKEN_ADDRESS = "0x4200000000000000000000000000000000000042";
 
 async function main() {
     const [deployer] = await ethers.getSigners();
@@ -12,7 +12,7 @@ async function main() {
 
     const tradingRewards = await deployMultipleMerkleDistributor(
         deployer,
-        KWENTA_ADDRESS
+        OP_TOKEN_ADDRESS
     );
 
     await tradingRewards.nominateNewOwner(REWARD_DISTRIBUTOR);

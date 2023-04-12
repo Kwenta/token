@@ -14,14 +14,13 @@ contract EscrowedMultipleMerkleDistributor is
     IEscrowedMultipleMerkleDistributor,
     Owned
 {
-    /// @notice escrow for tokens claimed
+    /// @inheritdoc IEscrowedMultipleMerkleDistributor
     address public immutable override rewardEscrow;
 
-    /// @notice token to be distributed (KWENTA)
+    /// @inheritdoc IEscrowedMultipleMerkleDistributor
     address public immutable override token;
 
-    /// @notice an epoch to merkle root mapping
-    /// of a merkle tree containing account balances available to claim
+    /// @inheritdoc IEscrowedMultipleMerkleDistributor
     mapping(uint256 => bytes32) public override merkleRoots;
 
     /// @notice an epoch to packed array of claimed booleans mapping
@@ -41,7 +40,7 @@ contract EscrowedMultipleMerkleDistributor is
         rewardEscrow = _rewardEscrow;
     }
 
-    /// @notice modify merkle root for existing distribution epoch
+    /// @inheritdoc IEscrowedMultipleMerkleDistributor
     function setMerkleRootForEpoch(bytes32 merkleRoot, uint256 epoch)
         external
         onlyOwner
@@ -50,10 +49,7 @@ contract EscrowedMultipleMerkleDistributor is
         emit MerkleRootModified(epoch);
     }
 
-    /// @notice determine if indexed claim has been claimed
-    /// @param index: used for claim managment
-    /// @param epoch: distribution index to check
-    /// @return true if indexed claim has been claimed
+    /// @inheritdoc IEscrowedMultipleMerkleDistributor
     function isClaimed(uint256 index, uint256 epoch)
         public
         view
@@ -78,12 +74,7 @@ contract EscrowedMultipleMerkleDistributor is
             (1 << claimedBitIndex);
     }
 
-    /// @notice attempt to claim as `account` and escrow KWENTA for `account`
-    /// @param index: used for merkle tree managment and verification
-    /// @param account: address used for escrow entry
-    /// @param amount: $KWENTA amount to be escrowed
-    /// @param merkleProof: off-chain generated proof of merkle tree inclusion
-    /// @param epoch: distribution index to check
+    /// @inheritdoc IEscrowedMultipleMerkleDistributor
     function claim(
         uint256 index,
         address account,
@@ -115,8 +106,7 @@ contract EscrowedMultipleMerkleDistributor is
         emit Claimed(index, account, amount, epoch);
     }
 
-    /// @notice function that aggregates multiple claims
-    /// @param claims: array of valid claims
+    /// @inheritdoc IEscrowedMultipleMerkleDistributor
     function claimMultiple(Claims[] calldata claims) external override {
         uint256 cacheLength = claims.length;
         for (uint256 i = 0; i < cacheLength; ) {
@@ -128,7 +118,7 @@ contract EscrowedMultipleMerkleDistributor is
                 claims[i].epoch
             );
             unchecked {
-                i++;
+                ++i;
             }
         }
     }
