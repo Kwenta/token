@@ -262,13 +262,10 @@ describe("MultipleMerkleDistributor", () => {
             // get valid proof
             const proof1 = tree.getProof(0, account, amount);
 
-            // this should pass if index was 0
+            // this would not revert if index was 0
             await expect(
                 distributor.claim(1, account, 10, proof1, 0)
             ).to.be.revertedWith("MultipleMerkleDistributor: Invalid proof.");
-
-            // does pass with correct index
-            distributor.claim(0, account, 10, proof1, 0);
         });
 
         describe("two account tree", () => {
