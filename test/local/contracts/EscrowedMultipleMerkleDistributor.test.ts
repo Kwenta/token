@@ -276,7 +276,10 @@ describe("EscrowedMultipleMerkleDistributor", () => {
             const tree = new BalanceTree([{ account, amount }]);
 
             // set valid merkle root
-            await distributor.setMerkleRootForEpoch(tree.getHexRoot(), EPOCH_ZERO);
+            await distributor.setMerkleRootForEpoch(
+                tree.getHexRoot(),
+                EPOCH_ZERO
+            );
 
             // get valid proof
             const proof1 = tree.getProof(0, account, amount);
