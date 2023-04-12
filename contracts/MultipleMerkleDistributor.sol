@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import "./utils/Owned.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "./interfaces/IRewardEscrow.sol";
 import "./interfaces/IMultipleMerkleDistributor.sol";
@@ -11,6 +12,7 @@ import "./interfaces/IMultipleMerkleDistributor.sol";
 /// @author JaredBorders and JChiaramonte7
 /// @notice Facilitates trading incentives distribution over multiple periods.
 contract MultipleMerkleDistributor is IMultipleMerkleDistributor, Owned {
+    using SafeERC20 for IERC20;
     /// @inheritdoc IMultipleMerkleDistributor
     address public immutable override token;
 
@@ -84,7 +86,7 @@ contract MultipleMerkleDistributor is IMultipleMerkleDistributor, Owned {
 
         // mark it claimed and send the token
         _setClaimed(index, epoch);
-        IERC20(token).transfer(account, amount);
+        IERC20(token).safeTransfer(account, amount);
 
         emit Claimed(index, account, amount, epoch);
     }
