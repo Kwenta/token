@@ -70,20 +70,21 @@ describe("BatchClaimer", () => {
                 { account: addr1.address, amount: BigNumber.from(1101) },
             ]);
 
-            const MultipleMerkleDistributor = await ethers.getContractFactory(
-                "MultipleMerkleDistributor"
-            );
+            const EscrowedMultipleMerkleDistributor =
+                await ethers.getContractFactory(
+                    "EscrowedMultipleMerkleDistributor"
+                );
             const BatchClaimer = await ethers.getContractFactory(
                 "BatchClaimer"
             );
 
-            distributor1 = await MultipleMerkleDistributor.deploy(
+            distributor1 = await EscrowedMultipleMerkleDistributor.deploy(
                 owner.address,
                 kwenta.address,
                 rewardEscrow.address
             );
             await distributor1.deployed();
-            distributor2 = await MultipleMerkleDistributor.deploy(
+            distributor2 = await EscrowedMultipleMerkleDistributor.deploy(
                 owner.address,
                 kwenta.address,
                 rewardEscrow.address

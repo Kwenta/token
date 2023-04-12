@@ -1,5 +1,5 @@
 import { task } from "hardhat/config";
-import { address as MULTIPLE_MERKLE_DISTRIBUTOR_ADDRESS } from "../../deployments/optimistic-mainnet/MultipleMerkleDistributor.json";
+import { address as MULTIPLE_MERKLE_DISTRIBUTOR_ADDRESS } from "../../deployments/optimistic-mainnet/EscrowedMultipleMerkleDistributor.json";
 import { address as KWENTA_ADDRESS } from "../../deployments/optimistic-mainnet/Kwenta.json";
 import { parseBalanceMap } from "../merkle/parse-balance-map";
 import { setBalance } from "@nomicfoundation/hardhat-network-helpers";

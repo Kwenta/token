@@ -2,7 +2,7 @@
 pragma solidity >=0.8.0;
 
 // Allows anyone to claim a token if they exist in a merkle root.
-interface IMultipleMerkleDistributor {
+interface IEscrowedMultipleMerkleDistributor {
     /// @notice data structure for aggregating multiple claims
     struct Claims {
         uint256 index;
@@ -23,7 +23,10 @@ interface IMultipleMerkleDistributor {
     /// @notice event is triggered whenever a merkle root is set
     event MerkleRootModified(uint256 epoch);
 
-    /// @return token to be distributed
+    /// @return escrow for tokens claimed
+    function rewardEscrow() external view returns (address);
+
+    /// @return token to be distributed (KWENTA)
     function token() external view returns (address);
 
     // @return the merkle root of the merkle tree containing account balances available to claim
@@ -38,10 +41,10 @@ interface IMultipleMerkleDistributor {
         view
         returns (bool);
 
-    /// @notice attempt to claim as `account` and transfer `amount` to `account`
+    /// @notice attempt to claim as `account` and escrow KWENTA for `account`
     /// @param index: used for merkle tree managment and verification
     /// @param account: address used for escrow entry
-    /// @param amount: token amount to be escrowed
+    /// @param amount: $KWENTA amount to be escrowed
     /// @param merkleProof: off-chain generated proof of merkle tree inclusion
     /// @param epoch: distribution index number
     function claim(

@@ -3,34 +3,44 @@ pragma solidity ^0.8.0;
 
 import "./utils/Owned.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "./interfaces/IRewardEscrow.sol";
-import "./interfaces/IMultipleMerkleDistributor.sol";
+import "./interfaces/IEscrowedMultipleMerkleDistributor.sol";
 
-/// @title Kwenta MultipleMerkleDistributor
+/// @title Kwenta EscrowedMultipleMerkleDistributor
 /// @author JaredBorders and JChiaramonte7
 /// @notice Facilitates trading incentives distribution over multiple periods.
-contract MultipleMerkleDistributor is IMultipleMerkleDistributor, Owned {
-    using SafeERC20 for IERC20;
-    /// @inheritdoc IMultipleMerkleDistributor
+contract EscrowedMultipleMerkleDistributor is
+    IEscrowedMultipleMerkleDistributor,
+    Owned
+{
+    /// @inheritdoc IEscrowedMultipleMerkleDistributor
+    address public immutable override rewardEscrow;
+
+    /// @inheritdoc IEscrowedMultipleMerkleDistributor
     address public immutable override token;
 
-    /// @inheritdoc IMultipleMerkleDistributor
+    /// @inheritdoc IEscrowedMultipleMerkleDistributor
     mapping(uint256 => bytes32) public override merkleRoots;
 
     /// @notice an epoch to packed array of claimed booleans mapping
     mapping(uint256 => mapping(uint256 => uint256)) private claimedBitMaps;
 
-    /// @notice set addresses ERC20 contract
+    /// @notice set addresses for deployed rewardEscrow and KWENTA.
     /// Establish merkle root for verification
     /// @param _owner: designated owner of this contract
     /// @param _token: address of erc20 token to be distributed
-    constructor(address _owner, address _token) Owned(_owner) {
+    /// @param _rewardEscrow: address of kwenta escrow for tokens claimed
+    constructor(
+        address _owner,
+        address _token,
+        address _rewardEscrow
+    ) Owned(_owner) {
         token = _token;
+        rewardEscrow = _rewardEscrow;
     }
 
-    /// @inheritdoc IMultipleMerkleDistributor
+    /// @inheritdoc IEscrowedMultipleMerkleDistributor
     function setMerkleRootForEpoch(bytes32 merkleRoot, uint256 epoch)
         external
         override
@@ -40,7 +50,7 @@ contract MultipleMerkleDistributor is IMultipleMerkleDistributor, Owned {
         emit MerkleRootModified(epoch);
     }
 
-    /// @inheritdoc IMultipleMerkleDistributor
+    /// @inheritdoc IEscrowedMultipleMerkleDistributor
     function isClaimed(uint256 index, uint256 epoch)
         public
         view
@@ -65,7 +75,7 @@ contract MultipleMerkleDistributor is IMultipleMerkleDistributor, Owned {
             (1 << claimedBitIndex);
     }
 
-    /// @inheritdoc IMultipleMerkleDistributor
+    /// @inheritdoc IEscrowedMultipleMerkleDistributor
     function claim(
         uint256 index,
         address account,
@@ -75,24 +85,29 @@ contract MultipleMerkleDistributor is IMultipleMerkleDistributor, Owned {
     ) public override {
         require(
             !isClaimed(index, epoch),
-            "MultipleMerkleDistributor: Drop already claimed."
+            "EscrowedMultipleMerkleDistributor: Drop already claimed."
         );
 
         // verify the merkle proof
         bytes32 node = keccak256(abi.encodePacked(index, account, amount));
         require(
             MerkleProof.verify(merkleProof, merkleRoots[epoch], node),
-            "MultipleMerkleDistributor: Invalid proof."
+            "EscrowedMultipleMerkleDistributor: Invalid proof."
         );
 
-        // mark it claimed and send the token
+        // mark it claimed and send the token to RewardEscrow
         _setClaimed(index, epoch);
-        IERC20(token).safeTransfer(account, amount);
+        IERC20(token).approve(rewardEscrow, amount);
+        IRewardEscrow(rewardEscrow).createEscrowEntry(
+            account,
+            amount,
+            52 weeks
+        );
 
         emit Claimed(index, account, amount, epoch);
     }
 
-    /// @inheritdoc IMultipleMerkleDistributor
+    /// @inheritdoc IEscrowedMultipleMerkleDistributor
     function claimMultiple(Claims[] calldata claims) external override {
         uint256 cacheLength = claims.length;
         for (uint256 i = 0; i < cacheLength; ) {
