@@ -43,6 +43,7 @@ contract EscrowedMultipleMerkleDistributor is
     /// @inheritdoc IEscrowedMultipleMerkleDistributor
     function setMerkleRootForEpoch(bytes32 merkleRoot, uint256 epoch)
         external
+        override
         onlyOwner
     {
         merkleRoots[epoch] = merkleRoot;
