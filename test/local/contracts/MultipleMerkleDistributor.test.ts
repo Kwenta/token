@@ -245,10 +245,26 @@ describe("MultipleMerkleDistributor", () => {
                 kwenta.address
             );
             await distributor.deployed();
-            await distributor.setMerkleRootForEpoch(ZERO_BYTES32, EPOCH_ZERO);
 
+            kwenta.connect(TREASURY_DAO).transfer(distributor.address, 100);
+
+            // create valid tree
+            const account = addr0.address;
+            const amount = BigNumber.from(10);
+            const tree = new BalanceTree([{ account, amount }]);
+
+            // set valid merkle root
+            await distributor.setMerkleRootForEpoch(
+                tree.getHexRoot(),
+                EPOCH_ZERO
+            );
+
+            // get valid proof
+            const proof1 = tree.getProof(0, account, amount);
+
+            // this would not revert if index was 0
             await expect(
-                distributor.claim(0, addr0.address, 10, [], 0)
+                distributor.claim(1, account, 10, proof1, 0)
             ).to.be.revertedWith("MultipleMerkleDistributor: Invalid proof.");
         });
 
