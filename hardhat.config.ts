@@ -32,10 +32,10 @@ task("accounts", "Prints the list of accounts", async (args, hre) => {
 subtask(TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS).setAction(
   async (_, __, runSuper) => {
       // Get the list of source paths that would normally be passed to the Solidity compiler
-      const paths = await runSuper();
+      const paths: string[] = await runSuper();
 
       // Apply a filter function to exclude paths that contain the string ".t.sol"
-      return paths.filter((p) => !p.endsWith(".t.sol"));
+      return paths.filter((p: string) => !p.endsWith(".t.sol"));
   }
 );
 
