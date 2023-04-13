@@ -5,6 +5,7 @@
     "test:contracts": "npx hardhat test test/local/contracts/*",
     "test:integration": "npx hardhat test test/local/integration/*",
     "test:fork": "npx hardhat test test/fork/*",
+    "f-test:unit": "forge test",
     "coverage": "npx hardhat coverage",
     "generate-distribution:stakers": "npx ts-node ./scripts/distribution/staker-distribution.ts",
     "generate-distribution:traders": "npx ts-node ./scripts/distribution/trader-distribution.ts",
