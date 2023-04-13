@@ -1,4 +1,4 @@
-import { task } from "hardhat/config";
+import { subtask, task } from "hardhat/config";
 import "@nomiclabs/hardhat-waffle";
 import "hardhat-typechain";
 import "@nomiclabs/hardhat-truffle5";
@@ -13,6 +13,7 @@ import "hardhat-deploy";
 import "hardhat-interface-generator";
 import "@nomiclabs/hardhat-etherscan";
 import "./scripts/tasks/create-claim";
+import { TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS } from "hardhat/builtin-tasks/task-names";
 
 dotenv.config();
 
@@ -25,6 +26,16 @@ task("accounts", "Prints the list of accounts", async (args, hre) => {
         console.log(account.address);
     }
 });
+
+// Add a subtask that sets the action for the TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS task
+subtask(TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS)
+  .setAction(async (_, __, runSuper) => {
+    // Get the list of source paths that would normally be passed to the Solidity compiler
+    const paths = await runSuper();
+
+    // Apply a filter function to exclude paths that contain the string ".t.sol"
+    return paths.filter(p => !p.endsWith(".t.sol"));
+  });
 
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
