@@ -28,7 +28,6 @@ task("accounts", "Prints the list of accounts", async (args, hre) => {
 });
 
 // Add a subtask that sets the action for the TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS task
-// Add a subtask that sets the action for the TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS task
 subtask(TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS).setAction(
   async (_, __, runSuper) => {
       // Get the list of source paths that would normally be passed to the Solidity compiler
