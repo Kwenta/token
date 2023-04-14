@@ -5,6 +5,7 @@
     "test:contracts": "npx hardhat test test/local/contracts/*",
     "test:integration": "npx hardhat test test/local/integration/*",
     "test:fork": "npx hardhat test test/fork/*",
+    "f-test:unit": "forge test",
     "coverage": "npx hardhat coverage",
     "generate-distribution:stakers": "npx ts-node ./scripts/distribution/staker-distribution.ts",
     "generate-distribution:traders": "npx ts-node ./scripts/distribution/trader-distribution.ts",
@@ -14,7 +15,8 @@
     "deploy:testnet": "npx hardhat run --network optimistic-goerli scripts/deploy.ts",
     "deploy:mainnet": "npx hardhat run --network optimistic-mainnet scripts/deploy.ts",
     "deploy:escrow-distributor:testnet": "npx hardhat run --network optimistic-goerli scripts/deploy-escrow-distributor.ts",
-    "interact:local": "npx hardhat interact --network localhost"
+    "interact:local": "npx hardhat interact --network localhost",
+    "gas-snapshot": "forge snapshot"
   },
   "devDependencies": {
     "@defi-wonderland/smock": "^2.3.4",
