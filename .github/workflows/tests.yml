@@ -95,3 +95,5 @@ jobs:
             version: nightly
       - name: Run Foundry Unit Tests
         run: npm run f-test:unit
+      - name: Generate snapshot file
+        run: npm run gas-snapshot
