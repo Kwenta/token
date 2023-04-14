@@ -95,15 +95,11 @@ jobs:
             version: nightly
       - name: Run Foundry Unit Tests
         run: npm run f-test:unit
-      - name: Generate snapshot file
-        run: npm run gas-snapshot
       - name: Setup github user email
-        run: git config --local user.email "test@github.com"
+        run: git config --local user.email "kwentabot@github.com"
       - name: Setup github user name
-        run: git config --local user.name "GitHub Action test"
-      - name: stage changed files
-        run: git add .
-      - name: commit changed files
-        run: git commit -m "📸 Auto updating .gas-snapshot"
-      - name: push code
+        run: git config --local user.name "Kwenta Bot"
+      - name: Run snapshot commit script
+        run: npm run snapshot-commit
+      - name: Push the changes
         run: git push
