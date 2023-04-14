@@ -1,0 +1,25 @@
+#!/bin/zsh
+# This script will check if the .gas-snapshot file is up to date
+# If it is not up to date, it will generate a new snapshot and commit it
+
+# forge snapshot --check will check if the .gas-snapshot file is up to date
+# If it is up to date, it will exit with code 0, otherwise code 1
+forge snapshot --check
+snapshot_updated=$?
+
+if [ $snapshot_updated -eq 0 ]
+    then
+        # Snapshot is up to date - do nothing
+        echo "✅ Snapshot already up to date"
+    else
+        # Snapshot is not up to date - generate a new snapshot
+        echo "❕ Snapshot is not up to date - updating 📷"
+        npm run gas-snapshot
+
+        # Then commit the snapshot
+        git add .gas-snapshot
+        echo "✅ committing: 📸 Auto updated .gas-snapshot"
+        git commit -m "📸 Auto updated .gas-snapshot"
+fi
+
+exit 0
