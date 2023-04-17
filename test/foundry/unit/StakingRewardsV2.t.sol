@@ -58,4 +58,9 @@ contract StakingRewardsV2Test is Test {
         address rewardEscrowAddress = address(stakingRewardsV2.rewardEscrow());
         assertEq(rewardEscrowAddress, address(rewardEscrow));
     }
+
+    function testSupplyScheduleSet() public {
+        address supplyScheduleAddress = address(stakingRewardsV2.supplySchedule());
+        assertEq(supplyScheduleAddress, address(supplySchedule));
+    }
 }
