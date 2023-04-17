@@ -154,4 +154,15 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         vm.expectRevert("StakingRewards: Cannot unstake the staking token");
         stakingRewardsV2.recoverERC20(address(kwenta), TEST_VALUE);
     }
+
+    function testCanRecoverNonStakingToken() public {
+        // transfer in non staking tokens
+        sendNonStakingTokenToStakingRewards();
+
+        // recover non staking tokens
+        stakingRewardsV2.recoverERC20(address(mockToken), TEST_VALUE);
+
+        // check balance
+        assertEq(mockToken.balanceOf(address(this)), TEST_VALUE);
+    }
 }
