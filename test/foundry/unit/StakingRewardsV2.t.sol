@@ -484,4 +484,29 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
 
         assertEq(finalRewardRate / 2, initialRewardRate);
     }
+
+    function testRewardTokenBalanceRollsOverAfterDuration() public {
+        fundAndApproveAccount(address(this), 1 weeks);
+
+        // stake
+        stakingRewardsV2.stake(1 weeks);
+
+        // configure reward rate
+        vm.prank(address(supplySchedule));
+        stakingRewardsV2.notifyRewardAmount(1 weeks);
+
+        // fast forward 1 weeks
+        vm.warp(block.timestamp + 1 weeks);
+        uint256 initialEarnings = stakingRewardsV2.earned(address(this));
+
+        // configure same reward week for the following period
+        vm.prank(address(supplySchedule));
+        stakingRewardsV2.notifyRewardAmount(1 weeks);
+
+        vm.warp(block.timestamp + 2 weeks);
+
+        uint256 finalEarnings = stakingRewardsV2.earned(address(this));
+
+        assertEq(finalEarnings, initialEarnings * 2);
+    }
 }
