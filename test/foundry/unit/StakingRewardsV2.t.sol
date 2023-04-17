@@ -168,4 +168,21 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         assertEq(mockToken.balanceOf(address(stakingRewardsV2)), 0);
         assertEq(mockToken.balanceOf(address(this)), TEST_VALUE);
     }
+
+    /*//////////////////////////////////////////////////////////////
+                        lastTimeRewardApplicable
+    //////////////////////////////////////////////////////////////*/
+
+    function testLastTimeRewardApplicable() public {
+        // check periodFinish starts as 0
+        assertEq(stakingRewardsV2.lastTimeRewardApplicable(), 0);
+
+        // update reward amount
+        vm.prank(address(supplySchedule));
+        stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
+
+        // check last time reward applicable updated
+        assertEq(stakingRewardsV2.lastTimeRewardApplicable(), block.timestamp);
+    }
+
 }
