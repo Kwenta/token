@@ -58,6 +58,9 @@ contract StakingRewardsV2 is IStakingRewards, Owned, ReentrancyGuard, Pausable {
     /// @notice summation of rewardRate divided by total staked tokens
     uint256 public rewardPerTokenStored;
 
+    /// @notice the period of time a user has to wait after staking to unstake
+    uint256 public unstakingCooldownPeriod = 2 weeks;
+
     /// @notice represents the rewardPerToken
     /// value the last time the stake calculated earned() rewards
     mapping(address => uint256) public userRewardPerTokenPaid;
@@ -65,6 +68,9 @@ contract StakingRewardsV2 is IStakingRewards, Owned, ReentrancyGuard, Pausable {
     /// @notice track rewards for a given user which changes when
     /// a user stakes, unstakes, or claims rewards
     mapping(address => uint256) public rewards;
+
+    /// @notice tracks the last time staked for a given user
+    mapping(address => uint256) public userLastStakeTime;
 
     /*///////////////////////////////////////////////////////////////
                                 EVENTS
@@ -107,6 +113,14 @@ contract StakingRewardsV2 is IStakingRewards, Owned, ReentrancyGuard, Pausable {
     /// @param token: address of token recovered
     /// @param amount: amount of token recovered
     event Recovered(address token, uint256 amount);
+
+    /*//////////////////////////////////////////////////////////////
+                                 ERRORS
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice error when user tries unstake during the cooldown period
+    /// @param canUnstakeAt timestamp when user can unstake
+    error CannotUnstakeDuringCooldown(uint256 canUnstakeAt);
 
     /*///////////////////////////////////////////////////////////////
                                 AUTH
@@ -218,6 +232,7 @@ contract StakingRewardsV2 is IStakingRewards, Owned, ReentrancyGuard, Pausable {
         updateReward(msg.sender)
     {
         require(amount > 0, "StakingRewards: Cannot stake 0");
+        userLastStakeTime[msg.sender] = block.timestamp;
 
         // update state
         _totalSupply += amount;
@@ -244,6 +259,8 @@ contract StakingRewardsV2 is IStakingRewards, Owned, ReentrancyGuard, Pausable {
             amount <= nonEscrowedBalanceOf(msg.sender),
             "StakingRewards: Invalid Amount"
         );
+        uint256 canUnstakeAt = userLastStakeTime[msg.sender] + unstakingCooldownPeriod;
+        if (canUnstakeAt > block.timestamp) revert CannotUnstakeDuringCooldown(canUnstakeAt);
 
         // update state
         _totalSupply -= amount;
