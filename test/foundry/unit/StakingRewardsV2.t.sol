@@ -377,4 +377,10 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
             initialTotalSupply + TEST_VALUE
         );
     }
+
+    function testCannotEscrowStake0() public {
+        vm.prank(address(rewardEscrow));
+        vm.expectRevert("StakingRewards: Cannot stake 0");
+        stakingRewardsV2.stakeEscrow(address(this), 0);
+    }
 }
