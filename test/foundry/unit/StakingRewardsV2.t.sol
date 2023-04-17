@@ -888,6 +888,76 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         stakingRewardsV2.unstake(stakeAmount);
     }
 
+    function testCannotUnstakeEscrowDuringCooldown() public {
+        // stake
+        vm.prank(address(rewardEscrow));
+        stakingRewardsV2.stakeEscrow(address(this), TEST_VALUE);
+
+        uint256 cooldownPeriod = stakingRewardsV2.unstakingCooldownPeriod();
+        uint256 canUnstakeAt = block.timestamp + cooldownPeriod;
+        uint256 stakedAt = block.timestamp;
+
+        // unstake immediately
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                StakingRewardsV2.CannotUnstakeDuringCooldown.selector,
+                canUnstakeAt
+            )
+        );
+        vm.prank(address(rewardEscrow));
+        stakingRewardsV2.unstakeEscrow(address(this), TEST_VALUE);
+
+        // unstake midway through
+        vm.warp(stakedAt + cooldownPeriod / 2);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                StakingRewardsV2.CannotUnstakeDuringCooldown.selector,
+                canUnstakeAt
+            )
+        );
+        vm.prank(address(rewardEscrow));
+        stakingRewardsV2.unstakeEscrow(address(this), TEST_VALUE);
+
+        // unstake 1 sec before period ends
+        vm.warp(stakedAt + cooldownPeriod - 1);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                StakingRewardsV2.CannotUnstakeDuringCooldown.selector,
+                canUnstakeAt
+            )
+        );
+        vm.prank(address(rewardEscrow));
+        stakingRewardsV2.unstakeEscrow(address(this), TEST_VALUE);
+    }
+
+    function testCannotUnstakeEscrowDuringCooldownFuzz(
+        uint32 stakeAmount,
+        uint32 waitTime
+    ) public {
+        vm.assume(stakeAmount > 0);
+
+        // stake
+        vm.prank(address(rewardEscrow));
+        stakingRewardsV2.stakeEscrow(address(this), stakeAmount);
+
+        uint256 cooldownPeriod = stakingRewardsV2.unstakingCooldownPeriod();
+        uint256 canUnstakeAt = block.timestamp + cooldownPeriod;
+        uint256 stakedAt = block.timestamp;
+
+        // unstake
+        vm.warp(stakedAt + waitTime);
+        if (waitTime < cooldownPeriod) {
+            vm.expectRevert(
+                abi.encodeWithSelector(
+                    StakingRewardsV2.CannotUnstakeDuringCooldown.selector,
+                    canUnstakeAt
+                )
+            );
+        }
+        vm.prank(address(rewardEscrow));
+        stakingRewardsV2.unstakeEscrow(address(this), stakeAmount);
+    }
+
     // TODO: test setCooldownPeriod
     // TODO: test setCooldownPeriod min is 1 week
     // TODO: test setCooldownPeriod max is 1 year
