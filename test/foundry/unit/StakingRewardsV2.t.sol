@@ -859,6 +859,33 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         stakingRewardsV2.unstake(TEST_VALUE);
     }
 
+    function testCannotUnstakeDuringCooldownFuzz(
+        uint32 stakeAmount,
+        uint32 waitTime
+    ) public {
+        vm.assume(stakeAmount > 0);
+
+        // stake
+        fundAndApproveAccount(address(this), stakeAmount);
+        stakingRewardsV2.stake(stakeAmount);
+
+        uint256 cooldownPeriod = stakingRewardsV2.unstakingCooldownPeriod();
+        uint256 canUnstakeAt = block.timestamp + cooldownPeriod;
+        uint256 stakedAt = block.timestamp;
+
+        // unstake
+        vm.warp(stakedAt + waitTime);
+        if (waitTime < cooldownPeriod) {
+            vm.expectRevert(
+                abi.encodeWithSelector(
+                    StakingRewardsV2.CannotUnstakeDuringCooldown.selector,
+                    canUnstakeAt
+                )
+            );
+        }
+        stakingRewardsV2.unstake(stakeAmount);
+    }
+
     // TODO: test setCooldownPeriod
     // TODO: test setCooldownPeriod min is 1 week
     // TODO: test setCooldownPeriod max is 1 year
