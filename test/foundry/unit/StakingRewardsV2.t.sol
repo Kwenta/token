@@ -317,4 +317,22 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         vm.expectRevert("StakingRewards: Cannot stake 0");
         stakingRewardsV2.stake(0);
     }
+
+    /*//////////////////////////////////////////////////////////////
+                                stakeEscrow
+    //////////////////////////////////////////////////////////////*/
+
+    function testEscrowStakingDoesNotIncreaseTokenBalance() public {
+        uint256 initialBalance = kwenta.balanceOf(address(stakingRewardsV2));
+
+        // stake
+        vm.prank(address(rewardEscrow));
+        stakingRewardsV2.stakeEscrow(address(this), TEST_VALUE);
+
+        // check balance increased
+        assertEq(
+            kwenta.balanceOf(address(stakingRewardsV2)),
+            initialBalance
+        );
+    }
 }
