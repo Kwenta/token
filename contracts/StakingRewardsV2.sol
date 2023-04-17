@@ -288,6 +288,7 @@ contract StakingRewardsV2 is IStakingRewards, Owned, ReentrancyGuard, Pausable {
         require(amount > 0, "StakingRewards: Cannot stake 0");
 
         // update state
+        userLastStakeTime[account] = block.timestamp;
         balances[account] += amount;
         escrowedBalances[account] += amount;
 
@@ -316,6 +317,8 @@ contract StakingRewardsV2 is IStakingRewards, Owned, ReentrancyGuard, Pausable {
             escrowedBalances[account] >= amount,
             "StakingRewards: Invalid Amount"
         );
+        uint256 canUnstakeAt = userLastStakeTime[account] + unstakingCooldownPeriod;
+        if (canUnstakeAt > block.timestamp) revert CannotUnstakeDuringCooldown(canUnstakeAt);
 
         // update state
         balances[account] -= amount;
