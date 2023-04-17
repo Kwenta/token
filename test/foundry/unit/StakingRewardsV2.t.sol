@@ -535,4 +535,17 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         // check reward escrow balance increased
         assertGt(rewardEscrow.balanceOf(address(this)), initialEscrowBalance);
     }
+
+    /*//////////////////////////////////////////////////////////////
+                                setRewardsDuration
+    //////////////////////////////////////////////////////////////*/
+
+    function testSetRewardsDurationUpdatesDuration() public {
+        uint256 defaultDuration = stakingRewardsV2.rewardsDuration();
+        assertEq(defaultDuration, 1 weeks);
+
+        stakingRewardsV2.setRewardsDuration(30 days);
+
+        assertEq(stakingRewardsV2.rewardsDuration(), 30 days);
+    }
 }
