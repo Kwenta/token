@@ -2,6 +2,7 @@
 pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
+import {TestHelpers} from "../utils/TestHelpers.t.sol";
 import {Kwenta} from "../../../contracts/Kwenta.sol";
 import {RewardEscrow} from "../../../contracts/RewardEscrow.sol";
 import {SupplySchedule} from "../../../contracts/SupplySchedule.sol";
@@ -9,19 +10,19 @@ import {StakingRewardsV2} from "../../../contracts/StakingRewardsV2.sol";
 
 uint256 constant INITIAL_SUPPLY = 313373 ether;
 
-contract StakingRewardsV2Test is Test {
+contract StakingRewardsV2Test is TestHelpers {
     address public treasury;
+    address public user1;
     address public user2;
-    address public user3;
     Kwenta public kwenta;
     RewardEscrow public rewardEscrow;
     SupplySchedule public supplySchedule;
     StakingRewardsV2 public stakingRewardsV2;
 
     function setUp() public {
-        treasury = address(0x1234);
-        user2 = address(0x5678);
-        user3 = address(0x9abc);
+        treasury = createUser();
+        user1 = createUser();
+        user2 = createUser();
         kwenta = new Kwenta(
             "Kwenta",
             "KWENTA",
@@ -80,13 +81,13 @@ contract StakingRewardsV2Test is Test {
     }
 
     function testOnlyOwnerCanCallSetRewardsDuration() public {
-        vm.prank(user2);
+        vm.prank(user1);
         vm.expectRevert("Only the contract owner may perform this action");
         stakingRewardsV2.setRewardsDuration(1 weeks);
     }
 
     function testOnlyOwnerCanCallRecoverERC20() public {
-        vm.prank(user2);
+        vm.prank(user1);
         vm.expectRevert("Only the contract owner may perform this action");
         stakingRewardsV2.recoverERC20(address(kwenta), 0);
     }
@@ -114,7 +115,7 @@ contract StakingRewardsV2Test is Test {
 
     function testOnlyOwnerCanPauseContract() public {
         // attempt to pause
-        vm.prank(user2);
+        vm.prank(user1);
         vm.expectRevert("Only the contract owner may perform this action");
         stakingRewardsV2.pauseStakingRewards();
 
@@ -122,7 +123,7 @@ contract StakingRewardsV2Test is Test {
         stakingRewardsV2.pauseStakingRewards();
 
         // attempt to unpause
-        vm.prank(user2);
+        vm.prank(user1);
         vm.expectRevert("Only the contract owner may perform this action");
         stakingRewardsV2.unpauseStakingRewards();
 
@@ -132,23 +133,36 @@ contract StakingRewardsV2Test is Test {
 
     function testOnlyOwnerCanNominateNewOwner() public {
         // attempt to nominate new owner
-        vm.prank(user2);
+        vm.prank(user1);
         vm.expectRevert("Only the contract owner may perform this action");
         stakingRewardsV2.nominateNewOwner(address(this));
 
         // nominate new owner
-        stakingRewardsV2.nominateNewOwner(address(user2));
+        stakingRewardsV2.nominateNewOwner(address(user1));
 
         // attempt to accept ownership
-        vm.prank(user3);
+        vm.prank(user2);
         vm.expectRevert("You must be nominated before you can accept ownership");
         stakingRewardsV2.acceptOwnership();
 
         // accept ownership
-        vm.prank(user2);
+        vm.prank(user1);
         stakingRewardsV2.acceptOwnership();
 
         // check ownership
-        assertEq(stakingRewardsV2.owner(), address(user2));
+        assertEq(stakingRewardsV2.owner(), address(user1));
     }
+
+    /*//////////////////////////////////////////////////////////////
+                                Pausable
+    //////////////////////////////////////////////////////////////*/
+
+    // function testCannotStakeWhenPaused() public {
+    //     // pause
+    //     stakingRewardsV2.pauseStakingRewards();
+
+    //     // attempt to stake
+    //     vm.expectRevert("Pausable: paused");
+    //     stakingRewardsV2.stake(1 ether);
+    // }
 }
