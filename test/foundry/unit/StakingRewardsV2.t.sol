@@ -11,13 +11,15 @@ uint256 constant INITIAL_SUPPLY = 313373 ether;
 
 contract StakingRewardsV2Test is Test {
     address public treasury;
+    address public otherUser;
     Kwenta public kwenta;
     RewardEscrow public rewardEscrow;
     SupplySchedule public supplySchedule;
     StakingRewardsV2 public stakingRewardsV2;
 
     function setUp() public {
-        treasury = address(this);
+        treasury = address(0x1234);
+        otherUser = address(0x5678);
         kwenta = new Kwenta(
             "Kwenta",
             "KWENTA",
@@ -73,5 +75,11 @@ contract StakingRewardsV2Test is Test {
     function testOnlySupplyScheduleCanCallNotifyRewardAmount() public {
         vm.expectRevert("StakingRewards: Only Supply Schedule");
         stakingRewardsV2.notifyRewardAmount(1 ether);
+    }
+
+    function testOnlyOwnerCanCallSetRewardsDuration() public {
+        vm.prank(otherUser);
+        vm.expectRevert("Only the contract owner may perform this action");
+        stakingRewardsV2.setRewardsDuration(1);
     }
 }
