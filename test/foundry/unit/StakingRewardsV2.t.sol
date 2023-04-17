@@ -295,4 +295,20 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
             initialBalance
         );
     }
+
+    function testStakeIncreasesTotalSupply() public {
+        uint256 initialTotalSupply = stakingRewardsV2.totalSupply();
+
+        // fund so that staking can succeed
+        fundAndApproveAccount(address(this), TEST_VALUE);
+
+        // stake
+        stakingRewardsV2.stake(TEST_VALUE);
+
+        // check total supply updated
+        assertEq(
+            stakingRewardsV2.totalSupply(),
+            initialTotalSupply + TEST_VALUE
+        );
+    }
 }
