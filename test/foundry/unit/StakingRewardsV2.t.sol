@@ -650,4 +650,22 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         vm.expectRevert("StakingRewards: Invalid Amount");
         stakingRewardsV2.unstake(TEST_VALUE);
     }
+
+    function testUnstakingTokenAndStakingBalanceUpdates() public {
+        fundAndApproveAccount(address(this), TEST_VALUE);
+
+        stakingRewardsV2.stake(TEST_VALUE);
+
+        uint256 initialTokenBalance = kwenta.balanceOf(address(this));
+        uint256 initialStakingBalance = stakingRewardsV2.balanceOf(address(this));
+
+        stakingRewardsV2.unstake(TEST_VALUE);
+
+        uint256 finalTokenBalance = kwenta.balanceOf(address(this));
+        uint256 finalStakingBalance = stakingRewardsV2.balanceOf(address(this));
+
+        assertEq(finalStakingBalance + TEST_VALUE, initialStakingBalance);
+        assertEq(finalTokenBalance - TEST_VALUE, initialTokenBalance);
+
+    }
 }
