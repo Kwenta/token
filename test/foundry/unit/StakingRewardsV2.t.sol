@@ -11,7 +11,8 @@ uint256 constant INITIAL_SUPPLY = 313373 ether;
 
 contract StakingRewardsV2Test is Test {
     address public treasury;
-    address public otherUser;
+    address public user2;
+    address public user3;
     Kwenta public kwenta;
     RewardEscrow public rewardEscrow;
     SupplySchedule public supplySchedule;
@@ -19,7 +20,8 @@ contract StakingRewardsV2Test is Test {
 
     function setUp() public {
         treasury = address(0x1234);
-        otherUser = address(0x5678);
+        user2 = address(0x5678);
+        user3 = address(0x9abc);
         kwenta = new Kwenta(
             "Kwenta",
             "KWENTA",
@@ -78,13 +80,13 @@ contract StakingRewardsV2Test is Test {
     }
 
     function testOnlyOwnerCanCallSetRewardsDuration() public {
-        vm.prank(otherUser);
+        vm.prank(user2);
         vm.expectRevert("Only the contract owner may perform this action");
         stakingRewardsV2.setRewardsDuration(1 weeks);
     }
 
     function testOnlyOwnerCanCallRecoverERC20() public {
-        vm.prank(otherUser);
+        vm.prank(user2);
         vm.expectRevert("Only the contract owner may perform this action");
         stakingRewardsV2.recoverERC20(address(kwenta), 0);
     }
@@ -112,7 +114,7 @@ contract StakingRewardsV2Test is Test {
 
     function testOnlyOwnerCanPauseContract() public {
         // attempt to pause
-        vm.prank(otherUser);
+        vm.prank(user2);
         vm.expectRevert("Only the contract owner may perform this action");
         stakingRewardsV2.pauseStakingRewards();
 
@@ -120,8 +122,33 @@ contract StakingRewardsV2Test is Test {
         stakingRewardsV2.pauseStakingRewards();
 
         // attempt to unpause
-        vm.prank(otherUser);
+        vm.prank(user2);
         vm.expectRevert("Only the contract owner may perform this action");
         stakingRewardsV2.unpauseStakingRewards();
+
+        // unpause
+        stakingRewardsV2.unpauseStakingRewards();
+    }
+
+    function testOnlyOwnerCanNominateNewOwner() public {
+        // attempt to nominate new owner
+        vm.prank(user2);
+        vm.expectRevert("Only the contract owner may perform this action");
+        stakingRewardsV2.nominateNewOwner(address(this));
+
+        // nominate new owner
+        stakingRewardsV2.nominateNewOwner(address(user2));
+
+        // attempt to accept ownership
+        vm.prank(user3);
+        vm.expectRevert("You must be nominated before you can accept ownership");
+        stakingRewardsV2.acceptOwnership();
+
+        // accept ownership
+        vm.prank(user2);
+        stakingRewardsV2.acceptOwnership();
+
+        // check ownership
+        assertEq(stakingRewardsV2.owner(), address(user2));
     }
 }
