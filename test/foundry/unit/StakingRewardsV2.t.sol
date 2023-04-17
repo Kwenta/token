@@ -820,16 +820,40 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
                         staking cooldown period
     //////////////////////////////////////////////////////////////*/
 
-    function testCannotUnstakeImmediately() public {
+    function testCannotUnstakeDuringCooldown() public {
         // stake
         fundAndApproveAccount(address(this), TEST_VALUE);
         stakingRewardsV2.stake(TEST_VALUE);
 
-        // unstake
+        uint256 cooldownPeriod = stakingRewardsV2.unstakingCooldownPeriod();
+        uint256 canUnstakeAt = block.timestamp + cooldownPeriod;
+        uint256 stakedAt = block.timestamp;
+
+        // unstake immediately
         vm.expectRevert(
             abi.encodeWithSelector(
                 StakingRewardsV2.CannotUnstakeDuringCooldown.selector,
-                block.timestamp + stakingRewardsV2.unstakingCooldownPeriod()
+                canUnstakeAt
+            )
+        );
+        stakingRewardsV2.unstake(TEST_VALUE);
+
+        // unstake midway through
+        vm.warp(stakedAt + cooldownPeriod / 2);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                StakingRewardsV2.CannotUnstakeDuringCooldown.selector,
+                canUnstakeAt
+            )
+        );
+        stakingRewardsV2.unstake(TEST_VALUE);
+
+        // unstake 1 sec before period ends
+        vm.warp(stakedAt + cooldownPeriod - 1);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                StakingRewardsV2.CannotUnstakeDuringCooldown.selector,
+                canUnstakeAt
             )
         );
         stakingRewardsV2.unstake(TEST_VALUE);
