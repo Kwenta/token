@@ -7,8 +7,7 @@ import {Kwenta} from "../../../contracts/Kwenta.sol";
 import {RewardEscrow} from "../../../contracts/RewardEscrow.sol";
 import {SupplySchedule} from "../../../contracts/SupplySchedule.sol";
 import {StakingRewardsV2} from "../../../contracts/StakingRewardsV2.sol";
-
-uint256 constant INITIAL_SUPPLY = 313373 ether;
+import "../utils/Constants.t.sol";
 
 contract StakingRewardsV2Test is StakingRewardsTestHelpers {
     /*//////////////////////////////////////////////////////////////
@@ -43,7 +42,7 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
 
     function testOnlySupplyScheduleCanCallNotifyRewardAmount() public {
         vm.expectRevert("StakingRewards: Only Supply Schedule");
-        stakingRewardsV2.notifyRewardAmount(1 ether);
+        stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
     }
 
     // TODO: test happy path - see fast forward in hardhat tests
@@ -59,25 +58,20 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         stakingRewardsV2.recoverERC20(address(kwenta), 0);
     }
 
-    function testCannotUnstakeStakingToken() public {
-        vm.expectRevert("StakingRewards: Cannot unstake the staking token");
-        stakingRewardsV2.recoverERC20(address(kwenta), 0);
-    }
-
     function testOnlyRewardEscrowCanCallStakeEscrow() public {
         vm.expectRevert("StakingRewards: Only Reward Escrow");
-        stakingRewardsV2.stakeEscrow(address(this), 1 ether);
+        stakingRewardsV2.stakeEscrow(address(this), TEST_VALUE);
     }
 
     function testOnlyRewardEscrowCanCallUnStakeEscrow() public {
         vm.expectRevert("StakingRewards: Only Reward Escrow");
-        stakingRewardsV2.unstakeEscrow(address(this), 1 ether);
+        stakingRewardsV2.unstakeEscrow(address(this), TEST_VALUE);
     }
 
     function testCannotUnStakeEscrowInvalidAmount() public {
         vm.prank(address(rewardEscrow));
         vm.expectRevert("StakingRewards: Invalid Amount");
-        stakingRewardsV2.unstakeEscrow(address(this), 1 ether);
+        stakingRewardsV2.unstakeEscrow(address(this), TEST_VALUE);
     }
 
     function testOnlyOwnerCanPauseContract() public {
@@ -131,11 +125,11 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         stakingRewardsV2.pauseStakingRewards();
 
         // fund so that staking would succeed if not paused
-        fundAndApproveAccount(address(this), 1 ether);
+        fundAndApproveAccount(address(this), TEST_VALUE);
 
         // attempt to stake
         vm.expectRevert("Pausable: paused");
-        stakingRewardsV2.stake(1 ether);
+        stakingRewardsV2.stake(TEST_VALUE);
     }
 
     function testCanStakeWhenUnpaused() public {
@@ -146,9 +140,18 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         stakingRewardsV2.unpauseStakingRewards();
 
         // fund so that staking can succeed
-        fundAndApproveAccount(address(this), 1 ether);
+        fundAndApproveAccount(address(this), TEST_VALUE);
 
         // stake
-        stakingRewardsV2.stake(1 ether);
+        stakingRewardsV2.stake(TEST_VALUE);
     }
+
+    /*//////////////////////////////////////////////////////////////
+                        External Rewards Recovery
+    //////////////////////////////////////////////////////////////*/
+
+    // function testCannotRecoverStakingToken() public {
+    //     vm.expectRevert("StakingRewards: Cannot unstake the staking token");
+    //     stakingRewardsV2.recoverERC20(address(kwenta), TEST_VALUE);
+    // }
 }

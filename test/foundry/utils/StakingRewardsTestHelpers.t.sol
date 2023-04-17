@@ -7,13 +7,14 @@ import {Kwenta} from "../../../contracts/Kwenta.sol";
 import {RewardEscrow} from "../../../contracts/RewardEscrow.sol";
 import {SupplySchedule} from "../../../contracts/SupplySchedule.sol";
 import {StakingRewardsV2} from "../../../contracts/StakingRewardsV2.sol";
-
-uint256 constant INITIAL_SUPPLY = 313373 ether;
+import {IERC20} from "../../../contracts/interfaces/IERC20.sol";
+import "../utils/Constants.t.sol";
 
 contract StakingRewardsTestHelpers is TestHelpers {
     address public treasury;
     address public user1;
     address public user2;
+    IERC20 public mockToken;
     Kwenta public kwenta;
     RewardEscrow public rewardEscrow;
     SupplySchedule public supplySchedule;
@@ -23,6 +24,13 @@ contract StakingRewardsTestHelpers is TestHelpers {
         treasury = createUser();
         user1 = createUser();
         user2 = createUser();
+        mockToken = new Kwenta(
+            "Mock",
+            "MOCK",
+            INITIAL_SUPPLY,
+            address(this),
+            treasury
+        );
         kwenta = new Kwenta(
             "Kwenta",
             "KWENTA",
@@ -50,5 +58,11 @@ contract StakingRewardsTestHelpers is TestHelpers {
         kwenta.transfer(account, amount);
         vm.prank(account);
         kwenta.approve(address(stakingRewardsV2), amount);
+    }
+    
+    function sendNonStakingTokenToStakingRewards() public {
+        vm.prank(treasury);
+        mockToken.transfer(address(stakingRewardsV2), TEST_VALUE);
+        assertEq(mockToken.balanceOf(address(stakingRewardsV2)), TEST_VALUE);
     }
 }
