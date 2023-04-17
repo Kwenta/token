@@ -104,10 +104,9 @@ contract StakingRewardsV2Test is Test {
         stakingRewardsV2.unstakeEscrow(address(this), 1 ether);
     }
 
-    // function testCannotUnStakeEscrowInvalidAmount() public {
-    //     console.log("escrowed balance", stakingRewardsV2.escrowedBalances[address(this)]);
-    //     vm.prank(address(rewardEscrow));
-    //     vm.expectRevert("StakingRewards: Invalid Amount");
-    //     stakingRewardsV2.stakeEscrow(address(this), 1 ether);
-    // }
+    function testCannotUnStakeEscrowInvalidAmount() public {
+        vm.prank(address(rewardEscrow));
+        vm.expectRevert("StakingRewards: Invalid Amount");
+        stakingRewardsV2.unstakeEscrow(address(this), 1 ether);
+    }
 }
