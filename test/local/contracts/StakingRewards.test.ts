@@ -516,7 +516,7 @@ describe("StakingRewards", () => {
         it("cannot stake 0", async () => {
             let tx = stakingRewards
                 .connect(await impersonate(rewardEscrow.address))
-                .stakeEscrow(0);
+                .stakeEscrow(addr1.address, 0);
             await expect(tx).to.be.revertedWith(
                 "StakingRewards: Cannot stake 0"
             );
