@@ -384,8 +384,25 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         stakingRewardsV2.stakeEscrow(address(this), 0);
     }
 
-    function testCannotUnstakeExcessEscrow() public {
+    // TODO: test happy path for this
+    function testCannotUnstakeStakedEscrow() public {
+        // stake escrow
+        vm.prank(address(rewardEscrow));
+        stakingRewardsV2.stakeEscrow(address(this), TEST_VALUE);
+
+        // this would work if unstakeEscrow was called
+        // but unstake is called so it fails
         vm.expectRevert("StakingRewards: Invalid Amount");
         stakingRewardsV2.unstake(TEST_VALUE);
+    }
+
+    function testCannotExitWithOnlyEscrowStakedBalance() public {
+        // stake escrow
+        vm.prank(address(rewardEscrow));
+        stakingRewardsV2.stakeEscrow(address(this), TEST_VALUE);
+
+        // exit - this fails because exit uses unstake not unstakeEscrow
+        vm.expectRevert("StakingRewards: Cannot Unstake 0");
+        stakingRewardsV2.exit();
     }
 }
