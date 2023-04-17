@@ -455,7 +455,9 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         assertTrue(stakingRewardsV2.earned(address(this)) > 0);
     }
 
-    function testRewardRateShouldIncreaseIfNewRewardsComeBeforeDurationEnds() public {
+    function testRewardRateShouldIncreaseIfNewRewardsComeBeforeDurationEnds()
+        public
+    {
         fundAndApproveAccount(address(this), 1 weeks);
 
         uint256 totalToDistribute = 5 ether;
@@ -537,15 +539,35 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
     }
 
     /*//////////////////////////////////////////////////////////////
-                                setRewardsDuration
+                            setRewardsDuration
     //////////////////////////////////////////////////////////////*/
 
-    function testSetRewardsDurationUpdatesDuration() public {
+    function testSetRewardsDurationBeforeDistribution() public {
         uint256 defaultDuration = stakingRewardsV2.rewardsDuration();
         assertEq(defaultDuration, 1 weeks);
 
         stakingRewardsV2.setRewardsDuration(30 days);
 
         assertEq(stakingRewardsV2.rewardsDuration(), 30 days);
+    }
+
+    function testSetRewardDurationBeforePeriodFinished() public {
+        fundAndApproveAccount(address(this), TEST_VALUE);
+
+        // stake
+        stakingRewardsV2.stake(TEST_VALUE);
+
+        // configure reward rate
+        vm.prank(address(supplySchedule));
+        stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
+
+        // fast 1 day
+        vm.warp(1 days);
+
+        // set rewards duration
+        vm.expectRevert(
+            "StakingRewards: Previous rewards period must be complete before changing the duration for the new period"
+        );
+        stakingRewardsV2.setRewardsDuration(30 days);
     }
 }
