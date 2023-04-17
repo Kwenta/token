@@ -509,4 +509,30 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
 
         assertEq(finalEarnings, initialEarnings * 2);
     }
+
+    /*//////////////////////////////////////////////////////////////
+                                getReward
+    //////////////////////////////////////////////////////////////*/
+
+    function testGetRewardIncreasesBalanceInEscrow() public {
+        fundAndApproveAccount(address(this), TEST_VALUE);
+
+        uint256 initialEscrowBalance = rewardEscrow.balanceOf(address(this));
+
+        // stake
+        stakingRewardsV2.stake(TEST_VALUE);
+
+        // configure reward rate
+        vm.prank(address(supplySchedule));
+        stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
+
+        // fast forward 2 weeks
+        vm.warp(2 weeks);
+
+        // get reward
+        stakingRewardsV2.getReward();
+
+        // check reward escrow balance increased
+        assertGt(rewardEscrow.balanceOf(address(this)), initialEscrowBalance);
+    }
 }
