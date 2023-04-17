@@ -60,7 +60,18 @@ contract StakingRewardsV2Test is Test {
     }
 
     function testSupplyScheduleSet() public {
-        address supplyScheduleAddress = address(stakingRewardsV2.supplySchedule());
+        address supplyScheduleAddress = address(
+            stakingRewardsV2.supplySchedule()
+        );
         assertEq(supplyScheduleAddress, address(supplySchedule));
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                        Constructor & Settings
+    //////////////////////////////////////////////////////////////*/
+
+    function testOnlySupplyScheduleCanCallNotifyRewardAmount() public {
+        vm.expectRevert("StakingRewards: Only Supply Schedule");
+        stakingRewardsV2.notifyRewardAmount(1 ether);
     }
 }
