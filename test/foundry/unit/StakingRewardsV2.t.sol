@@ -641,4 +641,13 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         assertGt(rewardForDuration, 0);
         assertEq(rewardForDuration, rewardRate * duration);
     }
+
+    /*//////////////////////////////////////////////////////////////
+                                unstake
+    //////////////////////////////////////////////////////////////*/
+
+    function testCannotUnstakeIfNothingStaked() public {
+        vm.expectRevert("StakingRewards: Invalid Amount");
+        stakingRewardsV2.unstake(TEST_VALUE);
+    }
 }
