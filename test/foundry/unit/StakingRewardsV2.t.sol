@@ -666,6 +666,10 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
 
         assertEq(finalStakingBalance + TEST_VALUE, initialStakingBalance);
         assertEq(finalTokenBalance - TEST_VALUE, initialTokenBalance);
+    }
 
+    function testCannotUnstake0() public {
+        vm.expectRevert("StakingRewards: Cannot Unstake 0");
+        stakingRewardsV2.unstake(0);
     }
 }
