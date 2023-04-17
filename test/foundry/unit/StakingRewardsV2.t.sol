@@ -349,4 +349,32 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
             initialBalance + TEST_VALUE
         );
     }
+
+    function testEscrowStakingIncreasesEscrowedBalances() public {
+        uint256 initialBalance = stakingRewardsV2.escrowedBalanceOf(address(this));
+
+        // stake
+        vm.prank(address(rewardEscrow));
+        stakingRewardsV2.stakeEscrow(address(this), TEST_VALUE);
+
+        // check balances mapping updated
+        assertEq(
+            stakingRewardsV2.escrowedBalanceOf(address(this)),
+            initialBalance + TEST_VALUE
+        );
+    }
+
+    function testEscrowStakingIncreasesTotalSupply() public {
+        uint256 initialTotalSupply = stakingRewardsV2.totalSupply();
+
+        // stake
+        vm.prank(address(rewardEscrow));
+        stakingRewardsV2.stakeEscrow(address(this), TEST_VALUE);
+
+        // check total supply updated
+        assertEq(
+            stakingRewardsV2.totalSupply(),
+            initialTotalSupply + TEST_VALUE
+        );
+    }
 }
