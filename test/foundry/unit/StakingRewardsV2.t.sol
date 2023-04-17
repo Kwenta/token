@@ -185,4 +185,62 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         assertEq(stakingRewardsV2.lastTimeRewardApplicable(), block.timestamp);
     }
 
+    /*//////////////////////////////////////////////////////////////
+                            rewardPerToken
+    //////////////////////////////////////////////////////////////*/
+
+    function testRewardPerToken() public {
+        // fund so that staking can succeed
+        uint256 stakedAmount = 1 weeks;
+        fundAndApproveAccount(address(this), stakedAmount);
+
+        // check reward per token starts as 0
+        assertEq(stakingRewardsV2.rewardPerToken(), 0);
+
+        // stake
+        stakingRewardsV2.stake(stakedAmount);
+        assertEq(stakingRewardsV2.totalSupply(), stakedAmount);
+
+        // set rewards
+        uint256 reward = stakedAmount;
+        vm.prank(address(supplySchedule));
+        stakingRewardsV2.notifyRewardAmount(reward);
+
+        // ff to end of period
+        vm.warp(block.timestamp + 1 weeks);
+
+        // check reward per token updated
+        assertEq(stakingRewardsV2.rewardPerToken(), 1 ether);
+    }
+
+    // // TODO: fuzz test this
+    // function testRewardPerTokenFuzz() public {
+    //     // get rewards duration
+    //     uint256 rewardsDuration = stakingRewardsV2.rewardsDuration();
+
+    //     // fund so that staking can succeed
+    //     uint256 stakedAmount = TEST_VALUE;
+    //     fundAndApproveAccount(address(this), stakedAmount);
+
+    //     // check reward per token starts as 0
+    //     assertEq(stakingRewardsV2.rewardPerToken(), 0);
+
+    //     // stake
+    //     stakingRewardsV2.stake(stakedAmount);
+    //     uint256 totalSupply = stakingRewardsV2.totalSupply();
+    //     assertEq(totalSupply, stakedAmount);
+
+    //     // set rewards
+    //     uint256 reward = rewardsDuration * 2;
+    //     vm.prank(address(supplySchedule));
+    //     stakingRewardsV2.notifyRewardAmount(reward);
+
+    //     // ff to end of period
+    //     vm.warp(block.timestamp + rewardsDuration);
+
+    //     uint256 rewardPerToken = reward * 1e18 / totalSupply;
+
+    //     // check reward per token updated
+    //     assertEq(stakingRewardsV2.rewardPerToken(), rewardPerToken);
+    // }
 }
