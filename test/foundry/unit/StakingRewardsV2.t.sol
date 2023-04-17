@@ -281,7 +281,9 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
     }
 
     function testStakeDoesNotIncreaseEscrowedBalances() public {
-        uint256 initialBalance = stakingRewardsV2.escrowedBalanceOf(address(this));
+        uint256 initialBalance = stakingRewardsV2.escrowedBalanceOf(
+            address(this)
+        );
 
         // fund so that staking can succeed
         fundAndApproveAccount(address(this), TEST_VALUE);
@@ -330,10 +332,7 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         stakingRewardsV2.stakeEscrow(address(this), TEST_VALUE);
 
         // check balance increased
-        assertEq(
-            kwenta.balanceOf(address(stakingRewardsV2)),
-            initialBalance
-        );
+        assertEq(kwenta.balanceOf(address(stakingRewardsV2)), initialBalance);
     }
 
     function testEscrowStakingIncreasesBalancesMapping() public {
@@ -351,7 +350,9 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
     }
 
     function testEscrowStakingIncreasesEscrowedBalances() public {
-        uint256 initialBalance = stakingRewardsV2.escrowedBalanceOf(address(this));
+        uint256 initialBalance = stakingRewardsV2.escrowedBalanceOf(
+            address(this)
+        );
 
         // stake
         vm.prank(address(rewardEscrow));
@@ -406,7 +407,7 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         stakingRewardsV2.exit();
     }
 
-    function  testExit() public {
+    function testExit() public {
         uint256 nonEscrowStakedBalance = TEST_VALUE / 2;
         uint256 escrowStakedBalance = TEST_VALUE;
 
@@ -426,9 +427,21 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         stakingRewardsV2.exit();
 
         // check only non-escrow staked balance has been returned after exit
-        assertEq(
-            kwenta.balanceOf(address(this)),
-            nonEscrowStakedBalance
-        );
+        assertEq(kwenta.balanceOf(address(this)), nonEscrowStakedBalance);
     }
+
+    /*//////////////////////////////////////////////////////////////
+                                earned
+    //////////////////////////////////////////////////////////////*/
+
+    function testEarnedStartsAt0() public {
+        assertEq(stakingRewardsV2.earned(address(this)), 0);
+    }
+
+    // function testEarnedIncreasesAfterStaking() public {
+    //     fundAndApproveAccount(address(this), TEST_VALUE)
+        
+    //     // stake
+    //     stakingRewardsV2.
+    // }
 }
