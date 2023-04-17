@@ -425,6 +425,8 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         vm.prank(address(rewardEscrow));
         stakingRewardsV2.stakeEscrow(address(this), escrowStakedBalance);
 
+        vm.warp(block.timestamp + 2 weeks);
+
         // exit
         stakingRewardsV2.exit();
 
