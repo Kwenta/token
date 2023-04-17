@@ -434,14 +434,24 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
                                 earned
     //////////////////////////////////////////////////////////////*/
 
-    function testEarnedStartsAt0() public {
+    function testNoRewardsWhenNotStaking() public {
         assertEq(stakingRewardsV2.earned(address(this)), 0);
     }
 
-    // function testEarnedIncreasesAfterStaking() public {
-    //     fundAndApproveAccount(address(this), TEST_VALUE)
-        
-    //     // stake
-    //     stakingRewardsV2.
-    // }
+    function testEarnedIncreasesAfterStaking() public {
+        fundAndApproveAccount(address(this), TEST_VALUE);
+
+        // stake
+        stakingRewardsV2.stake(TEST_VALUE);
+
+        // configure reward rate
+        vm.prank(address(supplySchedule));
+        stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
+
+        // fast forward 2 weeks
+        vm.warp(2 weeks);
+
+        // check some stake has been earned
+        assertTrue(stakingRewardsV2.earned(address(this)) > 0);
+    }
 }
