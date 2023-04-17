@@ -157,12 +157,15 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
 
     function testCanRecoverNonStakingToken() public {
         // transfer in non staking tokens
-        sendNonStakingTokenToStakingRewards();
+        vm.prank(treasury);
+        mockToken.transfer(address(stakingRewardsV2), TEST_VALUE);
+        assertEq(mockToken.balanceOf(address(stakingRewardsV2)), TEST_VALUE);
 
         // recover non staking tokens
         stakingRewardsV2.recoverERC20(address(mockToken), TEST_VALUE);
 
-        // check balance
+        // check balances
+        assertEq(mockToken.balanceOf(address(stakingRewardsV2)), 0);
         assertEq(mockToken.balanceOf(address(this)), TEST_VALUE);
     }
 }

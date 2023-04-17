@@ -59,10 +59,4 @@ contract StakingRewardsTestHelpers is TestHelpers {
         vm.prank(account);
         kwenta.approve(address(stakingRewardsV2), amount);
     }
-    
-    function sendNonStakingTokenToStakingRewards() public {
-        vm.prank(treasury);
-        mockToken.transfer(address(stakingRewardsV2), TEST_VALUE);
-        assertEq(mockToken.balanceOf(address(stakingRewardsV2)), TEST_VALUE);
-    }
 }
