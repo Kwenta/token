@@ -69,7 +69,7 @@ contract StakingRewardsV2Test is Test {
     }
 
     /*//////////////////////////////////////////////////////////////
-                        Constructor & Settings
+                        Function Permissions
     //////////////////////////////////////////////////////////////*/
 
     function testOnlySupplyScheduleCanCallNotifyRewardAmount() public {
@@ -86,6 +86,11 @@ contract StakingRewardsV2Test is Test {
     function testOnlyOwnerCanCallRecoverERC20() public {
         vm.prank(otherUser);
         vm.expectRevert("Only the contract owner may perform this action");
+        stakingRewardsV2.recoverERC20(address(kwenta), 0);
+    }
+
+    function testCannotUnstakeStakingToken() public {
+        vm.expectRevert("StakingRewards: Cannot unstake the staking token");
         stakingRewardsV2.recoverERC20(address(kwenta), 0);
     }
 
