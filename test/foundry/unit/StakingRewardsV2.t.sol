@@ -425,9 +425,8 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         vm.prank(address(rewardEscrow));
         stakingRewardsV2.stakeEscrow(address(this), escrowStakedBalance);
 
-        vm.warp(block.timestamp + 2 weeks);
-
         // exit
+        vm.warp(block.timestamp + 2 weeks);
         stakingRewardsV2.exit();
 
         // check only non-escrow staked balance has been returned after exit
@@ -663,6 +662,7 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
             address(this)
         );
 
+        vm.warp(block.timestamp + 2 weeks);
         stakingRewardsV2.unstake(TEST_VALUE);
 
         uint256 finalTokenBalance = kwenta.balanceOf(address(this));
