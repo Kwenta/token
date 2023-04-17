@@ -958,12 +958,40 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         stakingRewardsV2.unstakeEscrow(address(this), stakeAmount);
     }
 
+    function testCanStakeMoreDuringCooldown() public {
+        // stake once
+        fundAndApproveAccount(address(this), TEST_VALUE * 3);
+        stakingRewardsV2.stake(TEST_VALUE);
+
+        // stake immediately again
+        stakingRewardsV2.stake(TEST_VALUE);
+
+        // stake half the cooldown period later again
+        vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod() / 2);
+        stakingRewardsV2.stake(TEST_VALUE);
+    }
+
+    function testCanStakeEscrowMoreDuringCooldown() public {
+        // stake once
+        vm.prank(address(rewardEscrow));
+        stakingRewardsV2.stakeEscrow(address(this), TEST_VALUE);
+
+        // stake immediately again
+        vm.prank(address(rewardEscrow));
+        stakingRewardsV2.stakeEscrow(address(this), TEST_VALUE);
+
+        // stake half the cooldown period later again
+        vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod() / 2);
+        vm.prank(address(rewardEscrow));
+        stakingRewardsV2.stakeEscrow(address(this), TEST_VALUE);
+    }
+
     // TODO: test setCooldownPeriod
     // TODO: test setCooldownPeriod min is 1 week
     // TODO: test setCooldownPeriod max is 1 year
-    // TODO: test escrow staking and unstaking
     // TODO: test can still stake more during cooldown
     // TODO: test can unstake after cooldown
+    // TODO: test can escrow unstake after cooldown
     // TODO: test cooldown is delayed after further deposits
 
     // TODO: check when a user stakes balances checkpoints are updated
@@ -975,4 +1003,6 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
 
     // TODO: test escrowStaked mapping copy migration
     // TODO: test manual staked balance migration
+
+    // TODO: refactor cooldown check into cooldownLock modifier
 }
