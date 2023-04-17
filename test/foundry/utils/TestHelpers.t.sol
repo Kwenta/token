@@ -7,8 +7,6 @@ import {RewardEscrow} from "../../../contracts/RewardEscrow.sol";
 import {SupplySchedule} from "../../../contracts/SupplySchedule.sol";
 import {StakingRewardsV2} from "../../../contracts/StakingRewardsV2.sol";
 
-uint256 constant INITIAL_SUPPLY = 313373 ether;
-
 contract TestHelpers is Test {
     uint256 public userNonce;
 
