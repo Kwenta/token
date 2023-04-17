@@ -41,14 +41,17 @@ contract StakingRewardsV2Test is Test {
         kwenta.transfer(address(stakingRewardsV2), INITIAL_SUPPLY / 4);
     }
 
+    /*//////////////////////////////////////////////////////////////
+                        Constructor & Settings
+    //////////////////////////////////////////////////////////////*/
+
     function testTokenSet() public {
         address token = address(stakingRewardsV2.token());
         assertEq(token, address(kwenta));
     }
 
-
-    function testOwner() public {
-        // address owner = stakingRewardsV2.owner();
-        // assertEq(owner, address(this));
+    function testOwnerSet() public {
+        address owner = stakingRewardsV2.owner();
+        assertEq(owner, address(this));
     }
 }
