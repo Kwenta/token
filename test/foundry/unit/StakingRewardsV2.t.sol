@@ -335,4 +335,18 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
             initialBalance
         );
     }
+
+    function testEscrowStakingIncreasesBalancesMapping() public {
+        uint256 initialBalance = stakingRewardsV2.balanceOf(address(this));
+
+        // stake
+        vm.prank(address(rewardEscrow));
+        stakingRewardsV2.stakeEscrow(address(this), TEST_VALUE);
+
+        // check balances mapping updated
+        assertEq(
+            stakingRewardsV2.balanceOf(address(this)),
+            initialBalance + TEST_VALUE
+        );
+    }
 }
