@@ -753,4 +753,26 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         // check balance decreased
         assertEq(initialEscrowBalance - 1 weeks, finalEscrowBalance);
     }
+
+    function testCannotUnstakeMoreThanEscrowStaked() public {
+        // stake escrow
+        vm.prank(address(rewardEscrow));
+        stakingRewardsV2.stakeEscrow(address(this), 1 weeks);
+
+        // unstake more escrow
+        vm.prank(address(rewardEscrow));
+        vm.expectRevert("StakingRewards: Invalid Amount");
+        stakingRewardsV2.unstakeEscrow(address(this), 2 weeks);
+    }
+
+    function testCannotUnstake0Escrow() public {
+        // stake escrow
+        vm.prank(address(rewardEscrow));
+        stakingRewardsV2.stakeEscrow(address(this), 1 weeks);
+
+        // unstake 0 escrow
+        vm.prank(address(rewardEscrow));
+        vm.expectRevert("StakingRewards: Cannot Unstake 0");
+        stakingRewardsV2.unstakeEscrow(address(this), 0);
+    }
 }
