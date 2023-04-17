@@ -405,4 +405,30 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         vm.expectRevert("StakingRewards: Cannot Unstake 0");
         stakingRewardsV2.exit();
     }
+
+    function  testExit() public {
+        uint256 nonEscrowStakedBalance = TEST_VALUE / 2;
+        uint256 escrowStakedBalance = TEST_VALUE;
+
+        // transfer kwenta to this address
+        vm.prank(treasury);
+        kwenta.transfer(address(this), nonEscrowStakedBalance);
+
+        // stake non-escrowed kwenta
+        kwenta.approve(address(stakingRewardsV2), nonEscrowStakedBalance);
+        stakingRewardsV2.stake(nonEscrowStakedBalance);
+
+        // stake escrowed kwenta
+        vm.prank(address(rewardEscrow));
+        stakingRewardsV2.stakeEscrow(address(this), escrowStakedBalance);
+
+        // exit
+        stakingRewardsV2.exit();
+
+        // check only non-escrow staked balance has been returned after exit
+        assertEq(
+            kwenta.balanceOf(address(this)),
+            nonEscrowStakedBalance
+        );
+    }
 }
