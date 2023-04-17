@@ -80,6 +80,12 @@ contract StakingRewardsV2Test is Test {
     function testOnlyOwnerCanCallSetRewardsDuration() public {
         vm.prank(otherUser);
         vm.expectRevert("Only the contract owner may perform this action");
-        stakingRewardsV2.setRewardsDuration(1);
+        stakingRewardsV2.setRewardsDuration(1 weeks);
+    }
+
+    function testOnlyOwnerCanCallRecoverERC20() public {
+        vm.prank(otherUser);
+        vm.expectRevert("Only the contract owner may perform this action");
+        stakingRewardsV2.recoverERC20(address(kwenta), 0);
     }
 }
