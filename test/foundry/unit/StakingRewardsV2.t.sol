@@ -573,7 +573,7 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         stakingRewardsV2.setRewardsDuration(30 days);
     }
 
-    function testSetRewardsDurationAfterPeriodHasFinished() public{
+    function testSetRewardsDurationAfterPeriodHasFinished() public {
         fundAndApproveAccount(address(this), TEST_VALUE);
 
         // stake
@@ -623,5 +623,22 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         stakingRewardsV2.getReward();
     }
 
+    /*//////////////////////////////////////////////////////////////
+                            getRewardForDuration
+    //////////////////////////////////////////////////////////////*/
 
+    function testGetRewardForDuration() public {
+        vm.prank(treasury);
+        kwenta.transfer(address(stakingRewardsV2), TEST_VALUE);
+
+        vm.prank(address(supplySchedule));
+        stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
+
+        uint256 rewardForDuration = stakingRewardsV2.getRewardForDuration();
+        uint256 duration = stakingRewardsV2.rewardsDuration();
+        uint256 rewardRate = stakingRewardsV2.rewardRate();
+
+        assertGt(rewardForDuration, 0);
+        assertEq(rewardForDuration, rewardRate * duration);
+    }
 }
