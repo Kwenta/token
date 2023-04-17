@@ -672,4 +672,14 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         vm.expectRevert("StakingRewards: Cannot Unstake 0");
         stakingRewardsV2.unstake(0);
     }
+
+    /*//////////////////////////////////////////////////////////////
+                                unstake
+    //////////////////////////////////////////////////////////////*/
+
+    function testCannotUnstakeEscrowIfNoneStaked() public {
+        vm.prank(address(rewardEscrow));
+        vm.expectRevert("StakingRewards: Invalid Amount");
+        stakingRewardsV2.unstakeEscrow(address(this), TEST_VALUE);
+    }
 }
