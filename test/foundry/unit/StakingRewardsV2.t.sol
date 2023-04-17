@@ -10,6 +10,8 @@ import {StakingRewardsV2} from "../../../contracts/StakingRewardsV2.sol";
 import "../utils/Constants.t.sol";
 
 contract StakingRewardsV2Test is StakingRewardsTestHelpers {
+    event RewardsDurationUpdated(uint256 newDuration);
+
     /*//////////////////////////////////////////////////////////////
                         Constructor & Settings
     //////////////////////////////////////////////////////////////*/
@@ -570,4 +572,30 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         );
         stakingRewardsV2.setRewardsDuration(30 days);
     }
+
+    function testSetRewardsDurationAfterPeriodHasFinished() public{
+        fundAndApproveAccount(address(this), TEST_VALUE);
+
+        // stake
+        stakingRewardsV2.stake(TEST_VALUE);
+
+        // configure reward rate
+        vm.prank(address(supplySchedule));
+        stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
+
+        // fast forward 2 weeks
+        vm.warp(2 weeks);
+
+        // set rewards duration
+        vm.expectEmit(true, true, false, false);
+        emit RewardsDurationUpdated(30 days);
+        stakingRewardsV2.setRewardsDuration(30 days);
+
+        assertEq(stakingRewardsV2.rewardsDuration(), 30 days);
+
+        vm.prank(address(supplySchedule));
+        stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
+    }
+
+
 }
