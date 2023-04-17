@@ -2,7 +2,6 @@
 pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
-import "../utils/Constants.sol";
 import {Kwenta} from "../../../contracts/Kwenta.sol";
 import {RewardEscrow} from "../../../contracts/RewardEscrow.sol";
 import {SupplySchedule} from "../../../contracts/SupplySchedule.sol";
@@ -53,5 +52,10 @@ contract StakingRewardsV2Test is Test {
     function testOwnerSet() public {
         address owner = stakingRewardsV2.owner();
         assertEq(owner, address(this));
+    }
+
+    function testRewardEscrowSet() public {
+        address rewardEscrowAddress = address(stakingRewardsV2.rewardEscrow());
+        assertEq(rewardEscrowAddress, address(rewardEscrow));
     }
 }
