@@ -657,7 +657,9 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         stakingRewardsV2.stake(TEST_VALUE);
 
         uint256 initialTokenBalance = kwenta.balanceOf(address(this));
-        uint256 initialStakingBalance = stakingRewardsV2.balanceOf(address(this));
+        uint256 initialStakingBalance = stakingRewardsV2.balanceOf(
+            address(this)
+        );
 
         stakingRewardsV2.unstake(TEST_VALUE);
 
@@ -689,14 +691,18 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         stakingRewardsV2.stakeEscrow(address(this), 1 weeks);
 
         uint256 initialTokenBalance = kwenta.balanceOf(address(this));
-        uint256 initialEscrowTokenBalance = kwenta.balanceOf(address(rewardEscrow));
+        uint256 initialEscrowTokenBalance = kwenta.balanceOf(
+            address(rewardEscrow)
+        );
 
         // unstake escrow
         vm.prank(address(rewardEscrow));
         stakingRewardsV2.unstakeEscrow(address(this), 1 weeks);
 
         uint256 finalTokenBalance = kwenta.balanceOf(address(this));
-        uint256 finalEscrowTokenBalance = kwenta.balanceOf(address(rewardEscrow));
+        uint256 finalEscrowTokenBalance = kwenta.balanceOf(
+            address(rewardEscrow)
+        );
 
         // check both values unchanged
         assertEq(initialTokenBalance, finalTokenBalance);
@@ -742,13 +748,17 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         vm.prank(address(rewardEscrow));
         stakingRewardsV2.stakeEscrow(address(this), 1 weeks);
 
-        uint256 initialEscrowBalance = stakingRewardsV2.escrowedBalanceOf(address(this));
+        uint256 initialEscrowBalance = stakingRewardsV2.escrowedBalanceOf(
+            address(this)
+        );
 
         // unstake escrow
         vm.prank(address(rewardEscrow));
         stakingRewardsV2.unstakeEscrow(address(this), 1 weeks);
 
-        uint256 finalEscrowBalance = stakingRewardsV2.escrowedBalanceOf(address(this));
+        uint256 finalEscrowBalance = stakingRewardsV2.escrowedBalanceOf(
+            address(this)
+        );
 
         // check balance decreased
         assertEq(initialEscrowBalance - 1 weeks, finalEscrowBalance);
@@ -805,4 +815,41 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         assertGt(finalRewardBalance, initialRewardBalance);
         assertEq(finalEarnedBalance, 0);
     }
+
+    /*//////////////////////////////////////////////////////////////
+                        staking cooldown period
+    //////////////////////////////////////////////////////////////*/
+
+    function testCannotUnstakeImmediately() public {
+        // stake
+        fundAndApproveAccount(address(this), TEST_VALUE);
+        stakingRewardsV2.stake(TEST_VALUE);
+
+        // unstake
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                StakingRewardsV2.CannotUnstakeDuringCooldown.selector,
+                block.timestamp + stakingRewardsV2.unstakingCooldownPeriod()
+            )
+        );
+        stakingRewardsV2.unstake(TEST_VALUE);
+    }
+
+    // TODO: test setCooldownPeriod
+    // TODO: test setCooldownPeriod min is 1 week
+    // TODO: test setCooldownPeriod max is 1 year
+    // TODO: test escrow staking and unstaking
+    // TODO: test can still stake more during cooldown
+    // TODO: test can unstake after cooldown
+    // TODO: test cooldown is delayed after further deposits
+
+    // TODO: check when a user stakes balances checkpoints are updated
+    // TODO: check when a user escrow stakes balances checkpoints are updated
+    // TODO: check when a user stakes escrowedBalances checkpoints are unchanged???
+    // TODO: check when a user escrow stakes escrowedBalances checkpoints are updated
+    // TODO: check when a user stakes total supply checkpoints are updated
+    // TODO: check when a user escrow stakes total supply checkpoints are updated
+
+    // TODO: test escrowStaked mapping copy migration
+    // TODO: test manual staked balance migration
 }
