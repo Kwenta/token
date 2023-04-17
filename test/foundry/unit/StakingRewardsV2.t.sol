@@ -597,5 +597,31 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
     }
 
+    function testUpdateDurationAfterPeriodHasFinishedAndGetRewards() public {
+        fundAndApproveAccount(address(this), TEST_VALUE);
+
+        // stake
+        stakingRewardsV2.stake(TEST_VALUE);
+
+        // configure reward rate
+        vm.prank(address(supplySchedule));
+        stakingRewardsV2.notifyRewardAmount(30 days);
+
+        // fast forward 2 weeks
+        vm.warp(block.timestamp + 1 weeks);
+        stakingRewardsV2.getReward();
+        vm.warp(block.timestamp + 1 weeks);
+
+        // set rewards duration
+        vm.expectEmit(true, true, false, false);
+        emit RewardsDurationUpdated(30 days);
+        stakingRewardsV2.setRewardsDuration(30 days);
+
+        assertEq(stakingRewardsV2.rewardsDuration(), 30 days);
+
+        vm.warp(block.timestamp + 1 weeks);
+        stakingRewardsV2.getReward();
+    }
+
 
 }
