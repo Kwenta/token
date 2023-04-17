@@ -311,4 +311,10 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
             initialTotalSupply + TEST_VALUE
         );
     }
+
+    function testCannotStake0() public {
+        fundAndApproveAccount(address(this), TEST_VALUE);
+        vm.expectRevert("StakingRewards: Cannot stake 0");
+        stakingRewardsV2.stake(0);
+    }
 }
