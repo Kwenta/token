@@ -243,4 +243,24 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
     //     // check reward per token updated
     //     assertEq(stakingRewardsV2.rewardPerToken(), rewardPerToken);
     // }
+
+    /*//////////////////////////////////////////////////////////////
+                                stake
+    //////////////////////////////////////////////////////////////*/
+
+    function testStakeIncreasesTokenBalance() public {
+        uint256 initialBalance = kwenta.balanceOf(address(stakingRewardsV2));
+
+        // fund so that staking can succeed
+        fundAndApproveAccount(address(this), TEST_VALUE);
+
+        // stake
+        stakingRewardsV2.stake(TEST_VALUE);
+
+        // check balance increased
+        assertEq(
+            kwenta.balanceOf(address(stakingRewardsV2)),
+            initialBalance + TEST_VALUE
+        );
+    }
 }
