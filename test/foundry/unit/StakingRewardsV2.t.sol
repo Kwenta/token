@@ -775,4 +775,34 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         vm.expectRevert("StakingRewards: Cannot Unstake 0");
         stakingRewardsV2.unstakeEscrow(address(this), 0);
     }
+
+    /*//////////////////////////////////////////////////////////////
+                                exit
+    //////////////////////////////////////////////////////////////*/
+
+    function testExitShouldRetrieveAllEarned() public {
+        // stake
+        fundAndApproveAccount(address(this), TEST_VALUE);
+        stakingRewardsV2.stake(TEST_VALUE);
+
+        vm.prank(address(supplySchedule));
+        stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
+
+        vm.warp(block.timestamp + 2 weeks);
+
+        // get initial values
+        uint256 initialRewardBalance = kwenta.balanceOf(address(this));
+        uint256 intialEarnedBalance = stakingRewardsV2.earned(address(this));
+
+        // exit
+        stakingRewardsV2.exit();
+
+        // get final values
+        uint256 finalRewardBalance = kwenta.balanceOf(address(this));
+        uint256 finalEarnedBalance = stakingRewardsV2.earned(address(this));
+
+        assertLt(finalEarnedBalance, intialEarnedBalance);
+        assertGt(finalRewardBalance, initialRewardBalance);
+        assertEq(finalEarnedBalance, 0);
+    }
 }
