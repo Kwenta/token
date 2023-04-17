@@ -383,4 +383,9 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         vm.expectRevert("StakingRewards: Cannot stake 0");
         stakingRewardsV2.stakeEscrow(address(this), 0);
     }
+
+    function testCannotUnstakeExcessEscrow() public {
+        vm.expectRevert("StakingRewards: Invalid Amount");
+        stakingRewardsV2.unstake(TEST_VALUE);
+    }
 }
