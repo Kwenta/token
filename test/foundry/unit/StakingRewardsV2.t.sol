@@ -263,4 +263,20 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
             initialBalance + TEST_VALUE
         );
     }
+
+    function testStakeIncreasesBalancesMapping() public {
+        uint256 initialBalance = stakingRewardsV2.balanceOf(address(this));
+
+        // fund so that staking can succeed
+        fundAndApproveAccount(address(this), TEST_VALUE);
+
+        // stake
+        stakingRewardsV2.stake(TEST_VALUE);
+
+        // check balances mapping updated
+        assertEq(
+            stakingRewardsV2.balanceOf(address(this)),
+            initialBalance + TEST_VALUE
+        );
+    }
 }
