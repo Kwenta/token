@@ -719,4 +719,21 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         // check total supply decreased
         assertEq(initialTotalSupply - 1 weeks, finalTotalSupply);
     }
+
+    function testDoesChangeBalancesMapping() public {
+        // stake escrow
+        vm.prank(address(rewardEscrow));
+        stakingRewardsV2.stakeEscrow(address(this), 1 weeks);
+
+        uint256 initialBalance = stakingRewardsV2.balanceOf(address(this));
+
+        // unstake escrow
+        vm.prank(address(rewardEscrow));
+        stakingRewardsV2.unstakeEscrow(address(this), 1 weeks);
+
+        uint256 finalBalance = stakingRewardsV2.balanceOf(address(this));
+
+        // check balance decreased
+        assertEq(initialBalance - 1 weeks, finalBalance);
+    }
 }
