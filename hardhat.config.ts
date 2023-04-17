@@ -34,7 +34,9 @@ subtask(TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS).setAction(
       const paths: string[] = await runSuper();
 
       // Apply a filter function to exclude paths that contain the string ".t.sol"
-      return paths.filter((p: string) => !p.endsWith(".t.sol"));
+      return paths.filter(
+          (p: string) => !p.endsWith(".t.sol") && !p.endsWith(".s.sol")
+      );
   }
 );
 
@@ -87,18 +89,18 @@ export default {
     hardhat: {
       allowUnlimitedContractSize: true
     },
-    "optimistic-kovan": {
-      url: `https://opt-kovan.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
-      accounts: process.env.DEPLOYER_PRIVATE_KEY ? [process.env.DEPLOYER_PRIVATE_KEY] : undefined,
-    },
-    "optimistic-goerli": {
-      url: `https://opt-goerli.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
-      accounts: process.env.DEPLOYER_PRIVATE_KEY ? [process.env.DEPLOYER_PRIVATE_KEY] : undefined,
-    },
-    "optimistic-mainnet": {
-      url: `https://opt-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
-      accounts: process.env.DEPLOYER_PRIVATE_KEY ? [process.env.DEPLOYER_PRIVATE_KEY] : undefined,
-    },
+    // "optimistic-kovan": {
+    //   url: `https://opt-kovan.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
+    //   accounts: process.env.DEPLOYER_PRIVATE_KEY ? [process.env.DEPLOYER_PRIVATE_KEY] : undefined,
+    // },
+    // "optimistic-goerli": {
+    //   url: `https://opt-goerli.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
+    //   accounts: process.env.DEPLOYER_PRIVATE_KEY ? [process.env.DEPLOYER_PRIVATE_KEY] : undefined,
+    // },
+    // "optimistic-mainnet": {
+    //   url: `https://opt-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
+    //   accounts: process.env.DEPLOYER_PRIVATE_KEY ? [process.env.DEPLOYER_PRIVATE_KEY] : undefined,
+    // },
   },
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY,
