@@ -150,8 +150,8 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
                         External Rewards Recovery
     //////////////////////////////////////////////////////////////*/
 
-    // function testCannotRecoverStakingToken() public {
-    //     vm.expectRevert("StakingRewards: Cannot unstake the staking token");
-    //     stakingRewardsV2.recoverERC20(address(kwenta), TEST_VALUE);
-    // }
+    function testCannotRecoverStakingToken() public {
+        vm.expectRevert("StakingRewards: Cannot unstake the staking token");
+        stakingRewardsV2.recoverERC20(address(kwenta), TEST_VALUE);
+    }
 }
