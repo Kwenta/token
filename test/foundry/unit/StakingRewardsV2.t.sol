@@ -88,4 +88,9 @@ contract StakingRewardsV2Test is Test {
         vm.expectRevert("Only the contract owner may perform this action");
         stakingRewardsV2.recoverERC20(address(kwenta), 0);
     }
+
+    function testOnlyRewardEscrowCanCallStakeEscrow() public {
+        vm.expectRevert("StakingRewards: Only Reward Escrow");
+        stakingRewardsV2.stakeEscrow(address(this), 1 ether);
+    }
 }
