@@ -109,4 +109,19 @@ contract StakingRewardsV2Test is Test {
         vm.expectRevert("StakingRewards: Invalid Amount");
         stakingRewardsV2.unstakeEscrow(address(this), 1 ether);
     }
+
+    function testOnlyOwnerCanPauseContract() public {
+        // attempt to pause
+        vm.prank(otherUser);
+        vm.expectRevert("Only the contract owner may perform this action");
+        stakingRewardsV2.pauseStakingRewards();
+
+        // pause
+        stakingRewardsV2.pauseStakingRewards();
+
+        // attempt to unpause
+        vm.prank(otherUser);
+        vm.expectRevert("Only the contract owner may perform this action");
+        stakingRewardsV2.unpauseStakingRewards();
+    }
 }
