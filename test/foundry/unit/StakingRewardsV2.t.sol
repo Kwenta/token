@@ -454,4 +454,34 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         // check some stake has been earned
         assertTrue(stakingRewardsV2.earned(address(this)) > 0);
     }
+
+    function testRewardRateShouldIncreaseIfNewRewardsComeBeforeDurationEnds() public {
+        fundAndApproveAccount(address(this), 1 weeks);
+
+        uint256 totalToDistribute = 5 ether;
+
+        // stake
+        stakingRewardsV2.stake(1 weeks);
+
+        // send kwenta to stakingRewardsV2 contract
+        vm.prank(treasury);
+        kwenta.transfer(address(stakingRewardsV2), totalToDistribute);
+
+        // configure reward rate
+        vm.prank(address(supplySchedule));
+        stakingRewardsV2.notifyRewardAmount(totalToDistribute);
+
+        uint256 initialRewardRate = stakingRewardsV2.rewardRate();
+
+        vm.prank(treasury);
+        kwenta.transfer(address(stakingRewardsV2), totalToDistribute);
+
+        // increase reward rate further
+        vm.prank(address(supplySchedule));
+        stakingRewardsV2.notifyRewardAmount(totalToDistribute);
+
+        uint256 finalRewardRate = stakingRewardsV2.rewardRate();
+
+        assertEq(finalRewardRate / 2, initialRewardRate);
+    }
 }
