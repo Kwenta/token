@@ -126,15 +126,29 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
                                 Pausable
     //////////////////////////////////////////////////////////////*/
 
-    // function testCannotStakeWhenPaused() public {
-    //     // pause
-    //     stakingRewardsV2.pauseStakingRewards();
+    function testCannotStakeWhenPaused() public {
+        // pause
+        stakingRewardsV2.pauseStakingRewards();
 
-    //     // fund so that staking would succeed if not paused
-    //     fundAndApproveAccount(address(this), 1 ether);
+        // fund so that staking would succeed if not paused
+        fundAndApproveAccount(address(this), 1 ether);
 
-    //     // attempt to stake
-    //     vm.expectRevert("Pausable: paused");
-    //     stakingRewardsV2.stake(1 ether);
-    // }
+        // attempt to stake
+        vm.expectRevert("Pausable: paused");
+        stakingRewardsV2.stake(1 ether);
+    }
+
+    function testCanStakeWhenUnpaused() public {
+        // pause
+        stakingRewardsV2.pauseStakingRewards();
+
+        // unpause
+        stakingRewardsV2.unpauseStakingRewards();
+
+        // fund so that staking can succeed
+        fundAndApproveAccount(address(this), 1 ether);
+
+        // stake
+        stakingRewardsV2.stake(1 ether);
+    }
 }
