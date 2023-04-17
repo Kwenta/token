@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
-import {TestHelpers} from "../utils/TestHelpers.t.sol";
+import {StakingRewardsTestHelpers} from "../utils/StakingRewardsTestHelpers.t.sol";
 import {Kwenta} from "../../../contracts/Kwenta.sol";
 import {RewardEscrow} from "../../../contracts/RewardEscrow.sol";
 import {SupplySchedule} from "../../../contracts/SupplySchedule.sol";
@@ -10,41 +10,7 @@ import {StakingRewardsV2} from "../../../contracts/StakingRewardsV2.sol";
 
 uint256 constant INITIAL_SUPPLY = 313373 ether;
 
-contract StakingRewardsV2Test is TestHelpers {
-    address public treasury;
-    address public user1;
-    address public user2;
-    Kwenta public kwenta;
-    RewardEscrow public rewardEscrow;
-    SupplySchedule public supplySchedule;
-    StakingRewardsV2 public stakingRewardsV2;
-
-    function setUp() public {
-        treasury = createUser();
-        user1 = createUser();
-        user2 = createUser();
-        kwenta = new Kwenta(
-            "Kwenta",
-            "KWENTA",
-            INITIAL_SUPPLY,
-            address(this),
-            treasury
-        );
-        rewardEscrow = new RewardEscrow(address(this), address(kwenta));
-        supplySchedule = new SupplySchedule(address(this), treasury);
-        kwenta.setSupplySchedule(address(supplySchedule));
-        stakingRewardsV2 = new StakingRewardsV2(
-            address(kwenta),
-            address(rewardEscrow),
-            address(supplySchedule)
-        );
-        supplySchedule.setStakingRewards(address(stakingRewardsV2));
-        rewardEscrow.setStakingRewards(address(stakingRewardsV2));
-
-        vm.prank(treasury);
-        kwenta.transfer(address(stakingRewardsV2), INITIAL_SUPPLY / 4);
-    }
-
+contract StakingRewardsV2Test is StakingRewardsTestHelpers {
     /*//////////////////////////////////////////////////////////////
                         Constructor & Settings
     //////////////////////////////////////////////////////////////*/
@@ -80,6 +46,7 @@ contract StakingRewardsV2Test is TestHelpers {
         stakingRewardsV2.notifyRewardAmount(1 ether);
     }
 
+    // TODO: test happy path - see fast forward in hardhat tests
     function testOnlyOwnerCanCallSetRewardsDuration() public {
         vm.prank(user1);
         vm.expectRevert("Only the contract owner may perform this action");
@@ -142,7 +109,9 @@ contract StakingRewardsV2Test is TestHelpers {
 
         // attempt to accept ownership
         vm.prank(user2);
-        vm.expectRevert("You must be nominated before you can accept ownership");
+        vm.expectRevert(
+            "You must be nominated before you can accept ownership"
+        );
         stakingRewardsV2.acceptOwnership();
 
         // accept ownership
@@ -160,6 +129,9 @@ contract StakingRewardsV2Test is TestHelpers {
     // function testCannotStakeWhenPaused() public {
     //     // pause
     //     stakingRewardsV2.pauseStakingRewards();
+
+    //     // fund so that staking would succeed if not paused
+    //     fundAndApproveAccount(address(this), 1 ether);
 
     //     // attempt to stake
     //     vm.expectRevert("Pausable: paused");
