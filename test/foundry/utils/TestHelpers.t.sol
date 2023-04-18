@@ -9,9 +9,24 @@ import {StakingRewardsV2} from "../../../contracts/StakingRewardsV2.sol";
 
 contract TestHelpers is Test {
     uint256 public userNonce;
+    uint256 public nonce;
 
     function createUser() public returns (address) {
         userNonce++;
         return vm.addr(userNonce);
+    }
+
+    function getPseudoRandomNumber(
+        uint256 max,
+        uint256 min,
+        uint256 salt
+    ) internal returns (uint256) {
+        require(min <= max, "min must be <= max");
+        if (max == min) return max;
+
+        uint256 result;
+        while (result < min)
+            result = uint256(keccak256(abi.encodePacked(++nonce, salt))) % max;
+        return result;
     }
 }
