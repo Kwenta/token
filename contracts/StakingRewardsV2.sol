@@ -41,13 +41,13 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
 
     /// @notice number of tokens staked by address
     /// @dev this includes escrowed tokens stake
-    mapping(address => uint256) private balances;
+    mapping(address => Checkpoint[]) public balances;
 
     /// @notice number of staked escrow tokens by address
-    mapping(address => uint256) private escrowedBalances;
+    mapping(address => uint256) public escrowedBalances;
 
     /// @notice total number of tokens staked in this contract
-    uint256 private _totalSupply;
+    uint256 public _totalSupply;
 
     /// @notice marks applicable reward period finish time
     uint256 public periodFinish = 0;
@@ -199,12 +199,14 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     /// @param account: address of potential staker
     /// @return amount of tokens staked by account
     function balanceOf(address account)
-        external
+        public
         view
         override
         returns (uint256)
     {
-        return balances[account];
+        uint256 length = balances[account].length;
+        if (length == 0) return 0;
+        else return balances[account][length - 1].value;
     }
 
     /// @notice Getter function for number of staked escrow tokens
@@ -233,7 +235,7 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
         override
         returns (uint256)
     {
-        return balances[account] - escrowedBalances[account];
+        return balanceOf(account) - escrowedBalances[account];
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -255,7 +257,7 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
         // update state
         userLastStakeTime[msg.sender] = block.timestamp;
         _totalSupply += amount;
-        balances[msg.sender] += amount;
+        addBalanceCheckpoint(msg.sender, balanceOf(msg.sender) + amount);
 
         // transfer token to this contract from the caller
         token.safeTransferFrom(msg.sender, address(this), amount);
@@ -283,7 +285,7 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
 
         // update state
         _totalSupply -= amount;
-        balances[msg.sender] -= amount;
+        addBalanceCheckpoint(msg.sender, balanceOf(msg.sender) - amount);
 
         // transfer token from this contract to the caller
         token.safeTransfer(msg.sender, amount);
@@ -308,7 +310,7 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
 
         // update state
         userLastStakeTime[account] = block.timestamp;
-        balances[account] += amount;
+        addBalanceCheckpoint(msg.sender, balanceOf(msg.sender) + amount);
         escrowedBalances[account] += amount;
 
         // updates total supply despite no new staking token being transfered.
@@ -340,7 +342,7 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
         if (canUnstakeAt > block.timestamp) revert CannotUnstakeDuringCooldown(canUnstakeAt);
 
         // update state
-        balances[account] -= amount;
+        addBalanceCheckpoint(msg.sender, balanceOf(msg.sender) - amount);
         escrowedBalances[account] -= amount;
 
         // updates total supply despite no new staking token being transfered.
@@ -427,9 +429,26 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     /// @param account: address of account earned amount is being calculated for
     function earned(address account) public view override returns (uint256) {
         return
-            ((balances[account] *
+            ((balanceOf(account) *
                 (rewardPerToken() - userRewardPerTokenPaid[account])) / 1e18) +
             rewards[account];
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                            CHECKPOINTING
+    ///////////////////////////////////////////////////////////////*/
+
+    // function latestBalanceCheckpoint(address account) public view returns (Checkpoint memory) {
+    //     return balances[account][balances[account].length - 1];
+    // }
+
+    function addBalanceCheckpoint(address account, uint256 amount)
+        internal
+    {
+        balances[account].push(Checkpoint({
+            block: block.number,
+            value: amount
+        }));
     }
 
     /*///////////////////////////////////////////////////////////////
