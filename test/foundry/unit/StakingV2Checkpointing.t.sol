@@ -244,4 +244,69 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
         assertEq(blockNum, block.number);
         assertEq(value, 0);
     }
+
+    function testEscrowedBalancesCheckpointsAreUpdatedFuzz(
+        uint32 maxAmountStaked,
+        uint8 numberOfRounds
+    ) public {
+        vm.assume(maxAmountStaked > 0);
+        // keep the number of rounds low to keep tests fast
+        vm.assume(numberOfRounds < 50);
+
+        // Stake and unstake in each iteration/round and check that the checkpoints are updated correctly
+        for (uint8 i = 0; i < numberOfRounds; i++) {
+            // get random values for each round
+            uint256 amountToStake = getPseudoRandomNumber(
+                maxAmountStaked,
+                1,
+                i
+            );
+            uint256 amountToUnstake = getPseudoRandomNumber(
+                amountToStake,
+                1,
+                i
+            );
+            uint256 blockAdvance = getPseudoRandomNumber(amountToUnstake, 0, i);
+
+            // get initial values
+            uint256 length = stakingRewardsV2.balancesLength(address(this));
+            uint256 previousTotal = stakingRewardsV2.balanceOf(address(this));
+
+            // stake
+            vm.prank(address(rewardEscrow));
+            stakingRewardsV2.stakeEscrow(address(this), amountToStake);
+
+            // get last checkpoint
+            (uint256 blockNum, uint256 value) = stakingRewardsV2.escrowedBalances(
+                address(this),
+                length
+            );
+
+            // check checkpoint values
+            assertEq(blockNum, block.number);
+            assertEq(value, previousTotal + amountToStake);
+
+            // move beyond cold period
+            vm.warp(
+                block.timestamp + stakingRewardsV2.unstakingCooldownPeriod()
+            );
+
+            // update block number
+            vm.roll(block.number + blockAdvance);
+
+            // // unstake
+            vm.prank(address(rewardEscrow));
+            stakingRewardsV2.unstakeEscrow(address(this), amountToUnstake);
+
+            // get last checkpoint
+            (blockNum, value) = stakingRewardsV2.escrowedBalances(
+                address(this),
+                length + 1
+            );
+
+            // check checkpoint values
+            assertEq(blockNum, block.number);
+            assertEq(value, previousTotal + amountToStake - amountToUnstake);
+        }
+    }
 }
