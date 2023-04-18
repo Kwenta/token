@@ -251,9 +251,9 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
         updateReward(msg.sender)
     {
         require(amount > 0, "StakingRewards: Cannot stake 0");
-        userLastStakeTime[msg.sender] = block.timestamp;
 
         // update state
+        userLastStakeTime[msg.sender] = block.timestamp;
         _totalSupply += amount;
         balances[msg.sender] += amount;
 
