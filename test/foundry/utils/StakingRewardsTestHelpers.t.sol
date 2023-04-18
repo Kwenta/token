@@ -11,6 +11,16 @@ import {IERC20} from "../../../contracts/interfaces/IERC20.sol";
 import "../utils/Constants.t.sol";
 
 contract StakingRewardsTestHelpers is TestHelpers {
+    /*//////////////////////////////////////////////////////////////
+                                Events
+    //////////////////////////////////////////////////////////////*/
+
+    event RewardsDurationUpdated(uint256 newDuration);
+
+    /*//////////////////////////////////////////////////////////////
+                                State
+    //////////////////////////////////////////////////////////////*/
+
     address public treasury;
     address public user1;
     address public user2;
@@ -19,6 +29,10 @@ contract StakingRewardsTestHelpers is TestHelpers {
     RewardEscrow public rewardEscrow;
     SupplySchedule public supplySchedule;
     StakingRewardsV2 public stakingRewardsV2;
+
+    /*//////////////////////////////////////////////////////////////
+                                Setup
+    //////////////////////////////////////////////////////////////*/
 
     function setUp() public {
         treasury = createUser();
@@ -52,6 +66,10 @@ contract StakingRewardsTestHelpers is TestHelpers {
         vm.prank(treasury);
         kwenta.transfer(address(stakingRewardsV2), INITIAL_SUPPLY / 4);
     }
+
+    /*//////////////////////////////////////////////////////////////
+                            Helper Functions
+    //////////////////////////////////////////////////////////////*/
 
     function fundAndApproveAccount(address account, uint256 amount) public {
         vm.prank(treasury);
