@@ -29,6 +29,12 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     /// @notice handles reward token minting logic
     ISupplySchedule public immutable supplySchedule;
 
+    /// @notice minimum time length of the unstaking cooldown period
+    uint256 public constant minCooldownPeriod = 1 weeks;
+
+    /// @notice maximum time length of the unstaking cooldown period
+    uint256 public constant maxCooldownPeriod = 52 weeks;
+
     /*///////////////////////////////////////////////////////////////
                                 STATE
     ///////////////////////////////////////////////////////////////*/
@@ -126,6 +132,14 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     /// @notice error when user tries unstake during the cooldown period
     /// @param canUnstakeAt timestamp when user can unstake
     error CannotUnstakeDuringCooldown(uint256 canUnstakeAt);
+
+    /// @notice error when trying to set a cooldown period below the minimum
+    /// @param minCooldownPeriod minimum cooldown period
+    error CooldownPeriodTooLow(uint256 minCooldownPeriod);
+
+    /// @notice error when trying to set a cooldown period above the maximum
+    /// @param maxCooldownPeriod maximum cooldown period
+    error CooldownPeriodTooHigh(uint256 maxCooldownPeriod);
 
     /*///////////////////////////////////////////////////////////////
                                 AUTH
@@ -466,6 +480,9 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
         override
         onlyOwner
     {
+        if (_unstakingCooldownPeriod < minCooldownPeriod) revert CooldownPeriodTooLow(minCooldownPeriod);
+        if (_unstakingCooldownPeriod > maxCooldownPeriod) revert CooldownPeriodTooHigh(maxCooldownPeriod);
+
         unstakingCooldownPeriod = _unstakingCooldownPeriod;
         emit UnstakingCooldownPeriodUpdated(unstakingCooldownPeriod);
     }
