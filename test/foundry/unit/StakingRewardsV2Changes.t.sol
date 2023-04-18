@@ -302,6 +302,31 @@ contract StakingRewardsV2ChangesTest is StakingRewardsTestHelpers {
         stakingRewardsV2.setUnstakingCooldownPeriod(52 weeks + 1);
     }
 
+    function testSetCooldownPeriodRangeFuzz(uint256 newCooldownPeriod) public {
+        // Expect revert if cooldown period is too low
+        if (newCooldownPeriod < 1 weeks) {
+            vm.expectRevert(
+                abi.encodeWithSelector(
+                    StakingRewardsV2.CooldownPeriodTooLow.selector,
+                    stakingRewardsV2.minCooldownPeriod()
+                )
+            );
+        }
+
+        // Expect revert if cooldown period is too high
+        if (newCooldownPeriod > 52 weeks) {
+            vm.expectRevert(
+                abi.encodeWithSelector(
+                    StakingRewardsV2.CooldownPeriodTooHigh.selector,
+                    stakingRewardsV2.maxCooldownPeriod()
+                )
+            );
+        }
+
+        // Set new cooldown period
+        stakingRewardsV2.setUnstakingCooldownPeriod(newCooldownPeriod);
+    }
+
     // TODO: test setCooldownPeriod min is 1 week
     // TODO: test setCooldownPeriod max is 1 year
     // TODO: test can unstake after cooldown
