@@ -310,7 +310,7 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
 
         // update state
         userLastStakeTime[account] = block.timestamp;
-        addBalanceCheckpoint(msg.sender, balanceOf(msg.sender) + amount);
+        addBalanceCheckpoint(account, balanceOf(account) + amount);
         escrowedBalances[account] += amount;
 
         // updates total supply despite no new staking token being transfered.
@@ -342,7 +342,7 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
         if (canUnstakeAt > block.timestamp) revert CannotUnstakeDuringCooldown(canUnstakeAt);
 
         // update state
-        addBalanceCheckpoint(msg.sender, balanceOf(msg.sender) - amount);
+        addBalanceCheckpoint(account, balanceOf(account) - amount);
         escrowedBalances[account] -= amount;
 
         // updates total supply despite no new staking token being transfered.
@@ -445,10 +445,7 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     function addBalanceCheckpoint(address account, uint256 amount)
         internal
     {
-        balances[account].push(Checkpoint({
-            block: block.number,
-            value: amount
-        }));
+        balances[account].push(Checkpoint(block.number, amount));
     }
 
     /*///////////////////////////////////////////////////////////////
