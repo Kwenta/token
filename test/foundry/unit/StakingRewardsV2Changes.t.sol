@@ -282,6 +282,62 @@ contract StakingRewardsV2ChangesTest is StakingRewardsTestHelpers {
         stakingRewardsV2.unstakeEscrow(address(this), TEST_VALUE);
     }
 
+    function testSetCooldownPeriodFuzz(
+        uint128 newCooldownPeriod,
+        uint128 timeJump
+    ) public {
+        vm.assume(newCooldownPeriod > stakingRewardsV2.minCooldownPeriod());
+        vm.assume(newCooldownPeriod < stakingRewardsV2.maxCooldownPeriod());
+
+        // Expect correct event emitted
+        vm.expectEmit(true, true, false, false);
+        emit UnstakingCooldownPeriodUpdated(newCooldownPeriod);
+
+        // Set new cooldown period
+        stakingRewardsV2.setUnstakingCooldownPeriod(newCooldownPeriod);
+
+        // Check cooldown period is updated
+        assertEq(stakingRewardsV2.unstakingCooldownPeriod(), newCooldownPeriod);
+
+        // stake
+        fundAndApproveAccount(address(this), TEST_VALUE);
+        stakingRewardsV2.stake(TEST_VALUE);
+
+        // stake escrow
+        vm.prank(address(rewardEscrow));
+        stakingRewardsV2.stakeEscrow(address(this), TEST_VALUE);
+
+        uint256 canUnstakeAt = block.timestamp + newCooldownPeriod;
+
+        // move forward new cooldown period
+        vm.warp(block.timestamp + timeJump);
+
+        if (timeJump < newCooldownPeriod) {
+            // Expect revert if unstaking before cooldown period
+            vm.expectRevert(
+                abi.encodeWithSelector(
+                    StakingRewardsV2.CannotUnstakeDuringCooldown.selector,
+                    canUnstakeAt
+                )
+            );
+        }
+        // unstake
+        stakingRewardsV2.unstake(TEST_VALUE);
+
+        if (timeJump < newCooldownPeriod) {
+            // Expect revert if unstaking before cooldown period
+            vm.expectRevert(
+                abi.encodeWithSelector(
+                    StakingRewardsV2.CannotUnstakeDuringCooldown.selector,
+                    canUnstakeAt
+                )
+            );
+        }
+        // unstake escrow
+        vm.prank(address(rewardEscrow));
+        stakingRewardsV2.unstakeEscrow(address(this), TEST_VALUE);
+    }
+
     function testSetCooldownPeriodRange() public {
         // Expect revert if cooldown period is too low
         vm.expectRevert(
@@ -327,8 +383,6 @@ contract StakingRewardsV2ChangesTest is StakingRewardsTestHelpers {
         stakingRewardsV2.setUnstakingCooldownPeriod(newCooldownPeriod);
     }
 
-    // TODO: test setCooldownPeriod min is 1 week
-    // TODO: test setCooldownPeriod max is 1 year
     // TODO: test can unstake after cooldown
     // TODO: test can escrow unstake after cooldown
 
