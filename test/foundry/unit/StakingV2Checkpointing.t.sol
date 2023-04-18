@@ -277,10 +277,8 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
             stakingRewardsV2.stakeEscrow(address(this), amountToStake);
 
             // get last checkpoint
-            (uint256 blockNum, uint256 value) = stakingRewardsV2.escrowedBalances(
-                address(this),
-                length
-            );
+            (uint256 blockNum, uint256 value) = stakingRewardsV2
+                .escrowedBalances(address(this), length);
 
             // check checkpoint values
             assertEq(blockNum, block.number);
@@ -308,5 +306,38 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
             assertEq(blockNum, block.number);
             assertEq(value, previousTotal + amountToStake - amountToUnstake);
         }
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                    Total Supply Checkpoint Tests
+    //////////////////////////////////////////////////////////////*/
+
+    function testTotalSupplyCheckpointsAreUpdated() public {
+        // stake
+        fundAndApproveAccount(address(this), TEST_VALUE);
+        stakingRewardsV2.stake(TEST_VALUE);
+
+        // get last checkpoint
+        (uint256 blockNum, uint256 value) = stakingRewardsV2._totalSupply(0);
+
+        // check values
+        assertEq(blockNum, block.number);
+        assertEq(value, TEST_VALUE);
+
+        // move beyond cold period
+        vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+
+        // update block number
+        vm.roll(block.number + 1);
+
+        // unstake
+        stakingRewardsV2.unstake(TEST_VALUE);
+
+        // get last checkpoint
+        (blockNum, value) = stakingRewardsV2._totalSupply(1);
+
+        // check values
+        assertEq(blockNum, block.number);
+        assertEq(value, 0);
     }
 }
