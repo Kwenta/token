@@ -47,7 +47,7 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     mapping(address => Checkpoint[]) public escrowedBalances;
 
     /// @notice total number of tokens staked in this contract
-    uint256 public _totalSupply;
+    Checkpoint[] public _totalSupply;
 
     /// @notice marks applicable reward period finish time
     uint256 public periodFinish = 0;
@@ -192,8 +192,10 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     /// @dev returns staked tokens which will likely not be equal to total tokens
     /// in the contract since reward and staking tokens are the same
     /// @return total amount of tokens that are being staked
-    function totalSupply() external view override returns (uint256) {
-        return _totalSupply;
+    function totalSupply() public view override returns (uint256) {
+        uint256 length = _totalSupply.length;
+        if (length == 0) return 0;
+        else return _totalSupply[_totalSupply.length - 1].value;
     }
 
     /// @param account: address of potential staker
@@ -258,7 +260,7 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
 
         // update state
         userLastStakeTime[msg.sender] = block.timestamp;
-        _totalSupply += amount;
+        addTotalSupplyCheckpoint(totalSupply() + amount);
         addBalancesCheckpoint(msg.sender, balanceOf(msg.sender) + amount);
 
         // transfer token to this contract from the caller
@@ -286,7 +288,7 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
         if (canUnstakeAt > block.timestamp) revert CannotUnstakeDuringCooldown(canUnstakeAt);
 
         // update state
-        _totalSupply -= amount;
+        addTotalSupplyCheckpoint(totalSupply() - amount);
         addBalancesCheckpoint(msg.sender, balanceOf(msg.sender) - amount);
 
         // transfer token from this contract to the caller
@@ -317,7 +319,7 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
 
         // updates total supply despite no new staking token being transfered.
         // escrowed tokens are locked in RewardEscrow
-        _totalSupply += amount;
+        addTotalSupplyCheckpoint(totalSupply() + amount);
 
         // emit escrow staking event and index _account
         emit EscrowStaked(account, amount);
@@ -349,7 +351,7 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
 
         // updates total supply despite no new staking token being transfered.
         // escrowed tokens are locked in RewardEscrow
-        _totalSupply -= amount;
+        addTotalSupplyCheckpoint(totalSupply() - amount);
 
         // emit escrow unstaked event and index account
         emit EscrowUnstaked(account, amount);
@@ -411,7 +413,8 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     /// at this specific time
     /// @return running sum of reward per total tokens staked
     function rewardPerToken() public view override returns (uint256) {
-        if (_totalSupply == 0) {
+        uint256 totalSupplyVal = totalSupply();
+        if (totalSupplyVal == 0) {
             return rewardPerTokenStored;
         }
 
@@ -419,7 +422,7 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
             rewardPerTokenStored +
             (((lastTimeRewardApplicable() - lastUpdateTime) *
                 rewardRate *
-                1e18) / (_totalSupply));
+                1e18) / (totalSupplyVal));
     }
 
     /// @return timestamp of the last time rewards are applicable
@@ -456,6 +459,11 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
         return escrowedBalances[account].length;
     }
 
+    /// @notice get the number of total supply checkpoints
+    function totalSupplyLength() external view override returns (uint256) {
+        return _totalSupply.length;
+    }
+
     /// @notice add a new balance checkpoint for an account
     /// @param account: address of account to add checkpoint for
     /// @param value: value of checkpoint to add
@@ -472,6 +480,14 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
         internal
     {
         escrowedBalances[account].push(Checkpoint(block.number, value));
+    }
+
+    /// @notice add a new total supply checkpoint
+    /// @param value: value of checkpoint to add
+    function addTotalSupplyCheckpoint(uint256 value)
+        internal
+    {
+        _totalSupply.push(Checkpoint(block.number, value));
     }
 
     /*///////////////////////////////////////////////////////////////

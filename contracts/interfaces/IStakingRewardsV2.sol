@@ -19,6 +19,7 @@ interface IStakingRewardsV2 {
     // checkpointing
     function balancesLength(address account) external view returns (uint256);
     function escrowedBalancesLength(address account) external view returns (uint256);
+    function totalSupplyLength() external view returns (uint256);
 
     /*//////////////////////////////////////////////////////////////
                                 Mutative
