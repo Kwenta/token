@@ -1051,10 +1051,8 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
     // TODO: test setCooldownPeriod
     // TODO: test setCooldownPeriod min is 1 week
     // TODO: test setCooldownPeriod max is 1 year
-    // TODO: test can still stake more during cooldown
     // TODO: test can unstake after cooldown
     // TODO: test can escrow unstake after cooldown
-    // TODO: test cooldown is delayed after further deposits
 
     // TODO: check when a user stakes balances checkpoints are updated
     // TODO: check when a user escrow stakes balances checkpoints are updated
@@ -1067,4 +1065,7 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
     // TODO: test manual staked balance migration
 
     // TODO: refactor cooldown check into cooldownLock modifier
+    // TODO: refactor - extract new functionality into new test file
+
+    // TODO: suggest that instead of automatically transferring escrowed balances over - a migrate function should be added
 }
