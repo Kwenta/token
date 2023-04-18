@@ -66,8 +66,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
         vm.roll(block.number + 1);
 
         // unstake
-        vm.prank(address(rewardEscrow));
-        stakingRewardsV2.unstakeEscrow(address(this), TEST_VALUE);
+        unstakeEscrowedFunds(address(this), TEST_VALUE);
 
         // get last checkpoint
         (blockNum, value) = stakingRewardsV2.balances(address(this), 1);
@@ -188,9 +187,8 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
             // update block number
             vm.roll(block.number + blockAdvance);
 
-            // // unstake
-            vm.prank(address(rewardEscrow));
-            stakingRewardsV2.unstakeEscrow(address(this), amountToUnstake);
+            // unstake
+            unstakeEscrowedFunds(address(this), amountToUnstake);
 
             // get last checkpoint
             (blockNum, value) = stakingRewardsV2.balances(
@@ -229,8 +227,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
         vm.roll(block.number + 1);
 
         // unstake
-        vm.prank(address(rewardEscrow));
-        stakingRewardsV2.unstakeEscrow(address(this), TEST_VALUE);
+        unstakeEscrowedFunds(address(this), TEST_VALUE);
 
         // get last checkpoint
         (blockNum, value) = stakingRewardsV2.escrowedBalances(address(this), 1);
@@ -287,8 +284,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
             vm.roll(block.number + blockAdvance);
 
             // // unstake
-            vm.prank(address(rewardEscrow));
-            stakingRewardsV2.unstakeEscrow(address(this), amountToUnstake);
+            unstakeEscrowedFunds(address(this), amountToUnstake);
 
             // get last checkpoint
             (blockNum, value) = stakingRewardsV2.escrowedBalances(
@@ -352,8 +348,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
         vm.roll(block.number + 1);
 
         // unstake
-        vm.prank(address(rewardEscrow));
-        stakingRewardsV2.unstakeEscrow(address(this), TEST_VALUE);
+        unstakeEscrowedFunds(address(this), TEST_VALUE);
 
         // get last checkpoint
         (blockNum, value) = stakingRewardsV2._totalSupply(1);
@@ -417,8 +412,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
 
             // unstake
             if (escrowStake) {
-                vm.prank(address(rewardEscrow));
-                stakingRewardsV2.unstakeEscrow(address(this), amountToUnstake);
+                unstakeEscrowedFunds(address(this), amountToUnstake);
             } else {
                 stakingRewardsV2.unstake(amountToUnstake);
             }

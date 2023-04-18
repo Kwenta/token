@@ -93,8 +93,7 @@ contract StakingV2CooldownPeriodTests is StakingRewardsTestHelpers {
                 canUnstakeAt
             )
         );
-        vm.prank(address(rewardEscrow));
-        stakingRewardsV2.unstakeEscrow(address(this), TEST_VALUE);
+        unstakeEscrowedFunds(address(this), TEST_VALUE);
 
         // unstake midway through
         vm.warp(stakedAt + cooldownPeriod / 2);
@@ -104,8 +103,7 @@ contract StakingV2CooldownPeriodTests is StakingRewardsTestHelpers {
                 canUnstakeAt
             )
         );
-        vm.prank(address(rewardEscrow));
-        stakingRewardsV2.unstakeEscrow(address(this), TEST_VALUE);
+        unstakeEscrowedFunds(address(this), TEST_VALUE);
 
         // unstake 1 sec before period ends
         vm.warp(stakedAt + cooldownPeriod - 1);
@@ -115,8 +113,7 @@ contract StakingV2CooldownPeriodTests is StakingRewardsTestHelpers {
                 canUnstakeAt
             )
         );
-        vm.prank(address(rewardEscrow));
-        stakingRewardsV2.unstakeEscrow(address(this), TEST_VALUE);
+        unstakeEscrowedFunds(address(this), TEST_VALUE);
     }
 
     function testCannotUnstakeEscrowDuringCooldownFuzz(
@@ -142,8 +139,7 @@ contract StakingV2CooldownPeriodTests is StakingRewardsTestHelpers {
                 )
             );
         }
-        vm.prank(address(rewardEscrow));
-        stakingRewardsV2.unstakeEscrow(address(this), stakeAmount);
+        unstakeEscrowedFunds(address(this), stakeAmount);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -231,8 +227,7 @@ contract StakingV2CooldownPeriodTests is StakingRewardsTestHelpers {
                 canUnstakeAt
             )
         );
-        vm.prank(address(rewardEscrow));
-        stakingRewardsV2.unstakeEscrow(address(this), TEST_VALUE);
+        unstakeEscrowedFunds(address(this), TEST_VALUE);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -271,8 +266,7 @@ contract StakingV2CooldownPeriodTests is StakingRewardsTestHelpers {
         stakingRewardsV2.unstake(TEST_VALUE);
 
         // unstake escrow
-        vm.prank(address(rewardEscrow));
-        stakingRewardsV2.unstakeEscrow(address(this), TEST_VALUE);
+        unstakeEscrowedFunds(address(this), TEST_VALUE);
     }
 
     function testSetCooldownPeriodFuzz(
@@ -325,8 +319,7 @@ contract StakingV2CooldownPeriodTests is StakingRewardsTestHelpers {
             );
         }
         // unstake escrow
-        vm.prank(address(rewardEscrow));
-        stakingRewardsV2.unstakeEscrow(address(this), TEST_VALUE);
+        unstakeEscrowedFunds(address(this), TEST_VALUE);
     }
 
     function testSetCooldownPeriodRange() public {

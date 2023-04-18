@@ -69,9 +69,8 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
     }
 
     function testCannotUnStakeEscrowInvalidAmount() public {
-        vm.prank(address(rewardEscrow));
         vm.expectRevert("StakingRewards: Invalid Amount");
-        stakingRewardsV2.unstakeEscrow(address(this), TEST_VALUE);
+        unstakeEscrowedFunds(address(this), TEST_VALUE);
     }
 
     function testOnlyOwnerCanPauseContract() public {
@@ -672,9 +671,8 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
     //////////////////////////////////////////////////////////////*/
 
     function testCannotUnstakeEscrowIfNoneStaked() public {
-        vm.prank(address(rewardEscrow));
         vm.expectRevert("StakingRewards: Invalid Amount");
-        stakingRewardsV2.unstakeEscrow(address(this), TEST_VALUE);
+        unstakeEscrowedFunds(address(this), TEST_VALUE);
     }
 
     function testDoesNotChangeTokenBalances() public {
@@ -690,8 +688,7 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         vm.warp(block.timestamp + 2 weeks);
 
         // unstake escrow
-        vm.prank(address(rewardEscrow));
-        stakingRewardsV2.unstakeEscrow(address(this), 1 weeks);
+        unstakeEscrowedFunds(address(this), 1 weeks);
 
         uint256 finalTokenBalance = kwenta.balanceOf(address(this));
         uint256 finalEscrowTokenBalance = kwenta.balanceOf(
@@ -713,8 +710,7 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         vm.warp(block.timestamp + 2 weeks);
 
         // unstake escrow
-        vm.prank(address(rewardEscrow));
-        stakingRewardsV2.unstakeEscrow(address(this), 1 weeks);
+        unstakeEscrowedFunds(address(this), 1 weeks);
 
         uint256 finalTotalSupply = stakingRewardsV2.totalSupply();
 
@@ -732,8 +728,7 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         vm.warp(block.timestamp + 2 weeks);
 
         // unstake escrow
-        vm.prank(address(rewardEscrow));
-        stakingRewardsV2.unstakeEscrow(address(this), 1 weeks);
+        unstakeEscrowedFunds(address(this), 1 weeks);
 
         uint256 finalBalance = stakingRewardsV2.balanceOf(address(this));
 
@@ -753,8 +748,7 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         vm.warp(block.timestamp + 2 weeks);
 
         // unstake escrow
-        vm.prank(address(rewardEscrow));
-        stakingRewardsV2.unstakeEscrow(address(this), 1 weeks);
+        unstakeEscrowedFunds(address(this), 1 weeks);
 
         uint256 finalEscrowBalance = stakingRewardsV2.escrowedBalanceOf(
             address(this)
@@ -769,9 +763,8 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         stakeEscrowedFunds(address(this), 1 weeks);
 
         // unstake more escrow
-        vm.prank(address(rewardEscrow));
         vm.expectRevert("StakingRewards: Invalid Amount");
-        stakingRewardsV2.unstakeEscrow(address(this), 2 weeks);
+        unstakeEscrowedFunds(address(this), 2 weeks);
     }
 
     function testCannotUnstake0Escrow() public {
@@ -779,9 +772,8 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         stakeEscrowedFunds(address(this), 1 weeks);
 
         // unstake 0 escrow
-        vm.prank(address(rewardEscrow));
         vm.expectRevert("StakingRewards: Cannot Unstake 0");
-        stakingRewardsV2.unstakeEscrow(address(this), 0);
+        unstakeEscrowedFunds(address(this), 0);
     }
 
     /*//////////////////////////////////////////////////////////////

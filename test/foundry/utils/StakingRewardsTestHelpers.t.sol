@@ -89,4 +89,9 @@ contract StakingRewardsTestHelpers is TestHelpers {
         vm.prank(address(rewardEscrow));
         stakingRewardsV2.stakeEscrow(account, amount);
     }
+
+    function unstakeEscrowedFunds(address account, uint256 amount) public {
+        vm.prank(address(rewardEscrow));
+        stakingRewardsV2.unstakeEscrow(account, amount);
+    }
 }
