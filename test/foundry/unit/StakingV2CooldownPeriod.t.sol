@@ -9,9 +9,9 @@ import {SupplySchedule} from "../../../contracts/SupplySchedule.sol";
 import {StakingRewardsV2} from "../../../contracts/StakingRewardsV2.sol";
 import "../utils/Constants.t.sol";
 
-contract StakingRewardsV2ChangesTest is StakingRewardsTestHelpers {
+contract StakingV2CooldownPeriodTests is StakingRewardsTestHelpers {
     /*//////////////////////////////////////////////////////////////
-                        Staking Cooldown Period
+                        Unstaking During Cooldown
     //////////////////////////////////////////////////////////////*/
 
     function testCannotUnstakeDuringCooldown() public {
@@ -149,6 +149,10 @@ contract StakingRewardsV2ChangesTest is StakingRewardsTestHelpers {
         vm.prank(address(rewardEscrow));
         stakingRewardsV2.unstakeEscrow(address(this), stakeAmount);
     }
+
+    /*//////////////////////////////////////////////////////////////
+                        Staking During Cooldown
+    //////////////////////////////////////////////////////////////*/
 
     function testCanStakeMoreDuringCooldown() public {
         // stake once
@@ -382,22 +386,4 @@ contract StakingRewardsV2ChangesTest is StakingRewardsTestHelpers {
         // Set new cooldown period
         stakingRewardsV2.setUnstakingCooldownPeriod(newCooldownPeriod);
     }
-
-    // TODO: test can unstake after cooldown
-    // TODO: test can escrow unstake after cooldown
-
-    // TODO: check when a user stakes balances checkpoints are updated
-    // TODO: check when a user escrow stakes balances checkpoints are updated
-    // TODO: check when a user stakes escrowedBalances checkpoints are unchanged???
-    // TODO: check when a user escrow stakes escrowedBalances checkpoints are updated
-    // TODO: check when a user stakes total supply checkpoints are updated
-    // TODO: check when a user escrow stakes total supply checkpoints are updated
-
-    // TODO: test escrowStaked mapping copy migration
-    // TODO: test manual staked balance migration
-
-    // TODO: refactor cooldown check into cooldownLock modifier
-    // TODO: refactor - extract new functionality into new test file
-
-    // TODO: suggest that instead of automatically transferring escrowed balances over - a migrate function should be added
 }
