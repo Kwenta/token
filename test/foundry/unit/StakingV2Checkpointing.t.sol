@@ -207,4 +207,41 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
             assertEq(value, previousTotal + amountToStake - amountToUnstake);
         }
     }
+
+    /*//////////////////////////////////////////////////////////////
+                    Escrowed Balance Checkpoint Tests
+    //////////////////////////////////////////////////////////////*/
+
+    function testEscrowedBalancesCheckpointsAreUpdated() public {
+        // stake
+        vm.prank(address(rewardEscrow));
+        stakingRewardsV2.stakeEscrow(address(this), TEST_VALUE);
+
+        // get last checkpoint
+        (uint256 blockNum, uint256 value) = stakingRewardsV2.escrowedBalances(
+            address(this),
+            0
+        );
+
+        // check values
+        assertEq(blockNum, block.number);
+        assertEq(value, TEST_VALUE);
+
+        // move beyond cold period
+        vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+
+        // update block number
+        vm.roll(block.number + 1);
+
+        // unstake
+        vm.prank(address(rewardEscrow));
+        stakingRewardsV2.unstakeEscrow(address(this), TEST_VALUE);
+
+        // get last checkpoint
+        (blockNum, value) = stakingRewardsV2.escrowedBalances(address(this), 1);
+
+        // check values
+        assertEq(blockNum, block.number);
+        assertEq(value, 0);
+    }
 }
