@@ -11,7 +11,7 @@ import "../utils/Constants.t.sol";
 
 contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
     /*//////////////////////////////////////////////////////////////
-                        Checkpointing Tests
+                        Balance Checkpoint Tests
     //////////////////////////////////////////////////////////////*/
 
     function testBalancesCheckpointsAreUpdated() public {
@@ -37,6 +37,39 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
 
         // unstake
         stakingRewardsV2.unstake(TEST_VALUE);
+
+        // get last checkpoint
+        (blockNum, value) = stakingRewardsV2.balances(address(this), 1);
+
+        // check values
+        assertEq(blockNum, block.number);
+        assertEq(value, 0);
+    }
+
+    function testBalancesCheckpointsAreUpdatedEscrowStaking() public {
+        // stake
+        vm.prank(address(rewardEscrow));
+        stakingRewardsV2.stakeEscrow(address(this), TEST_VALUE);
+
+        // get last checkpoint
+        (uint256 blockNum, uint256 value) = stakingRewardsV2.balances(
+            address(this),
+            0
+        );
+
+        // check values
+        assertEq(blockNum, block.number);
+        assertEq(value, TEST_VALUE);
+
+        // move beyond cold period
+        vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+
+        // update block number
+        vm.roll(block.number + 1);
+
+        // unstake
+        vm.prank(address(rewardEscrow));
+        stakingRewardsV2.unstakeEscrow(address(this), TEST_VALUE);
 
         // get last checkpoint
         (blockNum, value) = stakingRewardsV2.balances(address(this), 1);
