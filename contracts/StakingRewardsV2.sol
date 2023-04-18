@@ -44,7 +44,7 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     mapping(address => Checkpoint[]) public balances;
 
     /// @notice number of staked escrow tokens by address
-    mapping(address => uint256) public escrowedBalances;
+    mapping(address => Checkpoint[]) public escrowedBalances;
 
     /// @notice total number of tokens staked in this contract
     uint256 public _totalSupply;
@@ -213,12 +213,14 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     /// @param account address to check the escrowed tokens staked
     /// @return amount of escrowed tokens staked
     function escrowedBalanceOf(address account)
-        external
+        public
         view
         override
         returns (uint256)
     {
-        return escrowedBalances[account];
+        uint256 length = escrowedBalances[account].length;
+        if (length == 0) return 0;
+        else return escrowedBalances[account][length - 1].value;
     }
 
     /// @return rewards for the duration specified by rewardsDuration
@@ -235,7 +237,7 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
         override
         returns (uint256)
     {
-        return balanceOf(account) - escrowedBalances[account];
+        return balanceOf(account) - escrowedBalanceOf(account);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -257,7 +259,7 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
         // update state
         userLastStakeTime[msg.sender] = block.timestamp;
         _totalSupply += amount;
-        addBalanceCheckpoint(msg.sender, balanceOf(msg.sender) + amount);
+        addBalancesCheckpoint(msg.sender, balanceOf(msg.sender) + amount);
 
         // transfer token to this contract from the caller
         token.safeTransferFrom(msg.sender, address(this), amount);
@@ -285,7 +287,7 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
 
         // update state
         _totalSupply -= amount;
-        addBalanceCheckpoint(msg.sender, balanceOf(msg.sender) - amount);
+        addBalancesCheckpoint(msg.sender, balanceOf(msg.sender) - amount);
 
         // transfer token from this contract to the caller
         token.safeTransfer(msg.sender, amount);
@@ -310,8 +312,8 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
 
         // update state
         userLastStakeTime[account] = block.timestamp;
-        addBalanceCheckpoint(account, balanceOf(account) + amount);
-        escrowedBalances[account] += amount;
+        addBalancesCheckpoint(account, balanceOf(account) + amount);
+        addEscrowedBalancesCheckpoint(account, escrowedBalanceOf(account) + amount);
 
         // updates total supply despite no new staking token being transfered.
         // escrowed tokens are locked in RewardEscrow
@@ -335,15 +337,15 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     {
         require(amount > 0, "StakingRewards: Cannot Unstake 0");
         require(
-            escrowedBalances[account] >= amount,
+            escrowedBalanceOf(account) >= amount,
             "StakingRewards: Invalid Amount"
         );
         uint256 canUnstakeAt = userLastStakeTime[account] + unstakingCooldownPeriod;
         if (canUnstakeAt > block.timestamp) revert CannotUnstakeDuringCooldown(canUnstakeAt);
 
         // update state
-        addBalanceCheckpoint(account, balanceOf(account) - amount);
-        escrowedBalances[account] -= amount;
+        addBalancesCheckpoint(account, balanceOf(account) - amount);
+        addEscrowedBalancesCheckpoint(account, escrowedBalanceOf(account) - amount);
 
         // updates total supply despite no new staking token being transfered.
         // escrowed tokens are locked in RewardEscrow
@@ -442,14 +444,34 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     //     return balances[account][balances[account].length - 1];
     // }
 
+    /// @notice get the number of balances checkpoints for an account
+    /// @param account: address of account to check
     function balancesLength(address account) external view override returns (uint256) {
         return balances[account].length;
     }
 
-    function addBalanceCheckpoint(address account, uint256 amount)
+    /// @notice get the number of escrowed balance checkpoints for an account
+    /// @param account: address of account to check
+    function escrowedBalancesLength(address account) external view override returns (uint256) {
+        return escrowedBalances[account].length;
+    }
+
+    /// @notice add a new balance checkpoint for an account
+    /// @param account: address of account to add checkpoint for
+    /// @param value: value of checkpoint to add
+    function addBalancesCheckpoint(address account, uint256 value)
         internal
     {
-        balances[account].push(Checkpoint(block.number, amount));
+        balances[account].push(Checkpoint(block.number, value));
+    }
+
+    /// @notice add a new escrowed balance checkpoint for an account
+    /// @param account: address of account to add checkpoint for
+    /// @param value: value of checkpoint to add
+    function addEscrowedBalancesCheckpoint(address account, uint256 value)
+        internal
+    {
+        escrowedBalances[account].push(Checkpoint(block.number, value));
     }
 
     /*///////////////////////////////////////////////////////////////
