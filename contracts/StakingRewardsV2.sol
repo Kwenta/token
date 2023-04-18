@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "./utils/Owned.sol";
-import "./interfaces/IStakingRewards.sol";
+import "./interfaces/IStakingRewardsV2.sol";
 import "./interfaces/ISupplySchedule.sol";
 import "./interfaces/IRewardEscrow.sol";
 
@@ -13,7 +13,7 @@ import "./interfaces/IRewardEscrow.sol";
 /// @author SYNTHETIX, JaredBorders (jaredborders@proton.me), JChiaramonte7 (jeremy@bytecode.llc)
 /// @notice Updated version of Synthetix's StakingRewards with new features specific
 /// to Kwenta
-contract StakingRewardsV2 is IStakingRewards, Owned, ReentrancyGuard, Pausable {
+contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable {
     using SafeERC20 for IERC20;
 
     /*///////////////////////////////////////////////////////////////
@@ -113,6 +113,11 @@ contract StakingRewardsV2 is IStakingRewards, Owned, ReentrancyGuard, Pausable {
     /// @param token: address of token recovered
     /// @param amount: amount of token recovered
     event Recovered(address token, uint256 amount);
+
+    /// @notice emitted when the unstaking cooldown period is updated
+    /// @param unstakingCooldownPeriod: the new unstaking cooldown period
+    event UnstakingCooldownPeriodUpdated(uint256 unstakingCooldownPeriod);
+
 
     /*//////////////////////////////////////////////////////////////
                                  ERRORS
@@ -414,7 +419,7 @@ contract StakingRewardsV2 is IStakingRewards, Owned, ReentrancyGuard, Pausable {
     }
 
     /*///////////////////////////////////////////////////////////////
-                            SETTINGS
+                                SETTINGS
     ///////////////////////////////////////////////////////////////*/
 
     /// @notice configure reward rate
@@ -452,6 +457,17 @@ contract StakingRewardsV2 is IStakingRewards, Owned, ReentrancyGuard, Pausable {
         );
         rewardsDuration = _rewardsDuration;
         emit RewardsDurationUpdated(rewardsDuration);
+    }
+
+    /// @notice set unstaking cooldown period
+    /// @param _unstakingCooldownPeriod: denoted in seconds
+    function setUnstakingCooldownPeriod(uint256 _unstakingCooldownPeriod)
+        external
+        override
+        onlyOwner
+    {
+        unstakingCooldownPeriod = _unstakingCooldownPeriod;
+        emit UnstakingCooldownPeriodUpdated(unstakingCooldownPeriod);
     }
 
     /*///////////////////////////////////////////////////////////////

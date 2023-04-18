@@ -16,6 +16,7 @@ contract StakingRewardsTestHelpers is TestHelpers {
     //////////////////////////////////////////////////////////////*/
 
     event RewardsDurationUpdated(uint256 newDuration);
+    event UnstakingCooldownPeriodUpdated(uint256 unstakingCooldownPeriod);
 
     /*//////////////////////////////////////////////////////////////
                                 State
