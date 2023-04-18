@@ -244,6 +244,12 @@ contract StakingRewardsV2ChangesTest is StakingRewardsTestHelpers {
                         Changing Cooldown Period
     //////////////////////////////////////////////////////////////*/
 
+    function testSetCooldownPeriodIsOnlyOwner() public {
+        vm.expectRevert("Only the contract owner may perform this action");
+        vm.prank(user1);
+        stakingRewardsV2.setUnstakingCooldownPeriod(1 weeks);
+    }
+
     function testSetCooldownPeriod() public {
         uint256 newCooldownPeriod = 1 weeks;
 
@@ -255,10 +261,7 @@ contract StakingRewardsV2ChangesTest is StakingRewardsTestHelpers {
         stakingRewardsV2.setUnstakingCooldownPeriod(newCooldownPeriod);
 
         // Check cooldown period is updated
-        assertEq(
-            stakingRewardsV2.unstakingCooldownPeriod(),
-            newCooldownPeriod
-        );
+        assertEq(stakingRewardsV2.unstakingCooldownPeriod(), newCooldownPeriod);
 
         // stake
         fundAndApproveAccount(address(this), TEST_VALUE);
@@ -274,13 +277,12 @@ contract StakingRewardsV2ChangesTest is StakingRewardsTestHelpers {
         // unstake
         stakingRewardsV2.unstake(TEST_VALUE);
 
-
         // unstake escrow
         vm.prank(address(rewardEscrow));
         stakingRewardsV2.unstakeEscrow(address(this), TEST_VALUE);
     }
 
-    // TODO: test setCooldownPeriod
+    // TODO: test setCooldownPeriod access control
     // TODO: test setCooldownPeriod min is 1 week
     // TODO: test setCooldownPeriod max is 1 year
     // TODO: test can unstake after cooldown
