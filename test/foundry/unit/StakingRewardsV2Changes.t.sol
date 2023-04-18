@@ -282,7 +282,26 @@ contract StakingRewardsV2ChangesTest is StakingRewardsTestHelpers {
         stakingRewardsV2.unstakeEscrow(address(this), TEST_VALUE);
     }
 
-    // TODO: test setCooldownPeriod access control
+    function testSetCooldownPeriodRange() public {
+        // Expect revert if cooldown period is too low
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                StakingRewardsV2.CooldownPeriodTooLow.selector,
+                1 weeks
+            )
+        );
+        stakingRewardsV2.setUnstakingCooldownPeriod(1 weeks - 1);
+
+        // Expect revert if cooldown period is too high
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                StakingRewardsV2.CooldownPeriodTooHigh.selector,
+                52 weeks
+            )
+        );
+        stakingRewardsV2.setUnstakingCooldownPeriod(52 weeks + 1);
+    }
+
     // TODO: test setCooldownPeriod min is 1 week
     // TODO: test setCooldownPeriod max is 1 year
     // TODO: test can unstake after cooldown
