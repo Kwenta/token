@@ -16,6 +16,7 @@ contract TestHelpers is Test {
         return vm.addr(userNonce);
     }
 
+    // get psuedorandom bool
     function flipCoin(uint256 salt) public returns (bool) {
         return (uint256(keccak256(abi.encodePacked(++nonce, salt))) % 2) == 1;
     }
