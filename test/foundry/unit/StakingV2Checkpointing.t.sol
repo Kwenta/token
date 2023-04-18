@@ -16,8 +16,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
 
     function testBalancesCheckpointsAreUpdated() public {
         // stake
-        fundAndApproveAccount(address(this), TEST_VALUE);
-        stakingRewardsV2.stake(TEST_VALUE);
+        stakeFunds(address(this), TEST_VALUE);
 
         // get last checkpoint
         (uint256 blockNum, uint256 value) = stakingRewardsV2.balances(
@@ -48,8 +47,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
 
     function testBalancesCheckpointsAreUpdatedEscrowStaking() public {
         // stake
-        vm.prank(address(rewardEscrow));
-        stakingRewardsV2.stakeEscrow(address(this), TEST_VALUE);
+        stakeEscrowedFunds(address(this), TEST_VALUE);
 
         // get last checkpoint
         (uint256 blockNum, uint256 value) = stakingRewardsV2.balances(
@@ -107,8 +105,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
             uint256 previousTotal = stakingRewardsV2.balanceOf(address(this));
 
             // stake
-            fundAndApproveAccount(address(this), amountToStake);
-            stakingRewardsV2.stake(amountToStake);
+            stakeFunds(address(this), amountToStake);
 
             // get last checkpoint
             (uint256 blockNum, uint256 value) = stakingRewardsV2.balances(
@@ -171,8 +168,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
             uint256 previousTotal = stakingRewardsV2.balanceOf(address(this));
 
             // stake
-            vm.prank(address(rewardEscrow));
-            stakingRewardsV2.stakeEscrow(address(this), amountToStake);
+            stakeEscrowedFunds(address(this), amountToStake);
 
             // get last checkpoint
             (uint256 blockNum, uint256 value) = stakingRewardsV2.balances(
@@ -214,8 +210,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
 
     function testEscrowedBalancesCheckpointsAreUpdated() public {
         // stake
-        vm.prank(address(rewardEscrow));
-        stakingRewardsV2.stakeEscrow(address(this), TEST_VALUE);
+        stakeEscrowedFunds(address(this), TEST_VALUE);
 
         // get last checkpoint
         (uint256 blockNum, uint256 value) = stakingRewardsV2.escrowedBalances(
@@ -273,8 +268,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
             uint256 previousTotal = stakingRewardsV2.balanceOf(address(this));
 
             // stake
-            vm.prank(address(rewardEscrow));
-            stakingRewardsV2.stakeEscrow(address(this), amountToStake);
+            stakeEscrowedFunds(address(this), amountToStake);
 
             // get last checkpoint
             (uint256 blockNum, uint256 value) = stakingRewardsV2
@@ -314,8 +308,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
 
     function testTotalSupplyCheckpointsAreUpdated() public {
         // stake
-        fundAndApproveAccount(address(this), TEST_VALUE);
-        stakingRewardsV2.stake(TEST_VALUE);
+        stakeFunds(address(this), TEST_VALUE);
 
         // get last checkpoint
         (uint256 blockNum, uint256 value) = stakingRewardsV2._totalSupply(0);
@@ -343,8 +336,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
 
     function testTotalSupplyCheckpointsAreUpdatedEscrowStaked() public {
         // stake
-        vm.prank(address(rewardEscrow));
-        stakingRewardsV2.stakeEscrow(address(this), TEST_VALUE);
+        stakeEscrowedFunds(address(this), TEST_VALUE);
 
         // get last checkpoint
         (uint256 blockNum, uint256 value) = stakingRewardsV2._totalSupply(0);
@@ -401,11 +393,9 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
 
             // stake
             if (escrowStake) {
-                vm.prank(address(rewardEscrow));
-                stakingRewardsV2.stakeEscrow(address(this), amountToStake);
+                stakeEscrowedFunds(address(this), amountToStake);
             } else {
-                fundAndApproveAccount(address(this), amountToStake);
-                stakingRewardsV2.stake(amountToStake);
+                stakeFunds(address(this), amountToStake);
             }
 
             // get last checkpoint
@@ -441,4 +431,12 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
             assertEq(value, previousTotal + amountToStake - amountToUnstake);
         }
     }
+
+    /*//////////////////////////////////////////////////////////////
+                    Binary Search Checkpoint Tests
+    //////////////////////////////////////////////////////////////*/
+
+    // function testBalancesSearch() public {
+
+    // }
 }

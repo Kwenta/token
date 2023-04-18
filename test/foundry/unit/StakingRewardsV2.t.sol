@@ -328,8 +328,7 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         uint256 initialBalance = kwenta.balanceOf(address(stakingRewardsV2));
 
         // stake
-        vm.prank(address(rewardEscrow));
-        stakingRewardsV2.stakeEscrow(address(this), TEST_VALUE);
+        stakeEscrowedFunds(address(this), TEST_VALUE);
 
         // check balance increased
         assertEq(kwenta.balanceOf(address(stakingRewardsV2)), initialBalance);
@@ -339,8 +338,7 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         uint256 initialBalance = stakingRewardsV2.balanceOf(address(this));
 
         // stake
-        vm.prank(address(rewardEscrow));
-        stakingRewardsV2.stakeEscrow(address(this), TEST_VALUE);
+        stakeEscrowedFunds(address(this), TEST_VALUE);
 
         // check balances mapping updated
         assertEq(
@@ -355,8 +353,7 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         );
 
         // stake
-        vm.prank(address(rewardEscrow));
-        stakingRewardsV2.stakeEscrow(address(this), TEST_VALUE);
+        stakeEscrowedFunds(address(this), TEST_VALUE);
 
         // check balances mapping updated
         assertEq(
@@ -369,8 +366,7 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         uint256 initialTotalSupply = stakingRewardsV2.totalSupply();
 
         // stake
-        vm.prank(address(rewardEscrow));
-        stakingRewardsV2.stakeEscrow(address(this), TEST_VALUE);
+        stakeEscrowedFunds(address(this), TEST_VALUE);
 
         // check total supply updated
         assertEq(
@@ -380,16 +376,14 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
     }
 
     function testCannotEscrowStake0() public {
-        vm.prank(address(rewardEscrow));
         vm.expectRevert("StakingRewards: Cannot stake 0");
-        stakingRewardsV2.stakeEscrow(address(this), 0);
+        stakeEscrowedFunds(address(this), 0);
     }
 
     // TODO: test happy path for this
     function testCannotUnstakeStakedEscrow() public {
         // stake escrow
-        vm.prank(address(rewardEscrow));
-        stakingRewardsV2.stakeEscrow(address(this), TEST_VALUE);
+        stakeEscrowedFunds(address(this), TEST_VALUE);
 
         // this would work if unstakeEscrow was called
         // but unstake is called so it fails
@@ -399,8 +393,7 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
 
     function testCannotExitWithOnlyEscrowStakedBalance() public {
         // stake escrow
-        vm.prank(address(rewardEscrow));
-        stakingRewardsV2.stakeEscrow(address(this), TEST_VALUE);
+        stakeEscrowedFunds(address(this), TEST_VALUE);
 
         // exit - this fails because exit uses unstake not unstakeEscrow
         vm.expectRevert("StakingRewards: Cannot Unstake 0");
@@ -420,8 +413,7 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         stakingRewardsV2.stake(nonEscrowStakedBalance);
 
         // stake escrowed kwenta
-        vm.prank(address(rewardEscrow));
-        stakingRewardsV2.stakeEscrow(address(this), escrowStakedBalance);
+        stakeEscrowedFunds(address(this), escrowStakedBalance);
 
         // exit
         vm.warp(block.timestamp + 2 weeks);
@@ -687,8 +679,7 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
 
     function testDoesNotChangeTokenBalances() public {
         // stake escrow
-        vm.prank(address(rewardEscrow));
-        stakingRewardsV2.stakeEscrow(address(this), 1 weeks);
+        stakeEscrowedFunds(address(this), 1 weeks);
 
         uint256 initialTokenBalance = kwenta.balanceOf(address(this));
         uint256 initialEscrowTokenBalance = kwenta.balanceOf(
@@ -714,8 +705,7 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
 
     function testDoesChangeTotalSupply() public {
         // stake escrow
-        vm.prank(address(rewardEscrow));
-        stakingRewardsV2.stakeEscrow(address(this), 1 weeks);
+        stakeEscrowedFunds(address(this), 1 weeks);
 
         uint256 initialTotalSupply = stakingRewardsV2.totalSupply();
 
@@ -734,8 +724,7 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
 
     function testDoesChangeBalancesMapping() public {
         // stake escrow
-        vm.prank(address(rewardEscrow));
-        stakingRewardsV2.stakeEscrow(address(this), 1 weeks);
+        stakeEscrowedFunds(address(this), 1 weeks);
 
         uint256 initialBalance = stakingRewardsV2.balanceOf(address(this));
 
@@ -754,8 +743,7 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
 
     function testDoesChangeEscrowedBalancesMapping() public {
         // stake escrow
-        vm.prank(address(rewardEscrow));
-        stakingRewardsV2.stakeEscrow(address(this), 1 weeks);
+        stakeEscrowedFunds(address(this), 1 weeks);
 
         uint256 initialEscrowBalance = stakingRewardsV2.escrowedBalanceOf(
             address(this)
@@ -778,8 +766,7 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
 
     function testCannotUnstakeMoreThanEscrowStaked() public {
         // stake escrow
-        vm.prank(address(rewardEscrow));
-        stakingRewardsV2.stakeEscrow(address(this), 1 weeks);
+        stakeEscrowedFunds(address(this), 1 weeks);
 
         // unstake more escrow
         vm.prank(address(rewardEscrow));
@@ -789,8 +776,7 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
 
     function testCannotUnstake0Escrow() public {
         // stake escrow
-        vm.prank(address(rewardEscrow));
-        stakingRewardsV2.stakeEscrow(address(this), 1 weeks);
+        stakeEscrowedFunds(address(this), 1 weeks);
 
         // unstake 0 escrow
         vm.prank(address(rewardEscrow));

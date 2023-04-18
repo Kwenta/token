@@ -78,4 +78,15 @@ contract StakingRewardsTestHelpers is TestHelpers {
         vm.prank(account);
         kwenta.approve(address(stakingRewardsV2), amount);
     }
+
+    function stakeFunds(address account, uint256 amount) public {
+        fundAndApproveAccount(account, amount);
+        vm.prank(account);
+        stakingRewardsV2.stake(amount);
+    }
+
+    function stakeEscrowedFunds(address account, uint256 amount) public {
+        vm.prank(address(rewardEscrow));
+        stakingRewardsV2.stakeEscrow(account, amount);
+    }
 }

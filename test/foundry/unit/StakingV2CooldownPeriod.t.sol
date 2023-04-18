@@ -16,8 +16,7 @@ contract StakingV2CooldownPeriodTests is StakingRewardsTestHelpers {
 
     function testCannotUnstakeDuringCooldown() public {
         // stake
-        fundAndApproveAccount(address(this), TEST_VALUE);
-        stakingRewardsV2.stake(TEST_VALUE);
+        stakeFunds(address(this), TEST_VALUE);
 
         uint256 cooldownPeriod = stakingRewardsV2.unstakingCooldownPeriod();
         uint256 canUnstakeAt = block.timestamp + cooldownPeriod;
@@ -60,8 +59,7 @@ contract StakingV2CooldownPeriodTests is StakingRewardsTestHelpers {
         vm.assume(stakeAmount > 0);
 
         // stake
-        fundAndApproveAccount(address(this), stakeAmount);
-        stakingRewardsV2.stake(stakeAmount);
+        stakeFunds(address(this), stakeAmount);
 
         uint256 cooldownPeriod = stakingRewardsV2.unstakingCooldownPeriod();
         uint256 canUnstakeAt = block.timestamp + cooldownPeriod;
@@ -82,8 +80,7 @@ contract StakingV2CooldownPeriodTests is StakingRewardsTestHelpers {
 
     function testCannotUnstakeEscrowDuringCooldown() public {
         // stake
-        vm.prank(address(rewardEscrow));
-        stakingRewardsV2.stakeEscrow(address(this), TEST_VALUE);
+        stakeEscrowedFunds(address(this), TEST_VALUE);
 
         uint256 cooldownPeriod = stakingRewardsV2.unstakingCooldownPeriod();
         uint256 canUnstakeAt = block.timestamp + cooldownPeriod;
@@ -129,8 +126,7 @@ contract StakingV2CooldownPeriodTests is StakingRewardsTestHelpers {
         vm.assume(stakeAmount > 0);
 
         // stake
-        vm.prank(address(rewardEscrow));
-        stakingRewardsV2.stakeEscrow(address(this), stakeAmount);
+        stakeEscrowedFunds(address(this), stakeAmount);
 
         uint256 cooldownPeriod = stakingRewardsV2.unstakingCooldownPeriod();
         uint256 canUnstakeAt = block.timestamp + cooldownPeriod;
@@ -171,19 +167,16 @@ contract StakingV2CooldownPeriodTests is StakingRewardsTestHelpers {
 
     function testCanStakeEscrowMoreDuringCooldown() public {
         // stake once
-        vm.prank(address(rewardEscrow));
-        stakingRewardsV2.stakeEscrow(address(this), TEST_VALUE);
+        stakeEscrowedFunds(address(this), TEST_VALUE);
 
         // stake immediately again
-        vm.prank(address(rewardEscrow));
-        stakingRewardsV2.stakeEscrow(address(this), TEST_VALUE);
+        stakeEscrowedFunds(address(this), TEST_VALUE);
 
         // stake half the cooldown period later again
         vm.warp(
             block.timestamp + stakingRewardsV2.unstakingCooldownPeriod() / 2
         );
-        vm.prank(address(rewardEscrow));
-        stakingRewardsV2.stakeEscrow(address(this), TEST_VALUE);
+        stakeEscrowedFunds(address(this), TEST_VALUE);
     }
 
     function testStakingDuringCooldownExtendsWait() public {
@@ -216,15 +209,13 @@ contract StakingV2CooldownPeriodTests is StakingRewardsTestHelpers {
 
     function testStakingEscrowDuringCooldownExtendsWait() public {
         // stake
-        vm.prank(address(rewardEscrow));
-        stakingRewardsV2.stakeEscrow(address(this), TEST_VALUE);
+        stakeEscrowedFunds(address(this), TEST_VALUE);
 
         // stake half the cooldown period later again
         vm.warp(
             block.timestamp + stakingRewardsV2.unstakingCooldownPeriod() / 2
         );
-        vm.prank(address(rewardEscrow));
-        stakingRewardsV2.stakeEscrow(address(this), TEST_VALUE);
+        stakeEscrowedFunds(address(this), TEST_VALUE);
 
         // expected can unstakeAt time is now the cooldown period from now
         uint256 canUnstakeAt = block.timestamp +
@@ -268,12 +259,10 @@ contract StakingV2CooldownPeriodTests is StakingRewardsTestHelpers {
         assertEq(stakingRewardsV2.unstakingCooldownPeriod(), newCooldownPeriod);
 
         // stake
-        fundAndApproveAccount(address(this), TEST_VALUE);
-        stakingRewardsV2.stake(TEST_VALUE);
+        stakeFunds(address(this), TEST_VALUE);
 
         // stake escrow
-        vm.prank(address(rewardEscrow));
-        stakingRewardsV2.stakeEscrow(address(this), TEST_VALUE);
+        stakeEscrowedFunds(address(this), TEST_VALUE);
 
         // move forward new cooldown period
         vm.warp(block.timestamp + newCooldownPeriod);
@@ -304,12 +293,10 @@ contract StakingV2CooldownPeriodTests is StakingRewardsTestHelpers {
         assertEq(stakingRewardsV2.unstakingCooldownPeriod(), newCooldownPeriod);
 
         // stake
-        fundAndApproveAccount(address(this), TEST_VALUE);
-        stakingRewardsV2.stake(TEST_VALUE);
+        stakeFunds(address(this), TEST_VALUE);
 
         // stake escrow
-        vm.prank(address(rewardEscrow));
-        stakingRewardsV2.stakeEscrow(address(this), TEST_VALUE);
+        stakeEscrowedFunds(address(this), TEST_VALUE);
 
         uint256 canUnstakeAt = block.timestamp + newCooldownPeriod;
 
