@@ -193,9 +193,9 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     /// in the contract since reward and staking tokens are the same
     /// @return total amount of tokens that are being staked
     function totalSupply() public view override returns (uint256) {
-        uint256 length = _totalSupply.length;
-        if (length == 0) return 0;
-        else return _totalSupply[_totalSupply.length - 1].value;
+        return _totalSupply.length == 0
+            ? 0
+            : _totalSupply[_totalSupply.length - 1].value;
     }
 
     /// @param account: address of potential staker
@@ -206,9 +206,9 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
         override
         returns (uint256)
     {
-        uint256 length = balances[account].length;
-        if (length == 0) return 0;
-        else return balances[account][length - 1].value;
+        return balances[account].length == 0
+            ? 0
+            : balances[account][balances[account].length - 1].value;
     }
 
     /// @notice Getter function for number of staked escrow tokens
@@ -220,9 +220,9 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
         override
         returns (uint256)
     {
-        uint256 length = escrowedBalances[account].length;
-        if (length == 0) return 0;
-        else return escrowedBalances[account][length - 1].value;
+        return escrowedBalances[account].length == 0
+            ? 0
+            : escrowedBalances[account][escrowedBalances[account].length - 1].value;
     }
 
     /// @return rewards for the duration specified by rewardsDuration
