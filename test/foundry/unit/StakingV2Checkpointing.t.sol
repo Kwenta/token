@@ -26,5 +26,25 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
         // check values
         assertEq(blockNum, block.number);
         assertEq(value, TEST_VALUE);
+
+        // move beyond cold period
+        vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+
+        // update block number
+        vm.roll(block.number + 1);
+
+        // unstake
+        stakingRewardsV2.unstake(TEST_VALUE);
+
+        // get last checkpoint
+        (blockNum, value) = stakingRewardsV2.balances(address(this), 1);
+
+        // check values
+        assertEq(blockNum, block.number);
+        assertEq(value, 0);
     }
+
+    // function testBalancesCheckpointsAreUpdatedFuzz(uint256 numberOf) public {
+
+    // }
 }
