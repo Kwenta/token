@@ -697,6 +697,9 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
             address(rewardEscrow)
         );
 
+        // pass cooldown period
+        vm.warp(block.timestamp + 2 weeks);
+
         // unstake escrow
         vm.prank(address(rewardEscrow));
         stakingRewardsV2.unstakeEscrow(address(this), 1 weeks);
@@ -718,6 +721,9 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
 
         uint256 initialTotalSupply = stakingRewardsV2.totalSupply();
 
+        // pass cooldown period
+        vm.warp(block.timestamp + 2 weeks);
+
         // unstake escrow
         vm.prank(address(rewardEscrow));
         stakingRewardsV2.unstakeEscrow(address(this), 1 weeks);
@@ -734,6 +740,9 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         stakingRewardsV2.stakeEscrow(address(this), 1 weeks);
 
         uint256 initialBalance = stakingRewardsV2.balanceOf(address(this));
+
+        // pass cooldown period
+        vm.warp(block.timestamp + 2 weeks);
 
         // unstake escrow
         vm.prank(address(rewardEscrow));
@@ -753,6 +762,9 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         uint256 initialEscrowBalance = stakingRewardsV2.escrowedBalanceOf(
             address(this)
         );
+
+        // pass cooldown period
+        vm.warp(block.timestamp + 2 weeks);
 
         // unstake escrow
         vm.prank(address(rewardEscrow));
