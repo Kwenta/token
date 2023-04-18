@@ -16,6 +16,8 @@ interface IStakingRewardsV2 {
     function rewardPerToken() external view returns (uint256);
     function lastTimeRewardApplicable() external view returns (uint256);
     function earned(address account) external view returns (uint256);
+    // checkpointing
+    function balancesLength(address account) external view returns (uint256);
 
     /*//////////////////////////////////////////////////////////////
                                 Mutative

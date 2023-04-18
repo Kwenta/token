@@ -442,6 +442,10 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     //     return balances[account][balances[account].length - 1];
     // }
 
+    function balancesLength(address account) external view override returns (uint256) {
+        return balances[account].length;
+    }
+
     function addBalanceCheckpoint(address account, uint256 amount)
         internal
     {
