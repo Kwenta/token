@@ -2,7 +2,9 @@
 pragma solidity ^0.8.0;
 
 interface IStakingRewardsV2 {
-    /// VIEWS
+    /*//////////////////////////////////////////////////////////////
+                                Views
+    //////////////////////////////////////////////////////////////*/
     // token state
     function totalSupply() external view returns (uint256);
     // staking state
@@ -15,7 +17,9 @@ interface IStakingRewardsV2 {
     function lastTimeRewardApplicable() external view returns (uint256);
     function earned(address account) external view returns (uint256);
 
-    /// MUTATIVE
+    /*//////////////////////////////////////////////////////////////
+                                Mutative
+    //////////////////////////////////////////////////////////////*/
     // Staking/Unstaking
     function stake(uint256 amount) external;
     function unstake(uint256 amount) external;
@@ -33,4 +37,16 @@ interface IStakingRewardsV2 {
     function unpauseStakingRewards() external;
     // misc.
     function recoverERC20(address tokenAddress, uint256 tokenAmount) external;
+
+    /*//////////////////////////////////////////////////////////////
+                                Structs
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice A checkpoint for tracking values at a given block
+    struct Checkpoint {
+        // The block number when the value was generated
+        uint256 block;
+        // The value of the checkpoint
+        uint256 value;
+    }
 }
