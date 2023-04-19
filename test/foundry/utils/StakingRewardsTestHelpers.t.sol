@@ -93,6 +93,11 @@ contract StakingRewardsTestHelpers is TestHelpers {
         stakingRewardsV1.stake(amount);
     }
 
+    function unstakeFundsV1(address account, uint256 amount) public {
+        vm.prank(account);
+        stakingRewardsV1.unstake(amount);
+    }
+
     function getStakingRewardsV1(address account) public {
         vm.prank(account);
         stakingRewardsV1.getReward();
@@ -126,7 +131,7 @@ contract StakingRewardsTestHelpers is TestHelpers {
         kwenta.approve(address(stakingRewardsV2), amount);
     }
 
-    function stakeFundsV2(address account, uint256 amount) public {
+    function fundAccountAndStakeV2(address account, uint256 amount) public {
         fundAndApproveAccountV2(account, amount);
         vm.prank(account);
         stakingRewardsV2.stake(amount);

@@ -16,7 +16,7 @@ contract StakingV2CooldownPeriodTests is StakingRewardsTestHelpers {
 
     function testCannotUnstakeDuringCooldown() public {
         // stake
-        stakeFundsV2(address(this), TEST_VALUE);
+        fundAccountAndStakeV2(address(this), TEST_VALUE);
 
         uint256 cooldownPeriod = stakingRewardsV2.unstakingCooldownPeriod();
         uint256 canUnstakeAt = block.timestamp + cooldownPeriod;
@@ -41,7 +41,7 @@ contract StakingV2CooldownPeriodTests is StakingRewardsTestHelpers {
         vm.assume(stakeAmount > 0);
 
         // stake
-        stakeFundsV2(address(this), stakeAmount);
+        fundAccountAndStakeV2(address(this), stakeAmount);
 
         uint256 cooldownPeriod = stakingRewardsV2.unstakingCooldownPeriod();
         uint256 canUnstakeAt = block.timestamp + cooldownPeriod;
@@ -184,7 +184,7 @@ contract StakingV2CooldownPeriodTests is StakingRewardsTestHelpers {
         assertEq(stakingRewardsV2.unstakingCooldownPeriod(), newCooldownPeriod);
 
         // stake
-        stakeFundsV2(address(this), TEST_VALUE);
+        fundAccountAndStakeV2(address(this), TEST_VALUE);
 
         // stake escrow
         stakeEscrowedFundsV2(address(this), TEST_VALUE);
@@ -214,7 +214,7 @@ contract StakingV2CooldownPeriodTests is StakingRewardsTestHelpers {
         assertEq(stakingRewardsV2.unstakingCooldownPeriod(), newCooldownPeriod);
 
         // stake
-        stakeFundsV2(address(this), TEST_VALUE);
+        fundAccountAndStakeV2(address(this), TEST_VALUE);
 
         // stake escrow
         stakeEscrowedFundsV2(address(this), TEST_VALUE);
