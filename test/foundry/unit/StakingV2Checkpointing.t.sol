@@ -100,16 +100,17 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
             uint256 blockAdvance = getPseudoRandomNumber(amountToUnstake, 0, i);
 
             // get initial values
-            uint256 length = stakingRewardsV2.balancesLength(address(this));
             uint256 previousTotal = stakingRewardsV2.balanceOf(address(this));
 
             // stake
             stakeFunds(address(this), amountToStake);
 
             // get last checkpoint
+            uint256 length = stakingRewardsV2.balancesLength(address(this));
+            uint256 finalIndex = length == 0 ? 0 : length - 1;
             (uint256 blockNum, uint256 value) = stakingRewardsV2.balances(
                 address(this),
-                length
+                finalIndex
             );
 
             // check checkpoint values
@@ -128,14 +129,21 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
             stakingRewardsV2.unstake(amountToUnstake);
 
             // get last checkpoint
+            uint256 newIndex = finalIndex;
+            if (blockAdvance > 0) {
+                newIndex += 1;
+            }
             (blockNum, value) = stakingRewardsV2.balances(
                 address(this),
-                length + 1
+                newIndex
             );
 
             // check checkpoint values
             assertEq(blockNum, block.number);
             assertEq(value, previousTotal + amountToStake - amountToUnstake);
+
+            // update block number
+            vm.roll(block.number + blockAdvance);
         }
     }
 
@@ -163,16 +171,17 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
             uint256 blockAdvance = getPseudoRandomNumber(amountToUnstake, 0, i);
 
             // get initial values
-            uint256 length = stakingRewardsV2.balancesLength(address(this));
             uint256 previousTotal = stakingRewardsV2.balanceOf(address(this));
 
             // stake
             stakeEscrowedFunds(address(this), amountToStake);
 
             // get last checkpoint
+            uint256 length = stakingRewardsV2.balancesLength(address(this));
+            uint256 finalIndex = length == 0 ? 0 : length - 1;
             (uint256 blockNum, uint256 value) = stakingRewardsV2.balances(
                 address(this),
-                length
+                finalIndex
             );
 
             // check checkpoint values
@@ -191,14 +200,21 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
             unstakeEscrowedFunds(address(this), amountToUnstake);
 
             // get last checkpoint
+            uint256 newIndex = finalIndex;
+            if (blockAdvance > 0) {
+                newIndex += 1;
+            }
             (blockNum, value) = stakingRewardsV2.balances(
                 address(this),
-                length + 1
+                newIndex
             );
 
             // check checkpoint values
             assertEq(blockNum, block.number);
             assertEq(value, previousTotal + amountToStake - amountToUnstake);
+
+            // update block number
+            vm.roll(block.number + blockAdvance);
         }
     }
 
@@ -261,15 +277,18 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
             uint256 blockAdvance = getPseudoRandomNumber(amountToUnstake, 0, i);
 
             // get initial values
-            uint256 length = stakingRewardsV2.balancesLength(address(this));
             uint256 previousTotal = stakingRewardsV2.balanceOf(address(this));
 
             // stake
             stakeEscrowedFunds(address(this), amountToStake);
 
             // get last checkpoint
+            uint256 length = stakingRewardsV2.escrowedBalancesLength(
+                address(this)
+            );
+            uint256 finalIndex = length == 0 ? 0 : length - 1;
             (uint256 blockNum, uint256 value) = stakingRewardsV2
-                .escrowedBalances(address(this), length);
+                .escrowedBalances(address(this), finalIndex);
 
             // check checkpoint values
             assertEq(blockNum, block.number);
@@ -287,14 +306,21 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
             unstakeEscrowedFunds(address(this), amountToUnstake);
 
             // get last checkpoint
+            uint256 newIndex = finalIndex;
+            if (blockAdvance > 0) {
+                newIndex += 1;
+            }
             (blockNum, value) = stakingRewardsV2.escrowedBalances(
                 address(this),
-                length + 1
+                newIndex
             );
 
             // check checkpoint values
             assertEq(blockNum, block.number);
             assertEq(value, previousTotal + amountToStake - amountToUnstake);
+
+            // update block number
+            vm.roll(block.number + blockAdvance);
         }
     }
 
@@ -383,7 +409,6 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
             bool escrowStake = flipCoin(blockAdvance);
 
             // get initial values
-            uint256 length = stakingRewardsV2.balancesLength(address(this));
             uint256 previousTotal = stakingRewardsV2.balanceOf(address(this));
 
             // stake
@@ -394,8 +419,10 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
             }
 
             // get last checkpoint
+            uint256 length = stakingRewardsV2.totalSupplyLength();
+            uint256 finalIndex = length == 0 ? 0 : length - 1;
             (uint256 blockNum, uint256 value) = stakingRewardsV2._totalSupply(
-                length
+                finalIndex
             );
 
             // check checkpoint values
@@ -418,11 +445,18 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
             }
 
             // get last checkpoint
-            (blockNum, value) = stakingRewardsV2._totalSupply(length + 1);
+            uint256 newIndex = finalIndex;
+            if (blockAdvance > 0) {
+                newIndex += 1;
+            }
+            (blockNum, value) = stakingRewardsV2._totalSupply(newIndex);
 
             // check checkpoint values
             assertEq(blockNum, block.number);
             assertEq(value, previousTotal + amountToStake - amountToUnstake);
+
+            // update block number
+            vm.roll(block.number + blockAdvance);
         }
     }
 
@@ -430,7 +464,26 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
                     Binary Search Checkpoint Tests
     //////////////////////////////////////////////////////////////*/
 
-    // function testBalancesSearch() public {
+    function testBalancesSearch() public {
+        // block.number starts at 1
+        uint256 blockToFind = 4;
+        uint256 expectedValue;
+        uint256 totalStaked;
 
-    // }
+        for (uint256 i = 0; i < 10; i++) {
+            uint256 amount = TEST_VALUE * (i + 1);
+            totalStaked += amount;
+            if (blockToFind == block.number) {
+                expectedValue = totalStaked;
+            }
+            stakeFunds(address(this), amount);
+            vm.roll(block.number + 1);
+        }
+
+        StakingRewardsV2.Checkpoint memory checkpoint = stakingRewardsV2
+            .balanceCheckpointsAt(address(this), 4);
+
+        assertEq(checkpoint.block, 4);
+        assertEq(checkpoint.value, expectedValue);
+    }
 }
