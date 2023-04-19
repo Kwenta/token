@@ -464,26 +464,27 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
                     Binary Search Checkpoint Tests
     //////////////////////////////////////////////////////////////*/
 
-    // function testBalancesSearch() public {
-    //     // block.number starts at 1
-    //     uint256 blockToFind = 4;
-    //     uint256 expectedValue;
-    //     uint256 totalStaked;
+    function testBalanceAtBlock() public {
+        // block.number starts at 1
+        uint256 blockToFind = 4;
+        uint256 expectedValue;
+        uint256 totalStaked;
 
-    //     for (uint256 i = 0; i < 10; i++) {
-    //         uint256 amount = TEST_VALUE * (i + 1);
-    //         totalStaked += amount;
-    //         if (blockToFind == block.number) {
-    //             expectedValue = totalStaked;
-    //         }
-    //         stakeFunds(address(this), amount);
-    //         vm.roll(block.number + 1);
-    //     }
+        for (uint256 i = 0; i < 10; i++) {
+            uint256 amount = TEST_VALUE * (i + 1);
+            totalStaked += amount;
+            if (blockToFind == block.number) {
+                expectedValue = totalStaked;
+            }
+            stakeFunds(address(this), amount);
+            vm.roll(block.number + 1);
+        }
 
-    //     StakingRewardsV2.Checkpoint memory checkpoint = stakingRewardsV2
-    //         .balanceCheckpointsAt(address(this), 4);
+        uint256 value = stakingRewardsV2.balanceAtBlock(
+            address(this),
+            blockToFind
+        );
 
-    //     assertEq(checkpoint.block, 4);
-    //     assertEq(checkpoint.value, expectedValue);
-    // }
+        assertEq(value, expectedValue);
+    }
 }
