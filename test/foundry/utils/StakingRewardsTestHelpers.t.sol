@@ -76,9 +76,49 @@ contract StakingRewardsTestHelpers is TestHelpers {
     }
 
     /*//////////////////////////////////////////////////////////////
-                            Helper Functions
+                            V1 Helper Functions
     //////////////////////////////////////////////////////////////*/
 
+    // UNIT HELPERS
+    function fundAndApproveAccountV1(address account, uint256 amount) public {
+        vm.prank(treasury);
+        kwenta.transfer(account, amount);
+        vm.prank(account);
+        kwenta.approve(address(stakingRewardsV1), amount);
+    }
+
+    function stakeFundsV1(address account, uint256 amount) public {
+        fundAndApproveAccountV1(account, amount);
+        vm.prank(account);
+        stakingRewardsV1.stake(amount);
+    }
+
+    function getStakingRewardsV1(address account) public {
+        vm.prank(account);
+        stakingRewardsV1.getReward();
+    }
+
+    // INTEGRATION HELPERS
+    function stakeAllUnstakedEscrowV1(address account) public {
+        uint256 amount = getNonStakedEscrowAmountV1(account);
+        vm.prank(account);
+        rewardEscrowV1.stakeEscrow(amount);
+    }
+
+    function unstakeAllUnstakedEscrowV1(address account, uint256 amount) public {
+        vm.prank(account);
+        rewardEscrowV1.unstakeEscrow(amount);
+    }
+
+    function getNonStakedEscrowAmountV1(address account) public view returns (uint256) {
+        return rewardEscrowV1.balanceOf(account) - stakingRewardsV1.escrowedBalanceOf(account);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                            V2 Helper Functions
+    //////////////////////////////////////////////////////////////*/
+
+    // UNIT HELPERS
     function fundAndApproveAccountV2(address account, uint256 amount) public {
         vm.prank(treasury);
         kwenta.transfer(account, amount);
