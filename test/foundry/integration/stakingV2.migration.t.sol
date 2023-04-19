@@ -88,7 +88,6 @@ contract StakingV2MigrationTests is StakingRewardsTestHelpers {
         stakeAllUnstakedEscrowV1(user3);
         stakeAllUnstakedEscrowV1(user4);
         stakeAllUnstakedEscrowV1(user5);
-
     }
 
     function testMigrateToV2() public {
@@ -110,39 +109,63 @@ contract StakingV2MigrationTests is StakingRewardsTestHelpers {
         // Unpause StakingV1
         stakingRewardsV1.unpauseStakingRewards();
 
-        uint256 user1Stake = stakingRewardsV1.balanceOf(user1);
-        uint256 user2Stake = stakingRewardsV1.balanceOf(user2);
-        uint256 user3Stake = stakingRewardsV1.balanceOf(user3);
-        // uint256 user4Stake = stakingRewardsV1.balanceOf(user4);
-        // uint256 user5Stake = stakingRewardsV1.balanceOf(user5);
+        uint256 user1StakeV1 = stakingRewardsV1.balanceOf(user1);
+        uint256 user2StakeV1 = stakingRewardsV1.balanceOf(user2);
+        uint256 user3StakeV1 = stakingRewardsV1.balanceOf(user3);
+        // uint256 user4StakeV1 = stakingRewardsV1.balanceOf(user4);
+        // uint256 user5StakeV1 = stakingRewardsV1.balanceOf(user5);
 
-        uint256 user1Escrow = rewardEscrowV1.balanceOf(user1);
-        uint256 user2Escrow = rewardEscrowV1.balanceOf(user2);
-        uint256 user3Escrow = rewardEscrowV1.balanceOf(user3);
-        // uint256 user4Escrow = rewardEscrowV1.balanceOf(user4);
-        // uint256 user5Escrow = rewardEscrowV1.balanceOf(user5);
+        uint256 user1EscrowV1 = rewardEscrowV1.balanceOf(user1);
+        uint256 user2EscrowV1 = rewardEscrowV1.balanceOf(user2);
+        uint256 user3EscrowV1 = rewardEscrowV1.balanceOf(user3);
+        // uint256 user4EscrowV1 = rewardEscrowV1.balanceOf(user4);
+        // uint256 user5EscrowV1 = rewardEscrowV1.balanceOf(user5);
 
-        uint256 user1EscrowStaked = stakingRewardsV1.escrowedBalanceOf(user1);
-        uint256 user2EscrowStaked = stakingRewardsV1.escrowedBalanceOf(user2);
-        uint256 user3EscrowStaked = stakingRewardsV1.escrowedBalanceOf(user3);
-        // uint256 user4EscrowStaked = stakingRewardsV1.escrowedBalanceOf(user4);
-        // uint256 user5EscrowStaked = stakingRewardsV1.escrowedBalanceOf(user5);
+        uint256 user1EscrowStakedV1 = stakingRewardsV1.escrowedBalanceOf(user1);
+        uint256 user2EscrowStakedV1 = stakingRewardsV1.escrowedBalanceOf(user2);
+        uint256 user3EscrowStakedV1 = stakingRewardsV1.escrowedBalanceOf(user3);
+        // uint256 user4EscrowStakedV1 = stakingRewardsV1.escrowedBalanceOf(user4);
+        // uint256 user5EscrowStakedV1 = stakingRewardsV1.escrowedBalanceOf(user5);
 
-        uint256 user1NonEscrowedStake = stakingRewardsV1.nonEscrowedBalanceOf(user1);
-        uint256 user2NonEscrowedStake = stakingRewardsV1.nonEscrowedBalanceOf(user2);
-        uint256 user3NonEscrowedStake = stakingRewardsV1.nonEscrowedBalanceOf(user3);
-        // uint256 user4NonEscrowedStake = stakingRewardsV1.nonEscrowedBalanceOf(user4);
-        // uint256 user5NonEscrowedStake = stakingRewardsV1.nonEscrowedBalanceOf(user5);
+        uint256 user1NonEscrowedStakeV1 = stakingRewardsV1.nonEscrowedBalanceOf(user1);
+        uint256 user2NonEscrowedStakeV1 = stakingRewardsV1.nonEscrowedBalanceOf(user2);
+        uint256 user3NonEscrowedStakeV1 = stakingRewardsV1.nonEscrowedBalanceOf(user3);
+        // uint256 user4NonEscrowedStakeV1 = stakingRewardsV1.nonEscrowedBalanceOf(user4);
+        // uint256 user5NonEscrowedStakeV1 = stakingRewardsV1.nonEscrowedBalanceOf(user5);
 
-        assertEq(user1Stake, user1EscrowStaked + user1NonEscrowedStake);
-        assertEq(user1Escrow, user1EscrowStaked);
-        assertEq(user2Stake, user2EscrowStaked + user2NonEscrowedStake);
-        assertEq(user2Escrow, user2EscrowStaked);
-        assertEq(user3Stake, user3EscrowStaked + user3NonEscrowedStake);
-        assertEq(user3Escrow, user3EscrowStaked);
+        assertEq(user1StakeV1, user1EscrowStakedV1 + user1NonEscrowedStakeV1);
+        assertEq(user1EscrowV1, user1EscrowStakedV1);
+        assertEq(user2StakeV1, user2EscrowStakedV1 + user2NonEscrowedStakeV1);
+        assertEq(user2EscrowV1, user2EscrowStakedV1);
+        assertEq(user3StakeV1, user3EscrowStakedV1 + user3NonEscrowedStakeV1);
+        assertEq(user3EscrowV1, user3EscrowStakedV1);
 
-        // Migrate StakingV1 to StakingV2
-        unstakeFundsV1(user1, user1NonEscrowedStake);
-        stakeFundsV2(user1, user1NonEscrowedStake);
+        // Migrate non-escrow stake from StakingRewardsV1 to StakingRewardsV2
+        unstakeFundsV1(user1, user1NonEscrowedStakeV1);
+        stakeFundsV2(user1, user1NonEscrowedStakeV1);
+        unstakeFundsV1(user2, user2NonEscrowedStakeV1);
+        stakeFundsV2(user2, user2NonEscrowedStakeV1);
+        unstakeFundsV1(user3, user3NonEscrowedStakeV1);
+        stakeFundsV2(user3, user3NonEscrowedStakeV1);
+
+        uint256 user1NonEscrowedStakeV2 = stakingRewardsV2.nonEscrowedBalanceOf(user1);
+        uint256 user2NonEscrowedStakeV2 = stakingRewardsV2.nonEscrowedBalanceOf(user2);
+        uint256 user3NonEscrowedStakeV2 = stakingRewardsV2.nonEscrowedBalanceOf(user3);
+
+        // check full balance migrated
+        assertEq(user1NonEscrowedStakeV1, user1NonEscrowedStakeV2);
+        assertEq(user2NonEscrowedStakeV1, user2NonEscrowedStakeV2);
+        assertEq(user3NonEscrowedStakeV1, user3NonEscrowedStakeV2);
+
+        user1NonEscrowedStakeV1 = stakingRewardsV1.nonEscrowedBalanceOf(user1);
+        user2NonEscrowedStakeV1 = stakingRewardsV1.nonEscrowedBalanceOf(user2);
+        user3NonEscrowedStakeV1 = stakingRewardsV1.nonEscrowedBalanceOf(user3);
+
+        // check nothing left in V1
+        assertEq(user1NonEscrowedStakeV1, 0);
+        assertEq(user2NonEscrowedStakeV1, 0);
+        assertEq(user3NonEscrowedStakeV1, 0);
+
+        // Migrate staked escrow to StakingRewardsV1 to StakingRewardsV2
     }
 }

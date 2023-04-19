@@ -195,6 +195,8 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
         return _totalSupply.length == 0 ? 0 : _totalSupply[_totalSupply.length - 1].value;
     }
 
+    /// @notice Returns the total number of staked tokens for a user
+    /// the sum of all escrowed and non-escrowed tokens
     /// @param account: address of potential staker
     /// @return amount of tokens staked by account
     function balanceOf(address account) public view override returns (uint256) {
@@ -609,4 +611,13 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
         IERC20(tokenAddress).safeTransfer(owner, tokenAmount);
         emit Recovered(tokenAddress, tokenAmount);
     }
+
+    // function migrateStakingRewardsV1StakedEscrow() public {
+    //     require(
+    //         address(stakingRewardsV1) != address(0),
+    //         "StakingRewards: stakingRewardsV1 is not set"
+    //     );
+
+    //     uint256 v1StakedEscrow = stakingRewardsV1.escrowedBalanceOf(address(this));
+    // }
 }
