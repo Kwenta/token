@@ -411,7 +411,6 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
     //////////////////////////////////////////////////////////////*/
 
     function testBalanceAtBlock() public {
-        // block.number starts at 1
         uint256 blockToFind = 4;
         uint256 expectedValue;
         uint256 totalStaked;
@@ -433,37 +432,45 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
 
     function testBalanceAtBlockAtEachBlock() public {
         vm.roll(3);
-        stakeFunds(address(this), 3);
+        stakeFunds(address(this), 1);
 
         vm.roll(6);
-        stakeFunds(address(this), 6);
+        stakeFunds(address(this), 1);
 
         vm.roll(8);
-        stakeFunds(address(this), 8);
+        stakeFunds(address(this), 1);
 
         vm.roll(12);
-        stakeFunds(address(this), 12);
+        stakeFunds(address(this), 1);
 
         vm.roll(23);
-        stakeFunds(address(this), 23);
+        stakeFunds(address(this), 1);
 
-        uint256 value = stakingRewardsV2.balanceAtBlock(address(this), 3);
-        assertEq(value, 3);
+        uint256 value;
 
-        value = stakingRewardsV2.balanceAtBlock(address(this), 6);
-        assertEq(value, 9);
-
-        value = stakingRewardsV2.balanceAtBlock(address(this), 8);
-        assertEq(value, 17);
-
-        value = stakingRewardsV2.balanceAtBlock(address(this), 12);
-        assertEq(value, 29);
-
-        value = stakingRewardsV2.balanceAtBlock(address(this), 23);
-        assertEq(value, 52);
+        for (uint256 i = 0; i < 30; i++) {
+            if (i < 3) {
+                value = stakingRewardsV2.balanceAtBlock(address(this), i);
+                assertEq(value, 0);
+            } else if (i < 6) {
+                value = stakingRewardsV2.balanceAtBlock(address(this), i);
+                assertEq(value, 1);
+            } else if (i < 8) {
+                value = stakingRewardsV2.balanceAtBlock(address(this), i);
+                assertEq(value, 2);
+            } else if (i < 12) {
+                value = stakingRewardsV2.balanceAtBlock(address(this), i);
+                assertEq(value, 3);
+            } else if (i < 23) {
+                value = stakingRewardsV2.balanceAtBlock(address(this), i);
+                assertEq(value, 4);
+            } else {
+                value = stakingRewardsV2.balanceAtBlock(address(this), i);
+                assertEq(value, 5);
+            }
+        }
     }
 
-    // TODO: check that this works with finding a block in the middle of two checkpoint
     function testBalanceAtBlockFuzz(uint8 blockToFind, uint8 numberOfRounds) public {
         vm.assume(numberOfRounds < 50);
         vm.assume(blockToFind > 0);
