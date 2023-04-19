@@ -18,11 +18,11 @@ contract StakingV2EscrowTests is StakingRewardsTestHelpers {
         uint256 initialBalance = kwenta.balanceOf(address(stakingRewardsV2));
 
         vm.prank(treasury);
-        kwenta.approve(address(rewardEscrowV1), TEST_VALUE);
+        kwenta.approve(address(rewardEscrowV2), TEST_VALUE);
         vm.prank(treasury);
-        rewardEscrowV1.createEscrowEntry(address(this), TEST_VALUE, 52 weeks);
+        rewardEscrowV2.createEscrowEntry(address(this), TEST_VALUE, 52 weeks);
 
-        rewardEscrowV1.stakeEscrow(TEST_VALUE);
+        rewardEscrowV2.stakeEscrow(TEST_VALUE);
 
         // check balance increased
         assertEq(

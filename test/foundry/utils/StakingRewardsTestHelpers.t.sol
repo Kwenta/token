@@ -5,7 +5,9 @@ import "forge-std/Test.sol";
 import {TestHelpers} from "../utils/TestHelpers.t.sol";
 import {Kwenta} from "../../../contracts/Kwenta.sol";
 import {RewardEscrow} from "../../../contracts/RewardEscrow.sol";
+import {RewardEscrowV2} from "../../../contracts/RewardEscrowV2.sol";
 import {SupplySchedule} from "../../../contracts/SupplySchedule.sol";
+import {StakingRewards} from "../../../contracts/StakingRewards.sol";
 import {StakingRewardsV2} from "../../../contracts/StakingRewardsV2.sol";
 import {IERC20} from "../../../contracts/interfaces/IERC20.sol";
 import "../utils/Constants.t.sol";
@@ -31,7 +33,9 @@ contract StakingRewardsTestHelpers is TestHelpers {
     IERC20 public mockToken;
     Kwenta public kwenta;
     RewardEscrow public rewardEscrowV1;
+    RewardEscrowV2 public rewardEscrowV2;
     SupplySchedule public supplySchedule;
+    StakingRewards public stakingRewardsV1;
     StakingRewardsV2 public stakingRewardsV2;
 
     /*//////////////////////////////////////////////////////////////
@@ -56,16 +60,16 @@ contract StakingRewardsTestHelpers is TestHelpers {
             address(this),
             treasury
         );
-        rewardEscrowV1 = new RewardEscrow(address(this), address(kwenta));
+        rewardEscrowV2 = new RewardEscrowV2(address(this), address(kwenta));
         supplySchedule = new SupplySchedule(address(this), treasury);
         kwenta.setSupplySchedule(address(supplySchedule));
         stakingRewardsV2 = new StakingRewardsV2(
             address(kwenta),
-            address(rewardEscrowV1),
+            address(rewardEscrowV2),
             address(supplySchedule)
         );
         supplySchedule.setStakingRewards(address(stakingRewardsV2));
-        rewardEscrowV1.setStakingRewards(address(stakingRewardsV2));
+        rewardEscrowV2.setStakingRewards(address(stakingRewardsV2));
 
         vm.prank(treasury);
         kwenta.transfer(address(stakingRewardsV2), INITIAL_SUPPLY / 4);
@@ -89,12 +93,12 @@ contract StakingRewardsTestHelpers is TestHelpers {
     }
 
     function stakeEscrowedFundsV2(address account, uint256 amount) public {
-        vm.prank(address(rewardEscrowV1));
+        vm.prank(address(rewardEscrowV2));
         stakingRewardsV2.stakeEscrow(account, amount);
     }
 
     function unstakeEscrowedFundsV2(address account, uint256 amount) public {
-        vm.prank(address(rewardEscrowV1));
+        vm.prank(address(rewardEscrowV2));
         stakingRewardsV2.unstakeEscrow(account, amount);
     }
 }

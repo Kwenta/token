@@ -26,7 +26,7 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
 
     function testRewardEscrowSet() public {
         address rewardEscrowAddress = address(stakingRewardsV2.rewardEscrow());
-        assertEq(rewardEscrowAddress, address(rewardEscrowV1));
+        assertEq(rewardEscrowAddress, address(rewardEscrowV2));
     }
 
     function testSupplyScheduleSet() public {
@@ -480,7 +480,7 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
     function testGetRewardIncreasesBalanceInEscrow() public {
         fundAndApproveAccountV2(address(this), TEST_VALUE);
 
-        uint256 initialEscrowBalance = rewardEscrowV1.balanceOf(address(this));
+        uint256 initialEscrowBalance = rewardEscrowV2.balanceOf(address(this));
 
         // stake
         stakingRewardsV2.stake(TEST_VALUE);
@@ -496,7 +496,7 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         stakingRewardsV2.getReward();
 
         // check reward escrow balance increased
-        assertGt(rewardEscrowV1.balanceOf(address(this)), initialEscrowBalance);
+        assertGt(rewardEscrowV2.balanceOf(address(this)), initialEscrowBalance);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -647,7 +647,7 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         stakeEscrowedFundsV2(address(this), 1 weeks);
 
         uint256 initialTokenBalance = kwenta.balanceOf(address(this));
-        uint256 initialEscrowTokenBalance = kwenta.balanceOf(address(rewardEscrowV1));
+        uint256 initialEscrowTokenBalance = kwenta.balanceOf(address(rewardEscrowV2));
 
         // pass cooldown period
         vm.warp(block.timestamp + 2 weeks);
@@ -656,7 +656,7 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         unstakeEscrowedFundsV2(address(this), 1 weeks);
 
         uint256 finalTokenBalance = kwenta.balanceOf(address(this));
-        uint256 finalEscrowTokenBalance = kwenta.balanceOf(address(rewardEscrowV1));
+        uint256 finalEscrowTokenBalance = kwenta.balanceOf(address(rewardEscrowV2));
 
         // check both values unchanged
         assertEq(initialTokenBalance, finalTokenBalance);
