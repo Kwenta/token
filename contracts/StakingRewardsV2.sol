@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "./utils/Owned.sol";
 import "./interfaces/IStakingRewardsV2.sol";
+import "./interfaces/IStakingRewards.sol";
 import "./interfaces/ISupplySchedule.sol";
 import "./interfaces/IRewardEscrow.sol";
 
@@ -28,6 +29,9 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
 
     /// @notice handles reward token minting logic
     ISupplySchedule public immutable supplySchedule;
+
+    /// @notice previous version of staking rewards contract - used for migration
+    IStakingRewards public immutable stakingRewardsV1;
 
     /// @notice minimum time length of the unstaking cooldown period
     uint256 public constant minCooldownPeriod = 1 weeks;
@@ -174,7 +178,8 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     constructor(
         address _token,
         address _rewardEscrow,
-        address _supplySchedule
+        address _supplySchedule,
+        address _stakingRewardsV1
     ) Owned(msg.sender) {
         // define reward/staking token
         token = IERC20(_token);
@@ -182,6 +187,7 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
         // define contracts which will interact with StakingRewards
         rewardEscrow = IRewardEscrow(_rewardEscrow);
         supplySchedule = ISupplySchedule(_supplySchedule);
+        stakingRewardsV1 = IStakingRewards(_stakingRewardsV1);
     }
 
     /*///////////////////////////////////////////////////////////////
