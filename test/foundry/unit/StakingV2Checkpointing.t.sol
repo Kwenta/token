@@ -70,10 +70,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
         assertEq(value, 0);
     }
 
-    function testBalancesCheckpointsAreUpdatedFuzz(
-        uint32 maxAmountStaked,
-        uint8 numberOfRounds
-    ) public {
+    function testBalancesCheckpointsAreUpdatedFuzz(uint32 maxAmountStaked, uint8 numberOfRounds) public {
         vm.assume(maxAmountStaked > 0);
         // keep the number of rounds low to keep tests fast
         vm.assume(numberOfRounds < 50);
@@ -94,10 +91,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
             // get last checkpoint
             uint256 length = stakingRewardsV2.balancesLength(address(this));
             uint256 finalIndex = length == 0 ? 0 : length - 1;
-            (uint256 blockNum, uint256 value) = stakingRewardsV2.balances(
-                address(this),
-                finalIndex
-            );
+            (uint256 blockNum, uint256 value) = stakingRewardsV2.balances(address(this), finalIndex);
 
             // check checkpoint values
             assertEq(blockNum, block.number);
@@ -128,10 +122,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
         }
     }
 
-    function testBalancesCheckpointsAreUpdatedEscrowStakedFuzz(
-        uint32 maxAmountStaked,
-        uint8 numberOfRounds
-    ) public {
+    function testBalancesCheckpointsAreUpdatedEscrowStakedFuzz(uint32 maxAmountStaked, uint8 numberOfRounds) public {
         vm.assume(maxAmountStaked > 0);
         // keep the number of rounds low to keep tests fast
         vm.assume(numberOfRounds < 50);
@@ -152,10 +143,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
             // get last checkpoint
             uint256 length = stakingRewardsV2.balancesLength(address(this));
             uint256 finalIndex = length == 0 ? 0 : length - 1;
-            (uint256 blockNum, uint256 value) = stakingRewardsV2.balances(
-                address(this),
-                finalIndex
-            );
+            (uint256 blockNum, uint256 value) = stakingRewardsV2.balances(address(this), finalIndex);
 
             // check checkpoint values
             assertEq(blockNum, block.number);
@@ -195,10 +183,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
         stakeEscrowedFunds(address(this), TEST_VALUE);
 
         // get last checkpoint
-        (uint256 blockNum, uint256 value) = stakingRewardsV2.escrowedBalances(
-            address(this),
-            0
-        );
+        (uint256 blockNum, uint256 value) = stakingRewardsV2.escrowedBalances(address(this), 0);
 
         // check values
         assertEq(blockNum, block.number);
@@ -221,10 +206,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
         assertEq(value, 0);
     }
 
-    function testEscrowedBalancesCheckpointsAreUpdatedFuzz(
-        uint32 maxAmountStaked,
-        uint8 numberOfRounds
-    ) public {
+    function testEscrowedBalancesCheckpointsAreUpdatedFuzz(uint32 maxAmountStaked, uint8 numberOfRounds) public {
         vm.assume(maxAmountStaked > 0);
         // keep the number of rounds low to keep tests fast
         vm.assume(numberOfRounds < 50);
@@ -245,10 +227,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
             // get last checkpoint
             uint256 length = stakingRewardsV2.escrowedBalancesLength(address(this));
             uint256 finalIndex = length == 0 ? 0 : length - 1;
-            (uint256 blockNum, uint256 value) = stakingRewardsV2.escrowedBalances(
-                address(this),
-                finalIndex
-            );
+            (uint256 blockNum, uint256 value) = stakingRewardsV2.escrowedBalances(address(this), finalIndex);
 
             // check checkpoint values
             assertEq(blockNum, block.number);
@@ -268,10 +247,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
             if (blockAdvance > 0) {
                 newIndex += 1;
             }
-            (blockNum, value) = stakingRewardsV2.escrowedBalances(
-                address(this),
-                newIndex
-            );
+            (blockNum, value) = stakingRewardsV2.escrowedBalances(address(this), newIndex);
 
             // check checkpoint values
             assertEq(blockNum, block.number);
@@ -342,10 +318,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
         assertEq(value, 0);
     }
 
-    function testTotalSupplyCheckpointsAreUpdatedFuzz(
-        uint32 maxAmountStaked,
-        uint8 numberOfRounds
-    ) public {
+    function testTotalSupplyCheckpointsAreUpdatedFuzz(uint32 maxAmountStaked, uint8 numberOfRounds) public {
         vm.assume(maxAmountStaked > 0);
         // keep the number of rounds low to keep tests fast
         vm.assume(numberOfRounds < 50);
@@ -526,10 +499,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
             vm.roll(block.number + 1);
         }
 
-        uint256 value = stakingRewardsV2.escrowedBalanceAtBlock(
-            address(this),
-            blockToFind
-        );
+        uint256 value = stakingRewardsV2.escrowedBalanceAtBlock(address(this), blockToFind);
 
         assertEq(value, expectedValue);
     }
@@ -570,10 +540,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
         }
     }
 
-    function testEscrowBalanceAtBlockFuzz(
-        uint256 blockToFind,
-        uint8 numberOfRounds
-    ) public {
+    function testEscrowBalanceAtBlockFuzz(uint256 blockToFind, uint8 numberOfRounds) public {
         vm.assume(numberOfRounds < 50);
         vm.assume(blockToFind > 0);
 
@@ -604,10 +571,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
             if (i != numberOfRounds - 1) vm.roll(block.number + blockAdvance);
         }
 
-        uint256 value = stakingRewardsV2.escrowedBalanceAtBlock(
-            address(this),
-            blockToFind
-        );
+        uint256 value = stakingRewardsV2.escrowedBalanceAtBlock(address(this), blockToFind);
         // if we are before the block to find, the expected value is the total staked
         if (blockToFind > block.number) {
             assertEq(value, totalStaked);
@@ -678,10 +642,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
         }
     }
 
-    function testTotalSupplyeAtBlockFuzz(
-        uint256 blockToFind,
-        uint8 numberOfRounds
-    ) public {
+    function testTotalSupplyeAtBlockFuzz(uint256 blockToFind, uint8 numberOfRounds) public {
         vm.assume(numberOfRounds < 50);
         vm.assume(blockToFind > 0);
 

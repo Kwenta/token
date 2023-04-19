@@ -26,22 +26,16 @@ contract TestHelpers is Test {
         return (uint256(keccak256(abi.encodePacked(++nonce, salt))) % 2) == 1;
     }
 
-    function getPseudoRandomNumber(
-        uint256 max,
-        uint256 min,
-        uint256 salt
-    ) internal returns (uint256 result) {
+    function getPseudoRandomNumber(uint256 max, uint256 min, uint256 salt) internal returns (uint256 result) {
         require(min <= max, "min must be <= max");
         if (max == min) return max;
 
-        if (min == 0)
-            result =
-                uint256(keccak256(abi.encodePacked(++nonce, salt))) %
-                (max + 1);
-        else
-            while (result < min)
-                result =
-                    uint256(keccak256(abi.encodePacked(++nonce, salt))) %
-                    (max + 1);
+        if (min == 0) {
+            result = uint256(keccak256(abi.encodePacked(++nonce, salt))) % (max + 1);
+        } else {
+            while (result < min) {
+                result = uint256(keccak256(abi.encodePacked(++nonce, salt))) % (max + 1);
+            }
+        }
     }
 }

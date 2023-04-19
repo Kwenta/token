@@ -30,9 +30,7 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
     }
 
     function testSupplyScheduleSet() public {
-        address supplyScheduleAddress = address(
-            stakingRewardsV2.supplySchedule()
-        );
+        address supplyScheduleAddress = address(stakingRewardsV2.supplySchedule());
         assertEq(supplyScheduleAddress, address(supplySchedule));
     }
 
@@ -102,9 +100,7 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
 
         // attempt to accept ownership
         vm.prank(user2);
-        vm.expectRevert(
-            "You must be nominated before you can accept ownership"
-        );
+        vm.expectRevert("You must be nominated before you can accept ownership");
         stakingRewardsV2.acceptOwnership();
 
         // accept ownership
@@ -257,10 +253,7 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         stakingRewardsV2.stake(TEST_VALUE);
 
         // check balance increased
-        assertEq(
-            kwenta.balanceOf(address(stakingRewardsV2)),
-            initialBalance + TEST_VALUE
-        );
+        assertEq(kwenta.balanceOf(address(stakingRewardsV2)), initialBalance + TEST_VALUE);
     }
 
     function testStakeIncreasesBalancesMapping() public {
@@ -273,16 +266,11 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         stakingRewardsV2.stake(TEST_VALUE);
 
         // check balances mapping updated
-        assertEq(
-            stakingRewardsV2.balanceOf(address(this)),
-            initialBalance + TEST_VALUE
-        );
+        assertEq(stakingRewardsV2.balanceOf(address(this)), initialBalance + TEST_VALUE);
     }
 
     function testStakeDoesNotIncreaseEscrowedBalances() public {
-        uint256 initialBalance = stakingRewardsV2.escrowedBalanceOf(
-            address(this)
-        );
+        uint256 initialBalance = stakingRewardsV2.escrowedBalanceOf(address(this));
 
         // fund so that staking can succeed
         fundAndApproveAccount(address(this), TEST_VALUE);
@@ -291,10 +279,7 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         stakingRewardsV2.stake(TEST_VALUE);
 
         // check balances mapping updated
-        assertEq(
-            stakingRewardsV2.escrowedBalanceOf(address(this)),
-            initialBalance
-        );
+        assertEq(stakingRewardsV2.escrowedBalanceOf(address(this)), initialBalance);
     }
 
     function testStakeIncreasesTotalSupply() public {
@@ -307,10 +292,7 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         stakingRewardsV2.stake(TEST_VALUE);
 
         // check total supply updated
-        assertEq(
-            stakingRewardsV2.totalSupply(),
-            initialTotalSupply + TEST_VALUE
-        );
+        assertEq(stakingRewardsV2.totalSupply(), initialTotalSupply + TEST_VALUE);
     }
 
     function testCannotStake0() public {
@@ -340,25 +322,17 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         stakeEscrowedFunds(address(this), TEST_VALUE);
 
         // check balances mapping updated
-        assertEq(
-            stakingRewardsV2.balanceOf(address(this)),
-            initialBalance + TEST_VALUE
-        );
+        assertEq(stakingRewardsV2.balanceOf(address(this)), initialBalance + TEST_VALUE);
     }
 
     function testEscrowStakingIncreasesEscrowedBalances() public {
-        uint256 initialBalance = stakingRewardsV2.escrowedBalanceOf(
-            address(this)
-        );
+        uint256 initialBalance = stakingRewardsV2.escrowedBalanceOf(address(this));
 
         // stake
         stakeEscrowedFunds(address(this), TEST_VALUE);
 
         // check balances mapping updated
-        assertEq(
-            stakingRewardsV2.escrowedBalanceOf(address(this)),
-            initialBalance + TEST_VALUE
-        );
+        assertEq(stakingRewardsV2.escrowedBalanceOf(address(this)), initialBalance + TEST_VALUE);
     }
 
     function testEscrowStakingIncreasesTotalSupply() public {
@@ -368,10 +342,7 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         stakeEscrowedFunds(address(this), TEST_VALUE);
 
         // check total supply updated
-        assertEq(
-            stakingRewardsV2.totalSupply(),
-            initialTotalSupply + TEST_VALUE
-        );
+        assertEq(stakingRewardsV2.totalSupply(), initialTotalSupply + TEST_VALUE);
     }
 
     function testCannotEscrowStake0() public {
@@ -447,9 +418,7 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         assertTrue(stakingRewardsV2.earned(address(this)) > 0);
     }
 
-    function testRewardRateShouldIncreaseIfNewRewardsComeBeforeDurationEnds()
-        public
-    {
+    function testRewardRateShouldIncreaseIfNewRewardsComeBeforeDurationEnds() public {
         fundAndApproveAccount(address(this), 1 weeks);
 
         uint256 totalToDistribute = 5 ether;
@@ -647,9 +616,7 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         stakingRewardsV2.stake(TEST_VALUE);
 
         uint256 initialTokenBalance = kwenta.balanceOf(address(this));
-        uint256 initialStakingBalance = stakingRewardsV2.balanceOf(
-            address(this)
-        );
+        uint256 initialStakingBalance = stakingRewardsV2.balanceOf(address(this));
 
         vm.warp(block.timestamp + 2 weeks);
         stakingRewardsV2.unstake(TEST_VALUE);
@@ -680,9 +647,7 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         stakeEscrowedFunds(address(this), 1 weeks);
 
         uint256 initialTokenBalance = kwenta.balanceOf(address(this));
-        uint256 initialEscrowTokenBalance = kwenta.balanceOf(
-            address(rewardEscrow)
-        );
+        uint256 initialEscrowTokenBalance = kwenta.balanceOf(address(rewardEscrow));
 
         // pass cooldown period
         vm.warp(block.timestamp + 2 weeks);
@@ -691,9 +656,7 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         unstakeEscrowedFunds(address(this), 1 weeks);
 
         uint256 finalTokenBalance = kwenta.balanceOf(address(this));
-        uint256 finalEscrowTokenBalance = kwenta.balanceOf(
-            address(rewardEscrow)
-        );
+        uint256 finalEscrowTokenBalance = kwenta.balanceOf(address(rewardEscrow));
 
         // check both values unchanged
         assertEq(initialTokenBalance, finalTokenBalance);
@@ -740,9 +703,7 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         // stake escrow
         stakeEscrowedFunds(address(this), 1 weeks);
 
-        uint256 initialEscrowBalance = stakingRewardsV2.escrowedBalanceOf(
-            address(this)
-        );
+        uint256 initialEscrowBalance = stakingRewardsV2.escrowedBalanceOf(address(this));
 
         // pass cooldown period
         vm.warp(block.timestamp + 2 weeks);
@@ -750,9 +711,7 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         // unstake escrow
         unstakeEscrowedFunds(address(this), 1 weeks);
 
-        uint256 finalEscrowBalance = stakingRewardsV2.escrowedBalanceOf(
-            address(this)
-        );
+        uint256 finalEscrowBalance = stakingRewardsV2.escrowedBalanceOf(address(this));
 
         // check balance decreased
         assertEq(initialEscrowBalance - 1 weeks, finalEscrowBalance);
