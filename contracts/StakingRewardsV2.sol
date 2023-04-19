@@ -124,7 +124,6 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     /// @param unstakingCooldownPeriod: the new unstaking cooldown period
     event UnstakingCooldownPeriodUpdated(uint256 unstakingCooldownPeriod);
 
-
     /*//////////////////////////////////////////////////////////////
                                  ERRORS
     //////////////////////////////////////////////////////////////*/
@@ -193,36 +192,26 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     /// in the contract since reward and staking tokens are the same
     /// @return total amount of tokens that are being staked
     function totalSupply() public view override returns (uint256) {
-        return _totalSupply.length == 0
-            ? 0
-            : _totalSupply[_totalSupply.length - 1].value;
+        return _totalSupply.length == 0 ? 0 : _totalSupply[_totalSupply.length - 1].value;
     }
 
     /// @param account: address of potential staker
     /// @return amount of tokens staked by account
-    function balanceOf(address account)
-        public
-        view
-        override
-        returns (uint256)
-    {
-        return balances[account].length == 0
-            ? 0
-            : balances[account][balances[account].length - 1].value;
+    function balanceOf(address account) public view override returns (uint256) {
+        return
+            balances[account].length == 0
+                ? 0
+                : balances[account][balances[account].length - 1].value;
     }
 
     /// @notice Getter function for number of staked escrow tokens
     /// @param account address to check the escrowed tokens staked
     /// @return amount of escrowed tokens staked
-    function escrowedBalanceOf(address account)
-        public
-        view
-        override
-        returns (uint256)
-    {
-        return escrowedBalances[account].length == 0
-            ? 0
-            : escrowedBalances[account][escrowedBalances[account].length - 1].value;
+    function escrowedBalanceOf(address account) public view override returns (uint256) {
+        return
+            escrowedBalances[account].length == 0
+                ? 0
+                : escrowedBalances[account][escrowedBalances[account].length - 1].value;
     }
 
     /// @return rewards for the duration specified by rewardsDuration
@@ -233,12 +222,9 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     /// @notice Getter function for number of staked non-escrow tokens
     /// @param account address to check the non-escrowed tokens staked
     /// @return amount of non-escrowed tokens staked
-    function nonEscrowedBalanceOf(address account)
-        public
-        view
-        override
-        returns (uint256)
-    {
+    function nonEscrowedBalanceOf(
+        address account
+    ) public view override returns (uint256) {
         return balanceOf(account) - escrowedBalanceOf(account);
     }
 
@@ -249,13 +235,9 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     /// @notice stake token
     /// @param amount: amount to stake
     /// @dev updateReward() called prior to function logic
-    function stake(uint256 amount)
-        external
-        override
-        nonReentrant
-        whenNotPaused
-        updateReward(msg.sender)
-    {
+    function stake(
+        uint256 amount
+    ) external override nonReentrant whenNotPaused updateReward(msg.sender) {
         require(amount > 0, "StakingRewards: Cannot stake 0");
 
         // update state
@@ -273,19 +255,17 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     /// @notice unstake token
     /// @param amount: amount to unstake
     /// @dev updateReward() called prior to function logic
-    function unstake(uint256 amount)
-        public
-        override
-        nonReentrant
-        updateReward(msg.sender)
-    {
+    function unstake(
+        uint256 amount
+    ) public override nonReentrant updateReward(msg.sender) {
         require(amount > 0, "StakingRewards: Cannot Unstake 0");
         require(
             amount <= nonEscrowedBalanceOf(msg.sender),
             "StakingRewards: Invalid Amount"
         );
         uint256 canUnstakeAt = userLastStakeTime[msg.sender] + unstakingCooldownPeriod;
-        if (canUnstakeAt > block.timestamp) revert CannotUnstakeDuringCooldown(canUnstakeAt);
+        if (canUnstakeAt > block.timestamp)
+            revert CannotUnstakeDuringCooldown(canUnstakeAt);
 
         // update state
         addTotalSupplyCheckpoint(totalSupply() - amount);
@@ -303,13 +283,10 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     /// @param amount: amount to stake
     /// @dev updateReward() called prior to function logic
     /// @dev msg.sender NOT used (account is used)
-    function stakeEscrow(address account, uint256 amount)
-        external
-        override
-        whenNotPaused
-        onlyRewardEscrow
-        updateReward(account)
-    {
+    function stakeEscrow(
+        address account,
+        uint256 amount
+    ) external override whenNotPaused onlyRewardEscrow updateReward(account) {
         require(amount > 0, "StakingRewards: Cannot stake 0");
 
         // update state
@@ -330,20 +307,15 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     /// @param amount: amount to unstake
     /// @dev updateReward() called prior to function logic
     /// @dev msg.sender NOT used (account is used)
-    function unstakeEscrow(address account, uint256 amount)
-        external
-        override
-        nonReentrant
-        onlyRewardEscrow
-        updateReward(account)
-    {
+    function unstakeEscrow(
+        address account,
+        uint256 amount
+    ) external override nonReentrant onlyRewardEscrow updateReward(account) {
         require(amount > 0, "StakingRewards: Cannot Unstake 0");
-        require(
-            escrowedBalanceOf(account) >= amount,
-            "StakingRewards: Invalid Amount"
-        );
+        require(escrowedBalanceOf(account) >= amount, "StakingRewards: Invalid Amount");
         uint256 canUnstakeAt = userLastStakeTime[account] + unstakingCooldownPeriod;
-        if (canUnstakeAt > block.timestamp) revert CannotUnstakeDuringCooldown(canUnstakeAt);
+        if (canUnstakeAt > block.timestamp)
+            revert CannotUnstakeDuringCooldown(canUnstakeAt);
 
         // update state
         addBalancesCheckpoint(account, balanceOf(account) - amount);
@@ -362,7 +334,7 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     function exit() external override {
         unstake(nonEscrowedBalanceOf(msg.sender));
         getReward();
-    }    
+    }
 
     /*///////////////////////////////////////////////////////////////
                             CLAIM REWARDS
@@ -420,9 +392,8 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
 
         return
             rewardPerTokenStored +
-            (((lastTimeRewardApplicable() - lastUpdateTime) *
-                rewardRate *
-                1e18) / (totalSupplyVal));
+            (((lastTimeRewardApplicable() - lastUpdateTime) * rewardRate * 1e18) /
+                (totalSupplyVal));
     }
 
     /// @return timestamp of the last time rewards are applicable
@@ -434,15 +405,13 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     /// @param account: address of account earned amount is being calculated for
     function earned(address account) public view override returns (uint256) {
         return
-            ((balanceOf(account) *
-                (rewardPerToken() - userRewardPerTokenPaid[account])) / 1e18) +
-            rewards[account];
+            ((balanceOf(account) * (rewardPerToken() - userRewardPerTokenPaid[account])) /
+                1e18) + rewards[account];
     }
 
     /*///////////////////////////////////////////////////////////////
                             CHECKPOINTING VIEWS
     ///////////////////////////////////////////////////////////////*/
-
 
     /// @notice get the number of balances checkpoints for an account
     /// @param account: address of account to check
@@ -452,7 +421,9 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
 
     /// @notice get the number of escrowed balance checkpoints for an account
     /// @param account: address of account to check
-    function escrowedBalancesLength(address account) external view override returns (uint256) {
+    function escrowedBalancesLength(
+        address account
+    ) external view override returns (uint256) {
         return escrowedBalances[account].length;
     }
 
@@ -490,42 +461,39 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     /// @notice add a new balance checkpoint for an account
     /// @param account: address of account to add checkpoint for
     /// @param value: value of checkpoint to add
-    function addBalancesCheckpoint(address account, uint256 value)
-        internal
-    {
-        uint256 lastBlock = balances[account].length == 0 ? 0 : balances[account][balances[account].length - 1].block;
-        if (lastBlock != block.number) {
+    function addBalancesCheckpoint(address account, uint256 value) internal {
+        uint256 lastBlock = balances[account].length == 0
+            ? 0
+            : balances[account][balances[account].length - 1].block;
+
+        if (lastBlock != block.number)
             balances[account].push(Checkpoint(block.number, value));
-        } else {
-            balances[account][balances[account].length - 1].value = value;
-        }
+        else balances[account][balances[account].length - 1].value = value;
     }
 
     /// @notice add a new escrowed balance checkpoint for an account
     /// @param account: address of account to add checkpoint for
     /// @param value: value of checkpoint to add
-    function addEscrowedBalancesCheckpoint(address account, uint256 value)
-        internal
-    {
-        uint256 lastBlock = escrowedBalances[account].length == 0 ? 0 : escrowedBalances[account][escrowedBalances[account].length - 1].block;
-        if (lastBlock != block.number) {
+    function addEscrowedBalancesCheckpoint(address account, uint256 value) internal {
+        uint256 lastBlock = escrowedBalances[account].length == 0
+            ? 0
+            : escrowedBalances[account][escrowedBalances[account].length - 1].block;
+
+        if (lastBlock != block.number)
             escrowedBalances[account].push(Checkpoint(block.number, value));
-        } else {
+        else
             escrowedBalances[account][escrowedBalances[account].length - 1].value = value;
-        }
     }
 
     /// @notice add a new total supply checkpoint
     /// @param value: value of checkpoint to add
-    function addTotalSupplyCheckpoint(uint256 value)
-        internal
-    {
-        uint256 lastBlock = _totalSupply.length == 0 ? 0 : _totalSupply[_totalSupply.length - 1].block;
-        if (lastBlock != block.number) {
-            _totalSupply.push(Checkpoint(block.number, value));
-        } else {
-            _totalSupply[_totalSupply.length - 1].value = value;
-        }
+    function addTotalSupplyCheckpoint(uint256 value) internal {
+        uint256 lastBlock = _totalSupply.length == 0
+            ? 0
+            : _totalSupply[_totalSupply.length - 1].block;
+
+        if (lastBlock != block.number) _totalSupply.push(Checkpoint(block.number, value));
+        else _totalSupply[_totalSupply.length - 1].value = value;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -535,12 +503,9 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     /// @notice configure reward rate
     /// @param reward: amount of token to be distributed over a period
     /// @dev updateReward() called prior to function logic (with zero address)
-    function notifyRewardAmount(uint256 reward)
-        external
-        override
-        onlySupplySchedule
-        updateReward(address(0))
-    {
+    function notifyRewardAmount(
+        uint256 reward
+    ) external override onlySupplySchedule updateReward(address(0)) {
         if (block.timestamp >= periodFinish) {
             rewardRate = reward / rewardsDuration;
         } else {
@@ -556,11 +521,7 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
 
     /// @notice set rewards duration
     /// @param _rewardsDuration: denoted in seconds
-    function setRewardsDuration(uint256 _rewardsDuration)
-        external
-        override
-        onlyOwner
-    {
+    function setRewardsDuration(uint256 _rewardsDuration) external override onlyOwner {
         require(
             block.timestamp > periodFinish,
             "StakingRewards: Previous rewards period must be complete before changing the duration for the new period"
@@ -571,13 +532,13 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
 
     /// @notice set unstaking cooldown period
     /// @param _unstakingCooldownPeriod: denoted in seconds
-    function setUnstakingCooldownPeriod(uint256 _unstakingCooldownPeriod)
-        external
-        override
-        onlyOwner
-    {
-        if (_unstakingCooldownPeriod < minCooldownPeriod) revert CooldownPeriodTooLow(minCooldownPeriod);
-        if (_unstakingCooldownPeriod > maxCooldownPeriod) revert CooldownPeriodTooHigh(maxCooldownPeriod);
+    function setUnstakingCooldownPeriod(
+        uint256 _unstakingCooldownPeriod
+    ) external override onlyOwner {
+        if (_unstakingCooldownPeriod < minCooldownPeriod)
+            revert CooldownPeriodTooLow(minCooldownPeriod);
+        if (_unstakingCooldownPeriod > maxCooldownPeriod)
+            revert CooldownPeriodTooHigh(maxCooldownPeriod);
 
         unstakingCooldownPeriod = _unstakingCooldownPeriod;
         emit UnstakingCooldownPeriodUpdated(unstakingCooldownPeriod);
@@ -605,11 +566,10 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     /// such as BAL to be distributed to holders
     /// @param tokenAddress: address of token to be recovered
     /// @param tokenAmount: amount of token to be recovered
-    function recoverERC20(address tokenAddress, uint256 tokenAmount)
-        external
-        override
-        onlyOwner
-    {
+    function recoverERC20(
+        address tokenAddress,
+        uint256 tokenAmount
+    ) external override onlyOwner {
         require(
             tokenAddress != address(token),
             "StakingRewards: Cannot unstake the staking token"
