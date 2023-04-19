@@ -9,6 +9,7 @@ import {RewardEscrowV2} from "../../../contracts/RewardEscrowV2.sol";
 import {SupplySchedule} from "../../../contracts/SupplySchedule.sol";
 import {StakingRewards} from "../../../contracts/StakingRewards.sol";
 import {StakingRewardsV2} from "../../../contracts/StakingRewardsV2.sol";
+import {MultipleMerkleDistributor} from "../../../contracts/MultipleMerkleDistributor.sol";
 import {IERC20} from "../../../contracts/interfaces/IERC20.sol";
 import "../utils/Constants.t.sol";
 
@@ -37,15 +38,20 @@ contract StakingRewardsTestHelpers is TestHelpers {
     SupplySchedule public supplySchedule;
     StakingRewards public stakingRewardsV1;
     StakingRewardsV2 public stakingRewardsV2;
+    MultipleMerkleDistributor public tradingRewards;
 
     /*//////////////////////////////////////////////////////////////
                                 Setup
     //////////////////////////////////////////////////////////////*/
 
     function setUp() public virtual {
+        // Setup StakingV1
         treasury = createUser();
         user1 = createUser();
         user2 = createUser();
+        user3 = createUser();
+        user4 = createUser();
+        user5 = createUser();
         mockToken = new Kwenta(
             "Mock",
             "MOCK",
@@ -60,16 +66,38 @@ contract StakingRewardsTestHelpers is TestHelpers {
             address(this),
             treasury
         );
-        rewardEscrowV2 = new RewardEscrowV2(address(this), address(kwenta));
+        rewardEscrowV1 = new RewardEscrow(address(this), address(kwenta));
         supplySchedule = new SupplySchedule(address(this), treasury);
+        supplySchedule.setKwenta(kwenta);
         kwenta.setSupplySchedule(address(supplySchedule));
+        stakingRewardsV1 = new StakingRewards(
+            address(kwenta),
+            address(rewardEscrowV1),
+            address(supplySchedule)
+        );
+        tradingRewards = new MultipleMerkleDistributor(address(this), address(kwenta));
+        supplySchedule.setStakingRewards(address(stakingRewardsV1));
+        supplySchedule.setTradingRewards(address(tradingRewards));
+        rewardEscrowV1.setStakingRewards(address(stakingRewardsV1));
+
+        // Setup StakingV2
+        rewardEscrowV2 = new RewardEscrowV2(address(this), address(kwenta));
         stakingRewardsV2 = new StakingRewardsV2(
             address(kwenta),
             address(rewardEscrowV2),
-            address(supplySchedule)
+            address(supplySchedule),
+            address(stakingRewardsV1)
         );
+
+        // Pause StakingV1
+        stakingRewardsV1.pauseStakingRewards();
+
+        // Update SupplySchedule to point to StakingV2
         supplySchedule.setStakingRewards(address(stakingRewardsV2));
         rewardEscrowV2.setStakingRewards(address(stakingRewardsV2));
+
+        // Unpause StakingV1
+        stakingRewardsV1.unpauseStakingRewards();
 
         vm.prank(treasury);
         kwenta.transfer(address(stakingRewardsV2), INITIAL_SUPPLY / 4);

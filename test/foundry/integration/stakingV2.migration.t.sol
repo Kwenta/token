@@ -19,8 +19,6 @@ contract StakingV2MigrationTests is StakingRewardsTestHelpers {
                                 Setup
     //////////////////////////////////////////////////////////////*/
 
-    MultipleMerkleDistributor public tradingRewards;
-
     function setUp() public override {
         // Setup StakingV1
         treasury = createUser();
@@ -96,7 +94,8 @@ contract StakingV2MigrationTests is StakingRewardsTestHelpers {
         stakingRewardsV2 = new StakingRewardsV2(
             address(kwenta),
             address(rewardEscrowV2),
-            address(supplySchedule)
+            address(supplySchedule),
+            address(stakingRewardsV1)
         );
 
         // Pause StakingV1
