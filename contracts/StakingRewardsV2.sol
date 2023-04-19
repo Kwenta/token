@@ -432,16 +432,31 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
         return _totalSupply.length;
     }
 
+    /// @notice get a users balance at a given block
+    /// @param account: address of account to check
+    /// @param _block: block number to check
     function balanceAtBlock(address account, uint256 _block) external view override returns (uint256) {
-        Checkpoint[] memory checkpoints = balances[account];
+        return _checkpointBinarySearch(balances[account], _block);
+    }
+
+    /// @notice finds the value of the checkpoint at a given block
+    /// @param checkpoints: array of checkpoints to search
+    /// @param _block: block number to check
+    /// @dev returns 0 if no checkpoints exist, uses iterative binary search
+    function _checkpointBinarySearch(
+        Checkpoint[] memory checkpoints,
+        uint256 _block
+    ) internal pure returns (uint256) {
+        uint256 length = checkpoints.length;
+        if (length == 0) return 0;
 
         uint256 min = 0;
-        uint256 max = checkpoints.length == 0 ? 0 : checkpoints.length - 1;
+        uint256 max = length - 1;
 
-        if (max == 0) return checkpoints[0].value;
+        if (checkpoints[max].block <= _block) return checkpoints[max].value;
 
         while (max > min) {
-            // TODO: check is +1 needed?
+            // TODO: optimize - see https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v4.6.0/contracts/utils/math/Math.sol
             uint256 midpoint = (max + min + 1) / 2;
 
             if (checkpoints[midpoint].block <= _block) {
@@ -451,13 +466,10 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
             }
         }
 
-        // TODO: check this is legit
         assert(min == max);
 
         return checkpoints[min].value;
     }
-
-    // function _
 
     /*///////////////////////////////////////////////////////////////
                             UPDATE CHECKPOINTS
