@@ -471,27 +471,43 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
         }
     }
 
-    function testBalanceAtBlockFuzz(uint8 blockToFind, uint8 numberOfRounds) public {
+    function testBalanceAtBlockFuzz(uint256 blockToFind, uint8 numberOfRounds) public {
         vm.assume(numberOfRounds < 50);
         vm.assume(blockToFind > 0);
 
         uint256 expectedValue;
         uint256 totalStaked;
+        bool notYetPassedBlock = true;
 
         for (uint256 i = 0; i < numberOfRounds; i++) {
-            uint256 amount = TEST_VALUE * (i + 1);
-            totalStaked += amount;
-            if (blockToFind == block.number) {
+            // get random values
+            uint256 amount = getPseudoRandomNumber(1 ether, 1, blockToFind);
+            uint256 blockAdvance = getPseudoRandomNumber(1000, 0, amount);
+
+            // if we are at the block to find, set the expected value
+            if (block.number == blockToFind) {
+                expectedValue = totalStaked + amount;
+                notYetPassedBlock = false;
+            // otherwise if we just passed the block to find, set the expected value
+            } else if (block.number > blockToFind && notYetPassedBlock) {
                 expectedValue = totalStaked;
+                notYetPassedBlock = false;
             }
+
+            // stake funds
             stakeFunds(address(this), amount);
-            vm.roll(block.number + 1);
+            totalStaked += amount;
+
+            // don't advance the block if we are on the last round
+            if (i != numberOfRounds - 1) vm.roll(block.number + blockAdvance);
         }
 
-        if (blockToFind >= block.number) {
+        // if we are before the block to find, the expected value is the total staked
+        if (blockToFind > block.number) {
             uint256 value = stakingRewardsV2.balanceAtBlock(address(this), blockToFind);
             assertEq(value, totalStaked);
         } else {
+            // otherwise, the expected value is the value at the block to find
             uint256 value = stakingRewardsV2.balanceAtBlock(address(this), blockToFind);
             assertEq(value, expectedValue);
         }
