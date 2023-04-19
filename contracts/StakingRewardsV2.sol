@@ -452,6 +452,12 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
         return _checkpointBinarySearch(escrowedBalances[account], _block);
     }
 
+    /// @notice get the total supply at a given block
+    /// @param _block: block number to check
+    function totalSupplyAtBlock(uint256 _block) external view override returns (uint256) {
+        return _checkpointBinarySearch(_totalSupply, _block);
+    }
+
     /// @notice finds the value of the checkpoint at a given block
     /// @param checkpoints: array of checkpoints to search
     /// @param _block: block number to check
