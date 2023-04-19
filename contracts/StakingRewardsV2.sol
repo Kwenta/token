@@ -242,8 +242,8 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
 
         // update state
         userLastStakeTime[msg.sender] = block.timestamp;
-        addTotalSupplyCheckpoint(totalSupply() + amount);
-        addBalancesCheckpoint(msg.sender, balanceOf(msg.sender) + amount);
+        _addTotalSupplyCheckpoint(totalSupply() + amount);
+        _addBalancesCheckpoint(msg.sender, balanceOf(msg.sender) + amount);
 
         // transfer token to this contract from the caller
         token.safeTransferFrom(msg.sender, address(this), amount);
@@ -268,8 +268,8 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
             revert CannotUnstakeDuringCooldown(canUnstakeAt);
 
         // update state
-        addTotalSupplyCheckpoint(totalSupply() - amount);
-        addBalancesCheckpoint(msg.sender, balanceOf(msg.sender) - amount);
+        _addTotalSupplyCheckpoint(totalSupply() - amount);
+        _addBalancesCheckpoint(msg.sender, balanceOf(msg.sender) - amount);
 
         // transfer token from this contract to the caller
         token.safeTransfer(msg.sender, amount);
@@ -291,12 +291,12 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
 
         // update state
         userLastStakeTime[account] = block.timestamp;
-        addBalancesCheckpoint(account, balanceOf(account) + amount);
-        addEscrowedBalancesCheckpoint(account, escrowedBalanceOf(account) + amount);
+        _addBalancesCheckpoint(account, balanceOf(account) + amount);
+        _addEscrowedBalancesCheckpoint(account, escrowedBalanceOf(account) + amount);
 
         // updates total supply despite no new staking token being transfered.
         // escrowed tokens are locked in RewardEscrow
-        addTotalSupplyCheckpoint(totalSupply() + amount);
+        _addTotalSupplyCheckpoint(totalSupply() + amount);
 
         // emit escrow staking event and index _account
         emit EscrowStaked(account, amount);
@@ -318,12 +318,12 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
             revert CannotUnstakeDuringCooldown(canUnstakeAt);
 
         // update state
-        addBalancesCheckpoint(account, balanceOf(account) - amount);
-        addEscrowedBalancesCheckpoint(account, escrowedBalanceOf(account) - amount);
+        _addBalancesCheckpoint(account, balanceOf(account) - amount);
+        _addEscrowedBalancesCheckpoint(account, escrowedBalanceOf(account) - amount);
 
         // updates total supply despite no new staking token being transfered.
         // escrowed tokens are locked in RewardEscrow
-        addTotalSupplyCheckpoint(totalSupply() - amount);
+        _addTotalSupplyCheckpoint(totalSupply() - amount);
 
         // emit escrow unstaked event and index account
         emit EscrowUnstaked(account, amount);
@@ -432,27 +432,32 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
         return _totalSupply.length;
     }
 
-    // function balanceCheckpointsAt(address account, uint256 _block) external view override returns (Checkpoint memory) {
-    //     Checkpoint[] memory checkpoints = balances[account];
+    function balanceAtBlock(address account, uint256 _block) external view override returns (uint256) {
+        Checkpoint[] memory checkpoints = balances[account];
 
-    //     uint256 min = 0;
-    //     uint256 max = checkpoints.length - 1;
+        uint256 min = 0;
+        uint256 max = checkpoints.length == 0 ? 0 : checkpoints.length - 1;
 
-    //     while (max > min) {
-    //         uint256 midpoint = (max + min + 1) / 2;
+        if (max == 0) return checkpoints[0].value;
 
-    //         if (checkpoints[midpoint].block <= _block) {
-    //             min = midpoint;
-    //         } else {
-    //             max = midpoint - 1;
-    //         }
-    //     }
+        while (max > min) {
+            // TODO: check is +1 needed?
+            uint256 midpoint = (max + min + 1) / 2;
 
-    //     // TODO: check this is legit
-    //     assert(min == max);
+            if (checkpoints[midpoint].block <= _block) {
+                min = midpoint;
+            } else {
+                max = midpoint - 1;
+            }
+        }
 
-    //     return checkpoints[min];
-    // }
+        // TODO: check this is legit
+        assert(min == max);
+
+        return checkpoints[min].value;
+    }
+
+    // function _
 
     /*///////////////////////////////////////////////////////////////
                             UPDATE CHECKPOINTS
@@ -461,7 +466,7 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     /// @notice add a new balance checkpoint for an account
     /// @param account: address of account to add checkpoint for
     /// @param value: value of checkpoint to add
-    function addBalancesCheckpoint(address account, uint256 value) internal {
+    function _addBalancesCheckpoint(address account, uint256 value) internal {
         uint256 lastBlock = balances[account].length == 0
             ? 0
             : balances[account][balances[account].length - 1].block;
@@ -474,7 +479,7 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     /// @notice add a new escrowed balance checkpoint for an account
     /// @param account: address of account to add checkpoint for
     /// @param value: value of checkpoint to add
-    function addEscrowedBalancesCheckpoint(address account, uint256 value) internal {
+    function _addEscrowedBalancesCheckpoint(address account, uint256 value) internal {
         uint256 lastBlock = escrowedBalances[account].length == 0
             ? 0
             : escrowedBalances[account][escrowedBalances[account].length - 1].block;
@@ -487,7 +492,7 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
 
     /// @notice add a new total supply checkpoint
     /// @param value: value of checkpoint to add
-    function addTotalSupplyCheckpoint(uint256 value) internal {
+    function _addTotalSupplyCheckpoint(uint256 value) internal {
         uint256 lastBlock = _totalSupply.length == 0
             ? 0
             : _totalSupply[_totalSupply.length - 1].block;
