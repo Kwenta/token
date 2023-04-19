@@ -616,4 +616,113 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
             assertEq(value, expectedValue);
         }
     }
+
+    /*//////////////////////////////////////////////////////////////
+                Binary Search TotalSupply Checkpoints
+    //////////////////////////////////////////////////////////////*/
+
+    function testTotalSupplyAtBlock() public {
+        uint256 blockToFind = 4;
+        uint256 expectedValue;
+        uint256 totalStaked;
+
+        for (uint256 i = 0; i < 10; i++) {
+            uint256 amount = TEST_VALUE * (i + 1);
+            totalStaked += amount;
+            if (blockToFind == block.number) {
+                expectedValue = totalStaked;
+            }
+            if (flipCoin()) stakeFunds(address(this), amount);
+            else stakeEscrowedFunds(address(this), amount);
+
+            vm.roll(block.number + 1);
+        }
+
+        uint256 value = stakingRewardsV2.totalSupplyAtBlock(blockToFind);
+        assertEq(value, expectedValue);
+    }
+
+    function testTotalSupplyAtBlockAtEachBlock() public {
+        vm.roll(3);
+        stakeEscrowedFunds(address(this), 1);
+
+        vm.roll(6);
+        stakeFunds(address(this), 1);
+
+        vm.roll(8);
+        stakeEscrowedFunds(address(this), 1);
+
+        vm.roll(12);
+        stakeFunds(address(this), 1);
+
+        vm.roll(23);
+        stakeEscrowedFunds(address(this), 1);
+
+        uint256 value;
+
+        for (uint256 i = 0; i < 30; i++) {
+            value = stakingRewardsV2.totalSupplyAtBlock(i);
+            if (i < 3) {
+                assertEq(value, 0);
+            } else if (i < 6) {
+                assertEq(value, 1);
+            } else if (i < 8) {
+                assertEq(value, 2);
+            } else if (i < 12) {
+                assertEq(value, 3);
+            } else if (i < 23) {
+                assertEq(value, 4);
+            } else {
+                assertEq(value, 5);
+            }
+        }
+    }
+
+    function testTotalSupplyeAtBlockFuzz(
+        uint256 blockToFind,
+        uint8 numberOfRounds
+    ) public {
+        vm.assume(numberOfRounds < 50);
+        vm.assume(blockToFind > 0);
+
+        uint256 expectedValue;
+        uint256 totalStaked;
+        bool notYetPassedBlock = true;
+
+        for (uint256 i = 0; i < numberOfRounds; i++) {
+            // get random values
+            uint256 amount = getPseudoRandomNumber(1 ether, 1, blockToFind);
+            uint256 blockAdvance = getPseudoRandomNumber(1000, 0, amount);
+
+            // if we are at the block to find, set the expected value
+            if (block.number == blockToFind) {
+                expectedValue = totalStaked + amount;
+                notYetPassedBlock = false;
+                // otherwise if we just passed the block to find, set the expected value
+            } else if (block.number > blockToFind && notYetPassedBlock) {
+                expectedValue = totalStaked;
+                notYetPassedBlock = false;
+            }
+
+            // stake funds
+            if (flipCoin()) {
+                stakeFunds(address(this), amount);
+            } else {
+                stakeEscrowedFunds(address(this), amount);
+            }
+            totalStaked += amount;
+
+            // don't advance the block if we are on the last round
+            if (i != numberOfRounds - 1) vm.roll(block.number + blockAdvance);
+        }
+
+        uint256 value = stakingRewardsV2.totalSupplyAtBlock(blockToFind);
+        // if we are before the block to find, the expected value is the total staked
+        if (blockToFind > block.number) {
+            assertEq(value, totalStaked);
+        } else {
+            // otherwise, the expected value is the value at the block to find
+            assertEq(value, expectedValue);
+        }
+    }
 }

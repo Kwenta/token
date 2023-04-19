@@ -17,6 +17,11 @@ contract TestHelpers is Test {
     }
 
     // get psuedorandom bool
+    function flipCoin() public returns (bool) {
+        return (uint256(keccak256(abi.encodePacked(++nonce))) % 2) == 1;
+    }
+
+    // get psuedorandom bool with salt
     function flipCoin(uint256 salt) public returns (bool) {
         return (uint256(keccak256(abi.encodePacked(++nonce, salt))) % 2) == 1;
     }
