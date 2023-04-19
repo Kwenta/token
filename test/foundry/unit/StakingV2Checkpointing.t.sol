@@ -449,23 +449,18 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
         uint256 value;
 
         for (uint256 i = 0; i < 30; i++) {
+            value = stakingRewardsV2.balanceAtBlock(address(this), i);
             if (i < 3) {
-                value = stakingRewardsV2.balanceAtBlock(address(this), i);
                 assertEq(value, 0);
             } else if (i < 6) {
-                value = stakingRewardsV2.balanceAtBlock(address(this), i);
                 assertEq(value, 1);
             } else if (i < 8) {
-                value = stakingRewardsV2.balanceAtBlock(address(this), i);
                 assertEq(value, 2);
             } else if (i < 12) {
-                value = stakingRewardsV2.balanceAtBlock(address(this), i);
                 assertEq(value, 3);
             } else if (i < 23) {
-                value = stakingRewardsV2.balanceAtBlock(address(this), i);
                 assertEq(value, 4);
             } else {
-                value = stakingRewardsV2.balanceAtBlock(address(this), i);
                 assertEq(value, 5);
             }
         }
@@ -488,7 +483,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
             if (block.number == blockToFind) {
                 expectedValue = totalStaked + amount;
                 notYetPassedBlock = false;
-            // otherwise if we just passed the block to find, set the expected value
+                // otherwise if we just passed the block to find, set the expected value
             } else if (block.number > blockToFind && notYetPassedBlock) {
                 expectedValue = totalStaked;
                 notYetPassedBlock = false;
@@ -502,13 +497,122 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
             if (i != numberOfRounds - 1) vm.roll(block.number + blockAdvance);
         }
 
+        uint256 value = stakingRewardsV2.balanceAtBlock(address(this), blockToFind);
         // if we are before the block to find, the expected value is the total staked
         if (blockToFind > block.number) {
-            uint256 value = stakingRewardsV2.balanceAtBlock(address(this), blockToFind);
             assertEq(value, totalStaked);
         } else {
             // otherwise, the expected value is the value at the block to find
-            uint256 value = stakingRewardsV2.balanceAtBlock(address(this), blockToFind);
+            assertEq(value, expectedValue);
+        }
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                Binary Search EscrowBalance Checkpoints
+    //////////////////////////////////////////////////////////////*/
+
+    function testEscrowBalanceAtBlock() public {
+        uint256 blockToFind = 4;
+        uint256 expectedValue;
+        uint256 totalStaked;
+
+        for (uint256 i = 0; i < 10; i++) {
+            uint256 amount = TEST_VALUE * (i + 1);
+            totalStaked += amount;
+            if (blockToFind == block.number) {
+                expectedValue = totalStaked;
+            }
+            stakeEscrowedFunds(address(this), amount);
+            vm.roll(block.number + 1);
+        }
+
+        uint256 value = stakingRewardsV2.escrowedBalanceAtBlock(
+            address(this),
+            blockToFind
+        );
+
+        assertEq(value, expectedValue);
+    }
+
+    function testEscrowBalanceAtBlockAtEachBlock() public {
+        vm.roll(3);
+        stakeEscrowedFunds(address(this), 1);
+
+        vm.roll(6);
+        stakeEscrowedFunds(address(this), 1);
+
+        vm.roll(8);
+        stakeEscrowedFunds(address(this), 1);
+
+        vm.roll(12);
+        stakeEscrowedFunds(address(this), 1);
+
+        vm.roll(23);
+        stakeEscrowedFunds(address(this), 1);
+
+        uint256 value;
+
+        for (uint256 i = 0; i < 30; i++) {
+            value = stakingRewardsV2.escrowedBalanceAtBlock(address(this), i);
+            if (i < 3) {
+                assertEq(value, 0);
+            } else if (i < 6) {
+                assertEq(value, 1);
+            } else if (i < 8) {
+                assertEq(value, 2);
+            } else if (i < 12) {
+                assertEq(value, 3);
+            } else if (i < 23) {
+                assertEq(value, 4);
+            } else {
+                assertEq(value, 5);
+            }
+        }
+    }
+
+    function testEscrowBalanceAtBlockFuzz(
+        uint256 blockToFind,
+        uint8 numberOfRounds
+    ) public {
+        vm.assume(numberOfRounds < 50);
+        vm.assume(blockToFind > 0);
+
+        uint256 expectedValue;
+        uint256 totalStaked;
+        bool notYetPassedBlock = true;
+
+        for (uint256 i = 0; i < numberOfRounds; i++) {
+            // get random values
+            uint256 amount = getPseudoRandomNumber(1 ether, 1, blockToFind);
+            uint256 blockAdvance = getPseudoRandomNumber(1000, 0, amount);
+
+            // if we are at the block to find, set the expected value
+            if (block.number == blockToFind) {
+                expectedValue = totalStaked + amount;
+                notYetPassedBlock = false;
+                // otherwise if we just passed the block to find, set the expected value
+            } else if (block.number > blockToFind && notYetPassedBlock) {
+                expectedValue = totalStaked;
+                notYetPassedBlock = false;
+            }
+
+            // stake funds
+            stakeEscrowedFunds(address(this), amount);
+            totalStaked += amount;
+
+            // don't advance the block if we are on the last round
+            if (i != numberOfRounds - 1) vm.roll(block.number + blockAdvance);
+        }
+
+        uint256 value = stakingRewardsV2.escrowedBalanceAtBlock(
+            address(this),
+            blockToFind
+        );
+        // if we are before the block to find, the expected value is the total staked
+        if (blockToFind > block.number) {
+            assertEq(value, totalStaked);
+        } else {
+            // otherwise, the expected value is the value at the block to find
             assertEq(value, expectedValue);
         }
     }
