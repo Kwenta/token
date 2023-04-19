@@ -440,12 +440,9 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     }
 
     /*///////////////////////////////////////////////////////////////
-                            CHECKPOINTING
+                            CHECKPOINTING VIEWS
     ///////////////////////////////////////////////////////////////*/
 
-    // function latestBalanceCheckpoint(address account) public view returns (Checkpoint memory) {
-    //     return balances[account][balances[account].length - 1];
-    // }
 
     /// @notice get the number of balances checkpoints for an account
     /// @param account: address of account to check
@@ -464,13 +461,44 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
         return _totalSupply.length;
     }
 
+    // function balanceCheckpointsAt(address account, uint256 _block) external view override returns (Checkpoint memory) {
+    //     Checkpoint[] memory checkpoints = balances[account];
+
+    //     uint256 min = 0;
+    //     uint256 max = checkpoints.length - 1;
+
+    //     while (max > min) {
+    //         uint256 midpoint = (max + min + 1) / 2;
+
+    //         if (checkpoints[midpoint].block <= _block) {
+    //             min = midpoint;
+    //         } else {
+    //             max = midpoint - 1;
+    //         }
+    //     }
+
+    //     // TODO: check this is legit
+    //     assert(min == max);
+
+    //     return checkpoints[min];
+    // }
+
+    /*///////////////////////////////////////////////////////////////
+                            UPDATE CHECKPOINTS
+    ///////////////////////////////////////////////////////////////*/
+
     /// @notice add a new balance checkpoint for an account
     /// @param account: address of account to add checkpoint for
     /// @param value: value of checkpoint to add
     function addBalancesCheckpoint(address account, uint256 value)
         internal
     {
-        balances[account].push(Checkpoint(block.number, value));
+        uint256 lastBlock = balances[account].length == 0 ? 0 : balances[account][balances[account].length - 1].block;
+        if (lastBlock != block.number) {
+            balances[account].push(Checkpoint(block.number, value));
+        } else {
+            balances[account][balances[account].length - 1].value = value;
+        }
     }
 
     /// @notice add a new escrowed balance checkpoint for an account
@@ -479,7 +507,12 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     function addEscrowedBalancesCheckpoint(address account, uint256 value)
         internal
     {
-        escrowedBalances[account].push(Checkpoint(block.number, value));
+        uint256 lastBlock = escrowedBalances[account].length == 0 ? 0 : escrowedBalances[account][escrowedBalances[account].length - 1].block;
+        if (lastBlock != block.number) {
+            escrowedBalances[account].push(Checkpoint(block.number, value));
+        } else {
+            escrowedBalances[account][escrowedBalances[account].length - 1].value = value;
+        }
     }
 
     /// @notice add a new total supply checkpoint
@@ -487,7 +520,12 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     function addTotalSupplyCheckpoint(uint256 value)
         internal
     {
-        _totalSupply.push(Checkpoint(block.number, value));
+        uint256 lastBlock = _totalSupply.length == 0 ? 0 : _totalSupply[_totalSupply.length - 1].block;
+        if (lastBlock != block.number) {
+            _totalSupply.push(Checkpoint(block.number, value));
+        } else {
+            _totalSupply[_totalSupply.length - 1].value = value;
+        }
     }
 
     /*///////////////////////////////////////////////////////////////
