@@ -407,7 +407,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
     }
 
     /*//////////////////////////////////////////////////////////////
-                    Binary Search Checkpoint Tests
+                    Binary Search Balance Checkpoints
     //////////////////////////////////////////////////////////////*/
 
     function testBalanceAtBlock() public {

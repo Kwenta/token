@@ -457,14 +457,9 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
         if (checkpoints[max].block <= _block) return checkpoints[max].value;
 
         while (max > min) {
-            // TODO: optimize - see https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v4.6.0/contracts/utils/math/Math.sol
             uint256 midpoint = (max + min + 1) / 2;
-
-            if (checkpoints[midpoint].block <= _block) {
-                min = midpoint;
-            } else {
-                max = midpoint - 1;
-            }
+            if (checkpoints[midpoint].block <= _block) min = midpoint;
+            else max = midpoint - 1;
         }
 
         assert(min == max);
