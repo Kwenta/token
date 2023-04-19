@@ -16,7 +16,7 @@ contract StakingV2CooldownPeriodTests is StakingRewardsTestHelpers {
 
     function testCannotUnstakeDuringCooldown() public {
         // stake
-        stakeFunds(address(this), TEST_VALUE);
+        stakeFundsV2(address(this), TEST_VALUE);
 
         uint256 cooldownPeriod = stakingRewardsV2.unstakingCooldownPeriod();
         uint256 canUnstakeAt = block.timestamp + cooldownPeriod;
@@ -41,7 +41,7 @@ contract StakingV2CooldownPeriodTests is StakingRewardsTestHelpers {
         vm.assume(stakeAmount > 0);
 
         // stake
-        stakeFunds(address(this), stakeAmount);
+        stakeFundsV2(address(this), stakeAmount);
 
         uint256 cooldownPeriod = stakingRewardsV2.unstakingCooldownPeriod();
         uint256 canUnstakeAt = block.timestamp + cooldownPeriod;
@@ -57,7 +57,7 @@ contract StakingV2CooldownPeriodTests is StakingRewardsTestHelpers {
 
     function testCannotUnstakeEscrowDuringCooldown() public {
         // stake
-        stakeEscrowedFunds(address(this), TEST_VALUE);
+        stakeEscrowedFundsV2(address(this), TEST_VALUE);
 
         uint256 cooldownPeriod = stakingRewardsV2.unstakingCooldownPeriod();
         uint256 canUnstakeAt = block.timestamp + cooldownPeriod;
@@ -65,24 +65,24 @@ contract StakingV2CooldownPeriodTests is StakingRewardsTestHelpers {
 
         // unstake immediately
         vm.expectRevert(abi.encodeWithSelector(StakingRewardsV2.CannotUnstakeDuringCooldown.selector, canUnstakeAt));
-        unstakeEscrowedFunds(address(this), TEST_VALUE);
+        unstakeEscrowedFundsV2(address(this), TEST_VALUE);
 
         // unstake midway through
         vm.warp(stakedAt + cooldownPeriod / 2);
         vm.expectRevert(abi.encodeWithSelector(StakingRewardsV2.CannotUnstakeDuringCooldown.selector, canUnstakeAt));
-        unstakeEscrowedFunds(address(this), TEST_VALUE);
+        unstakeEscrowedFundsV2(address(this), TEST_VALUE);
 
         // unstake 1 sec before period ends
         vm.warp(stakedAt + cooldownPeriod - 1);
         vm.expectRevert(abi.encodeWithSelector(StakingRewardsV2.CannotUnstakeDuringCooldown.selector, canUnstakeAt));
-        unstakeEscrowedFunds(address(this), TEST_VALUE);
+        unstakeEscrowedFundsV2(address(this), TEST_VALUE);
     }
 
     function testCannotUnstakeEscrowDuringCooldownFuzz(uint32 stakeAmount, uint32 waitTime) public {
         vm.assume(stakeAmount > 0);
 
         // stake
-        stakeEscrowedFunds(address(this), stakeAmount);
+        stakeEscrowedFundsV2(address(this), stakeAmount);
 
         uint256 cooldownPeriod = stakingRewardsV2.unstakingCooldownPeriod();
         uint256 canUnstakeAt = block.timestamp + cooldownPeriod;
@@ -93,7 +93,7 @@ contract StakingV2CooldownPeriodTests is StakingRewardsTestHelpers {
         if (waitTime < cooldownPeriod) {
             vm.expectRevert(abi.encodeWithSelector(StakingRewardsV2.CannotUnstakeDuringCooldown.selector, canUnstakeAt));
         }
-        unstakeEscrowedFunds(address(this), stakeAmount);
+        unstakeEscrowedFundsV2(address(this), stakeAmount);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -102,7 +102,7 @@ contract StakingV2CooldownPeriodTests is StakingRewardsTestHelpers {
 
     function testCanStakeMoreDuringCooldown() public {
         // stake once
-        fundAndApproveAccount(address(this), TEST_VALUE * 3);
+        fundAndApproveAccountV2(address(this), TEST_VALUE * 3);
         stakingRewardsV2.stake(TEST_VALUE);
 
         // stake immediately again
@@ -115,19 +115,19 @@ contract StakingV2CooldownPeriodTests is StakingRewardsTestHelpers {
 
     function testCanStakeEscrowMoreDuringCooldown() public {
         // stake once
-        stakeEscrowedFunds(address(this), TEST_VALUE);
+        stakeEscrowedFundsV2(address(this), TEST_VALUE);
 
         // stake immediately again
-        stakeEscrowedFunds(address(this), TEST_VALUE);
+        stakeEscrowedFundsV2(address(this), TEST_VALUE);
 
         // stake half the cooldown period later again
         vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod() / 2);
-        stakeEscrowedFunds(address(this), TEST_VALUE);
+        stakeEscrowedFundsV2(address(this), TEST_VALUE);
     }
 
     function testStakingDuringCooldownExtendsWait() public {
         // stake
-        fundAndApproveAccount(address(this), TEST_VALUE * 3);
+        fundAndApproveAccountV2(address(this), TEST_VALUE * 3);
         stakingRewardsV2.stake(TEST_VALUE);
 
         // stake half the cooldown period later again
@@ -145,11 +145,11 @@ contract StakingV2CooldownPeriodTests is StakingRewardsTestHelpers {
 
     function testStakingEscrowDuringCooldownExtendsWait() public {
         // stake
-        stakeEscrowedFunds(address(this), TEST_VALUE);
+        stakeEscrowedFundsV2(address(this), TEST_VALUE);
 
         // stake half the cooldown period later again
         vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod() / 2);
-        stakeEscrowedFunds(address(this), TEST_VALUE);
+        stakeEscrowedFundsV2(address(this), TEST_VALUE);
 
         // expected can unstakeAt time is now the cooldown period from now
         uint256 canUnstakeAt = block.timestamp + stakingRewardsV2.unstakingCooldownPeriod();
@@ -157,7 +157,7 @@ contract StakingV2CooldownPeriodTests is StakingRewardsTestHelpers {
         // cannot unstake another half period later
         vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod() / 2);
         vm.expectRevert(abi.encodeWithSelector(StakingRewardsV2.CannotUnstakeDuringCooldown.selector, canUnstakeAt));
-        unstakeEscrowedFunds(address(this), TEST_VALUE);
+        unstakeEscrowedFundsV2(address(this), TEST_VALUE);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -184,10 +184,10 @@ contract StakingV2CooldownPeriodTests is StakingRewardsTestHelpers {
         assertEq(stakingRewardsV2.unstakingCooldownPeriod(), newCooldownPeriod);
 
         // stake
-        stakeFunds(address(this), TEST_VALUE);
+        stakeFundsV2(address(this), TEST_VALUE);
 
         // stake escrow
-        stakeEscrowedFunds(address(this), TEST_VALUE);
+        stakeEscrowedFundsV2(address(this), TEST_VALUE);
 
         // move forward new cooldown period
         vm.warp(block.timestamp + newCooldownPeriod);
@@ -196,7 +196,7 @@ contract StakingV2CooldownPeriodTests is StakingRewardsTestHelpers {
         stakingRewardsV2.unstake(TEST_VALUE);
 
         // unstake escrow
-        unstakeEscrowedFunds(address(this), TEST_VALUE);
+        unstakeEscrowedFundsV2(address(this), TEST_VALUE);
     }
 
     function testSetCooldownPeriodFuzz(uint128 newCooldownPeriod, uint128 timeJump) public {
@@ -214,10 +214,10 @@ contract StakingV2CooldownPeriodTests is StakingRewardsTestHelpers {
         assertEq(stakingRewardsV2.unstakingCooldownPeriod(), newCooldownPeriod);
 
         // stake
-        stakeFunds(address(this), TEST_VALUE);
+        stakeFundsV2(address(this), TEST_VALUE);
 
         // stake escrow
-        stakeEscrowedFunds(address(this), TEST_VALUE);
+        stakeEscrowedFundsV2(address(this), TEST_VALUE);
 
         uint256 canUnstakeAt = block.timestamp + newCooldownPeriod;
 
@@ -236,7 +236,7 @@ contract StakingV2CooldownPeriodTests is StakingRewardsTestHelpers {
             vm.expectRevert(abi.encodeWithSelector(StakingRewardsV2.CannotUnstakeDuringCooldown.selector, canUnstakeAt));
         }
         // unstake escrow
-        unstakeEscrowedFunds(address(this), TEST_VALUE);
+        unstakeEscrowedFundsV2(address(this), TEST_VALUE);
     }
 
     function testSetCooldownPeriodRange() public {

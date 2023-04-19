@@ -16,7 +16,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
 
     function testBalancesCheckpointsAreUpdated() public {
         // stake
-        stakeFunds(address(this), TEST_VALUE);
+        stakeFundsV2(address(this), TEST_VALUE);
 
         // get last checkpoint
         (uint256 blockNum, uint256 value) = stakingRewardsV2.balances(address(this), 0);
@@ -44,7 +44,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
 
     function testBalancesCheckpointsAreUpdatedEscrowStaking() public {
         // stake
-        stakeEscrowedFunds(address(this), TEST_VALUE);
+        stakeEscrowedFundsV2(address(this), TEST_VALUE);
 
         // get last checkpoint
         (uint256 blockNum, uint256 value) = stakingRewardsV2.balances(address(this), 0);
@@ -60,7 +60,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
         vm.roll(block.number + 1);
 
         // unstake
-        unstakeEscrowedFunds(address(this), TEST_VALUE);
+        unstakeEscrowedFundsV2(address(this), TEST_VALUE);
 
         // get last checkpoint
         (blockNum, value) = stakingRewardsV2.balances(address(this), 1);
@@ -86,7 +86,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
             uint256 previousTotal = stakingRewardsV2.balanceOf(address(this));
 
             // stake
-            stakeFunds(address(this), amountToStake);
+            stakeFundsV2(address(this), amountToStake);
 
             // get last checkpoint
             uint256 length = stakingRewardsV2.balancesLength(address(this));
@@ -138,7 +138,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
             uint256 previousTotal = stakingRewardsV2.balanceOf(address(this));
 
             // stake
-            stakeEscrowedFunds(address(this), amountToStake);
+            stakeEscrowedFundsV2(address(this), amountToStake);
 
             // get last checkpoint
             uint256 length = stakingRewardsV2.balancesLength(address(this));
@@ -156,7 +156,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
             vm.roll(block.number + blockAdvance);
 
             // unstake
-            unstakeEscrowedFunds(address(this), amountToUnstake);
+            unstakeEscrowedFundsV2(address(this), amountToUnstake);
 
             // get last checkpoint
             uint256 newIndex = finalIndex;
@@ -180,7 +180,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
 
     function testEscrowedBalancesCheckpointsAreUpdated() public {
         // stake
-        stakeEscrowedFunds(address(this), TEST_VALUE);
+        stakeEscrowedFundsV2(address(this), TEST_VALUE);
 
         // get last checkpoint
         (uint256 blockNum, uint256 value) = stakingRewardsV2.escrowedBalances(address(this), 0);
@@ -196,7 +196,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
         vm.roll(block.number + 1);
 
         // unstake
-        unstakeEscrowedFunds(address(this), TEST_VALUE);
+        unstakeEscrowedFundsV2(address(this), TEST_VALUE);
 
         // get last checkpoint
         (blockNum, value) = stakingRewardsV2.escrowedBalances(address(this), 1);
@@ -222,7 +222,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
             uint256 previousTotal = stakingRewardsV2.balanceOf(address(this));
 
             // stake
-            stakeEscrowedFunds(address(this), amountToStake);
+            stakeEscrowedFundsV2(address(this), amountToStake);
 
             // get last checkpoint
             uint256 length = stakingRewardsV2.escrowedBalancesLength(address(this));
@@ -240,7 +240,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
             vm.roll(block.number + blockAdvance);
 
             // // unstake
-            unstakeEscrowedFunds(address(this), amountToUnstake);
+            unstakeEscrowedFundsV2(address(this), amountToUnstake);
 
             // get last checkpoint
             uint256 newIndex = finalIndex;
@@ -264,7 +264,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
 
     function testTotalSupplyCheckpointsAreUpdated() public {
         // stake
-        stakeFunds(address(this), TEST_VALUE);
+        stakeFundsV2(address(this), TEST_VALUE);
 
         // get last checkpoint
         (uint256 blockNum, uint256 value) = stakingRewardsV2._totalSupply(0);
@@ -292,7 +292,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
 
     function testTotalSupplyCheckpointsAreUpdatedEscrowStaked() public {
         // stake
-        stakeEscrowedFunds(address(this), TEST_VALUE);
+        stakeEscrowedFundsV2(address(this), TEST_VALUE);
 
         // get last checkpoint
         (uint256 blockNum, uint256 value) = stakingRewardsV2._totalSupply(0);
@@ -308,7 +308,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
         vm.roll(block.number + 1);
 
         // unstake
-        unstakeEscrowedFunds(address(this), TEST_VALUE);
+        unstakeEscrowedFundsV2(address(this), TEST_VALUE);
 
         // get last checkpoint
         (blockNum, value) = stakingRewardsV2._totalSupply(1);
@@ -336,9 +336,9 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
 
             // stake
             if (escrowStake) {
-                stakeEscrowedFunds(address(this), amountToStake);
+                stakeEscrowedFundsV2(address(this), amountToStake);
             } else {
-                stakeFunds(address(this), amountToStake);
+                stakeFundsV2(address(this), amountToStake);
             }
 
             // get last checkpoint
@@ -358,7 +358,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
 
             // unstake
             if (escrowStake) {
-                unstakeEscrowedFunds(address(this), amountToUnstake);
+                unstakeEscrowedFundsV2(address(this), amountToUnstake);
             } else {
                 stakingRewardsV2.unstake(amountToUnstake);
             }
@@ -394,7 +394,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
             if (blockToFind == block.number) {
                 expectedValue = totalStaked;
             }
-            stakeFunds(address(this), amount);
+            stakeFundsV2(address(this), amount);
             vm.roll(block.number + 1);
         }
 
@@ -405,19 +405,19 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
 
     function testBalanceAtBlockAtEachBlock() public {
         vm.roll(3);
-        stakeFunds(address(this), 1);
+        stakeFundsV2(address(this), 1);
 
         vm.roll(6);
-        stakeFunds(address(this), 1);
+        stakeFundsV2(address(this), 1);
 
         vm.roll(8);
-        stakeFunds(address(this), 1);
+        stakeFundsV2(address(this), 1);
 
         vm.roll(12);
-        stakeFunds(address(this), 1);
+        stakeFundsV2(address(this), 1);
 
         vm.roll(23);
-        stakeFunds(address(this), 1);
+        stakeFundsV2(address(this), 1);
 
         uint256 value;
 
@@ -463,7 +463,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
             }
 
             // stake funds
-            stakeFunds(address(this), amount);
+            stakeFundsV2(address(this), amount);
             totalStaked += amount;
 
             // don't advance the block if we are on the last round
@@ -495,7 +495,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
             if (blockToFind == block.number) {
                 expectedValue = totalStaked;
             }
-            stakeEscrowedFunds(address(this), amount);
+            stakeEscrowedFundsV2(address(this), amount);
             vm.roll(block.number + 1);
         }
 
@@ -506,19 +506,19 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
 
     function testEscrowBalanceAtBlockAtEachBlock() public {
         vm.roll(3);
-        stakeEscrowedFunds(address(this), 1);
+        stakeEscrowedFundsV2(address(this), 1);
 
         vm.roll(6);
-        stakeEscrowedFunds(address(this), 1);
+        stakeEscrowedFundsV2(address(this), 1);
 
         vm.roll(8);
-        stakeEscrowedFunds(address(this), 1);
+        stakeEscrowedFundsV2(address(this), 1);
 
         vm.roll(12);
-        stakeEscrowedFunds(address(this), 1);
+        stakeEscrowedFundsV2(address(this), 1);
 
         vm.roll(23);
-        stakeEscrowedFunds(address(this), 1);
+        stakeEscrowedFundsV2(address(this), 1);
 
         uint256 value;
 
@@ -564,7 +564,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
             }
 
             // stake funds
-            stakeEscrowedFunds(address(this), amount);
+            stakeEscrowedFundsV2(address(this), amount);
             totalStaked += amount;
 
             // don't advance the block if we are on the last round
@@ -596,8 +596,8 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
             if (blockToFind == block.number) {
                 expectedValue = totalStaked;
             }
-            if (flipCoin()) stakeFunds(address(this), amount);
-            else stakeEscrowedFunds(address(this), amount);
+            if (flipCoin()) stakeFundsV2(address(this), amount);
+            else stakeEscrowedFundsV2(address(this), amount);
 
             vm.roll(block.number + 1);
         }
@@ -608,19 +608,19 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
 
     function testTotalSupplyAtBlockAtEachBlock() public {
         vm.roll(3);
-        stakeEscrowedFunds(address(this), 1);
+        stakeEscrowedFundsV2(address(this), 1);
 
         vm.roll(6);
-        stakeFunds(address(this), 1);
+        stakeFundsV2(address(this), 1);
 
         vm.roll(8);
-        stakeEscrowedFunds(address(this), 1);
+        stakeEscrowedFundsV2(address(this), 1);
 
         vm.roll(12);
-        stakeFunds(address(this), 1);
+        stakeFundsV2(address(this), 1);
 
         vm.roll(23);
-        stakeEscrowedFunds(address(this), 1);
+        stakeEscrowedFundsV2(address(this), 1);
 
         uint256 value;
 
@@ -667,9 +667,9 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
 
             // stake funds
             if (flipCoin()) {
-                stakeFunds(address(this), amount);
+                stakeFundsV2(address(this), amount);
             } else {
-                stakeEscrowedFunds(address(this), amount);
+                stakeEscrowedFundsV2(address(this), amount);
             }
             totalStaked += amount;
 

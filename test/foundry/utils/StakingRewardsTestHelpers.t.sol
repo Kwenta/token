@@ -25,9 +25,12 @@ contract StakingRewardsTestHelpers is TestHelpers {
     address public treasury;
     address public user1;
     address public user2;
+    address public user3;
+    address public user4;
+    address public user5;
     IERC20 public mockToken;
     Kwenta public kwenta;
-    RewardEscrow public rewardEscrow;
+    RewardEscrow public rewardEscrowV1;
     SupplySchedule public supplySchedule;
     StakingRewardsV2 public stakingRewardsV2;
 
@@ -35,7 +38,7 @@ contract StakingRewardsTestHelpers is TestHelpers {
                                 Setup
     //////////////////////////////////////////////////////////////*/
 
-    function setUp() public {
+    function setUp() public virtual {
         treasury = createUser();
         user1 = createUser();
         user2 = createUser();
@@ -53,16 +56,16 @@ contract StakingRewardsTestHelpers is TestHelpers {
             address(this),
             treasury
         );
-        rewardEscrow = new RewardEscrow(address(this), address(kwenta));
+        rewardEscrowV1 = new RewardEscrow(address(this), address(kwenta));
         supplySchedule = new SupplySchedule(address(this), treasury);
         kwenta.setSupplySchedule(address(supplySchedule));
         stakingRewardsV2 = new StakingRewardsV2(
             address(kwenta),
-            address(rewardEscrow),
+            address(rewardEscrowV1),
             address(supplySchedule)
         );
         supplySchedule.setStakingRewards(address(stakingRewardsV2));
-        rewardEscrow.setStakingRewards(address(stakingRewardsV2));
+        rewardEscrowV1.setStakingRewards(address(stakingRewardsV2));
 
         vm.prank(treasury);
         kwenta.transfer(address(stakingRewardsV2), INITIAL_SUPPLY / 4);
@@ -72,26 +75,26 @@ contract StakingRewardsTestHelpers is TestHelpers {
                             Helper Functions
     //////////////////////////////////////////////////////////////*/
 
-    function fundAndApproveAccount(address account, uint256 amount) public {
+    function fundAndApproveAccountV2(address account, uint256 amount) public {
         vm.prank(treasury);
         kwenta.transfer(account, amount);
         vm.prank(account);
         kwenta.approve(address(stakingRewardsV2), amount);
     }
 
-    function stakeFunds(address account, uint256 amount) public {
-        fundAndApproveAccount(account, amount);
+    function stakeFundsV2(address account, uint256 amount) public {
+        fundAndApproveAccountV2(account, amount);
         vm.prank(account);
         stakingRewardsV2.stake(amount);
     }
 
-    function stakeEscrowedFunds(address account, uint256 amount) public {
-        vm.prank(address(rewardEscrow));
+    function stakeEscrowedFundsV2(address account, uint256 amount) public {
+        vm.prank(address(rewardEscrowV1));
         stakingRewardsV2.stakeEscrow(account, amount);
     }
 
-    function unstakeEscrowedFunds(address account, uint256 amount) public {
-        vm.prank(address(rewardEscrow));
+    function unstakeEscrowedFundsV2(address account, uint256 amount) public {
+        vm.prank(address(rewardEscrowV1));
         stakingRewardsV2.unstakeEscrow(account, amount);
     }
 }
