@@ -453,6 +453,7 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
         uint256 min = 0;
         uint256 max = length - 1;
 
+        if (checkpoints[min].block > _block) return 0;
         if (checkpoints[max].block <= _block) return checkpoints[max].value;
 
         while (max > min) {
