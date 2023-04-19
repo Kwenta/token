@@ -19,10 +19,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
         stakeFunds(address(this), TEST_VALUE);
 
         // get last checkpoint
-        (uint256 blockNum, uint256 value) = stakingRewardsV2.balances(
-            address(this),
-            0
-        );
+        (uint256 blockNum, uint256 value) = stakingRewardsV2.balances(address(this), 0);
 
         // check values
         assertEq(blockNum, block.number);
@@ -50,10 +47,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
         stakeEscrowedFunds(address(this), TEST_VALUE);
 
         // get last checkpoint
-        (uint256 blockNum, uint256 value) = stakingRewardsV2.balances(
-            address(this),
-            0
-        );
+        (uint256 blockNum, uint256 value) = stakingRewardsV2.balances(address(this), 0);
 
         // check values
         assertEq(blockNum, block.number);
@@ -87,16 +81,8 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
         // Stake and unstake in each iteration/round and check that the checkpoints are updated correctly
         for (uint8 i = 0; i < numberOfRounds; i++) {
             // get random values for each round
-            uint256 amountToStake = getPseudoRandomNumber(
-                maxAmountStaked,
-                1,
-                i
-            );
-            uint256 amountToUnstake = getPseudoRandomNumber(
-                amountToStake,
-                1,
-                i
-            );
+            uint256 amountToStake = getPseudoRandomNumber(maxAmountStaked, 1, i);
+            uint256 amountToUnstake = getPseudoRandomNumber(amountToStake, 1, i);
             uint256 blockAdvance = getPseudoRandomNumber(amountToUnstake, 0, i);
 
             // get initial values
@@ -118,9 +104,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
             assertEq(value, previousTotal + amountToStake);
 
             // move beyond cold period
-            vm.warp(
-                block.timestamp + stakingRewardsV2.unstakingCooldownPeriod()
-            );
+            vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
 
             // update block number
             vm.roll(block.number + blockAdvance);
@@ -133,10 +117,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
             if (blockAdvance > 0) {
                 newIndex += 1;
             }
-            (blockNum, value) = stakingRewardsV2.balances(
-                address(this),
-                newIndex
-            );
+            (blockNum, value) = stakingRewardsV2.balances(address(this), newIndex);
 
             // check checkpoint values
             assertEq(blockNum, block.number);
@@ -158,16 +139,8 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
         // Stake and unstake in each iteration/round and check that the checkpoints are updated correctly
         for (uint8 i = 0; i < numberOfRounds; i++) {
             // get random values for each round
-            uint256 amountToStake = getPseudoRandomNumber(
-                maxAmountStaked,
-                1,
-                i
-            );
-            uint256 amountToUnstake = getPseudoRandomNumber(
-                amountToStake,
-                1,
-                i
-            );
+            uint256 amountToStake = getPseudoRandomNumber(maxAmountStaked, 1, i);
+            uint256 amountToUnstake = getPseudoRandomNumber(amountToStake, 1, i);
             uint256 blockAdvance = getPseudoRandomNumber(amountToUnstake, 0, i);
 
             // get initial values
@@ -189,9 +162,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
             assertEq(value, previousTotal + amountToStake);
 
             // move beyond cold period
-            vm.warp(
-                block.timestamp + stakingRewardsV2.unstakingCooldownPeriod()
-            );
+            vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
 
             // update block number
             vm.roll(block.number + blockAdvance);
@@ -204,10 +175,7 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
             if (blockAdvance > 0) {
                 newIndex += 1;
             }
-            (blockNum, value) = stakingRewardsV2.balances(
-                address(this),
-                newIndex
-            );
+            (blockNum, value) = stakingRewardsV2.balances(address(this), newIndex);
 
             // check checkpoint values
             assertEq(blockNum, block.number);
@@ -264,16 +232,8 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
         // Stake and unstake in each iteration/round and check that the checkpoints are updated correctly
         for (uint8 i = 0; i < numberOfRounds; i++) {
             // get random values for each round
-            uint256 amountToStake = getPseudoRandomNumber(
-                maxAmountStaked,
-                1,
-                i
-            );
-            uint256 amountToUnstake = getPseudoRandomNumber(
-                amountToStake,
-                1,
-                i
-            );
+            uint256 amountToStake = getPseudoRandomNumber(maxAmountStaked, 1, i);
+            uint256 amountToUnstake = getPseudoRandomNumber(amountToStake, 1, i);
             uint256 blockAdvance = getPseudoRandomNumber(amountToUnstake, 0, i);
 
             // get initial values
@@ -283,21 +243,19 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
             stakeEscrowedFunds(address(this), amountToStake);
 
             // get last checkpoint
-            uint256 length = stakingRewardsV2.escrowedBalancesLength(
-                address(this)
-            );
+            uint256 length = stakingRewardsV2.escrowedBalancesLength(address(this));
             uint256 finalIndex = length == 0 ? 0 : length - 1;
-            (uint256 blockNum, uint256 value) = stakingRewardsV2
-                .escrowedBalances(address(this), finalIndex);
+            (uint256 blockNum, uint256 value) = stakingRewardsV2.escrowedBalances(
+                address(this),
+                finalIndex
+            );
 
             // check checkpoint values
             assertEq(blockNum, block.number);
             assertEq(value, previousTotal + amountToStake);
 
             // move beyond cold period
-            vm.warp(
-                block.timestamp + stakingRewardsV2.unstakingCooldownPeriod()
-            );
+            vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
 
             // update block number
             vm.roll(block.number + blockAdvance);
@@ -395,16 +353,8 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
         // Stake and unstake in each iteration/round and check that the checkpoints are updated correctly
         for (uint8 i = 0; i < numberOfRounds; i++) {
             // get random values for each round
-            uint256 amountToStake = getPseudoRandomNumber(
-                maxAmountStaked,
-                1,
-                i
-            );
-            uint256 amountToUnstake = getPseudoRandomNumber(
-                amountToStake,
-                1,
-                i
-            );
+            uint256 amountToStake = getPseudoRandomNumber(maxAmountStaked, 1, i);
+            uint256 amountToUnstake = getPseudoRandomNumber(amountToStake, 1, i);
             uint256 blockAdvance = getPseudoRandomNumber(amountToUnstake, 0, i);
             bool escrowStake = flipCoin(blockAdvance);
 
@@ -421,18 +371,14 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
             // get last checkpoint
             uint256 length = stakingRewardsV2.totalSupplyLength();
             uint256 finalIndex = length == 0 ? 0 : length - 1;
-            (uint256 blockNum, uint256 value) = stakingRewardsV2._totalSupply(
-                finalIndex
-            );
+            (uint256 blockNum, uint256 value) = stakingRewardsV2._totalSupply(finalIndex);
 
             // check checkpoint values
             assertEq(blockNum, block.number);
             assertEq(value, previousTotal + amountToStake);
 
             // move beyond cold period
-            vm.warp(
-                block.timestamp + stakingRewardsV2.unstakingCooldownPeriod()
-            );
+            vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
 
             // update block number
             vm.roll(block.number + blockAdvance);
@@ -480,11 +426,67 @@ contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
             vm.roll(block.number + 1);
         }
 
-        uint256 value = stakingRewardsV2.balanceAtBlock(
-            address(this),
-            blockToFind
-        );
+        uint256 value = stakingRewardsV2.balanceAtBlock(address(this), blockToFind);
 
         assertEq(value, expectedValue);
+    }
+
+    function testBalanceAtBlockAtEachBlock() public {
+        vm.roll(3);
+        stakeFunds(address(this), 3);
+
+        vm.roll(6);
+        stakeFunds(address(this), 6);
+
+        vm.roll(8);
+        stakeFunds(address(this), 8);
+
+        vm.roll(12);
+        stakeFunds(address(this), 12);
+
+        vm.roll(23);
+        stakeFunds(address(this), 23);
+
+        uint256 value = stakingRewardsV2.balanceAtBlock(address(this), 3);
+        assertEq(value, 3);
+
+        value = stakingRewardsV2.balanceAtBlock(address(this), 6);
+        assertEq(value, 9);
+
+        value = stakingRewardsV2.balanceAtBlock(address(this), 8);
+        assertEq(value, 17);
+
+        value = stakingRewardsV2.balanceAtBlock(address(this), 12);
+        assertEq(value, 29);
+
+        value = stakingRewardsV2.balanceAtBlock(address(this), 23);
+        assertEq(value, 52);
+    }
+
+    // TODO: check that this works with finding a block in the middle of two checkpoint
+    function testBalanceAtBlockFuzz(uint8 blockToFind, uint8 numberOfRounds) public {
+        vm.assume(numberOfRounds < 50);
+        vm.assume(blockToFind > 0);
+
+        uint256 expectedValue;
+        uint256 totalStaked;
+
+        for (uint256 i = 0; i < numberOfRounds; i++) {
+            uint256 amount = TEST_VALUE * (i + 1);
+            totalStaked += amount;
+            if (blockToFind == block.number) {
+                expectedValue = totalStaked;
+            }
+            stakeFunds(address(this), amount);
+            vm.roll(block.number + 1);
+        }
+
+        if (blockToFind >= block.number) {
+            uint256 value = stakingRewardsV2.balanceAtBlock(address(this), blockToFind);
+            assertEq(value, totalStaked);
+        } else {
+            uint256 value = stakingRewardsV2.balanceAtBlock(address(this), blockToFind);
+            assertEq(value, expectedValue);
+        }
     }
 }
