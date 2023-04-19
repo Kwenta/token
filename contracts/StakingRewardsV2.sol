@@ -435,8 +435,21 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     /// @notice get a users balance at a given block
     /// @param account: address of account to check
     /// @param _block: block number to check
-    function balanceAtBlock(address account, uint256 _block) external view override returns (uint256) {
+    function balanceAtBlock(
+        address account,
+        uint256 _block
+    ) external view override returns (uint256) {
         return _checkpointBinarySearch(balances[account], _block);
+    }
+
+    /// @notice get a users escrowed balance at a given block
+    /// @param account: address of account to check
+    /// @param _block: block number to check
+    function escrowedBalanceAtBlock(
+        address account,
+        uint256 _block
+    ) external view override returns (uint256) {
+        return _checkpointBinarySearch(escrowedBalances[account], _block);
     }
 
     /// @notice finds the value of the checkpoint at a given block
