@@ -98,9 +98,6 @@ contract StakingRewardsTestHelpers is TestHelpers {
 
         // Unpause StakingV1
         stakingRewardsV1.unpauseStakingRewards();
-
-        vm.prank(treasury);
-        kwenta.transfer(address(stakingRewardsV2), INITIAL_SUPPLY / 4);
     }
 
     /*//////////////////////////////////////////////////////////////

@@ -11,6 +11,17 @@ import "../utils/Constants.t.sol";
 
 contract StakingRewardsV2Test is StakingRewardsTestHelpers {
     /*//////////////////////////////////////////////////////////////
+                                Setup
+    //////////////////////////////////////////////////////////////*/
+
+    function setUp() public override {
+        super.setUp();
+
+        vm.prank(treasury);
+        kwenta.transfer(address(stakingRewardsV2), INITIAL_SUPPLY / 4);
+    }
+
+    /*//////////////////////////////////////////////////////////////
                         Constructor & Settings
     //////////////////////////////////////////////////////////////*/
 
