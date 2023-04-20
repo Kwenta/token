@@ -54,7 +54,9 @@ contract StakingV2MigrationTests is StakingRewardsTestHelpers {
         supplySchedule.setStakingRewards(address(stakingRewardsV1));
         supplySchedule.setTradingRewards(address(tradingRewards));
         rewardEscrowV1.setStakingRewards(address(stakingRewardsV1));
+    }
 
+    function testManualStakingAndUnstaking() public {
         // Stake tokens in StakingV1
         fundAccountAndStakeV1(user1, 10 ether);
         fundAccountAndStakeV1(user2, 20 ether);
@@ -62,33 +64,24 @@ contract StakingV2MigrationTests is StakingRewardsTestHelpers {
         fundAccountAndStakeV1(user4, 40 ether);
         fundAccountAndStakeV1(user5, 50 ether);
 
-        vm.warp(block.timestamp + 2 weeks);
-        supplySchedule.mint();
-        vm.warp(block.timestamp + 2 weeks);
-        supplySchedule.mint();
-        vm.warp(block.timestamp + 2 weeks);
-        supplySchedule.mint();
-        vm.warp(block.timestamp + 2 weeks);
-        supplySchedule.mint();
-        vm.warp(block.timestamp + 2 weeks);
-        supplySchedule.mint();
-        vm.warp(block.timestamp + 2 weeks);
-        supplySchedule.mint();
+        // mint new tokens
+        warpAndMintV1(2 weeks);
+        warpAndMintV1(2 weeks);
+        warpAndMintV1(2 weeks);
+        warpAndMintV1(2 weeks);
+        warpAndMintV1(2 weeks);
+        warpAndMintV1(2 weeks);
 
+        // get rewards
         getStakingRewardsV1(user1);
         getStakingRewardsV1(user2);
         getStakingRewardsV1(user3);
-        getStakingRewardsV1(user4);
-        getStakingRewardsV1(user5);
 
+        // stake the rewards
         stakeAllUnstakedEscrowV1(user1);
         stakeAllUnstakedEscrowV1(user2);
         stakeAllUnstakedEscrowV1(user3);
-        stakeAllUnstakedEscrowV1(user4);
-        stakeAllUnstakedEscrowV1(user5);
-    }
 
-    function testMigrateToV2() public {
         // Deploy StakingV2
         rewardEscrowV2 = new RewardEscrowV2(address(this), address(kwenta));
         stakingRewardsV2 = new StakingRewardsV2(
@@ -111,26 +104,18 @@ contract StakingV2MigrationTests is StakingRewardsTestHelpers {
         uint256 user1StakeV1 = stakingRewardsV1.balanceOf(user1);
         uint256 user2StakeV1 = stakingRewardsV1.balanceOf(user2);
         uint256 user3StakeV1 = stakingRewardsV1.balanceOf(user3);
-        // uint256 user4StakeV1 = stakingRewardsV1.balanceOf(user4);
-        // uint256 user5StakeV1 = stakingRewardsV1.balanceOf(user5);
 
         uint256 user1EscrowV1 = rewardEscrowV1.balanceOf(user1);
         uint256 user2EscrowV1 = rewardEscrowV1.balanceOf(user2);
         uint256 user3EscrowV1 = rewardEscrowV1.balanceOf(user3);
-        // uint256 user4EscrowV1 = rewardEscrowV1.balanceOf(user4);
-        // uint256 user5EscrowV1 = rewardEscrowV1.balanceOf(user5);
 
         uint256 user1EscrowStakedV1 = stakingRewardsV1.escrowedBalanceOf(user1);
         uint256 user2EscrowStakedV1 = stakingRewardsV1.escrowedBalanceOf(user2);
         uint256 user3EscrowStakedV1 = stakingRewardsV1.escrowedBalanceOf(user3);
-        // uint256 user4EscrowStakedV1 = stakingRewardsV1.escrowedBalanceOf(user4);
-        // uint256 user5EscrowStakedV1 = stakingRewardsV1.escrowedBalanceOf(user5);
 
         uint256 user1NonEscrowedStakeV1 = stakingRewardsV1.nonEscrowedBalanceOf(user1);
         uint256 user2NonEscrowedStakeV1 = stakingRewardsV1.nonEscrowedBalanceOf(user2);
         uint256 user3NonEscrowedStakeV1 = stakingRewardsV1.nonEscrowedBalanceOf(user3);
-        // uint256 user4NonEscrowedStakeV1 = stakingRewardsV1.nonEscrowedBalanceOf(user4);
-        // uint256 user5NonEscrowedStakeV1 = stakingRewardsV1.nonEscrowedBalanceOf(user5);
 
         assertEq(user1StakeV1, user1EscrowStakedV1 + user1NonEscrowedStakeV1);
         assertEq(user1EscrowV1, user1EscrowStakedV1);
@@ -165,6 +150,14 @@ contract StakingV2MigrationTests is StakingRewardsTestHelpers {
         assertEq(user2NonEscrowedStakeV1, 0);
         assertEq(user3NonEscrowedStakeV1, 0);
 
-        // Migrate staked escrow to StakingRewardsV1 to StakingRewardsV2
+        // // Check staked escrow from StakingRewardsV1 is accounted for in StakingRewardsV2
+
+        // uint256 user1Balance = stakingRewardsV2.balanceOf(user1);
+        // user1EscrowStakedV1 = stakingRewardsV1.escrowedBalanceOf(user1);
+        // uint256 rewardPerToken = stakingRewardsV2.rewardPerToken();
+        // uint256 user1RewardPerTokenPaid = stakingRewardsV2.userRewardPerTokenPaid(user1);
+        // uint256 user1Rewards = stakingRewardsV2.rewards(user1);
+
+        // // uint256 expectedRewardOutput = 
     }
 }

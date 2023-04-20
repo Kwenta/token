@@ -151,6 +151,11 @@ contract StakingRewardsTestHelpers is TestHelpers {
         return rewardEscrowV1.balanceOf(account) - stakingRewardsV1.escrowedBalanceOf(account);
     }
 
+    function warpAndMintV1(uint256 time) public {
+        vm.warp(block.timestamp + time);
+        supplySchedule.mint();
+    }
+
     /*//////////////////////////////////////////////////////////////
                             V2 Helper Functions
     //////////////////////////////////////////////////////////////*/
