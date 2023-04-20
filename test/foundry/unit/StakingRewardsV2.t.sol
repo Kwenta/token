@@ -43,7 +43,6 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
     }
 
-    // TODO: test happy path - see fast forward in hardhat tests
     function testOnlyOwnerCanCallSetRewardsDuration() public {
         vm.prank(user1);
         vm.expectRevert("Only the contract owner may perform this action");
@@ -350,7 +349,6 @@ contract StakingRewardsV2Test is StakingRewardsTestHelpers {
         stakeEscrowedFundsV2(address(this), 0);
     }
 
-    // TODO: test happy path for this
     function testCannotUnstakeStakedEscrow() public {
         // stake escrow
         stakeEscrowedFundsV2(address(this), TEST_VALUE);
