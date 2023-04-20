@@ -89,6 +89,14 @@ contract StakingRewardsTestHelpers is TestHelpers {
             address(stakingRewardsV1)
         );
 
+        pauseAndSwitchToStakingRewardsV2();
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                            Migration Helpers
+    //////////////////////////////////////////////////////////////*/
+
+    function pauseAndSwitchToStakingRewardsV2() public {
         // Pause StakingV1
         stakingRewardsV1.pauseStakingRewards();
 

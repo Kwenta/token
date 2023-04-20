@@ -91,15 +91,7 @@ contract StakingV2MigrationTests is StakingRewardsTestHelpers {
             address(stakingRewardsV1)
         );
 
-        // Pause StakingV1
-        stakingRewardsV1.pauseStakingRewards();
-
-        // Update SupplySchedule to point to StakingV2
-        supplySchedule.setStakingRewards(address(stakingRewardsV2));
-        rewardEscrowV2.setStakingRewards(address(stakingRewardsV2));
-
-        // Unpause StakingV1
-        stakingRewardsV1.unpauseStakingRewards();
+        pauseAndSwitchToStakingRewardsV2();
 
         uint256 user1StakeV1 = stakingRewardsV1.balanceOf(user1);
         uint256 user2StakeV1 = stakingRewardsV1.balanceOf(user2);
