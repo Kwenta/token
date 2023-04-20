@@ -88,8 +88,6 @@ contract StakingRewardsTestHelpers is TestHelpers {
             address(supplySchedule),
             address(stakingRewardsV1)
         );
-
-        pauseAndSwitchToStakingRewardsV2();
     }
 
     /*//////////////////////////////////////////////////////////////

@@ -2,14 +2,14 @@
 pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
-import {StakingRewardsTestHelpers} from "../utils/StakingRewardsTestHelpers.t.sol";
+import {DefaultStakingRewardsV2Setup} from "../utils/DefaultStakingRewardsV2Setup.t.sol";
 import {Kwenta} from "../../../contracts/Kwenta.sol";
 import {RewardEscrow} from "../../../contracts/RewardEscrow.sol";
 import {SupplySchedule} from "../../../contracts/SupplySchedule.sol";
 import {StakingRewardsV2} from "../../../contracts/StakingRewardsV2.sol";
 import "../utils/Constants.t.sol";
 
-contract StakingV2CheckpointingTests is StakingRewardsTestHelpers {
+contract StakingV2CheckpointingTests is DefaultStakingRewardsV2Setup {
     /*//////////////////////////////////////////////////////////////
                         Balance Checkpoint Tests
     //////////////////////////////////////////////////////////////*/
