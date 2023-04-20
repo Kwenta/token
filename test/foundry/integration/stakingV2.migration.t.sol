@@ -54,6 +54,15 @@ contract StakingV2MigrationTests is StakingRewardsTestHelpers {
         supplySchedule.setStakingRewards(address(stakingRewardsV1));
         supplySchedule.setTradingRewards(address(tradingRewards));
         rewardEscrowV1.setStakingRewards(address(stakingRewardsV1));
+
+        // Deploy StakingV2
+        rewardEscrowV2 = new RewardEscrowV2(address(this), address(kwenta));
+        stakingRewardsV2 = new StakingRewardsV2(
+            address(kwenta),
+            address(rewardEscrowV2),
+            address(supplySchedule),
+            address(stakingRewardsV1)
+        );
     }
 
     function testManualStakingAndUnstaking() public {
@@ -82,15 +91,7 @@ contract StakingV2MigrationTests is StakingRewardsTestHelpers {
         stakeAllUnstakedEscrowV1(user2);
         stakeAllUnstakedEscrowV1(user3);
 
-        // Deploy StakingV2
-        rewardEscrowV2 = new RewardEscrowV2(address(this), address(kwenta));
-        stakingRewardsV2 = new StakingRewardsV2(
-            address(kwenta),
-            address(rewardEscrowV2),
-            address(supplySchedule),
-            address(stakingRewardsV1)
-        );
-
+        // switch over to StakingV2
         pauseAndSwitchToStakingRewardsV2();
 
         uint256 user1StakeV1 = stakingRewardsV1.balanceOf(user1);

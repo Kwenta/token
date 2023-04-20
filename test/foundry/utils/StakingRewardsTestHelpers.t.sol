@@ -80,7 +80,7 @@ contract StakingRewardsTestHelpers is TestHelpers {
         supplySchedule.setTradingRewards(address(tradingRewards));
         rewardEscrowV1.setStakingRewards(address(stakingRewardsV1));
 
-        // Setup StakingV2
+        // Deploy StakingV2
         rewardEscrowV2 = new RewardEscrowV2(address(this), address(kwenta));
         stakingRewardsV2 = new StakingRewardsV2(
             address(kwenta),
