@@ -94,4 +94,4 @@ jobs:
         with:
             version: nightly
       - name: Run Foundry Unit Tests
-        run: npm run f-test:unit
+        run: npm run f-test
