@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import "forge-std/Test.sol";
 import {TestHelpers} from "../utils/TestHelpers.t.sol";
 import {Kwenta} from "../../../contracts/Kwenta.sol";
 import {RewardEscrow} from "../../../contracts/RewardEscrow.sol";
@@ -101,6 +100,9 @@ contract StakingRewardsTestHelpers is TestHelpers {
         // Update SupplySchedule to point to StakingV2
         supplySchedule.setStakingRewards(address(stakingRewardsV2));
         rewardEscrowV2.setStakingRewards(address(stakingRewardsV2));
+
+        // Unpause StakingV1
+        stakingRewardsV1.unpauseStakingRewards();
     }
 
     /*//////////////////////////////////////////////////////////////
