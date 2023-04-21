@@ -1,10 +1,22 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
+import "forge-std/Test.sol";
 import {DefaultStakingRewardsV2Setup} from "../utils/DefaultStakingRewardsV2Setup.t.sol";
 import "../utils/Constants.t.sol";
 
 contract StakingRewardsV2Test is DefaultStakingRewardsV2Setup {
+    /*//////////////////////////////////////////////////////////////
+                                Setup
+    //////////////////////////////////////////////////////////////*/
+
+    function setUp() public override {
+        super.setUp();
+
+        vm.prank(treasury);
+        kwenta.transfer(address(stakingRewardsV2), INITIAL_SUPPLY / 4);
+    }
+
     /*//////////////////////////////////////////////////////////////
                         Constructor & Settings
     //////////////////////////////////////////////////////////////*/
