@@ -22,6 +22,10 @@ contract TestHelpers is Test {
         return (uint256(keccak256(abi.encodePacked(++nonce, salt))) % 2) == 1;
     }
 
+    function min(uint256 a, uint256 b) public returns (uint256) {
+        return a < b ? a : b;
+    }
+
     function getPseudoRandomNumber(uint256 max, uint256 min, uint256 salt) internal returns (uint256 result) {
         require(min <= max, "min must be <= max");
         if (max == min) return max;
