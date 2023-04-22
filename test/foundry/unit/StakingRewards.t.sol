@@ -76,9 +76,6 @@ contract StakingRewardsTests is StakingRewardsTestHelpers {
     }
 
     function testStakingRewardsOneStakerFuzz(uint64 _initialStake, uint64 _reward) public {
-    // function testStakingRewardsOneStakerFuzz() public {
-        // uint64 _initialStake = 6069;
-        // uint64 _reward = 2024;
         uint256 initialStake = uint256(_initialStake);
         uint256 reward = uint256(_reward);
         vm.assume(initialStake > 0);
@@ -111,7 +108,7 @@ contract StakingRewardsTests is StakingRewardsTestHelpers {
 
         // general formula for rewards should be:
         // rewardRate = reward / rewardsDuration
-        // newRewards = rewardRate * min(timePassed, 1 weeks)
+        // newRewards = rewardRate * min(timePassed, rewardsDuration)
         // rewardPerToken = previousRewards + (newRewards * 1e18 / totalSupply)
         // rewardsPerTokenForUser = rewardPerToken - rewardPerTokenPaid
         // rewards = (balance * rewardsPerTokenForUser) / 1e18
