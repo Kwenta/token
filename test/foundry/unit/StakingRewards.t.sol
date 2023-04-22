@@ -24,7 +24,6 @@ contract StakingRewardsTests is StakingRewardsTestHelpers {
         // assert initial rewards are 0
         assertEq(rewards, 0);
 
-
         // send in 604800 (1 week) of rewards - (using 1 week for round numbers)
         uint256 newRewards = 1 weeks;
         vm.prank(treasury);
@@ -76,11 +75,17 @@ contract StakingRewardsTests is StakingRewardsTestHelpers {
         assertEq(rewards, expectedRewards * numberOfPeriods);
     }
 
-    function testStakingRewardsOneStakerFuzz(uint64 initialStake) public {
+    function testStakingRewardsOneStakerFuzz(uint64 _initialStake, uint64 _reward) public {
+    // function testStakingRewardsOneStakerFuzz() public {
+        // uint64 _initialStake = 6069;
+        // uint64 _reward = 2024;
+        uint256 initialStake = uint256(_initialStake);
+        uint256 reward = uint256(_reward);
         vm.assume(initialStake > 0);
 
         // this is 7 days by default
-        uint256 lengthOfPeriod = stakingRewardsV1.rewardsDuration();
+        uint256 rewardsDuration = stakingRewardsV1.rewardsDuration();
+        uint256 waitTime = rewardsDuration;
 
         // fund so totalSupply is initialStake or 1 ether
         // user1 earns 100% of rewards
@@ -91,41 +96,46 @@ contract StakingRewardsTests is StakingRewardsTestHelpers {
         // assert initial rewards are 0
         assertEq(rewards, 0);
 
-
         // send in 604800 (1 week) of rewards - (using 1 week for round numbers)
-        uint256 newRewards = 1 weeks;
         vm.prank(treasury);
-        kwenta.transfer(address(stakingRewardsV1), newRewards);
+        kwenta.transfer(address(stakingRewardsV1), reward);
         vm.prank(address(supplySchedule));
-        stakingRewardsV1.notifyRewardAmount(newRewards);
+        stakingRewardsV1.notifyRewardAmount(reward);
 
         // fast forward 1 week - one complete period
-        vm.warp(block.timestamp + lengthOfPeriod);
+        vm.warp(block.timestamp + waitTime);
 
         // get the rewards
         vm.prank(user1);
         stakingRewardsV1.getReward();
 
         // general formula for rewards should be:
-        // newRewards = reward * min(timePassed, 1 weeks) / 1 weeks
+        // rewardRate = reward / rewardsDuration
+        // newRewards = rewardRate * min(timePassed, 1 weeks)
         // rewardPerToken = previousRewards + (newRewards * 1e18 / totalSupply)
         // rewardsPerTokenForUser = rewardPerToken - rewardPerTokenPaid
         // rewards = (balance * rewardsPerTokenForUser) / 1e18
 
         // applying this calculation to the test case:
-        // newRewards = 1 weeks * min(1 weeks, 1 weeks) / 1 weeks = 1 weeks
-        // rewardPerToken = 0 + (1 weeks * 1e18 / initialStake)
-        // rewardsPerTokenForUser = 1 weeks - 0 = 1 weeks
+        // rewardRate = reward / 1 weeks
+        // newRewards = rewardRate * min(1 weeks, 1 weeks)
+        // rewardPerToken = 0 + (newRewards * 1e18 / initialStake)
+        // rewardsPerTokenForUser = rewardPerToken - 0 = rewardPerToken
         // rewards = (initialStake * rewardsPerTokenForUser) / 1e18
 
-        uint256 rewardPerToken = 1 weeks * 1e18 / initialStake;
-        uint256 rewardsPerTokenForUser = rewardPerToken - 0;
+        uint256 rewardRate = reward / rewardsDuration;
+        uint256 newRewards = rewardRate * waitTime;
+        uint256 previousRewardPerToken = 0;
+        uint256 rewardPerToken = previousRewardPerToken + (newRewards * 1e18 / initialStake);
+        uint256 rewardsPerTokenPaid = 0;
+        uint256 rewardsPerTokenForUser = rewardPerToken - rewardsPerTokenPaid;
         uint256 expectedRewards = initialStake * rewardsPerTokenForUser / 1e18;
 
         // check rewards
         rewards = rewardEscrowV1.balanceOf(user1);
-        // assertEq(rewards, expectedRewards);
         assertEq(rewards, expectedRewards);
+
+        // ----------------------------------------------
 
         // // send in another 604800 (1 week) of rewards
         // vm.prank(treasury);
@@ -160,7 +170,6 @@ contract StakingRewardsTests is StakingRewardsTestHelpers {
         uint256 rewards = rewardEscrowV1.balanceOf(user1);
         // assert initial rewards are 0
         assertEq(rewards, 0);
-
 
         // send in 604800 (1 week) of rewards - (using 1 week for round numbers)
         uint256 newRewards = 1 weeks;
