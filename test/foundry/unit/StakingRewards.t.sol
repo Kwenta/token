@@ -75,14 +75,14 @@ contract StakingRewardsTests is StakingRewardsTestHelpers {
         assertEq(rewards, expectedRewards * numberOfPeriods);
     }
 
-    function testStakingRewardsOneStakerFuzz(uint64 _initialStake, uint64 _reward) public {
+    function testStakingRewardsOneStakerFuzz(uint64 _initialStake, uint64 _reward, uint24 _waitTime) public {
         uint256 initialStake = uint256(_initialStake);
         uint256 reward = uint256(_reward);
+        uint256 waitTime = uint256(_waitTime);
         vm.assume(initialStake > 0);
 
         // this is 7 days by default
         uint256 rewardsDuration = stakingRewardsV1.rewardsDuration();
-        uint256 waitTime = rewardsDuration;
 
         // fund so totalSupply is initialStake or 1 ether
         // user1 earns 100% of rewards
@@ -121,7 +121,7 @@ contract StakingRewardsTests is StakingRewardsTestHelpers {
         // rewards = (initialStake * rewardsPerTokenForUser) / 1e18
 
         uint256 rewardRate = reward / rewardsDuration;
-        uint256 newRewards = rewardRate * waitTime;
+        uint256 newRewards = rewardRate * min(waitTime, rewardsDuration);
         uint256 previousRewardPerToken = 0;
         uint256 rewardPerToken = previousRewardPerToken + (newRewards * 1e18 / initialStake);
         uint256 rewardsPerTokenPaid = 0;
