@@ -13,4 +13,10 @@ contract TestHelpersTests is TestHelpers {
         uint256 result = getPseudoRandomNumber(max, min, salt);
         assertTrue(result >= min && result <= max);
     }
+
+    function testMinFuzz(uint8 a, uint8 b) public {
+        uint256 result = min(a, b);
+        assertLe(result, a);
+        assertLe(result, b);
+    }
 }
