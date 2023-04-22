@@ -12,6 +12,10 @@ contract TestHelpers is Test {
         return vm.addr(userNonce);
     }
 
+    function assertCloseTo(uint256 a, uint256 b, uint256 tolerance) public {
+        assertTrue(closeTo(a, b, tolerance));
+    }
+
     function closeTo(uint256 a, uint256 b, uint256 tolerance) public pure returns (bool) {
         if (a == b) return true;
         if (a > b) return a - b <= tolerance;
