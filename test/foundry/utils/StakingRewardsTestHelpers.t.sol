@@ -137,6 +137,33 @@ contract StakingRewardsTestHelpers is TestHelpers {
         return expectedRewards;
     }
 
+    // Note - this must be run before triggering notifyRewardAmount and getReward
+    function getExpectedRewardV2(uint256 reward, uint256 waitTime, uint256 initialStake)
+        public
+        view
+        returns (uint256)
+    {
+        // This defaults to 7 days
+        uint256 rewardsDuration = stakingRewardsV2.rewardsDuration();
+        uint256 previousRewardPerToken = stakingRewardsV2.rewardPerToken();
+        uint256 rewardsPerTokenPaid = stakingRewardsV2.userRewardPerTokenPaid(user1);
+        uint256 totalSupply = stakingRewardsV2.totalSupply();
+
+        // general formula for rewards should be:
+        // rewardRate = reward / rewardsDuration
+        // newRewards = rewardRate * min(timePassed, rewardsDuration)
+        // rewardPerToken = previousRewards + (newRewards * 1e18 / totalSupply)
+        // rewardsPerTokenForUser = rewardPerToken - rewardPerTokenPaid
+        // rewards = (balance * rewardsPerTokenForUser) / 1e18
+        uint256 rewardRate = reward / rewardsDuration;
+        uint256 newRewards = rewardRate * min(waitTime, rewardsDuration);
+        uint256 rewardPerToken = previousRewardPerToken + (newRewards * 1e18 / totalSupply);
+        uint256 rewardsPerTokenForUser = rewardPerToken - rewardsPerTokenPaid;
+        uint256 expectedRewards = initialStake * rewardsPerTokenForUser / 1e18;
+
+        return expectedRewards;
+    }
+
     function jumpToEndOfRewardsPeriod(uint256 waitTime) public {
         uint256 rewardsDuration = stakingRewardsV1.rewardsDuration();
 
@@ -150,6 +177,7 @@ contract StakingRewardsTestHelpers is TestHelpers {
                             V1 Helper Functions
     //////////////////////////////////////////////////////////////*/
 
+    // UNIT HELPERS
     function addNewRewardsToStakingRewardsV1(uint256 reward) public {
         vm.prank(treasury);
         kwenta.transfer(address(stakingRewardsV1), reward);
@@ -157,7 +185,6 @@ contract StakingRewardsTestHelpers is TestHelpers {
         stakingRewardsV1.notifyRewardAmount(reward);
     }
 
-    // UNIT HELPERS
     function fundAndApproveAccountV1(address account, uint256 amount) public {
         vm.prank(treasury);
         kwenta.transfer(account, amount);
@@ -214,6 +241,13 @@ contract StakingRewardsTestHelpers is TestHelpers {
     //////////////////////////////////////////////////////////////*/
 
     // UNIT HELPERS
+    function addNewRewardsToStakingRewardsV2(uint256 reward) public {
+        vm.prank(treasury);
+        kwenta.transfer(address(stakingRewardsV2), reward);
+        vm.prank(address(supplySchedule));
+        stakingRewardsV2.notifyRewardAmount(reward);
+    }
+
     function fundAndApproveAccountV2(address account, uint256 amount) public {
         vm.prank(treasury);
         kwenta.transfer(account, amount);
