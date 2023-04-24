@@ -111,10 +111,7 @@ contract StakingRewardsTests is StakingRewardsTestHelpers {
         assertEq(rewards, expectedRewards);
 
         // move forward to the end of the rewards period
-        bool waitTimeLessThanRewardsDuration = waitTime < rewardsDuration;
-        if (waitTimeLessThanRewardsDuration) {
-            vm.warp(block.timestamp + rewardsDuration - waitTime);
-        }
+        jumpToEndOfRewardsPeriod(waitTime);
 
         // calculate new rewards now
         uint256 newReward = 0;

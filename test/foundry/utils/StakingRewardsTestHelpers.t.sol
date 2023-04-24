@@ -111,11 +111,11 @@ contract StakingRewardsTestHelpers is TestHelpers {
     //////////////////////////////////////////////////////////////*/
 
     // TODO: delete this if it is unusded
-    function getFirstExpectedRewardV1(
-        uint256 reward,
-        uint256 waitTime,
-        uint256 initialStake
-    ) public view returns (uint256) {
+    function getFirstExpectedRewardV1(uint256 reward, uint256 waitTime, uint256 initialStake)
+        public
+        view
+        returns (uint256)
+    {
         // This defaults to 7 days
         uint256 rewardsDuration = stakingRewardsV1.rewardsDuration();
 
@@ -137,11 +137,11 @@ contract StakingRewardsTestHelpers is TestHelpers {
     }
 
     // Note - this must be run before triggering notifyRewardAmount and getReward
-    function getExpectedRewardV1(
-        uint256 reward,
-        uint256 waitTime,
-        uint256 initialStake
-    ) public view returns (uint256) {
+    function getExpectedRewardV1(uint256 reward, uint256 waitTime, uint256 initialStake)
+        public
+        view
+        returns (uint256)
+    {
         // This defaults to 7 days
         uint256 rewardsDuration = stakingRewardsV1.rewardsDuration();
         uint256 previousRewardPerToken = stakingRewardsV1.rewardPerToken();
@@ -162,6 +162,14 @@ contract StakingRewardsTestHelpers is TestHelpers {
         return expectedRewards;
     }
 
+    function jumpToEndOfRewardsPeriod(uint256 waitTime) public {
+        uint256 rewardsDuration = stakingRewardsV1.rewardsDuration();
+
+        bool waitTimeLessThanRewardsDuration = waitTime < rewardsDuration;
+        if (waitTimeLessThanRewardsDuration) {
+            vm.warp(block.timestamp + rewardsDuration - waitTime);
+        }
+    }
 
     /*//////////////////////////////////////////////////////////////
                             V1 Helper Functions
@@ -187,7 +195,7 @@ contract StakingRewardsTestHelpers is TestHelpers {
         vm.prank(account);
         stakingRewardsV1.stake(amount);
     }
-    
+
     function stakeFundsV1(address account, uint256 amount) public {
         vm.prank(account);
         kwenta.approve(address(stakingRewardsV1), amount);
