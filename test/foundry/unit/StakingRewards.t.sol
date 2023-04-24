@@ -132,9 +132,6 @@ contract StakingRewardsTests is StakingRewardsTestHelpers {
         uint256 waitTime = uint256(_waitTime);
         vm.assume(initialStake > 0);
 
-        // this is 7 days by default
-        uint256 rewardsDuration = stakingRewardsV1.rewardsDuration();
-
         // fund so totalSupply is initialStake or 1 ether
         // user1 earns 100% of rewards
         fundAccountAndStakeV1(user1, initialStake);
@@ -164,13 +161,15 @@ contract StakingRewardsTests is StakingRewardsTestHelpers {
         // move forward to the end of the rewards period
         jumpToEndOfRewardsPeriod(waitTime);
 
-        // calculate new rewards now
+        // get new pseudorandom reward and wait time
+        uint256 newWaitTime = getPseudoRandomNumber(10 weeks, 0, waitTime);
         uint256 newReward = getPseudoRandomNumber(10 ether, 1, reward);
-        expectedRewards += getExpectedRewardV1(newReward, rewardsDuration + waitTime, initialStake);
+
+        // calculate new rewards now
+        expectedRewards += getExpectedRewardV1(newReward, newWaitTime, initialStake);
 
         addNewRewardsToStakingRewardsV1(newReward);
-
-        vm.warp(block.timestamp + rewardsDuration);
+        vm.warp(block.timestamp + newWaitTime);
 
         // get the rewards
         vm.prank(user1);
