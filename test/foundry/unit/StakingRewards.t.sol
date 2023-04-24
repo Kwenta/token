@@ -165,10 +165,10 @@ contract StakingRewardsTests is StakingRewardsTestHelpers {
         jumpToEndOfRewardsPeriod(waitTime);
 
         // calculate new rewards now
-        uint256 newReward = reward;
+        uint256 newReward = getPseudoRandomNumber(10 ether, 1, reward);
         expectedRewards += getExpectedRewardV1(newReward, rewardsDuration + waitTime, initialStake);
 
-        addNewRewardsToStakingRewardsV1(reward);
+        addNewRewardsToStakingRewardsV1(newReward);
 
         vm.warp(block.timestamp + rewardsDuration);
 
