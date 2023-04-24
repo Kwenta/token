@@ -167,6 +167,13 @@ contract StakingRewardsTestHelpers is TestHelpers {
                             V1 Helper Functions
     //////////////////////////////////////////////////////////////*/
 
+    function addNewRewardsToStakingRewardsV1(uint256 reward) public {
+        vm.prank(treasury);
+        kwenta.transfer(address(stakingRewardsV1), reward);
+        vm.prank(address(supplySchedule));
+        stakingRewardsV1.notifyRewardAmount(reward);
+    }
+
     // UNIT HELPERS
     function fundAndApproveAccountV1(address account, uint256 amount) public {
         vm.prank(treasury);

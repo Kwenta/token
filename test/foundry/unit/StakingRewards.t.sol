@@ -97,10 +97,7 @@ contract StakingRewardsTests is StakingRewardsTestHelpers {
         uint256 expectedRewards = getExpectedRewardV1(reward, waitTime, initialStake);
 
         // send in reward to the contract
-        vm.prank(treasury);
-        kwenta.transfer(address(stakingRewardsV1), reward);
-        vm.prank(address(supplySchedule));
-        stakingRewardsV1.notifyRewardAmount(reward);
+        addNewRewardsToStakingRewardsV1(reward);
 
         // fast forward some period of time to accrue rewards
         vm.warp(block.timestamp + waitTime);
