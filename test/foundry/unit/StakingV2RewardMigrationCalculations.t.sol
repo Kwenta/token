@@ -471,61 +471,61 @@ contract StakingV2RewardMigrationCalculationTests is StakingRewardsTestHelpers {
         }
     }
 
-    // function testStakingRewardsOneStakerSmallIntervals() public {
-    //     // this is 7 days by default
-    //     uint256 lengthOfPeriod = stakingRewardsV2.rewardsDuration();
-    //     uint256 initialStake = 1 ether;
+    function testStakingRewardsOneStakerSmallIntervals() public {
+        // this is 7 days by default
+        uint256 lengthOfPeriod = stakingRewardsV2.rewardsDuration();
+        uint256 initialStake = 1 ether;
 
-    //     // fund so totalSupply is initialStake or 1 ether
-    //     // user1 earns 100% of rewards
-    //     fundAccountAndStakeV2(user1, initialStake);
+        // fund so totalSupply is initialStake or 1 ether
+        // user1 earns 100% of rewards
+        fundAccountAndStakeV2(user1, initialStake);
 
-    //     // get initial rewards
-    //     uint256 rewards = rewardEscrowV2.balanceOf(user1);
-    //     // assert initial rewards are 0
-    //     assertEq(rewards, 0);
+        // get initial rewards
+        uint256 rewards = rewardEscrowV2.balanceOf(user1);
+        // assert initial rewards are 0
+        assertEq(rewards, 0);
 
-    //     // send in 604800 (1 week) of rewards - (using 1 week for round numbers)
-    //     uint256 newRewards = 1 weeks;
-    //     vm.prank(treasury);
-    //     kwenta.transfer(address(stakingRewardsV2), newRewards);
-    //     vm.prank(address(supplySchedule));
-    //     stakingRewardsV2.notifyRewardAmount(newRewards);
+        // send in 604800 (1 week) of rewards - (using 1 week for round numbers)
+        uint256 newRewards = 1 weeks;
+        vm.prank(treasury);
+        kwenta.transfer(address(stakingRewardsV2), newRewards);
+        vm.prank(address(supplySchedule));
+        stakingRewardsV2.notifyRewardAmount(newRewards);
 
-    //     // fast forward 0.5 weeks - half of one complete period
-    //     vm.warp(block.timestamp + lengthOfPeriod / 2);
+        // fast forward 0.5 weeks - half of one complete period
+        vm.warp(block.timestamp + lengthOfPeriod / 2);
 
-    //     // get the rewards
-    //     vm.prank(user1);
-    //     stakingRewardsV2.getReward();
+        // get the rewards
+        vm.prank(user1);
+        stakingRewardsV2.getReward();
 
-    //     // general formula for rewards should be:
-    //     // newRewards = reward * min(timePassed, 1 weeks) / 1 weeks
-    //     // rewardPerToken = previousRewards + (newRewards * 1e18 / totalSupply)
-    //     // rewardsPerTokenForUser = rewardPerToken - rewardPerTokenPaid
-    //     // rewards = (balance * rewardsPerTokenForUser) / 1e18
+        // general formula for rewards should be:
+        // newRewards = reward * min(timePassed, 1 weeks) / 1 weeks
+        // rewardPerToken = previousRewards + (newRewards * 1e18 / totalSupply)
+        // rewardsPerTokenForUser = rewardPerToken - rewardPerTokenPaid
+        // rewards = (balance * rewardsPerTokenForUser) / 1e18
 
-    //     // applying this calculation to the test case:
-    //     // newRewards = 1 weeks * min(0.5 weeks, 1 weeks) / 1 weeks = 0.5 weeks
-    //     // rewardPerToken = 0 + (0.5 weeks * 1e18 / 1 ether) = 0.5 weeks
-    //     // rewardsPerTokenForUser = 0.5 weeks - 0 = 0.5 weeks
-    //     // rewards = (1 ether * 0.5 weeks) / 1e18 = 0.5 weeks
-    //     uint256 expectedRewards = 1 weeks / 2;
+        // applying this calculation to the test case:
+        // newRewards = 1 weeks * min(0.5 weeks, 1 weeks) / 1 weeks = 0.5 weeks
+        // rewardPerToken = 0 + (0.5 weeks * 1e18 / 6 ether) = 1/12 weeks
+        // rewardsPerTokenForUser = 1/12 weeks - 0 = 1/12 weeks
+        // rewards = (2 ether * 1/12 weeks) / 1e18 = 1/6 weeks
+        uint256 expectedRewards = 1 weeks / 6;
 
-    //     // check rewards
-    //     rewards = rewardEscrowV2.balanceOf(user1);
-    //     assertEq(rewards, expectedRewards);
+        // check rewards
+        rewards = rewardEscrowV2.balanceOf(user1);
+        assertEq(rewards, expectedRewards);
 
-    //     // fast forward 0.5 weeks - to the end of this period
-    //     vm.warp(block.timestamp + lengthOfPeriod / 2);
+        // fast forward 0.5 weeks - to the end of this period
+        vm.warp(block.timestamp + lengthOfPeriod / 2);
 
-    //     // get the rewards
-    //     vm.prank(user1);
-    //     stakingRewardsV2.getReward();
+        // get the rewards
+        vm.prank(user1);
+        stakingRewardsV2.getReward();
 
-    //     // check rewards
-    //     rewards = rewardEscrowV2.balanceOf(user1);
-    //     // we exect to claim the other half of this weeks rewards
-    //     assertEq(rewards, expectedRewards * 2);
-    // }
+        // check rewards
+        rewards = rewardEscrowV2.balanceOf(user1);
+        // we exect to claim the other half of this weeks rewards
+        assertEq(rewards, expectedRewards * 2);
+    }
 }
