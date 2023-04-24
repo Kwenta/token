@@ -18,8 +18,8 @@ contract Setup {
         address _stakingRewardsV1,
         bool _pauseAndMigrate
     ) public returns (RewardEscrowV2 rewardEscrowV2, StakingRewardsV2 stakingRewardsV2) {
-        RewardEscrowV2 rewardEscrowV2 = new RewardEscrowV2(_owner, _kwenta);
-        StakingRewardsV2 stakingRewardsV2 = new StakingRewardsV2(
+        rewardEscrowV2 = new RewardEscrowV2(_owner, _kwenta);
+        stakingRewardsV2 = new StakingRewardsV2(
             _kwenta,
             address(rewardEscrowV2),
             _supplySchedule,
@@ -34,8 +34,6 @@ contract Setup {
                 _stakingRewardsV1, _supplySchedule, address(stakingRewardsV2), address(rewardEscrowV2)
             );
         }
-
-        return (rewardEscrowV2, stakingRewardsV2);
     }
 
     function pauseAndSwitchToStakingRewardsV2(
