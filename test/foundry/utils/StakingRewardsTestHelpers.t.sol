@@ -110,7 +110,7 @@ contract StakingRewardsTestHelpers is TestHelpers {
                         Reward Calculation Helpers
     //////////////////////////////////////////////////////////////*/
 
-    // TODO: delete this if it is unusded
+    // TODO: delete this if it is unused
     function getFirstExpectedRewardV1(uint256 reward, uint256 waitTime, uint256 initialStake)
         public
         view
@@ -146,6 +146,7 @@ contract StakingRewardsTestHelpers is TestHelpers {
         uint256 rewardsDuration = stakingRewardsV1.rewardsDuration();
         uint256 previousRewardPerToken = stakingRewardsV1.rewardPerToken();
         uint256 rewardsPerTokenPaid = stakingRewardsV1.userRewardPerTokenPaid(user1);
+        uint256 totalSupply = stakingRewardsV1.totalSupply();
 
         // general formula for rewards should be:
         // rewardRate = reward / rewardsDuration
@@ -155,7 +156,7 @@ contract StakingRewardsTestHelpers is TestHelpers {
         // rewards = (balance * rewardsPerTokenForUser) / 1e18
         uint256 rewardRate = reward / rewardsDuration;
         uint256 newRewards = rewardRate * min(waitTime, rewardsDuration);
-        uint256 rewardPerToken = previousRewardPerToken + (newRewards * 1e18 / initialStake);
+        uint256 rewardPerToken = previousRewardPerToken + (newRewards * 1e18 / totalSupply);
         uint256 rewardsPerTokenForUser = rewardPerToken - rewardsPerTokenPaid;
         uint256 expectedRewards = initialStake * rewardsPerTokenForUser / 1e18;
 
