@@ -110,6 +110,7 @@ contract StakingRewardsTestHelpers is TestHelpers {
                         Reward Calculation Helpers
     //////////////////////////////////////////////////////////////*/
 
+    // TODO: get rid of initialStake input and use user balance
     // Note - this must be run before triggering notifyRewardAmount and getReward
     function getExpectedRewardV1(uint256 reward, uint256 waitTime, uint256 initialStake)
         public
@@ -138,7 +139,7 @@ contract StakingRewardsTestHelpers is TestHelpers {
     }
 
     // Note - this must be run before triggering notifyRewardAmount and getReward
-    function getExpectedRewardV2(uint256 reward, uint256 waitTime, uint256 initialStake)
+    function getExpectedRewardV2(uint256 reward, uint256 waitTime, address user)
         public
         view
         returns (uint256)
@@ -147,7 +148,8 @@ contract StakingRewardsTestHelpers is TestHelpers {
         uint256 rewardsDuration = stakingRewardsV2.rewardsDuration();
         uint256 previousRewardPerToken = stakingRewardsV2.rewardPerToken();
         uint256 rewardsPerTokenPaid = stakingRewardsV2.userRewardPerTokenPaid(user1);
-        uint256 totalSupply = stakingRewardsV2.totalSupply();
+        uint256 totalSupply = stakingRewardsV2.totalSupply() + stakingRewardsV1.totalSupply();
+        uint256 balance = stakingRewardsV2.balanceOf(user) + stakingRewardsV1.balanceOf(user);
 
         // general formula for rewards should be:
         // rewardRate = reward / rewardsDuration
@@ -159,7 +161,7 @@ contract StakingRewardsTestHelpers is TestHelpers {
         uint256 newRewards = rewardRate * min(waitTime, rewardsDuration);
         uint256 rewardPerToken = previousRewardPerToken + (newRewards * 1e18 / totalSupply);
         uint256 rewardsPerTokenForUser = rewardPerToken - rewardsPerTokenPaid;
-        uint256 expectedRewards = initialStake * rewardsPerTokenForUser / 1e18;
+        uint256 expectedRewards = balance * rewardsPerTokenForUser / 1e18;
 
         return expectedRewards;
     }

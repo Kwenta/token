@@ -11,7 +11,7 @@ contract StakingV2RewardMigrationCalculationTests is StakingRewardsTestHelpers {
     //////////////////////////////////////////////////////////////*/
 
     // TODO: check if this can be fuzzed
-    function setUp() public override virtual {
+    function setUp() public virtual override {
         super.setUp();
 
         fundAccountAndStakeV2(user1, 1 ether);
@@ -90,58 +90,58 @@ contract StakingV2RewardMigrationCalculationTests is StakingRewardsTestHelpers {
         assertEq(rewards, expectedRewards * numberOfPeriods);
     }
 
-    // function testStakingRewardsOneStakerInSingleRewardPeriodFuzz(uint64 _initialStake, uint64 _reward, uint24 _waitTime)
-    //     public
-    // {
-    //     uint256 initialStake = uint256(_initialStake);
-    //     uint256 reward = uint256(_reward);
-    //     uint256 waitTime = uint256(_waitTime);
-    //     vm.assume(initialStake > 0);
+    function testStakingRewardsOneStakerInSingleRewardPeriodFuzz(uint64 _initialStake, uint64 _reward, uint24 _waitTime)
+        public
+    {
+        uint256 initialStake = uint256(_initialStake);
+        uint256 reward = uint256(_reward);
+        uint256 waitTime = uint256(_waitTime);
+        vm.assume(initialStake > 0);
 
-    //     // this is 7 days by default
-    //     uint256 rewardsDuration = stakingRewardsV2.rewardsDuration();
+        // this is 7 days by default
+        uint256 rewardsDuration = stakingRewardsV2.rewardsDuration();
 
-    //     // fund so totalSupply is initialStake or 1 ether
-    //     // user1 earns 100% of rewards
-    //     fundAccountAndStakeV2(user1, initialStake);
+        // fund so totalSupply is initialStake or 1 ether
+        // user1 earns 100% of rewards
+        fundAccountAndStakeV2(user1, initialStake);
 
-    //     // get initial rewards
-    //     uint256 rewards = rewardEscrowV2.balanceOf(user1);
-    //     // assert initial rewards are 0
-    //     assertEq(rewards, 0);
+        // get initial rewards
+        uint256 rewards = rewardEscrowV2.balanceOf(user1);
+        // assert initial rewards are 0
+        assertEq(rewards, 0);
 
-    //     // calculate expected reward
-    //     uint256 expectedRewards = getExpectedRewardV2(reward, waitTime, initialStake);
+        // calculate expected reward
+        uint256 expectedRewards = getExpectedRewardV2(reward, waitTime, user1);
 
-    //     // send in reward to the contract
-    //     addNewRewardsToStakingRewardsV2(reward);
+        // send in reward to the contract
+        addNewRewardsToStakingRewardsV2(reward);
 
-    //     // fast forward some period of time to accrue rewards
-    //     vm.warp(block.timestamp + waitTime);
+        // fast forward some period of time to accrue rewards
+        vm.warp(block.timestamp + waitTime);
 
-    //     // get the rewards
-    //     vm.prank(user1);
-    //     stakingRewardsV2.getReward();
+        // get the rewards
+        vm.prank(user1);
+        stakingRewardsV2.getReward();
 
-    //     // check rewards
-    //     rewards = rewardEscrowV2.balanceOf(user1);
-    //     assertEq(rewards, expectedRewards);
+        // check rewards
+        rewards = rewardEscrowV2.balanceOf(user1);
+        assertEq(rewards, expectedRewards);
 
-    //     // move forward to the end of the rewards period
-    //     jumpToEndOfRewardsPeriod(waitTime);
+        // move forward to the end of the rewards period
+        jumpToEndOfRewardsPeriod(waitTime);
 
-    //     // calculate new rewards now
-    //     uint256 newReward = 0;
-    //     expectedRewards += getExpectedRewardV2(newReward, rewardsDuration, initialStake);
+        // calculate new rewards now
+        uint256 newReward = 0;
+        expectedRewards += getExpectedRewardV2(newReward, rewardsDuration, user1);
 
-    //     // get the rewards
-    //     vm.prank(user1);
-    //     stakingRewardsV2.getReward();
+        // get the rewards
+        vm.prank(user1);
+        stakingRewardsV2.getReward();
 
-    //     // check rewards
-    //     rewards = rewardEscrowV2.balanceOf(user1);
-    //     assertEq(rewards, expectedRewards);
-    // }
+        // check rewards
+        rewards = rewardEscrowV2.balanceOf(user1);
+        assertEq(rewards, expectedRewards);
+    }
 
     // function testStakingRewardsMultipleStakersInSingleRewardPeriodFuzz(
     //     uint64 _initialStake,
@@ -172,7 +172,7 @@ contract StakingV2RewardMigrationCalculationTests is StakingRewardsTestHelpers {
     //     assertEq(rewards, 0);
 
     //     // calculate expected reward
-    //     uint256 expectedRewards = getExpectedRewardV2(reward, waitTime, initialStake);
+    //     uint256 expectedRewards = getExpectedRewardV2(reward, waitTime, user1);
 
     //     // send in reward to the contract
     //     addNewRewardsToStakingRewardsV2(reward);
@@ -222,7 +222,7 @@ contract StakingV2RewardMigrationCalculationTests is StakingRewardsTestHelpers {
     //     assertEq(rewards, 0);
 
     //     // calculate expected reward
-    //     uint256 expectedRewards = getExpectedRewardV2(reward, waitTime, initialStake);
+    //     uint256 expectedRewards = getExpectedRewardV2(reward, waitTime, user1);
 
     //     // send in reward to the contract
     //     addNewRewardsToStakingRewardsV2(reward);
@@ -276,7 +276,7 @@ contract StakingV2RewardMigrationCalculationTests is StakingRewardsTestHelpers {
     //     assertEq(rewards, 0);
 
     //     // calculate expected reward
-    //     uint256 expectedRewards = getExpectedRewardV2(reward, waitTime, initialStake);
+    //     uint256 expectedRewards = getExpectedRewardV2(reward, waitTime, user1);
 
     //     // send in reward to the contract
     //     addNewRewardsToStakingRewardsV2(reward);
@@ -300,7 +300,7 @@ contract StakingV2RewardMigrationCalculationTests is StakingRewardsTestHelpers {
     //     reward = getPseudoRandomNumber(10 ether, 1, reward);
 
     //     // calculate new rewards now
-    //     expectedRewards += getExpectedRewardV2(reward, waitTime, initialStake);
+    //     expectedRewards += getExpectedRewardV2(reward, waitTime, user1);
 
     //     addNewRewardsToStakingRewardsV2(reward);
     //     vm.warp(block.timestamp + waitTime);
@@ -321,7 +321,7 @@ contract StakingV2RewardMigrationCalculationTests is StakingRewardsTestHelpers {
     //     reward = getPseudoRandomNumber(10 ether, 1, reward);
 
     //     // calculate new rewards now
-    //     expectedRewards += getExpectedRewardV2(reward, waitTime, initialStake);
+    //     expectedRewards += getExpectedRewardV2(reward, waitTime, user1);
 
     //     addNewRewardsToStakingRewardsV2(reward);
     //     vm.warp(block.timestamp + waitTime);
@@ -357,7 +357,7 @@ contract StakingV2RewardMigrationCalculationTests is StakingRewardsTestHelpers {
     //     assertEq(rewards, 0);
 
     //     // calculate expected reward
-    //     uint256 expectedRewards = getExpectedRewardV2(reward, waitTime, initialStake);
+    //     uint256 expectedRewards = getExpectedRewardV2(reward, waitTime, user1);
 
     //     // send in reward to the contract
     //     addNewRewardsToStakingRewardsV2(reward);
@@ -382,7 +382,7 @@ contract StakingV2RewardMigrationCalculationTests is StakingRewardsTestHelpers {
     //         reward = getPseudoRandomNumber(10 ether, 1, reward);
 
     //         // calculate new rewards now
-    //         expectedRewards += getExpectedRewardV2(reward, waitTime, initialStake);
+    //         expectedRewards += getExpectedRewardV2(reward, waitTime, user1);
 
     //         addNewRewardsToStakingRewardsV2(reward);
     //         vm.warp(block.timestamp + waitTime);
@@ -427,7 +427,7 @@ contract StakingV2RewardMigrationCalculationTests is StakingRewardsTestHelpers {
     //     assertEq(rewards, 0);
 
     //     // calculate expected reward
-    //     uint256 expectedRewards = getExpectedRewardV2(reward, waitTime, initialStake);
+    //     uint256 expectedRewards = getExpectedRewardV2(reward, waitTime, user1);
 
     //     // send in reward to the contract
     //     addNewRewardsToStakingRewardsV2(reward);
@@ -456,7 +456,7 @@ contract StakingV2RewardMigrationCalculationTests is StakingRewardsTestHelpers {
     //         reward = getPseudoRandomNumber(10 ether, 1, reward);
 
     //         // calculate new rewards now
-    //         expectedRewards += getExpectedRewardV2(reward, waitTime, initialStake);
+    //         expectedRewards += getExpectedRewardV2(reward, waitTime, user1);
 
     //         addNewRewardsToStakingRewardsV2(reward);
     //         vm.warp(block.timestamp + waitTime);
