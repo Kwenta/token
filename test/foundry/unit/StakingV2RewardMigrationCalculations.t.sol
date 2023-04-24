@@ -14,11 +14,11 @@ contract StakingV2RewardMigrationCalculationTests is StakingRewardsTestHelpers {
     function setUp() public virtual override {
         super.setUp();
 
-        fundAccountAndStakeV2(user1, 1 ether);
-        fundAccountAndStakeV2(user2, 1 ether);
-        fundAccountAndStakeV2(user3, 1 ether);
-        fundAccountAndStakeV2(user4, 1 ether);
-        fundAccountAndStakeV2(user5, 1 ether);
+        fundAccountAndStakeV1(user1, 1 ether);
+        fundAccountAndStakeV1(user2, 1 ether);
+        fundAccountAndStakeV1(user3, 1 ether);
+        fundAccountAndStakeV1(user4, 1 ether);
+        fundAccountAndStakeV1(user5, 1 ether);
 
         pauseAndSwitchToStakingRewardsV2();
     }
