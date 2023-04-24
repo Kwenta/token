@@ -222,6 +222,19 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
                 : escrowedBalances[account][escrowedBalances[account].length - 1].value;
     }
 
+    /// @notice Getter function for the total number of v1 staked tokens
+    /// @return amount of tokens staked in v1
+    function v1TotalSupply() public view override returns (uint256) {
+        return stakingRewardsV1.totalSupply();
+    }
+
+    /// @notice Getter function for the number of v1 staked tokens
+    /// @param account address to check the tokens staked
+    /// @return amount of tokens staked
+    function v1BalanceOf(address account) public view override returns (uint256) {
+        return stakingRewardsV1.balanceOf(account);
+    }
+
     /// @return rewards for the duration specified by rewardsDuration
     function getRewardForDuration() external view override returns (uint256) {
         return rewardRate * rewardsDuration;
@@ -393,15 +406,16 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     /// at this specific time
     /// @return running sum of reward per total tokens staked
     function rewardPerToken() public view override returns (uint256) {
-        uint256 totalSupplyVal = totalSupply();
-        if (totalSupplyVal == 0) {
+        uint256 sumOfAllStakedTokens = totalSupply() + v1TotalSupply();
+
+        if (sumOfAllStakedTokens == 0) {
             return rewardPerTokenStored;
         }
 
         return
             rewardPerTokenStored +
             (((lastTimeRewardApplicable() - lastUpdateTime) * rewardRate * 1e18) /
-                (totalSupplyVal));
+                (sumOfAllStakedTokens));
     }
 
     /// @return timestamp of the last time rewards are applicable
@@ -412,8 +426,12 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     /// @notice determine how much reward token an account has earned thus far
     /// @param account: address of account earned amount is being calculated for
     function earned(address account) public view override returns (uint256) {
+        uint256 v1Balance = v1BalanceOf(account);
+        uint256 v2Balance = balanceOf(account);
+        uint256 totalBalance = v1Balance + v2Balance;
+
         return
-            ((balanceOf(account) * (rewardPerToken() - userRewardPerTokenPaid[account])) /
+            ((totalBalance * (rewardPerToken() - userRewardPerTokenPaid[account])) /
                 1e18) + rewards[account];
     }
 
@@ -423,12 +441,14 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
 
     /// @notice get the number of balances checkpoints for an account
     /// @param account: address of account to check
+    /// @return number of balances checkpoints
     function balancesLength(address account) external view override returns (uint256) {
         return balances[account].length;
     }
 
     /// @notice get the number of escrowed balance checkpoints for an account
     /// @param account: address of account to check
+    /// @return number of escrowed balance checkpoints
     function escrowedBalancesLength(
         address account
     ) external view override returns (uint256) {
@@ -436,6 +456,7 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     }
 
     /// @notice get the number of total supply checkpoints
+    /// @return number of total supply checkpoints
     function totalSupplyLength() external view override returns (uint256) {
         return _totalSupply.length;
     }
@@ -443,6 +464,7 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     /// @notice get a users balance at a given block
     /// @param account: address of account to check
     /// @param _block: block number to check
+    /// @return balance at given block
     function balanceAtBlock(
         address account,
         uint256 _block
@@ -453,6 +475,7 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     /// @notice get a users escrowed balance at a given block
     /// @param account: address of account to check
     /// @param _block: block number to check
+    /// @return escrowed balance at given block
     function escrowedBalanceAtBlock(
         address account,
         uint256 _block
@@ -462,6 +485,7 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
 
     /// @notice get the total supply at a given block
     /// @param _block: block number to check
+    /// @return total supply at given block
     function totalSupplyAtBlock(uint256 _block) external view override returns (uint256) {
         return _checkpointBinarySearch(_totalSupply, _block);
     }
@@ -617,13 +641,4 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
         IERC20(tokenAddress).safeTransfer(owner, tokenAmount);
         emit Recovered(tokenAddress, tokenAmount);
     }
-
-    // function migrateStakingRewardsV1StakedEscrow() public {
-    //     require(
-    //         address(stakingRewardsV1) != address(0),
-    //         "StakingRewards: stakingRewardsV1 is not set"
-    //     );
-
-    //     uint256 v1StakedEscrow = stakingRewardsV1.escrowedBalanceOf(address(this));
-    // }
 }

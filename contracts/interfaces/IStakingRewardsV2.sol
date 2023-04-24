@@ -7,8 +7,10 @@ interface IStakingRewardsV2 {
     //////////////////////////////////////////////////////////////*/
     // token state
     function totalSupply() external view returns (uint256);
+    function v1TotalSupply() external view returns (uint256);
     // staking state
     function balanceOf(address account) external view returns (uint256);
+    function v1BalanceOf(address account) external view returns (uint256);
     function escrowedBalanceOf(address account) external view returns (uint256);
     function nonEscrowedBalanceOf(address account) external view returns (uint256);
     // rewards
