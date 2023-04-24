@@ -44,29 +44,18 @@ contract StakingV2MigrationForkTests is Test {
         owner = KWENTA_OWNER;
 
         // define Setup contract used for deployments
-        // Setup setup = new Setup();
+        Setup setup = new Setup();
+
+        // deploy system contracts
+        (rewardEscrowV2, stakingRewardsV2) = setup.deploySystem({
+            _owner: owner,
+            _kwenta: address(kwenta),
+            _supplySchedule: address(supplySchedule),
+            _stakingRewardsV1: address(stakingRewardsV1),
+            _pauseAndMigrate: false
+        });
 
         vm.startPrank(owner);
-
-
-        // // deploy system contracts
-        // (rewardEscrowV2, stakingRewardsV2) = setup.deploySystem({
-        //     _owner: owner,
-        //     _kwenta: address(kwenta),
-        //     _supplySchedule: address(supplySchedule),
-        //     _stakingRewardsV1: address(stakingRewardsV1)
-        // });
-
-        RewardEscrowV2 rewardEscrowV2 = new RewardEscrowV2(owner, address(kwenta));
-        StakingRewardsV2 stakingRewardsV2 = new StakingRewardsV2(
-            address(kwenta),
-            address(rewardEscrowV2),
-            address(supplySchedule),
-            address(stakingRewardsV1)
-        );
-
-        StakingRewards stakingRewardsV1 = StakingRewards(stakingRewardsV1);
-        SupplySchedule supplySchedule = SupplySchedule(supplySchedule);
 
         // Pause StakingV1
         stakingRewardsV1.pauseStakingRewards();
