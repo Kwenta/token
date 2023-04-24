@@ -138,12 +138,12 @@ contract StakingRewardsTestHelpers is TestHelpers {
     function getExpectedRewardV1(
         uint256 reward,
         uint256 waitTime,
-        uint256 initialStake,
-        uint256 previousRewardPerToken,
-        uint256 rewardsPerTokenPaid
+        uint256 initialStake
     ) public view returns (uint256) {
         // This defaults to 7 days
         uint256 rewardsDuration = stakingRewardsV1.rewardsDuration();
+        uint256 previousRewardPerToken = stakingRewardsV1.rewardPerToken();
+        uint256 rewardsPerTokenPaid = stakingRewardsV1.userRewardPerTokenPaid(user1);
 
         // general formula for rewards should be:
         // rewardRate = reward / rewardsDuration

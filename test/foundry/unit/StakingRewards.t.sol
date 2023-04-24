@@ -118,21 +118,17 @@ contract StakingRewardsTests is StakingRewardsTestHelpers {
             vm.warp(block.timestamp + rewardsDuration - waitTime);
         }
 
-        uint256 previousRewardPerToken = stakingRewardsV1.rewardPerToken();
-        uint256 rewardsPerTokenPaid = stakingRewardsV1.userRewardPerTokenPaid(user1);
+        // calculate new rewards now
+        uint256 newReward = 0;
+        expectedRewards += getExpectedRewardV1(newReward, rewardsDuration, initialStake);
 
         // get the rewards
         vm.prank(user1);
         stakingRewardsV1.getReward();
 
-        if (waitTimeLessThanRewardsDuration) {
-            uint256 newReward = 0;
-            expectedRewards +=
-                getExpectedRewardV1(newReward, rewardsDuration, initialStake, previousRewardPerToken, rewardsPerTokenPaid);
-
-            rewards = rewardEscrowV1.balanceOf(user1);
-            assertEq(rewards, expectedRewards);
-        }
+        // check rewards
+        rewards = rewardEscrowV1.balanceOf(user1);
+        assertEq(rewards, expectedRewards);
     }
 
     function testStakingRewardsOneStakerSmallIntervals() public {
