@@ -55,6 +55,22 @@ contract StakingV2MigrationForkTests is Test {
             _pauseAndMigrate: false
         });
 
+        pauseAndSwitchToStakingRewardsV2();
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                                 TESTS
+    //////////////////////////////////////////////////////////////*/
+
+    function testMagic() public {
+        assertTrue(true);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                                HELPERS
+    //////////////////////////////////////////////////////////////*/
+
+    function pauseAndSwitchToStakingRewardsV2() public {
         vm.startPrank(owner);
 
         // Pause StakingV1
@@ -68,13 +84,5 @@ contract StakingV2MigrationForkTests is Test {
         stakingRewardsV1.unpauseStakingRewards();
 
         vm.stopPrank();
-    }
-
-    /*//////////////////////////////////////////////////////////////
-                                 TESTS
-    //////////////////////////////////////////////////////////////*/
-
-    function testMagic() public {
-        assertTrue(true);
     }
 }
