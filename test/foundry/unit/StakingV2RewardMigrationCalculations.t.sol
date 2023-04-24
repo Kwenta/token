@@ -7,22 +7,28 @@ import "../utils/Constants.t.sol";
 
 contract StakingV2RewardMigrationCalculationTests is StakingRewardsTestHelpers {
     /*//////////////////////////////////////////////////////////////
-                    Rewards Migration Calculation Tests
+                                Setup
     //////////////////////////////////////////////////////////////*/
 
     // TODO: check if this can be fuzzed
     function setUp() public virtual override {
+        // Deploy v1 and v2
         super.setUp();
 
+        // fund and stake in v1
         fundAccountAndStakeV1(user1, 1 ether);
         fundAccountAndStakeV1(user2, 1 ether);
         fundAccountAndStakeV1(user3, 1 ether);
         fundAccountAndStakeV1(user4, 1 ether);
         fundAccountAndStakeV1(user5, 1 ether);
 
+        // switch to staking v2
         pauseAndSwitchToStakingRewardsV2();
     }
 
+    /*//////////////////////////////////////////////////////////////
+                    Rewards Migration Calculation Tests
+    //////////////////////////////////////////////////////////////*/
     function testStakingRewardsOneStaker() public {
         // this is 7 days by default
         uint256 lengthOfPeriod = stakingRewardsV2.rewardsDuration();

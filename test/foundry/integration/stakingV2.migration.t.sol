@@ -86,15 +86,5 @@ contract StakingV2MigrationTests is StakingRewardsTestHelpers {
         assertEq(user1NonEscrowedStakeV1, 0);
         assertEq(user2NonEscrowedStakeV1, 0);
         assertEq(user3NonEscrowedStakeV1, 0);
-
-        // // Check staked escrow from StakingRewardsV1 is accounted for in StakingRewardsV2
-
-        // uint256 user1Balance = stakingRewardsV2.balanceOf(user1);
-        // user1EscrowStakedV1 = stakingRewardsV1.escrowedBalanceOf(user1);
-        // uint256 rewardPerToken = stakingRewardsV2.rewardPerToken();
-        // uint256 user1RewardPerTokenPaid = stakingRewardsV2.userRewardPerTokenPaid(user1);
-        // uint256 user1Rewards = stakingRewardsV2.rewards(user1);
-
-        // // uint256 expectedRewardOutput = 
     }
 }
