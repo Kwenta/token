@@ -429,6 +429,10 @@ contract StakingRewardsTests is StakingRewardsTestHelpers {
         assertEq(rewards, expectedRewards);
 
         for (uint256 i = 0; i < numberOfRounds; i++) {
+            // add another staker
+            address otherUser = createUser();
+            fundAccountAndStakeV1(otherUser, getPseudoRandomNumber(10 ether, 1, initialStake));
+
             // move forward to the end of the rewards period
             jumpToEndOfRewardsPeriod(waitTime);
 
