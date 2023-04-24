@@ -43,7 +43,7 @@ contract Setup {
         address _supplySchedule,
         address _stakingRewardsV2,
         address _rewardEscrowV2
-    ) public {
+    ) internal {
         StakingRewards stakingRewardsV1 = StakingRewards(_stakingRewardsV1);
         SupplySchedule supplySchedule = SupplySchedule(_supplySchedule);
         StakingRewardsV2 stakingRewardsV2 = StakingRewardsV2(_stakingRewardsV2);
