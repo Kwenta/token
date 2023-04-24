@@ -110,6 +110,7 @@ contract StakingRewardsTestHelpers is TestHelpers {
                         Reward Calculation Helpers
     //////////////////////////////////////////////////////////////*/
 
+    // TODO: delete this if it is unusded
     function getFirstExpectedRewardV1(
         uint256 reward,
         uint256 waitTime,
@@ -135,6 +136,7 @@ contract StakingRewardsTestHelpers is TestHelpers {
         return expectedRewards;
     }
 
+    // Note - this must be run before triggering notifyRewardAmount and getReward
     function getExpectedRewardV1(
         uint256 reward,
         uint256 waitTime,

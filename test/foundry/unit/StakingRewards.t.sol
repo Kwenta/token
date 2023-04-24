@@ -93,6 +93,9 @@ contract StakingRewardsTests is StakingRewardsTestHelpers {
         // assert initial rewards are 0
         assertEq(rewards, 0);
 
+        // calculate expected reward
+        uint256 expectedRewards = getExpectedRewardV1(reward, waitTime, initialStake);
+
         // send in reward to the contract
         vm.prank(treasury);
         kwenta.transfer(address(stakingRewardsV1), reward);
@@ -105,8 +108,6 @@ contract StakingRewardsTests is StakingRewardsTestHelpers {
         // get the rewards
         vm.prank(user1);
         stakingRewardsV1.getReward();
-
-        uint256 expectedRewards = getFirstExpectedRewardV1(reward, waitTime, initialStake);
 
         // check rewards
         rewards = rewardEscrowV1.balanceOf(user1);
