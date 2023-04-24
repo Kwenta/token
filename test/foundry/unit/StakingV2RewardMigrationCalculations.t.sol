@@ -143,333 +143,333 @@ contract StakingV2RewardMigrationCalculationTests is StakingRewardsTestHelpers {
         assertEq(rewards, expectedRewards);
     }
 
-    // function testStakingRewardsMultipleStakersInSingleRewardPeriodFuzz(
-    //     uint64 _initialStake,
-    //     uint64 _reward,
-    //     uint24 _waitTime
-    // ) public {
-    //     uint256 initialStake = uint256(_initialStake);
-    //     uint256 reward = uint256(_reward);
-    //     uint256 waitTime = uint256(_waitTime);
-    //     vm.assume(initialStake > 0);
-
-    //     // this is 7 days by default
-    //     uint256 rewardsDuration = stakingRewardsV2.rewardsDuration();
-
-    //     // stake with other users
-    //     fundAccountAndStakeV2(user2, getPseudoRandomNumber(10 ether, 1, initialStake));
-    //     fundAccountAndStakeV2(user3, getPseudoRandomNumber(10 ether, 1, initialStake));
-    //     fundAccountAndStakeV2(user4, getPseudoRandomNumber(10 ether, 1, initialStake));
-    //     fundAccountAndStakeV2(user5, getPseudoRandomNumber(10 ether, 1, initialStake));
-
-    //     // fund so totalSupply is initialStake or 1 ether
-    //     // user1 earns 100% of rewards
-    //     fundAccountAndStakeV2(user1, initialStake);
-
-    //     // get initial rewards
-    //     uint256 rewards = rewardEscrowV2.balanceOf(user1);
-    //     // assert initial rewards are 0
-    //     assertEq(rewards, 0);
-
-    //     // calculate expected reward
-    //     uint256 expectedRewards = getExpectedRewardV2(reward, waitTime, user1);
-
-    //     // send in reward to the contract
-    //     addNewRewardsToStakingRewardsV2(reward);
-
-    //     // fast forward some period of time to accrue rewards
-    //     vm.warp(block.timestamp + waitTime);
-
-    //     // get the rewards
-    //     vm.prank(user1);
-    //     stakingRewardsV2.getReward();
-
-    //     // check rewards
-    //     rewards = rewardEscrowV2.balanceOf(user1);
-    //     assertEq(rewards, expectedRewards);
-
-    //     // move forward to the end of the rewards period
-    //     jumpToEndOfRewardsPeriod(waitTime);
-
-    //     // calculate new rewards now
-    //     uint256 newReward = 0;
-    //     expectedRewards += getExpectedRewardV2(newReward, rewardsDuration, initialStake);
-
-    //     // get the rewards
-    //     vm.prank(user1);
-    //     stakingRewardsV2.getReward();
-
-    //     // check rewards
-    //     rewards = rewardEscrowV2.balanceOf(user1);
-    //     assertEq(rewards, expectedRewards);
-    // }
-
-    // function testStakingRewardsOneStakerTwoRewardPeriodsFuzz(uint64 _initialStake, uint64 _reward, uint24 _waitTime)
-    //     public
-    // {
-    //     uint256 initialStake = uint256(_initialStake);
-    //     uint256 reward = uint256(_reward);
-    //     uint256 waitTime = uint256(_waitTime);
-    //     vm.assume(initialStake > 0);
-
-    //     // fund so totalSupply is initialStake or 1 ether
-    //     // user1 earns 100% of rewards
-    //     fundAccountAndStakeV2(user1, initialStake);
-
-    //     // get initial rewards
-    //     uint256 rewards = rewardEscrowV2.balanceOf(user1);
-    //     // assert initial rewards are 0
-    //     assertEq(rewards, 0);
-
-    //     // calculate expected reward
-    //     uint256 expectedRewards = getExpectedRewardV2(reward, waitTime, user1);
+    function testStakingRewardsMultipleStakersInSingleRewardPeriodFuzz(
+        uint64 _initialStake,
+        uint64 _reward,
+        uint24 _waitTime
+    ) public {
+        uint256 initialStake = uint256(_initialStake);
+        uint256 reward = uint256(_reward);
+        uint256 waitTime = uint256(_waitTime);
+        vm.assume(initialStake > 0);
+
+        // this is 7 days by default
+        uint256 rewardsDuration = stakingRewardsV2.rewardsDuration();
+
+        // stake with other users
+        fundAccountAndStakeV2(user2, getPseudoRandomNumber(10 ether, 1, initialStake));
+        fundAccountAndStakeV2(user3, getPseudoRandomNumber(10 ether, 1, initialStake));
+        fundAccountAndStakeV2(user4, getPseudoRandomNumber(10 ether, 1, initialStake));
+        fundAccountAndStakeV2(user5, getPseudoRandomNumber(10 ether, 1, initialStake));
+
+        // fund so totalSupply is initialStake or 1 ether
+        // user1 earns 100% of rewards
+        fundAccountAndStakeV2(user1, initialStake);
+
+        // get initial rewards
+        uint256 rewards = rewardEscrowV2.balanceOf(user1);
+        // assert initial rewards are 0
+        assertEq(rewards, 0);
+
+        // calculate expected reward
+        uint256 expectedRewards = getExpectedRewardV2(reward, waitTime, user1);
+
+        // send in reward to the contract
+        addNewRewardsToStakingRewardsV2(reward);
+
+        // fast forward some period of time to accrue rewards
+        vm.warp(block.timestamp + waitTime);
+
+        // get the rewards
+        vm.prank(user1);
+        stakingRewardsV2.getReward();
+
+        // check rewards
+        rewards = rewardEscrowV2.balanceOf(user1);
+        assertEq(rewards, expectedRewards);
+
+        // move forward to the end of the rewards period
+        jumpToEndOfRewardsPeriod(waitTime);
+
+        // calculate new rewards now
+        uint256 newReward = 0;
+        expectedRewards += getExpectedRewardV2(newReward, rewardsDuration, user1);
+
+        // get the rewards
+        vm.prank(user1);
+        stakingRewardsV2.getReward();
+
+        // check rewards
+        rewards = rewardEscrowV2.balanceOf(user1);
+        assertEq(rewards, expectedRewards);
+    }
+
+    function testStakingRewardsOneStakerTwoRewardPeriodsFuzz(uint64 _initialStake, uint64 _reward, uint24 _waitTime)
+        public
+    {
+        uint256 initialStake = uint256(_initialStake);
+        uint256 reward = uint256(_reward);
+        uint256 waitTime = uint256(_waitTime);
+        vm.assume(initialStake > 0);
+
+        // fund so totalSupply is initialStake or 1 ether
+        // user1 earns 100% of rewards
+        fundAccountAndStakeV2(user1, initialStake);
+
+        // get initial rewards
+        uint256 rewards = rewardEscrowV2.balanceOf(user1);
+        // assert initial rewards are 0
+        assertEq(rewards, 0);
+
+        // calculate expected reward
+        uint256 expectedRewards = getExpectedRewardV2(reward, waitTime, user1);
 
-    //     // send in reward to the contract
-    //     addNewRewardsToStakingRewardsV2(reward);
+        // send in reward to the contract
+        addNewRewardsToStakingRewardsV2(reward);
 
-    //     // fast forward some period of time to accrue rewards
-    //     vm.warp(block.timestamp + waitTime);
-
-    //     // get the rewards
-    //     vm.prank(user1);
-    //     stakingRewardsV2.getReward();
-
-    //     // check rewards
-    //     rewards = rewardEscrowV2.balanceOf(user1);
-    //     assertEq(rewards, expectedRewards);
-
-    //     // move forward to the end of the rewards period
-    //     jumpToEndOfRewardsPeriod(waitTime);
-
-    //     // get new pseudorandom reward and wait time
-    //     uint256 newWaitTime = getPseudoRandomNumber(10 weeks, 0, waitTime);
-    //     uint256 newReward = getPseudoRandomNumber(10 ether, 1, reward);
-
-    //     // calculate new rewards now
-    //     expectedRewards += getExpectedRewardV2(newReward, newWaitTime, initialStake);
+        // fast forward some period of time to accrue rewards
+        vm.warp(block.timestamp + waitTime);
+
+        // get the rewards
+        vm.prank(user1);
+        stakingRewardsV2.getReward();
+
+        // check rewards
+        rewards = rewardEscrowV2.balanceOf(user1);
+        assertEq(rewards, expectedRewards);
+
+        // move forward to the end of the rewards period
+        jumpToEndOfRewardsPeriod(waitTime);
+
+        // get new pseudorandom reward and wait time
+        uint256 newWaitTime = getPseudoRandomNumber(10 weeks, 0, waitTime);
+        uint256 newReward = getPseudoRandomNumber(10 ether, 1, reward);
+
+        // calculate new rewards now
+        expectedRewards += getExpectedRewardV2(newReward, newWaitTime, user1);
 
-    //     addNewRewardsToStakingRewardsV2(newReward);
-    //     vm.warp(block.timestamp + newWaitTime);
-
-    //     // get the rewards
-    //     vm.prank(user1);
-    //     stakingRewardsV2.getReward();
-
-    //     // check rewards
-    //     rewards = rewardEscrowV2.balanceOf(user1);
-    //     assertEq(rewards, expectedRewards);
-    // }
+        addNewRewardsToStakingRewardsV2(newReward);
+        vm.warp(block.timestamp + newWaitTime);
+
+        // get the rewards
+        vm.prank(user1);
+        stakingRewardsV2.getReward();
+
+        // check rewards
+        rewards = rewardEscrowV2.balanceOf(user1);
+        assertEq(rewards, expectedRewards);
+    }
 
-    // function testStakingRewardsThreeRoundsFuzz(uint64 _initialStake, uint64 _reward, uint24 _waitTime) public {
-    //     uint256 initialStake = uint256(_initialStake);
-    //     uint256 reward = uint256(_reward);
-    //     uint256 waitTime = uint256(_waitTime);
-    //     vm.assume(initialStake > 0);
+    function testStakingRewardsThreeRoundsFuzz(uint64 _initialStake, uint64 _reward, uint24 _waitTime) public {
+        uint256 initialStake = uint256(_initialStake);
+        uint256 reward = uint256(_reward);
+        uint256 waitTime = uint256(_waitTime);
+        vm.assume(initialStake > 0);
 
-    //     // fund so totalSupply is initialStake or 1 ether
-    //     // user1 earns 100% of rewards
-    //     fundAccountAndStakeV2(user1, initialStake);
+        // fund so totalSupply is initialStake or 1 ether
+        // user1 earns 100% of rewards
+        fundAccountAndStakeV2(user1, initialStake);
 
-    //     // get initial rewards
-    //     uint256 rewards = rewardEscrowV2.balanceOf(user1);
-    //     // assert initial rewards are 0
-    //     assertEq(rewards, 0);
+        // get initial rewards
+        uint256 rewards = rewardEscrowV2.balanceOf(user1);
+        // assert initial rewards are 0
+        assertEq(rewards, 0);
 
-    //     // calculate expected reward
-    //     uint256 expectedRewards = getExpectedRewardV2(reward, waitTime, user1);
+        // calculate expected reward
+        uint256 expectedRewards = getExpectedRewardV2(reward, waitTime, user1);
 
-    //     // send in reward to the contract
-    //     addNewRewardsToStakingRewardsV2(reward);
-
-    //     // fast forward some period of time to accrue rewards
-    //     vm.warp(block.timestamp + waitTime);
+        // send in reward to the contract
+        addNewRewardsToStakingRewardsV2(reward);
+
+        // fast forward some period of time to accrue rewards
+        vm.warp(block.timestamp + waitTime);
 
-    //     // get the rewards
-    //     vm.prank(user1);
-    //     stakingRewardsV2.getReward();
+        // get the rewards
+        vm.prank(user1);
+        stakingRewardsV2.getReward();
 
-    //     // check rewards
-    //     rewards = rewardEscrowV2.balanceOf(user1);
-    //     assertEq(rewards, expectedRewards);
+        // check rewards
+        rewards = rewardEscrowV2.balanceOf(user1);
+        assertEq(rewards, expectedRewards);
 
-    //     // move forward to the end of the rewards period
-    //     jumpToEndOfRewardsPeriod(waitTime);
+        // move forward to the end of the rewards period
+        jumpToEndOfRewardsPeriod(waitTime);
 
-    //     // get new pseudorandom reward and wait time
-    //     waitTime = getPseudoRandomNumber(10 weeks, 0, waitTime);
-    //     reward = getPseudoRandomNumber(10 ether, 1, reward);
+        // get new pseudorandom reward and wait time
+        waitTime = getPseudoRandomNumber(10 weeks, 0, waitTime);
+        reward = getPseudoRandomNumber(10 ether, 1, reward);
 
-    //     // calculate new rewards now
-    //     expectedRewards += getExpectedRewardV2(reward, waitTime, user1);
-
-    //     addNewRewardsToStakingRewardsV2(reward);
-    //     vm.warp(block.timestamp + waitTime);
-
-    //     // get the rewards
-    //     vm.prank(user1);
-    //     stakingRewardsV2.getReward();
-
-    //     // check rewards
-    //     rewards = rewardEscrowV2.balanceOf(user1);
-    //     assertEq(rewards, expectedRewards);
-
-    //     // move forward to the end of the rewards period
-    //     jumpToEndOfRewardsPeriod(waitTime);
-
-    //     // get new pseudorandom reward and wait time
-    //     waitTime = getPseudoRandomNumber(10 weeks, 0, waitTime);
-    //     reward = getPseudoRandomNumber(10 ether, 1, reward);
-
-    //     // calculate new rewards now
-    //     expectedRewards += getExpectedRewardV2(reward, waitTime, user1);
-
-    //     addNewRewardsToStakingRewardsV2(reward);
-    //     vm.warp(block.timestamp + waitTime);
-
-    //     // get the rewards
-    //     vm.prank(user1);
-    //     stakingRewardsV2.getReward();
-
-    //     // check rewards
-    //     rewards = rewardEscrowV2.balanceOf(user1);
-    //     assertEq(rewards, expectedRewards);
-    // }
-
-    // function testStakingRewardsMultipleRoundsFuzz(
-    //     uint64 _initialStake,
-    //     uint64 _reward,
-    //     uint24 _waitTime,
-    //     uint8 numberOfRounds
-    // ) public {
-    //     uint256 initialStake = uint256(_initialStake);
-    //     uint256 reward = uint256(_reward);
-    //     uint256 waitTime = uint256(_waitTime);
-    //     vm.assume(initialStake > 0);
-    //     vm.assume(numberOfRounds < 100);
-
-    //     // fund so totalSupply is initialStake or 1 ether
-    //     // user1 earns 100% of rewards
-    //     fundAccountAndStakeV2(user1, initialStake);
-
-    //     // get initial rewards
-    //     uint256 rewards = rewardEscrowV2.balanceOf(user1);
-    //     // assert initial rewards are 0
-    //     assertEq(rewards, 0);
-
-    //     // calculate expected reward
-    //     uint256 expectedRewards = getExpectedRewardV2(reward, waitTime, user1);
-
-    //     // send in reward to the contract
-    //     addNewRewardsToStakingRewardsV2(reward);
-
-    //     // fast forward some period of time to accrue rewards
-    //     vm.warp(block.timestamp + waitTime);
-
-    //     // get the rewards
-    //     vm.prank(user1);
-    //     stakingRewardsV2.getReward();
-
-    //     // check rewards
-    //     rewards = rewardEscrowV2.balanceOf(user1);
-    //     assertEq(rewards, expectedRewards);
-
-    //     for (uint256 i = 0; i < numberOfRounds; i++) {
-    //         // move forward to the end of the rewards period
-    //         jumpToEndOfRewardsPeriod(waitTime);
-
-    //         // get new pseudorandom reward and wait time
-    //         waitTime = getPseudoRandomNumber(10 weeks, 0, waitTime);
-    //         reward = getPseudoRandomNumber(10 ether, 1, reward);
-
-    //         // calculate new rewards now
-    //         expectedRewards += getExpectedRewardV2(reward, waitTime, user1);
-
-    //         addNewRewardsToStakingRewardsV2(reward);
-    //         vm.warp(block.timestamp + waitTime);
-
-    //         // get the rewards
-    //         vm.prank(user1);
-    //         stakingRewardsV2.getReward();
-
-    //         // check rewards
-    //         rewards = rewardEscrowV2.balanceOf(user1);
-    //         assertEq(rewards, expectedRewards);
-    //     }
-    // }
-
-    // function testStakingRewardsMultipleRoundsAndStakersFuzz(
-    //     uint64 _initialStake,
-    //     uint64 _reward,
-    //     uint24 _waitTime,
-    //     uint8 numberOfRounds,
-    //     uint8 initialNumberOfStakers
-    // ) public {
-    //     uint256 initialStake = uint256(_initialStake);
-    //     uint256 reward = uint256(_reward);
-    //     uint256 waitTime = uint256(_waitTime);
-    //     vm.assume(initialStake > 0);
-    //     vm.assume(numberOfRounds < 50);
-    //     vm.assume(initialNumberOfStakers < 50);
-
-    //     // other user
-    //     for (uint256 i = 0; i < initialNumberOfStakers; i++) {
-    //         address otherUser = createUser();
-    //         fundAccountAndStakeV2(otherUser, getPseudoRandomNumber(10 ether, 1, initialStake));
-    //     }
-
-    //     // fund so totalSupply is initialStake or 1 ether
-    //     // user1 earns 100% of rewards
-    //     fundAccountAndStakeV2(user1, initialStake);
-
-    //     // get initial rewards
-    //     uint256 rewards = rewardEscrowV2.balanceOf(user1);
-    //     // assert initial rewards are 0
-    //     assertEq(rewards, 0);
-
-    //     // calculate expected reward
-    //     uint256 expectedRewards = getExpectedRewardV2(reward, waitTime, user1);
-
-    //     // send in reward to the contract
-    //     addNewRewardsToStakingRewardsV2(reward);
-
-    //     // fast forward some period of time to accrue rewards
-    //     vm.warp(block.timestamp + waitTime);
-
-    //     // get the rewards
-    //     vm.prank(user1);
-    //     stakingRewardsV2.getReward();
-
-    //     // check rewards
-    //     rewards = rewardEscrowV2.balanceOf(user1);
-    //     assertEq(rewards, expectedRewards);
-
-    //     for (uint256 i = 0; i < numberOfRounds; i++) {
-    //         // add another staker
-    //         address otherUser = createUser();
-    //         fundAccountAndStakeV2(otherUser, getPseudoRandomNumber(10 ether, 1, initialStake));
-
-    //         // move forward to the end of the rewards period
-    //         jumpToEndOfRewardsPeriod(waitTime);
-
-    //         // get new pseudorandom reward and wait time
-    //         waitTime = getPseudoRandomNumber(10 weeks, 0, waitTime);
-    //         reward = getPseudoRandomNumber(10 ether, 1, reward);
-
-    //         // calculate new rewards now
-    //         expectedRewards += getExpectedRewardV2(reward, waitTime, user1);
-
-    //         addNewRewardsToStakingRewardsV2(reward);
-    //         vm.warp(block.timestamp + waitTime);
-
-    //         // get the rewards
-    //         vm.prank(user1);
-    //         stakingRewardsV2.getReward();
-
-    //         // check rewards
-    //         rewards = rewardEscrowV2.balanceOf(user1);
-    //         assertEq(rewards, expectedRewards);
-    //     }
-    // }
+        // calculate new rewards now
+        expectedRewards += getExpectedRewardV2(reward, waitTime, user1);
+
+        addNewRewardsToStakingRewardsV2(reward);
+        vm.warp(block.timestamp + waitTime);
+
+        // get the rewards
+        vm.prank(user1);
+        stakingRewardsV2.getReward();
+
+        // check rewards
+        rewards = rewardEscrowV2.balanceOf(user1);
+        assertEq(rewards, expectedRewards);
+
+        // move forward to the end of the rewards period
+        jumpToEndOfRewardsPeriod(waitTime);
+
+        // get new pseudorandom reward and wait time
+        waitTime = getPseudoRandomNumber(10 weeks, 0, waitTime);
+        reward = getPseudoRandomNumber(10 ether, 1, reward);
+
+        // calculate new rewards now
+        expectedRewards += getExpectedRewardV2(reward, waitTime, user1);
+
+        addNewRewardsToStakingRewardsV2(reward);
+        vm.warp(block.timestamp + waitTime);
+
+        // get the rewards
+        vm.prank(user1);
+        stakingRewardsV2.getReward();
+
+        // check rewards
+        rewards = rewardEscrowV2.balanceOf(user1);
+        assertEq(rewards, expectedRewards);
+    }
+
+    function testStakingRewardsMultipleRoundsFuzz(
+        uint64 _initialStake,
+        uint64 _reward,
+        uint24 _waitTime,
+        uint8 numberOfRounds
+    ) public {
+        uint256 initialStake = uint256(_initialStake);
+        uint256 reward = uint256(_reward);
+        uint256 waitTime = uint256(_waitTime);
+        vm.assume(initialStake > 0);
+        vm.assume(numberOfRounds < 100);
+
+        // fund so totalSupply is initialStake or 1 ether
+        // user1 earns 100% of rewards
+        fundAccountAndStakeV2(user1, initialStake);
+
+        // get initial rewards
+        uint256 rewards = rewardEscrowV2.balanceOf(user1);
+        // assert initial rewards are 0
+        assertEq(rewards, 0);
+
+        // calculate expected reward
+        uint256 expectedRewards = getExpectedRewardV2(reward, waitTime, user1);
+
+        // send in reward to the contract
+        addNewRewardsToStakingRewardsV2(reward);
+
+        // fast forward some period of time to accrue rewards
+        vm.warp(block.timestamp + waitTime);
+
+        // get the rewards
+        vm.prank(user1);
+        stakingRewardsV2.getReward();
+
+        // check rewards
+        rewards = rewardEscrowV2.balanceOf(user1);
+        assertEq(rewards, expectedRewards);
+
+        for (uint256 i = 0; i < numberOfRounds; i++) {
+            // move forward to the end of the rewards period
+            jumpToEndOfRewardsPeriod(waitTime);
+
+            // get new pseudorandom reward and wait time
+            waitTime = getPseudoRandomNumber(10 weeks, 0, waitTime);
+            reward = getPseudoRandomNumber(10 ether, 1, reward);
+
+            // calculate new rewards now
+            expectedRewards += getExpectedRewardV2(reward, waitTime, user1);
+
+            addNewRewardsToStakingRewardsV2(reward);
+            vm.warp(block.timestamp + waitTime);
+
+            // get the rewards
+            vm.prank(user1);
+            stakingRewardsV2.getReward();
+
+            // check rewards
+            rewards = rewardEscrowV2.balanceOf(user1);
+            assertEq(rewards, expectedRewards);
+        }
+    }
+
+    function testStakingRewardsMultipleRoundsAndStakersFuzz(
+        uint64 _initialStake,
+        uint64 _reward,
+        uint24 _waitTime,
+        uint8 numberOfRounds,
+        uint8 initialNumberOfStakers
+    ) public {
+        uint256 initialStake = uint256(_initialStake);
+        uint256 reward = uint256(_reward);
+        uint256 waitTime = uint256(_waitTime);
+        vm.assume(initialStake > 0);
+        vm.assume(numberOfRounds < 50);
+        vm.assume(initialNumberOfStakers < 50);
+
+        // other user
+        for (uint256 i = 0; i < initialNumberOfStakers; i++) {
+            address otherUser = createUser();
+            fundAccountAndStakeV2(otherUser, getPseudoRandomNumber(10 ether, 1, initialStake));
+        }
+
+        // fund so totalSupply is initialStake or 1 ether
+        // user1 earns 100% of rewards
+        fundAccountAndStakeV2(user1, initialStake);
+
+        // get initial rewards
+        uint256 rewards = rewardEscrowV2.balanceOf(user1);
+        // assert initial rewards are 0
+        assertEq(rewards, 0);
+
+        // calculate expected reward
+        uint256 expectedRewards = getExpectedRewardV2(reward, waitTime, user1);
+
+        // send in reward to the contract
+        addNewRewardsToStakingRewardsV2(reward);
+
+        // fast forward some period of time to accrue rewards
+        vm.warp(block.timestamp + waitTime);
+
+        // get the rewards
+        vm.prank(user1);
+        stakingRewardsV2.getReward();
+
+        // check rewards
+        rewards = rewardEscrowV2.balanceOf(user1);
+        assertEq(rewards, expectedRewards);
+
+        for (uint256 i = 0; i < numberOfRounds; i++) {
+            // add another staker
+            address otherUser = createUser();
+            fundAccountAndStakeV2(otherUser, getPseudoRandomNumber(10 ether, 1, initialStake));
+
+            // move forward to the end of the rewards period
+            jumpToEndOfRewardsPeriod(waitTime);
+
+            // get new pseudorandom reward and wait time
+            waitTime = getPseudoRandomNumber(10 weeks, 0, waitTime);
+            reward = getPseudoRandomNumber(10 ether, 1, reward);
+
+            // calculate new rewards now
+            expectedRewards += getExpectedRewardV2(reward, waitTime, user1);
+
+            addNewRewardsToStakingRewardsV2(reward);
+            vm.warp(block.timestamp + waitTime);
+
+            // get the rewards
+            vm.prank(user1);
+            stakingRewardsV2.getReward();
+
+            // check rewards
+            rewards = rewardEscrowV2.balanceOf(user1);
+            assertEq(rewards, expectedRewards);
+        }
+    }
 
     // function testStakingRewardsOneStakerSmallIntervals() public {
     //     // this is 7 days by default
