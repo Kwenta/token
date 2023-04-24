@@ -13,7 +13,13 @@ contract TestHelpers is Test {
     }
 
     function assertCloseTo(uint256 a, uint256 b, uint256 tolerance) public {
-        assertTrue(closeTo(a, b, tolerance));
+        if (tolerance == 0) {
+            assertEq(a, b);
+        } else if (a > b) {
+            assertLe(a - b, tolerance, "a - b <= tolerance");
+        } else if (b > a) {
+            assertLe(b - a, tolerance, "b - a <= tolerance");
+        }
     }
 
     function closeTo(uint256 a, uint256 b, uint256 tolerance) public pure returns (bool) {

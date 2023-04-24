@@ -93,65 +93,46 @@ contract StakingRewardsTests is StakingRewardsTestHelpers {
         // assert initial rewards are 0
         assertEq(rewards, 0);
 
-        // send in 604800 (1 week) of rewards - (using 1 week for round numbers)
+        // send in reward to the contract
         vm.prank(treasury);
         kwenta.transfer(address(stakingRewardsV1), reward);
         vm.prank(address(supplySchedule));
         stakingRewardsV1.notifyRewardAmount(reward);
 
-        // fast forward 1 week - one complete period
+        // fast forward some period of time to accrue rewards
         vm.warp(block.timestamp + waitTime);
 
         // get the rewards
         vm.prank(user1);
         stakingRewardsV1.getReward();
 
-        // general formula for rewards should be:
-        // rewardRate = reward / rewardsDuration
-        // newRewards = rewardRate * min(timePassed, rewardsDuration)
-        // rewardPerToken = previousRewards + (newRewards * 1e18 / totalSupply)
-        // rewardsPerTokenForUser = rewardPerToken - rewardPerTokenPaid
-        // rewards = (balance * rewardsPerTokenForUser) / 1e18
-
-        // applying this calculation to the test case:
-        // rewardRate = reward / 1 weeks
-        // newRewards = rewardRate * min(1 weeks, 1 weeks)
-        // rewardPerToken = 0 + (newRewards * 1e18 / initialStake)
-        // rewardsPerTokenForUser = rewardPerToken - 0 = rewardPerToken
-        // rewards = (initialStake * rewardsPerTokenForUser) / 1e18
-
-        uint256 rewardRate = reward / rewardsDuration;
-        uint256 newRewards = rewardRate * min(waitTime, rewardsDuration);
-        uint256 previousRewardPerToken = 0;
-        uint256 rewardPerToken = previousRewardPerToken + (newRewards * 1e18 / initialStake);
-        uint256 rewardsPerTokenPaid = 0;
-        uint256 rewardsPerTokenForUser = rewardPerToken - rewardsPerTokenPaid;
-        uint256 expectedRewards = initialStake * rewardsPerTokenForUser / 1e18;
+        uint256 expectedRewards = getFirstExpectedRewardV1(reward, waitTime, initialStake);
 
         // check rewards
         rewards = rewardEscrowV1.balanceOf(user1);
         assertEq(rewards, expectedRewards);
 
-        // ----------------------------------------------
+        // move forward to the end of the rewards period
+        bool waitTimeLessThanRewardsDuration = waitTime < rewardsDuration;
+        if (waitTimeLessThanRewardsDuration) {
+            vm.warp(block.timestamp + rewardsDuration - waitTime);
+        }
 
-        // // send in another 604800 (1 week) of rewards
-        // vm.prank(treasury);
-        // kwenta.transfer(address(stakingRewardsV1), newRewards);
-        // vm.prank(address(supplySchedule));
-        // stakingRewardsV1.notifyRewardAmount(newRewards);
+        uint256 previousRewardPerToken = stakingRewardsV1.rewardPerToken();
+        uint256 rewardsPerTokenPaid = stakingRewardsV1.userRewardPerTokenPaid(user1);
 
-        // // fast forward 1 week - one complete period
-        // vm.warp(block.timestamp + lengthOfPeriod);
+        // get the rewards
+        vm.prank(user1);
+        stakingRewardsV1.getReward();
 
-        // // get the rewards
-        // vm.prank(user1);
-        // stakingRewardsV1.getReward();
+        if (waitTimeLessThanRewardsDuration) {
+            uint256 newReward = 0;
+            expectedRewards +=
+                getExpectedRewardV1(newReward, rewardsDuration, initialStake, previousRewardPerToken, rewardsPerTokenPaid);
 
-        // // check rewards
-        // rewards = rewardEscrowV1.balanceOf(user1);
-        // // we exect the same amount of rewards again as this week was exactly the same as the previous one
-        // uint256 numberOfPeriods = 2;
-        // assertEq(rewards, expectedRewards * numberOfPeriods);
+            rewards = rewardEscrowV1.balanceOf(user1);
+            assertEq(rewards, expectedRewards);
+        }
     }
 
     function testStakingRewardsOneStakerSmallIntervals() public {
