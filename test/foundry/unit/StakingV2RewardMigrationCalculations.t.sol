@@ -446,7 +446,11 @@ contract StakingV2RewardMigrationCalculationTests is StakingRewardsTestHelpers {
         for (uint256 i = 0; i < numberOfRounds; i++) {
             // add another staker
             address otherUser = createUser();
-            fundAccountAndStakeV2(otherUser, getPseudoRandomNumber(10 ether, 1, initialStake));
+            if (flipCoin()) {
+                fundAccountAndStakeV1(otherUser, getPseudoRandomNumber(10 ether, 1, initialStake));
+            } else {
+                fundAccountAndStakeV2(otherUser, getPseudoRandomNumber(10 ether, 1, initialStake));
+            }
 
             // move forward to the end of the rewards period
             jumpToEndOfRewardsPeriod(waitTime);
