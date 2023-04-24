@@ -110,32 +110,6 @@ contract StakingRewardsTestHelpers is TestHelpers {
                         Reward Calculation Helpers
     //////////////////////////////////////////////////////////////*/
 
-    // TODO: delete this if it is unused
-    function getFirstExpectedRewardV1(uint256 reward, uint256 waitTime, uint256 initialStake)
-        public
-        view
-        returns (uint256)
-    {
-        // This defaults to 7 days
-        uint256 rewardsDuration = stakingRewardsV1.rewardsDuration();
-
-        // general formula for rewards should be:
-        // rewardRate = reward / rewardsDuration
-        // newRewards = rewardRate * min(timePassed, rewardsDuration)
-        // rewardPerToken = previousRewards + (newRewards * 1e18 / totalSupply)
-        // rewardsPerTokenForUser = rewardPerToken - rewardPerTokenPaid
-        // rewards = (balance * rewardsPerTokenForUser) / 1e18
-        uint256 rewardRate = reward / rewardsDuration;
-        uint256 newRewards = rewardRate * min(waitTime, rewardsDuration);
-        uint256 previousRewardPerToken = 0;
-        uint256 rewardPerToken = previousRewardPerToken + (newRewards * 1e18 / initialStake);
-        uint256 rewardsPerTokenPaid = 0;
-        uint256 rewardsPerTokenForUser = rewardPerToken - rewardsPerTokenPaid;
-        uint256 expectedRewards = initialStake * rewardsPerTokenForUser / 1e18;
-
-        return expectedRewards;
-    }
-
     // Note - this must be run before triggering notifyRewardAmount and getReward
     function getExpectedRewardV1(uint256 reward, uint256 waitTime, uint256 initialStake)
         public
