@@ -7,7 +7,7 @@ import "../utils/Constants.t.sol";
 
 contract StakingRewardsTests is StakingRewardsTestHelpers {
     /*//////////////////////////////////////////////////////////////
-                        Unstaking During Cooldown
+                    Staking Rewards Calculation Tests
     //////////////////////////////////////////////////////////////*/
 
     function testStakingRewardsOneStaker() public {
