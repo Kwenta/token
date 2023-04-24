@@ -5,7 +5,7 @@ import "forge-std/Test.sol";
 import {StakingRewardsTestHelpers} from "../utils/StakingRewardsTestHelpers.t.sol";
 import "../utils/Constants.t.sol";
 
-contract StakingRewardsTests is StakingRewardsTestHelpers {
+contract StakingV1RewardCalculationTests is StakingRewardsTestHelpers {
     /*//////////////////////////////////////////////////////////////
                     Staking Rewards Calculation Tests
     //////////////////////////////////////////////////////////////*/
