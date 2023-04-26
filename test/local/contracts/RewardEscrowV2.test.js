@@ -184,7 +184,7 @@ contract(
         const YEAR = 31556926;
         let stakingRewards;
         let stakingToken;
-        let rewardsEscrow;
+        let rewardsEscrowV2;
         let kwentaSmock;
         let supplySchedule;
 
@@ -201,11 +201,11 @@ contract(
                 treasuryDAO
             );
 
-            rewardsEscrow = await RewardsEscrowV2.new(owner, kwentaSmock.address);
+            rewardsEscrowV2 = await RewardsEscrowV2.new(owner, kwentaSmock.address);
 
             stakingRewards = await StakingRewards.new(
                 kwentaSmock.address,
-                rewardsEscrow.address,
+                rewardsEscrowV2.address,
                 supplySchedule.address
             );
 
@@ -216,7 +216,7 @@ contract(
 
             SRsigner = await ethers.getSigner(stakingRewards.address);
 
-            await rewardsEscrow.setStakingRewards(stakingRewards.address, {
+            await rewardsEscrowV2.setStakingRewards(stakingRewards.address, {
                 from: owner,
             });
 
@@ -238,16 +238,16 @@ contract(
 
         beforeEach(async () => {
             // Reset RewardsEscrow
-            rewardsEscrow = await RewardsEscrowV2.new(owner, kwentaSmock.address);
-            await rewardsEscrow.setStakingRewards(stakingRewards.address, {
+            rewardsEscrowV2 = await RewardsEscrowV2.new(owner, kwentaSmock.address);
+            await rewardsEscrowV2.setStakingRewards(stakingRewards.address, {
                 from: owner,
             });
-            await rewardsEscrow.setTreasuryDAO(treasuryDAO);
+            await rewardsEscrowV2.setTreasuryDAO(treasuryDAO);
         });
 
         describe("Deploys correctly", async () => {
             it("Should have a KWENTA token", async () => {
-                const kwentaAddress = await rewardsEscrow.getKwentaAddress();
+                const kwentaAddress = await rewardsEscrowV2.getKwentaAddress();
                 assert.equal(
                     kwentaAddress,
                     kwentaSmock.address,
@@ -256,13 +256,13 @@ contract(
             });
 
             it("Should set owner", async () => {
-                const ownerAddress = await rewardsEscrow.owner();
+                const ownerAddress = await rewardsEscrowV2.owner();
                 assert.equal(ownerAddress, owner, "Wrong owner address");
             });
 
             it("Should have set StakingRewards correctly", async () => {
                 const stakingRewardsAddress =
-                    await rewardsEscrow.stakingRewards();
+                    await rewardsEscrowV2.stakingRewards();
                 assert.equal(
                     stakingRewardsAddress,
                     stakingRewards.address,
@@ -272,7 +272,7 @@ contract(
 
             it("Should have set Treasury set correctly", async () => {
                 const treasuryDAOAddress =
-                    await rewardsEscrow.treasuryDAO();
+                    await rewardsEscrowV2.treasuryDAO();
                 assert.equal(
                     treasuryDAOAddress,
                     treasuryDAO,
@@ -282,7 +282,7 @@ contract(
 
             it("Should NOT allow owner to set StakingRewards again", async () => {
                 await assert.revert(
-                    rewardsEscrow.setStakingRewards(stakingRewards.address, {
+                    rewardsEscrowV2.setStakingRewards(stakingRewards.address, {
                         from: owner,
                     }),
                     "Staking Rewards already set"
@@ -290,32 +290,32 @@ contract(
             });
 
             it("should set nextEntryId to 1", async () => {
-                const nextEntryId = await rewardsEscrow.nextEntryId();
+                const nextEntryId = await rewardsEscrowV2.nextEntryId();
                 assert.equal(nextEntryId, 1);
             });
         });
 
         describe("Given there are no Escrow entries", async () => {
             it("then numVestingEntries should return 0", async () => {
-                assert.equal(0, await rewardsEscrow.numVestingEntries(staker1));
+                assert.equal(0, await rewardsEscrowV2.numVestingEntries(staker1));
             });
             it("then totalEscrowedAccountBalance should return 0", async () => {
                 assert.equal(
                     0,
-                    await rewardsEscrow.totalEscrowedAccountBalance(staker1)
+                    await rewardsEscrowV2.totalEscrowedAccountBalance(staker1)
                 );
             });
             it("then totalVestedAccountBalance should return 0", async () => {
                 assert.equal(
                     0,
-                    await rewardsEscrow.totalVestedAccountBalance(staker1)
+                    await rewardsEscrowV2.totalVestedAccountBalance(staker1)
                 );
             });
             it("then vest should do nothing and not revert", async () => {
-                await rewardsEscrow.vest([0], { from: staker1 });
+                await rewardsEscrowV2.vest([0], { from: staker1 });
                 assert.equal(
                     0,
-                    await rewardsEscrow.totalVestedAccountBalance(staker1)
+                    await rewardsEscrowV2.totalVestedAccountBalance(staker1)
                 );
             });
         });
@@ -324,14 +324,14 @@ contract(
             it("should not create a vesting entry with a zero amount", async () => {
                 // Transfer of KWENTA to the escrow must occur before creating an entry
                 await stakingToken.transfer(
-                    rewardsEscrow.address,
+                    rewardsEscrowV2.address,
                     toUnit("1"),
                     {
                         from: owner,
                     }
                 );
 
-                await rewardsEscrow.appendVestingEntry(staker1, toUnit("0"), {
+                await rewardsEscrowV2.appendVestingEntry(staker1, toUnit("0"), {
                     from: stakingRewards.address,
                 }).should.be.rejected;
             });
@@ -339,13 +339,13 @@ contract(
             it("should not create a vesting entry if there is not enough KWENTA in the contracts balance", async () => {
                 // Transfer of KWENTA to the escrow must occur before creating an entry
                 await stakingToken.transfer(
-                    rewardsEscrow.address,
+                    rewardsEscrowV2.address,
                     toUnit("1"),
                     {
                         from: owner,
                     }
                 );
-                await rewardsEscrow.appendVestingEntry(staker1, toUnit("10"), {
+                await rewardsEscrowV2.appendVestingEntry(staker1, toUnit("10"), {
                     from: stakingRewards.address,
                 }).should.be.rejected;
             });
@@ -359,7 +359,7 @@ contract(
                     kwentaSmock.balanceOf.returns(wei(10).toBN());
 
                     await assert.revert(
-                        rewardsEscrow.appendVestingEntry(
+                        rewardsEscrowV2.appendVestingEntry(
                             staker1,
                             toUnit("1"),
                             duration,
@@ -375,7 +375,7 @@ contract(
                     kwentaSmock.balanceOf.returns(wei(1).toBN());
 
                     await assert.revert(
-                        rewardsEscrow.appendVestingEntry(
+                        rewardsEscrowV2.appendVestingEntry(
                             staker1,
                             toUnit("0"),
                             duration,
@@ -391,7 +391,7 @@ contract(
                     kwentaSmock.balanceOf.returns(wei(1).toBN());
 
                     await assert.revert(
-                        rewardsEscrow.appendVestingEntry(
+                        rewardsEscrowV2.appendVestingEntry(
                             staker1,
                             toUnit("10"),
                             duration,
@@ -409,7 +409,7 @@ contract(
                     kwentaSmock.balanceOf.returns(wei(10).toBN());
 
                     await assert.revert(
-                        rewardsEscrow.appendVestingEntry(
+                        rewardsEscrowV2.appendVestingEntry(
                             staker1,
                             toUnit("10"),
                             duration,
@@ -421,7 +421,7 @@ contract(
                     );
                 });
                 it("should revert appending a vesting entry if the duration is > max_duration", async () => {
-                    duration = (await rewardsEscrow.MAX_DURATION()).add(
+                    duration = (await rewardsEscrowV2.MAX_DURATION()).add(
                         toUnit(1)
                     );
 
@@ -429,7 +429,7 @@ contract(
                     kwentaSmock.balanceOf.returns(wei(10).toBN());
 
                     await assert.revert(
-                        rewardsEscrow.appendVestingEntry(
+                        rewardsEscrowV2.appendVestingEntry(
                             staker1,
                             toUnit("10"),
                             duration,
@@ -446,7 +446,7 @@ contract(
                     beforeEach(async () => {
                         duration = 1 * YEAR;
 
-                        entryID = await rewardsEscrow.nextEntryId();
+                        entryID = await rewardsEscrowV2.nextEntryId();
 
                         now = await currentTime();
 
@@ -456,7 +456,7 @@ contract(
                         kwentaSmock.balanceOf.returns(wei(10).toBN());
 
                         // Append vesting entry
-                        await rewardsEscrow.appendVestingEntry(
+                        await rewardsEscrowV2.appendVestingEntry(
                             staker1,
                             escrowAmount,
                             duration,
@@ -465,11 +465,11 @@ contract(
                             }
                         );
 
-                        nextEntryIdAfter = await rewardsEscrow.nextEntryId();
+                        nextEntryIdAfter = await rewardsEscrowV2.nextEntryId();
                     });
                     it("Should return the vesting entry for account 1 and entryID", async () => {
                         const vestingEntry =
-                            await rewardsEscrow.getVestingEntry(
+                            await rewardsEscrowV2.getVestingEntry(
                                 staker1,
                                 entryID
                             );
@@ -488,19 +488,19 @@ contract(
                     });
                     it("Account 1 should have balance of 10 KWENTA", async () => {
                         assert.bnEqual(
-                            await rewardsEscrow.balanceOf(staker1),
+                            await rewardsEscrowV2.balanceOf(staker1),
                             escrowAmount
                         );
                     });
                     it("totalEscrowedBalance of the contract should be 10 KWENTA", async () => {
                         assert.bnEqual(
-                            await rewardsEscrow.totalEscrowedBalance(),
+                            await rewardsEscrowV2.totalEscrowedBalance(),
                             escrowAmount
                         );
                     });
                     it("staker1 should have totalVested Account Balance of 0", async () => {
                         assert.bnEqual(
-                            await rewardsEscrow.totalVestedAccountBalance(
+                            await rewardsEscrowV2.totalVestedAccountBalance(
                                 staker1
                             ),
                             new BN(0)
@@ -508,7 +508,7 @@ contract(
                     });
                     it("staker1 numVestingEntries is 1", async () => {
                         assert.bnEqual(
-                            await rewardsEscrow.numVestingEntries(staker1),
+                            await rewardsEscrowV2.numVestingEntries(staker1),
                             new BN(1)
                         );
                     });
@@ -521,7 +521,7 @@ contract(
                         // claimable = escrowedAmount - 90% escrowedAmount * vestingProgress
                         it("then the vesting entry has 5.5 kwenta claimable", async () => {
                             const claimable =
-                                await rewardsEscrow.getVestingEntryClaimable(
+                                await rewardsEscrowV2.getVestingEntryClaimable(
                                     staker1,
                                     entryID
                                 );
@@ -532,14 +532,14 @@ contract(
                         let vestingEntry;
                         beforeEach(async () => {
                             await fastForward(YEAR + 1);
-                            vestingEntry = await rewardsEscrow.getVestingEntry(
+                            vestingEntry = await rewardsEscrowV2.getVestingEntry(
                                 staker1,
                                 entryID
                             );
                         });
                         it("then the vesting entry is fully claimable", async () => {
                             const claimable =
-                                await rewardsEscrow.getVestingEntryClaimable(
+                                await rewardsEscrowV2.getVestingEntryClaimable(
                                     staker1,
                                     entryID
                                 );
@@ -568,9 +568,9 @@ contract(
                 duration = 1 * YEAR;
             });
             it("should revert if escrow duration is greater than max_duration", async () => {
-                const maxDuration = await rewardsEscrow.MAX_DURATION();
+                const maxDuration = await rewardsEscrowV2.MAX_DURATION();
                 await assert.revert(
-                    rewardsEscrow.createEscrowEntry(
+                    rewardsEscrowV2.createEscrowEntry(
                         staker1,
                         new BN(1000),
                         maxDuration + 10,
@@ -583,7 +583,7 @@ contract(
             });
             it("should revert if escrow duration is 0", async () => {
                 await assert.revert(
-                    rewardsEscrow.createEscrowEntry(staker1, new BN(1000), 0, {
+                    rewardsEscrowV2.createEscrowEntry(staker1, new BN(1000), 0, {
                         from: owner,
                     }),
                     "Cannot escrow with 0 duration OR above max_duration"
@@ -591,7 +591,7 @@ contract(
             });
             it("should revert when beneficiary is address zero", async () => {
                 await assert.revert(
-                    rewardsEscrow.createEscrowEntry(
+                    rewardsEscrowV2.createEscrowEntry(
                         ethers.constants.AddressZero,
                         toUnit("1"),
                         duration
@@ -602,7 +602,7 @@ contract(
             it("should revert when msg.sender has no approval to spend", async () => {
                 kwentaSmock.transferFrom.returns(false);
                 await assert.revert(
-                    rewardsEscrow.createEscrowEntry(
+                    rewardsEscrowV2.createEscrowEntry(
                         staker1,
                         toUnit("10"),
                         duration,
@@ -619,9 +619,9 @@ contract(
                     now = currentTime();
                     escrowAmount = toUnit("10");
 
-                    const expectedEntryID = await rewardsEscrow.nextEntryId();
+                    const expectedEntryID = await rewardsEscrowV2.nextEntryId();
 
-                    await rewardsEscrow.createEscrowEntry(
+                    await rewardsEscrowV2.createEscrowEntry(
                         staker1,
                         escrowAmount,
                         duration,
@@ -631,17 +631,17 @@ contract(
                     );
 
                     // retrieve the vesting entryID from account 1's list of account vesting entrys
-                    entryID = await rewardsEscrow.accountVestingEntryIDs(
+                    entryID = await rewardsEscrowV2.accountVestingEntryIDs(
                         staker1,
                         0
                     );
 
                     assert.bnEqual(entryID, expectedEntryID);
 
-                    nextEntryIdAfter = await rewardsEscrow.nextEntryId();
+                    nextEntryIdAfter = await rewardsEscrowV2.nextEntryId();
                 });
                 it("Should have created a new vesting entry for account 1", async () => {
-                    vestingEntry = await rewardsEscrow.getVestingEntry(
+                    vestingEntry = await rewardsEscrowV2.getVestingEntry(
                         staker1,
                         entryID
                     );
@@ -657,25 +657,25 @@ contract(
                 });
                 it("totalEscrowedBalance of the contract should be 10 KWENTA", async () => {
                     assert.bnEqual(
-                        await rewardsEscrow.totalEscrowedBalance(),
+                        await rewardsEscrowV2.totalEscrowedBalance(),
                         escrowAmount
                     );
                 });
                 it("Account1 should have balance of 10 KWENTA", async () => {
                     assert.bnEqual(
-                        await rewardsEscrow.balanceOf(staker1),
+                        await rewardsEscrowV2.balanceOf(staker1),
                         escrowAmount
                     );
                 });
                 it("Account1 should have totalVested Account Balance of 0", async () => {
                     assert.bnEqual(
-                        await rewardsEscrow.totalVestedAccountBalance(staker1),
+                        await rewardsEscrowV2.totalVestedAccountBalance(staker1),
                         new BN(0)
                     );
                 });
                 it("Account1 numVestingEntries is 1", async () => {
                     assert.bnEqual(
-                        await rewardsEscrow.numVestingEntries(staker1),
+                        await rewardsEscrowV2.numVestingEntries(staker1),
                         new BN(1)
                     );
                 });
@@ -691,8 +691,8 @@ contract(
                 kwentaSmock.balanceOf.returns(wei(1000).toBN());
 
                 // Add a few vesting entries as the feepool address
-                entryID1 = await rewardsEscrow.nextEntryId();
-                await rewardsEscrow.appendVestingEntry(
+                entryID1 = await rewardsEscrowV2.nextEntryId();
+                await rewardsEscrowV2.appendVestingEntry(
                     staker1,
                     escrowAmounts[0],
                     duration,
@@ -701,8 +701,8 @@ contract(
                     }
                 );
                 await fastForward(WEEK);
-                entryID2 = await rewardsEscrow.nextEntryId();
-                await rewardsEscrow.appendVestingEntry(
+                entryID2 = await rewardsEscrowV2.nextEntryId();
+                await rewardsEscrowV2.appendVestingEntry(
                     staker1,
                     escrowAmounts[1],
                     duration,
@@ -711,8 +711,8 @@ contract(
                     }
                 );
                 await fastForward(WEEK);
-                entryID3 = await rewardsEscrow.nextEntryId();
-                await rewardsEscrow.appendVestingEntry(
+                entryID3 = await rewardsEscrowV2.nextEntryId();
+                await rewardsEscrowV2.appendVestingEntry(
                     staker1,
                     escrowAmounts[2],
                     duration,
@@ -725,7 +725,7 @@ contract(
                 //mocks['Issuer'].smocked.debtBalanceOf.will.return.with('0');
             });
             it("should return the vesting schedules for staker1", async () => {
-                const entries = await rewardsEscrow.getVestingSchedules(
+                const entries = await rewardsEscrowV2.getVestingSchedules(
                     staker1,
                     0,
                     3
@@ -741,7 +741,7 @@ contract(
             });
             it("should return the list of vesting entryIDs for staker1", async () => {
                 const vestingEntryIDs =
-                    await rewardsEscrow.getAccountVestingEntryIDs(
+                    await rewardsEscrowV2.getAccountVestingEntryIDs(
                         staker1,
                         0,
                         3
@@ -768,14 +768,14 @@ contract(
                     treasuryDAO
                 );
 
-                rewardsEscrow = await RewardsEscrow.new(
+                rewardsEscrowV2 = await RewardsEscrow.new(
                     owner,
                     mockedKwenta.address
                 );
-                await rewardsEscrow.setStakingRewards(stakingRewards.address, {
+                await rewardsEscrowV2.setStakingRewards(stakingRewards.address, {
                     from: owner,
                 });
-                await rewardsEscrow.setTreasuryDAO(treasuryDAO);
+                await rewardsEscrowV2.setTreasuryDAO(treasuryDAO);
 
                 // Transfer from treasury to owner
                 await mockedKwenta.transfer(owner, toUnit("1000"), {
@@ -784,7 +784,7 @@ contract(
 
                 // Transfer of KWENTA to the escrow must occur before creating a vesting entry
                 await mockedKwenta.transfer(
-                    rewardsEscrow.address,
+                    rewardsEscrowV2.address,
                     toUnit("1000"),
                     {
                         from: owner,
@@ -799,10 +799,10 @@ contract(
                     escrowAmount = toUnit("1000");
                     timeElapsed = YEAR / 2;
 
-                    entryID = await rewardsEscrow.nextEntryId();
+                    entryID = await rewardsEscrowV2.nextEntryId();
 
                     // Add a few vesting entries as the feepool address
-                    await rewardsEscrow.appendVestingEntry(
+                    await rewardsEscrowV2.appendVestingEntry(
                         staker1,
                         escrowAmount,
                         duration,
@@ -817,7 +817,7 @@ contract(
 
                 it("should vest 0 amount if entryID does not exist for user", async () => {
                     const randomID = 200;
-                    await rewardsEscrow.vest([randomID], { from: staker1 });
+                    await rewardsEscrowV2.vest([randomID], { from: staker1 });
 
                     // Check user has no vested KWENTA
                     assert.bnEqual(
@@ -827,20 +827,20 @@ contract(
 
                     // Check rewardEscrow does not have any KWENTA
                     assert.bnEqual(
-                        await mockedKwenta.balanceOf(rewardsEscrow.address),
+                        await mockedKwenta.balanceOf(rewardsEscrowV2.address),
                         escrowAmount
                     );
 
                     // Check total escrowedAccountBalance is unchanged
                     const escrowedAccountBalance =
-                        await rewardsEscrow.totalEscrowedAccountBalance(
+                        await rewardsEscrowV2.totalEscrowedAccountBalance(
                             staker1
                         );
                     assert.bnEqual(escrowedAccountBalance, escrowAmount);
 
                     // Account should have 0 vested account balance
                     const totalVestedAccountBalance =
-                        await rewardsEscrow.totalVestedAccountBalance(staker1);
+                        await rewardsEscrowV2.totalVestedAccountBalance(staker1);
                     assert.bnEqual(totalVestedAccountBalance, toUnit("0"));
                 });
 
@@ -850,7 +850,7 @@ contract(
                         .toString(0);
                     assert.bnEqual(
                         (
-                            await rewardsEscrow.getVestingEntryClaimable(
+                            await rewardsEscrowV2.getVestingEntryClaimable(
                                 staker1,
                                 entryID
                             )
@@ -861,7 +861,7 @@ contract(
 
                 it("should vest and transfer 0 KWENTA from contract to the user", async () => {
                     claimableKWENTA =
-                        await rewardsEscrow.getVestingEntryClaimable(
+                        await rewardsEscrowV2.getVestingEntryClaimable(
                             staker1,
                             entryID
                         );
@@ -876,7 +876,7 @@ contract(
                     );
 
                     // Vest
-                    await rewardsEscrow.vest([entryID], { from: staker1 });
+                    await rewardsEscrowV2.vest([entryID], { from: staker1 });
 
                     const treasuryPostBalance = await mockedKwenta.balanceOf(
                         treasuryDAO
@@ -898,27 +898,27 @@ contract(
 
                     // Check rewardEscrow contract has same amount of KWENTA
                     assert.bnEqual(
-                        await mockedKwenta.balanceOf(rewardsEscrow.address),
+                        await mockedKwenta.balanceOf(rewardsEscrowV2.address),
                         0
                     );
 
                     const vestingEntryAfter =
-                        await rewardsEscrow.getVestingEntry(staker1, entryID);
+                        await rewardsEscrowV2.getVestingEntry(staker1, entryID);
 
                     assert.bnEqual(
-                        await rewardsEscrow.totalEscrowedBalance(),
+                        await rewardsEscrowV2.totalEscrowedBalance(),
                         0
                     );
 
                     assert.bnEqual(
-                        await rewardsEscrow.totalEscrowedAccountBalance(
+                        await rewardsEscrowV2.totalEscrowedAccountBalance(
                             staker1
                         ),
                         0
                     );
 
                     assert.bnEqual(
-                        await rewardsEscrow.totalVestedAccountBalance(staker1),
+                        await rewardsEscrowV2.totalVestedAccountBalance(staker1),
                         await mockedKwenta.balanceOf(staker1)
                     );
 
@@ -932,10 +932,10 @@ contract(
                     duration = 1 * YEAR;
                     escrowAmount = toUnit("1000");
 
-                    entryID = await rewardsEscrow.nextEntryId();
+                    entryID = await rewardsEscrowV2.nextEntryId();
 
                     // Add a few vesting entries as the feepool address
-                    await rewardsEscrow.appendVestingEntry(
+                    await rewardsEscrowV2.appendVestingEntry(
                         staker1,
                         escrowAmount,
                         duration,
@@ -948,7 +948,7 @@ contract(
                     fastForward(duration + 10);
                 });
                 it("should vest and transfer all the $KWENTA to the user", async () => {
-                    await rewardsEscrow.vest([entryID], {
+                    await rewardsEscrowV2.vest([entryID], {
                         from: staker1,
                     });
 
@@ -960,13 +960,13 @@ contract(
 
                     // Check rewardEscrow does not have any KWENTA
                     assert.bnEqual(
-                        await mockedKwenta.balanceOf(rewardsEscrow.address),
+                        await mockedKwenta.balanceOf(rewardsEscrowV2.address),
                         toUnit("0")
                     );
                 });
 
                 it("should vest and emit a Vest event", async () => {
-                    const vestTransaction = await rewardsEscrow.vest(
+                    const vestTransaction = await rewardsEscrowV2.vest(
                         [entryID],
                         {
                             from: staker1,
@@ -986,19 +986,19 @@ contract(
                 it("should vest and update totalEscrowedAccountBalance", async () => {
                     // This account should have an escrowedAccountBalance
                     let escrowedAccountBalance =
-                        await rewardsEscrow.totalEscrowedAccountBalance(
+                        await rewardsEscrowV2.totalEscrowedAccountBalance(
                             staker1
                         );
                     assert.bnEqual(escrowedAccountBalance, escrowAmount);
 
                     // Vest
-                    await rewardsEscrow.vest([entryID], {
+                    await rewardsEscrowV2.vest([entryID], {
                         from: staker1,
                     });
 
                     // This account should not have any amount escrowed
                     escrowedAccountBalance =
-                        await rewardsEscrow.totalEscrowedAccountBalance(
+                        await rewardsEscrowV2.totalEscrowedAccountBalance(
                             staker1
                         );
                     assert.bnEqual(escrowedAccountBalance, toUnit("0"));
@@ -1007,38 +1007,38 @@ contract(
                 it("should vest and update totalVestedAccountBalance", async () => {
                     // This account should have zero totalVestedAccountBalance
                     let totalVestedAccountBalance =
-                        await rewardsEscrow.totalVestedAccountBalance(staker1);
+                        await rewardsEscrowV2.totalVestedAccountBalance(staker1);
                     assert.bnEqual(totalVestedAccountBalance, toUnit("0"));
 
                     // Vest
-                    await rewardsEscrow.vest([entryID], {
+                    await rewardsEscrowV2.vest([entryID], {
                         from: staker1,
                     });
 
                     // This account should have vested its whole amount
                     totalVestedAccountBalance =
-                        await rewardsEscrow.totalVestedAccountBalance(staker1);
+                        await rewardsEscrowV2.totalVestedAccountBalance(staker1);
                     assert.bnEqual(totalVestedAccountBalance, escrowAmount);
                 });
 
                 it("should vest and update totalEscrowedBalance", async () => {
-                    await rewardsEscrow.vest([entryID], {
+                    await rewardsEscrowV2.vest([entryID], {
                         from: staker1,
                     });
 
                     // There should be no Escrowed balance left in the contract
                     assert.bnEqual(
-                        await rewardsEscrow.totalEscrowedBalance(),
+                        await rewardsEscrowV2.totalEscrowedBalance(),
                         toUnit("0")
                     );
                 });
                 it("should vest and update entryID.escrowAmount to 0", async () => {
-                    await rewardsEscrow.vest([entryID], {
+                    await rewardsEscrowV2.vest([entryID], {
                         from: staker1,
                     });
 
                     // There should be no escrowedAmount on entry
-                    const entry = await rewardsEscrow.getVestingEntry(
+                    const entry = await rewardsEscrowV2.getVestingEntry(
                         staker1,
                         entryID
                     );
@@ -1061,8 +1061,8 @@ contract(
                     escrowAmount3 = toUnit("500");
 
                     // Add a few vesting entries as the feepool address
-                    entryID1 = await rewardsEscrow.nextEntryId();
-                    await rewardsEscrow.appendVestingEntry(
+                    entryID1 = await rewardsEscrowV2.nextEntryId();
+                    await rewardsEscrowV2.appendVestingEntry(
                         staker1,
                         escrowAmount1,
                         duration,
@@ -1072,8 +1072,8 @@ contract(
                     );
                     await fastForward(WEEK);
 
-                    entryID2 = await rewardsEscrow.nextEntryId();
-                    await rewardsEscrow.appendVestingEntry(
+                    entryID2 = await rewardsEscrowV2.nextEntryId();
+                    await rewardsEscrowV2.appendVestingEntry(
                         staker1,
                         escrowAmount2,
                         duration,
@@ -1083,8 +1083,8 @@ contract(
                     );
                     await fastForward(WEEK);
 
-                    entryID3 = await rewardsEscrow.nextEntryId();
-                    await rewardsEscrow.appendVestingEntry(
+                    entryID3 = await rewardsEscrowV2.nextEntryId();
+                    await rewardsEscrowV2.appendVestingEntry(
                         staker1,
                         escrowAmount3,
                         duration,
@@ -1098,7 +1098,7 @@ contract(
                 });
 
                 it("should have three vesting entries for the user", async () => {
-                    const numOfEntries = await rewardsEscrow.numVestingEntries(
+                    const numOfEntries = await rewardsEscrowV2.numVestingEntries(
                         staker1
                     );
                     assert.bnEqual(numOfEntries, new BN(3));
@@ -1106,7 +1106,7 @@ contract(
 
                 describe("When another user (account 1) vests all their entries", () => {
                     it("should vest all entries and transfer $KWENTA to the user", async () => {
-                        await rewardsEscrow.vest(
+                        await rewardsEscrowV2.vest(
                             [entryID1, entryID2, entryID3],
                             {
                                 from: staker2,
@@ -1127,14 +1127,14 @@ contract(
 
                         // Check rewardEscrow has all the KWENTA
                         assert.bnEqual(
-                            await mockedKwenta.balanceOf(rewardsEscrow.address),
+                            await mockedKwenta.balanceOf(rewardsEscrowV2.address),
                             toUnit("1000")
                         );
                     });
                 });
 
                 it("should vest all entries and transfer $KWENTA from contract to the user", async () => {
-                    await rewardsEscrow.vest([entryID1, entryID2, entryID3], {
+                    await rewardsEscrowV2.vest([entryID1, entryID2, entryID3], {
                         from: staker1,
                     });
 
@@ -1146,13 +1146,13 @@ contract(
 
                     // Check rewardEscrow does not have any KWENTA
                     assert.bnEqual(
-                        await mockedKwenta.balanceOf(rewardsEscrow.address),
+                        await mockedKwenta.balanceOf(rewardsEscrowV2.address),
                         toUnit("0")
                     );
                 });
 
                 it("should vest and emit a Vest event", async () => {
-                    const vestTx = await rewardsEscrow.vest(
+                    const vestTx = await rewardsEscrowV2.vest(
                         [entryID1, entryID2, entryID3],
                         {
                             from: staker1,
@@ -1172,19 +1172,19 @@ contract(
                 it("should vest and update totalEscrowedAccountBalance", async () => {
                     // This account should have an escrowedAccountBalance
                     let escrowedAccountBalance =
-                        await rewardsEscrow.totalEscrowedAccountBalance(
+                        await rewardsEscrowV2.totalEscrowedAccountBalance(
                             staker1
                         );
                     assert.bnEqual(escrowedAccountBalance, toUnit("1000"));
 
                     // Vest
-                    await rewardsEscrow.vest([entryID1, entryID2, entryID3], {
+                    await rewardsEscrowV2.vest([entryID1, entryID2, entryID3], {
                         from: staker1,
                     });
 
                     // This account should not have any amount escrowed
                     escrowedAccountBalance =
-                        await rewardsEscrow.totalEscrowedAccountBalance(
+                        await rewardsEscrowV2.totalEscrowedAccountBalance(
                             staker1
                         );
                     assert.bnEqual(escrowedAccountBalance, toUnit("0"));
@@ -1193,34 +1193,34 @@ contract(
                 it("should vest and update totalVestedAccountBalance", async () => {
                     // This account should have zero totalVestedAccountBalance
                     let totalVestedAccountBalance =
-                        await rewardsEscrow.totalVestedAccountBalance(staker1);
+                        await rewardsEscrowV2.totalVestedAccountBalance(staker1);
                     assert.bnEqual(totalVestedAccountBalance, toUnit("0"));
 
                     // Vest
-                    await rewardsEscrow.vest([entryID1, entryID2, entryID3], {
+                    await rewardsEscrowV2.vest([entryID1, entryID2, entryID3], {
                         from: staker1,
                     });
 
                     // This account should have vested its whole amount
                     totalVestedAccountBalance =
-                        await rewardsEscrow.totalVestedAccountBalance(staker1);
+                        await rewardsEscrowV2.totalVestedAccountBalance(staker1);
                     assert.bnEqual(totalVestedAccountBalance, toUnit("1000"));
                 });
 
                 it("should vest and update totalEscrowedBalance", async () => {
-                    await rewardsEscrow.vest([entryID1, entryID2, entryID3], {
+                    await rewardsEscrowV2.vest([entryID1, entryID2, entryID3], {
                         from: staker1,
                     });
                     // There should be no Escrowed balance left in the contract
                     assert.bnEqual(
-                        await rewardsEscrow.totalEscrowedBalance(),
+                        await rewardsEscrowV2.totalEscrowedBalance(),
                         toUnit("0")
                     );
                 });
 
                 it("should vest all entries and ignore duplicate attempts to vest same entries again", async () => {
                     // Vest attempt 1
-                    await rewardsEscrow.vest([entryID1, entryID2, entryID3], {
+                    await rewardsEscrowV2.vest([entryID1, entryID2, entryID3], {
                         from: staker1,
                     });
 
@@ -1232,12 +1232,12 @@ contract(
 
                     // Check rewardEscrow does not have any KWENTA
                     assert.bnEqual(
-                        await mockedKwenta.balanceOf(rewardsEscrow.address),
+                        await mockedKwenta.balanceOf(rewardsEscrowV2.address),
                         toUnit("0")
                     );
 
                     // Vest attempt 2
-                    await rewardsEscrow.vest([entryID1, entryID2, entryID3], {
+                    await rewardsEscrowV2.vest([entryID1, entryID2, entryID3], {
                         from: staker1,
                     });
 
@@ -1249,7 +1249,7 @@ contract(
 
                     // Check rewardEscrow does not have any KWENTA
                     assert.bnEqual(
-                        await mockedKwenta.balanceOf(rewardsEscrow.address),
+                        await mockedKwenta.balanceOf(rewardsEscrowV2.address),
                         toUnit("0")
                     );
                 });
@@ -1270,8 +1270,8 @@ contract(
                     escrowAmount3 = toUnit("500");
 
                     // Add a few vesting entries as the feepool address
-                    entryID1 = await rewardsEscrow.nextEntryId();
-                    await rewardsEscrow.appendVestingEntry(
+                    entryID1 = await rewardsEscrowV2.nextEntryId();
+                    await rewardsEscrowV2.appendVestingEntry(
                         staker1,
                         escrowAmount1,
                         duration,
@@ -1281,8 +1281,8 @@ contract(
                     );
                     await fastForward(WEEK);
 
-                    entryID2 = await rewardsEscrow.nextEntryId();
-                    await rewardsEscrow.appendVestingEntry(
+                    entryID2 = await rewardsEscrowV2.nextEntryId();
+                    await rewardsEscrowV2.appendVestingEntry(
                         staker1,
                         escrowAmount2,
                         duration,
@@ -1294,8 +1294,8 @@ contract(
 
                     // EntryID3 has a longer duration than other entries
                     const twoYears = 2 * 52 * WEEK;
-                    entryID3 = await rewardsEscrow.nextEntryId();
-                    await rewardsEscrow.appendVestingEntry(
+                    entryID3 = await rewardsEscrowV2.nextEntryId();
+                    await rewardsEscrowV2.appendVestingEntry(
                         staker1,
                         escrowAmount3,
                         twoYears,
@@ -1306,7 +1306,7 @@ contract(
                 });
 
                 it("should have three vesting entries for the user", async () => {
-                    const numOfEntries = await rewardsEscrow.numVestingEntries(
+                    const numOfEntries = await rewardsEscrowV2.numVestingEntries(
                         staker1
                     );
                     assert.bnEqual(numOfEntries, new BN(3));
@@ -1314,7 +1314,7 @@ contract(
 
                 describe("When another user (account 1) vests all their entries", () => {
                     it("should vest all entries and transfer $KWENTA to the user", async () => {
-                        await rewardsEscrow.vest(
+                        await rewardsEscrowV2.vest(
                             [entryID1, entryID2, entryID3],
                             {
                                 from: staker2,
@@ -1335,7 +1335,7 @@ contract(
 
                         // Check rewardEscrow has all the KWENTA
                         assert.bnEqual(
-                            await mockedKwenta.balanceOf(rewardsEscrow.address),
+                            await mockedKwenta.balanceOf(rewardsEscrowV2.address),
                             toUnit("1000")
                         );
                     });
@@ -1348,7 +1348,7 @@ contract(
                     });
 
                     it("should vest only first 2 entries and transfer $KWENTA from contract to the user", async () => {
-                        await rewardsEscrow.vest([entryID1, entryID2], {
+                        await rewardsEscrowV2.vest([entryID1, entryID2], {
                             from: staker1,
                         });
 
@@ -1360,13 +1360,13 @@ contract(
 
                         // Check rewardEscrow has remaining entry3 amount
                         assert.bnEqual(
-                            await mockedKwenta.balanceOf(rewardsEscrow.address),
+                            await mockedKwenta.balanceOf(rewardsEscrowV2.address),
                             escrowAmount3
                         );
                     });
 
                     it("should vest and emit a Vest event", async () => {
-                        const vestTx = await rewardsEscrow.vest(
+                        const vestTx = await rewardsEscrowV2.vest(
                             [entryID1, entryID2],
                             {
                                 from: staker1,
@@ -1386,19 +1386,19 @@ contract(
                     it("should vest and update totalEscrowedAccountBalance", async () => {
                         // This account should have an escrowedAccountBalance
                         let escrowedAccountBalance =
-                            await rewardsEscrow.totalEscrowedAccountBalance(
+                            await rewardsEscrowV2.totalEscrowedAccountBalance(
                                 staker1
                             );
                         assert.bnEqual(escrowedAccountBalance, toUnit("1000"));
 
                         // Vest
-                        await rewardsEscrow.vest([entryID1, entryID2], {
+                        await rewardsEscrowV2.vest([entryID1, entryID2], {
                             from: staker1,
                         });
 
                         // This account should have any 500 KWENTA escrowed
                         escrowedAccountBalance =
-                            await rewardsEscrow.totalEscrowedAccountBalance(
+                            await rewardsEscrowV2.totalEscrowedAccountBalance(
                                 staker1
                             );
                         assert.bnEqual(escrowedAccountBalance, escrowAmount3);
@@ -1407,19 +1407,19 @@ contract(
                     it("should vest and update totalVestedAccountBalance", async () => {
                         // This account should have zero totalVestedAccountBalance before
                         let totalVestedAccountBalance =
-                            await rewardsEscrow.totalVestedAccountBalance(
+                            await rewardsEscrowV2.totalVestedAccountBalance(
                                 staker1
                             );
                         assert.bnEqual(totalVestedAccountBalance, toUnit("0"));
 
                         // Vest
-                        await rewardsEscrow.vest([entryID1, entryID2], {
+                        await rewardsEscrowV2.vest([entryID1, entryID2], {
                             from: staker1,
                         });
 
                         // This account should have vested entry 1 and entry 2 amounts
                         totalVestedAccountBalance =
-                            await rewardsEscrow.totalVestedAccountBalance(
+                            await rewardsEscrowV2.totalVestedAccountBalance(
                                 staker1
                             );
                         assert.bnEqual(
@@ -1429,19 +1429,19 @@ contract(
                     });
 
                     it("should vest and update totalEscrowedBalance", async () => {
-                        await rewardsEscrow.vest([entryID1, entryID2], {
+                        await rewardsEscrowV2.vest([entryID1, entryID2], {
                             from: staker1,
                         });
                         // There should be escrowAmount3's Escrowed balance left in the contract
                         assert.bnEqual(
-                            await rewardsEscrow.totalEscrowedBalance(),
+                            await rewardsEscrowV2.totalEscrowedBalance(),
                             escrowAmount3
                         );
                     });
 
                     it("should vest entryID1 and entryID2 and ignore duplicate attempts to vest same entries again", async () => {
                         // Vest attempt 1
-                        await rewardsEscrow.vest([entryID1, entryID2], {
+                        await rewardsEscrowV2.vest([entryID1, entryID2], {
                             from: staker1,
                         });
 
@@ -1453,12 +1453,12 @@ contract(
 
                         // Check rewardEscrow does has escrowAmount3 KWENTA
                         assert.bnEqual(
-                            await mockedKwenta.balanceOf(rewardsEscrow.address),
+                            await mockedKwenta.balanceOf(rewardsEscrowV2.address),
                             escrowAmount3
                         );
 
                         // Vest attempt 2
-                        await rewardsEscrow.vest([entryID1, entryID2], {
+                        await rewardsEscrowV2.vest([entryID1, entryID2], {
                             from: staker1,
                         });
 
@@ -1470,7 +1470,7 @@ contract(
 
                         // Check rewardEscrow has same escrowAmount3 KWENTA
                         assert.bnEqual(
-                            await mockedKwenta.balanceOf(rewardsEscrow.address),
+                            await mockedKwenta.balanceOf(rewardsEscrowV2.address),
                             escrowAmount3
                         );
                     });
@@ -1483,7 +1483,7 @@ contract(
                     });
 
                     it("should fully vest entries 1 and 2 and partially vest entry 3 and transfer all to user", async () => {
-                        await rewardsEscrow.vest(
+                        await rewardsEscrowV2.vest(
                             [entryID1, entryID2, entryID3],
                             {
                                 from: staker1,
@@ -1498,13 +1498,13 @@ contract(
 
                         // Check rewardEscrow has remaining entry3 amount
                         assert.bnEqual(
-                            await mockedKwenta.balanceOf(rewardsEscrow.address),
+                            await mockedKwenta.balanceOf(rewardsEscrowV2.address),
                             0
                         );
                     });
 
                     it("should vest and emit a Vest event", async () => {
-                        const vestTx = await rewardsEscrow.vest(
+                        const vestTx = await rewardsEscrowV2.vest(
                             [entryID1, entryID2, entryID3],
                             {
                                 from: staker1,
@@ -1528,13 +1528,13 @@ contract(
                     it("should vest and update totalEscrowedAccountBalance", async () => {
                         // This account should have an escrowedAccountBalance
                         let escrowedAccountBalance =
-                            await rewardsEscrow.totalEscrowedAccountBalance(
+                            await rewardsEscrowV2.totalEscrowedAccountBalance(
                                 staker1
                             );
                         assert.bnEqual(escrowedAccountBalance, toUnit("1000"));
 
                         // Vest
-                        await rewardsEscrow.vest(
+                        await rewardsEscrowV2.vest(
                             [entryID1, entryID2, entryID3],
                             {
                                 from: staker1,
@@ -1543,7 +1543,7 @@ contract(
 
                         // This account should have any 0 KWENTA escrowed
                         escrowedAccountBalance =
-                            await rewardsEscrow.totalEscrowedAccountBalance(
+                            await rewardsEscrowV2.totalEscrowedAccountBalance(
                                 staker1
                             );
                         assert.bnEqual(escrowedAccountBalance, 0);
@@ -1552,13 +1552,13 @@ contract(
                     it("should vest and update totalVestedAccountBalance", async () => {
                         // This account should have zero totalVestedAccountBalance before
                         let totalVestedAccountBalance =
-                            await rewardsEscrow.totalVestedAccountBalance(
+                            await rewardsEscrowV2.totalVestedAccountBalance(
                                 staker1
                             );
                         assert.bnEqual(totalVestedAccountBalance, toUnit("0"));
 
                         // Vest
-                        await rewardsEscrow.vest(
+                        await rewardsEscrowV2.vest(
                             [entryID1, entryID2, entryID3],
                             {
                                 from: staker1,
@@ -1567,7 +1567,7 @@ contract(
 
                         // This account should have vested more than entry 1 and entry 2 amounts
                         totalVestedAccountBalance =
-                            await rewardsEscrow.totalVestedAccountBalance(
+                            await rewardsEscrowV2.totalVestedAccountBalance(
                                 staker1
                             );
                         assert.bnGreaterThan(
@@ -1577,7 +1577,7 @@ contract(
                     });
 
                     it("should vest and update totalEscrowedBalance", async () => {
-                        await rewardsEscrow.vest(
+                        await rewardsEscrowV2.vest(
                             [entryID1, entryID2, entryID3],
                             {
                                 from: staker1,
@@ -1585,14 +1585,14 @@ contract(
                         );
 
                         assert.bnEqual(
-                            await rewardsEscrow.totalEscrowedBalance(),
+                            await rewardsEscrowV2.totalEscrowedBalance(),
                             0
                         );
                     });
 
                     it("should vest entryID1 and entryID2 and ignore duplicate attempts to vest same entries again", async () => {
                         // Vest attempt 1
-                        await rewardsEscrow.vest(
+                        await rewardsEscrowV2.vest(
                             [entryID1, entryID2, entryID3],
                             {
                                 from: staker1,
@@ -1611,12 +1611,12 @@ contract(
 
                         // Check rewardEscrow has 0 in escrow
                         assert.bnEqual(
-                            await mockedKwenta.balanceOf(rewardsEscrow.address),
+                            await mockedKwenta.balanceOf(rewardsEscrowV2.address),
                             0
                         );
 
                         // Vest attempt 2
-                        await rewardsEscrow.vest(
+                        await rewardsEscrowV2.vest(
                             [entryID1, entryID2, entryID3],
                             {
                                 from: staker1,
@@ -1631,7 +1631,7 @@ contract(
 
                         // Check rewardEscrow has same 0 KWENTA
                         assert.bnEqual(
-                            await mockedKwenta.balanceOf(rewardsEscrow.address),
+                            await mockedKwenta.balanceOf(rewardsEscrowV2.address),
                             0
                         );
                     });
@@ -1649,7 +1649,7 @@ contract(
 
                 // add a 260 escrow entries
                 for (var i = 0; i < numberOfEntries; i++) {
-                    await rewardsEscrow.appendVestingEntry(
+                    await rewardsEscrowV2.appendVestingEntry(
                         staker1,
                         escrowAmount,
                         duration,
@@ -1663,7 +1663,7 @@ contract(
                 //mocks['Issuer'].smocked.debtBalanceOf.will.return.with('0');
             });
             it("should return the vesting schedules for staker1", async () => {
-                const entries = await rewardsEscrow.getVestingSchedules(
+                const entries = await rewardsEscrowV2.getVestingSchedules(
                     staker1,
                     0,
                     numberOfEntries
@@ -1673,7 +1673,7 @@ contract(
             }).timeout(200000);
             it("should return the list of vesting entryIDs for staker1", async () => {
                 const vestingEntryIDs =
-                    await rewardsEscrow.getAccountVestingEntryIDs(
+                    await rewardsEscrowV2.getAccountVestingEntryIDs(
                         staker1,
                         0,
                         numberOfEntries
@@ -1684,7 +1684,7 @@ contract(
             }).timeout(200000);
             it("should return a subset of vesting entryIDs for staker1", async () => {
                 const vestingEntryIDs =
-                    await rewardsEscrow.getAccountVestingEntryIDs(
+                    await rewardsEscrowV2.getAccountVestingEntryIDs(
                         staker1,
                         130,
                         numberOfEntries
@@ -1701,23 +1701,23 @@ contract(
             beforeEach(async () => {
                 stakingRewardsSmock = await smock.fake("contracts/StakingRewards.sol:StakingRewards");
 
-                rewardsEscrow = await RewardsEscrow.new(
+                rewardsEscrowV2 = await RewardsEscrow.new(
                     owner,
                     kwentaSmock.address
                 );
-                await rewardsEscrow.setStakingRewards(
+                await rewardsEscrowV2.setStakingRewards(
                     stakingRewardsSmock.address,
                     {
                         from: owner,
                     }
                 );
-                await rewardsEscrow.setTreasuryDAO(treasuryDAO);
+                await rewardsEscrowV2.setTreasuryDAO(treasuryDAO);
             });
 
             it("should revert because staker has no escrowed KWENTA", async () => {
                 const escrowAmount = wei(10).toBN();
                 await assert.revert(
-                    rewardsEscrow.stakeEscrow(escrowAmount, {
+                    rewardsEscrowV2.stakeEscrow(escrowAmount, {
                         from: staker1,
                     })
                 );
@@ -1729,7 +1729,7 @@ contract(
                 kwentaSmock.transferFrom.returns(true);
                 // stub balanceOf
                 kwentaSmock.balanceOf.returns(escrowAmount);
-                await rewardsEscrow.createEscrowEntry(
+                await rewardsEscrowV2.createEscrowEntry(
                     staker1,
                     escrowAmount,
                     1 * YEAR
@@ -1740,7 +1740,7 @@ contract(
                 );
                 // Attempt to stake more
                 await assert.revert(
-                    rewardsEscrow.stakeEscrow(escrowAmount, {
+                    rewardsEscrowV2.stakeEscrow(escrowAmount, {
                         from: staker1,
                     })
                 );
@@ -1752,12 +1752,12 @@ contract(
                 kwentaSmock.transferFrom.returns(true);
                 // stub balanceOf
                 kwentaSmock.balanceOf.returns(escrowAmount);
-                await rewardsEscrow.createEscrowEntry(
+                await rewardsEscrowV2.createEscrowEntry(
                     staker1,
                     escrowAmount,
                     1 * YEAR
                 );
-                await rewardsEscrow.stakeEscrow(escrowAmount, {
+                await rewardsEscrowV2.stakeEscrow(escrowAmount, {
                     from: staker1,
                 });
                 expect(stakingRewardsSmock.stakeEscrow).to.have.been.calledWith(
@@ -1768,7 +1768,7 @@ contract(
 
             it("should unstake escrow", async () => {
                 const escrowAmount = wei(10).toBN();
-                await rewardsEscrow.unstakeEscrow(escrowAmount, {
+                await rewardsEscrowV2.unstakeEscrow(escrowAmount, {
                     from: staker1,
                 });
                 expect(
@@ -1782,12 +1782,12 @@ contract(
                 kwentaSmock.transferFrom.returns(true);
                 // stub balanceOf
                 kwentaSmock.balanceOf.returns(escrowAmount.mul(2));
-                await rewardsEscrow.createEscrowEntry(
+                await rewardsEscrowV2.createEscrowEntry(
                     staker1,
                     escrowAmount,
                     1 * YEAR
                 );
-                await rewardsEscrow.createEscrowEntry(
+                await rewardsEscrowV2.createEscrowEntry(
                     staker1,
                     escrowAmount,
                     1 * YEAR
@@ -1796,7 +1796,7 @@ contract(
                 stakingRewardsSmock.escrowedBalanceOf.returns(escrowAmount);
 
                 await fastForward(YEAR);
-                await rewardsEscrow.vest([1], { from: staker1 });
+                await rewardsEscrowV2.vest([1], { from: staker1 });
                 expect(stakingRewardsSmock.unstakeEscrow).to.have.callCount(0);
             });
 
@@ -1807,7 +1807,7 @@ contract(
                 kwentaSmock.transferFrom.returns(true);
                 // stub balanceOf
                 kwentaSmock.balanceOf.returns(escrowAmount);
-                await rewardsEscrow.createEscrowEntry(
+                await rewardsEscrowV2.createEscrowEntry(
                     staker1,
                     escrowAmount,
                     1 * YEAR
@@ -1816,7 +1816,7 @@ contract(
                 stakingRewardsSmock.escrowedBalanceOf.returns(escrowAmount);
 
                 await fastForward(YEAR);
-                await rewardsEscrow.vest([1], { from: staker1 });
+                await rewardsEscrowV2.vest([1], { from: staker1 });
                 expect(stakingRewardsSmock.unstakeEscrow).to.have.callCount(1);
                 expect(
                     stakingRewardsSmock.unstakeEscrow
@@ -1830,7 +1830,7 @@ contract(
                 kwentaSmock.transfer.returns(true);
                 // stub balanceOf
                 kwentaSmock.balanceOf.returns(escrowAmount);
-                await rewardsEscrow.createEscrowEntry(
+                await rewardsEscrowV2.createEscrowEntry(
                     staker1,
                     escrowAmount,
                     1 * YEAR
@@ -1839,11 +1839,11 @@ contract(
                 stakingRewardsSmock.escrowedBalanceOf.returns(escrowAmount);
 
                 await fastForward(YEAR / 2);
-                await rewardsEscrow.vest([1], { from: staker1 });
+                await rewardsEscrowV2.vest([1], { from: staker1 });
                 expect(
                     stakingRewardsSmock.unstakeEscrow
                 ).to.have.been.calledWith(staker1, escrowAmount);
-                assert.equal(await rewardsEscrow.balanceOf(staker1), 0);
+                assert.equal(await rewardsEscrowV2.balanceOf(staker1), 0);
             });
         });
     }
