@@ -11,7 +11,7 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
                             Access Control
     //////////////////////////////////////////////////////////////*/
 
-    function test_Cannot_Transfer_Other_Users_Entries() public {
+    function test_Cannot_Steal_Other_Users_Entries() public {
         // create the escrow entry
         createRewardEscrowEntryV2(user1, 1 ether, 52 weeks);
 
@@ -28,13 +28,17 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
 
         // attempt to steal other users vesting entry
         vm.expectRevert(abi.encodeWithSelector(IRewardEscrowV2.NotYourEntry.selector, user1EntryID));
-        // vm.expectRevert();
         rewardEscrowV2.transferVestingEntry(user1EntryID, user2);
     }
 
     /*//////////////////////////////////////////////////////////////
                         Transfer Vesting Entries
     //////////////////////////////////////////////////////////////*/
+
+    function test_Cannot_Transfer_Non_Existent_Entry() public {
+        vm.expectRevert(abi.encodeWithSelector(IRewardEscrowV2.InvalidEntry.selector, 50));
+        rewardEscrowV2.transferVestingEntry(50, user1);
+    }
 
     function test_transferVestingEntry_Unstaked() public {
         // create the escrow entry
@@ -85,8 +89,6 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
         assertEq(user2EscrowedAccountBalance, 1 ether);
     }
 
-    // TODO: test access control
-    // TODO: test entry id does not exist
     // TODO: test changes in totalVestedAccountBlaance
     // TODO: test changes in accountVestingEntryIDs
     // TODO: test changes in vestingSchedules
