@@ -399,8 +399,6 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
         totalEscrowedAccountBalance[msg.sender] -= entry.escrowAmount;
         totalEscrowedAccountBalance[account] += entry.escrowAmount;
 
-        // TODO: handle totalVestedAccountBalance changes???
-
         uint256 length = accountVestingEntryIDs[msg.sender].length;
 
         // TODO: possible extract loop from here so that in bulk option this can all be done in one loop
