@@ -233,7 +233,7 @@ contract StakingRewardsTestHelpers is TestHelpers {
         return rewardEscrowV1.balanceOf(account) - stakingRewardsV1.escrowedBalanceOf(account);
     }
 
-    function warpAndMintV1(uint256 time) public {
+    function warpAndMint(uint256 time) public {
         vm.warp(block.timestamp + time);
         supplySchedule.mint();
     }
@@ -284,5 +284,27 @@ contract StakingRewardsTestHelpers is TestHelpers {
     function unstakeEscrowedFundsV2(address account, uint256 amount) public {
         vm.prank(address(rewardEscrowV2));
         stakingRewardsV2.unstakeEscrow(account, amount);
+    }
+
+    // INTEGRATION HELPERS
+    function getStakingRewardsV2(address account) public {
+        vm.prank(account);
+        stakingRewardsV2.getReward();
+    }
+
+    // INTEGRATION HELPERS
+    function stakeAllUnstakedEscrowV2(address account) public {
+        uint256 amount = getNonStakedEscrowAmountV2(account);
+        vm.prank(account);
+        rewardEscrowV2.stakeEscrow(amount);
+    }
+
+    function unstakeAllUnstakedEscrowV2(address account, uint256 amount) public {
+        vm.prank(account);
+        rewardEscrowV2.unstakeEscrow(amount);
+    }
+
+    function getNonStakedEscrowAmountV2(address account) public view returns (uint256) {
+        return rewardEscrowV2.balanceOf(account) - stakingRewardsV2.escrowedBalanceOf(account);
     }
 }

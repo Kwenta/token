@@ -14,16 +14,14 @@ contract StakingV2MigrationTests is StakingRewardsTestHelpers {
         fundAccountAndStakeV1(user1, 10 ether);
         fundAccountAndStakeV1(user2, 20 ether);
         fundAccountAndStakeV1(user3, 30 ether);
-        fundAccountAndStakeV1(user4, 40 ether);
-        fundAccountAndStakeV1(user5, 50 ether);
 
         // mint new tokens
-        warpAndMintV1(2 weeks);
-        warpAndMintV1(2 weeks);
-        warpAndMintV1(2 weeks);
-        warpAndMintV1(2 weeks);
-        warpAndMintV1(2 weeks);
-        warpAndMintV1(2 weeks);
+        warpAndMint(2 weeks);
+        warpAndMint(2 weeks);
+        warpAndMint(2 weeks);
+        warpAndMint(2 weeks);
+        warpAndMint(2 weeks);
+        warpAndMint(2 weeks);
 
         // get rewards
         getStakingRewardsV1(user1);
