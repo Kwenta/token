@@ -81,4 +81,16 @@ interface IRewardEscrowV2 {
     function stakeEscrow(uint256 _amount) external;
 
     function unstakeEscrow(uint256 _amount) external;
+
+    function transferVestingEntry(uint256 entryID, address account) external;
+
+    // Errors
+    /// @notice An invalid entryID was provided
+    /// @param entryID The id of the invalid entry
+    error InvalidEntry(uint256 entryID);
+
+    /// @notice Attempted to transfer an entry that is not yours
+    /// @param entryID The id of the non-owned entry
+    /// @dev msg.sender must be the owner of the entry
+    error NotYourEntry(uint256 entryID);
 }

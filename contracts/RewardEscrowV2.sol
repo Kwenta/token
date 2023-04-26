@@ -329,6 +329,15 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
         stakingRewards.unstakeEscrow(msg.sender, _amount);
     }
 
+    /**
+     * @notice Transfer a vested entry from one account to another
+     * @param entryID the id of the entry to transfer
+     * @param account The account to transfer the vesting entry to
+     */
+    function transferVestingEntry(uint256 entryID, address account) external {
+        _transferVestingEntry(entryID, account);
+    }
+
     /* Transfer vested tokens and update totalEscrowedAccountBalance, totalVestedAccountBalance */
     function _transferVestedTokens(address _account, uint256 _amount) internal {
         _reduceAccountEscrowBalances(_account, _amount);
@@ -377,5 +386,39 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
         nextEntryId++;
 
         emit VestingEntryCreated(account, quantity, duration, entryID);
+    }
+
+    function _transferVestingEntry(uint256 entryID, address account) internal {
+        if (entryID >= nextEntryId) revert InvalidEntry(entryID);
+        VestingEntries.VestingEntry memory entry = vestingSchedules[msg.sender][entryID];
+        if (entry.endTime == 0) revert NotYourEntry(entryID);
+
+        delete vestingSchedules[msg.sender][entryID];
+        vestingSchedules[account][entryID] = entry;
+
+        totalEscrowedAccountBalance[msg.sender] -= entry.escrowAmount;
+        totalEscrowedAccountBalance[account] += entry.escrowAmount;
+
+        // TODO: handle totalVestedAccountBalance changes???
+
+        uint256 length = accountVestingEntryIDs[msg.sender].length;
+
+        // TODO: possible extract loop from here so that in bulk option this can all be done in one loop
+        for (uint256 i = 0; i < length;) {
+            uint256 accountEntry = accountVestingEntryIDs[msg.sender][i];
+
+            if (accountEntry == entryID) {
+                uint256 lastEntryID = accountVestingEntryIDs[msg.sender][length - 1];
+                accountVestingEntryIDs[msg.sender][i] = lastEntryID;
+                accountVestingEntryIDs[msg.sender].pop();
+                break;
+            }
+
+            unchecked {
+                ++i;
+            }
+        }
+
+        accountVestingEntryIDs[account].push(entryID);
     }
 }
