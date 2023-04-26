@@ -2,11 +2,11 @@
 pragma solidity 0.8.18;
 
 import "forge-std/Script.sol";
-import {Kwenta} from "../../../contracts/Kwenta.sol";
-import {StakingRewards} from "../../../contracts/StakingRewards.sol";
-import {SupplySchedule} from "../../../contracts/SupplySchedule.sol";
-import {RewardEscrowV2} from "../../../contracts/RewardEscrowV2.sol";
-import {StakingRewardsV2} from "../../../contracts/StakingRewardsV2.sol";
+import {Kwenta} from "../contracts/Kwenta.sol";
+import {StakingRewards} from "../contracts/StakingRewards.sol";
+import {SupplySchedule} from "../contracts/SupplySchedule.sol";
+import {RewardEscrowV2} from "../contracts/RewardEscrowV2.sol";
+import {StakingRewardsV2} from "../contracts/StakingRewardsV2.sol";
 
 /// @title Script to migration from StakingV1 to StakingV2
 /// @author tommyrharper (tom@solidity.ninja)
