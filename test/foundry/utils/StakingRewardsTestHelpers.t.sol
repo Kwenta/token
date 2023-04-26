@@ -139,11 +139,7 @@ contract StakingRewardsTestHelpers is TestHelpers {
     }
 
     // Note - this must be run before triggering notifyRewardAmount and getReward
-    function getExpectedRewardV2(uint256 reward, uint256 waitTime, address user)
-        public
-        view
-        returns (uint256)
-    {
+    function getExpectedRewardV2(uint256 reward, uint256 waitTime, address user) public view returns (uint256) {
         // This defaults to 7 days
         uint256 rewardsDuration = stakingRewardsV2.rewardsDuration();
         uint256 previousRewardPerToken = stakingRewardsV2.rewardPerToken();
@@ -286,13 +282,19 @@ contract StakingRewardsTestHelpers is TestHelpers {
         stakingRewardsV2.unstakeEscrow(account, amount);
     }
 
+    function createRewardEscrowEntryV2(address account, uint256 amount, uint256 duration) public {
+        vm.prank(treasury);
+        kwenta.approve(address(rewardEscrowV2), amount);
+        vm.prank(treasury);
+        rewardEscrowV2.createEscrowEntry(account, amount, duration);
+    }
+
     // INTEGRATION HELPERS
     function getStakingRewardsV2(address account) public {
         vm.prank(account);
         stakingRewardsV2.getReward();
     }
 
-    // INTEGRATION HELPERS
     function stakeAllUnstakedEscrowV2(address account) public {
         uint256 amount = getNonStakedEscrowAmountV2(account);
         vm.prank(account);

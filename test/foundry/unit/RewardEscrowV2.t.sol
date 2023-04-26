@@ -7,27 +7,19 @@ import "../utils/Constants.t.sol";
 
 contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
     /*//////////////////////////////////////////////////////////////
-                                Tests
+                        Transfer Vesting Entries
     //////////////////////////////////////////////////////////////*/
 
-    // TODO: update to deposit via appendVestingEntry straight from treasury AND assert amounts
     function test_transferVestingEntry_Unstaked() public {
-        // Stake tokens in StakingV2
-        fundAccountAndStakeV2(user1, 10 ether);
-
-        // mint new tokens
-        warpAndMint(2 weeks);
-        warpAndMint(2 weeks);
-
-        // get rewards
-        getStakingRewardsV2(user1);
+        // create the escrow entry
+        createRewardEscrowEntryV2(user1, 1 ether, 52 weeks);
 
         // get escrowed balances
         uint256 user1EscrowedAccountBalance = rewardEscrowV2.totalEscrowedAccountBalance(user1);
         uint256 user2EscrowedAccountBalance = rewardEscrowV2.totalEscrowedAccountBalance(user2);
 
         // user1 has some escrow balance
-        assertGt(user1EscrowedAccountBalance, 0);
+        assertEq(user1EscrowedAccountBalance, 1 ether);
 
         // user2 has no escrow balance
         assertEq(user2EscrowedAccountBalance, 0);
@@ -45,14 +37,15 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
         vm.prank(user1);
         rewardEscrowV2.transferVestingEntry(user1EntryID, user2);
 
+        // get new number of entries
         user1NumOfEntryIDs = rewardEscrowV2.numVestingEntries(user1);
         user2NumOfEntryIDs = rewardEscrowV2.numVestingEntries(user2);
 
+        // assert that the entry has been passed over to user2
         assertEq(user1NumOfEntryIDs, 0);
         assertEq(user2NumOfEntryIDs, 1);
 
         uint256 user2EntryID = rewardEscrowV2.accountVestingEntryIDs(user2, 0);
-
         assertEq(user1EntryID, user2EntryID);
 
         // get escrowed balances
@@ -63,7 +56,7 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
         assertEq(user1EscrowedAccountBalance, 0);
 
         // user2 has some escrow balance
-        assertGt(user2EscrowedAccountBalance, 0);
+        assertEq(user2EscrowedAccountBalance, 1 ether);
     }
 
     // TODO: test access control
