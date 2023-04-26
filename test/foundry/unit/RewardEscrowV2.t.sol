@@ -57,6 +57,10 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
         assertEq(user1NumOfEntryIDs, 1);
         assertEq(user2NumOfEntryIDs, 0);
 
+        // get initial values
+        (uint64 initialEndTime, uint256 initialEscrowAmount, uint256 initialDuration) =
+            rewardEscrowV2.getVestingEntry(user1, user1EntryID);
+
         // transfer vesting entry from user1 to user2
         vm.prank(user1);
         rewardEscrowV2.transferVestingEntry(user1EntryID, user2);
@@ -66,6 +70,8 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
         user2NumOfEntryIDs = rewardEscrowV2.numVestingEntries(user2);
         assertEq(user1NumOfEntryIDs, 0);
         assertEq(user2NumOfEntryIDs, 1);
+
+        // check the right entryID has been transferred
         uint256 user2EntryID = rewardEscrowV2.accountVestingEntryIDs(user2, 0);
         assertEq(user1EntryID, user2EntryID);
 
@@ -74,9 +80,21 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
         user2EscrowedAccountBalance = rewardEscrowV2.totalEscrowedAccountBalance(user2);
         assertEq(user1EscrowedAccountBalance, 0);
         assertEq(user2EscrowedAccountBalance, 1 ether);
+
+        // check vestingSchedules updated
+        (uint64 finalEndTime, uint256 finalEscrowAmount, uint256 finalDuration) =
+            rewardEscrowV2.getVestingEntry(user2, user2EntryID);
+
+        assertEq(finalEndTime, initialEndTime);
+        assertEq(finalEscrowAmount, initialEscrowAmount);
+        assertEq(finalDuration, initialDuration);
+
+        // check accountVestingEntryIDs updated
+        // check totalEscrowedBalance unchanged
     }
 
     // TODO: test changes in accountVestingEntryIDs
+    // TODO: test for larger numbers of vesting entries -> ensure loop and swap works
     // TODO: test changes in vestingSchedules
     // TODO: test staked escrow
     // TODO: test mix of staked and unstaked escrow entries
@@ -85,5 +103,4 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
     // TODO: add efficient transferAllVestingEntries(account) or transferXVestingEntries(numEntries, account)
     //          - perhaps not needed if bulkTransferVestingEntries is handled appropriately???
     // TODO: what happens if someone transfers an entry to themselves?
-
 }
