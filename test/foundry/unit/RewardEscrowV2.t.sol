@@ -112,7 +112,9 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
         assertEq(rewardEscrowV2.totalEscrowedBalance(), escrowAmount);
     }
 
-    function test_transferVestingEntry_Unstaked_Fuzz(uint32 escrowAmount, uint24 duration, uint8 numberOfEntries) public {
+    function test_transferVestingEntry_Unstaked_Fuzz(uint32 escrowAmount, uint24 duration, uint8 numberOfEntries)
+        public
+    {
         vm.assume(escrowAmount > 0);
         vm.assume(duration > 0);
         vm.assume(numberOfEntries > 0);
