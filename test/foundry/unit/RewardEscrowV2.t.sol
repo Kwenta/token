@@ -15,18 +15,30 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
         // create the escrow entry
         createRewardEscrowEntryV2(user1, 1 ether, 52 weeks);
 
-        // assert user1 has some escrow balance
-        uint256 user1EscrowedAccountBalance = rewardEscrowV2.totalEscrowedAccountBalance(user1);
-        assertEq(user1EscrowedAccountBalance, 1 ether);
-
-        // get vesting entry ids
-        uint256 user1NumOfEntryIDs = rewardEscrowV2.numVestingEntries(user1);
-        uint256 user1EntryID = rewardEscrowV2.accountVestingEntryIDs(user1, 0);
-
-        // confirm user1 does have an entry
-        assertEq(user1NumOfEntryIDs, 1);
+        // assert user1 has escrowed balance
+        assertEq(rewardEscrowV2.totalEscrowedAccountBalance(user1), 1 ether);
+        assertEq(rewardEscrowV2.numVestingEntries(user1), 1);
 
         // attempt to steal other users vesting entry
+        uint256 user1EntryID = rewardEscrowV2.accountVestingEntryIDs(user1, 0);
+        vm.expectRevert(abi.encodeWithSelector(IRewardEscrowV2.NotYourEntry.selector, user1EntryID));
+        rewardEscrowV2.transferVestingEntry(user1EntryID, user2);
+    }
+
+    function test_Cannot_Steal_Other_Users_Entries_Fuzz(uint32 amount, uint24 duration) public {
+        vm.assume(amount > 0);
+        vm.assume(duration > 0);
+        vm.assume(duration < rewardEscrowV2.MAX_DURATION());
+
+        // create the escrow entry
+        createRewardEscrowEntryV2(user1, amount, duration);
+
+        // assert user1 has escrowed balance
+        assertEq(rewardEscrowV2.totalEscrowedAccountBalance(user1), amount);
+        assertEq(rewardEscrowV2.numVestingEntries(user1), 1);
+
+        // attempt to steal other users vesting entry
+        uint256 user1EntryID = rewardEscrowV2.accountVestingEntryIDs(user1, 0);
         vm.expectRevert(abi.encodeWithSelector(IRewardEscrowV2.NotYourEntry.selector, user1EntryID));
         rewardEscrowV2.transferVestingEntry(user1EntryID, user2);
     }
