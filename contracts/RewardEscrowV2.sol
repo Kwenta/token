@@ -393,6 +393,12 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
         VestingEntries.VestingEntry memory entry = vestingSchedules[msg.sender][entryID];
         if (entry.endTime == 0) revert NotYourEntry(entryID);
 
+        uint256 escrowedBalance = totalEscrowedAccountBalance[msg.sender];
+        uint256 stakedBalance = stakingRewards.escrowedBalanceOf(msg.sender);
+        uint256 unstakedBalance = escrowedBalance - stakedBalance;
+
+        if (unstakedBalance < entry.escrowAmount) revert InsufficientUnstakedBalance(entryID);
+
         delete vestingSchedules[msg.sender][entryID];
         vestingSchedules[account][entryID] = entry;
 
