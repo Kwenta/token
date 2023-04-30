@@ -52,6 +52,12 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
         rewardEscrowV2.transferVestingEntry(50, user1);
     }
 
+    function test_Cannot_Transfer_Non_Existent_Entry_Fuzz(uint256 entryID) public {
+        vm.assume(entryID > 0);
+        vm.expectRevert(abi.encodeWithSelector(IRewardEscrowV2.InvalidEntry.selector, entryID));
+        rewardEscrowV2.transferVestingEntry(entryID, user1);
+    }
+
     function test_transferVestingEntry_Unstaked() public {
         uint256 escrowAmount = 1 ether;
 
