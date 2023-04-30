@@ -95,7 +95,26 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
         assertEq(rewardEscrowV2.totalEscrowedBalance(), escrowAmount);
     }
 
-    // TODO: test changes in accountVestingEntryIDs
+    function test_transferVestingEntry_Insufficient_Unstaked() public {
+        uint256 escrowAmount = 1 ether;
+
+        // create the escrow entry
+        createRewardEscrowEntryV2(user1, escrowAmount, 52 weeks);
+        assertEq(rewardEscrowV2.totalEscrowedBalance(), escrowAmount);
+
+        // stake the escrow
+        vm.prank(user1);
+        rewardEscrowV2.stakeEscrow(escrowAmount);
+
+        // transfer vesting entry from user1 to user2
+        uint256 user1EntryID = rewardEscrowV2.accountVestingEntryIDs(user1, 0);
+        vm.prank(user1);
+        // vm.expectRevert(RewardEscrowV2.InsufficientUnstakedBalance.selector);
+        vm.expectRevert(abi.encodeWithSelector(IRewardEscrowV2.InsufficientUnstakedBalance.selector, user1EntryID));
+        rewardEscrowV2.transferVestingEntry(user1EntryID, user2);
+    }
+
+    // TODO: update tests to use view functions instead of state directly
     // TODO: test for larger numbers of vesting entries -> ensure loop and swap works
     // TODO: test changes in vestingSchedules
     // TODO: test staked escrow
@@ -105,4 +124,5 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
     // TODO: add efficient transferAllVestingEntries(account) or transferXVestingEntries(numEntries, account)
     //          - perhaps not needed if bulkTransferVestingEntries is handled appropriately???
     // TODO: what happens if someone transfers an entry to themselves?
+    // TODO: add and test event
 }
