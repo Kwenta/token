@@ -186,7 +186,6 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
 
     // TODO: update tests to use view functions instead of state directly
     // TODO: test for larger numbers of vesting entries -> ensure loop and swap works
-    // TODO: test changes in vestingSchedules
     // TODO: test staked escrow
     // TODO: test mix of staked and unstaked escrow entries
     // TODO: test staked escrow before cooldown is complete
