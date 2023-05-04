@@ -217,8 +217,6 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
         rewardEscrowV2.transferVestingEntry(user1EntryID, user2);
     }
 
-    // TODO: update tests to use view functions instead of state directly
-    // TODO: test for larger numbers of vesting entries -> ensure loop and swap works
     // TODO: test mix of staked and unstaked escrow entries
     // TODO: add efficient transferAllVestingEntries(account) or transferXVestingEntries(numEntries, account)
     //          - perhaps not needed if bulkTransferVestingEntries is handled appropriately???
