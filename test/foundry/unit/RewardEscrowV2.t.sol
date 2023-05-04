@@ -252,7 +252,6 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
         rewardEscrowV2.transferVestingEntry(user1EntryID, user2);
     }
 
-
     /*//////////////////////////////////////////////////////////////
                     Bulk Transfer Vesting Entries
     //////////////////////////////////////////////////////////////*/
@@ -329,7 +328,7 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
         assertEq(rewardEscrowV2.totalEscrowedBalance(), escrowAmount);
     }
 
-    function test_bulkTransferVestingEntries_Unstaked_Fuzz(uint32 escrowAmount, uint24 duration, uint8 numberOfEntries)
+    function test_bulkTransferVestingEntries_Series_Unstaked_Fuzz(uint32 escrowAmount, uint24 duration, uint8 numberOfEntries)
         public
     {
         vm.assume(escrowAmount > 0);
@@ -337,7 +336,10 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
         vm.assume(numberOfEntries > 0);
 
         uint256 totalEscrowedAmount;
-        uint256 entryToTransferIndex = getPseudoRandomNumber(numberOfEntries - 1, 0, escrowAmount);
+        uint256 startingEntryToTransferIndex = getPseudoRandomNumber(numberOfEntries - 1, 0, escrowAmount);
+        uint256 endingEntryToTransferIndex =
+            getPseudoRandomNumber(numberOfEntries - 1, startingEntryToTransferIndex, escrowAmount);
+        uint256 numberOfEntriesTransferred = endingEntryToTransferIndex - startingEntryToTransferIndex + 1;
 
         // create the escrow entry
         for (uint256 i = 0; i < numberOfEntries; ++i) {
@@ -351,39 +353,43 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
         assertEq(rewardEscrowV2.totalEscrowedAccountBalance(user2), 0);
 
         // assert correct number of entries for each user
-        uint256 user1EntryID = rewardEscrowV2.accountVestingEntryIDs(user1, entryToTransferIndex);
+        uint256 firstEntryTransferredID = rewardEscrowV2.accountVestingEntryIDs(user1, startingEntryToTransferIndex);
         assertEq(rewardEscrowV2.numVestingEntries(user1), numberOfEntries);
         assertEq(rewardEscrowV2.numVestingEntries(user2), 0);
 
-        // transfer vesting entry from user1 to user2
+        // transfer vesting entries from user1 to user2
+        uint256[] memory entryIDs = new uint256[](numberOfEntriesTransferred);
+        for (uint256 i = 0; i < numberOfEntriesTransferred; ++i) {
+            entryIDs[i] = firstEntryTransferredID + i;
+        }
+
         vm.prank(user1);
-        uint256[] memory entryIDs = new uint256[](1);
-        entryIDs[0] = user1EntryID;
         rewardEscrowV2.bulkTransferVestingEntries(entryIDs, user2);
 
         // assert that the entry has been passed over to user2
-        assertEq(rewardEscrowV2.numVestingEntries(user1), numberOfEntries - 1);
-        assertEq(rewardEscrowV2.numVestingEntries(user2), 1);
+        assertEq(rewardEscrowV2.numVestingEntries(user1), numberOfEntries - numberOfEntriesTransferred);
+        assertEq(rewardEscrowV2.numVestingEntries(user2), numberOfEntriesTransferred);
 
-        // check the right entryID has been transferred
-        uint256 user2EntryID = rewardEscrowV2.accountVestingEntryIDs(user2, 0);
-        assertEq(user1EntryID, user2EntryID);
+        // check the right entryIDs have been transferred
+        for (uint256 i = 0; i < numberOfEntriesTransferred; ++i) {
+            uint256 user2EntryID = rewardEscrowV2.accountVestingEntryIDs(user2, i);
+            assertEq(firstEntryTransferredID + i, user2EntryID);
+        }
 
         // check balances passed over
-        assertEq(rewardEscrowV2.totalEscrowedAccountBalance(user1), totalEscrowedAmount - escrowAmount);
-        assertEq(rewardEscrowV2.totalEscrowedAccountBalance(user2), escrowAmount);
+        uint256 amountTransferred = escrowAmount * numberOfEntriesTransferred;
+        assertEq(rewardEscrowV2.totalEscrowedAccountBalance(user1), totalEscrowedAmount - amountTransferred);
+        assertEq(rewardEscrowV2.totalEscrowedAccountBalance(user2), amountTransferred);
 
         // check accountVestingEntryIDs updated
         uint256[] memory user1VestingSchedules = rewardEscrowV2.getAccountVestingEntryIDs(user1, 0, numberOfEntries);
         uint256[] memory user2VestingSchedules = rewardEscrowV2.getAccountVestingEntryIDs(user2, 0, numberOfEntries);
-        assertEq(user1VestingSchedules.length, numberOfEntries - 1);
-        assertEq(user2VestingSchedules.length, 1);
-        assertEq(user2VestingSchedules[0], user2EntryID);
+        assertEq(user1VestingSchedules.length, numberOfEntries - numberOfEntriesTransferred);
+        assertEq(user2VestingSchedules.length, numberOfEntriesTransferred);
 
         // check totalEscrowedBalance unchanged
         assertEq(rewardEscrowV2.totalEscrowedBalance(), totalEscrowedAmount);
     }
-
 
     // TODO: test mix of staked and unstaked escrow entries
     // TODO: add efficient transferAllVestingEntries(account) or transferXVestingEntries(numEntries, account)
