@@ -180,7 +180,7 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
         uint256 user1EntryID = rewardEscrowV2.accountVestingEntryIDs(user1, 0);
         vm.prank(user1);
         // vm.expectRevert(RewardEscrowV2.InsufficientUnstakedBalance.selector);
-        vm.expectRevert(abi.encodeWithSelector(IRewardEscrowV2.InsufficientUnstakedBalance.selector, user1EntryID));
+        vm.expectRevert(abi.encodeWithSelector(IRewardEscrowV2.InsufficientUnstakedBalance.selector, user1EntryID, escrowAmount, 0));
         rewardEscrowV2.transferVestingEntry(user1EntryID, user2);
     }
 
