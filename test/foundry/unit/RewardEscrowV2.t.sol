@@ -179,17 +179,47 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
         // transfer vesting entry from user1 to user2
         uint256 user1EntryID = rewardEscrowV2.accountVestingEntryIDs(user1, 0);
         vm.prank(user1);
-        // vm.expectRevert(RewardEscrowV2.InsufficientUnstakedBalance.selector);
-        vm.expectRevert(abi.encodeWithSelector(IRewardEscrowV2.InsufficientUnstakedBalance.selector, user1EntryID, escrowAmount, 0));
+
+        vm.expectRevert(
+            abi.encodeWithSelector(IRewardEscrowV2.InsufficientUnstakedBalance.selector, user1EntryID, escrowAmount, 0)
+        );
+        rewardEscrowV2.transferVestingEntry(user1EntryID, user2);
+    }
+
+    function test_transferVestingEntry_Insufficient_Unstaked_Fuzz(
+        uint32 escrowAmount,
+        uint32 stakedAmount,
+        uint24 duration
+    ) public {
+        vm.assume(escrowAmount > 0);
+        vm.assume(stakedAmount > 0);
+        vm.assume(duration > 0);
+        vm.assume(escrowAmount >= stakedAmount);
+
+        // create the escrow entry
+        createRewardEscrowEntryV2(user1, escrowAmount, duration);
+        assertEq(rewardEscrowV2.totalEscrowedBalance(), escrowAmount);
+
+        // stake the escrow
+        vm.prank(user1);
+        rewardEscrowV2.stakeEscrow(stakedAmount);
+
+        // transfer vesting entry from user1 to user2
+        uint256 user1EntryID = rewardEscrowV2.accountVestingEntryIDs(user1, 0);
+        vm.prank(user1);
+
+        uint256 unstakedAmount = escrowAmount - stakedAmount;
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IRewardEscrowV2.InsufficientUnstakedBalance.selector, user1EntryID, escrowAmount, unstakedAmount
+            )
+        );
         rewardEscrowV2.transferVestingEntry(user1EntryID, user2);
     }
 
     // TODO: update tests to use view functions instead of state directly
     // TODO: test for larger numbers of vesting entries -> ensure loop and swap works
-    // TODO: test staked escrow
     // TODO: test mix of staked and unstaked escrow entries
-    // TODO: test staked escrow before cooldown is complete
-    // TODO: test staked escrow before after is complete
     // TODO: add efficient transferAllVestingEntries(account) or transferXVestingEntries(numEntries, account)
     //          - perhaps not needed if bulkTransferVestingEntries is handled appropriately???
     // TODO: what happens if someone transfers an entry to themselves?
