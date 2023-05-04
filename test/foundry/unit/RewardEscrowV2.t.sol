@@ -42,6 +42,41 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
         rewardEscrowV2.transferVestingEntry(user1EntryID, user2);
     }
 
+    function test_Cannot_Bulk_Steal_Other_Users_Entries() public {
+        // create the escrow entry
+        createRewardEscrowEntryV2(user1, 1 ether, 52 weeks);
+
+        // assert user1 has escrowed balance
+        assertEq(rewardEscrowV2.totalEscrowedAccountBalance(user1), 1 ether);
+        assertEq(rewardEscrowV2.numVestingEntries(user1), 1);
+
+        // attempt to steal other users vesting entry
+        uint256 user1EntryID = rewardEscrowV2.accountVestingEntryIDs(user1, 0);
+        vm.expectRevert(abi.encodeWithSelector(IRewardEscrowV2.NotYourEntry.selector, user1EntryID));
+        uint256[] memory entryIDs = new uint256[](1);
+        entryIDs[0] = user1EntryID;
+        rewardEscrowV2.bulkTransferVestingEntries(entryIDs, user2);
+    }
+
+    function test_Cannot_Bulk_Steal_Other_Users_Entries_Fuzz(uint32 amount, uint24 duration) public {
+        vm.assume(amount > 0);
+        vm.assume(duration > 0);
+
+        // create the escrow entry
+        createRewardEscrowEntryV2(user1, amount, duration);
+
+        // assert user1 has escrowed balance
+        assertEq(rewardEscrowV2.totalEscrowedAccountBalance(user1), amount);
+        assertEq(rewardEscrowV2.numVestingEntries(user1), 1);
+
+        // attempt to steal other users vesting entry
+        uint256 user1EntryID = rewardEscrowV2.accountVestingEntryIDs(user1, 0);
+        vm.expectRevert(abi.encodeWithSelector(IRewardEscrowV2.NotYourEntry.selector, user1EntryID));
+        uint256[] memory entryIDs = new uint256[](1);
+        entryIDs[0] = user1EntryID;
+        rewardEscrowV2.bulkTransferVestingEntries(entryIDs, user2);
+    }
+
     /*//////////////////////////////////////////////////////////////
                         Transfer Vesting Entries
     //////////////////////////////////////////////////////////////*/
