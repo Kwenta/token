@@ -9,7 +9,7 @@ import {RewardEscrowV2} from "../contracts/RewardEscrowV2.sol";
 import {StakingRewardsV2} from "../contracts/StakingRewardsV2.sol";
 
 /// @title Script to migration from StakingV1 to StakingV2
-/// @author tommyrharper (tom@solidity.ninja)
+/// @author tommyrharper (zeroknowledgeltd@gmail.com)
 contract Setup {
     function deploySystem(
         address _owner,
