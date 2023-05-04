@@ -8,6 +8,12 @@ import "../utils/Constants.t.sol";
 
 contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
     /*//////////////////////////////////////////////////////////////
+                            State
+    //////////////////////////////////////////////////////////////*/
+
+    uint256[] public entryIDs;
+
+    /*//////////////////////////////////////////////////////////////
                             Access Control
     //////////////////////////////////////////////////////////////*/
 
@@ -53,8 +59,7 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
         // attempt to steal other users vesting entry
         uint256 user1EntryID = rewardEscrowV2.accountVestingEntryIDs(user1, 0);
         vm.expectRevert(abi.encodeWithSelector(IRewardEscrowV2.NotYourEntry.selector, user1EntryID));
-        uint256[] memory entryIDs = new uint256[](1);
-        entryIDs[0] = user1EntryID;
+        entryIDs.push(user1EntryID);
         rewardEscrowV2.bulkTransferVestingEntries(entryIDs, user2);
     }
 
@@ -72,8 +77,7 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
         // attempt to steal other users vesting entry
         uint256 user1EntryID = rewardEscrowV2.accountVestingEntryIDs(user1, 0);
         vm.expectRevert(abi.encodeWithSelector(IRewardEscrowV2.NotYourEntry.selector, user1EntryID));
-        uint256[] memory entryIDs = new uint256[](1);
-        entryIDs[0] = user1EntryID;
+        entryIDs.push(user1EntryID);
         rewardEscrowV2.bulkTransferVestingEntries(entryIDs, user2);
     }
 
@@ -258,15 +262,13 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
 
     function test_Cannot_Bulk_Transfer_Non_Existent_Entry() public {
         vm.expectRevert(abi.encodeWithSelector(IRewardEscrowV2.InvalidEntry.selector, 50));
-        uint256[] memory entryIDs = new uint256[](1);
-        entryIDs[0] = 50;
+        entryIDs.push(50);
         rewardEscrowV2.bulkTransferVestingEntries(entryIDs, user1);
     }
 
     function test_Cannot_Bulk_Transfer_Non_Existent_Entry_Fuzz(uint256 entryID) public {
         vm.assume(entryID > 0);
-        uint256[] memory entryIDs = new uint256[](1);
-        entryIDs[0] = entryID;
+        entryIDs.push(entryID);
         vm.expectRevert(abi.encodeWithSelector(IRewardEscrowV2.InvalidEntry.selector, entryID));
         rewardEscrowV2.bulkTransferVestingEntries(entryIDs, user1);
     }
@@ -293,8 +295,7 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
 
         // transfer vesting entry from user1 to user2
         vm.prank(user1);
-        uint256[] memory entryIDs = new uint256[](1);
-        entryIDs[0] = user1EntryID;
+        entryIDs.push(user1EntryID);
         rewardEscrowV2.bulkTransferVestingEntries(entryIDs, user2);
 
         // assert that the entry has been passed over to user2
@@ -358,15 +359,14 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
         assertEq(rewardEscrowV2.numVestingEntries(user2), 0);
 
         // transfer vesting entries from user1 to user2
-        uint256[] memory entryIDs = new uint256[](numberOfEntriesTransferred);
         for (uint256 i = 0; i < numberOfEntriesTransferred; ++i) {
-            entryIDs[i] = firstEntryTransferredID + i;
+            entryIDs.push(firstEntryTransferredID + i);
         }
 
         vm.prank(user1);
         rewardEscrowV2.bulkTransferVestingEntries(entryIDs, user2);
 
-        // assert that the entry has been passed over to user2
+        // assert that the entries have been passed over to user2
         assertEq(rewardEscrowV2.numVestingEntries(user1), numberOfEntries - numberOfEntriesTransferred);
         assertEq(rewardEscrowV2.numVestingEntries(user2), numberOfEntriesTransferred);
 
@@ -386,6 +386,66 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
         uint256[] memory user2VestingSchedules = rewardEscrowV2.getAccountVestingEntryIDs(user2, 0, numberOfEntries);
         assertEq(user1VestingSchedules.length, numberOfEntries - numberOfEntriesTransferred);
         assertEq(user2VestingSchedules.length, numberOfEntriesTransferred);
+
+        // check totalEscrowedBalance unchanged
+        assertEq(rewardEscrowV2.totalEscrowedBalance(), totalEscrowedAmount);
+    }
+
+    function test_bulkTransferVestingEntries_Random_Selection_Unstaked_Fuzz(uint32 escrowAmount, uint24 duration, uint8 numberOfEntries)
+        public
+    {
+        vm.assume(escrowAmount > 0);
+        vm.assume(duration > 0);
+        vm.assume(numberOfEntries > 0);
+
+        uint256 totalEscrowedAmount;
+
+        // create the escrow entry
+        for (uint256 i = 0; i < numberOfEntries; ++i) {
+            createRewardEscrowEntryV2(user1, escrowAmount, duration);
+            totalEscrowedAmount += escrowAmount;
+        }
+
+        // check starting escrow balances
+        assertEq(rewardEscrowV2.totalEscrowedBalance(), totalEscrowedAmount);
+        assertEq(rewardEscrowV2.totalEscrowedAccountBalance(user1), totalEscrowedAmount);
+        assertEq(rewardEscrowV2.totalEscrowedAccountBalance(user2), 0);
+
+        // assert correct number of entries for each user
+        // uint256 firstEntryTransferredID = rewardEscrowV2.accountVestingEntryIDs(user1, startingEntryToTransferIndex);
+        assertEq(rewardEscrowV2.numVestingEntries(user1), numberOfEntries);
+        assertEq(rewardEscrowV2.numVestingEntries(user2), 0);
+
+        // transfer vesting entries from user1 to user2
+        for (uint256 i = 0; i < numberOfEntries; ++i) {
+            if (flipCoin()) {
+                entryIDs.push(i + 1);
+            }
+        }
+
+        vm.prank(user1);
+        rewardEscrowV2.bulkTransferVestingEntries(entryIDs, user2);
+
+        // assert that the entries have been passed over to user2
+        assertEq(rewardEscrowV2.numVestingEntries(user1), numberOfEntries - entryIDs.length);
+        assertEq(rewardEscrowV2.numVestingEntries(user2), entryIDs.length);
+
+        // check the right entryIDs have been transferred
+        for (uint256 i = 0; i < entryIDs.length; ++i) {
+            uint256 user2EntryID = rewardEscrowV2.accountVestingEntryIDs(user2, i);
+            assertEq(entryIDs[i], user2EntryID);
+        }
+
+        // check balances passed over
+        uint256 amountTransferred = escrowAmount * entryIDs.length;
+        assertEq(rewardEscrowV2.totalEscrowedAccountBalance(user1), totalEscrowedAmount - amountTransferred);
+        assertEq(rewardEscrowV2.totalEscrowedAccountBalance(user2), amountTransferred);
+
+        // check accountVestingEntryIDs updated
+        uint256[] memory user1VestingSchedules = rewardEscrowV2.getAccountVestingEntryIDs(user1, 0, numberOfEntries);
+        uint256[] memory user2VestingSchedules = rewardEscrowV2.getAccountVestingEntryIDs(user2, 0, numberOfEntries);
+        assertEq(user1VestingSchedules.length, numberOfEntries - entryIDs.length);
+        assertEq(user2VestingSchedules.length, entryIDs.length);
 
         // check totalEscrowedBalance unchanged
         assertEq(rewardEscrowV2.totalEscrowedBalance(), totalEscrowedAmount);
