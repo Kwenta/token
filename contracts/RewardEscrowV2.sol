@@ -354,6 +354,18 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
         _transferVestingEntry(entryID, account);
     }
 
+    /**
+     * @notice Transfer multiple vested entries from one account to another
+     * @param entryIDs a list of the ids of the entries to transfer
+     * @param account The account to transfer the vesting entries to
+     */
+    function bulkTransferVestingEntries(uint256[] calldata entryIDs, address account) external {
+        uint256 length = entryIDs.length;
+        for (uint256 i = 0; i < length; ++i) _transferVestingEntry(entryIDs[i], account);
+    }
+
+    /* ========== INTERNALS ========== */
+
     /* Transfer vested tokens and update totalEscrowedAccountBalance, totalVestedAccountBalance */
     function _transferVestedTokens(address _account, uint256 _amount) internal {
         _reduceAccountEscrowBalances(_account, _amount);
@@ -367,8 +379,6 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
         totalEscrowedBalance -= _amount;
         totalEscrowedAccountBalance[_account] -= _amount;
     }
-
-    /* ========== INTERNALS ========== */
 
     function _appendVestingEntry(address account, uint256 quantity, uint256 duration) internal {
         /* No empty or already-passed vesting entries allowed. */
