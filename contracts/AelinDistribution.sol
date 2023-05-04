@@ -7,18 +7,10 @@ import "./interfaces/IKwenta.sol";
 
 contract AelinDistribution is ERC20 {
     /// @notice kwenta token contract
-    //IKwenta private immutable kwenta;
-    IERC20 public kwenta;
+    IKwenta private immutable kwenta;
 
     /// @notice rewards escrow contract
     IRewardEscrow public immutable rewardEscrow;
-    //RewardEscrowMock RewardEscrow;
-
-    address public rewardEscrowAddr;
-    address public escrowedKwenta = address(this);
-
-    /// @notice address of this contract
-    address public contractAddress = address(this);
 
     constructor(
         string memory _name,
@@ -26,12 +18,8 @@ contract AelinDistribution is ERC20 {
         address _kwenta,
         address _rewardEscrowAddr
     ) ERC20(_name, _symbol) {
-        //kwenta = IKwenta(_kwenta);
-        kwenta = IERC20(_kwenta);
-
+        kwenta = IKwenta(_kwenta);
         rewardEscrow = IRewardEscrow(_rewardEscrowAddr);
-        //RewardEscrow = RewardEscrowMock(rewardEscrowAddr);
-        rewardEscrowAddr = _rewardEscrowAddr;
     }
 
     /**
@@ -41,7 +29,7 @@ contract AelinDistribution is ERC20 {
      */
     function issueRedeemable1YR(uint amount) public payable {
         require(
-            kwenta.transferFrom(msg.sender, contractAddress, amount),
+            kwenta.transferFrom(msg.sender, address(this), amount),
             "Token transfer failed"
         );
 
@@ -56,7 +44,7 @@ contract AelinDistribution is ERC20 {
         _burn(msg.sender, amount);
 
         // Transfers kwenta from here to RewardEscrow.sol
-        kwenta.approve(rewardEscrowAddr, amount);
+        kwenta.approve(address(rewardEscrow), amount);
         rewardEscrow.createEscrowEntry(msg.sender, amount, 52 weeks);
     }
 }
