@@ -631,10 +631,11 @@ contract(
                     );
 
                     // retrieve the vesting entryID from account 1's list of account vesting entrys
-                    entryID = await rewardsEscrowV2.accountVestingEntryIDs(
+                    entryID = (await rewardsEscrowV2.getAccountVestingEntryIDs(
                         staker1,
-                        0
-                    );
+                        0,
+                        1
+                    ))[0];
 
                     assert.bnEqual(entryID, expectedEntryID);
 
