@@ -4,6 +4,7 @@ node_modules
 .gitignore
 .vscode
 .notes
+.tool-versions
 
 #Hardhat files
 cache
