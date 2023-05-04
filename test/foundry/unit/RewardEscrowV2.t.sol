@@ -217,6 +217,27 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
         rewardEscrowV2.transferVestingEntry(user1EntryID, user2);
     }
 
+
+    /*//////////////////////////////////////////////////////////////
+                    Bulk Transfer Vesting Entries
+    //////////////////////////////////////////////////////////////*/
+
+    function test_Cannot_Bulk_Transfer_Non_Existent_Entry() public {
+        vm.expectRevert(abi.encodeWithSelector(IRewardEscrowV2.InvalidEntry.selector, 50));
+        uint256[] memory entryIDs = new uint256[](1);
+        entryIDs[0] = 50;
+        rewardEscrowV2.bulkTransferVestingEntries(entryIDs, user1);
+    }
+
+    function test_Cannot_Bulk_Transfer_Non_Existent_Entry_Fuzz(uint256 entryID) public {
+        vm.assume(entryID > 0);
+        uint256[] memory entryIDs = new uint256[](1);
+        entryIDs[0] = entryID;
+        vm.expectRevert(abi.encodeWithSelector(IRewardEscrowV2.InvalidEntry.selector, entryID));
+        rewardEscrowV2.bulkTransferVestingEntries(entryIDs, user1);
+    }
+
+
     // TODO: test mix of staked and unstaked escrow entries
     // TODO: add efficient transferAllVestingEntries(account) or transferXVestingEntries(numEntries, account)
     //          - perhaps not needed if bulkTransferVestingEntries is handled appropriately???
