@@ -96,5 +96,7 @@ interface IRewardEscrowV2 {
 
     /// @notice Insufficient unstaked escrow to facilitate transfer
     /// @param entryID the id of the entry that couldn't be transferred
-    error InsufficientUnstakedBalance(uint256 entryID);
+    /// @param escrowAmount the amount of escrow in the entry
+    /// @param unstakedBalance the amount of unstaked escrow in the account
+    error InsufficientUnstakedBalance(uint256 entryID, uint256 escrowAmount, uint256 unstakedBalance);
 }

@@ -397,7 +397,7 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
         uint256 stakedBalance = stakingRewards.escrowedBalanceOf(msg.sender);
         uint256 unstakedBalance = escrowedBalance - stakedBalance;
 
-        if (unstakedBalance < entry.escrowAmount) revert InsufficientUnstakedBalance(entryID);
+        if (unstakedBalance < entry.escrowAmount) revert InsufficientUnstakedBalance(entryID, entry.escrowAmount, unstakedBalance);
 
         delete vestingSchedules[msg.sender][entryID];
         vestingSchedules[account][entryID] = entry;
