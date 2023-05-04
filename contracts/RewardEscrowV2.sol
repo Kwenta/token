@@ -27,9 +27,9 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
 
     IStakingRewards public stakingRewards;
 
+    // TODO: remove account from this mapping and just use: entryID => VestingEntry / mapping(uint256 => VestingEntries.VestingEntry)
+    // mapping of account addresses to entryID => VestingEntry pairs
     mapping(address => mapping(uint256 => VestingEntries.VestingEntry)) public vestingSchedules;
-
-    mapping(address => uint256[]) public accountVestingEntryIDs;
 
     // Counter for new vesting entry ids
     uint256 public nextEntryId;
@@ -45,6 +45,15 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
 
     // notice treasury address may change
     address public treasuryDAO;
+
+    // Mapping owner address to entry count
+    mapping(address => uint256) private _entryBalances;
+
+    // Mapping from owner to list of entryIDs
+    mapping(address => mapping(uint256 => uint256)) private _ownedEntries;
+
+    // Mapping from entryID to index on the owner tokens list
+    mapping(uint256 => uint256) private _ownedEntriesIndex;
 
     /* ========== MODIFIERS ========== */
     modifier onlyStakingRewards() {
@@ -106,7 +115,7 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
      * @notice The number of vesting dates in an account's schedule.
      */
     function numVestingEntries(address account) external view override returns (uint256) {
-        return accountVestingEntryIDs[account].length;
+        return _entryBalances[account];
     }
 
     /**
@@ -138,15 +147,17 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
             return new VestingEntries.VestingEntryWithID[](0);
         }
 
-        // If the page extends past the end of the accountVestingEntryIDs, truncate it.
-        if (endIndex > accountVestingEntryIDs[account].length) {
-            endIndex = accountVestingEntryIDs[account].length;
+        // TODO: extract logic into helper as reused in getAccountVestingEntryIDs
+        // If the page extends past the end of the list, truncate it.
+        uint256 numEntries = _entryBalances[account];
+        if (endIndex > numEntries) {
+            endIndex = numEntries;
         }
 
         uint256 n = endIndex - index;
         VestingEntries.VestingEntryWithID[] memory vestingEntries = new VestingEntries.VestingEntryWithID[](n);
         for (uint256 i; i < n; i++) {
-            uint256 entryID = accountVestingEntryIDs[account][i + index];
+            uint256 entryID = _ownedEntries[account][i + index];
 
             VestingEntries.VestingEntry memory entry = vestingSchedules[account][entryID];
 
@@ -167,9 +178,10 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
     {
         uint256 endIndex = index + pageSize;
 
-        // If the page extends past the end of the accountVestingEntryIDs, truncate it.
-        if (endIndex > accountVestingEntryIDs[account].length) {
-            endIndex = accountVestingEntryIDs[account].length;
+        // If the page extends past the end of the list, truncate it.
+        uint256 numEntries = _entryBalances[account];
+        if (endIndex > numEntries) {
+            endIndex = numEntries;
         }
         if (endIndex <= index) {
             return new uint256[](0);
@@ -178,7 +190,7 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
         uint256 n = endIndex - index;
         uint256[] memory page = new uint256[](n);
         for (uint256 i; i < n; i++) {
-            page[i] = accountVestingEntryIDs[account][i + index];
+            page[i] = _ownedEntries[account][i + index];
         }
         return page;
     }
@@ -350,7 +362,7 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
      * @param entryID the id of the entry to transfer
      * @param account The account to transfer the vesting entry to
      */
-    function transferVestingEntry(uint256 entryID, address account) external {
+    function transferVestingEntry(uint256 entryID, address account) external override {
         _transferVestingEntry(entryID, account);
     }
 
@@ -403,12 +415,40 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
         vestingSchedules[account][entryID] =
             VestingEntries.VestingEntry({endTime: uint64(endTime), escrowAmount: quantity, duration: duration});
 
-        accountVestingEntryIDs[account].push(entryID);
+        _addTokenToOwnerEnumeration(account, entryID);
 
         /* Increment the next entry id. */
         nextEntryId++;
 
         emit VestingEntryCreated(account, quantity, duration, entryID);
+    }
+
+    function _addTokenToOwnerEnumeration(address to, uint256 entryID) private {
+        uint256 length = _entryBalances[to];
+        _ownedEntries[to][length] = entryID;
+        _ownedEntriesIndex[entryID] = length;
+        _entryBalances[to] += 1;
+    }
+
+    function _removeTokenFromOwnerEnumeration(address from, uint256 entryID) private {
+        // To prevent a gap in from's entrys array, we store the last entry in the index of the entry to delete, and
+        // then delete the last slot (swap and pop).
+
+        uint256 lastEntryIndex = _entryBalances[from] - 1;
+        uint256 entryIndex = _ownedEntriesIndex[entryID];
+
+        // When the entry to delete is the last entry, the swap operation is unnecessary
+        if (entryIndex != lastEntryIndex) {
+            uint256 lastEntryId = _ownedEntries[from][lastEntryIndex];
+
+            _ownedEntries[from][entryIndex] = lastEntryId; // Move the last entry to the slot of the to-delete entry
+            _ownedEntriesIndex[lastEntryId] = entryIndex; // Update the moved entry's index
+        }
+
+        // This also deletes the contents at the last position of the array
+        delete _ownedEntriesIndex[entryID];
+        delete _ownedEntries[from][lastEntryIndex];
+        _entryBalances[from] -= 1;
     }
 
     function _transferVestingEntry(uint256 entryID, address account) internal {
@@ -430,24 +470,10 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
         totalEscrowedAccountBalance[msg.sender] -= entry.escrowAmount;
         totalEscrowedAccountBalance[account] += entry.escrowAmount;
 
-        uint256 length = accountVestingEntryIDs[msg.sender].length;
-
-        // TODO: possible extract loop from here so that in bulk option this can all be done in one loop
-        for (uint256 i = 0; i < length;) {
-            uint256 accountEntry = accountVestingEntryIDs[msg.sender][i];
-
-            if (accountEntry == entryID) {
-                uint256 lastEntryID = accountVestingEntryIDs[msg.sender][length - 1];
-                accountVestingEntryIDs[msg.sender][i] = lastEntryID;
-                accountVestingEntryIDs[msg.sender].pop();
-                break;
-            }
-
-            unchecked {
-                ++i;
-            }
+        if (msg.sender != account) {
+            _removeTokenFromOwnerEnumeration(msg.sender, entryID);
+            _addTokenToOwnerEnumeration(account, entryID);
         }
 
-        accountVestingEntryIDs[account].push(entryID);
     }
 }
