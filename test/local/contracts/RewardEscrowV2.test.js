@@ -574,6 +574,7 @@ contract(
                         staker1,
                         new BN(1000),
                         maxDuration + 10,
+                        new BN(90),
                         {
                             from: owner,
                         }
@@ -583,7 +584,7 @@ contract(
             });
             it("should revert if escrow duration is 0", async () => {
                 await assert.revert(
-                    rewardsEscrowV2.createEscrowEntry(staker1, new BN(1000), 0, {
+                    rewardsEscrowV2.createEscrowEntry(staker1, new BN(1000), 0, new BN(90), {
                         from: owner,
                     }),
                     "Cannot escrow with 0 duration OR above max_duration"
@@ -594,7 +595,8 @@ contract(
                     rewardsEscrowV2.createEscrowEntry(
                         ethers.constants.AddressZero,
                         toUnit("1"),
-                        duration
+                        duration,
+                        new BN(90)
                     ),
                     "Cannot create escrow with address(0)"
                 );
@@ -606,6 +608,7 @@ contract(
                         staker1,
                         toUnit("10"),
                         duration,
+                        new BN(90),
                         {
                             from: staker1,
                         }
@@ -625,6 +628,7 @@ contract(
                         staker1,
                         escrowAmount,
                         duration,
+                        new BN(90),
                         {
                             from: owner,
                         }
