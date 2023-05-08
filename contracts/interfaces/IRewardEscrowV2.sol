@@ -102,4 +102,7 @@ interface IRewardEscrowV2 {
     /// @param escrowAmount the amount of escrow in the entry
     /// @param unstakedBalance the amount of unstaked escrow in the account
     error InsufficientUnstakedBalance(uint256 entryID, uint256 escrowAmount, uint256 unstakedBalance);
+
+    /// @notice Attempted to set entry early vesting fee beyond 100%
+    error MaxEarlyVestingFeeIs100();
 }

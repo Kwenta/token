@@ -406,6 +406,7 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
         /* No empty or already-passed vesting entries allowed. */
         require(quantity != 0, "Quantity cannot be zero");
         require(duration > 0 && duration <= MAX_DURATION, "Cannot escrow with 0 duration OR above max_duration");
+        if (earlyVestingFee > 100) revert MaxEarlyVestingFeeIs100();
 
         /* There must be enough balance in the contract to provide for the vesting entry. */
         totalEscrowedBalance += quantity;
