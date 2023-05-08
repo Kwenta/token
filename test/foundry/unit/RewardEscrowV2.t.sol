@@ -460,24 +460,27 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
 
         // create the escrow entry
         createRewardEscrowEntryV2(user1, escrowAmount, 52 weeks);
-        assertEq(rewardEscrowV2.totalEscrowedBalance(), escrowAmount);
+        createRewardEscrowEntryV2(user1, escrowAmount, 52 weeks);
+        assertEq(rewardEscrowV2.totalEscrowedBalance(), escrowAmount * 2);
 
-        // stake the escrow
+        // stake half the escrow
         vm.prank(user1);
         rewardEscrowV2.stakeEscrow(escrowAmount);
 
         // transfer vesting entry from user1 to user2
-        uint256 user1EntryID = rewardEscrowV2.getAccountVestingEntryIDs(user1, 0, 1)[0];
+        uint256 user1EntryIDA = rewardEscrowV2.getAccountVestingEntryIDs(user1, 0, 2)[0];
+        uint256 user1EntryIDB = rewardEscrowV2.getAccountVestingEntryIDs(user1, 0, 2)[1];
         vm.prank(user1);
 
-        entryIDs.push(user1EntryID);
+        entryIDs.push(user1EntryIDA);
+        entryIDs.push(user1EntryIDB);
         vm.expectRevert(
-            abi.encodeWithSelector(IRewardEscrowV2.InsufficientUnstakedBalance.selector, user1EntryID, escrowAmount, 0)
+            abi.encodeWithSelector(IRewardEscrowV2.InsufficientUnstakedBalance.selector, user1EntryIDB, escrowAmount, 0)
         );
         rewardEscrowV2.bulkTransferVestingEntries(entryIDs, user2);
     }
 
-    // function bulkTransferVestingEntries_Insufficient_Unstaked_Fuzz(
+    // function test_bulkTransferVestingEntries_Insufficient_Unstaked_Fuzz(
     //     uint32 escrowAmount,
     //     uint32 stakedAmount,
     //     uint24 duration
