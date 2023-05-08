@@ -66,6 +66,7 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
     event VestingEntryCreated(address indexed beneficiary, uint256 value, uint256 duration, uint256 entryID);
     event StakingRewardsSet(address stakingRewards);
     event TreasuryDAOSet(address treasuryDAO);
+    event VestingEntryTransfer(address from, address to, uint256 entryID);
 
     /* ========== CONSTRUCTOR ========== */
 
@@ -478,5 +479,7 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
             _removeTokenFromOwnerEnumeration(msg.sender, entryID);
             _addTokenToOwnerEnumeration(account, entryID);
         }
+
+        emit VestingEntryTransfer(msg.sender, account, entryID);
     }
 }
