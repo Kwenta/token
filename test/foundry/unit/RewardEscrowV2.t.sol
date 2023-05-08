@@ -753,7 +753,9 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
         assertEq(earlyVestingFeeAfter, earlyVestingFee);
     }
 
-    function test_Can_Set_Early_Vesting_Fee_On_Entry_Fuzz(uint32 escrowAmount, uint24 duration, uint8 earlyVestingFee) public {
+    function test_Can_Set_Early_Vesting_Fee_On_Entry_Fuzz(uint32 escrowAmount, uint24 duration, uint8 earlyVestingFee)
+        public
+    {
         vm.assume(escrowAmount > 0);
         vm.assume(duration > 0);
         vm.assume(earlyVestingFee <= 100);
@@ -764,5 +766,31 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
         assertEq(earlyVestingFeeAfter, earlyVestingFee);
     }
 
-    // TODO: assert earlyVestingFee min/max is 0/100
+    function test_Cannot_Set_Early_Vesting_Fee_Above_100() public {
+        uint8 earlyVestingFee = 101;
+
+        vm.prank(treasury);
+        kwenta.approve(address(rewardEscrowV2), 1 ether);
+
+        vm.prank(treasury);
+        vm.expectRevert(IRewardEscrowV2.MaxEarlyVestingFeeIs100.selector);
+        rewardEscrowV2.createEscrowEntry(user1, 1 ether, 52 weeks, earlyVestingFee);
+    }
+
+    function test_Cannot_Set_Early_Vesting_Fee_Above_100_Fuzz(
+        uint8 earlyVestingFee,
+        uint32 escrowAmount,
+        uint24 duration
+    ) public {
+        vm.assume(earlyVestingFee > 100);
+        vm.assume(escrowAmount > 0);
+        vm.assume(duration > 0);
+
+        vm.prank(treasury);
+        kwenta.approve(address(rewardEscrowV2), escrowAmount);
+
+        vm.prank(treasury);
+        vm.expectRevert(IRewardEscrowV2.MaxEarlyVestingFeeIs100.selector);
+        rewardEscrowV2.createEscrowEntry(user1, escrowAmount, duration, earlyVestingFee);
+    }
 }
