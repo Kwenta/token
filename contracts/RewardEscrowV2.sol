@@ -313,7 +313,10 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
      * @dev This call expects that the depositor (msg.sender) has already approved the Reward escrow contract
      * to spend the the amount being escrowed.
      */
-    function createEscrowEntry(address beneficiary, uint256 deposit, uint256 duration, uint8 earlyVestingFee) external override {
+    function createEscrowEntry(address beneficiary, uint256 deposit, uint256 duration, uint8 earlyVestingFee)
+        external
+        override
+    {
         require(beneficiary != address(0), "Cannot create escrow with address(0)");
 
         /* Transfer KWENTA from msg.sender */
@@ -400,9 +403,7 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
         totalEscrowedAccountBalance[_account] -= _amount;
     }
 
-    function _appendVestingEntry(address account, uint256 quantity, uint256 duration, uint8 earlyVestingFee)
-        internal
-    {
+    function _appendVestingEntry(address account, uint256 quantity, uint256 duration, uint8 earlyVestingFee) internal {
         /* No empty or already-passed vesting entries allowed. */
         require(quantity != 0, "Quantity cannot be zero");
         require(duration > 0 && duration <= MAX_DURATION, "Cannot escrow with 0 duration OR above max_duration");
