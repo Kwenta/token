@@ -729,6 +729,17 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
         assertEq(earlyVestingFee, rewardEscrowV2.DEFAULT_EARLY_VESTING_FEE());
     }
 
+    function test_Default_Early_Vest_Fee_Is_90_Percent_Fuzz(uint32 escrowAmount, uint24 duration) public {
+        vm.assume(escrowAmount > 0);
+        vm.assume(duration > 0);
+
+        appendRewardEscrowEntryV2(user1, escrowAmount, duration);
+        (,,, uint8 earlyVestingFee) = rewardEscrowV2.getVestingEntry(user1, 1);
+
+        assertEq(rewardEscrowV2.DEFAULT_EARLY_VESTING_FEE(), 90);
+        assertEq(earlyVestingFee, rewardEscrowV2.DEFAULT_EARLY_VESTING_FEE());
+    }
+
     // TODO: assert earlyVestingFee is not above 100%
     // TODO: assert earlyVestingFee max/min
 }
