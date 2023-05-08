@@ -48,3 +48,4 @@ contract EscrowIssuer is ERC20 {
         rewardEscrow.createEscrowEntry(msg.sender, amount, 208 weeks);
     }
 }
+
