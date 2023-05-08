@@ -814,9 +814,31 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
         assertEq(balanceAfter, balanceBefore + amountVestedAfterFee);
     }
 
-    // function test_Entry_Early_Vesting_Fee_Is_Applied(uint32 escrowAmount, uint24 duration, uint8 earlyVestingFee) public {
-    //     vm.assume(escrowAmount > 0);
-    //     vm.assume(duration > 0);
-    //     vm.assume(earlyVestingFee <= 100);
-    // }
+    function test_Variable_Entry_Early_Vesting_Fee_Is_Applied_Fuzz(
+        uint32 _escrowAmount,
+        uint24 _duration,
+        uint8 _earlyVestingFee
+    ) public {
+        uint256 escrowAmount = _escrowAmount;
+        uint256 duration = _duration;
+        uint8 earlyVestingFee = _earlyVestingFee;
+
+        vm.assume(escrowAmount > 0);
+        vm.assume(duration > 0);
+        vm.assume(earlyVestingFee <= 100);
+
+        // create entry
+        createRewardEscrowEntryV2(user1, escrowAmount, duration, earlyVestingFee);
+        uint256 balanceBefore = kwenta.balanceOf(user1);
+
+        // vest entry
+        entryIDs.push(1);
+        vm.prank(user1);
+        rewardEscrowV2.vest(entryIDs);
+
+        // check vested balance
+        uint256 balanceAfter = kwenta.balanceOf(user1);
+        uint256 amountVestedAfterFee = escrowAmount - (escrowAmount * earlyVestingFee / 100);
+        assertEq(balanceAfter, balanceBefore + amountVestedAfterFee);
+    }
 }
