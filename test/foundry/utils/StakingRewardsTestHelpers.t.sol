@@ -13,6 +13,7 @@ import {MultipleMerkleDistributor} from "../../../contracts/MultipleMerkleDistri
 import {IERC20} from "../../../contracts/interfaces/IERC20.sol";
 import "../utils/Constants.t.sol";
 
+// TODO: rename contract
 contract StakingRewardsTestHelpers is TestHelpers {
     /*//////////////////////////////////////////////////////////////
                                 Events
@@ -287,7 +288,14 @@ contract StakingRewardsTestHelpers is TestHelpers {
         vm.prank(treasury);
         kwenta.approve(address(rewardEscrowV2), amount);
         vm.prank(treasury);
-        rewardEscrowV2.createEscrowEntry(account, amount, duration);
+        rewardEscrowV2.createEscrowEntry(account, amount, duration, 90);
+    }
+
+    function appendRewardEscrowEntryV2(address account, uint256 amount, uint256 duration) public {
+        vm.prank(treasury);
+        kwenta.transfer(address(rewardEscrowV2), amount);
+        vm.prank(address(stakingRewardsV2));
+        rewardEscrowV2.appendVestingEntry(account, amount, duration);
     }
 
     // INTEGRATION HELPERS

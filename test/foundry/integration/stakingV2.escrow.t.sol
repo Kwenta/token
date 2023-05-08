@@ -12,11 +12,7 @@ contract StakingV2EscrowTests is DefaultStakingRewardsV2Setup {
     function testEscrowStakingViaRewardEscrowDoesNotIncreaseTokenBalance() public {
         uint256 initialBalance = kwenta.balanceOf(address(stakingRewardsV2));
 
-        vm.prank(treasury);
-        kwenta.approve(address(rewardEscrowV2), TEST_VALUE);
-        vm.prank(treasury);
-        rewardEscrowV2.createEscrowEntry(address(this), TEST_VALUE, 52 weeks);
-
+        createRewardEscrowEntryV2(address(this), TEST_VALUE, 52 weeks);
         rewardEscrowV2.stakeEscrow(TEST_VALUE);
 
         // check balance increased

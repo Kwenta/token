@@ -113,7 +113,7 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
         assertEq(rewardEscrowV2.numVestingEntries(user2), 0);
 
         // get initial values
-        (uint64 initialEndTime, uint256 initialEscrowAmount, uint256 initialDuration) =
+        (uint64 initialEndTime, uint256 initialEscrowAmount, uint256 initialDuration, uint8 initialEarlyVestingFee) =
             rewardEscrowV2.getVestingEntry(user1, user1EntryID);
 
         // transfer vesting entry from user1 to user2
@@ -133,12 +133,13 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
         assertEq(rewardEscrowV2.totalEscrowedAccountBalance(user2), escrowAmount);
 
         // check vestingSchedules updated
-        (uint64 finalEndTime, uint256 finalEscrowAmount, uint256 finalDuration) =
+        (uint64 finalEndTime, uint256 finalEscrowAmount, uint256 finalDuration, uint8 finalEarlyVestingFee) =
             rewardEscrowV2.getVestingEntry(user2, user2EntryID);
 
         assertEq(finalEndTime, initialEndTime);
         assertEq(finalEscrowAmount, initialEscrowAmount);
         assertEq(finalDuration, initialDuration);
+        assertEq(finalEarlyVestingFee, initialEarlyVestingFee);
 
         // check accountVestingEntryIDs updated
         uint256[] memory user1VestingSchedules = rewardEscrowV2.getAccountVestingEntryIDs(user1, 0, 1);
@@ -271,7 +272,7 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
         assertEq(rewardEscrowV2.numVestingEntries(user1), 1);
 
         // get initial values
-        (uint64 initialEndTime, uint256 initialEscrowAmount, uint256 initialDuration) =
+        (uint64 initialEndTime, uint256 initialEscrowAmount, uint256 initialDuration, uint8 initialEarlyVestingFee) =
             rewardEscrowV2.getVestingEntry(user1, user1EntryID);
 
         // transfer vesting entry from user1 to user2
@@ -289,12 +290,13 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
         assertEq(rewardEscrowV2.totalEscrowedAccountBalance(user1), escrowAmount);
 
         // check vestingSchedules unchanged
-        (uint64 finalEndTime, uint256 finalEscrowAmount, uint256 finalDuration) =
+        (uint64 finalEndTime, uint256 finalEscrowAmount, uint256 finalDuration, uint8 finalEarlyVestingFee) =
             rewardEscrowV2.getVestingEntry(user1, user1EntryID);
 
         assertEq(finalEndTime, initialEndTime);
         assertEq(finalEscrowAmount, initialEscrowAmount);
         assertEq(finalDuration, initialDuration);
+        assertEq(finalEarlyVestingFee, initialEarlyVestingFee);
 
         // check accountVestingEntryIDs unchanged
         uint256[] memory user1VestingSchedules = rewardEscrowV2.getAccountVestingEntryIDs(user1, 0, 1);
@@ -339,7 +341,7 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
         assertEq(rewardEscrowV2.numVestingEntries(user2), 0);
 
         // get initial values
-        (uint64 initialEndTime, uint256 initialEscrowAmount, uint256 initialDuration) =
+        (uint64 initialEndTime, uint256 initialEscrowAmount, uint256 initialDuration, uint8 initialEarlyVestingFee) =
             rewardEscrowV2.getVestingEntry(user1, user1EntryID);
 
         // transfer vesting entry from user1 to user2
@@ -360,12 +362,13 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
         assertEq(rewardEscrowV2.totalEscrowedAccountBalance(user2), escrowAmount);
 
         // check vestingSchedules updated
-        (uint64 finalEndTime, uint256 finalEscrowAmount, uint256 finalDuration) =
+        (uint64 finalEndTime, uint256 finalEscrowAmount, uint256 finalDuration, uint8 finalEarlyVestingFee) =
             rewardEscrowV2.getVestingEntry(user2, user2EntryID);
 
         assertEq(finalEndTime, initialEndTime);
         assertEq(finalEscrowAmount, initialEscrowAmount);
         assertEq(finalDuration, initialDuration);
+        assertEq(finalEarlyVestingFee, initialEarlyVestingFee);
 
         // check accountVestingEntryIDs updated
         uint256[] memory user1VestingSchedules = rewardEscrowV2.getAccountVestingEntryIDs(user1, 0, 1);
@@ -604,7 +607,7 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
         assertEq(rewardEscrowV2.numVestingEntries(user1), 1);
 
         // get initial values
-        (uint64 initialEndTime, uint256 initialEscrowAmount, uint256 initialDuration) =
+        (uint64 initialEndTime, uint256 initialEscrowAmount, uint256 initialDuration, uint8 initialEarlyVestingFee) =
             rewardEscrowV2.getVestingEntry(user1, user1EntryID);
 
         // transfer vesting entry from user1 to user2
@@ -623,12 +626,13 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
         assertEq(rewardEscrowV2.totalEscrowedAccountBalance(user1), escrowAmount);
 
         // check vestingSchedules unchanged
-        (uint64 finalEndTime, uint256 finalEscrowAmount, uint256 finalDuration) =
+        (uint64 finalEndTime, uint256 finalEscrowAmount, uint256 finalDuration, uint8 finalEarlyVestingFee) =
             rewardEscrowV2.getVestingEntry(user1, user1EntryID);
 
         assertEq(finalEndTime, initialEndTime);
         assertEq(finalEscrowAmount, initialEscrowAmount);
         assertEq(finalDuration, initialDuration);
+        assertEq(finalEarlyVestingFee, initialEarlyVestingFee);
 
         // check accountVestingEntryIDs unchanged
         uint256[] memory user1VestingSchedules = rewardEscrowV2.getAccountVestingEntryIDs(user1, 0, 1);
@@ -712,4 +716,19 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
         vm.prank(user1);
         rewardEscrowV2.bulkTransferVestingEntries(entryIDs, user2);
     }
+
+    /*//////////////////////////////////////////////////////////////
+                        Variables burn fee rate
+    //////////////////////////////////////////////////////////////*/
+
+    function test_Default_Early_Vest_Fee_Is_90_Percent() public {
+        appendRewardEscrowEntryV2(user1, 1 ether, 52 weeks);
+        (,,, uint8 earlyVestingFee) = rewardEscrowV2.getVestingEntry(user1, 1);
+
+        assertEq(rewardEscrowV2.DEFAULT_EARLY_VESTING_FEE(), 90);
+        assertEq(earlyVestingFee, rewardEscrowV2.DEFAULT_EARLY_VESTING_FEE());
+    }
+
+    // TODO: assert earlyVestingFee is not above 100%
+    // TODO: assert earlyVestingFee max/min
 }
