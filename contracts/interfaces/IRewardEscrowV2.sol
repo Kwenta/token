@@ -3,9 +3,10 @@ pragma solidity ^0.8.0;
 
 library VestingEntries {
     struct VestingEntry {
-        uint64 endTime;
         uint256 escrowAmount;
         uint256 duration;
+        uint64 endTime;
+        uint8 earlyVestingFee;
     }
     struct VestingEntryWithID {
         uint64 endTime;
@@ -60,7 +61,8 @@ interface IRewardEscrowV2 {
         returns (
             uint64,
             uint256,
-            uint256
+            uint256,
+            uint8
         );
 
     // Mutative functions
@@ -69,7 +71,8 @@ interface IRewardEscrowV2 {
     function createEscrowEntry(
         address beneficiary,
         uint256 deposit,
-        uint256 duration
+        uint256 duration,
+        uint8 earlyVestingFee
     ) external;
 
     function appendVestingEntry(

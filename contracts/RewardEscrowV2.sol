@@ -21,6 +21,8 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
     /* Max escrow duration */
     uint256 public constant MAX_DURATION = 2 * 52 weeks; // Default max 2 years duration
 
+    uint8 public constant DEFAULT_EARLY_VESTING_FEE = 90; // Default 90 percent
+
     IKwenta private immutable kwenta;
 
     /* ========== STATE VARIABLES ========== */
@@ -128,11 +130,12 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
         external
         view
         override
-        returns (uint64 endTime, uint256 escrowAmount, uint256 duration)
+        returns (uint64 endTime, uint256 escrowAmount, uint256 duration, uint8 earlyVestingFee)
     {
         endTime = vestingSchedules[account][entryID].endTime;
         escrowAmount = vestingSchedules[account][entryID].escrowAmount;
         duration = vestingSchedules[account][entryID].duration;
+        earlyVestingFee = vestingSchedules[account][entryID].earlyVestingFee;
     }
 
     function getVestingSchedules(address account, uint256 index, uint256 pageSize)
@@ -247,7 +250,7 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
     function _earlyVestFee(VestingEntries.VestingEntry memory _entry) internal view returns (uint256 earlyVestFee) {
         uint256 timeUntilVest = _entry.endTime - block.timestamp;
         // Fee starts at 90% and falls linearly
-        uint256 initialFee = _entry.escrowAmount * 9 / 10;
+        uint256 initialFee = _entry.escrowAmount * _entry.earlyVestingFee / 100;
         earlyVestFee = initialFee * timeUntilVest / _entry.duration;
     }
 
@@ -310,14 +313,14 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
      * @dev This call expects that the depositor (msg.sender) has already approved the Reward escrow contract
      * to spend the the amount being escrowed.
      */
-    function createEscrowEntry(address beneficiary, uint256 deposit, uint256 duration) external override {
+    function createEscrowEntry(address beneficiary, uint256 deposit, uint256 duration, uint8 earlyVestingFee) external override {
         require(beneficiary != address(0), "Cannot create escrow with address(0)");
 
         /* Transfer KWENTA from msg.sender */
         require(kwenta.transferFrom(msg.sender, address(this), deposit), "Token transfer failed");
 
         /* Append vesting entry for the beneficiary address */
-        _appendVestingEntry(beneficiary, deposit, duration);
+        _appendVestingEntry(beneficiary, deposit, duration, earlyVestingFee);
     }
 
     /**
@@ -333,7 +336,7 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
         override
         onlyStakingRewards
     {
-        _appendVestingEntry(account, quantity, duration);
+        _appendVestingEntry(account, quantity, duration, DEFAULT_EARLY_VESTING_FEE);
     }
 
     /**
@@ -397,7 +400,9 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
         totalEscrowedAccountBalance[_account] -= _amount;
     }
 
-    function _appendVestingEntry(address account, uint256 quantity, uint256 duration) internal {
+    function _appendVestingEntry(address account, uint256 quantity, uint256 duration, uint8 earlyVestingFee)
+        internal
+    {
         /* No empty or already-passed vesting entries allowed. */
         require(quantity != 0, "Quantity cannot be zero");
         require(duration > 0 && duration <= MAX_DURATION, "Cannot escrow with 0 duration OR above max_duration");
@@ -417,8 +422,12 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
         totalEscrowedAccountBalance[account] += quantity;
 
         uint256 entryID = nextEntryId;
-        vestingSchedules[account][entryID] =
-            VestingEntries.VestingEntry({endTime: uint64(endTime), escrowAmount: quantity, duration: duration});
+        vestingSchedules[account][entryID] = VestingEntries.VestingEntry({
+            endTime: uint64(endTime),
+            escrowAmount: quantity,
+            duration: duration,
+            earlyVestingFee: earlyVestingFee
+        });
 
         _addTokenToOwnerEnumeration(account, entryID);
 
