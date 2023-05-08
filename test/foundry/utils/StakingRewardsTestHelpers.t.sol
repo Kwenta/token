@@ -291,6 +291,13 @@ contract StakingRewardsTestHelpers is TestHelpers {
         rewardEscrowV2.createEscrowEntry(account, amount, duration, 90);
     }
 
+    function createRewardEscrowEntryV2(address account, uint256 amount, uint256 duration, uint8 earlyVestingFee) public {
+        vm.prank(treasury);
+        kwenta.approve(address(rewardEscrowV2), amount);
+        vm.prank(treasury);
+        rewardEscrowV2.createEscrowEntry(account, amount, duration, earlyVestingFee);
+    }
+
     function appendRewardEscrowEntryV2(address account, uint256 amount, uint256 duration) public {
         vm.prank(treasury);
         kwenta.transfer(address(rewardEscrowV2), amount);
