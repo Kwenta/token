@@ -4,7 +4,7 @@ pragma solidity 0.8.19;
 import "forge-std/Test.sol";
 import {Kwenta} from "../../contracts/Kwenta.sol";
 //import {RewardEscrow} from "../../contracts/RewardEscrow.sol";
-import {MockRewardEscrowV2} from "../../contracts/MockRewardEscrowV2.sol";
+import {MockRewardEscrowV2} from "../../contracts/mocks/MockRewardEscrowV2.sol";
 import {EscrowIssuer} from "../../contracts/EscrowIssuer.sol";
 
 contract EscrowIssuerTest is Test {

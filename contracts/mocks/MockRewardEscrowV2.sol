@@ -3,15 +3,15 @@ pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
 // Inheritance
-import "./utils/Owned.sol";
-import "./interfaces/IRewardEscrow.sol";
+import "../utils/Owned.sol";
+import "../interfaces/IRewardEscrow.sol";
 
 // Libraries
-import "./libraries/SafeDecimalMath.sol";
+import "../libraries/SafeDecimalMath.sol";
 
 // Internal references
-import "./interfaces/IKwenta.sol";
-import "./interfaces/IStakingRewards.sol";
+import "../interfaces/IKwenta.sol";
+import "../interfaces/IStakingRewards.sol";
 
 contract MockRewardEscrowV2 is Owned, IRewardEscrow {
     using SafeDecimalMath for uint;
