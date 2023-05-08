@@ -20,6 +20,7 @@ contract StakingRewardsTestHelpers is TestHelpers {
 
     event RewardsDurationUpdated(uint256 newDuration);
     event UnstakingCooldownPeriodUpdated(uint256 unstakingCooldownPeriod);
+    event VestingEntryTransfer(address from, address to, uint256 entryID);
 
     /*//////////////////////////////////////////////////////////////
                                 State

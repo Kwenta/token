@@ -635,4 +635,22 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
         // check totalEscrowedBalance unchanged
         assertEq(rewardEscrowV2.totalEscrowedBalance(), escrowAmount);
     }
+
+    /*//////////////////////////////////////////////////////////////
+                                Events
+    //////////////////////////////////////////////////////////////*/
+
+    function test_transferVestingEntry_Event() public {
+        uint256 escrowAmount = 1 ether;
+
+        // create the escrow entry
+        createRewardEscrowEntryV2(user1, escrowAmount, 52 weeks);
+        uint256 user1EntryID = rewardEscrowV2.getAccountVestingEntryIDs(user1, 0, 1)[0];
+
+        // transfer vesting entry from user1 to user2
+        vm.prank(user1);
+        vm.expectEmit(true, true, true, false);
+        emit VestingEntryTransfer(user1, user2, user1EntryID);
+        rewardEscrowV2.transferVestingEntry(user1EntryID, user2);
+    }
 }
