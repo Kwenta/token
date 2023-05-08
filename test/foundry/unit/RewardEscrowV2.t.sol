@@ -718,7 +718,7 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
     }
 
     /*//////////////////////////////////////////////////////////////
-                        Variable early vesting fee
+                        Variable Early Vesting Fee
     //////////////////////////////////////////////////////////////*/
 
     function test_Max_Duration() public {
@@ -742,6 +742,26 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
 
         assertEq(rewardEscrowV2.DEFAULT_EARLY_VESTING_FEE(), 90);
         assertEq(earlyVestingFee, rewardEscrowV2.DEFAULT_EARLY_VESTING_FEE());
+    }
+
+    function test_Can_Set_Early_Vesting_Fee_On_Entry() public {
+        uint8 earlyVestingFee = 50;
+
+        createRewardEscrowEntryV2(user1, 1 ether, 52 weeks, earlyVestingFee);
+        (,,, uint8 earlyVestingFeeAfter) = rewardEscrowV2.getVestingEntry(user1, 1);
+
+        assertEq(earlyVestingFeeAfter, earlyVestingFee);
+    }
+
+    function test_Can_Set_Early_Vesting_Fee_On_Entry_Fuzz(uint32 escrowAmount, uint24 duration, uint8 earlyVestingFee) public {
+        vm.assume(escrowAmount > 0);
+        vm.assume(duration > 0);
+        vm.assume(earlyVestingFee <= 100);
+
+        createRewardEscrowEntryV2(user1, 1 ether, 52 weeks, earlyVestingFee);
+        (,,, uint8 earlyVestingFeeAfter) = rewardEscrowV2.getVestingEntry(user1, 1);
+
+        assertEq(earlyVestingFeeAfter, earlyVestingFee);
     }
 
     // TODO: assert earlyVestingFee min/max is 0/100
