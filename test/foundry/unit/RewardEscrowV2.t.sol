@@ -480,36 +480,37 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
         rewardEscrowV2.bulkTransferVestingEntries(entryIDs, user2);
     }
 
-    // function test_bulkTransferVestingEntries_Insufficient_Unstaked_Fuzz(
-    //     uint32 escrowAmount,
-    //     uint32 stakedAmount,
-    //     uint24 duration
-    // ) public {
-    //     vm.assume(escrowAmount > 0);
-    //     vm.assume(stakedAmount > 0);
-    //     vm.assume(duration > 0);
-    //     vm.assume(escrowAmount >= stakedAmount);
+    function test_bulkTransferVestingEntries_Insufficient_Unstaked_Fuzz(
+        uint32 escrowAmount,
+        uint32 stakedAmount,
+        uint24 duration
+    ) public {
+        vm.assume(escrowAmount > 0);
+        vm.assume(stakedAmount > 0);
+        vm.assume(duration > 0);
+        vm.assume(escrowAmount >= stakedAmount);
 
-    //     // create the escrow entry
-    //     createRewardEscrowEntryV2(user1, escrowAmount, duration);
-    //     assertEq(rewardEscrowV2.totalEscrowedBalance(), escrowAmount);
+        // create the escrow entry
+        createRewardEscrowEntryV2(user1, escrowAmount, duration);
+        assertEq(rewardEscrowV2.totalEscrowedBalance(), escrowAmount);
 
-    //     // stake the escrow
-    //     vm.prank(user1);
-    //     rewardEscrowV2.stakeEscrow(stakedAmount);
+        // stake the escrow
+        vm.prank(user1);
+        rewardEscrowV2.stakeEscrow(stakedAmount);
 
-    //     // transfer vesting entry from user1 to user2
-    //     uint256 user1EntryID = rewardEscrowV2.getAccountVestingEntryIDs(user1, 0, 1)[0];
-    //     vm.prank(user1);
+        // transfer vesting entry from user1 to user2
+        uint256 user1EntryID = rewardEscrowV2.getAccountVestingEntryIDs(user1, 0, 1)[0];
+        vm.prank(user1);
 
-    //     uint256 unstakedAmount = escrowAmount - stakedAmount;
-    //     vm.expectRevert(
-    //         abi.encodeWithSelector(
-    //             IRewardEscrowV2.InsufficientUnstakedBalance.selector, user1EntryID, escrowAmount, unstakedAmount
-    //         )
-    //     );
-    //     rewardEscrowV2.transferVestingEntry(user1EntryID, user2);
-    // }
+        entryIDs.push(user1EntryID);
+        uint256 unstakedAmount = escrowAmount - stakedAmount;
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IRewardEscrowV2.InsufficientUnstakedBalance.selector, user1EntryID, escrowAmount, unstakedAmount
+            )
+        );
+        rewardEscrowV2.bulkTransferVestingEntries(entryIDs, user2);
+    }
 
     // TODO: test mix of staked and unstaked escrow entries
     // TODO: add efficient transferAllVestingEntries(account) or transferXVestingEntries(numEntries, account)
