@@ -5,7 +5,7 @@ import "./utils/ERC20.sol";
 import "./interfaces/IRewardEscrow.sol";
 import "./interfaces/IKwenta.sol";
 
-contract AelinDistribution is ERC20 {
+contract EscrowIssuer is ERC20 {
     /// @notice kwenta token contract
     IKwenta private immutable kwenta;
 
@@ -27,7 +27,7 @@ contract AelinDistribution is ERC20 {
      *   redeemable escrowed Kwenta and give
      *   to user.
      */
-    function issueRedeemable1YR(uint amount) public payable {
+    function issueRedeemable4YR(uint amount) public payable {
         require(
             kwenta.transferFrom(msg.sender, address(this), amount),
             "Token transfer failed"
@@ -40,11 +40,11 @@ contract AelinDistribution is ERC20 {
      *   call the escrow contract to send the KWENTA
      *   in here, to go there and be locked for a year
      */
-    function redeemEscrow1YR(uint amount) public payable {
+    function redeemEscrow4YR(uint amount) public payable {
         _burn(msg.sender, amount);
 
         // Transfers kwenta from here to RewardEscrow.sol
         kwenta.approve(address(rewardEscrow), amount);
-        rewardEscrow.createEscrowEntry(msg.sender, amount, 52 weeks);
+        rewardEscrow.createEscrowEntry(msg.sender, amount, 208 weeks);
     }
 }

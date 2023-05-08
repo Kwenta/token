@@ -4,9 +4,9 @@ pragma solidity 0.8.19;
 import "forge-std/Test.sol";
 import {Kwenta} from "../../contracts/Kwenta.sol";
 import {RewardEscrow} from "../../contracts/RewardEscrow.sol";
-import {AelinDistribution} from "../../contracts/AelinDistribution.sol";
+import {EscrowIssuer} from "../../contracts/EscrowIssuer.sol";
 
-contract AelinDistributionTest is Test {
+contract EscrowIssuerTest is Test {
     event VestingEntryCreated(
         address indexed beneficiary,
         uint value,
@@ -17,7 +17,7 @@ contract AelinDistributionTest is Test {
     address public user;
     Kwenta public kwenta;
     RewardEscrow public rewardEscrow;
-    AelinDistribution public aelinDistribution;
+    EscrowIssuer public escrowIssuer;
 
     function setUp() public {
         treasury = address(this);
@@ -32,9 +32,9 @@ contract AelinDistributionTest is Test {
             treasury
         );
         rewardEscrow = new RewardEscrow(address(this), address(kwenta));
-        aelinDistribution = new AelinDistribution(
-            "aelin",
-            "ALN",
+        escrowIssuer = new EscrowIssuer(
+            "EscIss",
+            "EIS",
             address(kwenta),
             address(rewardEscrow)
         );
@@ -42,12 +42,12 @@ contract AelinDistributionTest is Test {
 
     function testIssueRedeemable() public {
         vm.startPrank(treasury);
-        kwenta.approve(address(aelinDistribution), 10);
-        aelinDistribution.issueRedeemable1YR(10);
+        kwenta.approve(address(escrowIssuer), 10);
+        escrowIssuer.issueRedeemable4YR(10);
         vm.stopPrank();
 
-        assertEq(kwenta.balanceOf(address(aelinDistribution)), 10);
-        assertEq(aelinDistribution.balanceOf(address(treasury)), 10);
+        assertEq(kwenta.balanceOf(address(escrowIssuer)), 10);
+        assertEq(escrowIssuer.balanceOf(address(treasury)), 10);
     }
 
     function testIssueRedeemableFuzzing(uint96 amount) public {
@@ -55,27 +55,27 @@ contract AelinDistributionTest is Test {
         vm.assume(amount < 313373 ether);
 
         vm.startPrank(treasury);
-        kwenta.approve(address(aelinDistribution), amount);
-        aelinDistribution.issueRedeemable1YR(amount);
+        kwenta.approve(address(escrowIssuer), amount);
+        escrowIssuer.issueRedeemable4YR(amount);
         vm.stopPrank();
 
-        assertEq(kwenta.balanceOf(address(aelinDistribution)), amount);
-        assertEq(aelinDistribution.balanceOf(address(treasury)), amount);
+        assertEq(kwenta.balanceOf(address(escrowIssuer)), amount);
+        assertEq(escrowIssuer.balanceOf(address(treasury)), amount);
     }
 
     function testRedeemEscrow() public {
         //setup
         vm.startPrank(treasury);
-        kwenta.approve(address(aelinDistribution), 10);
-        aelinDistribution.issueRedeemable1YR(10);
-        aelinDistribution.transfer(user, 10);
+        kwenta.approve(address(escrowIssuer), 10);
+        escrowIssuer.issueRedeemable4YR(10);
+        escrowIssuer.transfer(user, 10);
         vm.stopPrank();
 
         //make sure vesting entry event is emitted
         vm.expectEmit(true, true, true, true);
-        emit VestingEntryCreated(user, 10, 52 weeks, 1);
+        emit VestingEntryCreated(user, 10, 208 weeks, 1);
         vm.prank(user);
-        aelinDistribution.redeemEscrow1YR(10);
+        escrowIssuer.redeemEscrow4YR(10);
 
         assertEq(kwenta.balanceOf(address(rewardEscrow)), 10);
         assertEq(kwenta.balanceOf(user), 0);
@@ -86,6 +86,6 @@ contract AelinDistributionTest is Test {
      */
     function testFailRedeemEscrowNoTokens() public {
         vm.prank(user);
-        aelinDistribution.redeemEscrow1YR(10);
+        escrowIssuer.redeemEscrow4YR(10);
     }
 }
