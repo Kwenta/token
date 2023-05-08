@@ -361,7 +361,7 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
         assertEq(rewardEscrowV2.numVestingEntries(user1), numberOfEntries);
         assertEq(rewardEscrowV2.numVestingEntries(user2), 0);
 
-        // transfer vesting entries from user1 to user2
+        // add entryIDs to list for bulk transfer
         for (uint256 i = 0; i < numberOfEntriesTransferred; ++i) {
             entryIDs.push(firstEntryTransferredID + i);
         }
@@ -420,7 +420,7 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
         assertEq(rewardEscrowV2.numVestingEntries(user1), numberOfEntries);
         assertEq(rewardEscrowV2.numVestingEntries(user2), 0);
 
-        // transfer vesting entries from user1 to user2
+        // add random selection of entryIDs to list for bulk transfer
         for (uint256 i = 0; i < numberOfEntries; ++i) {
             if (flipCoin()) {
                 entryIDs.push(i + 1);
@@ -481,40 +481,62 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
     }
 
     function test_bulkTransferVestingEntries_Insufficient_Unstaked_Fuzz(
-        uint32 escrowAmount,
-        uint32 stakedAmount,
-        uint24 duration
+        uint32 _escrowAmount,
+        uint32 _stakedAmount,
+        uint24 _duration,
+        uint8 _numberOfEntries
     ) public {
+        uint256 escrowAmount = _escrowAmount;
+        uint256 stakedAmount = _stakedAmount;
+        uint256 duration = _duration;
+        uint256 numberOfEntries = _numberOfEntries;
+
         vm.assume(escrowAmount > 0);
         vm.assume(stakedAmount > 0);
         vm.assume(duration > 0);
-        vm.assume(escrowAmount >= stakedAmount);
+        vm.assume(numberOfEntries > 0);
+        vm.assume(escrowAmount * numberOfEntries >= stakedAmount);
+
+        uint256 unstakedAmount = (escrowAmount * numberOfEntries) - stakedAmount;
+        uint256 totalEscrowedAmount;
+        uint256 indexAtFailure;
+        bool indexFound;
 
         // create the escrow entry
-        createRewardEscrowEntryV2(user1, escrowAmount, duration);
-        assertEq(rewardEscrowV2.totalEscrowedBalance(), escrowAmount);
+        for (uint256 i = 0; i < numberOfEntries; ++i) {
+            createRewardEscrowEntryV2(user1, escrowAmount, duration);
+            totalEscrowedAmount += escrowAmount;
+            if (!indexFound && totalEscrowedAmount > unstakedAmount) {
+                indexAtFailure = i;
+                indexFound = true;
+            }
+        }
+
+        assertEq(rewardEscrowV2.totalEscrowedBalance(), totalEscrowedAmount);
+
+        // calculate the unstaked balance at failure
+        uint256 escrowedBalanceAtFailure = totalEscrowedAmount - (indexAtFailure * escrowAmount);
+        uint256 unstakedBalanceAtFailure = escrowedBalanceAtFailure - stakedAmount;
 
         // stake the escrow
         vm.prank(user1);
         rewardEscrowV2.stakeEscrow(stakedAmount);
 
-        // transfer vesting entry from user1 to user2
-        uint256 user1EntryID = rewardEscrowV2.getAccountVestingEntryIDs(user1, 0, 1)[0];
-        vm.prank(user1);
+        // add entryIDs to list for bulk transfer
+        for (uint256 i = 0; i < numberOfEntries; ++i) {
+            entryIDs.push(1 + i);
+        }
 
-        entryIDs.push(user1EntryID);
-        uint256 unstakedAmount = escrowAmount - stakedAmount;
+        // assert bulk transfer failure with insufficient unstaked balance
+        vm.prank(user1);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IRewardEscrowV2.InsufficientUnstakedBalance.selector, user1EntryID, escrowAmount, unstakedAmount
+                IRewardEscrowV2.InsufficientUnstakedBalance.selector, indexAtFailure + 1, escrowAmount, unstakedBalanceAtFailure
             )
         );
         rewardEscrowV2.bulkTransferVestingEntries(entryIDs, user2);
     }
 
-    // TODO: test mix of staked and unstaked escrow entries
-    // TODO: add efficient transferAllVestingEntries(account) or transferXVestingEntries(numEntries, account)
-    //          - perhaps not needed if bulkTransferVestingEntries is handled appropriately???
     // TODO: what happens if someone transfers an entry to themselves?
     // TODO: add and test event
 }
