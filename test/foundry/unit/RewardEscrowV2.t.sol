@@ -718,8 +718,12 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
     }
 
     /*//////////////////////////////////////////////////////////////
-                        Variables burn fee rate
+                        Variable early vesting fee
     //////////////////////////////////////////////////////////////*/
+
+    function test_Max_Duration() public {
+        assertEq(rewardEscrowV2.MAX_DURATION(), 4 * 52 weeks);
+    }
 
     function test_Default_Early_Vest_Fee_Is_90_Percent() public {
         appendRewardEscrowEntryV2(user1, 1 ether, 52 weeks);
@@ -740,6 +744,5 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
         assertEq(earlyVestingFee, rewardEscrowV2.DEFAULT_EARLY_VESTING_FEE());
     }
 
-    // TODO: assert earlyVestingFee is not above 100%
-    // TODO: assert earlyVestingFee max/min
+    // TODO: assert earlyVestingFee min/max is 0/100
 }
