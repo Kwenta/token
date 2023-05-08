@@ -580,7 +580,10 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
         vm.prank(user1);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IRewardEscrowV2.InsufficientUnstakedBalance.selector, indexAtFailure + 1, escrowAmount, unstakedBalanceAtFailure
+                IRewardEscrowV2.InsufficientUnstakedBalance.selector,
+                indexAtFailure + 1,
+                escrowAmount,
+                unstakedBalanceAtFailure
             )
         );
         rewardEscrowV2.bulkTransferVestingEntries(entryIDs, user2);
@@ -648,6 +651,25 @@ contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
         uint256 user1EntryID = rewardEscrowV2.getAccountVestingEntryIDs(user1, 0, 1)[0];
 
         // transfer vesting entry from user1 to user2
+        vm.prank(user1);
+        vm.expectEmit(true, true, true, false);
+        emit VestingEntryTransfer(user1, user2, user1EntryID);
+        rewardEscrowV2.transferVestingEntry(user1EntryID, user2);
+    }
+
+    function test_transferVestingEntry_Event_Fuzz(uint32 escrowAmount, uint24 duration, uint8 numberOfEntries) public {
+        vm.assume(escrowAmount > 0);
+        vm.assume(duration > 0);
+        vm.assume(numberOfEntries > 0);
+
+        // create the escrow entries
+        for (uint256 i = 0; i < numberOfEntries; ++i) {
+            createRewardEscrowEntryV2(user1, escrowAmount, duration);
+        }
+
+        // transfer vesting entry from user1 to user2
+        uint256 entryToTransferIndex = getPseudoRandomNumber(numberOfEntries - 1, 0, escrowAmount);
+        uint256 user1EntryID = rewardEscrowV2.getAccountVestingEntryIDs(user1, entryToTransferIndex, 1)[0];
         vm.prank(user1);
         vm.expectEmit(true, true, true, false);
         emit VestingEntryTransfer(user1, user2, user1EntryID);
