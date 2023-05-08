@@ -43,6 +43,9 @@ contract EscrowIssuerTest is Test {
         );
     }
 
+    /**
+        test that Treasury can mint redeemable token
+     */
     function testIssueRedeemable() public {
         vm.startPrank(treasury);
         kwenta.approve(address(escrowIssuer), 10);
@@ -66,6 +69,9 @@ contract EscrowIssuerTest is Test {
         assertEq(escrowIssuer.balanceOf(address(treasury)), amount);
     }
 
+    /**
+        integration test with RewardEscrow
+     */
     function testRedeemEscrow() public {
         //setup
         vm.startPrank(treasury);
