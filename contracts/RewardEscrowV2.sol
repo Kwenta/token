@@ -359,6 +359,7 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
 
     /**
      * @notice Transfer a vested entry from one account to another
+     *  Sufficient escrowed KWENTA must be unstaked for the transfer to succeed
      * @param entryID the id of the entry to transfer
      * @param account The account to transfer the vesting entry to
      */
@@ -368,12 +369,15 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
 
     /**
      * @notice Transfer multiple vested entries from one account to another
+     *  Sufficient escrowed KWENTA must be unstaked for the transfer to succeed
      * @param entryIDs a list of the ids of the entries to transfer
      * @param account The account to transfer the vesting entries to
      */
     function bulkTransferVestingEntries(uint256[] calldata entryIDs, address account) external {
         uint256 length = entryIDs.length;
-        for (uint256 i = 0; i < length; ++i) _transferVestingEntry(entryIDs[i], account);
+        for (uint256 i = 0; i < length; ++i) {
+            _transferVestingEntry(entryIDs[i], account);
+        }
     }
 
     /* ========== INTERNALS ========== */
@@ -474,6 +478,5 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
             _removeTokenFromOwnerEnumeration(msg.sender, entryID);
             _addTokenToOwnerEnumeration(account, entryID);
         }
-
     }
 }
