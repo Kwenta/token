@@ -10,7 +10,6 @@ contract StakingV2RewardMigrationCalculationTests is StakingRewardsTestHelpers {
                                 Setup
     //////////////////////////////////////////////////////////////*/
 
-    // TODO: check if this can be fuzzed
     function setUp() public virtual override {
         // Deploy v1 and v2
         super.setUp();
