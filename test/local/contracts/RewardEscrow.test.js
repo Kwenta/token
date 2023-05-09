@@ -190,7 +190,6 @@ contract(
             kwentaSmock = await smock.fake("Kwenta");
             supplySchedule = await smock.fake("SupplySchedule");
 
-            // TODO: Remove if unused
             stakingToken = await TokenContract.new(
                 NAME,
                 SYMBOL,
