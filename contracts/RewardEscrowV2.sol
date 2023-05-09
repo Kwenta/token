@@ -19,7 +19,7 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
     /* ========== CONSTANTS/IMMUTABLES ========== */
 
     /* Max escrow duration */
-    uint256 public constant MAX_DURATION = 4 * 52 weeks; // Default max 2 years duration
+    uint256 public constant MAX_DURATION = 4 * 52 weeks; // Default max 4 years duration
 
     uint8 public constant DEFAULT_EARLY_VESTING_FEE = 90; // Default 90 percent
 
