@@ -5,20 +5,25 @@ import "forge-std/Script.sol";
 import {EscrowIssuer} from "../contracts/EscrowIssuer.sol";
 
 contract DeployEscrowIssuer is Script {
-    function deployEscrowIssuer(
-        address _kwenta,
-        address _rewardEscrow,
-        address _treasury
-    ) public {
+    ///@notice mainnet optimism kwenta address
+    address public kwenta = 0x920Cf626a271321C151D027030D5d08aF699456b;
+
+    ///@notice mainnet optimism rewardEscrow address
+    address public rewardEscrow = 0x1066A8eB3d90Af0Ad3F89839b974658577e75BE2;
+
+    ///@notice treasury address
+    address public treasury = 0x3C704e28C8EfCC7aCa262031818001895595081D;
+
+    function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
 
-        EscrowIssuer escrowIssuer = new EscrowIssuer(
+        new EscrowIssuer(
             "EscIss",
             "EIS",
-            address(_kwenta),
-            address(_rewardEscrow),
-            address(_treasury)
+            address(kwenta),
+            address(rewardEscrow),
+            address(treasury)
         );
 
         vm.stopBroadcast();
