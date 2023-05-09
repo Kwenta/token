@@ -94,7 +94,8 @@ contract StakingTestHelpers is TestHelpers {
                 address(this),
                 address(kwenta),
                 address(supplySchedule),
-                address(stakingRewardsV1)
+                address(stakingRewardsV1),
+                false
             )
         );
         require(deploymentSuccess, "Migrate.deploySystem failed");
@@ -107,7 +108,8 @@ contract StakingTestHelpers is TestHelpers {
                 migrate.setupSystem.selector,
                 address(rewardEscrowV2),
                 address(stakingRewardsV2),
-                address(treasury)
+                address(treasury),
+                false
             )
         );
         require(setupSuccess, "Migrate.setupSystem failed");
@@ -123,7 +125,8 @@ contract StakingTestHelpers is TestHelpers {
             abi.encodeWithSelector(
                 migrate.migrateSystem.selector,
                 address(supplySchedule),
-                address(stakingRewardsV2)
+                address(stakingRewardsV2),
+                false
             )
         );
         require(migrationSuccess, "Migrate.migrateSystem failed");

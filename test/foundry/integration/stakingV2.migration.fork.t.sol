@@ -54,7 +54,8 @@ contract StakingV2MigrationForkTests is Test {
             _kwenta: address(kwenta),
             _supplySchedule: address(supplySchedule),
             _stakingRewardsV1: address(stakingRewardsV1),
-            _treasuryDAO: treasury
+            _treasuryDAO: treasury,
+            _printLogs: false
         });
     }
 
