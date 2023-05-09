@@ -2,7 +2,7 @@
 pragma solidity 0.8.18;
 
 import "forge-std/Test.sol";
-import {Setup} from "../../../scripts/Migrate.s.sol";
+import {Migrate} from "../../../scripts/Migrate.s.sol";
 import {Kwenta} from "../../../contracts/Kwenta.sol";
 import {RewardEscrow} from "../../../contracts/RewardEscrow.sol";
 import {RewardEscrowV2} from "../../../contracts/RewardEscrowV2.sol";
@@ -43,19 +43,15 @@ contract StakingV2MigrationForkTests is Test {
         // define main addresses
         owner = KWENTA_OWNER;
 
-        // define Setup contract used for deployments
-        Setup setup = new Setup();
+        // set owners address code to trick the test into allowing onlyOwner functions to be called via script
+        vm.etch(owner, address(new Migrate()).code);
 
-        // deploy system contracts
-        (rewardEscrowV2, stakingRewardsV2) = setup.deploySystem({
+        Migrate(owner).runCompleteMigrationProcess({
             _owner: owner,
             _kwenta: address(kwenta),
             _supplySchedule: address(supplySchedule),
-            _stakingRewardsV1: address(stakingRewardsV1),
-            _migrateToV2: false
+            _stakingRewardsV1: address(stakingRewardsV1)
         });
-
-        switchToStakingV2();
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -65,19 +61,5 @@ contract StakingV2MigrationForkTests is Test {
     // TODO: sort this out
     function test_Magic() public {
         assertTrue(true);
-    }
-
-    /*//////////////////////////////////////////////////////////////
-                                HELPERS
-    //////////////////////////////////////////////////////////////*/
-
-    function switchToStakingV2() public {
-        vm.startPrank(owner);
-
-        // Update SupplySchedule to point to StakingV2
-        supplySchedule.setStakingRewards(address(stakingRewardsV2));
-        rewardEscrowV2.setStakingRewardsV2(address(stakingRewardsV2));
-
-        vm.stopPrank();
     }
 }
