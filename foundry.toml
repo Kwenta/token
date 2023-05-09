@@ -5,4 +5,12 @@ libs = ['node_modules', 'lib']
 test = 'test/foundry'
 cache_path = 'forge-cache'
 
+[rpc_endpoints]
+optimism = "${ARCHIVE_NODE_URL_L2}"
+optimismGoerli = "${ARCHIVE_NODE_URL_GOERLI_L2}"
+
+[etherscan]
+optimism = { key = "${ETHERSCAN_API_KEY}" }
+optimismGoerli = { key = "${ETHERSCAN_API_KEY}" }
+
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config
