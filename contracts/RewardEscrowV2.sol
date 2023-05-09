@@ -300,7 +300,7 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
             // Send any fee to Treasury
             if (totalFee != 0) {
                 _reduceAccountEscrowBalances(msg.sender, totalFee);
-                require(IKwenta(address(kwenta)).transfer(treasuryDAO, totalFee), "RewardEscrow: Token Transfer Failed");
+                require(kwenta.transfer(treasuryDAO, totalFee), "RewardEscrow: Token Transfer Failed");
             }
 
             // Transfer kwenta
