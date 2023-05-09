@@ -146,7 +146,7 @@ contract StakingRewardsTestHelpers is TestHelpers {
         // This defaults to 7 days
         uint256 rewardsDuration = stakingRewardsV2.rewardsDuration();
         uint256 previousRewardPerToken = stakingRewardsV2.rewardPerToken();
-        uint256 rewardsPerTokenPaid = stakingRewardsV2.userRewardPerTokenPaid(user1);
+        uint256 rewardsPerTokenPaid = stakingRewardsV2.userRewardPerTokenPaid(user);
         uint256 totalSupply = stakingRewardsV2.totalSupply() + stakingRewardsV1.totalSupply();
         uint256 balance = stakingRewardsV2.balanceOf(user) + stakingRewardsV1.balanceOf(user);
 
