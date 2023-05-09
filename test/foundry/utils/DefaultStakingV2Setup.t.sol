@@ -13,6 +13,6 @@ contract DefaultStakingV2Setup is StakingTestHelpers {
     function setUp() public override virtual {
         super.setUp();
 
-        pauseAndSwitchToStakingRewardsV2();
+        switchToStakingV2();
     }
 }

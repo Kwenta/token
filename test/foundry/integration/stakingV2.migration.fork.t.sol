@@ -52,10 +52,10 @@ contract StakingV2MigrationForkTests is Test {
             _kwenta: address(kwenta),
             _supplySchedule: address(supplySchedule),
             _stakingRewardsV1: address(stakingRewardsV1),
-            _pauseAndMigrate: false
+            _migrateToV2: false
         });
 
-        pauseAndSwitchToStakingRewardsV2();
+        switchToStakingV2();
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -71,18 +71,12 @@ contract StakingV2MigrationForkTests is Test {
                                 HELPERS
     //////////////////////////////////////////////////////////////*/
 
-    function pauseAndSwitchToStakingRewardsV2() public {
+    function switchToStakingV2() public {
         vm.startPrank(owner);
-
-        // Pause StakingV1
-        stakingRewardsV1.pauseStakingRewards();
 
         // Update SupplySchedule to point to StakingV2
         supplySchedule.setStakingRewards(address(stakingRewardsV2));
         rewardEscrowV2.setStakingRewardsV2(address(stakingRewardsV2));
-
-        // Unpause StakingV1
-        stakingRewardsV1.unpauseStakingRewards();
 
         vm.stopPrank();
     }

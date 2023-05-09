@@ -90,23 +90,16 @@ contract StakingTestHelpers is TestHelpers {
             address(stakingRewardsV1)
         );
         rewardEscrowV2.setTreasuryDAO(treasury);
+        rewardEscrowV2.setStakingRewardsV2(address(stakingRewardsV2));
     }
 
     /*//////////////////////////////////////////////////////////////
                             Migration Helpers
     //////////////////////////////////////////////////////////////*/
 
-    function pauseAndSwitchToStakingRewardsV2() public {
-        // Pause StakingV1
-        stakingRewardsV1.pauseStakingRewards();
-
+    function switchToStakingV2() public {
         // Update SupplySchedule to point to StakingV2
         supplySchedule.setStakingRewards(address(stakingRewardsV2));
-        // TODO: move out of here and into setup => adjust all pauseAndSwitchToStakingRewardsV2 equivalently
-        rewardEscrowV2.setStakingRewardsV2(address(stakingRewardsV2));
-
-        // Unpause StakingV1
-        stakingRewardsV1.unpauseStakingRewards();
     }
 
     /*//////////////////////////////////////////////////////////////

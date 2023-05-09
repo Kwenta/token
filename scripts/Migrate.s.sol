@@ -16,7 +16,7 @@ contract Setup {
         address _kwenta,
         address _supplySchedule,
         address _stakingRewardsV1,
-        bool _pauseAndMigrate
+        bool _migrateToV2
     ) public returns (RewardEscrowV2 rewardEscrowV2, StakingRewardsV2 stakingRewardsV2) {
         rewardEscrowV2 = new RewardEscrowV2(_owner, _kwenta);
         stakingRewardsV2 = new StakingRewardsV2(
@@ -29,32 +29,23 @@ contract Setup {
         console.log("Deployed StakingRewardsV2 at %s", address(stakingRewardsV2));
         console.log("Deployed RewardEscrowV2 at %s", address(rewardEscrowV2));
 
-        if (_pauseAndMigrate) {
-            pauseAndSwitchToStakingRewardsV2(
-                _stakingRewardsV1, _supplySchedule, address(stakingRewardsV2), address(rewardEscrowV2)
+        if (_migrateToV2) {
+            switchToStakingV2(
+                _supplySchedule, address(stakingRewardsV2), address(rewardEscrowV2)
             );
         }
     }
 
-    function pauseAndSwitchToStakingRewardsV2(
-        address _stakingRewardsV1,
+    function switchToStakingV2(
         address _supplySchedule,
         address _stakingRewardsV2,
         address _rewardEscrowV2
     ) internal {
-        StakingRewards stakingRewardsV1 = StakingRewards(_stakingRewardsV1);
         SupplySchedule supplySchedule = SupplySchedule(_supplySchedule);
-        StakingRewardsV2 stakingRewardsV2 = StakingRewardsV2(_stakingRewardsV2);
         RewardEscrowV2 rewardEscrowV2 = RewardEscrowV2(_rewardEscrowV2);
 
-        // Pause StakingV1
-        stakingRewardsV1.pauseStakingRewards();
-
         // Update SupplySchedule to point to StakingV2
-        supplySchedule.setStakingRewards(address(stakingRewardsV2));
-        rewardEscrowV2.setStakingRewardsV2(address(stakingRewardsV2));
-
-        // Unpause StakingV1
-        stakingRewardsV1.unpauseStakingRewards();
+        supplySchedule.setStakingRewards(_stakingRewardsV2);
+        rewardEscrowV2.setStakingRewardsV2(_stakingRewardsV2);
     }
 }

@@ -22,7 +22,7 @@ contract StakingV2RewardMigrationCalculationTests is StakingTestHelpers {
         fundAccountAndStakeV1(user5, 1 ether);
 
         // switch to staking v2
-        pauseAndSwitchToStakingRewardsV2();
+        switchToStakingV2();
     }
 
     /*//////////////////////////////////////////////////////////////

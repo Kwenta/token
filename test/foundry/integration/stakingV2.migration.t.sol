@@ -36,7 +36,7 @@ contract StakingV2MigrationTests is StakingTestHelpers {
         stakeAllUnstakedEscrowV1(user3);
 
         // switch over to StakingV2
-        pauseAndSwitchToStakingRewardsV2();
+        switchToStakingV2();
 
         uint256 user1StakeV1 = stakingRewardsV1.balanceOf(user1);
         uint256 user2StakeV1 = stakingRewardsV1.balanceOf(user2);
