@@ -1480,6 +1480,27 @@ contract(
                         await fastForward(duration + WEEK * 2);
                     });
 
+                    it("should fully vest entries 1 and 2 and partially vest entry 3 and transfer all to user", async () => {
+                        await rewardsEscrow.vest(
+                            [entryID1, entryID2, entryID3],
+                            {
+                                from: staker1,
+                            }
+                        );
+
+                        // Check user has entry1 + entry2 amount
+                        assert.bnGreaterThan(
+                            await mockedKwenta.balanceOf(staker1),
+                            escrowAmount1.add(escrowAmount2)
+                        );
+
+                        // Check rewardEscrow has remaining entry3 amount
+                        assert.bnEqual(
+                            await mockedKwenta.balanceOf(rewardsEscrow.address),
+                            0
+                        );
+                    });
+
                     it("should vest and update totalEscrowedAccountBalance", async () => {
                         // This account should have an escrowedAccountBalance
                         let escrowedAccountBalance =
