@@ -26,6 +26,7 @@ contract StakingV2MigrationForkTests is Test {
 
     // main addresses
     address public owner;
+    address public treasury;
 
     /*//////////////////////////////////////////////////////////////
                                  SETUP
@@ -42,6 +43,7 @@ contract StakingV2MigrationForkTests is Test {
 
         // define main addresses
         owner = KWENTA_OWNER;
+        treasury = TREASURY_DAO;
 
         // set owners address code to trick the test into allowing onlyOwner functions to be called via script
         vm.etch(owner, address(new Migrate()).code);
@@ -51,7 +53,8 @@ contract StakingV2MigrationForkTests is Test {
             _owner: owner,
             _kwenta: address(kwenta),
             _supplySchedule: address(supplySchedule),
-            _stakingRewardsV1: address(stakingRewardsV1)
+            _stakingRewardsV1: address(stakingRewardsV1),
+            _treasuryDAO: treasury
         });
     }
 

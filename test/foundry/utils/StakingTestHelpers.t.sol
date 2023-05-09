@@ -2,6 +2,7 @@
 pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
+import {Migrate} from "../../../scripts/Migrate.s.sol";
 import {TestHelpers} from "../utils/TestHelpers.t.sol";
 import {Kwenta} from "../../../contracts/Kwenta.sol";
 import {RewardEscrow} from "../../../contracts/RewardEscrow.sol";
@@ -9,7 +10,8 @@ import {RewardEscrowV2} from "../../../contracts/RewardEscrowV2.sol";
 import {SupplySchedule} from "../../../contracts/SupplySchedule.sol";
 import {StakingRewards} from "../../../contracts/StakingRewards.sol";
 import {StakingRewardsV2} from "../../../contracts/StakingRewardsV2.sol";
-import {MultipleMerkleDistributor} from "../../../contracts/MultipleMerkleDistributor.sol";
+import {MultipleMerkleDistributor} from
+    "../../../contracts/MultipleMerkleDistributor.sol";
 import {IERC20} from "../../../contracts/interfaces/IERC20.sol";
 import "../utils/Constants.t.sol";
 
@@ -40,6 +42,7 @@ contract StakingTestHelpers is TestHelpers {
     StakingRewards public stakingRewardsV1;
     StakingRewardsV2 public stakingRewardsV2;
     MultipleMerkleDistributor public tradingRewards;
+    Migrate public migrate;
 
     /*//////////////////////////////////////////////////////////////
                                 Setup
@@ -76,21 +79,38 @@ contract StakingTestHelpers is TestHelpers {
             address(rewardEscrowV1),
             address(supplySchedule)
         );
-        tradingRewards = new MultipleMerkleDistributor(address(this), address(kwenta));
+        tradingRewards =
+            new MultipleMerkleDistributor(address(this), address(kwenta));
         supplySchedule.setStakingRewards(address(stakingRewardsV1));
         supplySchedule.setTradingRewards(address(tradingRewards));
         rewardEscrowV1.setStakingRewards(address(stakingRewardsV1));
 
         // Deploy StakingV2
-        rewardEscrowV2 = new RewardEscrowV2(address(this), address(kwenta));
-        stakingRewardsV2 = new StakingRewardsV2(
-            address(kwenta),
-            address(rewardEscrowV2),
-            address(supplySchedule),
-            address(stakingRewardsV1)
+        migrate = new Migrate();
+        (bool deploymentSuccess, bytes memory deploymentData) = address(migrate)
+            .delegatecall(
+            abi.encodeWithSelector(
+                migrate.deploySystem.selector,
+                address(this),
+                address(kwenta),
+                address(supplySchedule),
+                address(stakingRewardsV1)
+            )
         );
-        rewardEscrowV2.setTreasuryDAO(treasury);
-        rewardEscrowV2.setStakingRewardsV2(address(stakingRewardsV2));
+        require(deploymentSuccess, "Migrate.deploySystem failed");
+        (rewardEscrowV2, stakingRewardsV2) =
+            abi.decode(deploymentData, (RewardEscrowV2, StakingRewardsV2));
+
+        // Setup StakingV2
+        (bool setupSuccess,) = address(migrate).delegatecall(
+            abi.encodeWithSelector(
+                migrate.setupSystem.selector,
+                address(rewardEscrowV2),
+                address(stakingRewardsV2),
+                address(treasury)
+            )
+        );
+        require(setupSuccess, "Migrate.setupSystem failed");
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -99,7 +119,14 @@ contract StakingTestHelpers is TestHelpers {
 
     function switchToStakingV2() public {
         // Update SupplySchedule to point to StakingV2
-        supplySchedule.setStakingRewards(address(stakingRewardsV2));
+        (bool migrationSuccess,) = address(migrate).delegatecall(
+            abi.encodeWithSelector(
+                migrate.migrateSystem.selector,
+                address(supplySchedule),
+                address(stakingRewardsV2)
+            )
+        );
+        require(migrationSuccess, "Migrate.migrateSystem failed");
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -115,7 +142,8 @@ contract StakingTestHelpers is TestHelpers {
         // This defaults to 7 days
         uint256 rewardsDuration = stakingRewardsV1.rewardsDuration();
         uint256 previousRewardPerToken = stakingRewardsV1.rewardPerToken();
-        uint256 rewardsPerTokenPaid = stakingRewardsV1.userRewardPerTokenPaid(user);
+        uint256 rewardsPerTokenPaid =
+            stakingRewardsV1.userRewardPerTokenPaid(user);
         uint256 totalSupply = stakingRewardsV1.totalSupply();
         uint256 balance = stakingRewardsV1.balanceOf(user);
 
@@ -127,7 +155,8 @@ contract StakingTestHelpers is TestHelpers {
         // rewards = (balance * rewardsPerTokenForUser) / 1e18
         uint256 rewardRate = reward / rewardsDuration;
         uint256 newRewards = rewardRate * min(waitTime, rewardsDuration);
-        uint256 rewardPerToken = previousRewardPerToken + (newRewards * 1e18 / totalSupply);
+        uint256 rewardPerToken =
+            previousRewardPerToken + (newRewards * 1e18 / totalSupply);
         uint256 rewardsPerTokenForUser = rewardPerToken - rewardsPerTokenPaid;
         uint256 expectedRewards = balance * rewardsPerTokenForUser / 1e18;
 
@@ -135,13 +164,20 @@ contract StakingTestHelpers is TestHelpers {
     }
 
     // Note - this must be run before triggering notifyRewardAmount and getReward
-    function getExpectedRewardV2(uint256 reward, uint256 waitTime, address user) public view returns (uint256) {
+    function getExpectedRewardV2(uint256 reward, uint256 waitTime, address user)
+        public
+        view
+        returns (uint256)
+    {
         // This defaults to 7 days
         uint256 rewardsDuration = stakingRewardsV2.rewardsDuration();
         uint256 previousRewardPerToken = stakingRewardsV2.rewardPerToken();
-        uint256 rewardsPerTokenPaid = stakingRewardsV2.userRewardPerTokenPaid(user);
-        uint256 totalSupply = stakingRewardsV2.totalSupply() + stakingRewardsV1.totalSupply();
-        uint256 balance = stakingRewardsV2.balanceOf(user) + stakingRewardsV1.balanceOf(user);
+        uint256 rewardsPerTokenPaid =
+            stakingRewardsV2.userRewardPerTokenPaid(user);
+        uint256 totalSupply =
+            stakingRewardsV2.totalSupply() + stakingRewardsV1.totalSupply();
+        uint256 balance =
+            stakingRewardsV2.balanceOf(user) + stakingRewardsV1.balanceOf(user);
 
         // general formula for rewards should be:
         // rewardRate = reward / rewardsDuration
@@ -151,7 +187,8 @@ contract StakingTestHelpers is TestHelpers {
         // rewards = (balance * rewardsPerTokenForUser) / 1e18
         uint256 rewardRate = reward / rewardsDuration;
         uint256 newRewards = rewardRate * min(waitTime, rewardsDuration);
-        uint256 rewardPerToken = previousRewardPerToken + (newRewards * 1e18 / totalSupply);
+        uint256 rewardPerToken =
+            previousRewardPerToken + (newRewards * 1e18 / totalSupply);
         uint256 rewardsPerTokenForUser = rewardPerToken - rewardsPerTokenPaid;
         uint256 expectedRewards = balance * rewardsPerTokenForUser / 1e18;
 
@@ -216,13 +253,20 @@ contract StakingTestHelpers is TestHelpers {
         rewardEscrowV1.stakeEscrow(amount);
     }
 
-    function unstakeAllUnstakedEscrowV1(address account, uint256 amount) public {
+    function unstakeAllUnstakedEscrowV1(address account, uint256 amount)
+        public
+    {
         vm.prank(account);
         rewardEscrowV1.unstakeEscrow(amount);
     }
 
-    function getNonStakedEscrowAmountV1(address account) public view returns (uint256) {
-        return rewardEscrowV1.balanceOf(account) - stakingRewardsV1.escrowedBalanceOf(account);
+    function getNonStakedEscrowAmountV1(address account)
+        public
+        view
+        returns (uint256)
+    {
+        return rewardEscrowV1.balanceOf(account)
+            - stakingRewardsV1.escrowedBalanceOf(account);
     }
 
     function warpAndMint(uint256 time) public {
@@ -277,21 +321,36 @@ contract StakingTestHelpers is TestHelpers {
         stakingRewardsV2.unstakeEscrow(account, amount);
     }
 
-    function createRewardEscrowEntryV2(address account, uint256 amount, uint256 duration) public {
+    function createRewardEscrowEntryV2(
+        address account,
+        uint256 amount,
+        uint256 duration
+    ) public {
         vm.prank(treasury);
         kwenta.approve(address(rewardEscrowV2), amount);
         vm.prank(treasury);
         rewardEscrowV2.createEscrowEntry(account, amount, duration, 90);
     }
 
-    function createRewardEscrowEntryV2(address account, uint256 amount, uint256 duration, uint8 earlyVestingFee) public {
+    function createRewardEscrowEntryV2(
+        address account,
+        uint256 amount,
+        uint256 duration,
+        uint8 earlyVestingFee
+    ) public {
         vm.prank(treasury);
         kwenta.approve(address(rewardEscrowV2), amount);
         vm.prank(treasury);
-        rewardEscrowV2.createEscrowEntry(account, amount, duration, earlyVestingFee);
+        rewardEscrowV2.createEscrowEntry(
+            account, amount, duration, earlyVestingFee
+        );
     }
 
-    function appendRewardEscrowEntryV2(address account, uint256 amount, uint256 duration) public {
+    function appendRewardEscrowEntryV2(
+        address account,
+        uint256 amount,
+        uint256 duration
+    ) public {
         vm.prank(treasury);
         kwenta.transfer(address(rewardEscrowV2), amount);
         vm.prank(address(stakingRewardsV2));
@@ -310,12 +369,19 @@ contract StakingTestHelpers is TestHelpers {
         rewardEscrowV2.stakeEscrow(amount);
     }
 
-    function unstakeAllUnstakedEscrowV2(address account, uint256 amount) public {
+    function unstakeAllUnstakedEscrowV2(address account, uint256 amount)
+        public
+    {
         vm.prank(account);
         rewardEscrowV2.unstakeEscrow(amount);
     }
 
-    function getNonStakedEscrowAmountV2(address account) public view returns (uint256) {
-        return rewardEscrowV2.balanceOf(account) - stakingRewardsV2.escrowedBalanceOf(account);
+    function getNonStakedEscrowAmountV2(address account)
+        public
+        view
+        returns (uint256)
+    {
+        return rewardEscrowV2.balanceOf(account)
+            - stakingRewardsV2.escrowedBalanceOf(account);
     }
 }

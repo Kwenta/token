@@ -11,7 +11,7 @@ import {StakingRewardsV2} from "../contracts/StakingRewardsV2.sol";
 /// @title Script for migration from StakingV1 to StakingV2
 /// @author tommyrharper (zeroknowledgeltd@gmail.com)
 contract Migrate {
-    /** 
+    /**
      * @dev Step 1: deploy the new contracts
      *   - This deploys the new stakingv2 contracts but stakingv1 will remain operational
      */
@@ -43,17 +43,25 @@ contract Migrate {
         console.log(unicode"--------- 🚀 DEPLOYMENT COMPLETE 🚀 ---------");
     }
 
-    /** 
+    /**
      * @dev Step 2: setup the new contracts
      *   - Only the owner of RewardEscrowV2 can successfully do this
      *   - This can safely be executed immediately after deploySystem is complete
      *   - This MUST be run before migrateSystem is executed
      */
-    function setupSystem(address _rewardEscrowV2, address _stakingRewardsV2)
-        public
-    {
+    function setupSystem(
+        address _rewardEscrowV2,
+        address _stakingRewardsV2,
+        address _treasuryDAO
+    ) public {
         console.log("********* 2. SETUP STARTING... *********");
         RewardEscrowV2 rewardEscrowV2 = RewardEscrowV2(_rewardEscrowV2);
+
+        rewardEscrowV2.setTreasuryDAO(_treasuryDAO);
+        console.log(
+            "Switched RewardEscrowV2 to point to TreasuryDAO at %s",
+            _treasuryDAO
+        );
 
         rewardEscrowV2.setStakingRewardsV2(_stakingRewardsV2);
         console.log(
@@ -63,7 +71,7 @@ contract Migrate {
         console.log(unicode"--------- 🔧 SETUP COMPLETE 🔧 ---------");
     }
 
-    /** 
+    /**
      * @dev Step 3: migrate to the new contracts
      *   - Only the owner of SupplySchedule can successfully do this
      *   - This MUST be executed after setRewardEscrowStakingRewards is complete
@@ -84,7 +92,7 @@ contract Migrate {
         console.log(unicode"--------- 🎉 MIGRATION COMPLETE 🎉 ---------");
     }
 
-    /** 
+    /**
      * @dev This is a convenience function to run the entire migration process
      *   - This should only be run if we are fully ready to deploy, setup and migrate to stakingv2
      *   - This can only be run successfully using the key of the owner of the SupplySchedule contract
@@ -93,7 +101,8 @@ contract Migrate {
         address _owner,
         address _kwenta,
         address _supplySchedule,
-        address _stakingRewardsV1
+        address _stakingRewardsV1,
+        address _treasuryDAO
     )
         public
         returns (
@@ -106,7 +115,9 @@ contract Migrate {
             deploySystem(_owner, _kwenta, _supplySchedule, _stakingRewardsV1);
 
         // Step 2: Setup StakingV2 contracts
-        setupSystem(address(rewardEscrowV2), address(stakingRewardsV2));
+        setupSystem(
+            address(rewardEscrowV2), address(stakingRewardsV2), _treasuryDAO
+        );
 
         // Step 3: Migrate SupplySchedule to point at StakingV2
         // After this, all new rewards will be distributed via StakingV2
