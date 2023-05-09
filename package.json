@@ -5,7 +5,7 @@
     "test:contracts": "npx hardhat test test/local/contracts/*",
     "test:integration": "npx hardhat test test/local/integration/*",
     "test:fork": "npx hardhat test test/fork/*",
-    "f-test": "forge test",
+    "f-test": "forge test --no-match-contract StakingV2MigrationForkTests",
     "f-test:fork": "forge test --match-path ./test/foundry/integration/stakingV2.migration.fork.t.sol --fork-url $(grep ARCHIVE_NODE_URL_L2 .env | cut -d '=' -f2) --etherscan-api-key $(grep ETHERSCAN_API_KEY .env | cut -d '=' -f2) -vv",
     "coverage": "npx hardhat coverage",
     "generate-distribution:stakers": "npx ts-node ./scripts/distribution/staker-distribution.ts",
