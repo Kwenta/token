@@ -39,7 +39,8 @@ contract EscrowIssuerTest is Test {
             "EscIss",
             "EIS",
             address(kwenta),
-            address(rewardEscrow)
+            address(rewardEscrow),
+            address(this)
         );
     }
 
@@ -96,5 +97,16 @@ contract EscrowIssuerTest is Test {
     function testFailRedeemEscrowNoTokens() public {
         vm.prank(user);
         escrowIssuer.redeemEscrow4YR(10);
+    }
+
+    /**
+        test when non-treasury tries to call issue redeemable
+        should revert
+     */
+    function testIssueRedeemableNonTreasury() public {
+        vm.startPrank(user);
+        kwenta.approve(address(escrowIssuer), 10);
+        vm.expectRevert("Only the Treasury can perform this action");
+        escrowIssuer.issueRedeemable4YR(10);
     }
 }
