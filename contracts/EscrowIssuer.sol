@@ -28,11 +28,12 @@ contract EscrowIssuer is ERC20 {
         string memory _name,
         string memory _symbol,
         address _kwenta,
-        address _rewardEscrowAddr
+        address _rewardEscrowAddr,
+        address _treasury
     ) ERC20(_name, _symbol) {
         kwenta = IKwenta(_kwenta);
         rewardEscrow = IRewardEscrow(_rewardEscrowAddr);
-        treasury = msg.sender;
+        treasury = _treasury;
     }
 
     /**

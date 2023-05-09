@@ -39,7 +39,8 @@ contract EscrowIssuerTest is Test {
             "EscIss",
             "EIS",
             address(kwenta),
-            address(rewardEscrow)
+            address(rewardEscrow),
+            address(this)
         );
     }
 
