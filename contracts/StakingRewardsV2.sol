@@ -8,7 +8,7 @@ import "./utils/Owned.sol";
 import "./interfaces/IStakingRewardsV2.sol";
 import "./interfaces/IStakingRewards.sol";
 import "./interfaces/ISupplySchedule.sol";
-import "./interfaces/IRewardEscrow.sol";
+import "./interfaces/IRewardEscrowV2.sol";
 
 /// @title KWENTA Staking Rewards
 /// @author SYNTHETIX, JaredBorders (jaredborders@proton.me), JChiaramonte7 (jeremy@bytecode.llc), tommyrharper (zeroknowledgeltd@gmail.com)
@@ -25,7 +25,7 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     IERC20 public immutable token;
 
     /// @notice escrow contract which holds (and may stake) reward tokens
-    IRewardEscrow public immutable rewardEscrow;
+    IRewardEscrowV2 public immutable rewardEscrowV2;
 
     /// @notice handles reward token minting logic
     ISupplySchedule public immutable supplySchedule;
@@ -148,16 +148,16 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
                                 AUTH
     ///////////////////////////////////////////////////////////////*/
 
-    /// @notice access control modifier for rewardEscrow
-    modifier onlyRewardEscrow() {
+    /// @notice access control modifier for rewardEscrowV2
+    modifier onlyRewardEscrowV2() {
         require(
-            msg.sender == address(rewardEscrow),
+            msg.sender == address(rewardEscrowV2),
             "StakingRewards: Only Reward Escrow"
         );
         _;
     }
 
-    /// @notice access control modifier for rewardEscrow
+    /// @notice access control modifier for rewardEscrowV2
     modifier onlySupplySchedule() {
         require(
             msg.sender == address(supplySchedule),
@@ -173,11 +173,11 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     /// @notice configure StakingRewards state
     /// @dev owner set to address that deployed StakingRewards
     /// @param _token: token used for staking and for rewards
-    /// @param _rewardEscrow: escrow contract which holds (and may stake) reward tokens
+    /// @param _rewardEscrowV2: escrow contract which holds (and may stake) reward tokens
     /// @param _supplySchedule: handles reward token minting logic
     constructor(
         address _token,
-        address _rewardEscrow,
+        address _rewardEscrowV2,
         address _supplySchedule,
         address _stakingRewardsV1
     ) Owned(msg.sender) {
@@ -185,7 +185,7 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
         token = IERC20(_token);
 
         // define contracts which will interact with StakingRewards
-        rewardEscrow = IRewardEscrow(_rewardEscrow);
+        rewardEscrowV2 = IRewardEscrowV2(_rewardEscrowV2);
         supplySchedule = ISupplySchedule(_supplySchedule);
         stakingRewardsV1 = IStakingRewards(_stakingRewardsV1);
     }
@@ -307,7 +307,7 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     function stakeEscrow(
         address account,
         uint256 amount
-    ) external override whenNotPaused onlyRewardEscrow updateReward(account) {
+    ) external override whenNotPaused onlyRewardEscrowV2 updateReward(account) {
         require(amount > 0, "StakingRewards: Cannot stake 0");
 
         // update state
@@ -331,7 +331,7 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     function unstakeEscrow(
         address account,
         uint256 amount
-    ) external override nonReentrant onlyRewardEscrow updateReward(account) {
+    ) external override nonReentrant onlyRewardEscrowV2 updateReward(account) {
         require(amount > 0, "StakingRewards: Cannot Unstake 0");
         require(escrowedBalanceOf(account) >= amount, "StakingRewards: Invalid Amount");
         uint256 canUnstakeAt = userLastStakeTime[account] + unstakingCooldownPeriod;
@@ -370,10 +370,10 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
             // update state (first)
             rewards[msg.sender] = 0;
 
-            // transfer token from this contract to the rewardEscrow
+            // transfer token from this contract to the rewardEscrowV2
             // and create a vesting entry for the caller
-            token.safeTransfer(address(rewardEscrow), reward);
-            rewardEscrow.appendVestingEntry(msg.sender, reward, 52 weeks);
+            token.safeTransfer(address(rewardEscrowV2), reward);
+            rewardEscrowV2.appendVestingEntry(msg.sender, reward, 52 weeks);
 
             // emit reward claimed event and index msg.sender
             emit RewardPaid(msg.sender, reward);
