@@ -96,7 +96,7 @@ contract StakingV1RewardCalculationTests is StakingRewardsTestHelpers {
         assertEq(rewards, 0);
 
         // calculate expected reward
-        uint256 expectedRewards = getExpectedRewardV1(reward, waitTime, initialStake);
+        uint256 expectedRewards = getExpectedRewardV1(reward, waitTime, user1);
 
         // send in reward to the contract
         addNewRewardsToStakingRewardsV1(reward);
@@ -117,7 +117,7 @@ contract StakingV1RewardCalculationTests is StakingRewardsTestHelpers {
 
         // calculate new rewards now
         uint256 newReward = 0;
-        expectedRewards += getExpectedRewardV1(newReward, rewardsDuration, initialStake);
+        expectedRewards += getExpectedRewardV1(newReward, rewardsDuration, user1);
 
         // get the rewards
         vm.prank(user1);
@@ -157,7 +157,7 @@ contract StakingV1RewardCalculationTests is StakingRewardsTestHelpers {
         assertEq(rewards, 0);
 
         // calculate expected reward
-        uint256 expectedRewards = getExpectedRewardV1(reward, waitTime, initialStake);
+        uint256 expectedRewards = getExpectedRewardV1(reward, waitTime, user1);
 
         // send in reward to the contract
         addNewRewardsToStakingRewardsV1(reward);
@@ -178,7 +178,7 @@ contract StakingV1RewardCalculationTests is StakingRewardsTestHelpers {
 
         // calculate new rewards now
         uint256 newReward = 0;
-        expectedRewards += getExpectedRewardV1(newReward, rewardsDuration, initialStake);
+        expectedRewards += getExpectedRewardV1(newReward, rewardsDuration, user1);
 
         // get the rewards
         vm.prank(user1);
@@ -207,7 +207,7 @@ contract StakingV1RewardCalculationTests is StakingRewardsTestHelpers {
         assertEq(rewards, 0);
 
         // calculate expected reward
-        uint256 expectedRewards = getExpectedRewardV1(reward, waitTime, initialStake);
+        uint256 expectedRewards = getExpectedRewardV1(reward, waitTime, user1);
 
         // send in reward to the contract
         addNewRewardsToStakingRewardsV1(reward);
@@ -231,7 +231,7 @@ contract StakingV1RewardCalculationTests is StakingRewardsTestHelpers {
         uint256 newReward = getPseudoRandomNumber(10 ether, 1, reward);
 
         // calculate new rewards now
-        expectedRewards += getExpectedRewardV1(newReward, newWaitTime, initialStake);
+        expectedRewards += getExpectedRewardV1(newReward, newWaitTime, user1);
 
         addNewRewardsToStakingRewardsV1(newReward);
         vm.warp(block.timestamp + newWaitTime);
@@ -261,7 +261,7 @@ contract StakingV1RewardCalculationTests is StakingRewardsTestHelpers {
         assertEq(rewards, 0);
 
         // calculate expected reward
-        uint256 expectedRewards = getExpectedRewardV1(reward, waitTime, initialStake);
+        uint256 expectedRewards = getExpectedRewardV1(reward, waitTime, user1);
 
         // send in reward to the contract
         addNewRewardsToStakingRewardsV1(reward);
@@ -285,7 +285,7 @@ contract StakingV1RewardCalculationTests is StakingRewardsTestHelpers {
         reward = getPseudoRandomNumber(10 ether, 1, reward);
 
         // calculate new rewards now
-        expectedRewards += getExpectedRewardV1(reward, waitTime, initialStake);
+        expectedRewards += getExpectedRewardV1(reward, waitTime, user1);
 
         addNewRewardsToStakingRewardsV1(reward);
         vm.warp(block.timestamp + waitTime);
@@ -306,7 +306,7 @@ contract StakingV1RewardCalculationTests is StakingRewardsTestHelpers {
         reward = getPseudoRandomNumber(10 ether, 1, reward);
 
         // calculate new rewards now
-        expectedRewards += getExpectedRewardV1(reward, waitTime, initialStake);
+        expectedRewards += getExpectedRewardV1(reward, waitTime, user1);
 
         addNewRewardsToStakingRewardsV1(reward);
         vm.warp(block.timestamp + waitTime);
@@ -342,7 +342,7 @@ contract StakingV1RewardCalculationTests is StakingRewardsTestHelpers {
         assertEq(rewards, 0);
 
         // calculate expected reward
-        uint256 expectedRewards = getExpectedRewardV1(reward, waitTime, initialStake);
+        uint256 expectedRewards = getExpectedRewardV1(reward, waitTime, user1);
 
         // send in reward to the contract
         addNewRewardsToStakingRewardsV1(reward);
@@ -367,7 +367,7 @@ contract StakingV1RewardCalculationTests is StakingRewardsTestHelpers {
             reward = getPseudoRandomNumber(10 ether, 1, reward);
 
             // calculate new rewards now
-            expectedRewards += getExpectedRewardV1(reward, waitTime, initialStake);
+            expectedRewards += getExpectedRewardV1(reward, waitTime, user1);
 
             addNewRewardsToStakingRewardsV1(reward);
             vm.warp(block.timestamp + waitTime);
@@ -412,7 +412,7 @@ contract StakingV1RewardCalculationTests is StakingRewardsTestHelpers {
         assertEq(rewards, 0);
 
         // calculate expected reward
-        uint256 expectedRewards = getExpectedRewardV1(reward, waitTime, initialStake);
+        uint256 expectedRewards = getExpectedRewardV1(reward, waitTime, user1);
 
         // send in reward to the contract
         addNewRewardsToStakingRewardsV1(reward);
@@ -441,7 +441,7 @@ contract StakingV1RewardCalculationTests is StakingRewardsTestHelpers {
             reward = getPseudoRandomNumber(10 ether, 1, reward);
 
             // calculate new rewards now
-            expectedRewards += getExpectedRewardV1(reward, waitTime, initialStake);
+            expectedRewards += getExpectedRewardV1(reward, waitTime, user1);
 
             addNewRewardsToStakingRewardsV1(reward);
             vm.warp(block.timestamp + waitTime);
