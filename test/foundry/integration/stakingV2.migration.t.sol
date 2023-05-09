@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {StakingRewardsTestHelpers} from "../utils/StakingRewardsTestHelpers.t.sol";
+import {StakingTestHelpers} from "../utils/StakingTestHelpers.t.sol";
 import "../utils/Constants.t.sol";
 
 // TODO: is this sufficient/legit?
-contract StakingV2MigrationTests is StakingRewardsTestHelpers {
+contract StakingV2MigrationTests is StakingTestHelpers {
     /*//////////////////////////////////////////////////////////////
                             Migration Tests
     //////////////////////////////////////////////////////////////*/

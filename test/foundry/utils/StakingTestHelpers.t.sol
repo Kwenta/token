@@ -13,8 +13,7 @@ import {MultipleMerkleDistributor} from "../../../contracts/MultipleMerkleDistri
 import {IERC20} from "../../../contracts/interfaces/IERC20.sol";
 import "../utils/Constants.t.sol";
 
-// TODO: rename contract => StakingV2UnitTestHelpers ???
-contract StakingRewardsTestHelpers is TestHelpers {
+contract StakingTestHelpers is TestHelpers {
     /*//////////////////////////////////////////////////////////////
                                 Events
     //////////////////////////////////////////////////////////////*/

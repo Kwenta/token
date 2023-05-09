@@ -2,10 +2,10 @@
 pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
-import {StakingRewardsTestHelpers} from "../utils/StakingRewardsTestHelpers.t.sol";
+import {StakingTestHelpers} from "../utils/StakingTestHelpers.t.sol";
 import "../utils/Constants.t.sol";
 
-contract StakingV1RewardCalculationTests is StakingRewardsTestHelpers {
+contract StakingV1RewardCalculationTests is StakingTestHelpers {
     /*//////////////////////////////////////////////////////////////
                     Staking Rewards Calculation Tests
     //////////////////////////////////////////////////////////////*/
