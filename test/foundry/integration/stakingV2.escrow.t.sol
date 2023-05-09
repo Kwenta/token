@@ -4,21 +4,20 @@ pragma solidity ^0.8.13;
 import {DefaultStakingRewardsV2Setup} from "../utils/DefaultStakingRewardsV2Setup.t.sol";
 import "../utils/Constants.t.sol";
 
+// TODO: remove from own test file?
 contract StakingV2EscrowTests is DefaultStakingRewardsV2Setup {
     /*//////////////////////////////////////////////////////////////
-                                stakeEscrow
+                    Stake Escrow Integration Tests
     //////////////////////////////////////////////////////////////*/
 
-    function testEscrowStakingViaRewardEscrowDoesNotIncreaseTokenBalance() public {
+    function test_Escrow_Staking_Via_RewardEscrowV2_Does_Not_Increase_StakingRewardsV2_Token_Balance() public {
         uint256 initialBalance = kwenta.balanceOf(address(stakingRewardsV2));
 
         createRewardEscrowEntryV2(address(this), TEST_VALUE, 52 weeks);
         rewardEscrowV2.stakeEscrow(TEST_VALUE);
 
-        // check balance increased
-        assertEq(
-            kwenta.balanceOf(address(stakingRewardsV2)),
-            initialBalance
-        );
+        uint256 finalBalance = kwenta.balanceOf(address(stakingRewardsV2));
+
+        assertEq(finalBalance, initialBalance);
     }
 }

@@ -4,12 +4,14 @@ pragma solidity ^0.8.13;
 import {StakingRewardsTestHelpers} from "../utils/StakingRewardsTestHelpers.t.sol";
 import "../utils/Constants.t.sol";
 
+// TODO: is this sufficient/legit?
 contract StakingV2MigrationTests is StakingRewardsTestHelpers {
     /*//////////////////////////////////////////////////////////////
                             Migration Tests
     //////////////////////////////////////////////////////////////*/
 
-    function testManualStakingAndUnstaking() public {
+    // FUZZ version?
+    function test_Migrate_Then_Manual_Unstaking_And_Restaking_Of_Funds() public {
         // Stake tokens in StakingV1
         fundAccountAndStakeV1(user1, 10 ether);
         fundAccountAndStakeV1(user2, 20 ether);

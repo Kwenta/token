@@ -9,7 +9,7 @@ contract StakingV2CheckpointingTests is DefaultStakingRewardsV2Setup {
                         Balance Checkpoint Tests
     //////////////////////////////////////////////////////////////*/
 
-    function testBalancesCheckpointsAreUpdated() public {
+    function test_Balances_Checkpoints_Are_Updated() public {
         // stake
         fundAccountAndStakeV2(address(this), TEST_VALUE);
 
@@ -37,7 +37,7 @@ contract StakingV2CheckpointingTests is DefaultStakingRewardsV2Setup {
         assertEq(value, 0);
     }
 
-    function testBalancesCheckpointsAreUpdatedEscrowStaking() public {
+    function test_Balances_Checkpoints_Are_Updated_Escrow_Staking() public {
         // stake
         stakeEscrowedFundsV2(address(this), TEST_VALUE);
 
@@ -65,7 +65,7 @@ contract StakingV2CheckpointingTests is DefaultStakingRewardsV2Setup {
         assertEq(value, 0);
     }
 
-    function testBalancesCheckpointsAreUpdatedFuzz(uint32 maxAmountStaked, uint8 numberOfRounds) public {
+    function test_Balances_Checkpoints_Are_Updated_Fuzz(uint32 maxAmountStaked, uint8 numberOfRounds) public {
         vm.assume(maxAmountStaked > 0);
         // keep the number of rounds low to keep tests fast
         vm.assume(numberOfRounds < 50);
@@ -117,7 +117,7 @@ contract StakingV2CheckpointingTests is DefaultStakingRewardsV2Setup {
         }
     }
 
-    function testBalancesCheckpointsAreUpdatedEscrowStakedFuzz(uint32 maxAmountStaked, uint8 numberOfRounds) public {
+    function test_Balances_Checkpoints_Are_Updated_Escrow_Staked_Fuzz(uint32 maxAmountStaked, uint8 numberOfRounds) public {
         vm.assume(maxAmountStaked > 0);
         // keep the number of rounds low to keep tests fast
         vm.assume(numberOfRounds < 50);
@@ -173,7 +173,7 @@ contract StakingV2CheckpointingTests is DefaultStakingRewardsV2Setup {
                     Escrowed Balance Checkpoint Tests
     //////////////////////////////////////////////////////////////*/
 
-    function testEscrowedBalancesCheckpointsAreUpdated() public {
+    function test_Escrowed_Balances_Checkpoints_Are_Updated() public {
         // stake
         stakeEscrowedFundsV2(address(this), TEST_VALUE);
 
@@ -201,7 +201,7 @@ contract StakingV2CheckpointingTests is DefaultStakingRewardsV2Setup {
         assertEq(value, 0);
     }
 
-    function testEscrowedBalancesCheckpointsAreUpdatedFuzz(uint32 maxAmountStaked, uint8 numberOfRounds) public {
+    function test_Escrowed_Balances_Checkpoints_Are_Updated_Fuzz(uint32 maxAmountStaked, uint8 numberOfRounds) public {
         vm.assume(maxAmountStaked > 0);
         // keep the number of rounds low to keep tests fast
         vm.assume(numberOfRounds < 50);
@@ -257,7 +257,7 @@ contract StakingV2CheckpointingTests is DefaultStakingRewardsV2Setup {
                     Total Supply Checkpoint Tests
     //////////////////////////////////////////////////////////////*/
 
-    function testTotalSupplyCheckpointsAreUpdated() public {
+    function test_Total_Supply_Checkpoints_Are_Updated() public {
         // stake
         fundAccountAndStakeV2(address(this), TEST_VALUE);
 
@@ -285,7 +285,7 @@ contract StakingV2CheckpointingTests is DefaultStakingRewardsV2Setup {
         assertEq(value, 0);
     }
 
-    function testTotalSupplyCheckpointsAreUpdatedEscrowStaked() public {
+    function test_Total_Supply_Checkpoints_Are_Updated_Escrow_Staked() public {
         // stake
         stakeEscrowedFundsV2(address(this), TEST_VALUE);
 
@@ -313,7 +313,7 @@ contract StakingV2CheckpointingTests is DefaultStakingRewardsV2Setup {
         assertEq(value, 0);
     }
 
-    function testTotalSupplyCheckpointsAreUpdatedFuzz(uint32 maxAmountStaked, uint8 numberOfRounds) public {
+    function test_Total_Supply_Checkpoints_Are_Updated_Fuzz(uint32 maxAmountStaked, uint8 numberOfRounds) public {
         vm.assume(maxAmountStaked > 0);
         // keep the number of rounds low to keep tests fast
         vm.assume(numberOfRounds < 50);
@@ -378,7 +378,7 @@ contract StakingV2CheckpointingTests is DefaultStakingRewardsV2Setup {
                     Binary Search Balance Checkpoints
     //////////////////////////////////////////////////////////////*/
 
-    function testBalanceAtBlock() public {
+    function test_balanceAtBlock() public {
         uint256 blockToFind = 4;
         uint256 expectedValue;
         uint256 totalStaked;
@@ -398,7 +398,7 @@ contract StakingV2CheckpointingTests is DefaultStakingRewardsV2Setup {
         assertEq(value, expectedValue);
     }
 
-    function testBalanceAtBlockAtEachBlock() public {
+    function test_balanceAtBlock_At_Each_Block() public {
         vm.roll(3);
         fundAccountAndStakeV2(address(this), 1);
 
@@ -434,7 +434,7 @@ contract StakingV2CheckpointingTests is DefaultStakingRewardsV2Setup {
         }
     }
 
-    function testBalanceAtBlockFuzz(uint256 blockToFind, uint8 numberOfRounds) public {
+    function test_balanceAtBlock_Fuzz(uint256 blockToFind, uint8 numberOfRounds) public {
         vm.assume(numberOfRounds < 50);
         vm.assume(blockToFind > 0);
 
@@ -479,7 +479,7 @@ contract StakingV2CheckpointingTests is DefaultStakingRewardsV2Setup {
                 Binary Search EscrowBalance Checkpoints
     //////////////////////////////////////////////////////////////*/
 
-    function testEscrowBalanceAtBlock() public {
+    function test_escrowBalanceAtBlock() public {
         uint256 blockToFind = 4;
         uint256 expectedValue;
         uint256 totalStaked;
@@ -499,7 +499,7 @@ contract StakingV2CheckpointingTests is DefaultStakingRewardsV2Setup {
         assertEq(value, expectedValue);
     }
 
-    function testEscrowBalanceAtBlockAtEachBlock() public {
+    function test_escrowBalanceAtBlock_At_Each_Block() public {
         vm.roll(3);
         stakeEscrowedFundsV2(address(this), 1);
 
@@ -535,7 +535,7 @@ contract StakingV2CheckpointingTests is DefaultStakingRewardsV2Setup {
         }
     }
 
-    function testEscrowBalanceAtBlockFuzz(uint256 blockToFind, uint8 numberOfRounds) public {
+    function test_escrowBalanceAtBlock_Fuzz(uint256 blockToFind, uint8 numberOfRounds) public {
         vm.assume(numberOfRounds < 50);
         vm.assume(blockToFind > 0);
 
@@ -580,7 +580,7 @@ contract StakingV2CheckpointingTests is DefaultStakingRewardsV2Setup {
                 Binary Search TotalSupply Checkpoints
     //////////////////////////////////////////////////////////////*/
 
-    function testTotalSupplyAtBlock() public {
+    function test_totalSupplyAtBlock() public {
         uint256 blockToFind = 4;
         uint256 expectedValue;
         uint256 totalStaked;
@@ -601,7 +601,7 @@ contract StakingV2CheckpointingTests is DefaultStakingRewardsV2Setup {
         assertEq(value, expectedValue);
     }
 
-    function testTotalSupplyAtBlockAtEachBlock() public {
+    function test_totalSupplyAtBlock_At_Each_Block() public {
         vm.roll(3);
         stakeEscrowedFundsV2(address(this), 1);
 
@@ -637,7 +637,7 @@ contract StakingV2CheckpointingTests is DefaultStakingRewardsV2Setup {
         }
     }
 
-    function testTotalSupplyeAtBlockFuzz(uint256 blockToFind, uint8 numberOfRounds) public {
+    function test_totalSupplyeAtBlock_Fuzz(uint256 blockToFind, uint8 numberOfRounds) public {
         vm.assume(numberOfRounds < 50);
         vm.assume(blockToFind > 0);
 

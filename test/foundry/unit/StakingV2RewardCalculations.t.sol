@@ -7,10 +7,10 @@ import "../utils/Constants.t.sol";
 
 contract StakingV2RewardCalculationTests is DefaultStakingRewardsV2Setup {
     /*//////////////////////////////////////////////////////////////
-                    Staking Rewards Calculation Tests
+                Staking Rewards V2 Calculation Tests
     //////////////////////////////////////////////////////////////*/
 
-    function testStakingRewardsOneStaker() public {
+    function test_Staking_Rewards_One_Staker() public {
         // this is 7 days by default
         uint256 lengthOfPeriod = stakingRewardsV2.rewardsDuration();
         uint256 initialStake = 1 ether;
@@ -75,7 +75,7 @@ contract StakingV2RewardCalculationTests is DefaultStakingRewardsV2Setup {
         assertEq(rewards, expectedRewards * numberOfPeriods);
     }
 
-    function testStakingRewardsOneStakerInSingleRewardPeriodFuzz(uint64 _initialStake, uint64 _reward, uint24 _waitTime)
+    function test_Staking_Rewards_One_Staker_In_Single_Reward_Period_Fuzz(uint64 _initialStake, uint64 _reward, uint24 _waitTime)
         public
     {
         uint256 initialStake = uint256(_initialStake);
@@ -128,7 +128,7 @@ contract StakingV2RewardCalculationTests is DefaultStakingRewardsV2Setup {
         assertEq(rewards, expectedRewards);
     }
 
-    function testStakingRewardsMultipleStakersInSingleRewardPeriodFuzz(
+    function test_Staking_Rewards_Multiple_Stakers_In_Single_Reward_Period_Fuzz(
         uint64 _initialStake,
         uint64 _reward,
         uint24 _waitTime
@@ -189,7 +189,7 @@ contract StakingV2RewardCalculationTests is DefaultStakingRewardsV2Setup {
         assertEq(rewards, expectedRewards);
     }
 
-    function testStakingRewardsOneStakerTwoRewardPeriodsFuzz(uint64 _initialStake, uint64 _reward, uint24 _waitTime)
+    function test_Staking_Rewards_One_Staker_Two_Reward_Periods_Fuzz(uint64 _initialStake, uint64 _reward, uint24 _waitTime)
         public
     {
         uint256 initialStake = uint256(_initialStake);
@@ -245,7 +245,7 @@ contract StakingV2RewardCalculationTests is DefaultStakingRewardsV2Setup {
         assertEq(rewards, expectedRewards);
     }
 
-    function testStakingRewardsThreeRoundsFuzz(uint64 _initialStake, uint64 _reward, uint24 _waitTime) public {
+    function test_Staking_Rewards_Three_Rounds_Fuzz(uint64 _initialStake, uint64 _reward, uint24 _waitTime) public {
         uint256 initialStake = uint256(_initialStake);
         uint256 reward = uint256(_reward);
         uint256 waitTime = uint256(_waitTime);
@@ -320,7 +320,7 @@ contract StakingV2RewardCalculationTests is DefaultStakingRewardsV2Setup {
         assertEq(rewards, expectedRewards);
     }
 
-    function testStakingRewardsMultipleRoundsFuzz(
+    function test_Staking_Rewards_Multiple_Rounds_Fuzz(
         uint64 _initialStake,
         uint64 _reward,
         uint24 _waitTime,
@@ -382,7 +382,7 @@ contract StakingV2RewardCalculationTests is DefaultStakingRewardsV2Setup {
         }
     }
 
-    function testStakingRewardsMultipleRoundsAndStakersFuzz(
+    function test_Staking_Rewards_Multiple_Rounds_And_Stakers_Fuzz(
         uint64 _initialStake,
         uint64 _reward,
         uint24 _waitTime,
@@ -456,7 +456,7 @@ contract StakingV2RewardCalculationTests is DefaultStakingRewardsV2Setup {
         }
     }
 
-    function testStakingRewardsOneStakerSmallIntervals() public {
+    function test_Staking_Rewards_One_Staker_Small_Intervals() public {
         // this is 7 days by default
         uint256 lengthOfPeriod = stakingRewardsV2.rewardsDuration();
         uint256 initialStake = 1 ether;

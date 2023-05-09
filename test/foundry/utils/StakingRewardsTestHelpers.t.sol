@@ -13,7 +13,7 @@ import {MultipleMerkleDistributor} from "../../../contracts/MultipleMerkleDistri
 import {IERC20} from "../../../contracts/interfaces/IERC20.sol";
 import "../utils/Constants.t.sol";
 
-// TODO: rename contract
+// TODO: rename contract => StakingV2UnitTestHelpers ???
 contract StakingRewardsTestHelpers is TestHelpers {
     /*//////////////////////////////////////////////////////////////
                                 Events
@@ -103,6 +103,7 @@ contract StakingRewardsTestHelpers is TestHelpers {
 
         // Update SupplySchedule to point to StakingV2
         supplySchedule.setStakingRewards(address(stakingRewardsV2));
+        // TODO: move out of here and into setup => adjust all pauseAndSwitchToStakingRewardsV2 equivalently
         rewardEscrowV2.setStakingRewardsV2(address(stakingRewardsV2));
 
         // Unpause StakingV1

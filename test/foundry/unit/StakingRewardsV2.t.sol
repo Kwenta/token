@@ -21,22 +21,22 @@ contract StakingRewardsV2Test is DefaultStakingRewardsV2Setup {
                         Constructor & Settings
     //////////////////////////////////////////////////////////////*/
 
-    function testTokenSet() public {
+    function test_Token_Set() public {
         address token = address(stakingRewardsV2.token());
         assertEq(token, address(kwenta));
     }
 
-    function testOwnerSet() public {
+    function test_Owner_Set() public {
         address owner = stakingRewardsV2.owner();
         assertEq(owner, address(this));
     }
 
-    function testRewardEscrowSet() public {
+    function test_RewardEscrowV2_Set() public {
         address rewardEscrowV2Address = address(stakingRewardsV2.rewardEscrowV2());
         assertEq(rewardEscrowV2Address, address(rewardEscrowV2));
     }
 
-    function testSupplyScheduleSet() public {
+    function test_SupplySchedule_Set() public {
         address supplyScheduleAddress = address(stakingRewardsV2.supplySchedule());
         assertEq(supplyScheduleAddress, address(supplySchedule));
     }
@@ -45,39 +45,39 @@ contract StakingRewardsV2Test is DefaultStakingRewardsV2Setup {
                         Function Permissions
     //////////////////////////////////////////////////////////////*/
 
-    function testOnlySupplyScheduleCanCallNotifyRewardAmount() public {
+    function test_Only_SupplySchedule_Can_Call_notifyRewardAmount() public {
         vm.expectRevert("StakingRewards: Only Supply Schedule");
         stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
     }
 
-    function testOnlyOwnerCanCallSetRewardsDuration() public {
+    function test_Only_Owner_Can_Call_setRewardsDuration() public {
         vm.prank(user1);
         vm.expectRevert("Only the contract owner may perform this action");
         stakingRewardsV2.setRewardsDuration(1 weeks);
     }
 
-    function testOnlyOwnerCanCallRecoverERC20() public {
+    function test_Only_Owner_Can_Call_recoverERC20() public {
         vm.prank(user1);
         vm.expectRevert("Only the contract owner may perform this action");
         stakingRewardsV2.recoverERC20(address(kwenta), 0);
     }
 
-    function testOnlyRewardEscrowCanCallStakeEscrow() public {
+    function test_Only_RewardEscrowCan_Call_stakeEscrow() public {
         vm.expectRevert("StakingRewards: Only Reward Escrow");
         stakingRewardsV2.stakeEscrow(address(this), TEST_VALUE);
     }
 
-    function testOnlyRewardEscrowCanCallUnStakeEscrow() public {
+    function test_Only_RewardEscrowCan_Call_unStakeEscrow() public {
         vm.expectRevert("StakingRewards: Only Reward Escrow");
         stakingRewardsV2.unstakeEscrow(address(this), TEST_VALUE);
     }
 
-    function testCannotUnStakeEscrowInvalidAmount() public {
+    function test_Cannot_unStakeEscrow_Invalid_Amount() public {
         vm.expectRevert("StakingRewards: Invalid Amount");
         unstakeEscrowedFundsV2(address(this), TEST_VALUE);
     }
 
-    function testOnlyOwnerCanPauseContract() public {
+    function test_Only_Owner_Can_Pause_Contract() public {
         // attempt to pause
         vm.prank(user1);
         vm.expectRevert("Only the contract owner may perform this action");
@@ -95,7 +95,7 @@ contract StakingRewardsV2Test is DefaultStakingRewardsV2Setup {
         stakingRewardsV2.unpauseStakingRewards();
     }
 
-    function testOnlyOwnerCanNominateNewOwner() public {
+    function test_Only_Owner_Can_nominateNewOwner() public {
         // attempt to nominate new owner
         vm.prank(user1);
         vm.expectRevert("Only the contract owner may perform this action");
@@ -121,7 +121,7 @@ contract StakingRewardsV2Test is DefaultStakingRewardsV2Setup {
                                 Pausable
     //////////////////////////////////////////////////////////////*/
 
-    function testCannotStakeWhenPaused() public {
+    function test_Cannot_Stake_When_Paused() public {
         // pause
         stakingRewardsV2.pauseStakingRewards();
 
@@ -133,7 +133,7 @@ contract StakingRewardsV2Test is DefaultStakingRewardsV2Setup {
         stakingRewardsV2.stake(TEST_VALUE);
     }
 
-    function testCanStakeWhenUnpaused() public {
+    function test_Can_Stake_When_Unpaused() public {
         // pause
         stakingRewardsV2.pauseStakingRewards();
 
@@ -151,12 +151,12 @@ contract StakingRewardsV2Test is DefaultStakingRewardsV2Setup {
                         External Rewards Recovery
     //////////////////////////////////////////////////////////////*/
 
-    function testCannotRecoverStakingToken() public {
+    function test_Cannot_Recover_Staking_Token() public {
         vm.expectRevert("StakingRewards: Cannot unstake the staking token");
         stakingRewardsV2.recoverERC20(address(kwenta), TEST_VALUE);
     }
 
-    function testCanRecoverNonStakingToken() public {
+    function test_Can_Recover_Non_Staking_Token() public {
         // transfer in non staking tokens
         vm.prank(treasury);
         mockToken.transfer(address(stakingRewardsV2), TEST_VALUE);
@@ -174,7 +174,7 @@ contract StakingRewardsV2Test is DefaultStakingRewardsV2Setup {
                         lastTimeRewardApplicable
     //////////////////////////////////////////////////////////////*/
 
-    function testLastTimeRewardApplicable() public {
+    function test_lastTimeRewardApplicable() public {
         // check periodFinish starts as 0
         assertEq(stakingRewardsV2.lastTimeRewardApplicable(), 0);
 
@@ -190,7 +190,7 @@ contract StakingRewardsV2Test is DefaultStakingRewardsV2Setup {
                             rewardPerToken
     //////////////////////////////////////////////////////////////*/
 
-    function testRewardPerToken() public {
+    function test_rewardPerToken() public {
         // fund so that staking can succeed
         uint256 stakedAmount = 1 weeks;
         fundAndApproveAccountV2(address(this), stakedAmount);
@@ -218,7 +218,7 @@ contract StakingRewardsV2Test is DefaultStakingRewardsV2Setup {
                                 stake
     //////////////////////////////////////////////////////////////*/
 
-    function testStakeIncreasesTokenBalance() public {
+    function test_stake_Increases_Token_Balance() public {
         uint256 initialBalance = kwenta.balanceOf(address(stakingRewardsV2));
 
         // fund so that staking can succeed
@@ -231,7 +231,7 @@ contract StakingRewardsV2Test is DefaultStakingRewardsV2Setup {
         assertEq(kwenta.balanceOf(address(stakingRewardsV2)), initialBalance + TEST_VALUE);
     }
 
-    function testStakeIncreasesBalancesMapping() public {
+    function test_stake_Increases_Balances_Mapping() public {
         uint256 initialBalance = stakingRewardsV2.balanceOf(address(this));
 
         // fund so that staking can succeed
@@ -244,7 +244,7 @@ contract StakingRewardsV2Test is DefaultStakingRewardsV2Setup {
         assertEq(stakingRewardsV2.balanceOf(address(this)), initialBalance + TEST_VALUE);
     }
 
-    function testStakeDoesNotIncreaseEscrowedBalances() public {
+    function test_stake_Does_Not_Increase_Escrowed_Balances() public {
         uint256 initialBalance = stakingRewardsV2.escrowedBalanceOf(address(this));
 
         // fund so that staking can succeed
@@ -257,7 +257,7 @@ contract StakingRewardsV2Test is DefaultStakingRewardsV2Setup {
         assertEq(stakingRewardsV2.escrowedBalanceOf(address(this)), initialBalance);
     }
 
-    function testStakeIncreasesTotalSupply() public {
+    function test_stake_Increases_totalSupply() public {
         uint256 initialTotalSupply = stakingRewardsV2.totalSupply();
 
         // fund so that staking can succeed
@@ -270,7 +270,7 @@ contract StakingRewardsV2Test is DefaultStakingRewardsV2Setup {
         assertEq(stakingRewardsV2.totalSupply(), initialTotalSupply + TEST_VALUE);
     }
 
-    function testCannotStake0() public {
+    function test_Cannot_stake_0() public {
         fundAndApproveAccountV2(address(this), TEST_VALUE);
         vm.expectRevert("StakingRewards: Cannot stake 0");
         stakingRewardsV2.stake(0);
@@ -280,7 +280,7 @@ contract StakingRewardsV2Test is DefaultStakingRewardsV2Setup {
                                 stakeEscrow
     //////////////////////////////////////////////////////////////*/
 
-    function testEscrowStakingDoesNotIncreaseTokenBalance() public {
+    function test_Escrow_Staking_Does_Not_Increase_Token_Balance() public {
         uint256 initialBalance = kwenta.balanceOf(address(stakingRewardsV2));
 
         // stake
@@ -290,7 +290,7 @@ contract StakingRewardsV2Test is DefaultStakingRewardsV2Setup {
         assertEq(kwenta.balanceOf(address(stakingRewardsV2)), initialBalance);
     }
 
-    function testEscrowStakingIncreasesBalancesMapping() public {
+    function test_Escrow_Staking_Increases_Balances_Mapping() public {
         uint256 initialBalance = stakingRewardsV2.balanceOf(address(this));
 
         // stake
@@ -300,7 +300,7 @@ contract StakingRewardsV2Test is DefaultStakingRewardsV2Setup {
         assertEq(stakingRewardsV2.balanceOf(address(this)), initialBalance + TEST_VALUE);
     }
 
-    function testEscrowStakingIncreasesEscrowedBalances() public {
+    function test_Escrow_Staking_Increases_Escrowed_Balances() public {
         uint256 initialBalance = stakingRewardsV2.escrowedBalanceOf(address(this));
 
         // stake
@@ -310,7 +310,7 @@ contract StakingRewardsV2Test is DefaultStakingRewardsV2Setup {
         assertEq(stakingRewardsV2.escrowedBalanceOf(address(this)), initialBalance + TEST_VALUE);
     }
 
-    function testEscrowStakingIncreasesTotalSupply() public {
+    function test_Escrow_Staking_Increases_totalSupply() public {
         uint256 initialTotalSupply = stakingRewardsV2.totalSupply();
 
         // stake
@@ -320,12 +320,12 @@ contract StakingRewardsV2Test is DefaultStakingRewardsV2Setup {
         assertEq(stakingRewardsV2.totalSupply(), initialTotalSupply + TEST_VALUE);
     }
 
-    function testCannotEscrowStake0() public {
+    function test_Cannot_Escrow_Stake_0() public {
         vm.expectRevert("StakingRewards: Cannot stake 0");
         stakeEscrowedFundsV2(address(this), 0);
     }
 
-    function testCannotUnstakeStakedEscrow() public {
+    function test_Cannot_unstake_Staked_Escrow() public {
         // stake escrow
         stakeEscrowedFundsV2(address(this), TEST_VALUE);
 
@@ -335,7 +335,7 @@ contract StakingRewardsV2Test is DefaultStakingRewardsV2Setup {
         stakingRewardsV2.unstake(TEST_VALUE);
     }
 
-    function testCannotExitWithOnlyEscrowStakedBalance() public {
+    function test_Cannot_exit_With_Only_Escrow_Staked_Balance() public {
         // stake escrow
         stakeEscrowedFundsV2(address(this), TEST_VALUE);
 
@@ -344,7 +344,7 @@ contract StakingRewardsV2Test is DefaultStakingRewardsV2Setup {
         stakingRewardsV2.exit();
     }
 
-    function testExit() public {
+    function test_exit() public {
         uint256 nonEscrowStakedBalance = TEST_VALUE / 2;
         uint256 escrowStakedBalance = TEST_VALUE;
 
@@ -371,11 +371,11 @@ contract StakingRewardsV2Test is DefaultStakingRewardsV2Setup {
                                 earned
     //////////////////////////////////////////////////////////////*/
 
-    function testNoRewardsWhenNotStaking() public {
+    function test_No_Rewards_When_Not_Staking() public {
         assertEq(stakingRewardsV2.earned(address(this)), 0);
     }
 
-    function testEarnedIncreasesAfterStaking() public {
+    function test_earned_Increases_After_Staking() public {
         fundAndApproveAccountV2(address(this), TEST_VALUE);
 
         // stake
@@ -392,7 +392,7 @@ contract StakingRewardsV2Test is DefaultStakingRewardsV2Setup {
         assertTrue(stakingRewardsV2.earned(address(this)) > 0);
     }
 
-    function testRewardRateShouldIncreaseIfNewRewardsComeBeforeDurationEnds() public {
+    function test_rewardRate_Should_Increase_If_New_Rewards_Come_Before_Duration_Ends() public {
         fundAndApproveAccountV2(address(this), 1 weeks);
 
         uint256 totalToDistribute = 5 ether;
@@ -422,7 +422,7 @@ contract StakingRewardsV2Test is DefaultStakingRewardsV2Setup {
         assertEq(finalRewardRate / 2, initialRewardRate);
     }
 
-    function testRewardTokenBalanceRollsOverAfterDuration() public {
+    function test_Reward_Token_Balance_Rolls_Over_After_Duration() public {
         fundAndApproveAccountV2(address(this), 1 weeks);
 
         // stake
@@ -451,7 +451,7 @@ contract StakingRewardsV2Test is DefaultStakingRewardsV2Setup {
                                 getReward
     //////////////////////////////////////////////////////////////*/
 
-    function testGetRewardIncreasesBalanceInEscrow() public {
+    function test_getReward_Increases_Balance_In_Escrow() public {
         fundAndApproveAccountV2(address(this), TEST_VALUE);
 
         uint256 initialEscrowBalance = rewardEscrowV2.balanceOf(address(this));
@@ -477,7 +477,7 @@ contract StakingRewardsV2Test is DefaultStakingRewardsV2Setup {
                             setRewardsDuration
     //////////////////////////////////////////////////////////////*/
 
-    function testSetRewardsDurationBeforeDistribution() public {
+    function test_setRewardsDuration_Before_Distribution() public {
         uint256 defaultDuration = stakingRewardsV2.rewardsDuration();
         assertEq(defaultDuration, 1 weeks);
 
@@ -486,7 +486,7 @@ contract StakingRewardsV2Test is DefaultStakingRewardsV2Setup {
         assertEq(stakingRewardsV2.rewardsDuration(), 30 days);
     }
 
-    function testSetRewardDurationBeforePeriodFinished() public {
+    function test_setRewardDuration_Before_Period_Finished() public {
         fundAndApproveAccountV2(address(this), TEST_VALUE);
 
         // stake
@@ -506,7 +506,7 @@ contract StakingRewardsV2Test is DefaultStakingRewardsV2Setup {
         stakingRewardsV2.setRewardsDuration(30 days);
     }
 
-    function testSetRewardsDurationAfterPeriodHasFinished() public {
+    function test_setRewardsDuration_After_Period_Has_Finished() public {
         fundAndApproveAccountV2(address(this), TEST_VALUE);
 
         // stake
@@ -530,7 +530,7 @@ contract StakingRewardsV2Test is DefaultStakingRewardsV2Setup {
         stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
     }
 
-    function testUpdateDurationAfterPeriodHasFinishedAndGetRewards() public {
+    function test_Update_Duration_After_Period_Has_Finished_And_Get_Rewards() public {
         fundAndApproveAccountV2(address(this), TEST_VALUE);
 
         // stake
@@ -560,7 +560,7 @@ contract StakingRewardsV2Test is DefaultStakingRewardsV2Setup {
                             getRewardForDuration
     //////////////////////////////////////////////////////////////*/
 
-    function testGetRewardForDuration() public {
+    function test_getRewardForDuration() public {
         vm.prank(treasury);
         kwenta.transfer(address(stakingRewardsV2), TEST_VALUE);
 
@@ -579,12 +579,12 @@ contract StakingRewardsV2Test is DefaultStakingRewardsV2Setup {
                                 unstake
     //////////////////////////////////////////////////////////////*/
 
-    function testCannotUnstakeIfNothingStaked() public {
+    function test_Cannot_unstake_If_Nothing_Staked() public {
         vm.expectRevert("StakingRewards: Invalid Amount");
         stakingRewardsV2.unstake(TEST_VALUE);
     }
 
-    function testUnstakingTokenAndStakingBalanceUpdates() public {
+    function test_Unstaking_Token_And_Staking_Balance_Updates() public {
         fundAndApproveAccountV2(address(this), TEST_VALUE);
 
         stakingRewardsV2.stake(TEST_VALUE);
@@ -602,21 +602,21 @@ contract StakingRewardsV2Test is DefaultStakingRewardsV2Setup {
         assertEq(finalTokenBalance - TEST_VALUE, initialTokenBalance);
     }
 
-    function testCannotUnstake0() public {
+    function test_Cannot_unstake_0() public {
         vm.expectRevert("StakingRewards: Cannot Unstake 0");
         stakingRewardsV2.unstake(0);
     }
 
     /*//////////////////////////////////////////////////////////////
-                                unstake
+                            unstakeEscrow
     //////////////////////////////////////////////////////////////*/
 
-    function testCannotUnstakeEscrowIfNoneStaked() public {
+    function test_Cannot_unstakeEscrow_If_None_Staked() public {
         vm.expectRevert("StakingRewards: Invalid Amount");
         unstakeEscrowedFundsV2(address(this), TEST_VALUE);
     }
 
-    function testDoesNotChangeTokenBalances() public {
+    function test_unstakeEscrow_Does_Not_Change_Token_Balances() public {
         // stake escrow
         stakeEscrowedFundsV2(address(this), 1 weeks);
 
@@ -637,7 +637,7 @@ contract StakingRewardsV2Test is DefaultStakingRewardsV2Setup {
         assertEq(initialEscrowTokenBalance, finalEscrowTokenBalance);
     }
 
-    function testDoesChangeTotalSupply() public {
+    function test_unstakeEscrow_Does_Change_totalSupply() public {
         // stake escrow
         stakeEscrowedFundsV2(address(this), 1 weeks);
 
@@ -655,7 +655,7 @@ contract StakingRewardsV2Test is DefaultStakingRewardsV2Setup {
         assertEq(initialTotalSupply - 1 weeks, finalTotalSupply);
     }
 
-    function testDoesChangeBalancesMapping() public {
+    function test_unstakeEscrow_Does_Change_Balances_Mapping() public {
         // stake escrow
         stakeEscrowedFundsV2(address(this), 1 weeks);
 
@@ -673,7 +673,7 @@ contract StakingRewardsV2Test is DefaultStakingRewardsV2Setup {
         assertEq(initialBalance - 1 weeks, finalBalance);
     }
 
-    function testDoesChangeEscrowedBalancesMapping() public {
+    function test_unstakeEscrow_Does_Change_Escrowed_Balances_Mapping() public {
         // stake escrow
         stakeEscrowedFundsV2(address(this), 1 weeks);
 
@@ -691,7 +691,7 @@ contract StakingRewardsV2Test is DefaultStakingRewardsV2Setup {
         assertEq(initialEscrowBalance - 1 weeks, finalEscrowBalance);
     }
 
-    function testCannotUnstakeMoreThanEscrowStaked() public {
+    function test_Cannot_unstakeEscrow_More_Than_Escrow_Staked() public {
         // stake escrow
         stakeEscrowedFundsV2(address(this), 1 weeks);
 
@@ -700,7 +700,7 @@ contract StakingRewardsV2Test is DefaultStakingRewardsV2Setup {
         unstakeEscrowedFundsV2(address(this), 2 weeks);
     }
 
-    function testCannotUnstake0Escrow() public {
+    function test_Cannot_unstakeEscrow_0() public {
         // stake escrow
         stakeEscrowedFundsV2(address(this), 1 weeks);
 
@@ -713,7 +713,7 @@ contract StakingRewardsV2Test is DefaultStakingRewardsV2Setup {
                                 exit
     //////////////////////////////////////////////////////////////*/
 
-    function testExitShouldRetrieveAllEarned() public {
+    function test_exit_Should_Retrieve_All_earned() public {
         // stake
         fundAndApproveAccountV2(address(this), TEST_VALUE);
         stakingRewardsV2.stake(TEST_VALUE);

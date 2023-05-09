@@ -10,7 +10,7 @@ contract StakingV2CooldownPeriodTests is DefaultStakingRewardsV2Setup {
                         Unstaking During Cooldown
     //////////////////////////////////////////////////////////////*/
 
-    function testCannotUnstakeDuringCooldown() public {
+    function test_Cannot_unstake_During_Cooldown() public {
         // stake
         fundAccountAndStakeV2(address(this), TEST_VALUE);
 
@@ -33,7 +33,7 @@ contract StakingV2CooldownPeriodTests is DefaultStakingRewardsV2Setup {
         stakingRewardsV2.unstake(TEST_VALUE);
     }
 
-    function testCannotUnstakeDuringCooldownFuzz(uint32 stakeAmount, uint32 waitTime) public {
+    function test_Cannot_unstake_During_Cooldown_Fuzz(uint32 stakeAmount, uint32 waitTime) public {
         vm.assume(stakeAmount > 0);
 
         // stake
@@ -51,7 +51,7 @@ contract StakingV2CooldownPeriodTests is DefaultStakingRewardsV2Setup {
         stakingRewardsV2.unstake(stakeAmount);
     }
 
-    function testCannotUnstakeEscrowDuringCooldown() public {
+    function test_Cannot_unstakeEscrow_During_Cooldown() public {
         // stake
         stakeEscrowedFundsV2(address(this), TEST_VALUE);
 
@@ -74,7 +74,7 @@ contract StakingV2CooldownPeriodTests is DefaultStakingRewardsV2Setup {
         unstakeEscrowedFundsV2(address(this), TEST_VALUE);
     }
 
-    function testCannotUnstakeEscrowDuringCooldownFuzz(uint32 stakeAmount, uint32 waitTime) public {
+    function test_Cannot_unstakeEscrow_During_Cooldown_Fuzz(uint32 stakeAmount, uint32 waitTime) public {
         vm.assume(stakeAmount > 0);
 
         // stake
@@ -96,7 +96,7 @@ contract StakingV2CooldownPeriodTests is DefaultStakingRewardsV2Setup {
                         Staking During Cooldown
     //////////////////////////////////////////////////////////////*/
 
-    function testCanStakeMoreDuringCooldown() public {
+    function test_Can_stake_More_During_Cooldown() public {
         // stake once
         fundAndApproveAccountV2(address(this), TEST_VALUE * 3);
         stakingRewardsV2.stake(TEST_VALUE);
@@ -109,7 +109,7 @@ contract StakingV2CooldownPeriodTests is DefaultStakingRewardsV2Setup {
         stakingRewardsV2.stake(TEST_VALUE);
     }
 
-    function testCanStakeEscrowMoreDuringCooldown() public {
+    function test_Can_stakeEscrow_More_During_Cooldown() public {
         // stake once
         stakeEscrowedFundsV2(address(this), TEST_VALUE);
 
@@ -121,7 +121,7 @@ contract StakingV2CooldownPeriodTests is DefaultStakingRewardsV2Setup {
         stakeEscrowedFundsV2(address(this), TEST_VALUE);
     }
 
-    function testStakingDuringCooldownExtendsWait() public {
+    function test_Staking_During_Cooldown_Extends_Wait() public {
         // stake
         fundAndApproveAccountV2(address(this), TEST_VALUE * 3);
         stakingRewardsV2.stake(TEST_VALUE);
@@ -139,7 +139,7 @@ contract StakingV2CooldownPeriodTests is DefaultStakingRewardsV2Setup {
         stakingRewardsV2.unstake(TEST_VALUE);
     }
 
-    function testStakingEscrowDuringCooldownExtendsWait() public {
+    function test_Staking_Escrow_During_Cooldown_Extends_Wait() public {
         // stake
         stakeEscrowedFundsV2(address(this), TEST_VALUE);
 
@@ -160,13 +160,13 @@ contract StakingV2CooldownPeriodTests is DefaultStakingRewardsV2Setup {
                         Changing Cooldown Period
     //////////////////////////////////////////////////////////////*/
 
-    function testSetCooldownPeriodIsOnlyOwner() public {
+    function test_setUnstakingCooldownPeriod_Is_Only_Owner() public {
         vm.expectRevert("Only the contract owner may perform this action");
         vm.prank(user1);
         stakingRewardsV2.setUnstakingCooldownPeriod(1 weeks);
     }
 
-    function testSetCooldownPeriod() public {
+    function test_setUnstakingCooldownPeriod() public {
         uint256 newCooldownPeriod = 1 weeks;
 
         // Expect correct event emitted
@@ -195,7 +195,7 @@ contract StakingV2CooldownPeriodTests is DefaultStakingRewardsV2Setup {
         unstakeEscrowedFundsV2(address(this), TEST_VALUE);
     }
 
-    function testSetCooldownPeriodFuzz(uint128 newCooldownPeriod, uint128 timeJump) public {
+    function test_setUnstakingCooldownPeriod_Fuzz(uint128 newCooldownPeriod, uint128 timeJump) public {
         vm.assume(newCooldownPeriod > stakingRewardsV2.minCooldownPeriod());
         vm.assume(newCooldownPeriod < stakingRewardsV2.maxCooldownPeriod());
 
@@ -235,7 +235,7 @@ contract StakingV2CooldownPeriodTests is DefaultStakingRewardsV2Setup {
         unstakeEscrowedFundsV2(address(this), TEST_VALUE);
     }
 
-    function testSetCooldownPeriodRange() public {
+    function test_setUnstakingCooldownPeriod_Range() public {
         // Expect revert if cooldown period is too low
         vm.expectRevert(abi.encodeWithSelector(StakingRewardsV2.CooldownPeriodTooLow.selector, 1 weeks));
         stakingRewardsV2.setUnstakingCooldownPeriod(1 weeks - 1);
@@ -245,7 +245,7 @@ contract StakingV2CooldownPeriodTests is DefaultStakingRewardsV2Setup {
         stakingRewardsV2.setUnstakingCooldownPeriod(52 weeks + 1);
     }
 
-    function testSetCooldownPeriodRangeFuzz(uint256 newCooldownPeriod) public {
+    function test_setUnstakingCooldownPeriod_Range_Fuzz(uint256 newCooldownPeriod) public {
         // Expect revert if cooldown period is too low
         if (newCooldownPeriod < 1 weeks) {
             vm.expectRevert(

@@ -8,7 +8,7 @@ import "../utils/Constants.t.sol";
 
 contract RewardEscrowV2Tests is DefaultStakingRewardsV2Setup {
     /*//////////////////////////////////////////////////////////////
-                            State
+                                State
     //////////////////////////////////////////////////////////////*/
 
     uint256[] public entryIDs;

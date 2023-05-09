@@ -62,7 +62,8 @@ contract StakingV2MigrationForkTests is Test {
                                  TESTS
     //////////////////////////////////////////////////////////////*/
 
-    function testMagic() public {
+    // TODO: sort this out
+    function test_Magic() public {
         assertTrue(true);
     }
 
