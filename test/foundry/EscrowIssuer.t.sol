@@ -97,4 +97,15 @@ contract EscrowIssuerTest is Test {
         vm.prank(user);
         escrowIssuer.redeemEscrow4YR(10);
     }
+
+    /**
+        test when non-governance tries to call issue redeemable
+        should revert
+     */
+    function testIssueRedeemableNonGovernance() public {
+        vm.startPrank(user);
+        kwenta.approve(address(escrowIssuer), 10);
+        vm.expectRevert();
+        escrowIssuer.issueRedeemable4YR(10);
+    }
 }
