@@ -11,7 +11,7 @@ import "./libraries/SafeDecimalMath.sol";
 
 // Internal references
 import "./interfaces/IKwenta.sol";
-import "./interfaces/IStakingRewards.sol";
+import "./interfaces/IStakingRewardsV2.sol";
 
 contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
     using SafeDecimalMath for uint256;
@@ -27,7 +27,7 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
 
     /* ========== STATE VARIABLES ========== */
 
-    IStakingRewards public stakingRewards;
+    IStakingRewardsV2 public stakingRewardsV2;
 
     // mapping of entryIDs to vesting entries
     mapping(uint256 => VestingEntries.VestingEntry) public vestingSchedules;
@@ -61,14 +61,14 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
 
     /* ========== MODIFIERS ========== */
     modifier onlyStakingRewards() {
-        require(msg.sender == address(stakingRewards), "Only the StakingRewards can perform this action");
+        require(msg.sender == address(stakingRewardsV2), "Only the StakingRewards can perform this action");
         _;
     }
 
     /* ========== EVENTS ========== */
     event Vested(address indexed beneficiary, uint256 value);
     event VestingEntryCreated(address indexed beneficiary, uint256 value, uint256 duration, uint256 entryID);
-    event StakingRewardsSet(address stakingRewards);
+    event StakingRewardsSet(address stakingRewardsV2);
     event TreasuryDAOSet(address treasuryDAO);
     event VestingEntryTransfer(address from, address to, uint256 entryID);
 
@@ -86,10 +86,10 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
     /*
     * @notice Function used to define the StakingRewards to use
     */
-    function setStakingRewards(address _stakingRewards) public onlyOwner {
-        require(address(stakingRewards) == address(0), "Staking Rewards already set");
-        stakingRewards = IStakingRewards(_stakingRewards);
-        emit StakingRewardsSet(address(_stakingRewards));
+    function setStakingRewardsV2(address _stakingRewardsV2) public onlyOwner {
+        require(address(stakingRewardsV2) == address(0), "Staking Rewards already set");
+        stakingRewardsV2 = IStakingRewardsV2(_stakingRewardsV2);
+        emit StakingRewardsSet(address(_stakingRewardsV2));
     }
 
     /// @notice set treasuryDAO address
@@ -259,7 +259,7 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
     }
 
     function _isEscrowStaked(address _account) internal view returns (bool) {
-        return stakingRewards.escrowedBalanceOf(_account) > 0;
+        return stakingRewardsV2.escrowedBalanceOf(_account) > 0;
     }
 
     /* ========== MUTATIVE FUNCTIONS ========== */
@@ -297,8 +297,9 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
             // Withdraw staked escrowed kwenta if needed for reward
             if (_isEscrowStaked(msg.sender)) {
                 uint256 totalWithFee = total + totalFee;
+                // TODO: extract into helper function *A
                 uint256 unstakedEscrow =
-                    totalEscrowedAccountBalance[msg.sender] - stakingRewards.escrowedBalanceOf(msg.sender);
+                    totalEscrowedAccountBalance[msg.sender] - stakingRewardsV2.escrowedBalanceOf(msg.sender);
                 if (totalWithFee > unstakedEscrow) {
                     uint256 amountToUnstake = totalWithFee - unstakedEscrow;
                     unstakeEscrow(amountToUnstake);
@@ -357,10 +358,10 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
      */
     function stakeEscrow(uint256 _amount) external override {
         require(
-            _amount + stakingRewards.escrowedBalanceOf(msg.sender) <= totalEscrowedAccountBalance[msg.sender],
+            _amount + stakingRewardsV2.escrowedBalanceOf(msg.sender) <= totalEscrowedAccountBalance[msg.sender],
             "Insufficient unstaked escrow"
         );
-        stakingRewards.stakeEscrow(msg.sender, _amount);
+        stakingRewardsV2.stakeEscrow(msg.sender, _amount);
     }
 
     /**
@@ -369,7 +370,7 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
      * @param _amount The amount of escrowed KWENTA to be unstaked.
      */
     function unstakeEscrow(uint256 _amount) public override {
-        stakingRewards.unstakeEscrow(msg.sender, _amount);
+        stakingRewardsV2.unstakeEscrow(msg.sender, _amount);
     }
 
     /**
@@ -481,8 +482,9 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
         VestingEntries.VestingEntry memory entry = vestingSchedules[entryID];
         if (_entryOwners[entryID] != msg.sender) revert NotYourEntry(entryID);
 
+        // TODO: extract into helper function *A
         uint256 escrowedBalance = totalEscrowedAccountBalance[msg.sender];
-        uint256 stakedBalance = stakingRewards.escrowedBalanceOf(msg.sender);
+        uint256 stakedBalance = stakingRewardsV2.escrowedBalanceOf(msg.sender);
         uint256 unstakedBalance = escrowedBalance - stakedBalance;
 
         if (unstakedBalance < entry.escrowAmount) {

@@ -99,7 +99,7 @@ const assertDeepEqual = (actual, expected, context) => {
 const mineBlock = () => send({ method: "evm_mine" });
 
 const StakingRewards = artifacts.require("contracts/StakingRewards.sol:StakingRewards");
-// const StakingRewardsV2 = artifacts.require("contracts/StakingRewards.sol:StakingRewardsV2");
+const StakingRewardsV2 = artifacts.require("contracts/StakingRewardsV2.sol:StakingRewardsV2");
 const TokenContract = artifacts.require("Kwenta");
 const RewardsEscrow = artifacts.require("RewardEscrow");
 const RewardsEscrowV2 = artifacts.require("RewardEscrowV2");
@@ -183,6 +183,7 @@ contract(
         const WEEK = 604800;
         const YEAR = 31556926;
         let stakingRewards;
+        let stakingRewardsV2;
         let stakingToken;
         let rewardsEscrowV2;
         let kwentaSmock;
@@ -203,21 +204,27 @@ contract(
 
             rewardsEscrowV2 = await RewardsEscrowV2.new(owner, kwentaSmock.address);
 
-            // TODO: update to V2
             stakingRewards = await StakingRewards.new(
                 kwentaSmock.address,
                 rewardsEscrowV2.address,
                 supplySchedule.address
             );
 
+            stakingRewardsV2 = await StakingRewardsV2.new(
+                kwentaSmock.address,
+                rewardsEscrowV2.address,
+                supplySchedule.address,
+                stakingRewards.address
+            );
+
             await hre.network.provider.request({
                 method: "hardhat_impersonateAccount",
-                params: [stakingRewards.address],
+                params: [stakingRewardsV2.address],
             });
 
-            SRsigner = await ethers.getSigner(stakingRewards.address);
+            SRsigner = await ethers.getSigner(stakingRewardsV2.address);
 
-            await rewardsEscrowV2.setStakingRewards(stakingRewards.address, {
+            await rewardsEscrowV2.setStakingRewardsV2(stakingRewardsV2.address, {
                 from: owner,
             });
 
@@ -232,7 +239,7 @@ contract(
             });
 
             await network.provider.send("hardhat_setBalance", [
-                stakingRewards.address,
+                stakingRewardsV2.address,
                 "0x10000000000000000000000000000000",
             ]);
         });
@@ -240,7 +247,7 @@ contract(
         beforeEach(async () => {
             // Reset RewardsEscrow
             rewardsEscrowV2 = await RewardsEscrowV2.new(owner, kwentaSmock.address);
-            await rewardsEscrowV2.setStakingRewards(stakingRewards.address, {
+            await rewardsEscrowV2.setStakingRewardsV2(stakingRewardsV2.address, {
                 from: owner,
             });
             await rewardsEscrowV2.setTreasuryDAO(treasuryDAO);
@@ -262,11 +269,11 @@ contract(
             });
 
             it("Should have set StakingRewards correctly", async () => {
-                const stakingRewardsAddress =
-                    await rewardsEscrowV2.stakingRewards();
+                const stakingRewardsV2Address =
+                    await rewardsEscrowV2.stakingRewardsV2();
                 assert.equal(
-                    stakingRewardsAddress,
-                    stakingRewards.address,
+                    stakingRewardsV2Address,
+                    stakingRewardsV2.address,
                     "Wrong stakingRewards address"
                 );
             });
@@ -283,7 +290,7 @@ contract(
 
             it("Should NOT allow owner to set StakingRewards again", async () => {
                 await assert.revert(
-                    rewardsEscrowV2.setStakingRewards(stakingRewards.address, {
+                    rewardsEscrowV2.setStakingRewardsV2(stakingRewardsV2.address, {
                         from: owner,
                     }),
                     "Staking Rewards already set"
@@ -333,7 +340,7 @@ contract(
                 );
 
                 await rewardsEscrowV2.appendVestingEntry(staker1, toUnit("0"), {
-                    from: stakingRewards.address,
+                    from: stakingRewardsV2.address,
                 }).should.be.rejected;
             });
 
@@ -347,7 +354,7 @@ contract(
                     }
                 );
                 await rewardsEscrowV2.appendVestingEntry(staker1, toUnit("10"), {
-                    from: stakingRewards.address,
+                    from: stakingRewardsV2.address,
                 }).should.be.rejected;
             });
         });
@@ -381,7 +388,7 @@ contract(
                             toUnit("0"),
                             duration,
                             {
-                                from: stakingRewards.address,
+                                from: stakingRewardsV2.address,
                             }
                         ),
                         "Quantity cannot be zero"
@@ -397,7 +404,7 @@ contract(
                             toUnit("10"),
                             duration,
                             {
-                                from: stakingRewards.address,
+                                from: stakingRewardsV2.address,
                             }
                         ),
                         "Must be enough balance in the contract to provide for the vesting entry"
@@ -415,7 +422,7 @@ contract(
                             toUnit("10"),
                             duration,
                             {
-                                from: stakingRewards.address,
+                                from: stakingRewardsV2.address,
                             }
                         ),
                         "Cannot escrow with 0 duration OR above max_duration"
@@ -435,7 +442,7 @@ contract(
                             toUnit("10"),
                             duration,
                             {
-                                from: stakingRewards.address,
+                                from: stakingRewardsV2.address,
                             }
                         ),
                         "Cannot escrow with 0 duration OR above max_duration"
@@ -462,7 +469,7 @@ contract(
                             escrowAmount,
                             duration,
                             {
-                                from: stakingRewards.address,
+                                from: stakingRewardsV2.address,
                             }
                         );
 
@@ -698,7 +705,7 @@ contract(
                     escrowAmounts[0],
                     duration,
                     {
-                        from: stakingRewards.address,
+                        from: stakingRewardsV2.address,
                     }
                 );
                 await fastForward(WEEK);
@@ -708,7 +715,7 @@ contract(
                     escrowAmounts[1],
                     duration,
                     {
-                        from: stakingRewards.address,
+                        from: stakingRewardsV2.address,
                     }
                 );
                 await fastForward(WEEK);
@@ -718,7 +725,7 @@ contract(
                     escrowAmounts[2],
                     duration,
                     {
-                        from: stakingRewards.address,
+                        from: stakingRewardsV2.address,
                     }
                 );
 
@@ -773,7 +780,7 @@ contract(
                     owner,
                     mockedKwenta.address
                 );
-                await rewardsEscrowV2.setStakingRewards(stakingRewards.address, {
+                await rewardsEscrowV2.setStakingRewardsV2(stakingRewardsV2.address, {
                     from: owner,
                 });
                 await rewardsEscrowV2.setTreasuryDAO(treasuryDAO);
@@ -808,7 +815,7 @@ contract(
                         escrowAmount,
                         duration,
                         {
-                            from: stakingRewards.address,
+                            from: stakingRewardsV2.address,
                         }
                     );
 
@@ -939,7 +946,7 @@ contract(
                         escrowAmount,
                         duration,
                         {
-                            from: stakingRewards.address,
+                            from: stakingRewardsV2.address,
                         }
                     );
 
@@ -1065,7 +1072,7 @@ contract(
                         escrowAmount1,
                         duration,
                         {
-                            from: stakingRewards.address,
+                            from: stakingRewardsV2.address,
                         }
                     );
                     await fastForward(WEEK);
@@ -1076,7 +1083,7 @@ contract(
                         escrowAmount2,
                         duration,
                         {
-                            from: stakingRewards.address,
+                            from: stakingRewardsV2.address,
                         }
                     );
                     await fastForward(WEEK);
@@ -1087,7 +1094,7 @@ contract(
                         escrowAmount3,
                         duration,
                         {
-                            from: stakingRewards.address,
+                            from: stakingRewardsV2.address,
                         }
                     );
 
@@ -1274,7 +1281,7 @@ contract(
                         escrowAmount1,
                         duration,
                         {
-                            from: stakingRewards.address,
+                            from: stakingRewardsV2.address,
                         }
                     );
                     await fastForward(WEEK);
@@ -1285,7 +1292,7 @@ contract(
                         escrowAmount2,
                         duration,
                         {
-                            from: stakingRewards.address,
+                            from: stakingRewardsV2.address,
                         }
                     );
                     await fastForward(WEEK);
@@ -1298,7 +1305,7 @@ contract(
                         escrowAmount3,
                         twoYears,
                         {
-                            from: stakingRewards.address,
+                            from: stakingRewardsV2.address,
                         }
                     );
                 });
@@ -1652,7 +1659,7 @@ contract(
                         escrowAmount,
                         duration,
                         {
-                            from: stakingRewards.address,
+                            from: stakingRewardsV2.address,
                         }
                     );
                 }
@@ -1703,7 +1710,7 @@ contract(
                     owner,
                     kwentaSmock.address
                 );
-                await rewardsEscrowV2.setStakingRewards(
+                await rewardsEscrowV2.setStakingRewardsV2(
                     stakingRewardsSmock.address,
                     {
                         from: owner,

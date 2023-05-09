@@ -78,7 +78,7 @@ contract StakingV2MigrationForkTests is Test {
 
         // Update SupplySchedule to point to StakingV2
         supplySchedule.setStakingRewards(address(stakingRewardsV2));
-        rewardEscrowV2.setStakingRewards(address(stakingRewardsV2));
+        rewardEscrowV2.setStakingRewardsV2(address(stakingRewardsV2));
 
         // Unpause StakingV1
         stakingRewardsV1.unpauseStakingRewards();
