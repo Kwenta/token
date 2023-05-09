@@ -99,10 +99,10 @@ contract EscrowIssuerTest is Test {
     }
 
     /**
-        test when non-governance tries to call issue redeemable
+        test when non-treasury tries to call issue redeemable
         should revert
      */
-    function testIssueRedeemableNonGovernance() public {
+    function testIssueRedeemableNonTreasury() public {
         vm.startPrank(user);
         kwenta.approve(address(escrowIssuer), 10);
         vm.expectRevert();

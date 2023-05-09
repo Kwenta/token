@@ -12,14 +12,14 @@ contract EscrowIssuer is ERC20 {
     /// @notice rewards escrow contract
     IRewardEscrow public immutable rewardEscrow;
 
-    /// @notice governance address
-    address public governance;
+    /// @notice treasury address
+    address public treasury;
 
     /// @notice access control modifier for EscrowIssuer
-    modifier onlyGovernance() {
+    modifier onlyTreasury() {
         require(
-            msg.sender == address(governance),
-            "Only the Governance can perform this action"
+            msg.sender == address(treasury),
+            "Only the Treasury can perform this action"
         );
         _;
     }
@@ -32,7 +32,7 @@ contract EscrowIssuer is ERC20 {
     ) ERC20(_name, _symbol) {
         kwenta = IKwenta(_kwenta);
         rewardEscrow = IRewardEscrow(_rewardEscrowAddr);
-        governance = msg.sender;
+        treasury = msg.sender;
     }
 
     /**
@@ -40,7 +40,7 @@ contract EscrowIssuer is ERC20 {
      *   redeemable escrowed Kwenta and give
      *   to user.
      */
-    function issueRedeemable4YR(uint amount) public payable onlyGovernance {
+    function issueRedeemable4YR(uint amount) public payable onlyTreasury {
         require(
             kwenta.transferFrom(msg.sender, address(this), amount),
             "Token transfer failed"
