@@ -4,7 +4,7 @@ pragma solidity 0.8.19;
 import "forge-std/Test.sol";
 import {Kwenta} from "../../contracts/Kwenta.sol";
 //import {RewardEscrow} from "../../contracts/RewardEscrow.sol";
-import {MockRewardEscrowV2} from "./MockRewardEscrowV2.sol";
+import {MockRewardEscroV2} from "./MockRewardEscroV2.sol";
 import {EscrowIssuer} from "../../contracts/EscrowIssuer.sol";
 
 contract EscrowIssuerTest is Test {
@@ -18,7 +18,7 @@ contract EscrowIssuerTest is Test {
     address public user;
     Kwenta public kwenta;
     //RewardEscrow public rewardEscrow;
-    MockRewardEscrowV2 public rewardEscrow;
+    MockRewardEscroV2 public rewardEscrow;
     EscrowIssuer public escrowIssuer;
 
     function setUp() public {
@@ -34,7 +34,7 @@ contract EscrowIssuerTest is Test {
             treasury
         );
         //rewardEscrow = new RewardEscrow(address(this), address(kwenta));
-        rewardEscrow = new MockRewardEscrowV2(address(this), address(kwenta));
+        rewardEscrow = new MockRewardEscroV2(address(this), address(kwenta));
         escrowIssuer = new EscrowIssuer(
             "EscIss",
             "EIS",
