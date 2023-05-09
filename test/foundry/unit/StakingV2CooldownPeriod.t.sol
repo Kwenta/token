@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {DefaultStakingRewardsV2Setup} from "../utils/DefaultStakingRewardsV2Setup.t.sol";
+import {DefaultStakingV2Setup} from "../utils/DefaultStakingV2Setup.t.sol";
 import {StakingRewardsV2} from "../../../contracts/StakingRewardsV2.sol";
 import "../utils/Constants.t.sol";
 
-contract StakingV2CooldownPeriodTests is DefaultStakingRewardsV2Setup {
+contract StakingV2CooldownPeriodTests is DefaultStakingV2Setup {
     /*//////////////////////////////////////////////////////////////
                         Unstaking During Cooldown
     //////////////////////////////////////////////////////////////*/

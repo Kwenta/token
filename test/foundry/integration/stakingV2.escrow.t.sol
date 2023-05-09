@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {DefaultStakingRewardsV2Setup} from "../utils/DefaultStakingRewardsV2Setup.t.sol";
+import {DefaultStakingV2Setup} from "../utils/DefaultStakingV2Setup.t.sol";
 import "../utils/Constants.t.sol";
 
 // TODO: remove from own test file?
-contract StakingV2EscrowTests is DefaultStakingRewardsV2Setup {
+contract StakingV2EscrowTests is DefaultStakingV2Setup {
     /*//////////////////////////////////////////////////////////////
                     Stake Escrow Integration Tests
     //////////////////////////////////////////////////////////////*/

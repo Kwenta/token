@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {DefaultStakingRewardsV2Setup} from "../utils/DefaultStakingRewardsV2Setup.t.sol";
+import {DefaultStakingV2Setup} from "../utils/DefaultStakingV2Setup.t.sol";
 import "../utils/Constants.t.sol";
 
-contract StakingV2CheckpointingTests is DefaultStakingRewardsV2Setup {
+contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
     /*//////////////////////////////////////////////////////////////
                         Balance Checkpoint Tests
     //////////////////////////////////////////////////////////////*/
