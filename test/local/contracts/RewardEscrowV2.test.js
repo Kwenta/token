@@ -101,7 +101,6 @@ const mineBlock = () => send({ method: "evm_mine" });
 const StakingRewards = artifacts.require("contracts/StakingRewards.sol:StakingRewards");
 const StakingRewardsV2 = artifacts.require("contracts/StakingRewardsV2.sol:StakingRewardsV2");
 const TokenContract = artifacts.require("Kwenta");
-const RewardsEscrow = artifacts.require("RewardEscrow");
 const RewardsEscrowV2 = artifacts.require("RewardEscrowV2");
 
 const NAME = "Kwenta";
