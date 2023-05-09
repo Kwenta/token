@@ -274,7 +274,6 @@ contract StakingRewardsTestHelpers is TestHelpers {
         stakingRewardsV2.unstake(amount);
     }
 
-    // TODO: rename to make meaning more accurate and not conflict with V1
     function stakeEscrowedFundsV2(address account, uint256 amount) public {
         vm.prank(address(rewardEscrowV2));
         stakingRewardsV2.stakeEscrow(account, amount);

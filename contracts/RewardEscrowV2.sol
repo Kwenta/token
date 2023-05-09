@@ -493,6 +493,8 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
         vestingSchedules[entryID] = entry;
         _entryOwners[entryID] = account;
 
+        // TODO: move all totalEscrowedAccountBalance updates (and _entryOwners???) into
+        // _removeTokenFromOwnerEnumeration and _addTokenToOwnerEnumeration funcs
         totalEscrowedAccountBalance[msg.sender] -= entry.escrowAmount;
         totalEscrowedAccountBalance[account] += entry.escrowAmount;
 
