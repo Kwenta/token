@@ -106,7 +106,7 @@ contract EscrowIssuerTest is Test {
     function testIssueRedeemableNonTreasury() public {
         vm.startPrank(user);
         kwenta.approve(address(escrowIssuer), 10);
-        vm.expectRevert();
+        vm.expectRevert("Only the Treasury can perform this action");
         escrowIssuer.issueRedeemable4YR(10);
     }
 }
