@@ -33,7 +33,7 @@ interface IRewardEscrowV2 {
         view
         returns (uint256);
 
-    function getVestingQuantity(address account, uint256[] calldata entryIDs)
+    function getVestingQuantity(uint256[] calldata entryIDs)
         external
         view
         returns (uint256, uint256);
@@ -50,12 +50,12 @@ interface IRewardEscrowV2 {
         uint256 pageSize
     ) external view returns (uint256[] memory);
 
-    function getVestingEntryClaimable(address account, uint256 entryID)
+    function getVestingEntryClaimable(uint256 entryID)
         external
         view
         returns (uint256, uint256);
 
-    function getVestingEntry(address account, uint256 entryID)
+    function getVestingEntry(uint256 entryID)
         external
         view
         returns (

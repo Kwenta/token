@@ -107,7 +107,7 @@ const RewardsEscrowV2 = artifacts.require("RewardEscrowV2");
 const NAME = "Kwenta";
 const SYMBOL = "KWENTA";
 const INITIAL_SUPPLY = hre.ethers.utils.parseUnits("313373");
-
+const DEFAULT_EARLY_VESTING_FEE = new BN(90);
 
 
 const toUnit = (amount) => toBN(toWei(amount.toString(), "ether"));
@@ -203,6 +203,7 @@ contract(
 
             rewardsEscrowV2 = await RewardsEscrowV2.new(owner, kwentaSmock.address);
 
+            // TODO: update to V2
             stakingRewards = await StakingRewards.new(
                 kwentaSmock.address,
                 rewardsEscrowV2.address,
@@ -467,10 +468,9 @@ contract(
 
                         nextEntryIdAfter = await rewardsEscrowV2.nextEntryId();
                     });
-                    it("Should return the vesting entry for account 1 and entryID", async () => {
+                    it("Should return the vesting entry for entryID", async () => {
                         const vestingEntry =
                             await rewardsEscrowV2.getVestingEntry(
-                                staker1,
                                 entryID
                             );
 
@@ -522,7 +522,6 @@ contract(
                         it("then the vesting entry has 5.5 kwenta claimable", async () => {
                             const claimable =
                                 await rewardsEscrowV2.getVestingEntryClaimable(
-                                    staker1,
                                     entryID
                                 );
                             assert.bnEqual(claimable["0"], wei(5.5).toBN());
@@ -533,14 +532,12 @@ contract(
                         beforeEach(async () => {
                             await fastForward(YEAR + 1);
                             vestingEntry = await rewardsEscrowV2.getVestingEntry(
-                                staker1,
                                 entryID
                             );
                         });
                         it("then the vesting entry is fully claimable", async () => {
                             const claimable =
                                 await rewardsEscrowV2.getVestingEntryClaimable(
-                                    staker1,
                                     entryID
                                 );
                             assert.bnEqual(
@@ -574,7 +571,7 @@ contract(
                         staker1,
                         new BN(1000),
                         maxDuration + 10,
-                        new BN(90),
+                        DEFAULT_EARLY_VESTING_FEE,
                         {
                             from: owner,
                         }
@@ -584,7 +581,7 @@ contract(
             });
             it("should revert if escrow duration is 0", async () => {
                 await assert.revert(
-                    rewardsEscrowV2.createEscrowEntry(staker1, new BN(1000), 0, new BN(90), {
+                    rewardsEscrowV2.createEscrowEntry(staker1, new BN(1000), 0, DEFAULT_EARLY_VESTING_FEE, {
                         from: owner,
                     }),
                     "Cannot escrow with 0 duration OR above max_duration"
@@ -596,7 +593,7 @@ contract(
                         ethers.constants.AddressZero,
                         toUnit("1"),
                         duration,
-                        new BN(90)
+                        DEFAULT_EARLY_VESTING_FEE
                     ),
                     "Cannot create escrow with address(0)"
                 );
@@ -608,7 +605,7 @@ contract(
                         staker1,
                         toUnit("10"),
                         duration,
-                        new BN(90),
+                        DEFAULT_EARLY_VESTING_FEE,
                         {
                             from: staker1,
                         }
@@ -628,7 +625,7 @@ contract(
                         staker1,
                         escrowAmount,
                         duration,
-                        new BN(90),
+                        DEFAULT_EARLY_VESTING_FEE,
                         {
                             from: owner,
                         }
@@ -647,7 +644,6 @@ contract(
                 });
                 it("Should have created a new vesting entry for account 1", async () => {
                     vestingEntry = await rewardsEscrowV2.getVestingEntry(
-                        staker1,
                         entryID
                     );
 
@@ -773,7 +769,7 @@ contract(
                     treasuryDAO
                 );
 
-                rewardsEscrowV2 = await RewardsEscrow.new(
+                rewardsEscrowV2 = await RewardsEscrowV2.new(
                     owner,
                     mockedKwenta.address
                 );
@@ -856,7 +852,6 @@ contract(
                     assert.bnEqual(
                         (
                             await rewardsEscrowV2.getVestingEntryClaimable(
-                                staker1,
                                 entryID
                             )
                         )["0"],
@@ -867,7 +862,6 @@ contract(
                 it("should vest and transfer 0 KWENTA from contract to the user", async () => {
                     claimableKWENTA =
                         await rewardsEscrowV2.getVestingEntryClaimable(
-                            staker1,
                             entryID
                         );
 
@@ -908,7 +902,7 @@ contract(
                     );
 
                     const vestingEntryAfter =
-                        await rewardsEscrowV2.getVestingEntry(staker1, entryID);
+                        await rewardsEscrowV2.getVestingEntry(entryID);
 
                     assert.bnEqual(
                         await rewardsEscrowV2.totalEscrowedBalance(),
@@ -1044,7 +1038,6 @@ contract(
 
                     // There should be no escrowedAmount on entry
                     const entry = await rewardsEscrowV2.getVestingEntry(
-                        staker1,
                         entryID
                     );
                     assert.bnEqual(entry.escrowAmount, toUnit("0"));
@@ -1706,7 +1699,7 @@ contract(
             beforeEach(async () => {
                 stakingRewardsSmock = await smock.fake("contracts/StakingRewards.sol:StakingRewards");
 
-                rewardsEscrowV2 = await RewardsEscrow.new(
+                rewardsEscrowV2 = await RewardsEscrowV2.new(
                     owner,
                     kwentaSmock.address
                 );
@@ -1737,7 +1730,8 @@ contract(
                 await rewardsEscrowV2.createEscrowEntry(
                     staker1,
                     escrowAmount,
-                    1 * YEAR
+                    1 * YEAR,
+                    DEFAULT_EARLY_VESTING_FEE
                 );
                 // Stake half of escrow
                 stakingRewardsSmock.escrowedBalanceOf.returns(
@@ -1760,7 +1754,8 @@ contract(
                 await rewardsEscrowV2.createEscrowEntry(
                     staker1,
                     escrowAmount,
-                    1 * YEAR
+                    1 * YEAR,
+                    DEFAULT_EARLY_VESTING_FEE
                 );
                 await rewardsEscrowV2.stakeEscrow(escrowAmount, {
                     from: staker1,
@@ -1790,12 +1785,14 @@ contract(
                 await rewardsEscrowV2.createEscrowEntry(
                     staker1,
                     escrowAmount,
-                    1 * YEAR
+                    1 * YEAR,
+                    DEFAULT_EARLY_VESTING_FEE
                 );
                 await rewardsEscrowV2.createEscrowEntry(
                     staker1,
                     escrowAmount,
-                    1 * YEAR
+                    1 * YEAR,
+                    DEFAULT_EARLY_VESTING_FEE
                 );
                 //Stake half of escrow
                 stakingRewardsSmock.escrowedBalanceOf.returns(escrowAmount);
@@ -1815,7 +1812,8 @@ contract(
                 await rewardsEscrowV2.createEscrowEntry(
                     staker1,
                     escrowAmount,
-                    1 * YEAR
+                    1 * YEAR,
+                    DEFAULT_EARLY_VESTING_FEE
                 );
                 // Mock stake all of escrow
                 stakingRewardsSmock.escrowedBalanceOf.returns(escrowAmount);
@@ -1838,7 +1836,8 @@ contract(
                 await rewardsEscrowV2.createEscrowEntry(
                     staker1,
                     escrowAmount,
-                    1 * YEAR
+                    1 * YEAR,
+                    DEFAULT_EARLY_VESTING_FEE
                 );
                 // Mock stake all of escrow
                 stakingRewardsSmock.escrowedBalanceOf.returns(escrowAmount);

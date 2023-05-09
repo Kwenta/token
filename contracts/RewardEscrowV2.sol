@@ -29,9 +29,8 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
 
     IStakingRewards public stakingRewards;
 
-    // TODO: remove account from this mapping and just use: entryID => VestingEntry / mapping(uint256 => VestingEntries.VestingEntry)
-    // mapping of account addresses to entryID => VestingEntry pairs
-    mapping(address => mapping(uint256 => VestingEntries.VestingEntry)) public vestingSchedules;
+    // mapping of entryIDs to vesting entries
+    mapping(uint256 => VestingEntries.VestingEntry) public vestingSchedules;
 
     // Counter for new vesting entry ids
     uint256 public nextEntryId;
@@ -56,6 +55,9 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
 
     // Mapping from entryID to index on the owner tokens list
     mapping(uint256 => uint256) private _ownedEntriesIndex;
+
+    // Mapping of who owns which entries
+    mapping(uint256 => address) private _entryOwners;
 
     /* ========== MODIFIERS ========== */
     modifier onlyStakingRewards() {
@@ -122,20 +124,21 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
     }
 
     /**
-     * @notice Get a particular schedule entry for an account.
+     * @notice Get the details of a given vesting entry
+     * @param entryID The id of the vesting entry.
      * @return endTime the vesting entry object
      * @return escrowAmount rate per second emission.
      */
-    function getVestingEntry(address account, uint256 entryID)
+    function getVestingEntry(uint256 entryID)
         external
         view
         override
         returns (uint64 endTime, uint256 escrowAmount, uint256 duration, uint8 earlyVestingFee)
     {
-        endTime = vestingSchedules[account][entryID].endTime;
-        escrowAmount = vestingSchedules[account][entryID].escrowAmount;
-        duration = vestingSchedules[account][entryID].duration;
-        earlyVestingFee = vestingSchedules[account][entryID].earlyVestingFee;
+        endTime = vestingSchedules[entryID].endTime;
+        escrowAmount = vestingSchedules[entryID].escrowAmount;
+        duration = vestingSchedules[entryID].duration;
+        earlyVestingFee = vestingSchedules[entryID].earlyVestingFee;
     }
 
     function getVestingSchedules(address account, uint256 index, uint256 pageSize)
@@ -163,7 +166,7 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
         for (uint256 i; i < n; ++i) {
             uint256 entryID = _ownedEntries[account][i + index];
 
-            VestingEntries.VestingEntry memory entry = vestingSchedules[account][entryID];
+            VestingEntries.VestingEntry memory entry = vestingSchedules[entryID];
 
             vestingEntries[i] = VestingEntries.VestingEntryWithID({
                 endTime: uint64(entry.endTime),
@@ -199,7 +202,7 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
         return page;
     }
 
-    function getVestingQuantity(address account, uint256[] calldata entryIDs)
+    function getVestingQuantity(uint256[] calldata entryIDs)
         external
         view
         override
@@ -207,7 +210,7 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
     {
         uint256 entryIDsLength = entryIDs.length;
         for (uint256 i = 0; i < entryIDsLength; ++i) {
-            VestingEntries.VestingEntry memory entry = vestingSchedules[account][entryIDs[i]];
+            VestingEntries.VestingEntry memory entry = vestingSchedules[entryIDs[i]];
 
             /* Skip entry if escrowAmount == 0 */
             if (entry.escrowAmount != 0) {
@@ -220,13 +223,13 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
         }
     }
 
-    function getVestingEntryClaimable(address account, uint256 entryID)
+    function getVestingEntryClaimable(uint256 entryID)
         external
         view
         override
         returns (uint256 quantity, uint256 fee)
     {
-        VestingEntries.VestingEntry memory entry = vestingSchedules[account][entryID];
+        VestingEntries.VestingEntry memory entry = vestingSchedules[entryID];
         (quantity, fee) = _claimableAmount(entry);
     }
 
@@ -271,7 +274,10 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
         uint256 totalFee;
         uint256 entryIDsLength = entryIDs.length;
         for (uint256 i = 0; i < entryIDsLength; ++i) {
-            VestingEntries.VestingEntry storage entry = vestingSchedules[msg.sender][entryIDs[i]];
+            VestingEntries.VestingEntry storage entry = vestingSchedules[entryIDs[i]];
+            if (_entryOwners[entryIDs[i]] != msg.sender) {
+                continue;
+            }
 
             /* Skip entry if escrowAmount == 0 already vested */
             if (entry.escrowAmount != 0) {
@@ -426,12 +432,13 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
         totalEscrowedAccountBalance[account] += quantity;
 
         uint256 entryID = nextEntryId;
-        vestingSchedules[account][entryID] = VestingEntries.VestingEntry({
+        vestingSchedules[entryID] = VestingEntries.VestingEntry({
             endTime: uint64(endTime),
             escrowAmount: quantity,
             duration: duration,
             earlyVestingFee: earlyVestingFee
         });
+        _entryOwners[entryID] = account;
 
         _addTokenToOwnerEnumeration(account, entryID);
 
@@ -471,8 +478,8 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
 
     function _transferVestingEntry(uint256 entryID, address account) internal {
         if (entryID >= nextEntryId) revert InvalidEntry(entryID);
-        VestingEntries.VestingEntry memory entry = vestingSchedules[msg.sender][entryID];
-        if (entry.endTime == 0) revert NotYourEntry(entryID);
+        VestingEntries.VestingEntry memory entry = vestingSchedules[entryID];
+        if (_entryOwners[entryID] != msg.sender) revert NotYourEntry(entryID);
 
         uint256 escrowedBalance = totalEscrowedAccountBalance[msg.sender];
         uint256 stakedBalance = stakingRewards.escrowedBalanceOf(msg.sender);
@@ -482,8 +489,9 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
             revert InsufficientUnstakedBalance(entryID, entry.escrowAmount, unstakedBalance);
         }
 
-        delete vestingSchedules[msg.sender][entryID];
-        vestingSchedules[account][entryID] = entry;
+        delete vestingSchedules[entryID];
+        vestingSchedules[entryID] = entry;
+        _entryOwners[entryID] = account;
 
         totalEscrowedAccountBalance[msg.sender] -= entry.escrowAmount;
         totalEscrowedAccountBalance[account] += entry.escrowAmount;
