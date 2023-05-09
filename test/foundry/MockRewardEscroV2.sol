@@ -13,7 +13,7 @@ import "../../contracts/libraries/SafeDecimalMath.sol";
 import "../../contracts/interfaces/IKwenta.sol";
 import "../../contracts/interfaces/IStakingRewards.sol";
 
-contract MockRewardEscrowV2 is Owned, IRewardEscrow {
+contract MockRewardEscroV2 is Owned, IRewardEscrow {
     using SafeDecimalMath for uint;
 
     /* ========== CONSTANTS/IMMUTABLES ========== */
