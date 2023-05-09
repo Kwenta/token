@@ -160,7 +160,7 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
 
         uint256 n = endIndex - index;
         VestingEntries.VestingEntryWithID[] memory vestingEntries = new VestingEntries.VestingEntryWithID[](n);
-        for (uint256 i; i < n; i++) {
+        for (uint256 i; i < n; ++i) {
             uint256 entryID = _ownedEntries[account][i + index];
 
             VestingEntries.VestingEntry memory entry = vestingSchedules[account][entryID];
@@ -193,7 +193,7 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
 
         uint256 n = endIndex - index;
         uint256[] memory page = new uint256[](n);
-        for (uint256 i; i < n; i++) {
+        for (uint256 i; i < n; ++i) {
             page[i] = _ownedEntries[account][i + index];
         }
         return page;
@@ -205,7 +205,8 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
         override
         returns (uint256 total, uint256 totalFee)
     {
-        for (uint256 i = 0; i < entryIDs.length; i++) {
+        uint256 entryIDsLength = entryIDs.length;
+        for (uint256 i = 0; i < entryIDsLength; ++i) {
             VestingEntries.VestingEntry memory entry = vestingSchedules[account][entryIDs[i]];
 
             /* Skip entry if escrowAmount == 0 */
@@ -268,7 +269,8 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
     function vest(uint256[] calldata entryIDs) external override {
         uint256 total;
         uint256 totalFee;
-        for (uint256 i = 0; i < entryIDs.length; i++) {
+        uint256 entryIDsLength = entryIDs.length;
+        for (uint256 i = 0; i < entryIDsLength; ++i) {
             VestingEntries.VestingEntry storage entry = vestingSchedules[msg.sender][entryIDs[i]];
 
             /* Skip entry if escrowAmount == 0 already vested */
@@ -381,8 +383,8 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
      * @param account The account to transfer the vesting entries to
      */
     function bulkTransferVestingEntries(uint256[] calldata entryIDs, address account) external {
-        uint256 length = entryIDs.length;
-        for (uint256 i = 0; i < length; ++i) {
+        uint256 entryIDsLength = entryIDs.length;
+        for (uint256 i = 0; i < entryIDsLength; ++i) {
             _transferVestingEntry(entryIDs[i], account);
         }
     }
@@ -434,7 +436,7 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
         _addTokenToOwnerEnumeration(account, entryID);
 
         /* Increment the next entry id. */
-        nextEntryId++;
+        ++nextEntryId;
 
         emit VestingEntryCreated(account, quantity, duration, entryID);
     }
