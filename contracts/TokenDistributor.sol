@@ -54,18 +54,6 @@ contract TokenDistributor {
     /// @notice this function will fetch StakingRewardsV2 to see what their staked balance was at the start of the epoch
     /// @notice then calculate proportional fees and transfer to user
     function claimDistribution(address to, uint epochNumber) public {
-        //require the epoch they're claiming is ready to claim
-
-        uint256 totalStaked = distributionEpochs[epochNumber].totalStakedAmount;
-        uint256 userStaked = stakingRewardsV2.balanceAtBlock(
-            msg.sender,
-            distributionEpochs[epochNumber].epochStartBlockNumber
-        );
-        uint256 fees = distributionEpochs[epochNumber].totalFees;
-        uint256 proportionalFees = (userStaked / totalStaked) * fees;
-
-        kwenta.transferFrom(address(this), to, proportionalFees);
-
         /// @dev if this is the first claim of a new epoch, call newDistribution to start a new epoch
         if (
             block.timestamp >=
@@ -73,5 +61,20 @@ contract TokenDistributor {
         ) {
             newDistribution();
         }
+
+        require(
+            epochNumber > epoch,
+            "TokenDistributor: Epoch is not ready to claim"
+        );
+
+        uint256 totalStaked = distributionEpochs[epochNumber].totalStakedAmount;
+        uint256 userStaked = stakingRewardsV2.balanceAtBlock(
+            msg.sender,
+            distributionEpochs[epochNumber].epochStartBlockNumber
+        );
+        uint256 epochFees = distributionEpochs[epochNumber].totalFees;
+        uint256 proportionalFees = (userStaked / totalStaked) * epochFees;
+
+        kwenta.transferFrom(address(this), to, proportionalFees);
     }
 }
