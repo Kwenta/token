@@ -2,15 +2,18 @@
 pragma solidity ^0.8.0;
 
 import {StakingRewardsV2} from "./StakingRewardsV2.sol";
+import {IKwenta} from "./interfaces/IKwenta.sol";
 
 contract TokenDistributor {
     struct Distribution {
         uint epochStartBlockNumber;
-        uint amount;
+        uint totalFees;
         uint totalStakedAmount;
     }
 
     mapping(uint => Distribution) public distributionEpochs;
+
+    IKwenta public kwenta;
 
     /// @notice Counter for new epochs
     /// @notice initialized to 0
@@ -18,23 +21,25 @@ contract TokenDistributor {
 
     StakingRewardsV2 public stakingRewardsV2;
 
-    constructor(address _stakingRewardsV2) {
+    constructor(address _kwenta, address _stakingRewardsV2) {
+        kwenta = IKwenta(_kwenta);
         epoch = 0;
         stakingRewardsV2 = StakingRewardsV2(_stakingRewardsV2);
     }
 
     /// @notice  creates a new Distribution entry at the current block
     /// @notice  can only be called once per week
-    //  consider calling this the first time someone tries to claim in a new epoch
     function newDistribution() public {
         ///@dev [epoch - 1] to get the start of last weeks epoch
         require(
             block.timestamp >=
                 (distributionEpochs[epoch - 1].epochStartBlockNumber + 1 weeks),
-            "TokenDistributor: Distribution for last week has not ended yet"
+            "TokenDistributor: Last week's epoch has not ended yet"
         );
 
         //0's are placeholders
+        //calculate the total fees for THIS epoch (ignore unclaimed fees from previous epochs)
+        //then insert to .totalFees
         Distribution memory distribution = Distribution(
             block.timestamp,
             0,
@@ -47,16 +52,26 @@ contract TokenDistributor {
     }
 
     /// @notice this function will fetch StakingRewardsV2 to see what their staked balance was at the start of the epoch
+    /// @notice then calculate proportional fees and transfer to user
     function claimDistribution(address to, uint epochNumber) public {
-        //fetch staked balance from StakingRewardsV2
-        //probably use balanceOf
-        stakingRewardsV2.balanceOf(msg.sender);
+        //require the epoch they're claiming is ready to claim
 
-        //divy up all fees
+        uint256 totalStaked = distributionEpochs[epochNumber].totalStakedAmount;
+        uint256 userStaked = stakingRewardsV2.balanceAtBlock(
+            msg.sender,
+            distributionEpochs[epochNumber].epochStartBlockNumber
+        );
+        uint256 fees = distributionEpochs[epochNumber].totalFees;
+        uint256 proportionalFees = (userStaked / totalStaked) * fees;
 
-        //transfer fees to msg.sender
+        kwenta.transferFrom(address(this), to, proportionalFees);
 
-        //if this is the first claim of a new epoch, call newDistribution to start a new epoch
-        //if block.timestamp >= (distributionEpochs[epoch - 1].epochStartBlockNumber + 1 weeks), newDistribution();
+        /// @dev if this is the first claim of a new epoch, call newDistribution to start a new epoch
+        if (
+            block.timestamp >=
+            (distributionEpochs[epoch].epochStartBlockNumber + 1 weeks)
+        ) {
+            newDistribution();
+        }
     }
 }
