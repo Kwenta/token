@@ -69,8 +69,8 @@ contract TokenDistributor {
             msg.sender,
             distributionEpochs[epochNumber].epochStartBlockNumber
         );
-        /// @notice epochFees is for the fees for that epoch only
-        /// @notice calculated by kwenta at the start of desired epoch - kwenta at the start of previous epoch
+        /// @notice epochFees is the fees for that epoch only
+        /// @notice calculated by: kwenta at the start of desired epoch - kwenta at the start of previous epoch
         uint256 epochFees = distributionEpochs[epochNumber].kwentaStartOfEpoch -
             distributionEpochs[epochNumber - 1].kwentaStartOfEpoch;
         uint256 proportionalFees = (userStaked / totalStaked) * epochFees;
