@@ -12,8 +12,7 @@ contract DeployEscrowIssuer is Script {
     address public rewardEscrow = 0x1066A8eB3d90Af0Ad3F89839b974658577e75BE2;
 
     ///@notice treasury address
-    ///@notice NOT TREASURY yet - temporary placeholder
-    address public treasury = 0x3C704e28C8EfCC7aCa262031818001895595081D;
+    address public treasury = 0x82d2242257115351899894eF384f779b5ba8c695;
 
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
