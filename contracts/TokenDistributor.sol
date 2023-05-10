@@ -63,7 +63,7 @@ contract TokenDistributor {
         }
 
         require(
-            epochNumber > epoch,
+            epochNumber < epoch,
             "TokenDistributor: Epoch is not ready to claim"
         );
 
