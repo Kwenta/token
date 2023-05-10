@@ -7,7 +7,7 @@ import {IKwenta} from "./interfaces/IKwenta.sol";
 contract TokenDistributor {
     struct Distribution {
         uint epochStartBlockNumber;
-        uint totalFees;
+        uint kwentaStartOfEpoch;
         uint totalStakedAmount;
     }
 
@@ -37,12 +37,9 @@ contract TokenDistributor {
             "TokenDistributor: Last week's epoch has not ended yet"
         );
 
-        //0's are placeholders
-        //calculate the total fees for THIS epoch (ignore unclaimed fees from previous epochs)
-        //then insert to .totalFees
         Distribution memory distribution = Distribution(
             block.timestamp,
-            0,
+            kwenta.balanceOf(address(this)),
             stakingRewardsV2.totalSupply()
         );
 
@@ -72,7 +69,10 @@ contract TokenDistributor {
             msg.sender,
             distributionEpochs[epochNumber].epochStartBlockNumber
         );
-        uint256 epochFees = distributionEpochs[epochNumber].totalFees;
+        /// @notice epochFees is for the fees for that epoch only
+        /// @notice calculated by kwenta at the start of desired epoch - kwenta at the start of previous epoch
+        uint256 epochFees = distributionEpochs[epochNumber].kwentaStartOfEpoch -
+            distributionEpochs[epochNumber - 1].kwentaStartOfEpoch;
         uint256 proportionalFees = (userStaked / totalStaked) * epochFees;
 
         kwenta.transferFrom(address(this), to, proportionalFees);
