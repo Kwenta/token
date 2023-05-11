@@ -21,6 +21,9 @@ contract TokenDistributor {
     /// @notice initialized to 0
     uint256 public epoch;
 
+    /// @notice running total for claimed fees
+    uint256 public claimedFees;
+
     StakingRewardsV2 public stakingRewardsV2;
 
     constructor(address _kwenta, address _stakingRewardsV2) {
@@ -79,11 +82,21 @@ contract TokenDistributor {
             distributionEpochs[epochNumber].epochStartBlockNumber
         );
         /// @notice epochFees is the fees for that epoch only
-        /// @notice calculated by: kwenta at the start of desired epoch - kwenta at the start of previous epoch
-        uint256 epochFees = distributionEpochs[epochNumber].kwentaStartOfEpoch -
-            distributionEpochs[epochNumber - 1].kwentaStartOfEpoch;
+        /// @dev calculated by: kwenta at the start of desired epoch + total claimed fees - kwenta at the start of previous epoch
+        uint256 epochFees;
+        if (epochNumber == 0) {
+            epochFees = distributionEpochs[1].kwentaStartOfEpoch;
+        } else {
+            epochFees =
+                distributionEpochs[epochNumber].kwentaStartOfEpoch +
+                claimedFees -
+                distributionEpochs[epochNumber - 1].kwentaStartOfEpoch;
+        }
+
         uint256 proportionalFees = (userStaked / totalStaked) * epochFees;
 
         kwenta.transferFrom(address(this), to, proportionalFees);
+
+        claimedFees += proportionalFees;
     }
 }
