@@ -78,7 +78,7 @@ contract TokenDistributor {
         );
 
         require(
-            claimedEpochs[msg.sender][epochNumber] != true,
+            claimedEpochs[to][epochNumber] != true,
             "TokenDistributor: You already claimed this epoch's fees"
         );
 
@@ -88,7 +88,7 @@ contract TokenDistributor {
             "TokenDistributor: Nothing was staked in StakingRewardsV2 that epoch"
         );
         uint256 userStaked = stakingRewardsV2.balanceAtBlock(
-            msg.sender,
+            to,
             distributionEpochs[epochNumber].epochStartBlockNumber
         );
         /// @notice epochFees is the fees for that epoch only
@@ -107,8 +107,9 @@ contract TokenDistributor {
 
         claimedFees += proportionalFees;
 
-        claimedEpochs[msg.sender][epochNumber] = true;
+        claimedEpochs[to][epochNumber] = true;
 
+        //todo: change to rewardEscrow
         kwenta.transfer(to, proportionalFees);
     }
 }
