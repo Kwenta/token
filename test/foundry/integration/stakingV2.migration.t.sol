@@ -53,6 +53,11 @@ contract StakingV2MigrationTests is StakingTestHelpers {
         uint256 user3NonEscrowedStakeV1 =
             stakingRewardsV1.nonEscrowedBalanceOf(user3);
 
+        // assert v1 rewards have been earned
+        assertGt(user1EscrowV1, 0);
+        assertGt(user2EscrowV1, 0);
+        assertGt(user3EscrowV1, 0);
+
         // v1 staked balance is equal to escrowed + non-escrowed balance
         assertEq(
             stakingRewardsV1.balanceOf(user1),
@@ -146,6 +151,11 @@ contract StakingV2MigrationTests is StakingTestHelpers {
         user2NonEscrowedStakeV2 = stakingRewardsV2.nonEscrowedBalanceOf(user2);
         user3NonEscrowedStakeV2 = stakingRewardsV2.nonEscrowedBalanceOf(user3);
 
+        // assert v2 rewards have been earned
+        assertGt(rewardEscrowV2.balanceOf(user1), 0);
+        assertGt(rewardEscrowV2.balanceOf(user2), 0);
+        assertGt(rewardEscrowV2.balanceOf(user3), 0);
+
         // v2 staked balance is equal to escrowed + non-escrowed balance
         assertEq(
             stakingRewardsV2.balanceOf(user1),
@@ -217,6 +227,9 @@ contract StakingV2MigrationTests is StakingTestHelpers {
             userNonEscrowedStakeV1[i] =
                 stakingRewardsV1.nonEscrowedBalanceOf(staker);
             userEscrowV1[i] = rewardEscrowV1.balanceOf(staker);
+
+            // assert v1 rewards have been earned
+            assertGt(userEscrowV1[i], 0);
 
             // v1 staked balance is equal to escrowed + non-escrowed balance
             assertEq(
@@ -290,6 +303,9 @@ contract StakingV2MigrationTests is StakingTestHelpers {
                 stakingRewardsV2.escrowedBalanceOf(stakers[i]);
             uint256 userNonEscrowedStakeV2 =
                 stakingRewardsV2.nonEscrowedBalanceOf(stakers[i]);
+
+            // assert v2 rewards have been earned
+            assertGt(rewardEscrowV2.balanceOf(stakers[i]), 0);
 
             // v2 staked balance is equal to escrowed + non-escrowed balance
             assertEq(
