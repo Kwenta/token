@@ -64,6 +64,7 @@ contract TokenDistributor {
             "TokenDistributor: Epoch is not ready to claim"
         );
 
+        //todo: require they didnt already claim their distribution
         uint256 totalStaked = distributionEpochs[epochNumber].totalStakedAmount;
         uint256 userStaked = stakingRewardsV2.balanceAtBlock(
             msg.sender,
