@@ -360,12 +360,12 @@ contract StakingTestHelpers is TestHelpers {
         rewardEscrowV2.appendVestingEntry(account, amount, duration);
     }
 
-    // INTEGRATION HELPERS
     function getStakingRewardsV2(address account) public {
         vm.prank(account);
         stakingRewardsV2.getReward();
     }
 
+    // INTEGRATION HELPERS
     function stakeAllUnstakedEscrowV2(address account) public {
         uint256 amount = getNonStakedEscrowAmountV2(account);
         vm.prank(account);
