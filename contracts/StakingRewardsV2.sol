@@ -149,7 +149,7 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     ///////////////////////////////////////////////////////////////*/
 
     /// @notice access control modifier for rewardEscrow
-    modifier onlyRewardEscrowV2() {
+    modifier onlyRewardEscrow() {
         require(
             msg.sender == address(rewardEscrow),
             "StakingRewards: Only Reward Escrow"
@@ -307,7 +307,7 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     function stakeEscrow(
         address account,
         uint256 amount
-    ) external override whenNotPaused onlyRewardEscrowV2 updateReward(account) {
+    ) external override whenNotPaused onlyRewardEscrow updateReward(account) {
         require(amount > 0, "StakingRewards: Cannot stake 0");
 
         // update state
@@ -331,7 +331,7 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     function unstakeEscrow(
         address account,
         uint256 amount
-    ) external override nonReentrant onlyRewardEscrowV2 updateReward(account) {
+    ) external override nonReentrant onlyRewardEscrow updateReward(account) {
         require(amount > 0, "StakingRewards: Cannot Unstake 0");
         require(escrowedBalanceOf(account) >= amount, "StakingRewards: Invalid Amount");
         uint256 canUnstakeAt = userLastStakeTime[account] + unstakingCooldownPeriod;
