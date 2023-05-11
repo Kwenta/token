@@ -5,6 +5,8 @@ import {StakingRewardsV2} from "./StakingRewardsV2.sol";
 import {IKwenta} from "./interfaces/IKwenta.sol";
 
 contract TokenDistributor {
+    event NewEpochCreated(uint block, uint epoch);
+
     struct Distribution {
         uint epochStartBlockNumber;
         uint kwentaStartOfEpoch;
@@ -31,11 +33,15 @@ contract TokenDistributor {
     /// @notice  can only be called once per week
     function newDistribution() public {
         ///@dev [epoch - 1] to get the start of last weeks epoch
-        require(
-            block.timestamp >=
-                (distributionEpochs[epoch - 1].epochStartBlockNumber + 1 weeks),
-            "TokenDistributor: Last week's epoch has not ended yet"
-        );
+        //if statement is probably not final, purpose is to avoid underflow error on first epoch
+        if (epoch > 0) {
+            require(
+                block.timestamp >=
+                    (distributionEpochs[epoch - 1].epochStartBlockNumber +
+                        1 weeks),
+                "TokenDistributor: Last week's epoch has not ended yet"
+            );
+        }
 
         Distribution memory distribution = Distribution(
             block.timestamp,
@@ -44,6 +50,8 @@ contract TokenDistributor {
         );
 
         distributionEpochs[epoch] = distribution;
+
+        emit NewEpochCreated(block.timestamp, epoch);
 
         epoch++;
     }
