@@ -67,13 +67,13 @@ contract TokenDistributor {
         /// @dev if this is the first claim of a new epoch, call newDistribution to start a new epoch
         if (
             block.timestamp >=
-            (distributionEpochs[epoch].epochStartBlockNumber + 1 weeks)
+            (distributionEpochs[epoch - 1].epochStartBlockNumber + 604800)
         ) {
             newDistribution();
         }
 
         require(
-            epochNumber < epoch,
+            epochNumber < (epoch - 1),
             "TokenDistributor: Epoch is not ready to claim"
         );
 
@@ -103,7 +103,7 @@ contract TokenDistributor {
                 distributionEpochs[epochNumber - 1].kwentaStartOfEpoch;
         }
 
-        uint256 proportionalFees = (userStaked / totalStaked) * epochFees;
+        uint256 proportionalFees = (epochFees * userStaked / totalStaked);
 
         claimedFees += proportionalFees;
 
