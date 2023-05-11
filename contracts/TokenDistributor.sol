@@ -9,6 +9,7 @@ contract TokenDistributor {
 
     struct Distribution {
         uint epochStartBlockNumber;
+        uint previouslyClaimedFees;
         uint kwentaStartOfEpoch;
         uint totalStakedAmount;
     }
@@ -50,6 +51,7 @@ contract TokenDistributor {
 
         Distribution memory distribution = Distribution(
             block.timestamp,
+            claimedFees,
             kwenta.balanceOf(address(this)),
             stakingRewardsV2.totalSupply()
         );
@@ -98,15 +100,15 @@ contract TokenDistributor {
             epochFees = distributionEpochs[1].kwentaStartOfEpoch;
         } else {
             epochFees =
-                distributionEpochs[epochNumber].kwentaStartOfEpoch +
-                claimedFees -
-                distributionEpochs[epochNumber - 1].kwentaStartOfEpoch;
+                distributionEpochs[epochNumber + 1].kwentaStartOfEpoch +
+                distributionEpochs[epochNumber + 1].previouslyClaimedFees -
+                distributionEpochs[epochNumber].kwentaStartOfEpoch;
         }
 
         uint256 proportionalFees = ((epochFees * userStaked) / totalStaked);
 
         claimedFees += proportionalFees;
-
+        //change claimed fees so it doesn't affect the epoch
         claimedEpochs[to][epochNumber] = true;
 
         //todo: change to rewardEscrow
