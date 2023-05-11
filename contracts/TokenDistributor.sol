@@ -15,6 +15,8 @@ contract TokenDistributor {
 
     mapping(uint => Distribution) public distributionEpochs;
 
+    mapping(address => mapping(uint => bool)) public claimedEpochs;
+
     IKwenta public kwenta;
 
     /// @notice Counter for new epochs
@@ -75,8 +77,16 @@ contract TokenDistributor {
             "TokenDistributor: Epoch is not ready to claim"
         );
 
-        //todo: require they didnt already claim their distribution
+        require(
+            claimedEpochs[msg.sender][epochNumber] != true,
+            "TokenDistributor: You already claimed this epoch's fees"
+        );
+
         uint256 totalStaked = distributionEpochs[epochNumber].totalStakedAmount;
+        require(
+            totalStaked != 0,
+            "TokenDistributor: Nothing was staked in StakingRewardsV2 that epoch"
+        );
         uint256 userStaked = stakingRewardsV2.balanceAtBlock(
             msg.sender,
             distributionEpochs[epochNumber].epochStartBlockNumber
@@ -95,8 +105,10 @@ contract TokenDistributor {
 
         uint256 proportionalFees = (userStaked / totalStaked) * epochFees;
 
-        kwenta.transferFrom(address(this), to, proportionalFees);
-
         claimedFees += proportionalFees;
+
+        claimedEpochs[msg.sender][epochNumber] = true;
+
+        kwenta.transfer(to, proportionalFees);
     }
 }
