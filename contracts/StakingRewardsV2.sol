@@ -25,7 +25,7 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     IERC20 public immutable token;
 
     /// @notice escrow contract which holds (and may stake) reward tokens
-    IRewardEscrowV2 public immutable rewardEscrowV2;
+    IRewardEscrowV2 public immutable rewardEscrow;
 
     /// @notice handles reward token minting logic
     ISupplySchedule public immutable supplySchedule;
@@ -148,16 +148,16 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
                                 AUTH
     ///////////////////////////////////////////////////////////////*/
 
-    /// @notice access control modifier for rewardEscrowV2
+    /// @notice access control modifier for rewardEscrow
     modifier onlyRewardEscrowV2() {
         require(
-            msg.sender == address(rewardEscrowV2),
+            msg.sender == address(rewardEscrow),
             "StakingRewards: Only Reward Escrow"
         );
         _;
     }
 
-    /// @notice access control modifier for rewardEscrowV2
+    /// @notice access control modifier for rewardEscrow
     modifier onlySupplySchedule() {
         require(
             msg.sender == address(supplySchedule),
@@ -173,11 +173,11 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     /// @notice configure StakingRewards state
     /// @dev owner set to address that deployed StakingRewards
     /// @param _token: token used for staking and for rewards
-    /// @param _rewardEscrowV2: escrow contract which holds (and may stake) reward tokens
+    /// @param _rewardEscrow: escrow contract which holds (and may stake) reward tokens
     /// @param _supplySchedule: handles reward token minting logic
     constructor(
         address _token,
-        address _rewardEscrowV2,
+        address _rewardEscrow,
         address _supplySchedule,
         address _stakingRewardsV1
     ) Owned(msg.sender) {
@@ -185,7 +185,7 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
         token = IERC20(_token);
 
         // define contracts which will interact with StakingRewards
-        rewardEscrowV2 = IRewardEscrowV2(_rewardEscrowV2);
+        rewardEscrow = IRewardEscrowV2(_rewardEscrow);
         supplySchedule = ISupplySchedule(_supplySchedule);
         stakingRewardsV1 = IStakingRewards(_stakingRewardsV1);
     }
@@ -370,10 +370,10 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
             // update state (first)
             rewards[msg.sender] = 0;
 
-            // transfer token from this contract to the rewardEscrowV2
+            // transfer token from this contract to the rewardEscrow
             // and create a vesting entry for the caller
-            token.safeTransfer(address(rewardEscrowV2), reward);
-            rewardEscrowV2.appendVestingEntry(msg.sender, reward, 52 weeks);
+            token.safeTransfer(address(rewardEscrow), reward);
+            rewardEscrow.appendVestingEntry(msg.sender, reward, 52 weeks);
 
             // emit reward claimed event and index msg.sender
             emit RewardPaid(msg.sender, reward);

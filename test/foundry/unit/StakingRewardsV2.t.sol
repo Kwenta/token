@@ -32,7 +32,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
     }
 
     function test_RewardEscrowV2_Set() public {
-        address rewardEscrowV2Address = address(stakingRewardsV2.rewardEscrowV2());
+        address rewardEscrowV2Address = address(stakingRewardsV2.rewardEscrow());
         assertEq(rewardEscrowV2Address, address(rewardEscrowV2));
     }
 
