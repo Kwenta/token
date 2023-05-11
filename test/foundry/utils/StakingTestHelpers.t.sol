@@ -244,6 +244,11 @@ contract StakingTestHelpers is TestHelpers {
         stakingRewardsV1.unstake(amount);
     }
 
+    function exitStakingV1(address account) public {
+        vm.prank(account);
+        stakingRewardsV1.exit();
+    }
+
     function getStakingRewardsV1(address account) public {
         vm.prank(account);
         stakingRewardsV1.getReward();

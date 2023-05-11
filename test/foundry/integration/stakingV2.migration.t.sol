@@ -78,11 +78,11 @@ contract StakingV2MigrationTests is StakingTestHelpers {
         assertEq(user3EscrowV1, user3EscrowStakedV1);
 
         // Migrate non-escrow stake from StakingRewardsV1 to StakingRewardsV2
-        unstakeFundsV1(user1, user1NonEscrowedStakeV1);
+        exitStakingV1(user1);
         stakeFundsV2(user1, user1NonEscrowedStakeV1);
-        unstakeFundsV1(user2, user2NonEscrowedStakeV1);
+        exitStakingV1(user2);
         stakeFundsV2(user2, user2NonEscrowedStakeV1);
-        unstakeFundsV1(user3, user3NonEscrowedStakeV1);
+        exitStakingV1(user3);
         stakeFundsV2(user3, user3NonEscrowedStakeV1);
 
         uint256 user1NonEscrowedStakeV2 =
