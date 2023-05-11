@@ -25,11 +25,7 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         assertEq(rewards, 0);
 
         // send in 604800 (1 week) of rewards - (using 1 week for round numbers)
-        uint256 newRewards = 1 weeks;
-        vm.prank(treasury);
-        kwenta.transfer(address(stakingRewardsV2), newRewards);
-        vm.prank(address(supplySchedule));
-        stakingRewardsV2.notifyRewardAmount(newRewards);
+        addNewRewardsToStakingRewardsV2(1 weeks);
 
         // fast forward 1 week - one complete period
         vm.warp(block.timestamp + lengthOfPeriod);
@@ -55,10 +51,7 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         assertEq(rewards, expectedRewards);
 
         // send in another 604800 (1 week) of rewards
-        vm.prank(treasury);
-        kwenta.transfer(address(stakingRewardsV2), newRewards);
-        vm.prank(address(supplySchedule));
-        stakingRewardsV2.notifyRewardAmount(newRewards);
+        addNewRewardsToStakingRewardsV2(1 weeks);
 
         // fast forward 1 week - one complete period
         vm.warp(block.timestamp + lengthOfPeriod);
@@ -456,11 +449,7 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         assertEq(rewards, 0);
 
         // send in 604800 (1 week) of rewards - (using 1 week for round numbers)
-        uint256 newRewards = 1 weeks;
-        vm.prank(treasury);
-        kwenta.transfer(address(stakingRewardsV2), newRewards);
-        vm.prank(address(supplySchedule));
-        stakingRewardsV2.notifyRewardAmount(newRewards);
+        addNewRewardsToStakingRewardsV2(1 weeks);
 
         // fast forward 0.5 weeks - half of one complete period
         vm.warp(block.timestamp + lengthOfPeriod / 2);
