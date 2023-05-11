@@ -15,7 +15,10 @@ contract TokenDistributorTest is Test {
     address public user;
 
     function setUp() public {
-        kwenta = new Kwenta("Kwenta", "Kwe", 10, address(this), address(this));
+        user = payable(
+            address(uint160(uint256(keccak256(abi.encodePacked("user")))))
+        );
+        kwenta = new Kwenta("Kwenta", "Kwe", 11, address(this), address(this));
         /// @dev kwenta is plugged in for all parameters to control variables
         /// @dev functions that are used by TokenDistributor shouldn't need the other dependencies
         stakingRewardsV2 = new StakingRewardsV2(
@@ -60,11 +63,24 @@ contract TokenDistributorTest is Test {
 
     /// @notice claimDistribution happy case and make a new epoch
     function testClaimDistributionNewEpoch() public {
-        //make sure contract has kwenta first
+        //make sure tokenDistributor has kwenta first
+        kwenta.transfer(address(tokenDistributor), 10);
+        //then have user stake in stakingRewardsV2
+        kwenta.transfer(address(user), 1);
+        vm.prank(address(kwenta));
+        stakingRewardsV2.stakeEscrow(address(user), 1);
         //then make new epoch
+        vm.prank(user);
+        tokenDistributor.newDistribution();
         //wait a week
+        vm.warp(block.timestamp + 604801);
         //claim distribution
+        vm.prank(user);
+        tokenDistributor.claimDistribution(address(user), 0);
         //assert that its actually a new epoch
+
+        //assert that user got all the fees
+        assertEq(kwenta.balanceOf(user), 11);
     }
 
     /// @notice claimDistribution happy case and don't make a new epoch
@@ -76,9 +92,13 @@ contract TokenDistributorTest is Test {
     }
 
     /// @notice claimDistribution fail - already claimed
-    function testClaimDistributionAlreadyClained() public {
+    function testClaimDistributionAlreadyClaimed() public {
         //expect revert with message
     }
 
     //maybe try fuzzing claimDistribution
+
+    /// @notice claimDistribution with previous claims in earlier epochs
+
+    /// @notice claimDistribution claim an epoch that had no staking
 }
