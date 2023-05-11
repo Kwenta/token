@@ -82,6 +82,9 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     /// @notice tracks the last time staked for a given user
     mapping(address => uint256) public userLastStakeTime;
 
+    // TODO: add notice
+    mapping(address => mapping(address => bool)) public _operatorApprovals;
+
     /*///////////////////////////////////////////////////////////////
                                 EVENTS
     ///////////////////////////////////////////////////////////////*/
@@ -307,8 +310,21 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     function stakeEscrow(
         address account,
         uint256 amount
-    ) external override whenNotPaused onlyRewardEscrow updateReward(account) {
+    ) external override onlyRewardEscrow {
+        _stakeEscrow(account, amount);
+    }
+
+    // TODO: add to interface and override and natspec
+    function _stakeEscrow(
+        address account,
+        uint256 amount
+    ) internal whenNotPaused updateReward(account) {
         require(amount > 0, "StakingRewards: Cannot stake 0");
+        // TODO: use custom error
+        require(
+            amount + escrowedBalanceOf(account) <= rewardEscrow.totalEscrowedAccountBalance(account),
+            "Insufficient unstaked escrow"
+        );
 
         // update state
         userLastStakeTime[account] = block.timestamp;
@@ -322,6 +338,13 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
         // emit escrow staking event and index _account
         emit EscrowStaked(account, amount);
     }
+
+    // // TODO: add to interface and override and natspec
+    // function stakeEscrowOnBehalf(address account, uint256 amount) external {
+    //     // TOOD: extract into modifier and use custom error
+    //     require(_operatorApprovals[account][msg.sender], "StakingRewards: Not Approved");
+    //     _stakeEscrow(account, amount);
+    // }
 
     /// @notice unstake escrowed token
     /// @param account: address which owns token
@@ -364,20 +387,44 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     /// @notice caller claims any rewards generated from staking
     /// @dev rewards are escrowed in RewardEscrow
     /// @dev updateReward() called prior to function logic
-    function getReward() public override nonReentrant updateReward(msg.sender) {
-        uint256 reward = rewards[msg.sender];
+    function getReward() public override {
+        _getReward(msg.sender);
+    }
+
+    function _getReward(address account) internal nonReentrant updateReward(account) {
+        uint256 reward = rewards[account];
         if (reward > 0) {
             // update state (first)
-            rewards[msg.sender] = 0;
+            rewards[account] = 0;
 
             // transfer token from this contract to the rewardEscrow
             // and create a vesting entry for the caller
             token.safeTransfer(address(rewardEscrow), reward);
-            rewardEscrow.appendVestingEntry(msg.sender, reward, 52 weeks);
+            rewardEscrow.appendVestingEntry(account, reward, 52 weeks);
 
-            // emit reward claimed event and index msg.sender
-            emit RewardPaid(msg.sender, reward);
+            // emit reward claimed event and index account
+            emit RewardPaid(account, reward);
         }
+    }
+
+    // TODO: add to interface and override and natspec
+    function getRewardOnBehalf(address account) external {
+        // TOOD: extract into modifier and use custom error
+        require(_operatorApprovals[account][msg.sender], "StakingRewards: Not Approved");
+        _getReward(account);
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                                APPROVALS
+    ///////////////////////////////////////////////////////////////*/
+
+    // TODO: add to interface and override and natspec
+    function approveOperator(address operator, bool approved) external {
+        // TODO: use custom error
+        require(operator != msg.sender, "approve to caller");
+        _operatorApprovals[msg.sender][operator] = approved;
+        // TODO: emit event
+        // emit ApprovalForAll(msg.sender, operator, approved);
     }
 
     /*///////////////////////////////////////////////////////////////

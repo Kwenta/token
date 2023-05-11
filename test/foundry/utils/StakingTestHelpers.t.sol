@@ -320,8 +320,9 @@ contract StakingTestHelpers is TestHelpers {
     }
 
     function stakeEscrowedFundsV2(address account, uint256 amount) public {
-        vm.prank(address(rewardEscrowV2));
-        stakingRewardsV2.stakeEscrow(account, amount);
+        if (amount != 0) createRewardEscrowEntryV2(account, amount, 52 weeks);
+        vm.prank(account);
+        rewardEscrowV2.stakeEscrow(amount);
     }
 
     function unstakeEscrowedFundsV2(address account, uint256 amount) public {
