@@ -22,7 +22,13 @@ contract TokenDistributorTest is Test {
         user2 = payable(
             address(uint160(uint256(keccak256(abi.encodePacked("user2")))))
         );
-        kwenta = new Kwenta("Kwenta", "Kwe", 15, address(this), address(this));
+        kwenta = new Kwenta(
+            "Kwenta",
+            "Kwe",
+            10000,
+            address(this),
+            address(this)
+        );
         /// @dev kwenta is plugged in for all parameters to control variables
         /// @dev functions that are used by TokenDistributor shouldn't need the other dependencies
         stakingRewardsV2 = new StakingRewardsV2(
@@ -202,5 +208,37 @@ contract TokenDistributorTest is Test {
         tokenDistributor.claimDistribution(address(user), 0);
     }
 
-    /// @notice claimDistribution with previous claims in earlier epochs
+    /// @notice claimDistribution happy case with partial claims in earlier epochs
+    /// @notice 2 complete epochs with differing fees
+    function testClaimDistributionMultipleClaims() public {
+        kwenta.transfer(address(tokenDistributor), 1000);
+        kwenta.transfer(address(user), 1);
+        kwenta.transfer(address(user2), 2);
+        vm.startPrank(address(kwenta));
+        stakingRewardsV2.stakeEscrow(address(user), 1);
+        stakingRewardsV2.stakeEscrow(address(user2), 2);
+        vm.stopPrank();
+        vm.prank(user);
+        tokenDistributor.newDistribution();
+        vm.warp(block.timestamp + 604801);
+
+        ///@dev during epoch #1, user claims their fees from #0
+
+        vm.expectEmit(true, true, true, true);
+        emit NewEpochCreated(604802, 1);
+        tokenDistributor.newDistribution();
+        kwenta.transfer(address(tokenDistributor), 5000);
+        vm.prank(user);
+        tokenDistributor.claimDistribution(address(user), 0);
+
+        vm.warp(block.timestamp + 604801);
+        vm.prank(user);
+        vm.expectEmit(true, true, true, true);
+        emit NewEpochCreated(1209603, 2);
+        tokenDistributor.claimDistribution(address(user), 1);
+        vm.warp(block.timestamp + 1000);
+        kwenta.transfer(address(tokenDistributor), 300);
+        vm.prank(user2);
+        tokenDistributor.claimDistribution(address(user2), 1);
+    }
 }
