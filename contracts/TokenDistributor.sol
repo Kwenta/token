@@ -103,7 +103,7 @@ contract TokenDistributor {
                 distributionEpochs[epochNumber - 1].kwentaStartOfEpoch;
         }
 
-        uint256 proportionalFees = (epochFees * userStaked / totalStaked);
+        uint256 proportionalFees = ((epochFees * userStaked) / totalStaked);
 
         claimedFees += proportionalFees;
 

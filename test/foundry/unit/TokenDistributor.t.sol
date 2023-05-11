@@ -92,7 +92,9 @@ contract TokenDistributorTest is Test {
         emit NewEpochCreated(604802, 1);
         tokenDistributor.newDistribution();
         vm.warp(block.timestamp + 304801);
-        vm.expectRevert("TokenDistributor: Last week's epoch has not ended yet");
+        vm.expectRevert(
+            "TokenDistributor: Last week's epoch has not ended yet"
+        );
         tokenDistributor.newDistribution();
     }
 
@@ -139,8 +141,6 @@ contract TokenDistributorTest is Test {
         vm.warp(block.timestamp + 1000);
         vm.prank(user2);
         tokenDistributor.claimDistribution(address(user2), 0);
-
-
     }
 
     /// @notice claimDistribution fail - epoch is not ready to claim
@@ -169,10 +169,38 @@ contract TokenDistributorTest is Test {
 
     /// @notice claimDistribution fail - already claimed
     function testClaimDistributionAlreadyClaimed() public {
-        
+        //setup
+        kwenta.transfer(address(tokenDistributor), 10);
+        kwenta.transfer(address(user), 1);
+        vm.prank(address(kwenta));
+        stakingRewardsV2.stakeEscrow(address(user), 1);
+        vm.prank(user);
+        tokenDistributor.newDistribution();
+        vm.warp(block.timestamp + 604801);
+        vm.prank(user);
+        vm.expectEmit(true, true, true, true);
+        emit NewEpochCreated(604802, 1);
+        tokenDistributor.claimDistribution(address(user), 0);
+
+        vm.expectRevert(
+            "TokenDistributor: You already claimed this epoch's fees"
+        );
+        tokenDistributor.claimDistribution(address(user), 0);
+    }
+
+    /// @notice claimDistribution fail - claim an epoch that had no staking
+    function testClaimDistributionNoStaking() public {
+        kwenta.transfer(address(tokenDistributor), 10);
+        kwenta.transfer(address(user), 1);
+        vm.prank(user);
+        tokenDistributor.newDistribution();
+        vm.warp(block.timestamp + 604801);
+        vm.prank(user);
+        vm.expectRevert(
+            "TokenDistributor: Nothing was staked in StakingRewardsV2 that epoch"
+        );
+        tokenDistributor.claimDistribution(address(user), 0);
     }
 
     /// @notice claimDistribution with previous claims in earlier epochs
-
-    /// @notice claimDistribution claim an epoch that had no staking
 }
