@@ -120,6 +120,17 @@ contract StakingRewardsOnBehalfActionsTests is DefaultStakingV2Setup {
         stakingRewardsV2.getRewardOnBehalf(address(this));
     }
 
+    function test_Cannot_Approve_Self() public {
+        vm.expectRevert(StakingRewardsV2.CannotApproveSelf.selector);
+        stakingRewardsV2.approveOperator(address(this), true);
+    }
+
+    function test_Cannot_Approve_Self_Fuzz(address owner) public {
+        vm.expectRevert(StakingRewardsV2.CannotApproveSelf.selector);
+        vm.prank(owner);
+        stakingRewardsV2.approveOperator(owner, true);
+    }
+
     /*//////////////////////////////////////////////////////////////
                                 Events
     //////////////////////////////////////////////////////////////*/
@@ -161,5 +172,4 @@ contract StakingRewardsOnBehalfActionsTests is DefaultStakingV2Setup {
     }
 
     // TODO: test staking on behalf emits an event
-    // TODO: test cannot approve self
 }
