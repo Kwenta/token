@@ -66,6 +66,33 @@ contract StakingRewardsOnBehalfActionsTests is DefaultStakingV2Setup {
         stakingRewardsV2.stakeEscrowOnBehalf(address(this), TEST_VALUE);
     }
 
+    function test_Only_Approved_Can_Call_stakeEscrowOnBehalf_Fuzz(
+        uint32 escrowAmount,
+        uint24 duration,
+        address owner,
+        address operator,
+        address caller
+    ) public {
+        vm.assume(escrowAmount > 0);
+        vm.assume(duration > 0);
+        vm.assume(owner != address(0));
+        vm.assume(operator != address(0));
+        vm.assume(caller != address(0));
+        vm.assume(owner != operator);
+        vm.assume(owner != caller);
+        vm.assume(operator != caller);
+
+        createRewardEscrowEntryV2(owner, escrowAmount, duration);
+
+        // approve user1 as operator
+        stakingRewardsV2.approveOperator(operator, true);
+
+        // stake escrow on behalf as user2
+        vm.prank(caller);
+        vm.expectRevert(StakingRewardsV2.NotApprovedOperator.selector);
+        stakingRewardsV2.stakeEscrowOnBehalf(owner, escrowAmount);
+    }
+
     function test_Cannot_Approve_Self() public {
         vm.expectRevert(StakingRewardsV2.CannotApproveSelf.selector);
         stakingRewardsV2.approveOperator(address(this), true);
@@ -240,4 +267,6 @@ contract StakingRewardsOnBehalfActionsTests is DefaultStakingV2Setup {
     // TODO: test staking on behalf emits an event
     // TODO: test getReward then staking Reward
     // TODO: test automated contract
+    // TODO: test escrow staking too large an amount on behalf
+    // TODO: test escrow staking too large amount via rewardEscrow
 }
