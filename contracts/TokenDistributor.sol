@@ -32,7 +32,11 @@ contract TokenDistributor {
 
     RewardEscrowV2 public rewardEscrowV2;
 
-    constructor(address _kwenta, address _stakingRewardsV2, address _rewardEscrowV2) {
+    constructor(
+        address _kwenta,
+        address _stakingRewardsV2,
+        address _rewardEscrowV2
+    ) {
         kwenta = IKwenta(_kwenta);
         epoch = 0;
         stakingRewardsV2 = StakingRewardsV2(_stakingRewardsV2);
