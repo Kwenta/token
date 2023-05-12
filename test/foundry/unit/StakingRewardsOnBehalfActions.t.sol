@@ -154,6 +154,37 @@ contract StakingRewardsOnBehalfActionsTests is DefaultStakingV2Setup {
         assertEq(stakingRewardsV2.escrowedBalanceOf(user1), 0);
     }
 
+    function test_stakeEscrowOnBehalf_Fuzz(
+        address owner,
+        address operator,
+        uint32 escrowAmount,
+        uint24 duration
+    ) public {
+        vm.assume(escrowAmount > 0);
+        vm.assume(duration > 0);
+        vm.assume(owner != address(0));
+        vm.assume(operator != address(0));
+        vm.assume(owner != operator);
+
+        createRewardEscrowEntryV2(owner, escrowAmount, duration);
+
+        // assert initial escrowed balances
+        assertEq(stakingRewardsV2.escrowedBalanceOf(owner), 0);
+        assertEq(stakingRewardsV2.escrowedBalanceOf(operator), 0);
+
+        // approve operator
+        vm.prank(owner);
+        stakingRewardsV2.approveOperator(operator, true);
+
+        // stake escrow on behalf
+        vm.prank(operator);
+        stakingRewardsV2.stakeEscrowOnBehalf(owner, escrowAmount);
+
+        // check final escrowed balances
+        assertEq(stakingRewardsV2.escrowedBalanceOf(owner), escrowAmount);
+        assertEq(stakingRewardsV2.escrowedBalanceOf(operator), 0);
+    }
+
     /*//////////////////////////////////////////////////////////////
                                 Events
     //////////////////////////////////////////////////////////////*/
