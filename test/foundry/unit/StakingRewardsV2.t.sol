@@ -75,6 +75,8 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
     }
 
     function test_Cannot_unStakeEscrow_Invalid_Amount() public {
+        vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+
         vm.expectRevert("StakingRewards: Invalid Amount");
         unstakeEscrowedFundsV2(address(this), TEST_VALUE);
     }
@@ -380,6 +382,8 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         // stake escrow
         stakeEscrowedFundsV2(address(this), TEST_VALUE);
 
+        vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+
         // this would work if unstakeEscrow was called
         // but unstake is called so it fails
         vm.expectRevert("StakingRewards: Invalid Amount");
@@ -389,6 +393,8 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
     function test_Cannot_exit_With_Only_Escrow_Staked_Balance() public {
         // stake escrow
         stakeEscrowedFundsV2(address(this), TEST_VALUE);
+
+        vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
 
         // exit - this fails because exit uses unstake not unstakeEscrow
         vm.expectRevert("StakingRewards: Cannot Unstake 0");
@@ -634,6 +640,8 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
     //////////////////////////////////////////////////////////////*/
 
     function test_Cannot_unstake_If_Nothing_Staked() public {
+        vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+
         vm.expectRevert("StakingRewards: Invalid Amount");
         stakingRewardsV2.unstake(TEST_VALUE);
     }
@@ -658,6 +666,8 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
     }
 
     function test_Cannot_unstake_0() public {
+        vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+
         vm.expectRevert("StakingRewards: Cannot Unstake 0");
         stakingRewardsV2.unstake(0);
     }
@@ -667,6 +677,8 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
     //////////////////////////////////////////////////////////////*/
 
     function test_Cannot_unstakeEscrow_If_None_Staked() public {
+        vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+
         vm.expectRevert("StakingRewards: Invalid Amount");
         unstakeEscrowedFundsV2(address(this), TEST_VALUE);
     }
@@ -756,6 +768,8 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         // stake escrow
         stakeEscrowedFundsV2(address(this), 1 weeks);
 
+        vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+
         // unstake more escrow
         vm.expectRevert("StakingRewards: Invalid Amount");
         unstakeEscrowedFundsV2(address(this), 2 weeks);
@@ -764,6 +778,8 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
     function test_Cannot_unstakeEscrow_0() public {
         // stake escrow
         stakeEscrowedFundsV2(address(this), 1 weeks);
+
+        vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
 
         // unstake 0 escrow
         vm.expectRevert("StakingRewards: Cannot Unstake 0");

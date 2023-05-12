@@ -190,9 +190,20 @@ contract StakingRewardsV2 is
         _;
     }
 
+    /// @notice access control modifier for approved operators
     modifier onlyApprovedOperator(address owner) {
         if (!_operatorApprovals[owner][msg.sender]) {
             revert NotApprovedOperator();
+        }
+        _;
+    }
+
+    /// @notice only allow execution after the unstaking cooldown period has elapsed
+    modifier afterCooldown(address account) {
+        uint256 canUnstakeAt =
+            userLastStakeTime[account] + unstakingCooldownPeriod;
+        if (canUnstakeAt > block.timestamp) {
+            revert CannotUnstakeDuringCooldown(canUnstakeAt);
         }
         _;
     }
@@ -334,17 +345,13 @@ contract StakingRewardsV2 is
         override
         nonReentrant
         updateReward(msg.sender)
+        afterCooldown(msg.sender)
     {
         require(amount > 0, "StakingRewards: Cannot Unstake 0");
         require(
             amount <= nonEscrowedBalanceOf(msg.sender),
             "StakingRewards: Invalid Amount"
         );
-        uint256 canUnstakeAt =
-            userLastStakeTime[msg.sender] + unstakingCooldownPeriod;
-        if (canUnstakeAt > block.timestamp) {
-            revert CannotUnstakeDuringCooldown(canUnstakeAt);
-        }
 
         // update state
         _addTotalSupplyCheckpoint(totalSupply() - amount);
@@ -420,17 +427,13 @@ contract StakingRewardsV2 is
         nonReentrant
         onlyRewardEscrow
         updateReward(account)
+        afterCooldown(account)
     {
         require(amount > 0, "StakingRewards: Cannot Unstake 0");
         require(
             escrowedBalanceOf(account) >= amount,
             "StakingRewards: Invalid Amount"
         );
-        uint256 canUnstakeAt =
-            userLastStakeTime[account] + unstakingCooldownPeriod;
-        if (canUnstakeAt > block.timestamp) {
-            revert CannotUnstakeDuringCooldown(canUnstakeAt);
-        }
 
         // update state
         _addBalancesCheckpoint(account, balanceOf(account) - amount);
