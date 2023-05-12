@@ -406,6 +406,4 @@ contract StakingRewardsOnBehalfActionsTests is DefaultStakingV2Setup {
         vm.prank(user1);
         stakingRewardsV2.stakeEscrowOnBehalf(address(this), TEST_VALUE);
     }
-
-    // TODO: test automated contract
 }

@@ -34,9 +34,11 @@ interface IStakingRewardsV2 {
     function unstake(uint256 amount) external;
     function stakeEscrow(address account, uint256 amount) external;
     function unstakeEscrow(address account, uint256 amount) external;
+    function stakeEscrowOnBehalf(address account, uint256 amount) external;
     function exit() external;
     // claim rewards
     function getReward() external;
+    function getRewardOnBehalf(address account) external;
     // settings
     function notifyRewardAmount(uint256 reward) external;
     function setUnstakingCooldownPeriod(uint256 _rewardsDuration) external;
@@ -45,6 +47,7 @@ interface IStakingRewardsV2 {
     function pauseStakingRewards() external;
     function unpauseStakingRewards() external;
     // misc.
+    function approveOperator(address operator, bool approved) external;
     function recoverERC20(address tokenAddress, uint256 tokenAmount) external;
 
     /*//////////////////////////////////////////////////////////////

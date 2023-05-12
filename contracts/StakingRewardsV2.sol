@@ -82,7 +82,7 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     /// @notice tracks the last time staked for a given user
     mapping(address => uint256) public userLastStakeTime;
 
-    // TODO: add notice
+    /// @notice tracks all addresses approved to take actions on behalf of a given account
     mapping(address => mapping(address => bool)) public _operatorApprovals;
 
     /*///////////////////////////////////////////////////////////////
@@ -330,7 +330,6 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
         _stakeEscrow(account, amount);
     }
 
-    // TODO: add to interface and override and natspec
     function _stakeEscrow(
         address account,
         uint256 amount
@@ -352,9 +351,11 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
         emit EscrowStaked(account, amount);
     }
 
-    // TODO: add to interface and override and natspec
-    function stakeEscrowOnBehalf(address account, uint256 amount) external {
-        // TOOD: extract into modifier 
+    /// @notice stake escrowed token on behalf of another account
+    /// @param account: address which owns token
+    /// @param amount: amount to stake
+    function stakeEscrowOnBehalf(address account, uint256 amount) external override {
+        // TODO: extract into modifier 
         if (!_operatorApprovals[account][msg.sender])
             revert NotApprovedOperator();
 
@@ -422,25 +423,14 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
         }
     }
 
-    // TODO: add to interface and override and natspec
-    function getRewardOnBehalf(address account) external {
-        // TOOD: extract into modifier
+    /// @notice caller claims any rewards generated from staking on behalf of another account
+    /// The rewards will be escrowed in RewardEscrow with the account as the beneficiary
+    /// @param account: address which owns token
+    function getRewardOnBehalf(address account) external override {
+        // TODO: extract into modifier
         if (!_operatorApprovals[account][msg.sender])
             revert NotApprovedOperator();
         _getReward(account);
-    }
-
-    /*///////////////////////////////////////////////////////////////
-                                APPROVALS
-    ///////////////////////////////////////////////////////////////*/
-
-    // TODO: add to interface and override and natspec
-    function approveOperator(address operator, bool approved) external {
-        if (operator == msg.sender) revert CannotApproveSelf();
-
-        _operatorApprovals[msg.sender][operator] = approved;
-
-        emit OperatorApproved(msg.sender, operator, approved);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -688,6 +678,18 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     /*///////////////////////////////////////////////////////////////
                             MISCELLANEOUS
     ///////////////////////////////////////////////////////////////*/
+
+
+    /// @notice approve an operator to collect rewards and stake escrow on behalf of the sender
+    /// @param operator: address of operator to approve
+    /// @param approved: whether or not to approve the operator
+    function approveOperator(address operator, bool approved) external override {
+        if (operator == msg.sender) revert CannotApproveSelf();
+
+        _operatorApprovals[msg.sender][operator] = approved;
+
+        emit OperatorApproved(msg.sender, operator, approved);
+    }
 
     /// @notice added to support recovering LP Rewards from other systems
     /// such as BAL to be distributed to holders
