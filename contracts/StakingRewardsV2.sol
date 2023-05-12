@@ -147,6 +147,9 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     /// @param maxCooldownPeriod maximum cooldown period
     error CooldownPeriodTooHigh(uint256 maxCooldownPeriod);
 
+    /// @notice the caller is not approved to take this action
+    error NotApprovedOperator();
+
     /*///////////////////////////////////////////////////////////////
                                 AUTH
     ///////////////////////////////////////////////////////////////*/
@@ -409,8 +412,9 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
 
     // TODO: add to interface and override and natspec
     function getRewardOnBehalf(address account) external {
-        // TOOD: extract into modifier and use custom error
-        require(_operatorApprovals[account][msg.sender], "StakingRewards: Not Approved");
+        // TOOD: extract into modifier
+        if (!_operatorApprovals[account][msg.sender])
+            revert NotApprovedOperator();
         _getReward(account);
     }
 
