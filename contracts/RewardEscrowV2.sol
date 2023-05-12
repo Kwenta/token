@@ -161,7 +161,6 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
             return new VestingEntries.VestingEntryWithID[](0);
         }
 
-        // TODO: extract logic into helper as reused in getAccountVestingEntryIDs
         // If the page extends past the end of the list, truncate it.
         uint256 numEntries = _entryBalances[account];
         if (endIndex > numEntries) {
@@ -492,8 +491,6 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
         vestingSchedules[entryID] = entry;
         _entryOwners[entryID] = account;
 
-        // TODO: move all totalEscrowedAccountBalance updates (and _entryOwners???) into
-        // _removeTokenFromOwnerEnumeration and _addTokenToOwnerEnumeration funcs
         totalEscrowedAccountBalance[msg.sender] -= entry.escrowAmount;
         totalEscrowedAccountBalance[account] += entry.escrowAmount;
 
