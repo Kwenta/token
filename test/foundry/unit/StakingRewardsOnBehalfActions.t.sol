@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
+import "forge-std/Test.sol";
 import {DefaultStakingV2Setup} from "../utils/DefaultStakingV2Setup.t.sol";
 import {StakingRewardsV2} from "../../../contracts/StakingRewardsV2.sol";
 import "../utils/Constants.t.sol";
@@ -144,7 +145,21 @@ contract StakingRewardsOnBehalfActionsTests is DefaultStakingV2Setup {
         stakingRewardsV2.approveOperator(operator, approved);
     }
 
-    // TODO: test offering approval emits an event
-    // TODO: test claiming rewards on behalf emits an event
+    function test_getRewardOnBehalf_Emits_Event() public {
+        fundAccountAndStakeV2(address(this), TEST_VALUE);
+        addNewRewardsToStakingRewardsV2(1 weeks);
+        vm.warp(block.timestamp + stakingRewardsV2.rewardsDuration());
+
+        // approve operator
+        stakingRewardsV2.approveOperator(user1, true);
+
+        // claim rewards on behalf
+        vm.expectEmit(true, true, false, true);
+        emit RewardPaid(address(this), 1 weeks);
+        vm.prank(user1);
+        stakingRewardsV2.getRewardOnBehalf(address(this));
+    }
+
+    // TODO: test staking on behalf emits an event
     // TODO: test cannot approve self
 }

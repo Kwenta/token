@@ -24,6 +24,7 @@ contract StakingTestHelpers is TestHelpers {
     event UnstakingCooldownPeriodUpdated(uint256 unstakingCooldownPeriod);
     event VestingEntryTransfer(address from, address to, uint256 entryID);
     event OperatorApproved(address owner, address operator, bool approved);
+    event RewardPaid(address indexed account, uint256 reward);
 
     /*//////////////////////////////////////////////////////////////
                                 State
