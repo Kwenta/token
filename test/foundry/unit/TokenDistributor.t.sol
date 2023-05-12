@@ -38,8 +38,8 @@ contract TokenDistributorTest is Test {
             address(this)
         );
         rewardEscrowV2 = new RewardEscrowV2(address(this), address(kwenta));
-        /// @dev kwenta is plugged in for all parameters to control variables
-        /// @dev functions that are used by TokenDistributor shouldn't need the other dependencies
+        /// @dev kwenta is plugged in for all parameters except rewardEscrowV2 to control variables
+        /// functions that are used by TokenDistributor shouldn't need the other dependencies
         stakingRewardsV2 = new StakingRewardsV2(
             address(kwenta),
             address(rewardEscrowV2),
@@ -234,13 +234,13 @@ contract TokenDistributorTest is Test {
         tokenDistributor.claimDistribution(address(user2), 0);
     }
 
-    /// @notice claimDistribution happy case with partial claims in earlier epochs
-    /// @notice 2 complete epochs with differing fees
+    /// @notice claimDistribution happy case with partial claims 
+    /// in earlier epochs 2 complete epochs with differing fees
     /// @dev also an integration test with RewardEscrowV2
     function testClaimDistributionMultipleClaims() public {
         /// @dev user has 1/3 total staking and user2 has 2/3
-        /// @dev before epoch #0 (same as during) TokenDistributor
-        /// @dev receives 1000 in fees
+        /// before epoch #0 (same as during) TokenDistributor
+        /// receives 1000 in fees
         kwenta.transfer(address(tokenDistributor), 1000);
         kwenta.transfer(address(user), 1);
         kwenta.transfer(address(user2), 2);
@@ -253,7 +253,7 @@ contract TokenDistributorTest is Test {
         vm.warp(block.timestamp + 604801);
 
         /// @dev during epoch #1, user claims their fees from #0
-        /// @dev and TokenDistributor receives 5000 in fees
+        /// and TokenDistributor receives 5000 in fees
 
         vm.expectEmit(true, true, true, true);
         emit NewEpochCreated(604802, 1);
@@ -265,8 +265,8 @@ contract TokenDistributorTest is Test {
         tokenDistributor.claimDistribution(address(user), 0);
 
         /// @dev user claims for epoch #1 to start epoch #2
-        /// @dev user2 also claims for #1 and TokenDistributor
-        /// @dev receives 300 in fees
+        /// user2 also claims for #1 and TokenDistributor
+        /// receives 300 in fees
 
         vm.warp(block.timestamp + 604801);
         vm.prank(user);
