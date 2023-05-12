@@ -153,6 +153,10 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     /// @param maxCooldownPeriod maximum cooldown period
     error CooldownPeriodTooHigh(uint256 maxCooldownPeriod);
 
+    /// @notice error when trying to stakeEscrow more than the unstakedEscrow available
+    /// @param unstakedEscrow amount of unstaked escrow
+    error InsufficientUnstakedEscrow(uint256 unstakedEscrow);
+
     /// @notice the caller is not approved to take this action
     error NotApprovedOperator();
 
@@ -332,11 +336,8 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
         uint256 amount
     ) internal whenNotPaused updateReward(account) {
         require(amount > 0, "StakingRewards: Cannot stake 0");
-        // TODO: use custom error
-        require(
-            amount + escrowedBalanceOf(account) <= rewardEscrow.totalEscrowedAccountBalance(account),
-            "Insufficient unstaked escrow"
-        );
+        uint256 unstakedEscrow = rewardEscrow.totalEscrowedAccountBalance(account) - escrowedBalanceOf(account);
+        if (amount > unstakedEscrow) revert InsufficientUnstakedEscrow(unstakedEscrow);
 
         // update state
         userLastStakeTime[account] = block.timestamp;
