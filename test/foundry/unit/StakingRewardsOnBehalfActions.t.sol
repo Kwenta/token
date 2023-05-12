@@ -264,10 +264,94 @@ contract StakingRewardsOnBehalfActionsTests is DefaultStakingV2Setup {
         vm.prank(operator);
         vm.expectRevert(
             abi.encodeWithSelector(
-                StakingRewardsV2.InsufficientUnstakedEscrow.selector, escrowAmount
+                StakingRewardsV2.InsufficientUnstakedEscrow.selector,
+                escrowAmount
             )
         );
         stakingRewardsV2.stakeEscrowOnBehalf(owner, amountToEscrowStake);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                    Get Reward And Stake On Behalf
+    //////////////////////////////////////////////////////////////*/
+
+    function test_Get_Reward_And_Stake_On_Behalf() public {
+        fundAccountAndStakeV2(address(this), TEST_VALUE);
+
+        // assert initial rewards are 0
+        assertEq(rewardEscrowV2.balanceOf(address(this)), 0);
+        assertEq(rewardEscrowV2.balanceOf(user1), 0);
+
+        // send in 604800 (1 week) of rewards - (using 1 week for round numbers)
+        addNewRewardsToStakingRewardsV2(1 weeks);
+
+        // fast forward 1 week - one complete period
+        vm.warp(block.timestamp + stakingRewardsV2.rewardsDuration());
+
+        // approve operator
+        stakingRewardsV2.approveOperator(user1, true);
+
+        // claim rewards on behalf
+        vm.prank(user1);
+        stakingRewardsV2.getRewardOnBehalf(address(this));
+
+        // check rewards
+        assertEq(rewardEscrowV2.balanceOf(address(this)), 1 weeks);
+        assertEq(rewardEscrowV2.balanceOf(user1), 0);
+
+        // stake escrow on behalf
+        vm.prank(user1);
+        stakingRewardsV2.stakeEscrowOnBehalf(address(this), 1 weeks);
+
+        // check final escrowed balances
+        assertEq(stakingRewardsV2.escrowedBalanceOf(address(this)), 1 weeks);
+        assertEq(stakingRewardsV2.escrowedBalanceOf(user1), 0);
+    }
+
+    function test_Get_Reward_And_Stake_On_Behalf_Fuzz(
+        uint32 fundingAmount,
+        uint32 newRewards,
+        address owner,
+        address operator
+    ) public {
+        vm.assume(fundingAmount > 0);
+        vm.assume(newRewards > stakingRewardsV2.rewardsDuration());
+        vm.assume(owner != address(0));
+        vm.assume(operator != address(0));
+        vm.assume(operator != owner);
+
+        fundAccountAndStakeV2(owner, fundingAmount);
+
+        // assert initial rewards are 0
+        assertEq(rewardEscrowV2.balanceOf(owner), 0);
+        assertEq(rewardEscrowV2.balanceOf(operator), 0);
+
+        // send in rewards
+        addNewRewardsToStakingRewardsV2(newRewards);
+
+        // fast forward 1 week - one complete period
+        vm.warp(block.timestamp + stakingRewardsV2.rewardsDuration());
+
+        // approve operator
+        vm.prank(owner);
+        stakingRewardsV2.approveOperator(operator, true);
+
+        // claim rewards on behalf
+        vm.prank(operator);
+        stakingRewardsV2.getRewardOnBehalf(owner);
+
+        // check rewards
+        uint256 rewardEscrowBalance = rewardEscrowV2.balanceOf(owner);
+        assertGt(rewardEscrowBalance, 0);
+        assertEq(rewardEscrowV2.balanceOf(operator), 0);
+
+        // stake escrow on behalf
+        vm.prank(operator);
+        stakingRewardsV2.stakeEscrowOnBehalf(owner, rewardEscrowBalance);
+
+        // check final escrowed balances
+        assertEq(stakingRewardsV2.escrowedBalanceOf(owner), rewardEscrowBalance);
+        assertEq(stakingRewardsV2.escrowedBalanceOf(operator), 0);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -323,6 +407,5 @@ contract StakingRewardsOnBehalfActionsTests is DefaultStakingV2Setup {
         stakingRewardsV2.stakeEscrowOnBehalf(address(this), TEST_VALUE);
     }
 
-    // TODO: test getReward then staking Reward
     // TODO: test automated contract
 }
