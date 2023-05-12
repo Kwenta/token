@@ -185,6 +185,12 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
         _;
     }
 
+    modifier onlyApprovedOperator(address owner) {
+        if (!_operatorApprovals[owner][msg.sender])
+            revert NotApprovedOperator();
+        _;
+    }
+
     /*///////////////////////////////////////////////////////////////
                             CONSTRUCTOR
     ///////////////////////////////////////////////////////////////*/
@@ -354,11 +360,7 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     /// @notice stake escrowed token on behalf of another account
     /// @param account: address which owns token
     /// @param amount: amount to stake
-    function stakeEscrowOnBehalf(address account, uint256 amount) external override {
-        // TODO: extract into modifier 
-        if (!_operatorApprovals[account][msg.sender])
-            revert NotApprovedOperator();
-
+    function stakeEscrowOnBehalf(address account, uint256 amount) external override onlyApprovedOperator(account) {
         _stakeEscrow(account, amount);
     }
 
@@ -426,10 +428,7 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     /// @notice caller claims any rewards generated from staking on behalf of another account
     /// The rewards will be escrowed in RewardEscrow with the account as the beneficiary
     /// @param account: address which owns token
-    function getRewardOnBehalf(address account) external override {
-        // TODO: extract into modifier
-        if (!_operatorApprovals[account][msg.sender])
-            revert NotApprovedOperator();
+    function getRewardOnBehalf(address account) external override onlyApprovedOperator(account) {
         _getReward(account);
     }
 
