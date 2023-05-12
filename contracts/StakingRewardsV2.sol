@@ -156,6 +156,9 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     /// @notice the caller is not approved to take this action
     error NotApprovedOperator();
 
+    /// @notice attempted to approve self as an operator
+    error CannotApproveSelf();
+
     /*///////////////////////////////////////////////////////////////
                                 AUTH
     ///////////////////////////////////////////////////////////////*/
@@ -430,8 +433,8 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
 
     // TODO: add to interface and override and natspec
     function approveOperator(address operator, bool approved) external {
-        // TODO: use custom error
-        require(operator != msg.sender, "approve to caller");
+        if (operator == msg.sender) revert CannotApproveSelf();
+
         _operatorApprovals[msg.sender][operator] = approved;
 
         emit OperatorApproved(msg.sender, operator, approved);
