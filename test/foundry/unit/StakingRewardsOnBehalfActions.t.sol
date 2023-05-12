@@ -36,6 +36,36 @@ contract StakingRewardsOnBehalfActionsTests is DefaultStakingV2Setup {
         assertEq(rewardEscrowV2.balanceOf(user1), 0);
     }
 
+    function test_getRewardOnBehalf_Fuzz(uint32 fundingAmount, uint32 newRewards, address user) public {
+        vm.assume(fundingAmount > 0);
+        vm.assume(newRewards > stakingRewardsV2.rewardsDuration());
+        vm.assume(user != address(0));
+        vm.assume(user != address(this));
+
+        fundAccountAndStakeV2(address(this), fundingAmount);
+
+        // assert initial rewards are 0
+        assertEq(rewardEscrowV2.balanceOf(address(this)), 0);
+        assertEq(rewardEscrowV2.balanceOf(user), 0);
+
+        // send in rewards
+        addNewRewardsToStakingRewardsV2(newRewards);
+
+        // fast forward 1 week - one complete period
+        vm.warp(block.timestamp + stakingRewardsV2.rewardsDuration());
+
+        // approve operator
+        stakingRewardsV2.approveOperator(user, true);
+
+        // claim rewards on behalf
+        vm.prank(user);
+        stakingRewardsV2.getRewardOnBehalf(address(this));
+
+        // check rewards
+        assertGt(rewardEscrowV2.balanceOf(address(this)), 0);
+        assertEq(rewardEscrowV2.balanceOf(user), 0);
+    }
+
     /*//////////////////////////////////////////////////////////////
                             Access Control
     //////////////////////////////////////////////////////////////*/
