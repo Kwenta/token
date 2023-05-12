@@ -26,6 +26,12 @@ contract StakingRewardsV2 is
                                 CONSTANTS
     ///////////////////////////////////////////////////////////////*/
 
+    /// @notice minimum time length of the unstaking cooldown period
+    uint256 public constant MIN_COOLDOWN_PERIOD = 1 weeks;
+
+    /// @notice maximum time length of the unstaking cooldown period
+    uint256 public constant MAX_COOLDOWN_PERIOD = 52 weeks;
+
     /// @notice token used for BOTH staking and rewards
     IERC20 public immutable token;
 
@@ -37,12 +43,6 @@ contract StakingRewardsV2 is
 
     /// @notice previous version of staking rewards contract - used for migration
     IStakingRewards public immutable stakingRewardsV1;
-
-    /// @notice minimum time length of the unstaking cooldown period
-    uint256 public constant minCooldownPeriod = 1 weeks;
-
-    /// @notice maximum time length of the unstaking cooldown period
-    uint256 public constant maxCooldownPeriod = 52 weeks;
 
     /*///////////////////////////////////////////////////////////////
                                 STATE
@@ -151,12 +151,12 @@ contract StakingRewardsV2 is
     error CannotUnstakeDuringCooldown(uint256 canUnstakeAt);
 
     /// @notice error when trying to set a cooldown period below the minimum
-    /// @param minCooldownPeriod minimum cooldown period
-    error CooldownPeriodTooLow(uint256 minCooldownPeriod);
+    /// @param MIN_COOLDOWN_PERIOD minimum cooldown period
+    error CooldownPeriodTooLow(uint256 MIN_COOLDOWN_PERIOD);
 
     /// @notice error when trying to set a cooldown period above the maximum
-    /// @param maxCooldownPeriod maximum cooldown period
-    error CooldownPeriodTooHigh(uint256 maxCooldownPeriod);
+    /// @param MAX_COOLDOWN_PERIOD maximum cooldown period
+    error CooldownPeriodTooHigh(uint256 MAX_COOLDOWN_PERIOD);
 
     /// @notice error when trying to stakeEscrow more than the unstakedEscrow available
     /// @param unstakedEscrow amount of unstaked escrow
@@ -758,11 +758,11 @@ contract StakingRewardsV2 is
         override
         onlyOwner
     {
-        if (_unstakingCooldownPeriod < minCooldownPeriod) {
-            revert CooldownPeriodTooLow(minCooldownPeriod);
+        if (_unstakingCooldownPeriod < MIN_COOLDOWN_PERIOD) {
+            revert CooldownPeriodTooLow(MIN_COOLDOWN_PERIOD);
         }
-        if (_unstakingCooldownPeriod > maxCooldownPeriod) {
-            revert CooldownPeriodTooHigh(maxCooldownPeriod);
+        if (_unstakingCooldownPeriod > MAX_COOLDOWN_PERIOD) {
+            revert CooldownPeriodTooHigh(MAX_COOLDOWN_PERIOD);
         }
 
         unstakingCooldownPeriod = _unstakingCooldownPeriod;

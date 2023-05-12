@@ -196,8 +196,8 @@ contract StakingV2CooldownPeriodTests is DefaultStakingV2Setup {
     }
 
     function test_setUnstakingCooldownPeriod_Fuzz(uint128 newCooldownPeriod, uint128 timeJump) public {
-        vm.assume(newCooldownPeriod > stakingRewardsV2.minCooldownPeriod());
-        vm.assume(newCooldownPeriod < stakingRewardsV2.maxCooldownPeriod());
+        vm.assume(newCooldownPeriod > stakingRewardsV2.MIN_COOLDOWN_PERIOD());
+        vm.assume(newCooldownPeriod < stakingRewardsV2.MAX_COOLDOWN_PERIOD());
 
         // Expect correct event emitted
         vm.expectEmit(true, false, false, true);
@@ -250,7 +250,7 @@ contract StakingV2CooldownPeriodTests is DefaultStakingV2Setup {
         if (newCooldownPeriod < 1 weeks) {
             vm.expectRevert(
                 abi.encodeWithSelector(
-                    StakingRewardsV2.CooldownPeriodTooLow.selector, stakingRewardsV2.minCooldownPeriod()
+                    StakingRewardsV2.CooldownPeriodTooLow.selector, stakingRewardsV2.MIN_COOLDOWN_PERIOD()
                 )
             );
         }
@@ -259,7 +259,7 @@ contract StakingV2CooldownPeriodTests is DefaultStakingV2Setup {
         if (newCooldownPeriod > 52 weeks) {
             vm.expectRevert(
                 abi.encodeWithSelector(
-                    StakingRewardsV2.CooldownPeriodTooHigh.selector, stakingRewardsV2.maxCooldownPeriod()
+                    StakingRewardsV2.CooldownPeriodTooHigh.selector, stakingRewardsV2.MAX_COOLDOWN_PERIOD()
                 )
             );
         }
