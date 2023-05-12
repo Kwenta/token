@@ -234,6 +234,39 @@ contract TokenDistributorTest is Test {
         tokenDistributor.claimDistribution(address(user2), 0);
     }
 
+    /// @notice claimDistribution happy case with a person who
+    /// was previously staked but is now unstaked and trying to
+    /// claim their fees
+    function testClaimDistributionPreviouslyStaked() public {
+        //setup
+        kwenta.transfer(address(tokenDistributor), 10);
+        kwenta.transfer(address(user), 1);
+        vm.prank(address(rewardEscrowV2));
+        stakingRewardsV2.stakeEscrow(address(user), 1);
+        stakingRewardsV2.balanceAtBlock(user, 1);
+        //vm.warp(block.timestamp + 1);
+        vm.prank(user);
+        tokenDistributor.newDistribution();
+        vm.warp(block.timestamp + 604801);
+        vm.expectEmit(true, true, true, true);
+        emit NewEpochCreated(604802, 1);
+        tokenDistributor.newDistribution();
+
+        vm.warp(block.timestamp + 1209601);
+        stakingRewardsV2.balanceAtBlock(user, 1);
+        vm.prank(address(rewardEscrowV2));
+        stakingRewardsV2.unstakeEscrow(address(user), 1);
+        stakingRewardsV2.balanceAtBlock(user, 1);
+        tokenDistributor.newDistribution();
+        vm.warp(block.timestamp + 604801);
+        tokenDistributor.newDistribution();
+
+        vm.prank(user);
+        tokenDistributor.claimDistribution(address(user), 0);
+
+
+    }
+
     /// @notice claimDistribution happy case with partial claims
     /// in earlier epochs 2 complete epochs with differing fees
     /// @dev also an integration test with RewardEscrowV2
@@ -265,8 +298,8 @@ contract TokenDistributorTest is Test {
         tokenDistributor.claimDistribution(address(user), 0);
 
         /// @dev user claims for epoch #1 to start epoch #2
-        /// user2 also claims for #1 and TokenDistributor
-        /// receives 300 in fees
+        /// user2 also claims for #1 and #0
+        /// and TokenDistributor receives 300 in fees
 
         vm.warp(block.timestamp + 604801);
         vm.prank(user);
@@ -281,5 +314,9 @@ contract TokenDistributorTest is Test {
         vm.expectEmit(true, true, false, true);
         emit VestingEntryCreated(address(user2), 3333, 31449600, 3);
         tokenDistributor.claimDistribution(address(user2), 1);
+        vm.prank(user2);
+        vm.expectEmit(true, true, false, true);
+        emit VestingEntryCreated(address(user2), 666, 31449600, 4);
+        tokenDistributor.claimDistribution(address(user2), 0);
     }
 }
