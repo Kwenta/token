@@ -25,6 +25,7 @@ contract StakingTestHelpers is TestHelpers {
     event VestingEntryTransfer(address from, address to, uint256 entryID);
     event OperatorApproved(address owner, address operator, bool approved);
     event RewardPaid(address indexed account, uint256 reward);
+    event EscrowStaked(address indexed user, uint256 amount);
 
     /*//////////////////////////////////////////////////////////////
                                 State

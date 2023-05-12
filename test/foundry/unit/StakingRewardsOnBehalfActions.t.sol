@@ -264,7 +264,19 @@ contract StakingRewardsOnBehalfActionsTests is DefaultStakingV2Setup {
         stakingRewardsV2.getRewardOnBehalf(address(this));
     }
 
-    // TODO: test staking on behalf emits an event
+    function test_stakeEscrowOnBehalf_Emits_Event() public {
+        createRewardEscrowEntryV2(address(this), TEST_VALUE, 52 weeks);
+
+        // approve operator
+        stakingRewardsV2.approveOperator(user1, true);
+
+        // stake escrow on behalf
+        vm.expectEmit(true, true, false, true);
+        emit EscrowStaked(address(this), TEST_VALUE);
+        vm.prank(user1);
+        stakingRewardsV2.stakeEscrowOnBehalf(address(this), TEST_VALUE);
+    }
+
     // TODO: test getReward then staking Reward
     // TODO: test automated contract
     // TODO: test escrow staking too large an amount on behalf
