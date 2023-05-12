@@ -130,11 +130,6 @@ contract TokenDistributorTest is Test {
         vm.expectEmit(true, true, true, true);
         emit NewEpochCreated(604802, 1);
         tokenDistributor.claimDistribution(address(user), 0);
-
-        //todo: change to rewardEscrow outcome
-        //assert that user got all the fees
-        //vm.warp(block.timestamp + 31449601);
-        //assertEq(kwenta.balanceOf(user), 11);
     }
 
     /// @notice claimDistribution happy case and don't make a new epoch
@@ -218,6 +213,25 @@ contract TokenDistributorTest is Test {
             "TokenDistributor: Nothing was staked in StakingRewardsV2 that epoch"
         );
         tokenDistributor.claimDistribution(address(user), 0);
+    }
+
+    /// @notice claimDistribution fail - nonstaker tries to claim
+    function testFailClaimDistributionNotStaker() public {
+        //setup
+        kwenta.transfer(address(tokenDistributor), 10);
+        kwenta.transfer(address(user), 1);
+        vm.prank(address(rewardEscrowV2));
+        stakingRewardsV2.stakeEscrow(address(user), 1);
+        vm.prank(user);
+        tokenDistributor.newDistribution();
+        vm.warp(block.timestamp + 604801);
+        vm.prank(user);
+        vm.expectEmit(true, true, true, true);
+        emit NewEpochCreated(604802, 1);
+        tokenDistributor.claimDistribution(address(user), 0);
+
+        vm.prank(user2);
+        tokenDistributor.claimDistribution(address(user2), 0);
     }
 
     /// @notice claimDistribution happy case with partial claims in earlier epochs
