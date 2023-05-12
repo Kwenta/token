@@ -3,6 +3,7 @@ pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
 import {DefaultStakingV2Setup} from "../utils/DefaultStakingV2Setup.t.sol";
+import {StakingRewardsV2} from "../../../contracts/StakingRewardsV2.sol";
 import "../utils/Constants.t.sol";
 
 contract StakingRewardsV2Test is DefaultStakingV2Setup {
@@ -289,6 +290,31 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         // check balance increased
         assertEq(kwenta.balanceOf(address(stakingRewardsV2)), initialBalance);
     }
+
+    function test_Cannot_StakeEscrow_Too_Much() public {
+        createRewardEscrowEntryV2(address(this), TEST_VALUE, 52 weeks);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                StakingRewardsV2.InsufficientUnstakedEscrow.selector, TEST_VALUE
+            )
+        );
+        rewardEscrowV2.stakeEscrow(TEST_VALUE + 1);
+    }
+
+    function test_Cannot_StakeEscrow_Too_Much_Fuzz(uint32 escrowAmount, uint32 amountToEscrowStake, uint24 duration) public {
+        vm.assume(escrowAmount > 0);
+        vm.assume(amountToEscrowStake > escrowAmount);
+        vm.assume(duration > 0);
+
+        createRewardEscrowEntryV2(address(this), escrowAmount, duration);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                StakingRewardsV2.InsufficientUnstakedEscrow.selector, escrowAmount
+            )
+        );
+        rewardEscrowV2.stakeEscrow(amountToEscrowStake);
+    }
+
 
     function test_Escrow_Staking_Increases_Balances_Mapping() public {
         uint256 initialBalance = stakingRewardsV2.balanceOf(address(this));

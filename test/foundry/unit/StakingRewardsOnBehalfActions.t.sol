@@ -248,8 +248,7 @@ contract StakingRewardsOnBehalfActionsTests is DefaultStakingV2Setup {
         uint24 duration
     ) public {
         vm.assume(escrowAmount > 0);
-        vm.assume(amountToEscrowStake > 0);
-        vm.assume (amountToEscrowStake > escrowAmount);
+        vm.assume(amountToEscrowStake > escrowAmount);
         vm.assume(duration > 0);
         vm.assume(owner != address(0));
         vm.assume(operator != address(0));
@@ -326,6 +325,4 @@ contract StakingRewardsOnBehalfActionsTests is DefaultStakingV2Setup {
 
     // TODO: test getReward then staking Reward
     // TODO: test automated contract
-    // TODO: test escrow staking too large an amount on behalf
-    // TODO: test escrow staking too large amount via rewardEscrow
 }
