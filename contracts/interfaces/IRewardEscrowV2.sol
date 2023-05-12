@@ -21,6 +21,8 @@ interface IRewardEscrowV2 {
 
     function balanceOf(address account) external view returns (uint256);
 
+    function unstakedEscrowBalanceOf(address account) external view returns (uint256);
+
     function numVestingEntries(address account) external view returns (uint256);
 
     function totalEscrowedAccountBalance(address account)

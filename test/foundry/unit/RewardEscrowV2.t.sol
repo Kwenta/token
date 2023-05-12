@@ -656,7 +656,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
 
         // transfer vesting entry from user1 to user2
         vm.prank(user1);
-        vm.expectEmit(true, true, true, false);
+        vm.expectEmit(true, true, true, true);
         emit VestingEntryTransfer(user1, user2, user1EntryID);
         rewardEscrowV2.transferVestingEntry(user1EntryID, user2);
     }
@@ -675,7 +675,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         uint256 entryToTransferIndex = getPseudoRandomNumber(numberOfEntries - 1, 0, escrowAmount);
         uint256 user1EntryID = rewardEscrowV2.getAccountVestingEntryIDs(user1, entryToTransferIndex, 1)[0];
         vm.prank(user1);
-        vm.expectEmit(true, true, true, false);
+        vm.expectEmit(true, true, true, true);
         emit VestingEntryTransfer(user1, user2, user1EntryID);
         rewardEscrowV2.transferVestingEntry(user1EntryID, user2);
     }
@@ -690,7 +690,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         // transfer vesting entry from user1 to user2
         entryIDs.push(user1EntryID);
         vm.prank(user1);
-        vm.expectEmit(true, true, true, false);
+        vm.expectEmit(true, true, true, true);
         emit VestingEntryTransfer(user1, user2, user1EntryID);
         rewardEscrowV2.bulkTransferVestingEntries(entryIDs, user2);
     }
@@ -710,7 +710,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
 
         // transfer vesting entries from user1 to user2
         for (uint256 i = 0; i < numberOfEntries; ++i) {
-            vm.expectEmit(true, true, true, false);
+            vm.expectEmit(true, true, true, true);
             emit VestingEntryTransfer(user1, user2, i + 1);
         }
         vm.prank(user1);

@@ -23,6 +23,9 @@ contract StakingTestHelpers is TestHelpers {
     event RewardsDurationUpdated(uint256 newDuration);
     event UnstakingCooldownPeriodUpdated(uint256 unstakingCooldownPeriod);
     event VestingEntryTransfer(address from, address to, uint256 entryID);
+    event OperatorApproved(address owner, address operator, bool approved);
+    event RewardPaid(address indexed account, uint256 reward);
+    event EscrowStaked(address indexed user, uint256 amount);
 
     /*//////////////////////////////////////////////////////////////
                                 State
@@ -244,6 +247,11 @@ contract StakingTestHelpers is TestHelpers {
         stakingRewardsV1.unstake(amount);
     }
 
+    function exitStakingV1(address account) public {
+        vm.prank(account);
+        stakingRewardsV1.exit();
+    }
+
     function getStakingRewardsV1(address account) public {
         vm.prank(account);
         stakingRewardsV1.getReward();
@@ -315,8 +323,9 @@ contract StakingTestHelpers is TestHelpers {
     }
 
     function stakeEscrowedFundsV2(address account, uint256 amount) public {
-        vm.prank(address(rewardEscrowV2));
-        stakingRewardsV2.stakeEscrow(account, amount);
+        if (amount != 0) createRewardEscrowEntryV2(account, amount, 52 weeks);
+        vm.prank(account);
+        rewardEscrowV2.stakeEscrow(amount);
     }
 
     function unstakeEscrowedFundsV2(address account, uint256 amount) public {
@@ -360,12 +369,12 @@ contract StakingTestHelpers is TestHelpers {
         rewardEscrowV2.appendVestingEntry(account, amount, duration);
     }
 
-    // INTEGRATION HELPERS
     function getStakingRewardsV2(address account) public {
         vm.prank(account);
         stakingRewardsV2.getReward();
     }
 
+    // INTEGRATION HELPERS
     function stakeAllUnstakedEscrowV2(address account) public {
         uint256 amount = getNonStakedEscrowAmountV2(account);
         vm.prank(account);

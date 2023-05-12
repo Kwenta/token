@@ -25,18 +25,13 @@ contract StakingV1RewardCalculationTests is StakingTestHelpers {
         assertEq(rewards, 0);
 
         // send in 604800 (1 week) of rewards - (using 1 week for round numbers)
-        uint256 newRewards = 1 weeks;
-        vm.prank(treasury);
-        kwenta.transfer(address(stakingRewardsV1), newRewards);
-        vm.prank(address(supplySchedule));
-        stakingRewardsV1.notifyRewardAmount(newRewards);
+        addNewRewardsToStakingRewardsV1(1 weeks);
 
         // fast forward 1 week - one complete period
         vm.warp(block.timestamp + lengthOfPeriod);
 
         // get the rewards
-        vm.prank(user1);
-        stakingRewardsV1.getReward();
+        getStakingRewardsV1(user1);
 
         // general formula for rewards should be:
         // newRewards = reward * min(timePassed, 1 weeks) / 1 weeks
@@ -56,17 +51,13 @@ contract StakingV1RewardCalculationTests is StakingTestHelpers {
         assertEq(rewards, expectedRewards);
 
         // send in another 604800 (1 week) of rewards
-        vm.prank(treasury);
-        kwenta.transfer(address(stakingRewardsV1), newRewards);
-        vm.prank(address(supplySchedule));
-        stakingRewardsV1.notifyRewardAmount(newRewards);
+        addNewRewardsToStakingRewardsV1(1 weeks);
 
         // fast forward 1 week - one complete period
         vm.warp(block.timestamp + lengthOfPeriod);
 
         // get the rewards
-        vm.prank(user1);
-        stakingRewardsV1.getReward();
+        getStakingRewardsV1(user1);
 
         // check rewards
         rewards = rewardEscrowV1.balanceOf(user1);
@@ -105,8 +96,7 @@ contract StakingV1RewardCalculationTests is StakingTestHelpers {
         vm.warp(block.timestamp + waitTime);
 
         // get the rewards
-        vm.prank(user1);
-        stakingRewardsV1.getReward();
+        getStakingRewardsV1(user1);
 
         // check rewards
         rewards = rewardEscrowV1.balanceOf(user1);
@@ -120,8 +110,7 @@ contract StakingV1RewardCalculationTests is StakingTestHelpers {
         expectedRewards += getExpectedRewardV1(newReward, rewardsDuration, user1);
 
         // get the rewards
-        vm.prank(user1);
-        stakingRewardsV1.getReward();
+        getStakingRewardsV1(user1);
 
         // check rewards
         rewards = rewardEscrowV1.balanceOf(user1);
@@ -166,8 +155,7 @@ contract StakingV1RewardCalculationTests is StakingTestHelpers {
         vm.warp(block.timestamp + waitTime);
 
         // get the rewards
-        vm.prank(user1);
-        stakingRewardsV1.getReward();
+        getStakingRewardsV1(user1);
 
         // check rewards
         rewards = rewardEscrowV1.balanceOf(user1);
@@ -181,8 +169,7 @@ contract StakingV1RewardCalculationTests is StakingTestHelpers {
         expectedRewards += getExpectedRewardV1(newReward, rewardsDuration, user1);
 
         // get the rewards
-        vm.prank(user1);
-        stakingRewardsV1.getReward();
+        getStakingRewardsV1(user1);
 
         // check rewards
         rewards = rewardEscrowV1.balanceOf(user1);
@@ -216,8 +203,7 @@ contract StakingV1RewardCalculationTests is StakingTestHelpers {
         vm.warp(block.timestamp + waitTime);
 
         // get the rewards
-        vm.prank(user1);
-        stakingRewardsV1.getReward();
+        getStakingRewardsV1(user1);
 
         // check rewards
         rewards = rewardEscrowV1.balanceOf(user1);
@@ -237,8 +223,7 @@ contract StakingV1RewardCalculationTests is StakingTestHelpers {
         vm.warp(block.timestamp + newWaitTime);
 
         // get the rewards
-        vm.prank(user1);
-        stakingRewardsV1.getReward();
+        getStakingRewardsV1(user1);
 
         // check rewards
         rewards = rewardEscrowV1.balanceOf(user1);
@@ -270,8 +255,7 @@ contract StakingV1RewardCalculationTests is StakingTestHelpers {
         vm.warp(block.timestamp + waitTime);
 
         // get the rewards
-        vm.prank(user1);
-        stakingRewardsV1.getReward();
+        getStakingRewardsV1(user1);
 
         // check rewards
         rewards = rewardEscrowV1.balanceOf(user1);
@@ -291,8 +275,7 @@ contract StakingV1RewardCalculationTests is StakingTestHelpers {
         vm.warp(block.timestamp + waitTime);
 
         // get the rewards
-        vm.prank(user1);
-        stakingRewardsV1.getReward();
+        getStakingRewardsV1(user1);
 
         // check rewards
         rewards = rewardEscrowV1.balanceOf(user1);
@@ -312,8 +295,7 @@ contract StakingV1RewardCalculationTests is StakingTestHelpers {
         vm.warp(block.timestamp + waitTime);
 
         // get the rewards
-        vm.prank(user1);
-        stakingRewardsV1.getReward();
+        getStakingRewardsV1(user1);
 
         // check rewards
         rewards = rewardEscrowV1.balanceOf(user1);
@@ -351,8 +333,7 @@ contract StakingV1RewardCalculationTests is StakingTestHelpers {
         vm.warp(block.timestamp + waitTime);
 
         // get the rewards
-        vm.prank(user1);
-        stakingRewardsV1.getReward();
+        getStakingRewardsV1(user1);
 
         // check rewards
         rewards = rewardEscrowV1.balanceOf(user1);
@@ -373,8 +354,7 @@ contract StakingV1RewardCalculationTests is StakingTestHelpers {
             vm.warp(block.timestamp + waitTime);
 
             // get the rewards
-            vm.prank(user1);
-            stakingRewardsV1.getReward();
+            getStakingRewardsV1(user1);
 
             // check rewards
             rewards = rewardEscrowV1.balanceOf(user1);
@@ -421,8 +401,7 @@ contract StakingV1RewardCalculationTests is StakingTestHelpers {
         vm.warp(block.timestamp + waitTime);
 
         // get the rewards
-        vm.prank(user1);
-        stakingRewardsV1.getReward();
+        getStakingRewardsV1(user1);
 
         // check rewards
         rewards = rewardEscrowV1.balanceOf(user1);
@@ -447,8 +426,7 @@ contract StakingV1RewardCalculationTests is StakingTestHelpers {
             vm.warp(block.timestamp + waitTime);
 
             // get the rewards
-            vm.prank(user1);
-            stakingRewardsV1.getReward();
+            getStakingRewardsV1(user1);
 
             // check rewards
             rewards = rewardEscrowV1.balanceOf(user1);
@@ -471,18 +449,13 @@ contract StakingV1RewardCalculationTests is StakingTestHelpers {
         assertEq(rewards, 0);
 
         // send in 604800 (1 week) of rewards - (using 1 week for round numbers)
-        uint256 newRewards = 1 weeks;
-        vm.prank(treasury);
-        kwenta.transfer(address(stakingRewardsV1), newRewards);
-        vm.prank(address(supplySchedule));
-        stakingRewardsV1.notifyRewardAmount(newRewards);
+        addNewRewardsToStakingRewardsV1(1 weeks);
 
         // fast forward 0.5 weeks - half of one complete period
         vm.warp(block.timestamp + lengthOfPeriod / 2);
 
         // get the rewards
-        vm.prank(user1);
-        stakingRewardsV1.getReward();
+        getStakingRewardsV1(user1);
 
         // general formula for rewards should be:
         // newRewards = reward * min(timePassed, 1 weeks) / 1 weeks
@@ -505,8 +478,7 @@ contract StakingV1RewardCalculationTests is StakingTestHelpers {
         vm.warp(block.timestamp + lengthOfPeriod / 2);
 
         // get the rewards
-        vm.prank(user1);
-        stakingRewardsV1.getReward();
+        getStakingRewardsV1(user1);
 
         // check rewards
         rewards = rewardEscrowV1.balanceOf(user1);

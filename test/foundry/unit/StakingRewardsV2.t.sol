@@ -3,6 +3,7 @@ pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
 import {DefaultStakingV2Setup} from "../utils/DefaultStakingV2Setup.t.sol";
+import {StakingRewardsV2} from "../../../contracts/StakingRewardsV2.sol";
 import "../utils/Constants.t.sol";
 
 contract StakingRewardsV2Test is DefaultStakingV2Setup {
@@ -32,12 +33,13 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
     }
 
     function test_RewardEscrowV2_Set() public {
-        address rewardEscrowV2Address = address(stakingRewardsV2.rewardEscrowV2());
+        address rewardEscrowV2Address = address(stakingRewardsV2.rewardEscrow());
         assertEq(rewardEscrowV2Address, address(rewardEscrowV2));
     }
 
     function test_SupplySchedule_Set() public {
-        address supplyScheduleAddress = address(stakingRewardsV2.supplySchedule());
+        address supplyScheduleAddress =
+            address(stakingRewardsV2.supplySchedule());
         assertEq(supplyScheduleAddress, address(supplySchedule));
     }
 
@@ -73,6 +75,8 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
     }
 
     function test_Cannot_unStakeEscrow_Invalid_Amount() public {
+        vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+
         vm.expectRevert("StakingRewards: Invalid Amount");
         unstakeEscrowedFundsV2(address(this), TEST_VALUE);
     }
@@ -228,7 +232,10 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         stakingRewardsV2.stake(TEST_VALUE);
 
         // check balance increased
-        assertEq(kwenta.balanceOf(address(stakingRewardsV2)), initialBalance + TEST_VALUE);
+        assertEq(
+            kwenta.balanceOf(address(stakingRewardsV2)),
+            initialBalance + TEST_VALUE
+        );
     }
 
     function test_stake_Increases_Balances_Mapping() public {
@@ -241,11 +248,15 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         stakingRewardsV2.stake(TEST_VALUE);
 
         // check balances mapping updated
-        assertEq(stakingRewardsV2.balanceOf(address(this)), initialBalance + TEST_VALUE);
+        assertEq(
+            stakingRewardsV2.balanceOf(address(this)),
+            initialBalance + TEST_VALUE
+        );
     }
 
     function test_stake_Does_Not_Increase_Escrowed_Balances() public {
-        uint256 initialBalance = stakingRewardsV2.escrowedBalanceOf(address(this));
+        uint256 initialBalance =
+            stakingRewardsV2.escrowedBalanceOf(address(this));
 
         // fund so that staking can succeed
         fundAndApproveAccountV2(address(this), TEST_VALUE);
@@ -254,7 +265,9 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         stakingRewardsV2.stake(TEST_VALUE);
 
         // check balances mapping updated
-        assertEq(stakingRewardsV2.escrowedBalanceOf(address(this)), initialBalance);
+        assertEq(
+            stakingRewardsV2.escrowedBalanceOf(address(this)), initialBalance
+        );
     }
 
     function test_stake_Increases_totalSupply() public {
@@ -267,7 +280,9 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         stakingRewardsV2.stake(TEST_VALUE);
 
         // check total supply updated
-        assertEq(stakingRewardsV2.totalSupply(), initialTotalSupply + TEST_VALUE);
+        assertEq(
+            stakingRewardsV2.totalSupply(), initialTotalSupply + TEST_VALUE
+        );
     }
 
     function test_Cannot_stake_0() public {
@@ -290,6 +305,35 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         assertEq(kwenta.balanceOf(address(stakingRewardsV2)), initialBalance);
     }
 
+    function test_Cannot_StakeEscrow_Too_Much() public {
+        createRewardEscrowEntryV2(address(this), TEST_VALUE, 52 weeks);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                StakingRewardsV2.InsufficientUnstakedEscrow.selector, TEST_VALUE
+            )
+        );
+        rewardEscrowV2.stakeEscrow(TEST_VALUE + 1);
+    }
+
+    function test_Cannot_StakeEscrow_Too_Much_Fuzz(
+        uint32 escrowAmount,
+        uint32 amountToEscrowStake,
+        uint24 duration
+    ) public {
+        vm.assume(escrowAmount > 0);
+        vm.assume(amountToEscrowStake > escrowAmount);
+        vm.assume(duration > 0);
+
+        createRewardEscrowEntryV2(address(this), escrowAmount, duration);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                StakingRewardsV2.InsufficientUnstakedEscrow.selector,
+                escrowAmount
+            )
+        );
+        rewardEscrowV2.stakeEscrow(amountToEscrowStake);
+    }
+
     function test_Escrow_Staking_Increases_Balances_Mapping() public {
         uint256 initialBalance = stakingRewardsV2.balanceOf(address(this));
 
@@ -297,17 +341,24 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         stakeEscrowedFundsV2(address(this), TEST_VALUE);
 
         // check balances mapping updated
-        assertEq(stakingRewardsV2.balanceOf(address(this)), initialBalance + TEST_VALUE);
+        assertEq(
+            stakingRewardsV2.balanceOf(address(this)),
+            initialBalance + TEST_VALUE
+        );
     }
 
     function test_Escrow_Staking_Increases_Escrowed_Balances() public {
-        uint256 initialBalance = stakingRewardsV2.escrowedBalanceOf(address(this));
+        uint256 initialBalance =
+            stakingRewardsV2.escrowedBalanceOf(address(this));
 
         // stake
         stakeEscrowedFundsV2(address(this), TEST_VALUE);
 
         // check balances mapping updated
-        assertEq(stakingRewardsV2.escrowedBalanceOf(address(this)), initialBalance + TEST_VALUE);
+        assertEq(
+            stakingRewardsV2.escrowedBalanceOf(address(this)),
+            initialBalance + TEST_VALUE
+        );
     }
 
     function test_Escrow_Staking_Increases_totalSupply() public {
@@ -317,7 +368,9 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         stakeEscrowedFundsV2(address(this), TEST_VALUE);
 
         // check total supply updated
-        assertEq(stakingRewardsV2.totalSupply(), initialTotalSupply + TEST_VALUE);
+        assertEq(
+            stakingRewardsV2.totalSupply(), initialTotalSupply + TEST_VALUE
+        );
     }
 
     function test_Cannot_Escrow_Stake_0() public {
@@ -329,6 +382,8 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         // stake escrow
         stakeEscrowedFundsV2(address(this), TEST_VALUE);
 
+        vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+
         // this would work if unstakeEscrow was called
         // but unstake is called so it fails
         vm.expectRevert("StakingRewards: Invalid Amount");
@@ -338,6 +393,8 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
     function test_Cannot_exit_With_Only_Escrow_Staked_Balance() public {
         // stake escrow
         stakeEscrowedFundsV2(address(this), TEST_VALUE);
+
+        vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
 
         // exit - this fails because exit uses unstake not unstakeEscrow
         vm.expectRevert("StakingRewards: Cannot Unstake 0");
@@ -392,7 +449,8 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         assertTrue(stakingRewardsV2.earned(address(this)) > 0);
     }
 
-    function test_rewardRate_Should_Increase_If_New_Rewards_Come_Before_Duration_Ends() public {
+    function test_rewardRate_Should_Increase_If_New_Rewards_Come_Before_Duration_Ends(
+    ) public {
         fundAndApproveAccountV2(address(this), 1 weeks);
 
         uint256 totalToDistribute = 5 ether;
@@ -520,7 +578,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         vm.warp(2 weeks);
 
         // set rewards duration
-        vm.expectEmit(true, true, false, false);
+        vm.expectEmit(true, false, false, true);
         emit RewardsDurationUpdated(30 days);
         stakingRewardsV2.setRewardsDuration(30 days);
 
@@ -530,7 +588,9 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
     }
 
-    function test_Update_Duration_After_Period_Has_Finished_And_Get_Rewards() public {
+    function test_Update_Duration_After_Period_Has_Finished_And_Get_Rewards()
+        public
+    {
         fundAndApproveAccountV2(address(this), TEST_VALUE);
 
         // stake
@@ -546,7 +606,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         vm.warp(block.timestamp + 1 weeks);
 
         // set rewards duration
-        vm.expectEmit(true, true, false, false);
+        vm.expectEmit(true, false, false, true);
         emit RewardsDurationUpdated(30 days);
         stakingRewardsV2.setRewardsDuration(30 days);
 
@@ -580,6 +640,8 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
     //////////////////////////////////////////////////////////////*/
 
     function test_Cannot_unstake_If_Nothing_Staked() public {
+        vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+
         vm.expectRevert("StakingRewards: Invalid Amount");
         stakingRewardsV2.unstake(TEST_VALUE);
     }
@@ -590,7 +652,8 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         stakingRewardsV2.stake(TEST_VALUE);
 
         uint256 initialTokenBalance = kwenta.balanceOf(address(this));
-        uint256 initialStakingBalance = stakingRewardsV2.balanceOf(address(this));
+        uint256 initialStakingBalance =
+            stakingRewardsV2.balanceOf(address(this));
 
         vm.warp(block.timestamp + 2 weeks);
         stakingRewardsV2.unstake(TEST_VALUE);
@@ -603,6 +666,8 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
     }
 
     function test_Cannot_unstake_0() public {
+        vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+
         vm.expectRevert("StakingRewards: Cannot Unstake 0");
         stakingRewardsV2.unstake(0);
     }
@@ -612,6 +677,8 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
     //////////////////////////////////////////////////////////////*/
 
     function test_Cannot_unstakeEscrow_If_None_Staked() public {
+        vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+
         vm.expectRevert("StakingRewards: Invalid Amount");
         unstakeEscrowedFundsV2(address(this), TEST_VALUE);
     }
@@ -621,7 +688,8 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         stakeEscrowedFundsV2(address(this), 1 weeks);
 
         uint256 initialTokenBalance = kwenta.balanceOf(address(this));
-        uint256 initialEscrowTokenBalance = kwenta.balanceOf(address(rewardEscrowV2));
+        uint256 initialEscrowTokenBalance =
+            kwenta.balanceOf(address(rewardEscrowV2));
 
         // pass cooldown period
         vm.warp(block.timestamp + 2 weeks);
@@ -630,7 +698,8 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         unstakeEscrowedFundsV2(address(this), 1 weeks);
 
         uint256 finalTokenBalance = kwenta.balanceOf(address(this));
-        uint256 finalEscrowTokenBalance = kwenta.balanceOf(address(rewardEscrowV2));
+        uint256 finalEscrowTokenBalance =
+            kwenta.balanceOf(address(rewardEscrowV2));
 
         // check both values unchanged
         assertEq(initialTokenBalance, finalTokenBalance);
@@ -673,11 +742,14 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         assertEq(initialBalance - 1 weeks, finalBalance);
     }
 
-    function test_unstakeEscrow_Does_Change_Escrowed_Balances_Mapping() public {
+    function test_unstakeEscrow_Does_Change_Escrowed_Balances_Mapping()
+        public
+    {
         // stake escrow
         stakeEscrowedFundsV2(address(this), 1 weeks);
 
-        uint256 initialEscrowBalance = stakingRewardsV2.escrowedBalanceOf(address(this));
+        uint256 initialEscrowBalance =
+            stakingRewardsV2.escrowedBalanceOf(address(this));
 
         // pass cooldown period
         vm.warp(block.timestamp + 2 weeks);
@@ -685,7 +757,8 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         // unstake escrow
         unstakeEscrowedFundsV2(address(this), 1 weeks);
 
-        uint256 finalEscrowBalance = stakingRewardsV2.escrowedBalanceOf(address(this));
+        uint256 finalEscrowBalance =
+            stakingRewardsV2.escrowedBalanceOf(address(this));
 
         // check balance decreased
         assertEq(initialEscrowBalance - 1 weeks, finalEscrowBalance);
@@ -695,6 +768,8 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         // stake escrow
         stakeEscrowedFundsV2(address(this), 1 weeks);
 
+        vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+
         // unstake more escrow
         vm.expectRevert("StakingRewards: Invalid Amount");
         unstakeEscrowedFundsV2(address(this), 2 weeks);
@@ -703,6 +778,8 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
     function test_Cannot_unstakeEscrow_0() public {
         // stake escrow
         stakeEscrowedFundsV2(address(this), 1 weeks);
+
+        vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
 
         // unstake 0 escrow
         vm.expectRevert("StakingRewards: Cannot Unstake 0");
