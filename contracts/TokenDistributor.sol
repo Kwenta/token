@@ -6,8 +6,12 @@ import {RewardEscrowV2} from "./RewardEscrowV2.sol";
 import {IKwenta} from "./interfaces/IKwenta.sol";
 
 contract TokenDistributor {
+    /// @notice event for tracking new epochs
     event NewEpochCreated(uint block, uint epoch);
 
+    /// @notice tracks block, previously claimed fees,
+    /// kwenta balance of this contract, and total
+    /// staked amount in StakingRewardsV2
     struct Distribution {
         uint epochStartBlockNumber;
         uint previouslyClaimedFees;
@@ -15,21 +19,26 @@ contract TokenDistributor {
         uint totalStakedAmount;
     }
 
+    /// @notice tracks the distribution for each epoch
     mapping(uint => Distribution) public distributionEpochs;
 
+    /// @notice represents the status of if a person already
+    /// claimed their epoch
     mapping(address => mapping(uint => bool)) public claimedEpochs;
 
+    /// @notice kwenta interface
     IKwenta public kwenta;
 
-    /// @notice Counter for new epochs
-    /// @notice initialized to 0
+    /// @notice Counter for new epochs (starts at 0)
     uint256 public epoch;
 
     /// @notice running total for claimed fees
     uint256 public claimedFees;
 
+    /// @notice rewards staking contract
     StakingRewardsV2 public stakingRewardsV2;
 
+    /// @notice escrow contract which holds (and may stake) reward tokens
     RewardEscrowV2 public rewardEscrowV2;
 
     constructor(
@@ -43,11 +52,10 @@ contract TokenDistributor {
         rewardEscrowV2 = RewardEscrowV2(_rewardEscrowV2);
     }
 
-    /// @notice  creates a new Distribution entry at the current block
-    /// @notice  can only be called once per week
+    /// @notice  creates a new Distribution entry at the current block,
+    /// can only be called once per week
     function newDistribution() public {
         ///@dev [epoch - 1] to get the start of last weeks epoch
-        //if statement is probably not final, purpose is to avoid underflow error on first epoch
         if (epoch > 0) {
             require(
                 block.timestamp >=
@@ -71,8 +79,8 @@ contract TokenDistributor {
         epoch++;
     }
 
-    /// @notice this function will fetch StakingRewardsV2 to see what their staked balance was at the start of the epoch
-    /// @notice then calculate proportional fees and transfer to user
+    /// @notice this function will fetch StakingRewardsV2 to see what their staked balance
+    /// was at the start of the epoch then calculate proportional fees and transfer to user
     function claimDistribution(address to, uint epochNumber) public {
         /// @dev if this is the first claim of a new epoch, call newDistribution to start a new epoch
         if (
@@ -102,8 +110,8 @@ contract TokenDistributor {
             distributionEpochs[epochNumber].epochStartBlockNumber
         );
         /// @notice epochFees is the fees for that epoch only
-        /// @dev calculated by: kwenta at the start of desired epoch + total claimed fees BEFORE this epoch
-        /// @dev - kwenta at the start of previous epoch
+        /// @dev calculated by: kwenta at the start of desired epoch + total claimed
+        /// fees BEFORE this epoch - kwenta at the start of previous epoch
         uint256 epochFees;
         if (epochNumber == 0) {
             epochFees = distributionEpochs[1].kwentaStartOfEpoch;
