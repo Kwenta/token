@@ -353,8 +353,10 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
 
     // TODO: add to interface and override and natspec
     function stakeEscrowOnBehalf(address account, uint256 amount) external {
-        // TOOD: extract into modifier and use custom error
-        require(_operatorApprovals[account][msg.sender], "StakingRewards: Not Approved");
+        // TOOD: extract into modifier 
+        if (!_operatorApprovals[account][msg.sender])
+            revert NotApprovedOperator();
+
         _stakeEscrow(account, amount);
     }
 
