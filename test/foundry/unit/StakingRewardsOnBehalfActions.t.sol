@@ -10,7 +10,6 @@ contract StakingRewardsOnBehalfActionsTests is DefaultStakingV2Setup {
                         Get Reward On Behalf
     //////////////////////////////////////////////////////////////*/
 
-    // TODO: fuzz test this
     function test_getRewardOnBehalf() public {
         fundAccountAndStakeV2(address(this), TEST_VALUE);
 
@@ -84,7 +83,16 @@ contract StakingRewardsOnBehalfActionsTests is DefaultStakingV2Setup {
         stakingRewardsV2.getRewardOnBehalf(address(this));
     }
 
-    // TODO: test using it without approval throws error
+    /*//////////////////////////////////////////////////////////////
+                                Events
+    //////////////////////////////////////////////////////////////*/
+
+    function test_approveOperator_Emits_Event() public {
+        vm.expectEmit(true, true, true, true);
+        emit OperatorApproved(address(this), user1, true);
+        stakingRewardsV2.approveOperator(user1, true);
+    }
+
     // TODO: test offering approval emits an event
     // TODO: test claiming rewards on behalf emits an event
     // TODO: test cannot approve self
