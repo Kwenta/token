@@ -531,7 +531,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         vm.warp(2 weeks);
 
         // set rewards duration
-        vm.expectEmit(true, true, false, false);
+        vm.expectEmit(true, false, false, true);
         emit RewardsDurationUpdated(30 days);
         stakingRewardsV2.setRewardsDuration(30 days);
 
@@ -557,7 +557,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         vm.warp(block.timestamp + 1 weeks);
 
         // set rewards duration
-        vm.expectEmit(true, true, false, false);
+        vm.expectEmit(true, false, false, true);
         emit RewardsDurationUpdated(30 days);
         stakingRewardsV2.setRewardsDuration(30 days);
 

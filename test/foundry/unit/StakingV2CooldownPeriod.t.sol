@@ -170,7 +170,7 @@ contract StakingV2CooldownPeriodTests is DefaultStakingV2Setup {
         uint256 newCooldownPeriod = 1 weeks;
 
         // Expect correct event emitted
-        vm.expectEmit(true, true, false, false);
+        vm.expectEmit(true, false, false, true);
         emit UnstakingCooldownPeriodUpdated(newCooldownPeriod);
 
         // Set new cooldown period
@@ -200,7 +200,7 @@ contract StakingV2CooldownPeriodTests is DefaultStakingV2Setup {
         vm.assume(newCooldownPeriod < stakingRewardsV2.maxCooldownPeriod());
 
         // Expect correct event emitted
-        vm.expectEmit(true, true, false, false);
+        vm.expectEmit(true, false, false, true);
         emit UnstakingCooldownPeriodUpdated(newCooldownPeriod);
 
         // Set new cooldown period
