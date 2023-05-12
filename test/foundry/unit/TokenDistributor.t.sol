@@ -120,13 +120,13 @@ contract TokenDistributorTest is Test {
         //setup
         kwenta.transfer(address(tokenDistributor), 10);
         kwenta.transfer(address(user), 1);
-        vm.prank(address(rewardEscrowV2));
-        stakingRewardsV2.stakeEscrow(address(user), 1);
-        vm.prank(user);
+        vm.startPrank(address(user));
+        kwenta.approve(address(stakingRewardsV2), 1);
+        stakingRewardsV2.stake(1);
         tokenDistributor.newDistribution();
         vm.warp(block.timestamp + 604801);
 
-        vm.prank(user);
+        
         vm.expectEmit(true, true, true, true);
         emit NewEpochCreated(604802, 1);
         tokenDistributor.claimDistribution(address(user), 0);
@@ -138,9 +138,13 @@ contract TokenDistributorTest is Test {
         kwenta.transfer(address(tokenDistributor), 10);
         kwenta.transfer(address(user), 1);
         kwenta.transfer(address(user2), 1);
-        vm.startPrank(address(rewardEscrowV2));
-        stakingRewardsV2.stakeEscrow(address(user), 1);
-        stakingRewardsV2.stakeEscrow(address(user2), 1);
+        vm.startPrank(address(user));
+        kwenta.approve(address(stakingRewardsV2), 1);
+        stakingRewardsV2.stake(1);
+        vm.stopPrank();
+        vm.startPrank(address(user2));
+        kwenta.approve(address(stakingRewardsV2), 1);
+        stakingRewardsV2.stake(1);
         vm.stopPrank();
         vm.prank(user);
         tokenDistributor.newDistribution();
@@ -185,12 +189,11 @@ contract TokenDistributorTest is Test {
         //setup
         kwenta.transfer(address(tokenDistributor), 10);
         kwenta.transfer(address(user), 1);
-        vm.prank(address(rewardEscrowV2));
-        stakingRewardsV2.stakeEscrow(address(user), 1);
-        vm.prank(user);
+        vm.startPrank(address(user));
+        kwenta.approve(address(stakingRewardsV2), 1);
+        stakingRewardsV2.stake(1);
         tokenDistributor.newDistribution();
         vm.warp(block.timestamp + 604801);
-        vm.prank(user);
         vm.expectEmit(true, true, true, true);
         emit NewEpochCreated(604802, 1);
         tokenDistributor.claimDistribution(address(user), 0);
@@ -241,11 +244,10 @@ contract TokenDistributorTest is Test {
         //setup
         kwenta.transfer(address(tokenDistributor), 10);
         kwenta.transfer(address(user), 1);
-        vm.prank(address(rewardEscrowV2));
-        stakingRewardsV2.stakeEscrow(address(user), 1);
-        stakingRewardsV2.balanceAtBlock(user, 1);
-        //vm.warp(block.timestamp + 1);
-        vm.prank(user);
+        vm.startPrank(address(user));
+        kwenta.approve(address(stakingRewardsV2), 1);
+        stakingRewardsV2.stake(1);
+        
         tokenDistributor.newDistribution();
         vm.warp(block.timestamp + 604801);
         vm.expectEmit(true, true, true, true);
@@ -254,14 +256,11 @@ contract TokenDistributorTest is Test {
 
         vm.warp(block.timestamp + 1209601);
         stakingRewardsV2.balanceAtBlock(user, 1);
-        vm.prank(address(rewardEscrowV2));
-        stakingRewardsV2.unstakeEscrow(address(user), 1);
+        stakingRewardsV2.unstake(1);
         stakingRewardsV2.balanceAtBlock(user, 1);
         tokenDistributor.newDistribution();
         vm.warp(block.timestamp + 604801);
         tokenDistributor.newDistribution();
-
-        vm.prank(user);
         tokenDistributor.claimDistribution(address(user), 0);
 
 
@@ -277,9 +276,13 @@ contract TokenDistributorTest is Test {
         kwenta.transfer(address(tokenDistributor), 1000);
         kwenta.transfer(address(user), 1);
         kwenta.transfer(address(user2), 2);
-        vm.startPrank(address(rewardEscrowV2));
-        stakingRewardsV2.stakeEscrow(address(user), 1);
-        stakingRewardsV2.stakeEscrow(address(user2), 2);
+        vm.startPrank(address(user));
+        kwenta.approve(address(stakingRewardsV2), 1);
+        stakingRewardsV2.stake(1);
+        vm.stopPrank();
+        vm.startPrank(address(user2));
+        kwenta.approve(address(stakingRewardsV2), 2);
+        stakingRewardsV2.stake(2);
         vm.stopPrank();
         vm.prank(user);
         tokenDistributor.newDistribution();
