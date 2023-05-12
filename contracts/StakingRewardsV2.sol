@@ -351,12 +351,12 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
         emit EscrowStaked(account, amount);
     }
 
-    // // TODO: add to interface and override and natspec
-    // function stakeEscrowOnBehalf(address account, uint256 amount) external {
-    //     // TOOD: extract into modifier and use custom error
-    //     require(_operatorApprovals[account][msg.sender], "StakingRewards: Not Approved");
-    //     _stakeEscrow(account, amount);
-    // }
+    // TODO: add to interface and override and natspec
+    function stakeEscrowOnBehalf(address account, uint256 amount) external {
+        // TOOD: extract into modifier and use custom error
+        require(_operatorApprovals[account][msg.sender], "StakingRewards: Not Approved");
+        _stakeEscrow(account, amount);
+    }
 
     /// @notice unstake escrowed token
     /// @param account: address which owns token
