@@ -8,6 +8,64 @@ import "../utils/Constants.t.sol";
 
 contract StakingRewardsOnBehalfActionsTests is DefaultStakingV2Setup {
     /*//////////////////////////////////////////////////////////////
+                            Access Control
+    //////////////////////////////////////////////////////////////*/
+
+    function test_Only_Approved_Can_Call_getRewardOnBehalf() public {
+        fundAccountAndStakeV2(address(this), TEST_VALUE);
+        addNewRewardsToStakingRewardsV2(1 weeks);
+        vm.warp(block.timestamp + stakingRewardsV2.rewardsDuration());
+
+        // approve user1 as operator
+        stakingRewardsV2.approveOperator(user1, true);
+
+        // claim rewards on behalf as user2
+        vm.prank(user2);
+        vm.expectRevert(StakingRewardsV2.NotApprovedOperator.selector);
+        stakingRewardsV2.getRewardOnBehalf(address(this));
+    }
+
+    function test_Only_Approved_Can_Call_getRewardOnBehalf_Fuzz(
+        uint32 fundingAmount,
+        uint32 newRewards,
+        address owner,
+        address operator,
+        address caller
+    ) public {
+        vm.assume(fundingAmount > 0);
+        vm.assume(newRewards > stakingRewardsV2.rewardsDuration());
+        vm.assume(owner != address(0));
+        vm.assume(operator != address(0));
+        vm.assume(caller != address(0));
+        vm.assume(owner != operator);
+        vm.assume(owner != caller);
+        vm.assume(operator != caller);
+
+        fundAccountAndStakeV2(owner, fundingAmount);
+        addNewRewardsToStakingRewardsV2(newRewards);
+        vm.warp(block.timestamp + stakingRewardsV2.rewardsDuration());
+
+        // approve user1 as operator
+        stakingRewardsV2.approveOperator(operator, true);
+
+        // claim rewards on behalf as user2
+        vm.prank(caller);
+        vm.expectRevert(StakingRewardsV2.NotApprovedOperator.selector);
+        stakingRewardsV2.getRewardOnBehalf(address(this));
+    }
+
+    function test_Cannot_Approve_Self() public {
+        vm.expectRevert(StakingRewardsV2.CannotApproveSelf.selector);
+        stakingRewardsV2.approveOperator(address(this), true);
+    }
+
+    function test_Cannot_Approve_Self_Fuzz(address owner) public {
+        vm.expectRevert(StakingRewardsV2.CannotApproveSelf.selector);
+        vm.prank(owner);
+        stakingRewardsV2.approveOperator(owner, true);
+    }
+
+    /*//////////////////////////////////////////////////////////////
                         Get Reward On Behalf
     //////////////////////////////////////////////////////////////*/
 
@@ -74,61 +132,26 @@ contract StakingRewardsOnBehalfActionsTests is DefaultStakingV2Setup {
     }
 
     /*//////////////////////////////////////////////////////////////
-                            Access Control
+                        Stake Escrow On Behalf
     //////////////////////////////////////////////////////////////*/
 
-    function test_Only_Approved_Can_Call_getRewardOnBehalf() public {
-        fundAccountAndStakeV2(address(this), TEST_VALUE);
-        addNewRewardsToStakingRewardsV2(1 weeks);
-        vm.warp(block.timestamp + stakingRewardsV2.rewardsDuration());
+    function test_stakeEscrowOnBehalf() public {
+        createRewardEscrowEntryV2(address(this), TEST_VALUE, 52 weeks);
 
-        // approve user1 as operator
+        // assert initial escrowed balances
+        assertEq(stakingRewardsV2.escrowedBalanceOf(address(this)), 0);
+        assertEq(stakingRewardsV2.escrowedBalanceOf(user1), 0);
+
+        // approve operator
         stakingRewardsV2.approveOperator(user1, true);
 
-        // claim rewards on behalf as user2
-        vm.prank(user2);
-        vm.expectRevert(StakingRewardsV2.NotApprovedOperator.selector);
-        stakingRewardsV2.getRewardOnBehalf(address(this));
-    }
+        // stake escrow on behalf
+        vm.prank(user1);
+        stakingRewardsV2.stakeEscrowOnBehalf(address(this), TEST_VALUE);
 
-    function test_Only_Approved_Can_Call_getRewardOnBehalf_Fuzz(
-        uint32 fundingAmount,
-        uint32 newRewards,
-        address owner,
-        address operator,
-        address caller
-    ) public {
-        vm.assume(fundingAmount > 0);
-        vm.assume(newRewards > stakingRewardsV2.rewardsDuration());
-        vm.assume(owner != address(0));
-        vm.assume(operator != address(0));
-        vm.assume(caller != address(0));
-        vm.assume(owner != operator);
-        vm.assume(owner != caller);
-        vm.assume(operator != caller);
-
-        fundAccountAndStakeV2(owner, fundingAmount);
-        addNewRewardsToStakingRewardsV2(newRewards);
-        vm.warp(block.timestamp + stakingRewardsV2.rewardsDuration());
-
-        // approve user1 as operator
-        stakingRewardsV2.approveOperator(operator, true);
-
-        // claim rewards on behalf as user2
-        vm.prank(caller);
-        vm.expectRevert(StakingRewardsV2.NotApprovedOperator.selector);
-        stakingRewardsV2.getRewardOnBehalf(address(this));
-    }
-
-    function test_Cannot_Approve_Self() public {
-        vm.expectRevert(StakingRewardsV2.CannotApproveSelf.selector);
-        stakingRewardsV2.approveOperator(address(this), true);
-    }
-
-    function test_Cannot_Approve_Self_Fuzz(address owner) public {
-        vm.expectRevert(StakingRewardsV2.CannotApproveSelf.selector);
-        vm.prank(owner);
-        stakingRewardsV2.approveOperator(owner, true);
+        // check final escrowed balances
+        assertEq(stakingRewardsV2.escrowedBalanceOf(address(this)), TEST_VALUE);
+        assertEq(stakingRewardsV2.escrowedBalanceOf(user1), 0);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -172,4 +195,6 @@ contract StakingRewardsOnBehalfActionsTests is DefaultStakingV2Setup {
     }
 
     // TODO: test staking on behalf emits an event
+    // TODO: test getReward then staking Reward
+    // TODO: test automated contract
 }
