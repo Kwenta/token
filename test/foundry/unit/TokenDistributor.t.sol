@@ -234,7 +234,7 @@ contract TokenDistributorTest is Test {
         tokenDistributor.claimDistribution(address(user2), 0);
     }
 
-    /// @notice claimDistribution happy case with partial claims 
+    /// @notice claimDistribution happy case with partial claims
     /// in earlier epochs 2 complete epochs with differing fees
     /// @dev also an integration test with RewardEscrowV2
     function testClaimDistributionMultipleClaims() public {
