@@ -117,6 +117,13 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
     }
 
     /**
+     * @notice Get the amount of escrowed kwenta that is not staked for a given account
+     */
+    function unstakedEscrowBalanceOf(address account) public view override returns (uint256) {
+        return totalEscrowedAccountBalance[account] - stakingRewardsV2.escrowedBalanceOf(account);
+    }
+
+    /**
      * @notice The number of vesting dates in an account's schedule.
      */
     function numVestingEntries(address account) external view override returns (uint256) {
@@ -297,9 +304,7 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
             // Withdraw staked escrowed kwenta if needed for reward
             if (_isEscrowStaked(msg.sender)) {
                 uint256 totalWithFee = total + totalFee;
-                // TODO: extract into helper function *A
-                uint256 unstakedEscrow =
-                    totalEscrowedAccountBalance[msg.sender] - stakingRewardsV2.escrowedBalanceOf(msg.sender);
+                uint256 unstakedEscrow = unstakedEscrowBalanceOf(msg.sender);
                 if (totalWithFee > unstakedEscrow) {
                     uint256 amountToUnstake = totalWithFee - unstakedEscrow;
                     unstakeEscrow(amountToUnstake);
@@ -478,13 +483,9 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
         VestingEntries.VestingEntry memory entry = vestingSchedules[entryID];
         if (_entryOwners[entryID] != msg.sender) revert NotYourEntry(entryID);
 
-        // TODO: extract into helper function *A
-        uint256 escrowedBalance = totalEscrowedAccountBalance[msg.sender];
-        uint256 stakedBalance = stakingRewardsV2.escrowedBalanceOf(msg.sender);
-        uint256 unstakedBalance = escrowedBalance - stakedBalance;
-
-        if (unstakedBalance < entry.escrowAmount) {
-            revert InsufficientUnstakedBalance(entryID, entry.escrowAmount, unstakedBalance);
+        uint256 unstakedEscrow = unstakedEscrowBalanceOf(msg.sender);
+        if (unstakedEscrow < entry.escrowAmount) {
+            revert InsufficientUnstakedBalance(entryID, entry.escrowAmount, unstakedEscrow);
         }
 
         delete vestingSchedules[entryID];

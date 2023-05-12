@@ -1699,28 +1699,40 @@ contract(
         });
 
         describe("Staking Escrow", () => {
-            let stakingRewardsSmock;
+            let stakingRewardsV2Smock;
 
             beforeEach(async () => {
-                stakingRewardsSmock = await smock.fake("contracts/StakingRewards.sol:StakingRewards");
+                stakingRewardsV2Smock = await smock.fake("contracts/StakingRewardsV2.sol:StakingRewardsV2");
 
                 rewardsEscrowV2 = await RewardsEscrowV2.new(
                     owner,
                     kwentaSmock.address
                 );
                 await rewardsEscrowV2.setStakingRewardsV2(
-                    stakingRewardsSmock.address,
+                    stakingRewardsV2Smock.address,
                     {
                         from: owner,
                     }
                 );
                 await rewardsEscrowV2.setTreasuryDAO(treasuryDAO);
+
+                rewardEscrowV2Integration = await RewardsEscrowV2.new(
+                    owner,
+                    kwentaSmock.address
+                );
+                await rewardEscrowV2Integration.setStakingRewardsV2(
+                    stakingRewardsV2.address,
+                    {
+                        from: owner,
+                    }
+                );
+                await rewardEscrowV2Integration.setTreasuryDAO(treasuryDAO);
             });
 
             it("should revert because staker has no escrowed KWENTA", async () => {
                 const escrowAmount = wei(10).toBN();
                 await assert.revert(
-                    rewardsEscrowV2.stakeEscrow(escrowAmount, {
+                    rewardEscrowV2Integration.stakeEscrow(escrowAmount, {
                         from: staker1,
                     })
                 );
@@ -1732,19 +1744,19 @@ contract(
                 kwentaSmock.transferFrom.returns(true);
                 // stub balanceOf
                 kwentaSmock.balanceOf.returns(escrowAmount);
-                await rewardsEscrowV2.createEscrowEntry(
+                await rewardEscrowV2Integration.createEscrowEntry(
                     staker1,
                     escrowAmount,
                     1 * YEAR,
                     DEFAULT_EARLY_VESTING_FEE
                 );
                 // Stake half of escrow
-                stakingRewardsSmock.escrowedBalanceOf.returns(
+                stakingRewardsV2Smock.escrowedBalanceOf.returns(
                     escrowAmount.div(2)
                 );
                 // Attempt to stake more
                 await assert.revert(
-                    rewardsEscrowV2.stakeEscrow(escrowAmount, {
+                    rewardEscrowV2Integration.stakeEscrow(escrowAmount, {
                         from: staker1,
                     })
                 );
@@ -1765,7 +1777,7 @@ contract(
                 await rewardsEscrowV2.stakeEscrow(escrowAmount, {
                     from: staker1,
                 });
-                expect(stakingRewardsSmock.stakeEscrow).to.have.been.calledWith(
+                expect(stakingRewardsV2Smock.stakeEscrow).to.have.been.calledWith(
                     staker1,
                     escrowAmount
                 );
@@ -1777,7 +1789,7 @@ contract(
                     from: staker1,
                 });
                 expect(
-                    stakingRewardsSmock.unstakeEscrow
+                    stakingRewardsV2Smock.unstakeEscrow
                 ).to.have.been.calledWith(staker1, escrowAmount);
             });
 
@@ -1800,11 +1812,11 @@ contract(
                     DEFAULT_EARLY_VESTING_FEE
                 );
                 //Stake half of escrow
-                stakingRewardsSmock.escrowedBalanceOf.returns(escrowAmount);
+                stakingRewardsV2Smock.escrowedBalanceOf.returns(escrowAmount);
 
                 await fastForward(YEAR);
                 await rewardsEscrowV2.vest([1], { from: staker1 });
-                expect(stakingRewardsSmock.unstakeEscrow).to.have.callCount(0);
+                expect(stakingRewardsV2Smock.unstakeEscrow).to.have.callCount(0);
             });
 
             // This is what happens when you currently have staked escrow and it needs to be vested
@@ -1821,13 +1833,13 @@ contract(
                     DEFAULT_EARLY_VESTING_FEE
                 );
                 // Mock stake all of escrow
-                stakingRewardsSmock.escrowedBalanceOf.returns(escrowAmount);
+                stakingRewardsV2Smock.escrowedBalanceOf.returns(escrowAmount);
 
                 await fastForward(YEAR);
                 await rewardsEscrowV2.vest([1], { from: staker1 });
-                expect(stakingRewardsSmock.unstakeEscrow).to.have.callCount(1);
+                expect(stakingRewardsV2Smock.unstakeEscrow).to.have.callCount(1);
                 expect(
-                    stakingRewardsSmock.unstakeEscrow
+                    stakingRewardsV2Smock.unstakeEscrow
                 ).to.have.been.calledWith(staker1, escrowAmount);
             });
 
@@ -1845,12 +1857,12 @@ contract(
                     DEFAULT_EARLY_VESTING_FEE
                 );
                 // Mock stake all of escrow
-                stakingRewardsSmock.escrowedBalanceOf.returns(escrowAmount);
+                stakingRewardsV2Smock.escrowedBalanceOf.returns(escrowAmount);
 
                 await fastForward(YEAR / 2);
                 await rewardsEscrowV2.vest([1], { from: staker1 });
                 expect(
-                    stakingRewardsSmock.unstakeEscrow
+                    stakingRewardsV2Smock.unstakeEscrow
                 ).to.have.been.calledWith(staker1, escrowAmount);
                 assert.equal(await rewardsEscrowV2.balanceOf(staker1), 0);
             });
