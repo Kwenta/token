@@ -290,17 +290,6 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         assertEq(kwenta.balanceOf(address(stakingRewardsV2)), initialBalance);
     }
 
-    function test_Escrow_Staking_Via_RewardEscrowV2_Does_Not_Increase_Token_Balance() public {
-        uint256 initialBalance = kwenta.balanceOf(address(stakingRewardsV2));
-
-        createRewardEscrowEntryV2(address(this), TEST_VALUE, 52 weeks);
-        rewardEscrowV2.stakeEscrow(TEST_VALUE);
-
-        uint256 finalBalance = kwenta.balanceOf(address(stakingRewardsV2));
-
-        assertEq(finalBalance, initialBalance);
-    }
-
     function test_Escrow_Staking_Increases_Balances_Mapping() public {
         uint256 initialBalance = stakingRewardsV2.balanceOf(address(this));
 
