@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {StakingRewardsV2} from "./StakingRewardsV2.sol";
+import {RewardEscrowV2} from "./RewardEscrowV2.sol";
 import {IKwenta} from "./interfaces/IKwenta.sol";
 
 contract TokenDistributor {
@@ -29,10 +30,13 @@ contract TokenDistributor {
 
     StakingRewardsV2 public stakingRewardsV2;
 
-    constructor(address _kwenta, address _stakingRewardsV2) {
+    RewardEscrowV2 public rewardEscrowV2;
+
+    constructor(address _kwenta, address _stakingRewardsV2, address _rewardEscrowV2) {
         kwenta = IKwenta(_kwenta);
         epoch = 0;
         stakingRewardsV2 = StakingRewardsV2(_stakingRewardsV2);
+        rewardEscrowV2 = RewardEscrowV2(_rewardEscrowV2);
     }
 
     /// @notice  creates a new Distribution entry at the current block
@@ -94,7 +98,8 @@ contract TokenDistributor {
             distributionEpochs[epochNumber].epochStartBlockNumber
         );
         /// @notice epochFees is the fees for that epoch only
-        /// @dev calculated by: kwenta at the start of desired epoch + total claimed fees - kwenta at the start of previous epoch
+        /// @dev calculated by: kwenta at the start of desired epoch + total claimed fees BEFORE this epoch
+        /// @dev - kwenta at the start of previous epoch
         uint256 epochFees;
         if (epochNumber == 0) {
             epochFees = distributionEpochs[1].kwentaStartOfEpoch;
@@ -108,10 +113,9 @@ contract TokenDistributor {
         uint256 proportionalFees = ((epochFees * userStaked) / totalStaked);
 
         claimedFees += proportionalFees;
-        //change claimed fees so it doesn't affect the epoch
         claimedEpochs[to][epochNumber] = true;
 
-        //todo: change to rewardEscrow
-        kwenta.transfer(to, proportionalFees);
+        kwenta.approve(address(rewardEscrowV2), proportionalFees);
+        rewardEscrowV2.createEscrowEntry(to, proportionalFees, 52 weeks, 90);
     }
 }
