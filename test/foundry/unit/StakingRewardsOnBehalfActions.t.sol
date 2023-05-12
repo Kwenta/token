@@ -35,7 +35,11 @@ contract StakingRewardsOnBehalfActionsTests is DefaultStakingV2Setup {
         assertEq(rewardEscrowV2.balanceOf(user1), 0);
     }
 
-    function test_getRewardOnBehalf_Fuzz(uint32 fundingAmount, uint32 newRewards, address user) public {
+    function test_getRewardOnBehalf_Fuzz(
+        uint32 fundingAmount,
+        uint32 newRewards,
+        address user
+    ) public {
         vm.assume(fundingAmount > 0);
         vm.assume(newRewards > stakingRewardsV2.rewardsDuration());
         vm.assume(user != address(0));
@@ -91,6 +95,21 @@ contract StakingRewardsOnBehalfActionsTests is DefaultStakingV2Setup {
         vm.expectEmit(true, true, true, true);
         emit OperatorApproved(address(this), user1, true);
         stakingRewardsV2.approveOperator(user1, true);
+    }
+
+    function test_approveOperator_Emits_Event_Fuzz(
+        address owner,
+        address operator,
+        bool approved
+    ) public {
+        vm.assume(owner != address(0));
+        vm.assume(operator != address(0));
+        vm.assume(owner != operator);
+
+        vm.expectEmit(true, true, true, true);
+        emit OperatorApproved(owner, operator, approved);
+        vm.prank(owner);
+        stakingRewardsV2.approveOperator(operator, approved);
     }
 
     // TODO: test offering approval emits an event
