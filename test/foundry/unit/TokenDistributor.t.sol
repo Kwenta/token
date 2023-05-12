@@ -216,6 +216,10 @@ contract TokenDistributorTest is Test {
     /// @notice claimDistribution happy case with partial claims in earlier epochs
     /// @notice 2 complete epochs with differing fees
     function testClaimDistributionMultipleClaims() public {
+        //setup
+        /// @dev user has 1/3 total staking and user2 has 2/3
+        /// @dev before epoch #0 (same as during) TokenDistributor
+        /// @dev receives 1000 in fees
         kwenta.transfer(address(tokenDistributor), 1000);
         kwenta.transfer(address(user), 1);
         kwenta.transfer(address(user2), 2);
@@ -227,7 +231,8 @@ contract TokenDistributorTest is Test {
         tokenDistributor.newDistribution();
         vm.warp(block.timestamp + 604801);
 
-        ///@dev during epoch #1, user claims their fees from #0
+        /// @dev during epoch #1, user claims their fees from #0
+        /// @dev and TokenDistributor receives 5000 in fees
 
         vm.expectEmit(true, true, true, true);
         emit NewEpochCreated(604802, 1);
@@ -235,6 +240,10 @@ contract TokenDistributorTest is Test {
         kwenta.transfer(address(tokenDistributor), 5000);
         vm.prank(user);
         tokenDistributor.claimDistribution(address(user), 0);
+
+        /// @dev user claims for epoch #1 to start epoch #2
+        /// @dev user2 also claims for #1 and TokenDistributor
+        /// @dev receives 300 in fees
 
         vm.warp(block.timestamp + 604801);
         vm.prank(user);
