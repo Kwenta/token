@@ -224,6 +224,22 @@ contract StakingRewardsOnBehalfActionsTests is DefaultStakingV2Setup {
         assertEq(stakingRewardsV2.escrowedBalanceOf(operator), 0);
     }
 
+    function test_Cannot_stakeEscrowOnBehalf_Too_Much() public {
+        createRewardEscrowEntryV2(address(this), TEST_VALUE, 52 weeks);
+
+        // approve operator
+        stakingRewardsV2.approveOperator(user1, true);
+
+        // stake escrow on behalf
+        vm.prank(user1);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                StakingRewardsV2.InsufficientUnstakedEscrow.selector, TEST_VALUE
+            )
+        );
+        stakingRewardsV2.stakeEscrowOnBehalf(address(this), TEST_VALUE + 1);
+    }
+
     /*//////////////////////////////////////////////////////////////
                                 Events
     //////////////////////////////////////////////////////////////*/
