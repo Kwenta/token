@@ -9,6 +9,12 @@ import {RewardEscrowV2} from "../../../contracts/RewardEscrowV2.sol";
 
 contract TokenDistributorTest is Test {
     event NewEpochCreated(uint block, uint epoch);
+    event VestingEntryCreated(
+        address indexed beneficiary,
+        uint256 value,
+        uint256 duration,
+        uint256 entryID
+    );
 
     TokenDistributor public tokenDistributor;
     Kwenta public kwenta;
@@ -73,6 +79,7 @@ contract TokenDistributorTest is Test {
         tokenDistributor.newDistribution();
         vm.warp(block.timestamp + 604801);
         tokenDistributor.newDistribution();
+        vm.warp(block.timestamp + 304801);
         vm.expectRevert(
             "TokenDistributor: Last week's epoch has not ended yet"
         );
@@ -215,8 +222,8 @@ contract TokenDistributorTest is Test {
 
     /// @notice claimDistribution happy case with partial claims in earlier epochs
     /// @notice 2 complete epochs with differing fees
+    /// @dev also an integration test with RewardEscrowV2
     function testClaimDistributionMultipleClaims() public {
-        //setup
         /// @dev user has 1/3 total staking and user2 has 2/3
         /// @dev before epoch #0 (same as during) TokenDistributor
         /// @dev receives 1000 in fees
@@ -239,6 +246,8 @@ contract TokenDistributorTest is Test {
         tokenDistributor.newDistribution();
         kwenta.transfer(address(tokenDistributor), 5000);
         vm.prank(user);
+        vm.expectEmit(true, true, false, true);
+        emit VestingEntryCreated(address(user), 333, 31449600, 1);
         tokenDistributor.claimDistribution(address(user), 0);
 
         /// @dev user claims for epoch #1 to start epoch #2
@@ -249,10 +258,14 @@ contract TokenDistributorTest is Test {
         vm.prank(user);
         vm.expectEmit(true, true, true, true);
         emit NewEpochCreated(1209603, 2);
+        vm.expectEmit(true, true, false, true);
+        emit VestingEntryCreated(address(user), 1666, 31449600, 2);
         tokenDistributor.claimDistribution(address(user), 1);
         vm.warp(block.timestamp + 1000);
         kwenta.transfer(address(tokenDistributor), 300);
         vm.prank(user2);
+        vm.expectEmit(true, true, false, true);
+        emit VestingEntryCreated(address(user2), 3333, 31449600, 3);
         tokenDistributor.claimDistribution(address(user2), 1);
     }
 }
