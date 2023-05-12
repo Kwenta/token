@@ -131,6 +131,12 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
     /// @param unstakingCooldownPeriod: the new unstaking cooldown period
     event UnstakingCooldownPeriodUpdated(uint256 unstakingCooldownPeriod);
 
+    /// @notice emitted when an operator is approved
+    /// @param owner: owner of tokens
+    /// @param operator: address of operator
+    /// @param approved: whether or not operator is approved
+    event OperatorApproved(address owner, address operator, bool approved);
+
     /*//////////////////////////////////////////////////////////////
                                  ERRORS
     //////////////////////////////////////////////////////////////*/
@@ -427,8 +433,8 @@ contract StakingRewardsV2 is IStakingRewardsV2, Owned, ReentrancyGuard, Pausable
         // TODO: use custom error
         require(operator != msg.sender, "approve to caller");
         _operatorApprovals[msg.sender][operator] = approved;
-        // TODO: emit event
-        // emit ApprovalForAll(msg.sender, operator, approved);
+
+        emit OperatorApproved(msg.sender, operator, approved);
     }
 
     /*///////////////////////////////////////////////////////////////
