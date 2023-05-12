@@ -240,6 +240,37 @@ contract StakingRewardsOnBehalfActionsTests is DefaultStakingV2Setup {
         stakingRewardsV2.stakeEscrowOnBehalf(address(this), TEST_VALUE + 1);
     }
 
+    function test_Cannot_stakeEscrowOnBehalf_Too_Much_Fuzz(
+        address owner,
+        address operator,
+        uint32 escrowAmount,
+        uint32 amountToEscrowStake,
+        uint24 duration
+    ) public {
+        vm.assume(escrowAmount > 0);
+        vm.assume(amountToEscrowStake > 0);
+        vm.assume (amountToEscrowStake > escrowAmount);
+        vm.assume(duration > 0);
+        vm.assume(owner != address(0));
+        vm.assume(operator != address(0));
+        vm.assume(owner != operator);
+
+        createRewardEscrowEntryV2(owner, escrowAmount, duration);
+
+        // approve operator
+        vm.prank(owner);
+        stakingRewardsV2.approveOperator(operator, true);
+
+        // stake escrow on behalf
+        vm.prank(operator);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                StakingRewardsV2.InsufficientUnstakedEscrow.selector, escrowAmount
+            )
+        );
+        stakingRewardsV2.stakeEscrowOnBehalf(owner, amountToEscrowStake);
+    }
+
     /*//////////////////////////////////////////////////////////////
                                 Events
     //////////////////////////////////////////////////////////////*/
