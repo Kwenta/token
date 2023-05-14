@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
+import "forge-std/Test.sol";
 import {DefaultStakingV2Setup} from "../utils/DefaultStakingV2Setup.t.sol";
 import "../utils/Constants.t.sol";
 
@@ -390,6 +391,92 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
                 expectedValue = totalStaked;
             }
             fundAccountAndStakeV2(address(this), amount);
+            vm.roll(block.number + 1);
+        }
+
+        uint256 value = stakingRewardsV2.balanceAtBlock(address(this), blockToFind);
+
+        assertEq(value, expectedValue);
+    }
+
+    function test_balanceAtBlock_With_Unstake_Before_Block() public {
+        uint256 blockToFind = 4;
+        uint256 expectedValue;
+        uint256 totalStaked;
+
+        for (uint256 i = 0; i < 10; i++) {
+            uint256 amount = TEST_VALUE;
+            totalStaked += amount;
+            if (block.number == 2) {
+                vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+                stakingRewardsV2.unstake(amount);
+                totalStaked -= amount;
+            }
+            if (blockToFind == block.number) {
+                expectedValue = totalStaked;
+            }
+            fundAccountAndStakeV2(address(this), amount);
+            vm.roll(block.number + 1);
+        }
+
+        uint256 value = stakingRewardsV2.balanceAtBlock(address(this), blockToFind);
+
+        assertEq(value, expectedValue);
+    }
+
+    function test_balanceAtBlock_With_Unstake_After_Block() public {
+        uint256 blockToFind = 4;
+        uint256 expectedValue;
+        uint256 totalStaked;
+
+        for (uint256 i = 0; i < 10; i++) {
+            uint256 amount = TEST_VALUE;
+            totalStaked += amount;
+            if (block.number == 5) {
+                vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+                stakingRewardsV2.unstake(amount);
+                totalStaked -= amount;
+            }
+            if (blockToFind == block.number) {
+                expectedValue = totalStaked;
+            }
+            fundAccountAndStakeV2(address(this), amount);
+            vm.roll(block.number + 1);
+        }
+
+        uint256 value = stakingRewardsV2.balanceAtBlock(address(this), blockToFind);
+
+        assertEq(value, expectedValue);
+    }
+
+    function test_balanceAtBlock_With_Unstake_Before_And_After_Block() public {
+        uint256 blockToFind = 4;
+        uint256 expectedValue;
+        uint256 totalStaked;
+
+        for (uint256 i = 0; i < 10; i++) {
+            uint256 amount = TEST_VALUE;
+            totalStaked += amount;
+            fundAccountAndStakeV2(address(this), amount);
+            if (block.number == 2) {
+                vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+                stakingRewardsV2.unstake(amount);
+                stakingRewardsV2.unstake(amount);
+                totalStaked -= amount;
+                totalStaked -= amount;
+            }
+            if (block.number == 5) {
+                vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+                stakingRewardsV2.unstake(amount);
+                stakingRewardsV2.unstake(amount);
+                stakingRewardsV2.unstake(amount);
+                totalStaked -= amount;
+                totalStaked -= amount;
+                totalStaked -= amount;
+            }
+            if (blockToFind == block.number) {
+                expectedValue = totalStaked;
+            }
             vm.roll(block.number + 1);
         }
 
