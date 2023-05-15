@@ -16,7 +16,6 @@ contract TokenDistributor {
         uint epochStartBlockNumber;
         uint previouslyClaimedFees;
         uint kwentaStartOfEpoch;
-        uint totalStakedAmount;
     }
 
     /// @notice tracks the distribution for each epoch
@@ -68,10 +67,9 @@ contract TokenDistributor {
         Distribution memory distribution = Distribution(
             block.timestamp,
             claimedFees,
-            kwenta.balanceOf(address(this)),
-            stakingRewardsV2.totalSupply()
+            kwenta.balanceOf(address(this))
         );
-
+        //for a given block it might not be the final value of the block
         distributionEpochs[epoch] = distribution;
 
         emit NewEpochCreated(block.timestamp, epoch);
@@ -89,18 +87,20 @@ contract TokenDistributor {
         ) {
             newDistribution();
         }
-
+        //require the other cases
+        //add custom error (saves gas)
         require(
             epochNumber < (epoch - 1),
             "TokenDistributor: Epoch is not ready to claim"
         );
-
+        //make sure its not the same block as the EpochStartNumber
         require(
             claimedEpochs[to][epochNumber] != true,
             "TokenDistributor: You already claimed this epoch's fees"
         );
-
-        uint256 totalStaked = distributionEpochs[epochNumber].totalStakedAmount;
+        uint256 totalStaked = stakingRewardsV2.totalSupplyAtBlock(
+            distributionEpochs[epochNumber].epochStartBlockNumber
+        );
         require(
             totalStaked != 0,
             "TokenDistributor: Nothing was staked in StakingRewardsV2 that epoch"
