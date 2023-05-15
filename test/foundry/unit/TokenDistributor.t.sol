@@ -183,6 +183,27 @@ contract TokenDistributorTest is TestHelpers {
         tokenDistributor.claimDistribution(address(user), 0);
     }
 
+    /// @notice claimDistribution fail - cant claim in same block as new distribution
+    function testClaimDistributionNewDistributionBlock() public {
+
+        kwenta.transfer(address(tokenDistributor), 10);
+        kwenta.transfer(address(user), 1);
+        vm.startPrank(address(user));
+        kwenta.approve(address(stakingRewardsV2), 1);
+        stakingRewardsV2.stake(1);
+        tokenDistributor.newDistribution();
+        goForward(604801);
+
+        
+        
+        tokenDistributor.newDistribution();
+        vm.expectRevert(
+            "Cannot claim in a new distribution block"
+        );
+        //goForward(0);
+        tokenDistributor.claimDistribution(address(user), 0);
+    }
+
     /// @notice claimDistribution fail - already claimed
     function testClaimDistributionAlreadyClaimed() public {
         //setup
