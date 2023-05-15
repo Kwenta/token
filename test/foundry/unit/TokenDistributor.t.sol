@@ -75,11 +75,11 @@ contract TokenDistributorTest is TestHelpers {
     function testNewDistributionLastEpochNotEnded2() public {
         vm.startPrank(user);
         tokenDistributor.newDistribution();
-        vm.warp(block.timestamp + 604801);
+        goForward(604801);
         tokenDistributor.newDistribution();
-        vm.warp(block.timestamp + 604801);
+        goForward(604801);
         tokenDistributor.newDistribution();
-        vm.warp(block.timestamp + 304801);
+        goForward(304801);
         vm.expectRevert(
             "TokenDistributor: Last week's epoch has not ended yet"
         );
@@ -90,11 +90,11 @@ contract TokenDistributorTest is TestHelpers {
     function testNewDistributionSequentialEpochs() public {
         vm.startPrank(user);
         tokenDistributor.newDistribution();
-        vm.warp(block.timestamp + 604801);
+        goForward(604801);
         vm.expectEmit(true, true, true, true);
         emit NewEpochCreated(604802, 1);
         tokenDistributor.newDistribution();
-        vm.warp(block.timestamp + 604801);
+        goForward(604801);
         vm.expectEmit(true, true, true, true);
         emit NewEpochCreated(1209603, 2);
         tokenDistributor.newDistribution();
@@ -104,11 +104,11 @@ contract TokenDistributorTest is TestHelpers {
     function testNewDistributionSequentialEpochsFail() public {
         vm.startPrank(user);
         tokenDistributor.newDistribution();
-        vm.warp(block.timestamp + 604801);
+        goForward(604801);
         vm.expectEmit(true, true, true, true);
         emit NewEpochCreated(604802, 1);
         tokenDistributor.newDistribution();
-        vm.warp(block.timestamp + 304801);
+        goForward(304801);
         vm.expectRevert(
             "TokenDistributor: Last week's epoch has not ended yet"
         );
@@ -124,9 +124,8 @@ contract TokenDistributorTest is TestHelpers {
         kwenta.approve(address(stakingRewardsV2), 1);
         stakingRewardsV2.stake(1);
         tokenDistributor.newDistribution();
-        vm.warp(block.timestamp + 604801);
+        goForward(604801);
 
-        
         vm.expectEmit(true, true, true, true);
         emit NewEpochCreated(604802, 1);
         tokenDistributor.claimDistribution(address(user), 0);
@@ -148,14 +147,14 @@ contract TokenDistributorTest is TestHelpers {
         vm.stopPrank();
         vm.prank(user);
         tokenDistributor.newDistribution();
-        vm.warp(block.timestamp + 604801);
+        goForward(604801);
 
         vm.prank(user);
         vm.expectEmit(true, true, true, true);
         emit NewEpochCreated(604802, 1);
         tokenDistributor.claimDistribution(address(user), 0);
 
-        vm.warp(block.timestamp + 1000);
+        goForward(1000);
         vm.prank(user2);
         tokenDistributor.claimDistribution(address(user2), 0);
     }
@@ -164,7 +163,7 @@ contract TokenDistributorTest is TestHelpers {
     function testClaimDistributionEpochNotReady() public {
         vm.startPrank(user);
         tokenDistributor.newDistribution();
-        vm.warp(block.timestamp + 304801);
+        goForward(304801);
         vm.expectRevert("TokenDistributor: Epoch is not ready to claim");
         tokenDistributor.claimDistribution(address(user), 0);
     }
@@ -193,7 +192,7 @@ contract TokenDistributorTest is TestHelpers {
         kwenta.approve(address(stakingRewardsV2), 1);
         stakingRewardsV2.stake(1);
         tokenDistributor.newDistribution();
-        vm.warp(block.timestamp + 604801);
+        goForward(604801);
         vm.expectEmit(true, true, true, true);
         emit NewEpochCreated(604802, 1);
         tokenDistributor.claimDistribution(address(user), 0);
@@ -210,7 +209,7 @@ contract TokenDistributorTest is TestHelpers {
         kwenta.transfer(address(user), 1);
         vm.prank(user);
         tokenDistributor.newDistribution();
-        vm.warp(block.timestamp + 604801);
+        goForward(604801);
         vm.prank(user);
         vm.expectRevert(
             "TokenDistributor: Nothing was staked in StakingRewardsV2 that epoch"
@@ -227,7 +226,7 @@ contract TokenDistributorTest is TestHelpers {
         stakingRewardsV2.stakeEscrow(address(user), 1);
         vm.prank(user);
         tokenDistributor.newDistribution();
-        vm.warp(block.timestamp + 604801);
+        goForward(604801);
         vm.prank(user);
         vm.expectEmit(true, true, true, true);
         emit NewEpochCreated(604802, 1);
@@ -247,7 +246,7 @@ contract TokenDistributorTest is TestHelpers {
         vm.startPrank(address(user));
         kwenta.approve(address(stakingRewardsV2), 1);
         stakingRewardsV2.stake(1);
-        
+
         tokenDistributor.newDistribution();
         goForward(604801);
         vm.expectEmit(true, true, true, true);
@@ -262,8 +261,6 @@ contract TokenDistributorTest is TestHelpers {
         goForward(604801);
         tokenDistributor.newDistribution();
         tokenDistributor.claimDistribution(address(user), 0);
-
-        //make helper function
     }
 
     /// @notice claimDistribution happy case with partial claims
@@ -286,7 +283,7 @@ contract TokenDistributorTest is TestHelpers {
         vm.stopPrank();
         vm.prank(user);
         tokenDistributor.newDistribution();
-        vm.warp(block.timestamp + 604801);
+        goForward(604801);
 
         /// @dev during epoch #1, user claims their fees from #0
         /// and TokenDistributor receives 5000 in fees
@@ -304,14 +301,14 @@ contract TokenDistributorTest is TestHelpers {
         /// user2 also claims for #1 and #0
         /// and TokenDistributor receives 300 in fees
 
-        vm.warp(block.timestamp + 604801);
+        goForward(604801);
         vm.prank(user);
         vm.expectEmit(true, true, true, true);
         emit NewEpochCreated(1209603, 2);
         vm.expectEmit(true, true, false, true);
         emit VestingEntryCreated(address(user), 1666, 31449600, 2);
         tokenDistributor.claimDistribution(address(user), 1);
-        vm.warp(block.timestamp + 1000);
+        goForward(1000);
         kwenta.transfer(address(tokenDistributor), 300);
         vm.prank(user2);
         vm.expectEmit(true, true, false, true);
