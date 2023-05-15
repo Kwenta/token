@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.19;
 
-import "forge-std/Test.sol";
 import {TokenDistributor} from "../../../contracts/TokenDistributor.sol";
 import {Kwenta} from "../../../contracts/Kwenta.sol";
 import {StakingRewardsV2} from "../../../contracts/StakingRewardsV2.sol";
 import {RewardEscrowV2} from "../../../contracts/RewardEscrowV2.sol";
+import {TestHelpers} from "../utils/TestHelpers.t.sol";
 
-contract TokenDistributorTest is Test {
+contract TokenDistributorTest is TestHelpers {
     event NewEpochCreated(uint block, uint epoch);
     event VestingEntryCreated(
         address indexed beneficiary,
@@ -249,21 +249,21 @@ contract TokenDistributorTest is Test {
         stakingRewardsV2.stake(1);
         
         tokenDistributor.newDistribution();
-        vm.warp(block.timestamp + 604801);
+        goForward(604801);
         vm.expectEmit(true, true, true, true);
         emit NewEpochCreated(604802, 1);
         tokenDistributor.newDistribution();
 
-        vm.warp(block.timestamp + 1209601);
+        goForward(1209601);
         stakingRewardsV2.balanceAtBlock(user, 1);
         stakingRewardsV2.unstake(1);
         stakingRewardsV2.balanceAtBlock(user, 1);
         tokenDistributor.newDistribution();
-        vm.warp(block.timestamp + 604801);
+        goForward(604801);
         tokenDistributor.newDistribution();
         tokenDistributor.claimDistribution(address(user), 0);
 
-
+        //make helper function
     }
 
     /// @notice claimDistribution happy case with partial claims
