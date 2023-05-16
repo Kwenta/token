@@ -2,8 +2,10 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/security/Pausable.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "./utils/Owned.sol";
 import "./interfaces/IStakingRewardsV2.sol";
 import "./interfaces/IStakingRewards.sol";
@@ -14,11 +16,13 @@ import "./interfaces/IRewardEscrowV2.sol";
 /// @author SYNTHETIX, JaredBorders (jaredborders@proton.me), JChiaramonte7 (jeremy@bytecode.llc), tommyrharper (zeroknowledgeltd@gmail.com)
 /// @notice Updated version of Synthetix's StakingRewards with new features specific
 /// to Kwenta
+// TODO: refactor OwnableUpgradeable to be OwnedUpgradeable???
 contract StakingRewardsV2 is
+    Initializable,
     IStakingRewardsV2,
-    Owned,
-    ReentrancyGuard,
-    Pausable
+    OwnableUpgradeable,
+    ReentrancyGuardUpgradeable,
+    PausableUpgradeable
 {
     using SafeERC20 for IERC20;
 
@@ -33,16 +37,16 @@ contract StakingRewardsV2 is
     uint256 public constant MAX_COOLDOWN_PERIOD = 52 weeks;
 
     /// @notice token used for BOTH staking and rewards
-    IERC20 public immutable token;
+    IERC20 public token;
 
     /// @notice escrow contract which holds (and may stake) reward tokens
-    IRewardEscrowV2 public immutable rewardEscrow;
+    IRewardEscrowV2 public rewardEscrow;
 
     /// @notice handles reward token minting logic
-    ISupplySchedule public immutable supplySchedule;
+    ISupplySchedule public supplySchedule;
 
     /// @notice previous version of staking rewards contract - used for migration
-    IStakingRewards public immutable stakingRewardsV1;
+    IStakingRewards public stakingRewardsV1;
 
     /*///////////////////////////////////////////////////////////////
                                 STATE
@@ -65,7 +69,7 @@ contract StakingRewardsV2 is
     uint256 public rewardRate = 0;
 
     /// @notice period for rewards
-    uint256 public rewardsDuration = 7 days;
+    uint256 public rewardsDuration;
 
     /// @notice track last time the rewards were updated
     uint256 public lastUpdateTime;
@@ -74,7 +78,7 @@ contract StakingRewardsV2 is
     uint256 public rewardPerTokenStored;
 
     /// @notice the period of time a user has to wait after staking to unstake
-    uint256 public unstakingCooldownPeriod = 2 weeks;
+    uint256 public unstakingCooldownPeriod;
 
     /// @notice represents the rewardPerToken
     /// value the last time the stake calculated earned() rewards
@@ -209,20 +213,32 @@ contract StakingRewardsV2 is
     }
 
     /*///////////////////////////////////////////////////////////////
-                            CONSTRUCTOR
+                        CONSTRUCTOR / INITIALIZER
     ///////////////////////////////////////////////////////////////*/
+
+    /// @dev disable default constructor for disable implementation contract
+    /// Actual contract construction will take place in the initialize function via proxy
+    constructor() {
+        _disableInitializers();
+    }
 
     /// @notice configure StakingRewards state
     /// @dev owner set to address that deployed StakingRewards
     /// @param _token: token used for staking and for rewards
     /// @param _rewardEscrow: escrow contract which holds (and may stake) reward tokens
     /// @param _supplySchedule: handles reward token minting logic
-    constructor(
+    /// @dev this function should be called via proxy, not via direct contract interaction
+    function initialize(
         address _token,
         address _rewardEscrow,
         address _supplySchedule,
         address _stakingRewardsV1
-    ) Owned(msg.sender) {
+    ) public initializer {
+        // initialize owner
+        __Ownable_init();
+        __ReentrancyGuard_init();
+        __Pausable_init();
+
         // define reward/staking token
         token = IERC20(_token);
 
@@ -230,6 +246,10 @@ contract StakingRewardsV2 is
         rewardEscrow = IRewardEscrowV2(_rewardEscrow);
         supplySchedule = ISupplySchedule(_supplySchedule);
         stakingRewardsV1 = IStakingRewards(_stakingRewardsV1);
+
+        // define values
+        rewardsDuration = 1 weeks;
+        unstakingCooldownPeriod = 2 weeks;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -449,6 +469,7 @@ contract StakingRewardsV2 is
 
     /// @notice unstake all available staked non-escrowed tokens and
     /// claim any rewards
+    // TODO: check for reentrancy via unstake()
     function exit() external override {
         unstake(nonEscrowedBalanceOf(msg.sender));
         getReward();
@@ -776,12 +797,12 @@ contract StakingRewardsV2 is
 
     /// @dev Triggers stopped state
     function pauseStakingRewards() external override onlyOwner {
-        Pausable._pause();
+        _pause();
     }
 
     /// @dev Returns to normal state.
     function unpauseStakingRewards() external override onlyOwner {
-        Pausable._unpause();
+        _unpause();
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -815,7 +836,7 @@ contract StakingRewardsV2 is
             tokenAddress != address(token),
             "StakingRewards: Cannot unstake the staking token"
         );
-        IERC20(tokenAddress).safeTransfer(owner, tokenAmount);
+        IERC20(tokenAddress).safeTransfer(owner(), tokenAmount);
         emit Recovered(tokenAddress, tokenAmount);
     }
 }
