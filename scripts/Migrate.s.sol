@@ -9,12 +9,11 @@ import {RewardEscrowV2} from "../contracts/RewardEscrowV2.sol";
 import {StakingRewardsV2} from "../contracts/StakingRewardsV2.sol";
 
 // Upgradeability imports
-import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
-import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
+import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 /// @title Script for migration from StakingV1 to StakingV2
 /// @author tommyrharper (zeroknowledgeltd@gmail.com)
-/// @dev This uses the Transparent Proxy Pattern
+/// @dev This uses the UUPS upgrade pattern (see eip-1822)
 contract Migrate {
     /**
      * @dev Step 1: deploy the new contracts
@@ -40,14 +39,10 @@ contract Migrate {
 
         if (_printLogs) console.log("Deployed RewardEscrowV2 at %s", address(rewardEscrowV2));
 
-        // Deploy ProxyAdmin (owner is msg.sender)
-        address proxyAdmin = address(new ProxyAdmin());
-
         // Deploy StakingRewardsV2
         address stakingRewardsV2Implementation = address(new StakingRewardsV2());
-        stakingRewardsV2 = StakingRewardsV2(address(new TransparentUpgradeableProxy(
+        stakingRewardsV2 = StakingRewardsV2(address(new ERC1967Proxy(
             stakingRewardsV2Implementation,
-            proxyAdmin,
             abi.encodeWithSignature(
                 "initialize(address,address,address,address)",
                 _kwenta,
