@@ -53,6 +53,9 @@ contract Migrate {
             )
         )));
 
+        // TODO: think if I should do this => if so it should be done in the initialize function!
+        stakingRewardsV2.transferOwnership(_owner);
+
         if (_printLogs) console.log(
             "Deployed StakingRewardsV2 at %s", address(stakingRewardsV2)
         );
