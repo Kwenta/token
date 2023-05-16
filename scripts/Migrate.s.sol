@@ -40,6 +40,7 @@ contract Migrate {
         if (_printLogs) console.log("Deployed RewardEscrowV2 at %s", address(rewardEscrowV2));
 
         // Deploy StakingRewardsV2
+        // TODO: give away ownership of implementation to address 0 or address(1)
         address stakingRewardsV2Implementation = address(new StakingRewardsV2());
         stakingRewardsV2 = StakingRewardsV2(address(new ERC1967Proxy(
             stakingRewardsV2Implementation,
