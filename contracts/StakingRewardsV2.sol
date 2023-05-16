@@ -6,6 +6,7 @@ import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "./utils/Owned.sol";
 import "./interfaces/IStakingRewardsV2.sol";
 import "./interfaces/IStakingRewards.sol";
@@ -22,7 +23,8 @@ contract StakingRewardsV2 is
     IStakingRewardsV2,
     OwnableUpgradeable,
     ReentrancyGuardUpgradeable,
-    PausableUpgradeable
+    PausableUpgradeable,
+    UUPSUpgradeable
 {
     using SafeERC20 for IERC20;
 
@@ -238,6 +240,7 @@ contract StakingRewardsV2 is
         __Ownable_init();
         __ReentrancyGuard_init();
         __Pausable_init();
+        __UUPSUpgradeable_init();
 
         // define reward/staking token
         token = IERC20(_token);
@@ -792,7 +795,7 @@ contract StakingRewardsV2 is
     }
 
     /*///////////////////////////////////////////////////////////////
-                            PAUSABLE
+                                PAUSABLE
     ///////////////////////////////////////////////////////////////*/
 
     /// @dev Triggers stopped state
@@ -808,6 +811,13 @@ contract StakingRewardsV2 is
     /*///////////////////////////////////////////////////////////////
                             MISCELLANEOUS
     ///////////////////////////////////////////////////////////////*/
+
+    // TODO: investigate & add natspec
+    function _authorizeUpgrade(address newImplementation)
+        internal
+        override
+        onlyOwner
+    {}
 
     /// @notice approve an operator to collect rewards and stake escrow on behalf of the sender
     /// @param operator: address of operator to approve
