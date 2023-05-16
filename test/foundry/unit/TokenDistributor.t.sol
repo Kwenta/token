@@ -6,6 +6,7 @@ import {Kwenta} from "../../../contracts/Kwenta.sol";
 import {StakingRewardsV2} from "../../../contracts/StakingRewardsV2.sol";
 import {RewardEscrowV2} from "../../../contracts/RewardEscrowV2.sol";
 import {TestHelpers} from "../utils/TestHelpers.t.sol";
+import "forge-std/Test.sol";
 
 contract TokenDistributorTest is TestHelpers {
     event NewEpochCreated(uint block, uint epoch);
@@ -66,7 +67,9 @@ contract TokenDistributorTest is TestHelpers {
         vm.startPrank(user);
         tokenDistributor.newDistribution();
         vm.expectRevert(
-            "TokenDistributor: Last week's epoch has not ended yet"
+            abi.encodeWithSelector(
+                TokenDistributor.LastEpochHasntEnded.selector
+            )
         );
         tokenDistributor.newDistribution();
     }
@@ -81,7 +84,9 @@ contract TokenDistributorTest is TestHelpers {
         tokenDistributor.newDistribution();
         goForward(304801);
         vm.expectRevert(
-            "TokenDistributor: Last week's epoch has not ended yet"
+            abi.encodeWithSelector(
+                TokenDistributor.LastEpochHasntEnded.selector
+            )
         );
         tokenDistributor.newDistribution();
     }
@@ -110,7 +115,9 @@ contract TokenDistributorTest is TestHelpers {
         tokenDistributor.newDistribution();
         goForward(304801);
         vm.expectRevert(
-            "TokenDistributor: Last week's epoch has not ended yet"
+            abi.encodeWithSelector(
+                TokenDistributor.LastEpochHasntEnded.selector
+            )
         );
         tokenDistributor.newDistribution();
     }
@@ -164,7 +171,9 @@ contract TokenDistributorTest is TestHelpers {
         vm.startPrank(user);
         tokenDistributor.newDistribution();
         goForward(304801);
-        vm.expectRevert("TokenDistributor: Epoch is not ready to claim");
+        vm.expectRevert(
+            abi.encodeWithSelector(TokenDistributor.CannotClaimYet.selector)
+        );
         tokenDistributor.claimDistribution(address(user), 0);
     }
 
@@ -172,7 +181,9 @@ contract TokenDistributorTest is TestHelpers {
     function testClaimDistributionEpochAhead() public {
         vm.startPrank(user);
         tokenDistributor.newDistribution();
-        vm.expectRevert("TokenDistributor: Epoch is not ready to claim");
+        vm.expectRevert(
+            abi.encodeWithSelector(TokenDistributor.CannotClaimYet.selector)
+        );
         tokenDistributor.claimDistribution(address(user), 7);
     }
 
@@ -185,7 +196,6 @@ contract TokenDistributorTest is TestHelpers {
 
     /// @notice claimDistribution fail - cant claim in same block as new distribution
     function testClaimDistributionNewDistributionBlock() public {
-
         kwenta.transfer(address(tokenDistributor), 10);
         kwenta.transfer(address(user), 1);
         vm.startPrank(address(user));
@@ -194,13 +204,9 @@ contract TokenDistributorTest is TestHelpers {
         tokenDistributor.newDistribution();
         goForward(604801);
 
-        
-        
         tokenDistributor.newDistribution();
-        vm.expectRevert(
-            "Cannot claim in a new distribution block"
-        );
-        //goForward(0);
+        vm.expectRevert("Cannot claim in a new distribution block");
+        console.log("%d", block.number);
         tokenDistributor.claimDistribution(address(user), 0);
     }
 
@@ -219,7 +225,7 @@ contract TokenDistributorTest is TestHelpers {
         tokenDistributor.claimDistribution(address(user), 0);
 
         vm.expectRevert(
-            "TokenDistributor: You already claimed this epoch's fees"
+            abi.encodeWithSelector(TokenDistributor.CannotClaimTwice.selector)
         );
         tokenDistributor.claimDistribution(address(user), 0);
     }
@@ -233,7 +239,9 @@ contract TokenDistributorTest is TestHelpers {
         goForward(604801);
         vm.prank(user);
         vm.expectRevert(
-            "TokenDistributor: Nothing was staked in StakingRewardsV2 that epoch"
+            abi.encodeWithSelector(
+                TokenDistributor.NothingStakedThatEpoch.selector
+            )
         );
         tokenDistributor.claimDistribution(address(user), 0);
     }

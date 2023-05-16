@@ -10,7 +10,19 @@ contract TokenDistributor {
     event NewEpochCreated(uint block, uint epoch);
 
     /// @notice error when user tries to create a new distribution too soon
-    error CannotCreateNewDistributionThisSoon();
+    error LastEpochHasntEnded();
+
+    /// @notice error when user tries to claim a distribution too soon
+    error CannotClaimYet();
+
+    /// @notice error when user tries to claim in new distribution block
+    error CannotClaimInNewDistributionBlock();
+
+    /// @notice error when user tries to claim for same epoch twice
+    error CannotClaimTwice();
+
+    /// @notice error when user tries to claim for epoch with 0 staking
+    error NothingStakedThatEpoch();
 
     /// @notice tracks block, previously claimed fees,
     /// kwenta balance of this contract, and total
@@ -59,12 +71,12 @@ contract TokenDistributor {
     /// can only be called once per week
     function newDistribution() public {
         ///@dev [epoch - 1] to get the start of last weeks epoch
-        if (epoch > 0) {
-            require(
-                block.timestamp >=
-                    (distributionEpochs[epoch - 1].epochStartTime + 1 weeks),
-                "TokenDistributor: Last week's epoch has not ended yet"
-            );
+        if (
+            epoch > 0 &&
+            block.timestamp <
+            (distributionEpochs[epoch - 1].epochStartTime + 1 weeks)
+        ) {
+            revert LastEpochHasntEnded();
         }
 
         Distribution memory distribution = Distribution(
@@ -73,7 +85,7 @@ contract TokenDistributor {
             claimedFees,
             kwenta.balanceOf(address(this))
         );
-        //for a given block it might not be the final value of the block
+        //todo: for a given block it might not be the final value of the block
         distributionEpochs[epoch] = distribution;
         //todo: timestamp is put in for block but that is technically the time
         emit NewEpochCreated(block.timestamp, epoch);
@@ -91,29 +103,26 @@ contract TokenDistributor {
         ) {
             newDistribution();
         }
-        //require the other cases
-        //add custom error (saves gas)
-        require(
-            epochNumber < (epoch - 1),
-            "TokenDistributor: Epoch is not ready to claim"
-        );
-        //make sure its not the same block as the EpochStartNumber
-        require(
-            block.number !=
-                distributionEpochs[epochNumber].epochStartBlockNumber,
-            "Cannot claim in a new distribution block"
-        );
-        require(
-            claimedEpochs[to][epochNumber] != true,
-            "TokenDistributor: You already claimed this epoch's fees"
-        );
+        //todo: require the other cases
+        if (epochNumber >= (epoch - 1)) {
+            revert CannotClaimYet();
+        }
+        //todo: fix require vvv
+        if (
+            block.number ==
+            distributionEpochs[epochNumber].epochStartBlockNumber
+        ) {
+            revert CannotClaimInNewDistributionBlock();
+        }
+        if (claimedEpochs[to][epochNumber] == true) {
+            revert CannotClaimTwice();
+        }
         uint256 totalStaked = stakingRewardsV2.totalSupplyAtBlock(
             distributionEpochs[epochNumber].epochStartBlockNumber
         );
-        require(
-            totalStaked != 0,
-            "TokenDistributor: Nothing was staked in StakingRewardsV2 that epoch"
-        );
+        if (totalStaked == 0) {
+            revert NothingStakedThatEpoch();
+        }
 
         uint256 proportionalFees = _claimDistribution(
             to,
