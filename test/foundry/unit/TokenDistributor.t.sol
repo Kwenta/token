@@ -247,21 +247,27 @@ contract TokenDistributorTest is TestHelpers {
     }
 
     /// @notice claimDistribution fail - nonstaker tries to claim
-    function testFailClaimDistributionNotStaker() public {
+    /// (cannot claim 0 fees)
+    function testClaimDistributionNotStaker() public {
         //setup
         kwenta.transfer(address(tokenDistributor), 10);
         kwenta.transfer(address(user), 1);
-        vm.prank(address(rewardEscrowV2));
-        stakingRewardsV2.stakeEscrow(address(user), 1);
-        vm.prank(user);
+        vm.startPrank(address(user));
+        kwenta.approve(address(stakingRewardsV2), 1);
+        stakingRewardsV2.stake(1);
         tokenDistributor.newDistribution();
         goForward(604801);
-        vm.prank(user);
         vm.expectEmit(true, true, true, true);
         emit NewEpochCreated(604802, 1);
         tokenDistributor.claimDistribution(address(user), 0);
+        vm.stopPrank();
 
         vm.prank(user2);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                TokenDistributor.CannotClaim0Fees.selector
+            )
+        );
         tokenDistributor.claimDistribution(address(user2), 0);
     }
 

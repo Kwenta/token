@@ -24,6 +24,9 @@ contract TokenDistributor {
     /// @notice error when user tries to claim for epoch with 0 staking
     error NothingStakedThatEpoch();
 
+    /// @notice error when user tries to claim 0 fees
+    error CannotClaim0Fees();
+
     /// @notice tracks block, previously claimed fees,
     /// kwenta balance of this contract, and total
     /// staked amount in StakingRewardsV2
@@ -128,6 +131,10 @@ contract TokenDistributor {
         }
 
         uint256 proportionalFees = calculateFee(to, epochNumber);
+
+        if (proportionalFees == 0) {
+            revert CannotClaim0Fees();
+        }
 
         claimedFees += proportionalFees;
         claimedEpochs[to][epochNumber] = true;
