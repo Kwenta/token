@@ -62,6 +62,11 @@ contract TokenDistributor {
     /// @notice escrow contract which holds (and may stake) reward tokens
     RewardEscrowV2 public rewardEscrowV2;
 
+    uint public lastTokenBalance;
+    uint public lastTokenTime;
+    uint public startTime;
+    uint[1000000000000000] public tokensPerEpoch;
+
     constructor(
         address _kwenta,
         address _stakingRewardsV2,
@@ -71,7 +76,49 @@ contract TokenDistributor {
         epoch = 0;
         stakingRewardsV2 = StakingRewardsV2(_stakingRewardsV2);
         rewardEscrowV2 = RewardEscrowV2(_rewardEscrowV2);
-        startDate = block.timestamp;
+
+        uint _t = block.timestamp / 1 weeks * 1 weeks;
+        startTime = _t;
+        lastTokenTime = _t;
+    }
+
+
+    function _checkpoint_token() internal {
+        uint tokenBalance = kwenta.balanceOf(address(this));
+        uint to_distribute = tokenBalance - lastTokenBalance;
+        lastTokenBalance = tokenBalance;
+
+        uint t = lastTokenTime;
+        uint since_last = block.timestamp - t;
+        lastTokenTime = block.timestamp;
+        uint thisWeek = t / 1 weeks * 1 weeks;
+        uint nextWeek = 0;
+
+        for (uint i = 0; i < 20; i++) {
+            nextWeek = thisWeek + 1 weeks;
+            if (block.timestamp < nextWeek) {
+                if (since_last == 0 && block.timestamp == t) {
+                    tokensPerEpoch[thisWeek] += to_distribute;
+                } else {
+                    tokensPerEpoch[thisWeek] += to_distribute * (block.timestamp - t) / since_last;
+                }
+                break;
+            } else {
+                if (since_last == 0 && nextWeek == t) {
+                    tokensPerEpoch[thisWeek] += to_distribute;
+                } else {
+                    tokensPerEpoch[thisWeek] += to_distribute * (nextWeek - t) / since_last;
+                }
+            }
+            t = nextWeek;
+            thisWeek = nextWeek;
+        }
+        emit CheckpointToken(block.timestamp, to_distribute);
+    }
+
+    function checkpoint_token() external {
+        assert(msg.sender == depositor);
+        _checkpoint_token();
     }
 
     /// @notice  creates a new Distribution entry at the current block,
@@ -107,6 +154,8 @@ contract TokenDistributor {
     /// @notice this function will fetch StakingRewardsV2 to see what their staked balance
     /// was at the start of the epoch then calculate proportional fees and transfer to user
     function claimDistribution(address to, uint epochNumber) public {
+        //todo: create a new checkpoint if its been more than 24 hours
+
         /// @dev if this is the first claim of a new epoch, call newDistribution to start a new epoch
         if (
             block.timestamp >=
@@ -136,7 +185,7 @@ contract TokenDistributor {
         if (totalStaked == 0) {
             revert NothingStakedThatEpoch();
         }
-
+        //todo: hookup checkpoint token to here so tokens_per_week is used
         uint256 proportionalFees = calculateFee(to, epochNumber);
 
         if (proportionalFees == 0) {
