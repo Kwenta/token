@@ -53,6 +53,9 @@ contract TokenDistributor {
     /// @notice running total for claimed fees
     uint256 public claimedFees;
 
+    /// @notice start time of the first epoch
+    uint256 public startDate;
+
     /// @notice rewards staking contract
     StakingRewardsV2 public stakingRewardsV2;
 
@@ -68,12 +71,17 @@ contract TokenDistributor {
         epoch = 0;
         stakingRewardsV2 = StakingRewardsV2(_stakingRewardsV2);
         rewardEscrowV2 = RewardEscrowV2(_rewardEscrowV2);
+        startDate = block.timestamp;
     }
 
     /// @notice  creates a new Distribution entry at the current block,
     /// can only be called once per week
     function newDistribution() public {
         ///@dev [epoch - 1] to get the start of last weeks epoch
+    
+        //todo: after redo: check if can call distribution twice for epoch 0
+
+        //todo: should always happen on the same day
         if (
             epoch > 0 &&
             block.timestamp <
