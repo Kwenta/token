@@ -107,7 +107,10 @@ contract TokenDistributor {
         if (epochNumber >= (epoch - 1)) {
             revert CannotClaimYet();
         }
-        //todo: fix require vvv
+        /// @notice cannot claim in the same block as a new distribution
+        /// to prevent attacks in the same block (staking is calculated
+        /// at the end of the block)
+        //todo: fix require below
         if (
             block.number ==
             distributionEpochs[epochNumber].epochStartBlockNumber
@@ -133,7 +136,7 @@ contract TokenDistributor {
         rewardEscrowV2.createEscrowEntry(to, proportionalFees, 52 weeks, 90);
     }
 
-    /// @notice internals for claiming, including fee calculation
+    /// @notice view function for calculating fees for an epoch
     function calculateFee(
         address to,
         uint epochNumber
