@@ -8,8 +8,13 @@ import {SupplySchedule} from "../contracts/SupplySchedule.sol";
 import {RewardEscrowV2} from "../contracts/RewardEscrowV2.sol";
 import {StakingRewardsV2} from "../contracts/StakingRewardsV2.sol";
 
+// Upgradeability imports
+import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
+
 /// @title Script for migration from StakingV1 to StakingV2
 /// @author tommyrharper (zeroknowledgeltd@gmail.com)
+/// @dev This uses the Transparent Proxy Pattern
 contract Migrate {
     /**
      * @dev Step 1: deploy the new contracts
@@ -35,13 +40,22 @@ contract Migrate {
 
         if (_printLogs) console.log("Deployed RewardEscrowV2 at %s", address(rewardEscrowV2));
 
+        // Deploy ProxyAdmin (owner is msg.sender)
+        address proxyAdmin = address(new ProxyAdmin());
+
         // Deploy StakingRewardsV2
-        stakingRewardsV2 = new StakingRewardsV2(
-            _kwenta,
-            address(rewardEscrowV2),
-            _supplySchedule,
-            address(_stakingRewardsV1)
-        );
+        address stakingRewardsV2Implementation = address(new StakingRewardsV2());
+        stakingRewardsV2 = StakingRewardsV2(address(new TransparentUpgradeableProxy(
+            stakingRewardsV2Implementation,
+            proxyAdmin,
+            abi.encodeWithSignature(
+                "initialize(address,address,address,address)",
+                _kwenta,
+                address(rewardEscrowV2),
+                _supplySchedule,
+                address(_stakingRewardsV1)
+            )
+        )));
 
         if (_printLogs) console.log(
             "Deployed StakingRewardsV2 at %s", address(stakingRewardsV2)
