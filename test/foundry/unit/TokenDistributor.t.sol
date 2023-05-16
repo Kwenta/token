@@ -264,9 +264,7 @@ contract TokenDistributorTest is TestHelpers {
 
         vm.prank(user2);
         vm.expectRevert(
-            abi.encodeWithSelector(
-                TokenDistributor.CannotClaim0Fees.selector
-            )
+            abi.encodeWithSelector(TokenDistributor.CannotClaim0Fees.selector)
         );
         tokenDistributor.claimDistribution(address(user2), 0);
     }

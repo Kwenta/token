@@ -106,7 +106,6 @@ contract TokenDistributor {
         ) {
             newDistribution();
         }
-        //todo: require the other cases
         if (epochNumber >= (epoch - 1)) {
             revert CannotClaimYet();
         }
