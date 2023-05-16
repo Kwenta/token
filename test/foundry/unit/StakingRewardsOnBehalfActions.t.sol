@@ -40,6 +40,7 @@ contract StakingRewardsOnBehalfActionsTests is DefaultStakingV2Setup {
         vm.assume(owner != operator);
         vm.assume(owner != caller);
         vm.assume(operator != caller);
+        vm.assume(operator != stakingRewardsV2.owner());
 
         fundAccountAndStakeV2(owner, fundingAmount);
         addNewRewardsToStakingRewardsV2(newRewards);
@@ -81,6 +82,7 @@ contract StakingRewardsOnBehalfActionsTests is DefaultStakingV2Setup {
         vm.assume(owner != operator);
         vm.assume(owner != caller);
         vm.assume(operator != caller);
+        vm.assume(operator != stakingRewardsV2.owner());
 
         createRewardEscrowEntryV2(owner, escrowAmount, duration);
 
