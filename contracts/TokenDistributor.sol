@@ -124,24 +124,25 @@ contract TokenDistributor {
             revert NothingStakedThatEpoch();
         }
 
-        uint256 proportionalFees = _claimDistribution(
-            to,
-            epochNumber,
-            totalStaked
-        );
+        uint256 proportionalFees = calculateFee(to, epochNumber);
+
+        claimedFees += proportionalFees;
+        claimedEpochs[to][epochNumber] = true;
 
         kwenta.approve(address(rewardEscrowV2), proportionalFees);
         rewardEscrowV2.createEscrowEntry(to, proportionalFees, 52 weeks, 90);
     }
 
     /// @notice internals for claiming, including fee calculation
-    function _claimDistribution(
+    function calculateFee(
         address to,
-        uint epochNumber,
-        uint256 totalStaked
-    ) internal returns (uint256) {
+        uint epochNumber
+    ) public view returns (uint256) {
         uint256 userStaked = stakingRewardsV2.balanceAtBlock(
             to,
+            distributionEpochs[epochNumber].epochStartBlockNumber
+        );
+        uint256 totalStaked = stakingRewardsV2.totalSupplyAtBlock(
             distributionEpochs[epochNumber].epochStartBlockNumber
         );
         /// @notice epochFees is the fees for that epoch only
@@ -158,9 +159,6 @@ contract TokenDistributor {
         }
 
         uint256 proportionalFees = ((epochFees * userStaked) / totalStaked);
-
-        claimedFees += proportionalFees;
-        claimedEpochs[to][epochNumber] = true;
 
         return proportionalFees;
     }
