@@ -37,9 +37,6 @@ contract TokenDistributor {
     /// @notice Counter for new epochs (starts at 0)
     uint256 public epoch;
 
-    /// @notice running total for claimed fees
-    uint256 public claimedFees;
-
     /// @notice rewards staking contract
     StakingRewardsV2 public stakingRewardsV2;
 
@@ -119,8 +116,9 @@ contract TokenDistributor {
     /// @notice this function will fetch StakingRewardsV2 to see what their staked balance
     /// was at the start of the epoch then calculate proportional fees and transfer to user
     function claimEpoch(address to, uint epochNumber) public {
-        //todo: create a new checkpoint if its been more than 24 hours
-        //if t - last checkpoint > 24 hours {checkpointToken();}
+        if (block.timestamp - lastCheckpoint > 86400) {
+            checkpointToken();
+        }
 
         //todo: change to if last checkpoint < epoch, revert cant claim yet
         if (epochNumber >= (epoch - 1)) {
@@ -132,18 +130,14 @@ contract TokenDistributor {
         /// at the end of the block)
         //todo: check if this is still necessary because checkpointToken
         // might cover this in their edge cases
-        if (
-            block.number ==
-            distributionEpochs[epochNumber].epochStartBlockNumber
-        ) {
+        if (block.number == (epochNumber * 1 weeks) - 1 weeks + startTime) {
             revert CannotClaimInNewDistributionBlock();
         }
         if (claimedEpochs[to][epochNumber] == true) {
             revert CannotClaimTwice();
         }
-        //todo: go from last checkpoint
         uint256 totalStaked = stakingRewardsV2.totalSupplyAtBlock(
-            distributionEpochs[epochNumber].epochStartBlockNumber
+            (epochNumber * 1 weeks) - 1 weeks + startTime
         );
         if (totalStaked == 0) {
             revert NothingStakedThatEpoch();
@@ -155,7 +149,7 @@ contract TokenDistributor {
             revert CannotClaim0Fees();
         }
 
-        claimedFees += proportionalFees;
+        lastTokenBalance -= proportionalFees;
         claimedEpochs[to][epochNumber] = true;
 
         kwenta.approve(address(rewardEscrowV2), proportionalFees);
@@ -167,7 +161,6 @@ contract TokenDistributor {
         address to,
         uint epochNumber
     ) public view returns (uint256) {
-    
         uint256 userStaked = stakingRewardsV2.balanceAtBlock(
             to,
             (epochNumber * 1 weeks) - 1 weeks + startTime
@@ -176,7 +169,8 @@ contract TokenDistributor {
             (epochNumber * 1 weeks) - 1 weeks + startTime
         );
 
-        uint256 proportionalFees = ((tokensPerEpoch[epochNumber] * userStaked) / totalStaked);
+        uint256 proportionalFees = ((tokensPerEpoch[epochNumber] * userStaked) /
+            totalStaked);
 
         return proportionalFees;
     }
