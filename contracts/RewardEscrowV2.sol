@@ -3,8 +3,9 @@ pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
 // Inheritance
-import "./utils/Owned.sol";
 import "./interfaces/IRewardEscrowV2.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 // Libraries
 import "./libraries/SafeDecimalMath.sol";
@@ -13,7 +14,11 @@ import "./libraries/SafeDecimalMath.sol";
 import "./interfaces/IKwenta.sol";
 import "./interfaces/IStakingRewardsV2.sol";
 
-contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
+contract RewardEscrowV2 is
+    IRewardEscrowV2,
+    OwnableUpgradeable,
+    UUPSUpgradeable
+{
     using SafeDecimalMath for uint256;
 
     /* ========== CONSTANTS/IMMUTABLES ========== */
@@ -23,7 +28,7 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
 
     uint8 public constant DEFAULT_EARLY_VESTING_FEE = 90; // Default 90 percent
 
-    IKwenta private immutable kwenta;
+    IKwenta private kwenta;
 
     /* ========== STATE VARIABLES ========== */
 
@@ -82,10 +87,23 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
 
     /* ========== CONSTRUCTOR ========== */
 
-    constructor(address _owner, address _kwenta) Owned(_owner) {
-        nextEntryId = 1;
+    /// @dev disable default constructor for disable implementation contract
+    /// Actual contract construction will take place in the initialize function via proxy
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
 
-        // set the Kwenta contract address as we need to transfer KWENTA when the user vests
+    function initialize(address _owner, address _kwenta) external initializer {
+        // Initialize inherited contracts
+        __Ownable_init();
+        __UUPSUpgradeable_init();
+
+        // transfer ownership
+        transferOwnership(_owner);
+
+        // define variables
+        nextEntryId = 1;
         kwenta = IKwenta(_kwenta);
     }
 
@@ -577,4 +595,12 @@ contract RewardEscrowV2 is Owned, IRewardEscrowV2 {
 
         emit VestingEntryTransfer(msg.sender, account, entryID);
     }
+
+    /* ========== UPGRADEABILITY ========== */
+
+    function _authorizeUpgrade(address newImplementation)
+        internal
+        override
+        onlyOwner
+    {}
 }
