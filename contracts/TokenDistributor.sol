@@ -27,16 +27,6 @@ contract TokenDistributor {
     /// @notice error when user tries to claim 0 fees
     error CannotClaim0Fees();
 
-    /// @notice tracks block, previously claimed fees,
-    /// kwenta balance of this contract, and total
-    /// staked amount in StakingRewardsV2
-    struct Distribution {
-        uint epochStartBlockNumber;
-        uint epochStartTime;
-        uint previouslyClaimedFees;
-        uint kwentaStartOfEpoch;
-    }
-
     /// @notice tracks the distribution for each epoch
     mapping(uint => Distribution) public distributionEpochs;
 
@@ -63,9 +53,11 @@ contract TokenDistributor {
     RewardEscrowV2 public rewardEscrowV2;
 
     uint public lastTokenBalance;
-    uint public lastTokenTime;
+    uint public lastCheckpoint;
     uint public startTime;
     uint[1000000000000000] public tokensPerEpoch;
+
+    event CheckpointToken(uint time, uint tokens);
 
     constructor(
         address _kwenta,
@@ -77,99 +69,74 @@ contract TokenDistributor {
         stakingRewardsV2 = StakingRewardsV2(_stakingRewardsV2);
         rewardEscrowV2 = RewardEscrowV2(_rewardEscrowV2);
 
-        uint _t = block.timestamp / 1 weeks * 1 weeks;
+        uint _t = (block.timestamp / 1 weeks) * 1 weeks;
         startTime = _t;
-        lastTokenTime = _t;
+        lastCheckpoint = _t;
     }
 
-
-    function _checkpoint_token() internal {
+    function checkpointToken() internal {
         uint tokenBalance = kwenta.balanceOf(address(this));
-        uint to_distribute = tokenBalance - lastTokenBalance;
+        uint toDistribute = tokenBalance - lastTokenBalance;
         lastTokenBalance = tokenBalance;
 
-        uint t = lastTokenTime;
-        uint since_last = block.timestamp - t;
-        lastTokenTime = block.timestamp;
-        uint thisWeek = t / 1 weeks * 1 weeks;
+        uint t = lastCheckpoint;
+        uint sinceLast = block.timestamp - t;
+        lastCheckpoint = block.timestamp;
+        uint thisWeek = (t / 1 weeks) * 1 weeks;
         uint nextWeek = 0;
 
+        /// @dev Loop for potential missed weeks
+        /// iterates until caught up, unlikely to go to 20
         for (uint i = 0; i < 20; i++) {
             nextWeek = thisWeek + 1 weeks;
+
             if (block.timestamp < nextWeek) {
-                if (since_last == 0 && block.timestamp == t) {
-                    tokensPerEpoch[thisWeek] += to_distribute;
+                /// @dev if in the current week
+                if (sinceLast == 0 && block.timestamp == t) {
+                    /// @dev If no time change since last checkpoint just add new tokens
+                    /// that may have been deposited (same block)
+                    tokensPerEpoch[thisWeek] += toDistribute;
                 } else {
-                    tokensPerEpoch[thisWeek] += to_distribute * (block.timestamp - t) / since_last;
+                    /// @dev In the event that toDistribute contains tokens
+                    /// for multiple weeks we take the remaining portion
+                    tokensPerEpoch[thisWeek] +=
+                        (toDistribute * (block.timestamp - t)) /
+                        sinceLast;
                 }
                 break;
             } else {
-                if (since_last == 0 && nextWeek == t) {
-                    tokensPerEpoch[thisWeek] += to_distribute;
+                /// @dev If passed weeks missed
+                if (sinceLast == 0 && nextWeek == t) {
+                    tokensPerEpoch[thisWeek] += toDistribute;
                 } else {
-                    tokensPerEpoch[thisWeek] += to_distribute * (nextWeek - t) / since_last;
+                    /// @dev Store proportion of tokens for this week in the past
+                    tokensPerEpoch[thisWeek] +=
+                        (toDistribute * (nextWeek - t)) /
+                        sinceLast;
                 }
             }
             t = nextWeek;
             thisWeek = nextWeek;
         }
-        emit CheckpointToken(block.timestamp, to_distribute);
-    }
-
-    function checkpoint_token() external {
-        assert(msg.sender == depositor);
-        _checkpoint_token();
-    }
-
-    /// @notice  creates a new Distribution entry at the current block,
-    /// can only be called once per week
-    function newDistribution() public {
-        ///@dev [epoch - 1] to get the start of last weeks epoch
-    
-        //todo: after redo: check if can call distribution twice for epoch 0
-
-        //todo: should always happen on the same day
-        if (
-            epoch > 0 &&
-            block.timestamp <
-            (distributionEpochs[epoch - 1].epochStartTime + 1 weeks)
-        ) {
-            revert LastEpochHasntEnded();
-        }
-
-        Distribution memory distribution = Distribution(
-            block.number,
-            block.timestamp,
-            claimedFees,
-            kwenta.balanceOf(address(this))
-        );
-        //todo: for a given block it might not be the final value of the block
-        distributionEpochs[epoch] = distribution;
-        //todo: timestamp is put in for block but that is technically the time
-        emit NewEpochCreated(block.timestamp, epoch);
-
-        epoch++;
+        emit CheckpointToken(block.timestamp, toDistribute);
     }
 
     /// @notice this function will fetch StakingRewardsV2 to see what their staked balance
     /// was at the start of the epoch then calculate proportional fees and transfer to user
-    function claimDistribution(address to, uint epochNumber) public {
+    function claimEpoch(address to, uint epochNumber) public {
         //todo: create a new checkpoint if its been more than 24 hours
+        //if t - last checkpoint > 24 hours {checkpointToken();}
 
-        /// @dev if this is the first claim of a new epoch, call newDistribution to start a new epoch
-        if (
-            block.timestamp >=
-            (distributionEpochs[epoch - 1].epochStartTime + 604800)
-        ) {
-            newDistribution();
-        }
+        //todo: change to if last checkpoint < epoch, revert cant claim yet
         if (epochNumber >= (epoch - 1)) {
             revert CannotClaimYet();
         }
+
         /// @notice cannot claim in the same block as a new distribution
         /// to prevent attacks in the same block (staking is calculated
         /// at the end of the block)
-        //todo: fix require below
+        //todo: check if this is still necessary because checkpointToken
+        // might cover this in their edge cases
         if (
             block.number ==
             distributionEpochs[epochNumber].epochStartBlockNumber
@@ -185,8 +152,8 @@ contract TokenDistributor {
         if (totalStaked == 0) {
             revert NothingStakedThatEpoch();
         }
-        //todo: hookup checkpoint token to here so tokens_per_week is used
-        uint256 proportionalFees = calculateFee(to, epochNumber);
+
+        uint256 proportionalFees = calculateEpochFees(to, epochNumber);
 
         if (proportionalFees == 0) {
             revert CannotClaim0Fees();
@@ -200,7 +167,7 @@ contract TokenDistributor {
     }
 
     /// @notice view function for calculating fees for an epoch
-    function calculateFee(
+    function calculateEpochFees(
         address to,
         uint epochNumber
     ) public view returns (uint256) {
@@ -211,21 +178,19 @@ contract TokenDistributor {
         uint256 totalStaked = stakingRewardsV2.totalSupplyAtBlock(
             distributionEpochs[epochNumber].epochStartBlockNumber
         );
-        /// @notice epochFees is the fees for that epoch only
-        /// @dev calculated by: kwenta at the start of desired epoch + total claimed
-        /// fees BEFORE this epoch - kwenta at the start of previous epoch
-        uint256 epochFees;
-        if (epochNumber == 0) {
-            epochFees = distributionEpochs[1].kwentaStartOfEpoch;
-        } else {
-            epochFees =
-                distributionEpochs[epochNumber + 1].kwentaStartOfEpoch +
-                distributionEpochs[epochNumber + 1].previouslyClaimedFees -
-                distributionEpochs[epochNumber].kwentaStartOfEpoch;
-        }
+
+        //todo: hookup checkpoint token to here so tokensPerWeek[] is used
 
         uint256 proportionalFees = ((epochFees * userStaked) / totalStaked);
 
         return proportionalFees;
     }
 }
+
+//mapping out the new structure:
+
+//checkpoint will calculate the fees for each week
+
+//claim will update checkpoint if ready (been more than 24 hrs) and then claim
+
+//calculateEpochFees (view) will calculate proprtional fees based off stored checkpoint values and V2.totalSupply/staking
