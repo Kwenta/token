@@ -15,9 +15,7 @@ import "./interfaces/IRewardEscrowV2.sol";
 
 /// @title KWENTA Staking Rewards
 /// @author SYNTHETIX, JaredBorders (jaredborders@proton.me), JChiaramonte7 (jeremy@bytecode.llc), tommyrharper (zeroknowledgeltd@gmail.com)
-/// @notice Updated version of Synthetix's StakingRewards with new features specific
-/// to Kwenta
-// TODO: refactor OwnableUpgradeable to be OwnedUpgradeable???
+/// @notice Updated version of Synthetix's StakingRewards with new features specific to Kwenta
 contract StakingRewardsV2 is
     Initializable,
     IStakingRewardsV2,

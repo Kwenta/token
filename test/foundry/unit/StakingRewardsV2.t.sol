@@ -99,6 +99,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         stakingRewardsV2.unpauseStakingRewards();
     }
 
+    // TODO: fix this for new setup
     // function test_Only_Owner_Can_nominateNewOwner() public {
     //     // attempt to nominate new owner
     //     vm.prank(user1);
