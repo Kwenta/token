@@ -65,10 +65,10 @@ contract StakingRewardsV2 is
     Checkpoint[] public _totalSupply;
 
     /// @notice marks applicable reward period finish time
-    uint256 public periodFinish = 0;
+    uint256 public periodFinish;
 
     /// @notice amount of tokens minted per second
-    uint256 public rewardRate = 0;
+    uint256 public rewardRate;
 
     /// @notice period for rewards
     uint256 public rewardsDuration;
@@ -220,6 +220,7 @@ contract StakingRewardsV2 is
 
     /// @dev disable default constructor for disable implementation contract
     /// Actual contract construction will take place in the initialize function via proxy
+    /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
     }
