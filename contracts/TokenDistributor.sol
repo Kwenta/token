@@ -119,24 +119,24 @@ contract TokenDistributor {
         if (block.timestamp - lastCheckpoint > 86400) {
             checkpointToken();
         }
-
+        
         if (epochNumber * 1 weeks > lastCheckpoint) {
             revert CannotClaimYet();
         }
-
+        
         /// @notice cannot claim in the same block as a new distribution
         /// to prevent attacks in the same block (staking is calculated
         /// at the end of the block)
         //todo: check if this is still necessary because checkpointToken
         // might cover this in their edge cases
-        if (block.number == (epochNumber * 1 weeks) - 1 weeks + startTime) {
+        if (block.number == (epochNumber * 1 weeks) + startTime) {
             revert CannotClaimInNewDistributionBlock();
         }
         if (claimedEpochs[to][epochNumber] == true) {
             revert CannotClaimTwice();
         }
         uint256 totalStaked = stakingRewardsV2.totalSupplyAtBlock(
-            (epochNumber * 1 weeks) - 1 weeks + startTime
+            (epochNumber * 1 weeks) + startTime
         );
         if (totalStaked == 0) {
             revert NothingStakedThatEpoch();
@@ -162,10 +162,10 @@ contract TokenDistributor {
     ) public view returns (uint256) {
         uint256 userStaked = stakingRewardsV2.balanceAtBlock(
             to,
-            (epochNumber * 1 weeks) - 1 weeks + startTime
+            (epochNumber * 1 weeks) + startTime
         );
         uint256 totalStaked = stakingRewardsV2.totalSupplyAtBlock(
-            (epochNumber * 1 weeks) - 1 weeks + startTime
+            (epochNumber * 1 weeks) + startTime
         );
 
         uint256 proportionalFees = ((tokensPerEpoch[epochNumber] * userStaked) /
