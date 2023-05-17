@@ -19,6 +19,7 @@ contract Migrate {
      * @dev Step 1: deploy the new contracts
      *   - This deploys the new stakingv2 contracts but stakingv1 will remain operational
      */
+    // TODO: return & log upgradeability related addresses
     function deploySystem(
         address _owner,
         address _kwenta,
@@ -35,7 +36,16 @@ contract Migrate {
         if (_printLogs) console.log("********* 1. DEPLOYMENT STARTING... *********");
 
         // Deploy RewardEscrowV2
-        rewardEscrowV2 = new RewardEscrowV2(_owner, _kwenta);
+        // TODO: generalise/extract deploy proxy function
+        address rewardEscrowV2Implementation = address(new RewardEscrowV2());
+        rewardEscrowV2 = RewardEscrowV2(address(new ERC1967Proxy(
+            rewardEscrowV2Implementation,
+            abi.encodeWithSignature(
+                "initialize(address,address)",
+                _owner,
+                _kwenta
+            )
+        )));
 
         if (_printLogs) console.log("Deployed RewardEscrowV2 at %s", address(rewardEscrowV2));
 
