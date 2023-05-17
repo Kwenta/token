@@ -27,9 +27,6 @@ contract TokenDistributor {
     /// @notice error when user tries to claim 0 fees
     error CannotClaim0Fees();
 
-    /// @notice tracks the distribution for each epoch
-    mapping(uint => Distribution) public distributionEpochs;
-
     /// @notice represents the status of if a person already
     /// claimed their epoch
     mapping(address => mapping(uint => bool)) public claimedEpochs;
@@ -42,9 +39,6 @@ contract TokenDistributor {
 
     /// @notice running total for claimed fees
     uint256 public claimedFees;
-
-    /// @notice start time of the first epoch
-    uint256 public startDate;
 
     /// @notice rewards staking contract
     StakingRewardsV2 public stakingRewardsV2;
@@ -69,6 +63,7 @@ contract TokenDistributor {
         stakingRewardsV2 = StakingRewardsV2(_stakingRewardsV2);
         rewardEscrowV2 = RewardEscrowV2(_rewardEscrowV2);
 
+        //todo: add param for custom start day (startTime + param)
         uint _t = (block.timestamp / 1 weeks) * 1 weeks;
         startTime = _t;
         lastCheckpoint = _t;
@@ -146,6 +141,7 @@ contract TokenDistributor {
         if (claimedEpochs[to][epochNumber] == true) {
             revert CannotClaimTwice();
         }
+        //todo: go from last checkpoint
         uint256 totalStaked = stakingRewardsV2.totalSupplyAtBlock(
             distributionEpochs[epochNumber].epochStartBlockNumber
         );
@@ -171,17 +167,16 @@ contract TokenDistributor {
         address to,
         uint epochNumber
     ) public view returns (uint256) {
+    
         uint256 userStaked = stakingRewardsV2.balanceAtBlock(
             to,
-            distributionEpochs[epochNumber].epochStartBlockNumber
+            (epochNumber * 1 weeks) - 1 weeks + startTime
         );
         uint256 totalStaked = stakingRewardsV2.totalSupplyAtBlock(
-            distributionEpochs[epochNumber].epochStartBlockNumber
+            (epochNumber * 1 weeks) - 1 weeks + startTime
         );
 
-        //todo: hookup checkpoint token to here so tokensPerWeek[] is used
-
-        uint256 proportionalFees = ((epochFees * userStaked) / totalStaked);
+        uint256 proportionalFees = ((tokensPerEpoch[epochNumber] * userStaked) / totalStaked);
 
         return proportionalFees;
     }
