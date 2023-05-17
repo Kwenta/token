@@ -120,8 +120,7 @@ contract TokenDistributor {
             checkpointToken();
         }
 
-        //todo: change to if last checkpoint < epoch, revert cant claim yet
-        if (epochNumber >= (epoch - 1)) {
+        if (epochNumber * 1 weeks > lastCheckpoint) {
             revert CannotClaimYet();
         }
 
