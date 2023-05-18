@@ -73,13 +73,13 @@ contract TokenDistributorTest is TestHelpers {
     /// @notice claimEpoch happy case
     function testClaimEpoch() public {
         //setup
-        
+
         kwenta.transfer(address(tokenDistributor), 10);
         kwenta.transfer(address(user), 1);
         vm.startPrank(address(user));
         kwenta.approve(address(stakingRewardsV2), 1);
         stakingRewardsV2.stake(1);
-        uint startTime = block.timestamp / 1 weeks * 1 weeks;
+        uint startTime = (block.timestamp / 1 weeks) * 1 weeks;
         console.log(startTime);
         goForward(604801);
 
@@ -91,41 +91,36 @@ contract TokenDistributorTest is TestHelpers {
         tokenDistributor.claimEpoch(address(user), 0);
     }
 
-    //
-    //temporarily comment out every other test for compiling
-    //
-
-    /*
     /// @notice claimDistribution fail - epoch is not ready to claim
     function testClaimDistributionEpochNotReady() public {
         vm.startPrank(user);
-        tokenDistributor.newDistribution();
+
         goForward(304801);
         vm.expectRevert(
             abi.encodeWithSelector(TokenDistributor.CannotClaimYet.selector)
         );
-        tokenDistributor.claimDistribution(address(user), 0);
+        tokenDistributor.claimEpoch(address(user), 0);
     }
 
     /// @notice claimDistribution fail - epoch is not ready to claim, not an epoch yet
     function testClaimDistributionEpochAhead() public {
         vm.startPrank(user);
-        tokenDistributor.newDistribution();
         vm.expectRevert(
             abi.encodeWithSelector(TokenDistributor.CannotClaimYet.selector)
         );
-        tokenDistributor.claimDistribution(address(user), 7);
+        tokenDistributor.claimEpoch(address(user), 7);
     }
 
     /// @notice claimDistribution fail - no epoch to claim yet
     function testClaimDistributionNoEpochYet() public {
         vm.startPrank(user);
         vm.expectRevert();
-        tokenDistributor.claimDistribution(address(user), 0);
+        tokenDistributor.claimEpoch(address(user), 0);
     }
-
+    //
+    //temporarily comment out every other test for compiling
+    //
     /*
-    //fails until code overhaul is complete
     /// @notice claimDistribution fail - cant claim in same block as new distribution
     function testClaimDistributionNewDistributionBlock() public {
         kwenta.transfer(address(tokenDistributor), 10);
@@ -140,12 +135,9 @@ contract TokenDistributorTest is TestHelpers {
         vm.expectRevert(
             abi.encodeWithSelector(TokenDistributor.CannotClaimInNewDistributionBlock.selector)
         );
-        console.log(block.number);
-        console.log(block.timestamp);
         tokenDistributor.claimDistribution(address(user), 1);
     }
-    */
-    /*
+    
     /// @notice claimDistribution fail - already claimed
     function testClaimDistributionAlreadyClaimed() public {
         //setup
