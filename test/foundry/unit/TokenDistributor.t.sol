@@ -73,14 +73,11 @@ contract TokenDistributorTest is TestHelpers {
     /// @notice claimEpoch happy case
     function testClaimEpoch() public {
         //setup
-
         kwenta.transfer(address(tokenDistributor), 10);
         kwenta.transfer(address(user), 1);
         vm.startPrank(address(user));
         kwenta.approve(address(stakingRewardsV2), 1);
         stakingRewardsV2.stake(1);
-        uint startTime = (block.timestamp / 1 weeks) * 1 weeks;
-        console.log(startTime);
         goForward(604801);
 
         vm.expectEmit(true, true, true, true);
@@ -117,9 +114,8 @@ contract TokenDistributorTest is TestHelpers {
         vm.expectRevert();
         tokenDistributor.claimEpoch(address(user), 0);
     }
-    //
-    //temporarily comment out every other test for compiling
-    //
+
+    //todo: comment out until figure out if doing things in same block matters
     /*
     /// @notice claimDistribution fail - cant claim in same block as new distribution
     function testClaimDistributionNewDistributionBlock() public {
@@ -128,16 +124,14 @@ contract TokenDistributorTest is TestHelpers {
         vm.startPrank(address(user));
         kwenta.approve(address(stakingRewardsV2), 1);
         stakingRewardsV2.stake(1);
-        tokenDistributor.newDistribution();
         goForward(604801);
 
-        tokenDistributor.newDistribution();
         vm.expectRevert(
-            abi.encodeWithSelector(TokenDistributor.CannotClaimInNewDistributionBlock.selector)
+            abi.encodeWithSelector(TokenDistributor.CannotClaimInNewEpochBlock.selector)
         );
-        tokenDistributor.claimDistribution(address(user), 1);
+        tokenDistributor.claimEpoch(address(user), 1);
     }
-    
+    */
     /// @notice claimDistribution fail - already claimed
     function testClaimDistributionAlreadyClaimed() public {
         //setup
@@ -146,18 +140,18 @@ contract TokenDistributorTest is TestHelpers {
         vm.startPrank(address(user));
         kwenta.approve(address(stakingRewardsV2), 1);
         stakingRewardsV2.stake(1);
-        tokenDistributor.newDistribution();
         goForward(604801);
-        vm.expectEmit(true, true, true, true);
-        emit NewEpochCreated(604802, 1);
-        tokenDistributor.claimDistribution(address(user), 0);
 
+        tokenDistributor.claimEpoch(address(user), 0);
         vm.expectRevert(
             abi.encodeWithSelector(TokenDistributor.CannotClaimTwice.selector)
         );
-        tokenDistributor.claimDistribution(address(user), 0);
+        tokenDistributor.claimEpoch(address(user), 0);
     }
-
+    //
+    //temporarily comment out every other test for compiling
+    //
+    /*
     /// @notice claimDistribution fail - claim an epoch that had no staking
     function testClaimDistributionNoStaking() public {
         kwenta.transfer(address(tokenDistributor), 10);
