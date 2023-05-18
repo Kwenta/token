@@ -148,26 +148,24 @@ contract TokenDistributorTest is TestHelpers {
         );
         tokenDistributor.claimEpoch(address(user), 0);
     }
-    //
-    //temporarily comment out every other test for compiling
-    //
-    /*
+    
     /// @notice claimDistribution fail - claim an epoch that had no staking
     function testClaimDistributionNoStaking() public {
         kwenta.transfer(address(tokenDistributor), 10);
         kwenta.transfer(address(user), 1);
-        vm.prank(user);
-        tokenDistributor.newDistribution();
+        vm.startPrank(user);
         goForward(604801);
-        vm.prank(user);
         vm.expectRevert(
             abi.encodeWithSelector(
                 TokenDistributor.NothingStakedThatEpoch.selector
             )
         );
-        tokenDistributor.claimDistribution(address(user), 0);
+        tokenDistributor.claimEpoch(address(user), 0);
     }
-
+    //
+    //temporarily comment out every other test for compiling
+    //
+    /*
     /// @notice claimDistribution fail - nonstaker tries to claim
     /// (cannot claim 0 fees)
     function testClaimDistributionNotStaker() public {
