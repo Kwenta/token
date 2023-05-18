@@ -162,10 +162,7 @@ contract TokenDistributorTest is TestHelpers {
         );
         tokenDistributor.claimEpoch(address(user), 0);
     }
-    //
-    //temporarily comment out every other test for compiling
-    //
-    /*
+    
     /// @notice claimDistribution fail - nonstaker tries to claim
     /// (cannot claim 0 fees)
     function testClaimDistributionNotStaker() public {
@@ -175,20 +172,18 @@ contract TokenDistributorTest is TestHelpers {
         vm.startPrank(address(user));
         kwenta.approve(address(stakingRewardsV2), 1);
         stakingRewardsV2.stake(1);
-        tokenDistributor.newDistribution();
         goForward(604801);
-        vm.expectEmit(true, true, true, true);
-        emit NewEpochCreated(604802, 1);
-        tokenDistributor.claimDistribution(address(user), 0);
-        vm.stopPrank();
 
         vm.prank(user2);
         vm.expectRevert(
             abi.encodeWithSelector(TokenDistributor.CannotClaim0Fees.selector)
         );
-        tokenDistributor.claimDistribution(address(user2), 0);
+        tokenDistributor.claimEpoch(address(user2), 0);
     }
-
+    //
+    //temporarily comment out every other test for compiling
+    //
+    /*
     /// @notice claimDistribution happy case with a person who
     /// was previously staked but is now unstaked and trying to
     /// claim their fees
