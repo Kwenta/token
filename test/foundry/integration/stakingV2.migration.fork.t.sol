@@ -55,7 +55,6 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
                                  TESTS
     //////////////////////////////////////////////////////////////*/
 
-    // TODO: sort this out
     function test_Migrate_Then_Move_Funds_From_V1_To_V2_And_Generate_New_Rewards(
     ) public {
         uint256 user1StakedV1 = stakingRewardsV1.balanceOf(user1);
@@ -100,8 +99,6 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
         warpAndMint(2 weeks);
         warpAndMint(2 weeks);
         warpAndMint(2 weeks);
-
-        // TODO: check that there are rewards earnt
 
         // get rewards
         getStakingRewardsV2(user1);
