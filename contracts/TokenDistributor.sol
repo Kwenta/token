@@ -119,11 +119,11 @@ contract TokenDistributor {
         if (block.timestamp - lastCheckpoint > 86400) {
             checkpointToken();
         }
-        
-        if (epochNumber * 1 weeks > lastCheckpoint) {
+        /// @dev if the end of the epoch is > current time, revert
+        if ((epochNumber * 1 weeks) + 1 weeks + startTime > block.timestamp) {
             revert CannotClaimYet();
         }
-        
+
         /// @notice cannot claim in the same block as a new distribution
         /// to prevent attacks in the same block (staking is calculated
         /// at the end of the block)
@@ -161,13 +161,8 @@ contract TokenDistributor {
         uint epochNumber
     ) public view returns (uint256) {
         uint thisWeek = (epochNumber * 1 weeks) + startTime;
-        uint256 userStaked = stakingRewardsV2.balanceAtBlock(
-            to,
-            thisWeek
-        );
-        uint256 totalStaked = stakingRewardsV2.totalSupplyAtBlock(
-            thisWeek
-        );
+        uint256 userStaked = stakingRewardsV2.balanceAtBlock(to, thisWeek);
+        uint256 totalStaked = stakingRewardsV2.totalSupplyAtBlock(thisWeek);
 
         uint256 proportionalFees = ((tokensPerEpoch[thisWeek] * userStaked) /
             totalStaked);
