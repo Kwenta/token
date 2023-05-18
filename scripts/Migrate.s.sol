@@ -51,21 +51,18 @@ contract Migrate {
         if (_printLogs) console.log("Deployed RewardEscrowV2 Proxy at %s", address(rewardEscrowV2));
 
         // Deploy StakingRewardsV2
-        // TODO: give away ownership of implementation to address 0 or address(1)
         stakingRewardsV2Implementation = address(new StakingRewardsV2());
         stakingRewardsV2 = StakingRewardsV2(address(new ERC1967Proxy(
             stakingRewardsV2Implementation,
             abi.encodeWithSignature(
-                "initialize(address,address,address,address)",
+                "initialize(address,address,address,address,address)",
                 _kwenta,
                 address(rewardEscrowV2),
                 _supplySchedule,
-                address(_stakingRewardsV1)
+                address(_stakingRewardsV1),
+                _owner
             )
         )));
-
-        // TODO: think if I should do this => if so it should be done in the initialize function!
-        stakingRewardsV2.transferOwnership(_owner);
 
         if (_printLogs) console.log("Deployed StakingRewardsV2 Implementation at %s", stakingRewardsV2Implementation);
         if (_printLogs) console.log(

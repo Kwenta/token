@@ -183,11 +183,11 @@ const deployRewardEscrowV2 = async (owner, kwenta) => {
     return await RewardEscrowV2.at(rewardEscrowV2.address);
 }
 
-const deployStakingRewardsV2 = async (token, rewardEscrow, supplySchedule, stakingRewardsV1) => {
+const deployStakingRewardsV2 = async (token, rewardEscrow, supplySchedule, stakingRewardsV1, owner) => {
     const StakingRewardsV2Factory = await ethers.getContractFactory('StakingRewardsV2');
     const stakingRewardsV2 = await upgrades.deployProxy(
         StakingRewardsV2Factory,
-        [token, rewardEscrow, supplySchedule, stakingRewardsV1],
+        [token, rewardEscrow, supplySchedule, stakingRewardsV1, owner],
         { kind: 'uups' }
     );
     await stakingRewardsV2.deployed();
@@ -232,7 +232,8 @@ contract(
                 kwentaSmock.address,
                 rewardEscrowV2.address,
                 supplySchedule.address,
-                stakingRewards.address
+                stakingRewards.address,
+                owner
             );
 
             await hre.network.provider.request({
