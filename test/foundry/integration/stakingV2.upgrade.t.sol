@@ -84,4 +84,33 @@ contract StakingV2UpgradeTests is DefaultStakingV2Setup {
         assertEq(stakingRewardsV3.newFunctionality(), 42);
         assertEq(stakingRewardsV3.newNum(), 5);
     }
+
+    function test_Upgrade_RewardEscrowV2_To_V3() public {
+        address rewardEscrowV3Implementation =
+            address(new MockStakingRewardsV3());
+
+        rewardEscrowV2.upgradeTo(rewardEscrowV3Implementation);
+
+        MockStakingRewardsV3 rewardEscrowV3 =
+            MockStakingRewardsV3(address(rewardEscrowV2));
+
+        assertEq(rewardEscrowV3.newFunctionality(), 42);
+        assertEq(rewardEscrowV3.newNum(), 0);
+    }
+
+    function test_Upgrade_And_Call_RewardEscrowV2_To_V3() public {
+        address rewardEscrowV3Implementation =
+            address(new MockStakingRewardsV3());
+
+        rewardEscrowV2.upgradeToAndCall(
+            rewardEscrowV3Implementation,
+            abi.encodeWithSignature("setNewNum(uint256)", 5)
+        );
+
+        MockStakingRewardsV3 rewardEscrowV3 =
+            MockStakingRewardsV3(address(rewardEscrowV2));
+
+        assertEq(rewardEscrowV3.newFunctionality(), 42);
+        assertEq(rewardEscrowV3.newNum(), 5);
+    }
 }
