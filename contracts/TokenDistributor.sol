@@ -16,7 +16,7 @@ contract TokenDistributor {
     error CannotClaimYet();
 
     /// @notice error when user tries to claim in new distribution block
-    error CannotClaimInNewDistributionBlock();
+    error CannotClaimInNewEpochBlock();
 
     /// @notice error when user tries to claim for same epoch twice
     error CannotClaimTwice();
@@ -124,13 +124,13 @@ contract TokenDistributor {
             revert CannotClaimYet();
         }
 
-        /// @notice cannot claim in the same block as a new distribution
+        /// @notice cannot claim in the same block as a new epoch
         /// to prevent attacks in the same block (staking is calculated
         /// at the end of the block)
         //todo: check if this is still necessary because checkpointToken
         // might cover this in their edge cases
         if (block.number == (epochNumber * 1 weeks) + startTime) {
-            revert CannotClaimInNewDistributionBlock();
+            revert CannotClaimInNewEpochBlock();
         }
         if (claimedEpochs[to][epochNumber] == true) {
             revert CannotClaimTwice();
