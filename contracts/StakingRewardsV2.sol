@@ -233,13 +233,17 @@ contract StakingRewardsV2 is
         address _token,
         address _rewardEscrow,
         address _supplySchedule,
-        address _stakingRewardsV1
+        address _stakingRewardsV1,
+        address _owner
     ) public initializer {
         // initialize owner
         __Ownable_init();
         __ReentrancyGuard_init();
         __Pausable_init();
         __UUPSUpgradeable_init();
+
+        // transfer ownership
+        transferOwnership(_owner);
 
         // define reward/staking token
         token = IERC20(_token);
