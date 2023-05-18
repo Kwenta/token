@@ -66,7 +66,7 @@ contract TokenDistributor {
         lastCheckpoint = _t;
     }
 
-    function checkpointToken() internal {
+    function checkpointToken() public {
         uint tokenBalance = kwenta.balanceOf(address(this));
         uint toDistribute = tokenBalance - lastTokenBalance;
         lastTokenBalance = tokenBalance;
@@ -160,15 +160,16 @@ contract TokenDistributor {
         address to,
         uint epochNumber
     ) public view returns (uint256) {
+        uint thisWeek = (epochNumber * 1 weeks) + startTime;
         uint256 userStaked = stakingRewardsV2.balanceAtBlock(
             to,
-            (epochNumber * 1 weeks) + startTime
+            thisWeek
         );
         uint256 totalStaked = stakingRewardsV2.totalSupplyAtBlock(
-            (epochNumber * 1 weeks) + startTime
+            thisWeek
         );
 
-        uint256 proportionalFees = ((tokensPerEpoch[epochNumber] * userStaked) /
+        uint256 proportionalFees = ((tokensPerEpoch[thisWeek] * userStaked) /
             totalStaked);
 
         return proportionalFees;
