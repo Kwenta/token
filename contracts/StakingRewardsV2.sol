@@ -815,7 +815,7 @@ contract StakingRewardsV2 is
                             MISCELLANEOUS
     ///////////////////////////////////////////////////////////////*/
 
-    // TODO: investigate & add natspec
+    /// @dev this function is used by the proxy to set the access control for upgrading the implementation contract
     function _authorizeUpgrade(address newImplementation)
         internal
         override
