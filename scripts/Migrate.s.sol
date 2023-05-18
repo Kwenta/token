@@ -19,7 +19,6 @@ contract Migrate {
      * @dev Step 1: deploy the new contracts
      *   - This deploys the new stakingv2 contracts but stakingv1 will remain operational
      */
-    // TODO: return & log upgradeability related addresses
     function deploySystem(
         address _owner,
         address _kwenta,
@@ -30,14 +29,15 @@ contract Migrate {
         public
         returns (
             RewardEscrowV2 rewardEscrowV2,
-            StakingRewardsV2 stakingRewardsV2
+            StakingRewardsV2 stakingRewardsV2,
+            address rewardEscrowV2Implementation,
+            address stakingRewardsV2Implementation
         )
     {
         if (_printLogs) console.log("********* 1. DEPLOYMENT STARTING... *********");
 
         // Deploy RewardEscrowV2
-        // TODO: generalise/extract deploy proxy function
-        address rewardEscrowV2Implementation = address(new RewardEscrowV2());
+        rewardEscrowV2Implementation = address(new RewardEscrowV2());
         rewardEscrowV2 = RewardEscrowV2(address(new ERC1967Proxy(
             rewardEscrowV2Implementation,
             abi.encodeWithSignature(
@@ -47,11 +47,12 @@ contract Migrate {
             )
         )));
 
-        if (_printLogs) console.log("Deployed RewardEscrowV2 at %s", address(rewardEscrowV2));
+        if (_printLogs) console.log("Deployed RewardEscrowV2 Implementation at %s", rewardEscrowV2Implementation);
+        if (_printLogs) console.log("Deployed RewardEscrowV2 Proxy at %s", address(rewardEscrowV2));
 
         // Deploy StakingRewardsV2
         // TODO: give away ownership of implementation to address 0 or address(1)
-        address stakingRewardsV2Implementation = address(new StakingRewardsV2());
+        stakingRewardsV2Implementation = address(new StakingRewardsV2());
         stakingRewardsV2 = StakingRewardsV2(address(new ERC1967Proxy(
             stakingRewardsV2Implementation,
             abi.encodeWithSignature(
@@ -66,8 +67,9 @@ contract Migrate {
         // TODO: think if I should do this => if so it should be done in the initialize function!
         stakingRewardsV2.transferOwnership(_owner);
 
+        if (_printLogs) console.log("Deployed StakingRewardsV2 Implementation at %s", stakingRewardsV2Implementation);
         if (_printLogs) console.log(
-            "Deployed StakingRewardsV2 at %s", address(stakingRewardsV2)
+            "Deployed StakingRewardsV2 Proxy at %s", address(stakingRewardsV2)
         );
         if (_printLogs) console.log(unicode"--------- 🚀 DEPLOYMENT COMPLETE 🚀 ---------");
     }
@@ -143,11 +145,13 @@ contract Migrate {
         public
         returns (
             RewardEscrowV2 rewardEscrowV2,
-            StakingRewardsV2 stakingRewardsV2
+            StakingRewardsV2 stakingRewardsV2,
+            address rewardEscrowV2Implementation,
+            address stakingRewardsV2Implementation
         )
     {
         // Step 1: Deploy StakingV2 contracts
-        (rewardEscrowV2, stakingRewardsV2) =
+        (rewardEscrowV2, stakingRewardsV2, rewardEscrowV2Implementation, stakingRewardsV2Implementation) =
             deploySystem(_owner, _kwenta, _supplySchedule, _stakingRewardsV1, _printLogs);
 
         // Step 2: Setup StakingV2 contracts
