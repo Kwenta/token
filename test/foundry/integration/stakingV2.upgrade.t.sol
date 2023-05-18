@@ -47,7 +47,7 @@ contract StakingV2UpgradeTests is DefaultStakingV2Setup {
         vm.expectRevert("Ownable: caller is not the owner");
         vm.prank(user1);
         stakingRewardsV2.upgradeToAndCall(
-            stakingRewardsV3Implementation,
+            rewardEscrowV3Implementation,
             abi.encodeWithSignature("setNewNum(uint256)", 5)
         );
     }
@@ -66,5 +66,22 @@ contract StakingV2UpgradeTests is DefaultStakingV2Setup {
             MockStakingRewardsV3(address(stakingRewardsV2));
 
         assertEq(stakingRewardsV3.newFunctionality(), 42);
+        assertEq(stakingRewardsV3.newNum(), 0);
+    }
+
+    function test_Upgrade_And_Call_StakingRewardsV2_To_V3() public {
+        address stakingRewardsV3Implementation =
+            address(new MockStakingRewardsV3());
+
+        stakingRewardsV2.upgradeToAndCall(
+            stakingRewardsV3Implementation,
+            abi.encodeWithSignature("setNewNum(uint256)", 5)
+        );
+
+        MockStakingRewardsV3 stakingRewardsV3 =
+            MockStakingRewardsV3(address(stakingRewardsV2));
+
+        assertEq(stakingRewardsV3.newFunctionality(), 42);
+        assertEq(stakingRewardsV3.newNum(), 5);
     }
 }
