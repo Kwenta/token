@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {StakingRewardsV2} from "../../../contracts/StakingRewardsV2.sol";
+import {RewardEscrowV2} from "../../../contracts/RewardEscrowV2.sol";
 
-contract MockStakingRewardsV3 is StakingRewardsV2 {
+contract MockRewardEscrowV3 is RewardEscrowV2 {
     uint256 public newNum;
 
     function setNewNum(uint256 _newNum) external {
