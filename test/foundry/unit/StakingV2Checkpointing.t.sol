@@ -373,7 +373,7 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
                     Binary Search Balance Checkpoints
     //////////////////////////////////////////////////////////////*/
 
-    function test_balanceAtT() public {
+    function test_balanceAtTime() public {
         uint256 timestampToFind = 4;
         uint256 expectedValue;
         uint256 totalStaked;
@@ -388,12 +388,12 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
             vm.warp(block.timestamp + 1);
         }
 
-        uint256 value = stakingRewardsV2.balanceAtT(address(this), timestampToFind);
+        uint256 value = stakingRewardsV2.balanceAtTime(address(this), timestampToFind);
 
         assertEq(value, expectedValue);
     }
 
-    function test_balanceAtT_With_Unstake_Before_Block() public {
+    function test_balanceAtTime_With_Unstake_Before_Block() public {
         uint256 timestampToFind = xCooldownPeriods(4);
         uint256 expectedValue;
         uint256 totalStaked;
@@ -412,12 +412,12 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
             vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
         }
 
-        uint256 value = stakingRewardsV2.balanceAtT(address(this), timestampToFind);
+        uint256 value = stakingRewardsV2.balanceAtTime(address(this), timestampToFind);
 
         assertEq(value, expectedValue);
     }
 
-    function test_balanceAtT_With_Unstake_After_Block() public {
+    function test_balanceAtTime_With_Unstake_After_Block() public {
         uint256 timestampToFind = xCooldownPeriods(4);
         uint256 expectedValue;
         uint256 totalStaked;
@@ -436,12 +436,12 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
             vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
         }
 
-        uint256 value = stakingRewardsV2.balanceAtT(address(this), timestampToFind);
+        uint256 value = stakingRewardsV2.balanceAtTime(address(this), timestampToFind);
 
         assertEq(value, expectedValue);
     }
 
-    function test_balanceAtT_With_Unstake_Before_And_After_Block() public {
+    function test_balanceAtTime_With_Unstake_Before_And_After_Block() public {
         uint256 timestampToFind = xCooldownPeriods(4);
         uint256 expectedValue;
         uint256 totalStaked;
@@ -472,11 +472,11 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
             vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
         }
 
-        uint256 value = stakingRewardsV2.balanceAtT(address(this), timestampToFind);
+        uint256 value = stakingRewardsV2.balanceAtTime(address(this), timestampToFind);
         assertEq(value, expectedValue);
     }
 
-    function test_balanceAtT_At_Each_Block() public {
+    function test_balanceAtTime_At_Each_Block() public {
         vm.warp(3);
         fundAccountAndStakeV2(address(this), 1);
 
@@ -495,7 +495,7 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
         uint256 value;
 
         for (uint256 i = 0; i < 30; i++) {
-            value = stakingRewardsV2.balanceAtT(address(this), i);
+            value = stakingRewardsV2.balanceAtTime(address(this), i);
             if (i < 3) {
                 assertEq(value, 0);
             } else if (i < 6) {
@@ -512,7 +512,7 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
         }
     }
 
-    function test_balanceAtT_Fuzz(uint256 timestampToFind, uint8 numberOfRounds) public {
+    function test_balanceAtTime_Fuzz(uint256 timestampToFind, uint8 numberOfRounds) public {
         vm.assume(numberOfRounds < 50);
         vm.assume(timestampToFind > 0);
 
@@ -543,7 +543,7 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
             if (i != numberOfRounds - 1) vm.warp(block.timestamp + timestampAdvance);
         }
 
-        uint256 value = stakingRewardsV2.balanceAtT(address(this), timestampToFind);
+        uint256 value = stakingRewardsV2.balanceAtTime(address(this), timestampToFind);
         // if we are before the block to find, the expected value is the total staked
         if (timestampToFind > block.timestamp) {
             assertEq(value, totalStaked);
@@ -557,7 +557,7 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
                 Binary Search EscrowBalance Checkpoints
     //////////////////////////////////////////////////////////////*/
 
-    function test_escrowBalanceAtT() public {
+    function test_escrowbalanceAtTime() public {
         uint256 timestampToFind = 4;
         uint256 expectedValue;
         uint256 totalStaked;
@@ -572,12 +572,12 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
             vm.warp(block.timestamp + 1);
         }
 
-        uint256 value = stakingRewardsV2.escrowedBalanceAtT(address(this), timestampToFind);
+        uint256 value = stakingRewardsV2.escrowedbalanceAtTime(address(this), timestampToFind);
 
         assertEq(value, expectedValue);
     }
 
-    function test_escrowBalanceAtT_At_Each_Block() public {
+    function test_escrowbalanceAtTime_At_Each_Block() public {
         vm.warp(3);
         stakeEscrowedFundsV2(address(this), 1);
 
@@ -596,7 +596,7 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
         uint256 value;
 
         for (uint256 i = 0; i < 30; i++) {
-            value = stakingRewardsV2.escrowedBalanceAtT(address(this), i);
+            value = stakingRewardsV2.escrowedbalanceAtTime(address(this), i);
             if (i < 3) {
                 assertEq(value, 0);
             } else if (i < 6) {
@@ -613,7 +613,7 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
         }
     }
 
-    function test_escrowBalanceAtT_Fuzz(uint256 timestampToFind, uint8 numberOfRounds) public {
+    function test_escrowbalanceAtTime_Fuzz(uint256 timestampToFind, uint8 numberOfRounds) public {
         vm.assume(numberOfRounds < 50);
         vm.assume(timestampToFind > 0);
 
@@ -644,7 +644,7 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
             if (i != numberOfRounds - 1) vm.warp(block.timestamp + timestampAdvance);
         }
 
-        uint256 value = stakingRewardsV2.escrowedBalanceAtT(address(this), timestampToFind);
+        uint256 value = stakingRewardsV2.escrowedbalanceAtTime(address(this), timestampToFind);
         // if we are before the block to find, the expected value is the total staked
         if (timestampToFind > block.timestamp) {
             assertEq(value, totalStaked);
