@@ -128,10 +128,9 @@ contract TokenDistributor {
         /// @notice cannot claim in the same block as a new epoch
         /// to prevent attacks in the same block (staking is calculated
         /// at the end of the block)
-        //todo: check if this is still necessary because checkpointToken
-        // might cover this in their edge cases
+        //todo: check if need this for if its within the same second
         if (block.number == (epochNumber * 1 weeks) + startTime) {
-            revert CannotClaimInNewEpochBlock();
+            //revert CannotClaimInNewEpochBlock();
         }
         if (claimedEpochs[to][epochNumber] == true) {
             revert CannotClaimTwice();
