@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.19;
 
 import {DefaultStakingV2Setup} from "../utils/DefaultStakingV2Setup.t.sol";
 import {StakingRewardsV2} from "../../../contracts/StakingRewardsV2.sol";
