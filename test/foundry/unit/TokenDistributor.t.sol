@@ -68,8 +68,8 @@ contract TokenDistributorTest is StakingSetup {
         tokenDistributor.claimEpoch(address(user1), 1);
     }
 
-    /// @notice claimDistribution fail - epoch is not ready to claim
-    function testClaimDistributionEpochNotReady() public {
+    /// @notice claimEpoch fail - epoch is not ready to claim
+    function testClaimEpochNotReady() public {
         vm.startPrank(user1);
 
         goForward(304801);
@@ -79,8 +79,8 @@ contract TokenDistributorTest is StakingSetup {
         tokenDistributor.claimEpoch(address(user1), 0);
     }
 
-    /// @notice claimDistribution fail - epoch is not ready to claim, not an epoch yet
-    function testClaimDistributionEpochAhead() public {
+    /// @notice claimEpoch fail - epoch is not ready to claim, not an epoch yet
+    function testClaimEpochAhead() public {
         vm.startPrank(user1);
         vm.expectRevert(
             abi.encodeWithSelector(TokenDistributor.CannotClaimYet.selector)
@@ -88,8 +88,8 @@ contract TokenDistributorTest is StakingSetup {
         tokenDistributor.claimEpoch(address(user1), 7);
     }
 
-    /// @notice claimDistribution fail - no epoch to claim yet
-    function testClaimDistributionNoEpochYet() public {
+    /// @notice claimEpoch fail - no epoch to claim yet
+    function testClaimNoEpochYet() public {
         vm.startPrank(user1);
         vm.expectRevert();
         tokenDistributor.claimEpoch(address(user1), 0);
@@ -97,7 +97,7 @@ contract TokenDistributorTest is StakingSetup {
 
     //todo: comment out until figure out if doing things in same block matters
     /*
-    /// @notice claimDistribution fail - cant claim in same block as new distribution
+    /// @notice claimEpoch fail - cant claim in same block as new distribution
     function testClaimDistributionNewDistributionBlock() public {
         kwenta.transfer(address(tokenDistributor), 10);
         kwenta.transfer(address(user1), 1);
@@ -112,8 +112,8 @@ contract TokenDistributorTest is StakingSetup {
         tokenDistributor.claimEpoch(address(user1), 1);
     }
     */
-    /// @notice claimDistribution fail - already claimed
-    function testClaimDistributionAlreadyClaimed() public {
+    /// @notice claimEpoch fail - already claimed
+    function testClaimAlreadyClaimed() public {
         //setup
         kwenta.transfer(address(user1), 1);
         vm.startPrank(address(user1));
@@ -131,8 +131,8 @@ contract TokenDistributorTest is StakingSetup {
         tokenDistributor.claimEpoch(address(user1), 1);
     }
     
-    /// @notice claimDistribution fail - claim an epoch that had no staking
-    function testClaimDistributionNoStaking() public {
+    /// @notice claimEpoch fail - claim an epoch that had no staking
+    function testClaimNoStaking() public {
         kwenta.transfer(address(tokenDistributor), 10);
         kwenta.transfer(address(user1), 1);
         vm.startPrank(user1);
@@ -145,9 +145,9 @@ contract TokenDistributorTest is StakingSetup {
         tokenDistributor.claimEpoch(address(user1), 0);
     }
     
-    /// @notice claimDistribution fail - nonstaker tries to claim
+    /// @notice claimEpoch fail - nonstaker tries to claim
     /// (cannot claim 0 fees)
-    function testClaimDistributionNotStaker() public {
+    function testClaimNotStaker() public {
         //setup
         kwenta.transfer(address(user1), 1);
         vm.startPrank(address(user1));
@@ -165,10 +165,10 @@ contract TokenDistributorTest is StakingSetup {
         tokenDistributor.claimEpoch(address(user2), 1);
     }
     
-    /// @notice claimDistribution happy case with a person who
+    /// @notice claimEpoch happy case with a person who
     /// was previously staked but is now unstaked and trying to
     /// claim their fees
-    function testClaimDistributionPreviouslyStaked() public {
+    function testClaimPreviouslyStaked() public {
         //setup
         kwenta.transfer(address(user1), 1);
         vm.startPrank(address(user1));
@@ -187,14 +187,11 @@ contract TokenDistributorTest is StakingSetup {
         emit VestingEntryCreated(address(user1), 2, 31449600, 1);
         tokenDistributor.claimEpoch(address(user1), 1);
     }
-    //
-    //temporarily comment out every other test for compiling
-    //
-    /*
-    /// @notice claimDistribution happy case with partial claims
+    
+    /// @notice claimEpoch happy case with partial claims
     /// in earlier epochs 2 complete epochs with differing fees
     /// @dev also an integration test with RewardEscrowV2
-    function testClaimDistributionMultipleClaims() public {
+    function testClaimMultipleClaims() public {
         /// @dev user1 has 1/3 total staking and user2 has 2/3
         /// before epoch #0 (same as during) TokenDistributor
         /// receives 1000 in fees
@@ -210,20 +207,16 @@ contract TokenDistributorTest is StakingSetup {
         stakingRewardsV2.stake(2);
         vm.stopPrank();
         vm.prank(user1);
-        tokenDistributor.newDistribution();
         goForward(604801);
 
         /// @dev during epoch #1, user1 claims their fees from #0
         /// and TokenDistributor receives 5000 in fees
 
-        vm.expectEmit(true, true, true, true);
-        emit NewEpochCreated(604802, 1);
-        tokenDistributor.newDistribution();
         kwenta.transfer(address(tokenDistributor), 5000);
         vm.prank(user1);
         vm.expectEmit(true, true, false, true);
         emit VestingEntryCreated(address(user1), 333, 31449600, 1);
-        tokenDistributor.claimDistribution(address(user1), 0);
+        tokenDistributor.claimEpoch(address(user1), 0);
 
         /// @dev user1 claims for epoch #1 to start epoch #2
         /// user2 also claims for #1 and #0
@@ -231,21 +224,18 @@ contract TokenDistributorTest is StakingSetup {
 
         goForward(604801);
         vm.prank(user1);
-        vm.expectEmit(true, true, true, true);
-        emit NewEpochCreated(1209603, 2);
         vm.expectEmit(true, true, false, true);
         emit VestingEntryCreated(address(user1), 1666, 31449600, 2);
-        tokenDistributor.claimDistribution(address(user1), 1);
+        tokenDistributor.claimEpoch(address(user1), 1);
         goForward(1000);
         kwenta.transfer(address(tokenDistributor), 300);
         vm.prank(user2);
         vm.expectEmit(true, true, false, true);
         emit VestingEntryCreated(address(user2), 3333, 31449600, 3);
-        tokenDistributor.claimDistribution(address(user2), 1);
+        tokenDistributor.claimEpoch(address(user2), 1);
         vm.prank(user2);
         vm.expectEmit(true, true, false, true);
         emit VestingEntryCreated(address(user2), 666, 31449600, 4);
-        tokenDistributor.claimDistribution(address(user2), 0);
+        tokenDistributor.claimEpoch(address(user2), 0);
     }
-    */
 }
