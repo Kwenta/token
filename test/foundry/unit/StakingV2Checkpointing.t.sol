@@ -658,7 +658,7 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
                 Binary Search TotalSupply Checkpoints
     //////////////////////////////////////////////////////////////*/
 
-    function test_totalSupplyAtT() public {
+    function test_totalSupplyAtTime() public {
         uint256 timestampToFind = 4;
         uint256 expectedValue;
         uint256 totalStaked;
@@ -675,11 +675,11 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
             vm.warp(block.timestamp + 1);
         }
 
-        uint256 value = stakingRewardsV2.totalSupplyAtT(timestampToFind);
+        uint256 value = stakingRewardsV2.totalSupplyAtTime(timestampToFind);
         assertEq(value, expectedValue);
     }
 
-    function test_totalSupplyAtT_At_Each_Block() public {
+    function test_totalSupplyAtTime_At_Each_Block() public {
         vm.warp(3);
         stakeEscrowedFundsV2(address(this), 1);
 
@@ -698,7 +698,7 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
         uint256 value;
 
         for (uint256 i = 0; i < 30; i++) {
-            value = stakingRewardsV2.totalSupplyAtT(i);
+            value = stakingRewardsV2.totalSupplyAtTime(i);
             if (i < 3) {
                 assertEq(value, 0);
             } else if (i < 6) {
@@ -715,7 +715,7 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
         }
     }
 
-    function test_totalSupplyAtT_Fuzz(uint256 timestampToFind, uint8 numberOfRounds) public {
+    function test_totalSupplyAtTime_Fuzz(uint256 timestampToFind, uint8 numberOfRounds) public {
         vm.assume(numberOfRounds < 50);
         vm.assume(timestampToFind > 0);
 
@@ -750,7 +750,7 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
             if (i != numberOfRounds - 1) vm.warp(block.timestamp + timestampAdvance);
         }
 
-        uint256 value = stakingRewardsV2.totalSupplyAtT(timestampToFind);
+        uint256 value = stakingRewardsV2.totalSupplyAtTime(timestampToFind);
         // if we are before the block to find, the expected value is the total staked
         if (timestampToFind > block.timestamp) {
             assertEq(value, totalStaked);
