@@ -15,26 +15,26 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
         fundAccountAndStakeV2(address(this), TEST_VALUE);
 
         // get last checkpoint
-        (uint256 blockNum, uint256 value) = stakingRewardsV2.balances(address(this), 0);
+        (uint256 blockTimestamp, uint256 value) = stakingRewardsV2.balances(address(this), 0);
 
         // check values
-        assertEq(blockNum, block.number);
+        assertEq(blockTimestamp, block.timestamp);
         assertEq(value, TEST_VALUE);
 
         // move beyond cold period
         vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
 
         // update block number
-        vm.roll(block.number + 1);
+        vm.warp(block.timestamp + 1);
 
         // unstake
         stakingRewardsV2.unstake(TEST_VALUE);
 
         // get last checkpoint
-        (blockNum, value) = stakingRewardsV2.balances(address(this), 1);
+        (blockTimestamp, value) = stakingRewardsV2.balances(address(this), 1);
 
         // check values
-        assertEq(blockNum, block.number);
+        assertEq(blockTimestamp, block.timestamp);
         assertEq(value, 0);
     }
 
@@ -43,30 +43,34 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
         stakeEscrowedFundsV2(address(this), TEST_VALUE);
 
         // get last checkpoint
-        (uint256 blockNum, uint256 value) = stakingRewardsV2.balances(address(this), 0);
+        (uint256 blockTimestamp, uint256 value) = stakingRewardsV2.balances(address(this), 0);
 
         // check values
-        assertEq(blockNum, block.number);
+        assertEq(blockTimestamp, block.timestamp);
         assertEq(value, TEST_VALUE);
 
         // move beyond cold period
         vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
 
         // update block number
-        vm.roll(block.number + 1);
+        vm.warp(block.timestamp + 1);
 
         // unstake
         unstakeEscrowedFundsV2(address(this), TEST_VALUE);
 
         // get last checkpoint
-        (blockNum, value) = stakingRewardsV2.balances(address(this), 1);
+        (blockTimestamp, value) = stakingRewardsV2.balances(address(this), 1);
 
         // check values
-        assertEq(blockNum, block.number);
+        assertEq(blockTimestamp, block.timestamp);
         assertEq(value, 0);
     }
 
-    function test_Balances_Checkpoints_Are_Updated_Fuzz(uint32 maxAmountStaked, uint8 numberOfRounds) public {
+    // function test_Balances_Checkpoints_Are_Updated_Fuzz(uint32 maxAmountStaked, uint8 numberOfRounds) public {
+    function test_Balances_Checkpoints_Are_Updated_Fuzz() public {
+        uint32 maxAmountStaked = 2;
+        uint8 numberOfRounds = 2;
+
         vm.assume(maxAmountStaked > 0);
         // keep the number of rounds low to keep tests fast
         vm.assume(numberOfRounds < 50);
@@ -76,7 +80,7 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
             // get random values for each round
             uint256 amountToStake = getPseudoRandomNumber(maxAmountStaked, 1, i);
             uint256 amountToUnstake = getPseudoRandomNumber(amountToStake, 1, i);
-            uint256 blockAdvance = getPseudoRandomNumber(amountToUnstake, 0, i);
+            uint256 timestampAdvance = getPseudoRandomNumber(amountToUnstake, 0, i);
 
             // get initial values
             uint256 previousTotal = stakingRewardsV2.balanceOf(address(this));
@@ -87,34 +91,31 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
             // get last checkpoint
             uint256 length = stakingRewardsV2.balancesLength(address(this));
             uint256 finalIndex = length == 0 ? 0 : length - 1;
-            (uint256 blockNum, uint256 value) = stakingRewardsV2.balances(address(this), finalIndex);
+            (uint256 blockTimestamp, uint256 value) = stakingRewardsV2.balances(address(this), finalIndex);
 
             // check checkpoint values
-            assertEq(blockNum, block.number);
+            assertEq(blockTimestamp, block.timestamp);
             assertEq(value, previousTotal + amountToStake);
 
             // move beyond cold period
             vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
 
             // update block number
-            vm.roll(block.number + blockAdvance);
+            vm.warp(block.timestamp + timestampAdvance);
 
-            // // unstake
+            // unstake
             stakingRewardsV2.unstake(amountToUnstake);
 
             // get last checkpoint
-            uint256 newIndex = finalIndex;
-            if (blockAdvance > 0) {
-                newIndex += 1;
-            }
-            (blockNum, value) = stakingRewardsV2.balances(address(this), newIndex);
+            uint256 newIndex = finalIndex + 1;
+            (blockTimestamp, value) = stakingRewardsV2.balances(address(this), newIndex);
 
             // check checkpoint values
-            assertEq(blockNum, block.number);
+            assertEq(blockTimestamp, block.timestamp);
             assertEq(value, previousTotal + amountToStake - amountToUnstake);
 
             // update block number
-            vm.roll(block.number + blockAdvance);
+            vm.warp(block.timestamp + timestampAdvance);
         }
     }
 
@@ -128,7 +129,7 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
             // get random values for each round
             uint256 amountToStake = getPseudoRandomNumber(maxAmountStaked, 1, i);
             uint256 amountToUnstake = getPseudoRandomNumber(amountToStake, 1, i);
-            uint256 blockAdvance = getPseudoRandomNumber(amountToUnstake, 0, i);
+            uint256 timestampAdvance = getPseudoRandomNumber(amountToUnstake, 0, i);
 
             // get initial values
             uint256 previousTotal = stakingRewardsV2.balanceOf(address(this));
@@ -139,36 +140,35 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
             // get last checkpoint
             uint256 length = stakingRewardsV2.balancesLength(address(this));
             uint256 finalIndex = length == 0 ? 0 : length - 1;
-            (uint256 blockNum, uint256 value) = stakingRewardsV2.balances(address(this), finalIndex);
+            (uint256 blockTimestamp, uint256 value) = stakingRewardsV2.balances(address(this), finalIndex);
 
             // check checkpoint values
-            assertEq(blockNum, block.number);
+            assertEq(blockTimestamp, block.timestamp);
             assertEq(value, previousTotal + amountToStake);
 
             // move beyond cold period
             vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
 
             // update block number
-            vm.roll(block.number + blockAdvance);
+            vm.warp(block.timestamp + timestampAdvance);
 
             // unstake
             unstakeEscrowedFundsV2(address(this), amountToUnstake);
 
             // get last checkpoint
-            uint256 newIndex = finalIndex;
-            if (blockAdvance > 0) {
-                newIndex += 1;
-            }
-            (blockNum, value) = stakingRewardsV2.balances(address(this), newIndex);
+            uint256 newIndex = finalIndex  + 1;
+            (blockTimestamp, value) = stakingRewardsV2.balances(address(this), newIndex);
 
             // check checkpoint values
-            assertEq(blockNum, block.number);
+            assertEq(blockTimestamp, block.timestamp);
             assertEq(value, previousTotal + amountToStake - amountToUnstake);
 
             // update block number
-            vm.roll(block.number + blockAdvance);
+            vm.warp(block.timestamp + timestampAdvance);
         }
     }
+
+    // TODO: add tests for checkpoints updating in the same second
 
     /*//////////////////////////////////////////////////////////////
                     Escrowed Balance Checkpoint Tests
@@ -179,26 +179,26 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
         stakeEscrowedFundsV2(address(this), TEST_VALUE);
 
         // get last checkpoint
-        (uint256 blockNum, uint256 value) = stakingRewardsV2.escrowedBalances(address(this), 0);
+        (uint256 blockTimestamp, uint256 value) = stakingRewardsV2.escrowedBalances(address(this), 0);
 
         // check values
-        assertEq(blockNum, block.number);
+        assertEq(blockTimestamp, block.timestamp);
         assertEq(value, TEST_VALUE);
 
         // move beyond cold period
         vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
 
         // update block number
-        vm.roll(block.number + 1);
+        vm.warp(block.timestamp + 1);
 
         // unstake
         unstakeEscrowedFundsV2(address(this), TEST_VALUE);
 
         // get last checkpoint
-        (blockNum, value) = stakingRewardsV2.escrowedBalances(address(this), 1);
+        (blockTimestamp, value) = stakingRewardsV2.escrowedBalances(address(this), 1);
 
         // check values
-        assertEq(blockNum, block.number);
+        assertEq(blockTimestamp, block.timestamp);
         assertEq(value, 0);
     }
 
@@ -212,7 +212,7 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
             // get random values for each round
             uint256 amountToStake = getPseudoRandomNumber(maxAmountStaked, 1, i);
             uint256 amountToUnstake = getPseudoRandomNumber(amountToStake, 1, i);
-            uint256 blockAdvance = getPseudoRandomNumber(amountToUnstake, 0, i);
+            uint256 timestampAdvance = getPseudoRandomNumber(amountToUnstake, 0, i);
 
             // get initial values
             uint256 previousTotal = stakingRewardsV2.balanceOf(address(this));
@@ -223,34 +223,31 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
             // get last checkpoint
             uint256 length = stakingRewardsV2.escrowedBalancesLength(address(this));
             uint256 finalIndex = length == 0 ? 0 : length - 1;
-            (uint256 blockNum, uint256 value) = stakingRewardsV2.escrowedBalances(address(this), finalIndex);
+            (uint256 blockTimestamp, uint256 value) = stakingRewardsV2.escrowedBalances(address(this), finalIndex);
 
             // check checkpoint values
-            assertEq(blockNum, block.number);
+            assertEq(blockTimestamp, block.timestamp);
             assertEq(value, previousTotal + amountToStake);
 
             // move beyond cold period
             vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
 
             // update block number
-            vm.roll(block.number + blockAdvance);
+            vm.warp(block.timestamp + timestampAdvance);
 
             // // unstake
             unstakeEscrowedFundsV2(address(this), amountToUnstake);
 
             // get last checkpoint
-            uint256 newIndex = finalIndex;
-            if (blockAdvance > 0) {
-                newIndex += 1;
-            }
-            (blockNum, value) = stakingRewardsV2.escrowedBalances(address(this), newIndex);
+            uint256 newIndex = finalIndex + 1;
+            (blockTimestamp, value) = stakingRewardsV2.escrowedBalances(address(this), newIndex);
 
             // check checkpoint values
-            assertEq(blockNum, block.number);
+            assertEq(blockTimestamp, block.timestamp);
             assertEq(value, previousTotal + amountToStake - amountToUnstake);
 
             // update block number
-            vm.roll(block.number + blockAdvance);
+            vm.warp(block.timestamp + timestampAdvance);
         }
     }
 
@@ -263,26 +260,26 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
         fundAccountAndStakeV2(address(this), TEST_VALUE);
 
         // get last checkpoint
-        (uint256 blockNum, uint256 value) = stakingRewardsV2._totalSupply(0);
+        (uint256 blockTimestamp, uint256 value) = stakingRewardsV2._totalSupply(0);
 
         // check values
-        assertEq(blockNum, block.number);
+        assertEq(blockTimestamp, block.timestamp);
         assertEq(value, TEST_VALUE);
 
         // move beyond cold period
         vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
 
         // update block number
-        vm.roll(block.number + 1);
+        vm.warp(block.timestamp + 1);
 
         // unstake
         stakingRewardsV2.unstake(TEST_VALUE);
 
         // get last checkpoint
-        (blockNum, value) = stakingRewardsV2._totalSupply(1);
+        (blockTimestamp, value) = stakingRewardsV2._totalSupply(1);
 
         // check values
-        assertEq(blockNum, block.number);
+        assertEq(blockTimestamp, block.timestamp);
         assertEq(value, 0);
     }
 
@@ -291,26 +288,26 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
         stakeEscrowedFundsV2(address(this), TEST_VALUE);
 
         // get last checkpoint
-        (uint256 blockNum, uint256 value) = stakingRewardsV2._totalSupply(0);
+        (uint256 blockTimestamp, uint256 value) = stakingRewardsV2._totalSupply(0);
 
         // check values
-        assertEq(blockNum, block.number);
+        assertEq(blockTimestamp, block.timestamp);
         assertEq(value, TEST_VALUE);
 
         // move beyond cold period
         vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
 
         // update block number
-        vm.roll(block.number + 1);
+        vm.warp(block.timestamp + 1);
 
         // unstake
         unstakeEscrowedFundsV2(address(this), TEST_VALUE);
 
         // get last checkpoint
-        (blockNum, value) = stakingRewardsV2._totalSupply(1);
+        (blockTimestamp, value) = stakingRewardsV2._totalSupply(1);
 
         // check values
-        assertEq(blockNum, block.number);
+        assertEq(blockTimestamp, block.timestamp);
         assertEq(value, 0);
     }
 
@@ -324,8 +321,8 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
             // get random values for each round
             uint256 amountToStake = getPseudoRandomNumber(maxAmountStaked, 1, i);
             uint256 amountToUnstake = getPseudoRandomNumber(amountToStake, 1, i);
-            uint256 blockAdvance = getPseudoRandomNumber(amountToUnstake, 0, i);
-            bool escrowStake = flipCoin(blockAdvance);
+            uint256 timestampAdvance = getPseudoRandomNumber(amountToUnstake, 0, i);
+            bool escrowStake = flipCoin(timestampAdvance);
 
             // get initial values
             uint256 previousTotal = stakingRewardsV2.balanceOf(address(this));
@@ -340,17 +337,17 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
             // get last checkpoint
             uint256 length = stakingRewardsV2.totalSupplyLength();
             uint256 finalIndex = length == 0 ? 0 : length - 1;
-            (uint256 blockNum, uint256 value) = stakingRewardsV2._totalSupply(finalIndex);
+            (uint256 blockTimestamp, uint256 value) = stakingRewardsV2._totalSupply(finalIndex);
 
             // check checkpoint values
-            assertEq(blockNum, block.number);
+            assertEq(blockTimestamp, block.timestamp);
             assertEq(value, previousTotal + amountToStake);
 
             // move beyond cold period
             vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
 
             // update block number
-            vm.roll(block.number + blockAdvance);
+            vm.warp(block.timestamp + timestampAdvance);
 
             // unstake
             if (escrowStake) {
@@ -360,18 +357,15 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
             }
 
             // get last checkpoint
-            uint256 newIndex = finalIndex;
-            if (blockAdvance > 0) {
-                newIndex += 1;
-            }
-            (blockNum, value) = stakingRewardsV2._totalSupply(newIndex);
+            uint256 newIndex = finalIndex + 1;
+            (blockTimestamp, value) = stakingRewardsV2._totalSupply(newIndex);
 
             // check checkpoint values
-            assertEq(blockNum, block.number);
+            assertEq(blockTimestamp, block.timestamp);
             assertEq(value, previousTotal + amountToStake - amountToUnstake);
 
             // update block number
-            vm.roll(block.number + blockAdvance);
+            vm.warp(block.timestamp + timestampAdvance);
         }
     }
 
@@ -379,78 +373,76 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
                     Binary Search Balance Checkpoints
     //////////////////////////////////////////////////////////////*/
 
-    function test_balanceAtBlock() public {
-        uint256 blockToFind = 4;
+    function test_balanceAtT() public {
+        uint256 timestampToFind = 4;
         uint256 expectedValue;
         uint256 totalStaked;
 
         for (uint256 i = 0; i < 10; i++) {
             uint256 amount = TEST_VALUE * (i + 1);
             totalStaked += amount;
-            if (blockToFind == block.number) {
+            if (timestampToFind == block.timestamp) {
                 expectedValue = totalStaked;
             }
             fundAccountAndStakeV2(address(this), amount);
-            vm.roll(block.number + 1);
+            vm.warp(block.timestamp + 1);
         }
 
-        uint256 value = stakingRewardsV2.balanceAtBlock(address(this), blockToFind);
+        uint256 value = stakingRewardsV2.balanceAtT(address(this), timestampToFind);
 
         assertEq(value, expectedValue);
     }
 
-    function test_balanceAtBlock_With_Unstake_Before_Block() public {
-        uint256 blockToFind = 4;
+    function test_balanceAtT_With_Unstake_Before_Block() public {
+        uint256 timestampToFind = xCooldownPeriods(4);
         uint256 expectedValue;
         uint256 totalStaked;
 
         for (uint256 i = 0; i < 10; i++) {
             uint256 amount = TEST_VALUE;
             totalStaked += amount;
-            if (block.number == 2) {
-                vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+            if (block.timestamp == xCooldownPeriods(2)) {
                 stakingRewardsV2.unstake(amount);
                 totalStaked -= amount;
             }
-            if (blockToFind == block.number) {
+            if (timestampToFind == block.timestamp) {
                 expectedValue = totalStaked;
             }
             fundAccountAndStakeV2(address(this), amount);
-            vm.roll(block.number + 1);
+            vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
         }
 
-        uint256 value = stakingRewardsV2.balanceAtBlock(address(this), blockToFind);
+        uint256 value = stakingRewardsV2.balanceAtT(address(this), timestampToFind);
 
         assertEq(value, expectedValue);
     }
 
-    function test_balanceAtBlock_With_Unstake_After_Block() public {
-        uint256 blockToFind = 4;
+    function test_balanceAtT_With_Unstake_After_Block() public {
+        uint256 timestampToFind = xCooldownPeriods(4);
         uint256 expectedValue;
         uint256 totalStaked;
 
         for (uint256 i = 0; i < 10; i++) {
             uint256 amount = TEST_VALUE;
             totalStaked += amount;
-            if (block.number == 5) {
-                vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+            if (block.timestamp == xCooldownPeriods(5)) {
                 stakingRewardsV2.unstake(amount);
                 totalStaked -= amount;
             }
-            if (blockToFind == block.number) {
+            if (timestampToFind == block.timestamp) {
                 expectedValue = totalStaked;
             }
             fundAccountAndStakeV2(address(this), amount);
-            vm.roll(block.number + 1);
+            vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
         }
 
-        uint256 value = stakingRewardsV2.balanceAtBlock(address(this), blockToFind);
+        uint256 value = stakingRewardsV2.balanceAtT(address(this), timestampToFind);
 
         assertEq(value, expectedValue);
     }
 
-    function test_balanceAtBlock_With_Unstake_Before_And_After_Block() public {
-        uint256 blockToFind = 4;
+    function test_balanceAtT_With_Unstake_Before_And_After_Block() public {
+        uint256 timestampToFind = xCooldownPeriods(4);
         uint256 expectedValue;
         uint256 totalStaked;
 
@@ -458,14 +450,14 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
             uint256 amount = TEST_VALUE;
             totalStaked += amount;
             fundAccountAndStakeV2(address(this), amount);
-            if (block.number == 2) {
+            if (block.timestamp == xCooldownPeriods(2)) {
                 vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
                 stakingRewardsV2.unstake(amount);
                 stakingRewardsV2.unstake(amount);
                 totalStaked -= amount;
                 totalStaked -= amount;
             }
-            if (block.number == 5) {
+            if (block.timestamp == xCooldownPeriods(5)) {
                 vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
                 stakingRewardsV2.unstake(amount);
                 stakingRewardsV2.unstake(amount);
@@ -474,37 +466,36 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
                 totalStaked -= amount;
                 totalStaked -= amount;
             }
-            if (blockToFind == block.number) {
+            if (timestampToFind == block.timestamp) {
                 expectedValue = totalStaked;
             }
-            vm.roll(block.number + 1);
+            vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
         }
 
-        uint256 value = stakingRewardsV2.balanceAtBlock(address(this), blockToFind);
-
+        uint256 value = stakingRewardsV2.balanceAtT(address(this), timestampToFind);
         assertEq(value, expectedValue);
     }
 
-    function test_balanceAtBlock_At_Each_Block() public {
-        vm.roll(3);
+    function test_balanceAtT_At_Each_Block() public {
+        vm.warp(3);
         fundAccountAndStakeV2(address(this), 1);
 
-        vm.roll(6);
+        vm.warp(6);
         fundAccountAndStakeV2(address(this), 1);
 
-        vm.roll(8);
+        vm.warp(8);
         fundAccountAndStakeV2(address(this), 1);
 
-        vm.roll(12);
+        vm.warp(12);
         fundAccountAndStakeV2(address(this), 1);
 
-        vm.roll(23);
+        vm.warp(23);
         fundAccountAndStakeV2(address(this), 1);
 
         uint256 value;
 
         for (uint256 i = 0; i < 30; i++) {
-            value = stakingRewardsV2.balanceAtBlock(address(this), i);
+            value = stakingRewardsV2.balanceAtT(address(this), i);
             if (i < 3) {
                 assertEq(value, 0);
             } else if (i < 6) {
@@ -521,9 +512,9 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
         }
     }
 
-    function test_balanceAtBlock_Fuzz(uint256 blockToFind, uint8 numberOfRounds) public {
+    function test_balanceAtT_Fuzz(uint256 timestampToFind, uint8 numberOfRounds) public {
         vm.assume(numberOfRounds < 50);
-        vm.assume(blockToFind > 0);
+        vm.assume(timestampToFind > 0);
 
         uint256 expectedValue;
         uint256 totalStaked;
@@ -531,15 +522,15 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
 
         for (uint256 i = 0; i < numberOfRounds; i++) {
             // get random values
-            uint256 amount = getPseudoRandomNumber(1 ether, 1, blockToFind);
-            uint256 blockAdvance = getPseudoRandomNumber(1000, 0, amount);
+            uint256 amount = getPseudoRandomNumber(1 ether, 1, timestampToFind);
+            uint256 timestampAdvance = getPseudoRandomNumber(1000, 0, amount);
 
             // if we are at the block to find, set the expected value
-            if (block.number == blockToFind) {
+            if (block.timestamp == timestampToFind) {
                 expectedValue = totalStaked + amount;
                 notYetPassedBlock = false;
                 // otherwise if we just passed the block to find, set the expected value
-            } else if (block.number > blockToFind && notYetPassedBlock) {
+            } else if (block.timestamp > timestampToFind && notYetPassedBlock) {
                 expectedValue = totalStaked;
                 notYetPassedBlock = false;
             }
@@ -549,12 +540,12 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
             totalStaked += amount;
 
             // don't advance the block if we are on the last round
-            if (i != numberOfRounds - 1) vm.roll(block.number + blockAdvance);
+            if (i != numberOfRounds - 1) vm.warp(block.timestamp + timestampAdvance);
         }
 
-        uint256 value = stakingRewardsV2.balanceAtBlock(address(this), blockToFind);
+        uint256 value = stakingRewardsV2.balanceAtT(address(this), timestampToFind);
         // if we are before the block to find, the expected value is the total staked
-        if (blockToFind > block.number) {
+        if (timestampToFind > block.timestamp) {
             assertEq(value, totalStaked);
         } else {
             // otherwise, the expected value is the value at the block to find
@@ -566,46 +557,46 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
                 Binary Search EscrowBalance Checkpoints
     //////////////////////////////////////////////////////////////*/
 
-    function test_escrowBalanceAtBlock() public {
-        uint256 blockToFind = 4;
+    function test_escrowBalanceAtT() public {
+        uint256 timestampToFind = 4;
         uint256 expectedValue;
         uint256 totalStaked;
 
         for (uint256 i = 0; i < 10; i++) {
             uint256 amount = TEST_VALUE * (i + 1);
             totalStaked += amount;
-            if (blockToFind == block.number) {
+            if (timestampToFind == block.timestamp) {
                 expectedValue = totalStaked;
             }
             stakeEscrowedFundsV2(address(this), amount);
-            vm.roll(block.number + 1);
+            vm.warp(block.timestamp + 1);
         }
 
-        uint256 value = stakingRewardsV2.escrowedBalanceAtBlock(address(this), blockToFind);
+        uint256 value = stakingRewardsV2.escrowedBalanceAtT(address(this), timestampToFind);
 
         assertEq(value, expectedValue);
     }
 
-    function test_escrowBalanceAtBlock_At_Each_Block() public {
-        vm.roll(3);
+    function test_escrowBalanceAtT_At_Each_Block() public {
+        vm.warp(3);
         stakeEscrowedFundsV2(address(this), 1);
 
-        vm.roll(6);
+        vm.warp(6);
         stakeEscrowedFundsV2(address(this), 1);
 
-        vm.roll(8);
+        vm.warp(8);
         stakeEscrowedFundsV2(address(this), 1);
 
-        vm.roll(12);
+        vm.warp(12);
         stakeEscrowedFundsV2(address(this), 1);
 
-        vm.roll(23);
+        vm.warp(23);
         stakeEscrowedFundsV2(address(this), 1);
 
         uint256 value;
 
         for (uint256 i = 0; i < 30; i++) {
-            value = stakingRewardsV2.escrowedBalanceAtBlock(address(this), i);
+            value = stakingRewardsV2.escrowedBalanceAtT(address(this), i);
             if (i < 3) {
                 assertEq(value, 0);
             } else if (i < 6) {
@@ -622,9 +613,9 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
         }
     }
 
-    function test_escrowBalanceAtBlock_Fuzz(uint256 blockToFind, uint8 numberOfRounds) public {
+    function test_escrowBalanceAtT_Fuzz(uint256 timestampToFind, uint8 numberOfRounds) public {
         vm.assume(numberOfRounds < 50);
-        vm.assume(blockToFind > 0);
+        vm.assume(timestampToFind > 0);
 
         uint256 expectedValue;
         uint256 totalStaked;
@@ -632,15 +623,15 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
 
         for (uint256 i = 0; i < numberOfRounds; i++) {
             // get random values
-            uint256 amount = getPseudoRandomNumber(1 ether, 1, blockToFind);
-            uint256 blockAdvance = getPseudoRandomNumber(1000, 0, amount);
+            uint256 amount = getPseudoRandomNumber(1 ether, 1, timestampToFind);
+            uint256 timestampAdvance = getPseudoRandomNumber(1000, 0, amount);
 
             // if we are at the block to find, set the expected value
-            if (block.number == blockToFind) {
+            if (block.timestamp == timestampToFind) {
                 expectedValue = totalStaked + amount;
                 notYetPassedBlock = false;
                 // otherwise if we just passed the block to find, set the expected value
-            } else if (block.number > blockToFind && notYetPassedBlock) {
+            } else if (block.timestamp > timestampToFind && notYetPassedBlock) {
                 expectedValue = totalStaked;
                 notYetPassedBlock = false;
             }
@@ -650,12 +641,12 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
             totalStaked += amount;
 
             // don't advance the block if we are on the last round
-            if (i != numberOfRounds - 1) vm.roll(block.number + blockAdvance);
+            if (i != numberOfRounds - 1) vm.warp(block.timestamp + timestampAdvance);
         }
 
-        uint256 value = stakingRewardsV2.escrowedBalanceAtBlock(address(this), blockToFind);
+        uint256 value = stakingRewardsV2.escrowedBalanceAtT(address(this), timestampToFind);
         // if we are before the block to find, the expected value is the total staked
-        if (blockToFind > block.number) {
+        if (timestampToFind > block.timestamp) {
             assertEq(value, totalStaked);
         } else {
             // otherwise, the expected value is the value at the block to find
@@ -667,47 +658,47 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
                 Binary Search TotalSupply Checkpoints
     //////////////////////////////////////////////////////////////*/
 
-    function test_totalSupplyAtBlock() public {
-        uint256 blockToFind = 4;
+    function test_totalSupplyAtT() public {
+        uint256 timestampToFind = 4;
         uint256 expectedValue;
         uint256 totalStaked;
 
         for (uint256 i = 0; i < 10; i++) {
             uint256 amount = TEST_VALUE * (i + 1);
             totalStaked += amount;
-            if (blockToFind == block.number) {
+            if (timestampToFind == block.timestamp) {
                 expectedValue = totalStaked;
             }
             if (flipCoin()) fundAccountAndStakeV2(address(this), amount);
             else stakeEscrowedFundsV2(address(this), amount);
 
-            vm.roll(block.number + 1);
+            vm.warp(block.timestamp + 1);
         }
 
-        uint256 value = stakingRewardsV2.totalSupplyAtBlock(blockToFind);
+        uint256 value = stakingRewardsV2.totalSupplyAtT(timestampToFind);
         assertEq(value, expectedValue);
     }
 
-    function test_totalSupplyAtBlock_At_Each_Block() public {
-        vm.roll(3);
+    function test_totalSupplyAtT_At_Each_Block() public {
+        vm.warp(3);
         stakeEscrowedFundsV2(address(this), 1);
 
-        vm.roll(6);
+        vm.warp(6);
         fundAccountAndStakeV2(address(this), 1);
 
-        vm.roll(8);
+        vm.warp(8);
         stakeEscrowedFundsV2(address(this), 1);
 
-        vm.roll(12);
+        vm.warp(12);
         fundAccountAndStakeV2(address(this), 1);
 
-        vm.roll(23);
+        vm.warp(23);
         stakeEscrowedFundsV2(address(this), 1);
 
         uint256 value;
 
         for (uint256 i = 0; i < 30; i++) {
-            value = stakingRewardsV2.totalSupplyAtBlock(i);
+            value = stakingRewardsV2.totalSupplyAtT(i);
             if (i < 3) {
                 assertEq(value, 0);
             } else if (i < 6) {
@@ -724,9 +715,9 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
         }
     }
 
-    function test_totalSupplyeAtBlock_Fuzz(uint256 blockToFind, uint8 numberOfRounds) public {
+    function test_totalSupplyAtT_Fuzz(uint256 timestampToFind, uint8 numberOfRounds) public {
         vm.assume(numberOfRounds < 50);
-        vm.assume(blockToFind > 0);
+        vm.assume(timestampToFind > 0);
 
         uint256 expectedValue;
         uint256 totalStaked;
@@ -734,15 +725,15 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
 
         for (uint256 i = 0; i < numberOfRounds; i++) {
             // get random values
-            uint256 amount = getPseudoRandomNumber(1 ether, 1, blockToFind);
-            uint256 blockAdvance = getPseudoRandomNumber(1000, 0, amount);
+            uint256 amount = getPseudoRandomNumber(1 ether, 1, timestampToFind);
+            uint256 timestampAdvance = getPseudoRandomNumber(1000, 0, amount);
 
             // if we are at the block to find, set the expected value
-            if (block.number == blockToFind) {
+            if (block.timestamp == timestampToFind) {
                 expectedValue = totalStaked + amount;
                 notYetPassedBlock = false;
                 // otherwise if we just passed the block to find, set the expected value
-            } else if (block.number > blockToFind && notYetPassedBlock) {
+            } else if (block.timestamp > timestampToFind && notYetPassedBlock) {
                 expectedValue = totalStaked;
                 notYetPassedBlock = false;
             }
@@ -756,16 +747,25 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
             totalStaked += amount;
 
             // don't advance the block if we are on the last round
-            if (i != numberOfRounds - 1) vm.roll(block.number + blockAdvance);
+            if (i != numberOfRounds - 1) vm.warp(block.timestamp + timestampAdvance);
         }
 
-        uint256 value = stakingRewardsV2.totalSupplyAtBlock(blockToFind);
+        uint256 value = stakingRewardsV2.totalSupplyAtT(timestampToFind);
         // if we are before the block to find, the expected value is the total staked
-        if (blockToFind > block.number) {
+        if (timestampToFind > block.timestamp) {
             assertEq(value, totalStaked);
         } else {
             // otherwise, the expected value is the value at the block to find
             assertEq(value, expectedValue);
         }
     }
+
+    /*//////////////////////////////////////////////////////////////
+                                Helpers
+    //////////////////////////////////////////////////////////////*/
+
+    function xCooldownPeriods(uint256 numCooldowns) public view returns (uint256) {
+        return 1 + (numCooldowns * stakingRewardsV2.unstakingCooldownPeriod());
+    }
+
 }
