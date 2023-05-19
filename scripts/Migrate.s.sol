@@ -8,8 +8,12 @@ import {SupplySchedule} from "../contracts/SupplySchedule.sol";
 import {RewardEscrowV2} from "../contracts/RewardEscrowV2.sol";
 import {StakingRewardsV2} from "../contracts/StakingRewardsV2.sol";
 
+// Upgradeability imports
+import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+
 /// @title Script for migration from StakingV1 to StakingV2
 /// @author tommyrharper (zeroknowledgeltd@gmail.com)
+/// @dev This uses the UUPS upgrade pattern (see eip-1822)
 contract Migrate {
     /**
      * @dev Step 1: deploy the new contracts
@@ -25,26 +29,44 @@ contract Migrate {
         public
         returns (
             RewardEscrowV2 rewardEscrowV2,
-            StakingRewardsV2 stakingRewardsV2
+            StakingRewardsV2 stakingRewardsV2,
+            address rewardEscrowV2Implementation,
+            address stakingRewardsV2Implementation
         )
     {
         if (_printLogs) console.log("********* 1. DEPLOYMENT STARTING... *********");
 
         // Deploy RewardEscrowV2
-        rewardEscrowV2 = new RewardEscrowV2(_owner, _kwenta);
+        rewardEscrowV2Implementation = address(new RewardEscrowV2());
+        rewardEscrowV2 = RewardEscrowV2(address(new ERC1967Proxy(
+            rewardEscrowV2Implementation,
+            abi.encodeWithSignature(
+                "initialize(address,address)",
+                _owner,
+                _kwenta
+            )
+        )));
 
-        if (_printLogs) console.log("Deployed RewardEscrowV2 at %s", address(rewardEscrowV2));
+        if (_printLogs) console.log("Deployed RewardEscrowV2 Implementation at %s", rewardEscrowV2Implementation);
+        if (_printLogs) console.log("Deployed RewardEscrowV2 Proxy at %s", address(rewardEscrowV2));
 
         // Deploy StakingRewardsV2
-        stakingRewardsV2 = new StakingRewardsV2(
-            _kwenta,
-            address(rewardEscrowV2),
-            _supplySchedule,
-            address(_stakingRewardsV1)
-        );
+        stakingRewardsV2Implementation = address(new StakingRewardsV2());
+        stakingRewardsV2 = StakingRewardsV2(address(new ERC1967Proxy(
+            stakingRewardsV2Implementation,
+            abi.encodeWithSignature(
+                "initialize(address,address,address,address,address)",
+                _kwenta,
+                address(rewardEscrowV2),
+                _supplySchedule,
+                address(_stakingRewardsV1),
+                _owner
+            )
+        )));
 
+        if (_printLogs) console.log("Deployed StakingRewardsV2 Implementation at %s", stakingRewardsV2Implementation);
         if (_printLogs) console.log(
-            "Deployed StakingRewardsV2 at %s", address(stakingRewardsV2)
+            "Deployed StakingRewardsV2 Proxy at %s", address(stakingRewardsV2)
         );
         if (_printLogs) console.log(unicode"--------- 🚀 DEPLOYMENT COMPLETE 🚀 ---------");
     }
@@ -120,11 +142,13 @@ contract Migrate {
         public
         returns (
             RewardEscrowV2 rewardEscrowV2,
-            StakingRewardsV2 stakingRewardsV2
+            StakingRewardsV2 stakingRewardsV2,
+            address rewardEscrowV2Implementation,
+            address stakingRewardsV2Implementation
         )
     {
         // Step 1: Deploy StakingV2 contracts
-        (rewardEscrowV2, stakingRewardsV2) =
+        (rewardEscrowV2, stakingRewardsV2, rewardEscrowV2Implementation, stakingRewardsV2Implementation) =
             deploySystem(_owner, _kwenta, _supplySchedule, _stakingRewardsV1, _printLogs);
 
         // Step 2: Setup StakingV2 contracts

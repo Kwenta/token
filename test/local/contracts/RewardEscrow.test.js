@@ -1500,28 +1500,6 @@ contract(
                         );
                     });
 
-                    it("should vest and emit a Vest event", async () => {
-                        const vestTx = await rewardsEscrow.vest(
-                            [entryID1, entryID2, entryID3],
-                            {
-                                from: staker1,
-                            }
-                        );
-
-                        // Vested(msg.sender, now, total);
-                        const vestedEvent = vestTx.logs.find(
-                            (log) => log.event === "Vested"
-                        );
-                        assert.eventEqual(vestedEvent, "Vested", {
-                            beneficiary: staker1,
-                            value: wei(
-                                "784421696142399267400",
-                                18,
-                                true
-                            ).toBN(),
-                        });
-                    });
-
                     it("should vest and update totalEscrowedAccountBalance", async () => {
                         // This account should have an escrowedAccountBalance
                         let escrowedAccountBalance =

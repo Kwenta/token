@@ -102,8 +102,8 @@ contract StakingTestHelpers is TestHelpers {
             )
         );
         require(deploymentSuccess, "Migrate.deploySystem failed");
-        (rewardEscrowV2, stakingRewardsV2) =
-            abi.decode(deploymentData, (RewardEscrowV2, StakingRewardsV2));
+        (rewardEscrowV2, stakingRewardsV2,,) =
+            abi.decode(deploymentData, (RewardEscrowV2, StakingRewardsV2, address, address));
 
         // Setup StakingV2
         (bool setupSuccess,) = address(migrate).delegatecall(

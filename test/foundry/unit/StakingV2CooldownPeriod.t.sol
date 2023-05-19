@@ -161,7 +161,7 @@ contract StakingV2CooldownPeriodTests is DefaultStakingV2Setup {
     //////////////////////////////////////////////////////////////*/
 
     function test_setUnstakingCooldownPeriod_Is_Only_Owner() public {
-        vm.expectRevert("Only the contract owner may perform this action");
+        vm.expectRevert("Ownable: caller is not the owner");
         vm.prank(user1);
         stakingRewardsV2.setUnstakingCooldownPeriod(1 weeks);
     }
