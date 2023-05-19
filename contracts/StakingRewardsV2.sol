@@ -621,51 +621,51 @@ contract StakingRewardsV2 is
         return _totalSupply.length;
     }
 
-    /// @notice get a users balance at a given block
+    /// @notice get a users balance at a given timestamp
     /// @param account: address of account to check
-    /// @param _block: block number to check
-    /// @return balance at given block
-    function balanceAtBlock(address account, uint256 _block)
+    /// @param _timestamp: timestamp to check
+    /// @return balance at given timestamp
+    function balanceAtT(address account, uint256 _timestamp)
         external
         view
         override
         returns (uint256)
     {
-        return _checkpointBinarySearch(balances[account], _block);
+        return _checkpointBinarySearch(balances[account], _timestamp);
     }
 
-    /// @notice get a users escrowed balance at a given block
+    /// @notice get a users escrowed balance at a given timestamp
     /// @param account: address of account to check
-    /// @param _block: block number to check
-    /// @return escrowed balance at given block
-    function escrowedBalanceAtBlock(address account, uint256 _block)
+    /// @param _timestamp: timestamp to check
+    /// @return escrowed balance at given timestamp
+    function escrowedBalanceAtT(address account, uint256 _timestamp)
         external
         view
         override
         returns (uint256)
     {
-        return _checkpointBinarySearch(escrowedBalances[account], _block);
+        return _checkpointBinarySearch(escrowedBalances[account], _timestamp);
     }
 
-    /// @notice get the total supply at a given block
-    /// @param _block: block number to check
-    /// @return total supply at given block
-    function totalSupplyAtBlock(uint256 _block)
+    /// @notice get the total supply at a given timestamp
+    /// @param _timestamp: timestamp to check
+    /// @return total supply at given timestamp
+    function totalSupplyAtT(uint256 _timestamp)
         external
         view
         override
         returns (uint256)
     {
-        return _checkpointBinarySearch(_totalSupply, _block);
+        return _checkpointBinarySearch(_totalSupply, _timestamp);
     }
 
-    /// @notice finds the value of the checkpoint at a given block
+    /// @notice finds the value of the checkpoint at a given timestamp
     /// @param checkpoints: array of checkpoints to search
-    /// @param _block: block number to check
+    /// @param _timestamp: timestamp to check
     /// @dev returns 0 if no checkpoints exist, uses iterative binary search
     function _checkpointBinarySearch(
         Checkpoint[] memory checkpoints,
-        uint256 _block
+        uint256 _timestamp
     ) internal pure returns (uint256) {
         uint256 length = checkpoints.length;
         if (length == 0) return 0;
@@ -673,12 +673,12 @@ contract StakingRewardsV2 is
         uint256 min = 0;
         uint256 max = length - 1;
 
-        if (checkpoints[min].block > _block) return 0;
-        if (checkpoints[max].block <= _block) return checkpoints[max].value;
+        if (checkpoints[min].ts > _timestamp) return 0;
+        if (checkpoints[max].ts <= _timestamp) return checkpoints[max].value;
 
         while (max > min) {
             uint256 midpoint = (max + min + 1) / 2;
-            if (checkpoints[midpoint].block <= _block) min = midpoint;
+            if (checkpoints[midpoint].ts <= _timestamp) min = midpoint;
             else max = midpoint - 1;
         }
 
@@ -695,12 +695,12 @@ contract StakingRewardsV2 is
     /// @param account: address of account to add checkpoint for
     /// @param value: value of checkpoint to add
     function _addBalancesCheckpoint(address account, uint256 value) internal {
-        uint256 lastBlock = balances[account].length == 0
+        uint256 lastTimestamp = balances[account].length == 0
             ? 0
-            : balances[account][balances[account].length - 1].block;
+            : balances[account][balances[account].length - 1].ts;
 
-        if (lastBlock != block.number) {
-            balances[account].push(Checkpoint(block.number, value));
+        if (lastTimestamp != block.timestamp) {
+            balances[account].push(Checkpoint(block.timestamp, value));
         } else {
             balances[account][balances[account].length - 1].value = value;
         }
@@ -712,12 +712,12 @@ contract StakingRewardsV2 is
     function _addEscrowedBalancesCheckpoint(address account, uint256 value)
         internal
     {
-        uint256 lastBlock = escrowedBalances[account].length == 0
+        uint256 lastTimestamp = escrowedBalances[account].length == 0
             ? 0
-            : escrowedBalances[account][escrowedBalances[account].length - 1].block;
+            : escrowedBalances[account][escrowedBalances[account].length - 1].ts;
 
-        if (lastBlock != block.number) {
-            escrowedBalances[account].push(Checkpoint(block.number, value));
+        if (lastTimestamp != block.timestamp) {
+            escrowedBalances[account].push(Checkpoint(block.timestamp, value));
         } else {
             escrowedBalances[account][escrowedBalances[account].length - 1]
                 .value = value;
@@ -727,12 +727,12 @@ contract StakingRewardsV2 is
     /// @notice add a new total supply checkpoint
     /// @param value: value of checkpoint to add
     function _addTotalSupplyCheckpoint(uint256 value) internal {
-        uint256 lastBlock = _totalSupply.length == 0
+        uint256 lastTimestamp = _totalSupply.length == 0
             ? 0
-            : _totalSupply[_totalSupply.length - 1].block;
+            : _totalSupply[_totalSupply.length - 1].ts;
 
-        if (lastBlock != block.number) {
-            _totalSupply.push(Checkpoint(block.number, value));
+        if (lastTimestamp != block.timestamp) {
+            _totalSupply.push(Checkpoint(block.timestamp, value));
         } else {
             _totalSupply[_totalSupply.length - 1].value = value;
         }
