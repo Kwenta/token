@@ -650,7 +650,7 @@ contract StakingRewardsV2 is
     /// @notice get the total supply at a given timestamp
     /// @param _timestamp: timestamp to check
     /// @return total supply at given timestamp
-    function totalSupplyAtT(uint256 _timestamp)
+    function totalSupplyAtTime(uint256 _timestamp)
         external
         view
         override

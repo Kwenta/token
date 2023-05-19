@@ -24,7 +24,7 @@ interface IStakingRewardsV2 {
     function totalSupplyLength() external view returns (uint256);
     function balanceAtTime(address account, uint256 block) external view returns (uint256);
     function escrowedbalanceAtTime(address account, uint256 block) external view returns (uint256);
-    function totalSupplyAtT(uint256 block) external view returns (uint256);
+    function totalSupplyAtTime(uint256 block) external view returns (uint256);
 
     /*//////////////////////////////////////////////////////////////
                                 Mutative
