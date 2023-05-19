@@ -180,10 +180,7 @@ contract TokenDistributorTest is TestHelpers {
         );
         tokenDistributor.claimEpoch(address(user2), 0);
     }
-    //
-    //temporarily comment out every other test for compiling
-    //
-    /*
+    
     /// @notice claimDistribution happy case with a person who
     /// was previously staked but is now unstaked and trying to
     /// claim their fees
@@ -194,23 +191,21 @@ contract TokenDistributorTest is TestHelpers {
         vm.startPrank(address(user));
         kwenta.approve(address(stakingRewardsV2), 1);
         stakingRewardsV2.stake(1);
-
-        tokenDistributor.newDistribution();
-        goForward(604801);
-        vm.expectEmit(true, true, true, true);
-        emit NewEpochCreated(604802, 1);
-        tokenDistributor.newDistribution();
+        uint here = block.timestamp;
+        stakingRewardsV2.balanceAtTime(address(user), here);
+        stakingRewardsV2.totalSupplyAtTime(here);
 
         goForward(1209601);
-        stakingRewardsV2.balanceAtBlock(user, 1);
         stakingRewardsV2.unstake(1);
-        stakingRewardsV2.balanceAtBlock(user, 1);
-        tokenDistributor.newDistribution();
+        stakingRewardsV2.balanceAtTime(address(user), here);
+        stakingRewardsV2.totalSupplyAtTime(here);
         goForward(604801);
-        tokenDistributor.newDistribution();
-        tokenDistributor.claimDistribution(address(user), 0);
+        tokenDistributor.claimEpoch(address(user), 0);
     }
-
+    //
+    //temporarily comment out every other test for compiling
+    //
+    /*
     /// @notice claimDistribution happy case with partial claims
     /// in earlier epochs 2 complete epochs with differing fees
     /// @dev also an integration test with RewardEscrowV2
