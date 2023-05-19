@@ -625,7 +625,7 @@ contract StakingRewardsV2 is
     /// @param account: address of account to check
     /// @param _timestamp: timestamp to check
     /// @return balance at given timestamp
-    function balanceAtT(address account, uint256 _timestamp)
+    function balanceAtTime(address account, uint256 _timestamp)
         external
         view
         override
@@ -638,7 +638,7 @@ contract StakingRewardsV2 is
     /// @param account: address of account to check
     /// @param _timestamp: timestamp to check
     /// @return escrowed balance at given timestamp
-    function escrowedBalanceAtT(address account, uint256 _timestamp)
+    function escrowedbalanceAtTime(address account, uint256 _timestamp)
         external
         view
         override

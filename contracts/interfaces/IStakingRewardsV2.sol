@@ -22,8 +22,8 @@ interface IStakingRewardsV2 {
     function balancesLength(address account) external view returns (uint256);
     function escrowedBalancesLength(address account) external view returns (uint256);
     function totalSupplyLength() external view returns (uint256);
-    function balanceAtT(address account, uint256 block) external view returns (uint256);
-    function escrowedBalanceAtT(address account, uint256 block) external view returns (uint256);
+    function balanceAtTime(address account, uint256 block) external view returns (uint256);
+    function escrowedbalanceAtTime(address account, uint256 block) external view returns (uint256);
     function totalSupplyAtT(uint256 block) external view returns (uint256);
 
     /*//////////////////////////////////////////////////////////////
