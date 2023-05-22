@@ -63,7 +63,6 @@ contract TokenDistributorTest is StakingSetup {
         vm.expectEmit(true, true, true, true);
         emit CheckpointToken(1814404, 10);
         vm.expectEmit(true, true, false, true);
-        //todo: figure out why the amount is 4 not 10
         emit VestingEntryCreated(address(user1), 4, 31449600, 1);
         tokenDistributor.claimEpoch(address(user1), 1);
     }
@@ -260,7 +259,7 @@ contract TokenDistributorTest is StakingSetup {
         /// 0 after dividing
         vm.assume(amount < 100_000 ether);
         vm.assume(amount > 10);
-        
+
         kwenta.transfer(address(user1), 1);
         kwenta.transfer(address(user2), 2);
         vm.startPrank(address(user1));
@@ -288,7 +287,5 @@ contract TokenDistributorTest is StakingSetup {
         vm.expectEmit(true, true, false, true);
         emit VestingEntryCreated(address(user1), amount / 3, 31449600, 1);
         tokenDistributor.claimEpoch(address(user1), 1);
-
-    } 
-
+    }
 }
