@@ -11,7 +11,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "./interfaces/IKwenta.sol";
 import "./interfaces/IStakingRewardsV2.sol";
 
-// TODO: replace notion of an entry completely with a token
+// TODO: reintroduce notion of an entry - replace "token" naming convention with "entry" where appropriate
 // TODO: think about safeTransfer, safeMint etc.
 // TODO: Think about what functions could be "approved for" with lower risk - such that they can be delegated from a hardware wallet to a hot wallet
 
