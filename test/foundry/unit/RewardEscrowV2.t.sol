@@ -58,9 +58,9 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
 
         // attempt to steal other users vesting entry
         uint256 user1EntryID = rewardEscrowV2.getAccountVestingEntryIDs(user1, 0, 1)[0];
-        vm.expectRevert(abi.encodeWithSelector(IRewardEscrowV2.NotYourEntry.selector, user1EntryID));
+        vm.expectRevert("ERC721: caller is not token owner or approved");
         entryIDs.push(user1EntryID);
-        rewardEscrowV2.bulkTransferVestingEntries(entryIDs, user2);
+        rewardEscrowV2.bulkTransferFrom(user1, user2, entryIDs);
     }
 
     function test_Cannot_Bulk_Steal_Other_Users_Entries_Fuzz(uint32 amount, uint24 duration) public {
@@ -76,9 +76,9 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
 
         // attempt to steal other users vesting entry
         uint256 user1EntryID = rewardEscrowV2.getAccountVestingEntryIDs(user1, 0, 1)[0];
-        vm.expectRevert(abi.encodeWithSelector(IRewardEscrowV2.NotYourEntry.selector, user1EntryID));
+        vm.expectRevert("ERC721: caller is not token owner or approved");
         entryIDs.push(user1EntryID);
-        rewardEscrowV2.bulkTransferVestingEntries(entryIDs, user2);
+        rewardEscrowV2.bulkTransferFrom(user1, user2, entryIDs);
     }
 
     /*//////////////////////////////////////////////////////////////
