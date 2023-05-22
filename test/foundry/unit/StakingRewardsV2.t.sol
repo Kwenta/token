@@ -99,28 +99,42 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         stakingRewardsV2.unpauseStakingRewards();
     }
 
-    // TODO: fix this for new setup
-    // function test_Only_Owner_Can_nominateNewOwner() public {
-    //     // attempt to nominate new owner
-    //     vm.prank(user1);
-    //     vm.expectRevert("Ownable: caller is not the owner");
-    //     stakingRewardsV2.nominateNewOwner(address(this));
+    function test_Only_Owner_Can_renounceOwnership() public {
+        vm.prank(user1);
+        vm.expectRevert("Ownable: caller is not the owner");
+        stakingRewardsV2.renounceOwnership();
+    }
 
-    //     // nominate new owner
-    //     stakingRewardsV2.nominateNewOwner(address(user1));
+    function test_Only_Owner_Can_transferOwnership() public {
+        vm.prank(user1);
+        vm.expectRevert("Ownable: caller is not the owner");
+        stakingRewardsV2.transferOwnership(user2);
+    }
 
-    //     // attempt to accept ownership
-    //     vm.prank(user2);
-    //     vm.expectRevert("You must be nominated before you can accept ownership");
-    //     stakingRewardsV2.acceptOwnership();
+    function test_renounceOwnership() public {
+        stakingRewardsV2.renounceOwnership();
+        assertEq(stakingRewardsV2.owner(), address(0));
+    }
 
-    //     // accept ownership
-    //     vm.prank(user1);
-    //     stakingRewardsV2.acceptOwnership();
+    function test_transferOwnership() public {
+        // check ownership
+        assertEq(stakingRewardsV2.owner(), address(this));
 
-    //     // check ownership
-    //     assertEq(stakingRewardsV2.owner(), address(user1));
-    // }
+        // transfer ownership
+        stakingRewardsV2.transferOwnership(user1);
+
+        // check ownership
+        assertEq(stakingRewardsV2.owner(), address(user1));
+        vm.expectRevert("Ownable: caller is not the owner");
+        stakingRewardsV2.transferOwnership(address(this));
+
+        // transfer ownership
+        vm.prank(user1);
+        stakingRewardsV2.transferOwnership(address(this));
+
+        // check ownership
+        assertEq(stakingRewardsV2.owner(), address(this));
+    }
 
     /*//////////////////////////////////////////////////////////////
                                 Pausable
