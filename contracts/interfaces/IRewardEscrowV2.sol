@@ -92,11 +92,6 @@ interface IRewardEscrowV2 {
     /// @param entryID The id of the invalid entry
     error InvalidEntry(uint256 entryID);
 
-    /// @notice Attempted to transfer an entry that is not yours
-    /// @param entryID The id of the non-owned entry
-    /// @dev msg.sender must be the owner of the entry
-    error NotYourEntry(uint256 entryID);
-
     /// @notice Insufficient unstaked escrow to facilitate transfer
     /// @param entryID the id of the entry that couldn't be transferred
     /// @param escrowAmount the amount of escrow in the entry

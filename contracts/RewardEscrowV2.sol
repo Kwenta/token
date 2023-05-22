@@ -15,7 +15,7 @@ import "./libraries/SafeDecimalMath.sol";
 import "./interfaces/IKwenta.sol";
 import "./interfaces/IStakingRewardsV2.sol";
 
-// TODO: totally remove transferVestingEntry
+// TODO: totally remove transferVestingEntry, bulkTransferVestingEntries
 // TODO: replace notion of an entry completely with a token
 
 contract RewardEscrowV2 is
@@ -459,6 +459,25 @@ contract RewardEscrowV2 is
         }
     }
 
+    // TODO: add to IRewardEscrowV2
+    /**
+     * @notice Transfer multiple tokens from one account to another
+     *  Sufficient escrowed KWENTA must be unstaked for the transfer to succeed
+     * @param from The account to transfer the tokens from
+     * @param to The account to transfer the tokens to
+     * @param entryIDs a list of the ids of the entries to transfer
+     */
+    function bulkTransferFrom(
+        address from,
+        address to,
+        uint256[] calldata entryIDs
+    ) external {
+        uint256 entryIDsLength = entryIDs.length;
+        for (uint256 i = 0; i < entryIDsLength; ++i) {
+            // _transferVestingEntry(entryIDs[i], account);
+            transferFrom(from, to, entryIDs[i]);
+        }
+    }
 
     /**
      * @dev See {IERC721-transferFrom}.
@@ -470,8 +489,6 @@ contract RewardEscrowV2 is
     ) public override(ERC721Upgradeable, IERC721Upgradeable) {
         if (tokenId >= nextEntryId) revert InvalidEntry(tokenId);
         VestingEntries.VestingEntry memory entry = vestingSchedules[tokenId];
-        // TODO: think - should be _isApprovedOrOwner???
-        if (ownerOf(tokenId) != from) revert NotYourEntry(tokenId);
 
         uint256 unstakedEscrow = unstakedEscrowBalanceOf(from);
         if (unstakedEscrow < entry.escrowAmount) {
