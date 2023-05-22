@@ -97,23 +97,6 @@ contract TokenDistributorTest is StakingSetup {
         tokenDistributor.claimEpoch(address(user1), 0);
     }
 
-    //todo: comment out until figure out if doing things in same block matters
-    /*
-    /// @notice claimEpoch fail - cant claim in same block as new distribution
-    function testClaimDistributionNewDistributionBlock() public {
-        kwenta.transfer(address(tokenDistributor), 10);
-        kwenta.transfer(address(user1), 1);
-        vm.startPrank(address(user1));
-        kwenta.approve(address(stakingRewardsV2), 1);
-        stakingRewardsV2.stake(1);
-        goForward(604801);
-
-        vm.expectRevert(
-            abi.encodeWithSelector(TokenDistributor.CannotClaimInNewEpochBlock.selector)
-        );
-        tokenDistributor.claimEpoch(address(user1), 1);
-    }
-    */
     /// @notice claimEpoch fail - already claimed
     function testClaimAlreadyClaimed() public {
         //setup

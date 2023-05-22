@@ -124,14 +124,6 @@ contract TokenDistributor {
         if ((epochNumber * 1 weeks) + 1 weeks + startTime > block.timestamp) {
             revert CannotClaimYet();
         }
-
-        /// @notice cannot claim in the same block as a new epoch
-        /// to prevent attacks in the same block (staking is calculated
-        /// at the end of the block)
-        //todo: check if need this for if its within the same second
-        if (block.number == (epochNumber * 1 weeks) + startTime) {
-            //revert CannotClaimInNewEpochBlock();
-        }
         if (claimedEpochs[to][epochNumber] == true) {
             revert CannotClaimTwice();
         }
