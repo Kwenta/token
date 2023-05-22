@@ -6,9 +6,6 @@ import "./interfaces/IRewardEscrowV2.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-// Libraries
-import "./libraries/SafeDecimalMath.sol";
-
 // Internal references
 import "./interfaces/IKwenta.sol";
 import "./interfaces/IStakingRewardsV2.sol";
@@ -18,8 +15,6 @@ contract RewardEscrowV2 is
     OwnableUpgradeable,
     UUPSUpgradeable
 {
-    using SafeDecimalMath for uint256;
-
     /* ========== CONSTANTS/IMMUTABLES ========== */
 
     /* Max escrow duration */
