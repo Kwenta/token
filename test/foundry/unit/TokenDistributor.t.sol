@@ -286,6 +286,29 @@ contract TokenDistributorTest is StakingSetup {
         tokenDistributor.claimEpoch(address(user2), 1);
     }
 
+    /// @notice test claimMany
+    function testClaimMany() public {
+        kwenta.transfer(address(user1), 1);
+        vm.startPrank(address(user1));
+        kwenta.approve(address(stakingRewardsV2), 1);
+        stakingRewardsV2.stake(1);
+        vm.stopPrank();
+        goForward(604801);
+
+        goForward(304801);
+        kwenta.transfer(address(tokenDistributor), 1000);
+        tokenDistributor.checkpointToken();
+        goForward(604801);
+
+        kwenta.transfer(address(tokenDistributor), 5000);
+        goForward(604801);
+
+        uint[] memory epochs = new uint[](2);
+        epochs[0] = 1;
+        epochs[1] = 2;
+        tokenDistributor.claimMany(address(user1), epochs);
+    }
+
     /// @notice fuzz claimEpochFees
     function testFuzzClaim(uint256 amount) public {
         /// @dev make sure its less than this contract
