@@ -291,8 +291,4 @@ contract TokenDistributorTest is StakingSetup {
 
     } 
 
-    //todo: test claiming when it doesnt make a new checkpoint
-
-    //todo: test like multiple claims but when someone tries to claim new fees mid week
-    // might not matter because 1 week wait
 }
