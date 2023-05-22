@@ -494,7 +494,7 @@ contract RewardEscrowV2 is
         emit Vested(_account, _amount);
     }
 
-    // TODO: rethink this function
+    // TODO: rethink this function - could go in a burn function
     function _reduceAccountEscrowBalances(address _account, uint256 _amount)
         internal
     {
