@@ -217,9 +217,6 @@ contract TokenDistributorTest is StakingSetup {
     /// @dev also an integration test with RewardEscrowV2
     function testClaimMultipleClaims() public {
         /// @dev user1 has 1/3 total staking and user2 has 2/3
-        /// before epoch #0 (same as during) TokenDistributor
-        /// receives 1000 in fees
-        //kwenta.transfer(address(tokenDistributor), 1000);
         kwenta.transfer(address(user1), 1);
         kwenta.transfer(address(user2), 2);
         vm.startPrank(address(user1));
@@ -230,51 +227,50 @@ contract TokenDistributorTest is StakingSetup {
         kwenta.approve(address(stakingRewardsV2), 2);
         stakingRewardsV2.stake(2);
         vm.stopPrank();
-
-        //kwenta.transfer(address(tokenDistributor), 1000);
-        //tokenDistributor.checkpointToken();
-
         goForward(604801);
+
+        /// @notice start of epoch 1
+        /// midway through epoch #1 TokenDistributor
+        /// receives 1000 in fees and checkpoints
+        /// (this is split up between epoch 0 and 1)
+        goForward(304801);
         kwenta.transfer(address(tokenDistributor), 1000);
         tokenDistributor.checkpointToken();
         goForward(604801);
 
-        //todo fix the comments because everything had to shift +1
-
-        /// @dev during epoch #1, user1 claims their fees from #0
+        /// @dev during epoch #2, user1 claims their fees from #1
         /// and TokenDistributor receives 5000 in fees
-
         vm.prank(user1);
-        //vm.expectEmit(true, true, false, true);
-        //emit VestingEntryCreated(address(user1), 333, 31449600, 1);
+        vm.expectEmit(true, true, false, true);
+        emit VestingEntryCreated(address(user1), 111, 31449600, 1);
         tokenDistributor.claimEpoch(address(user1), 1);
         kwenta.transfer(address(tokenDistributor), 5000);
 
-        /// @dev user1 claims for epoch #1 to start epoch #2
-        /// user2 also claims for #1 and #0
+        /// @dev At the start of epoch #3 user1 claims for epoch #2
+        /// user2 also claims for #2 and #1
         /// and TokenDistributor receives 300 in fees
-
-        /*
-        goForward(604801);
+        goForward(304801);
         vm.prank(user1);
-        //vm.expectEmit(true, true, false, true);
-        //emit VestingEntryCreated(address(user1), 1666, 31449600, 2);
+        vm.expectEmit(true, true, false, true);
+        emit VestingEntryCreated(address(user1), 1640, 31449600, 2);
         tokenDistributor.claimEpoch(address(user1), 2);
         goForward(1000);
         kwenta.transfer(address(tokenDistributor), 300);
         vm.prank(user2);
-        //vm.expectEmit(true, true, false, true);
-        //emit VestingEntryCreated(address(user2), 3333, 31449600, 3);
+        vm.expectEmit(true, true, false, true);
+        emit VestingEntryCreated(address(user2), 3280, 31449600, 3);
         tokenDistributor.claimEpoch(address(user2), 2);
         vm.prank(user2);
-        //vm.expectEmit(true, true, false, true);
-        //emit VestingEntryCreated(address(user2), 666, 31449600, 4);
+        vm.expectEmit(true, true, false, true);
+        emit VestingEntryCreated(address(user2), 223, 31449600, 4);
         tokenDistributor.claimEpoch(address(user2), 1);
-        */
     }
 
     //todo: I can probably fuzz the fees that are sent to TokenDistributor
     // and then make sure the the outcome is proportional to the fuzzing
 
     //todo: test claiming across multiple weeks (when fees are split)
+
+    //todo: test like multiple claims but when someone tries to claim new fees mid week
+    // might not matter because 1 week wait
 }
