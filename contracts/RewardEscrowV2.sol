@@ -207,7 +207,7 @@ contract RewardEscrowV2 is
         uint256 n = endIndex - index;
         VestingEntries.VestingEntryWithID[] memory vestingEntries =
             new VestingEntries.VestingEntryWithID[](n);
-        for (uint256 i; i < n; ++i) {
+        for (uint256 i; i < n; ) {
             uint256 entryID = tokenOfOwnerByIndex(account, i + index);
 
             VestingEntries.VestingEntry memory entry = vestingSchedules[entryID];
@@ -217,6 +217,10 @@ contract RewardEscrowV2 is
                 escrowAmount: entry.escrowAmount,
                 entryID: entryID
             });
+
+            unchecked {
+                ++i;
+            }
         }
         return vestingEntries;
     }
@@ -239,8 +243,12 @@ contract RewardEscrowV2 is
 
         uint256 n = endIndex - index;
         uint256[] memory page = new uint256[](n);
-        for (uint256 i; i < n; ++i) {
+        for (uint256 i; i < n; ) {
             page[i] = tokenOfOwnerByIndex(account, i + index);
+
+            unchecked {
+                ++i;
+            }
         }
         return page;
     }
@@ -252,7 +260,7 @@ contract RewardEscrowV2 is
         returns (uint256 total, uint256 totalFee)
     {
         uint256 entryIDsLength = entryIDs.length;
-        for (uint256 i = 0; i < entryIDsLength; ++i) {
+        for (uint256 i = 0; i < entryIDsLength; ) {
             VestingEntries.VestingEntry memory entry =
                 vestingSchedules[entryIDs[i]];
 
@@ -263,6 +271,10 @@ contract RewardEscrowV2 is
                 /* add quantity to total */
                 total += quantity;
                 totalFee += fee;
+            }
+
+            unchecked {
+                ++i;
             }
         }
     }
@@ -321,7 +333,7 @@ contract RewardEscrowV2 is
         uint256 total;
         uint256 totalFee;
         uint256 entryIDsLength = entryIDs.length;
-        for (uint256 i = 0; i < entryIDsLength; ++i) {
+        for (uint256 i = 0; i < entryIDsLength; ) {
             VestingEntries.VestingEntry storage entry =
                 vestingSchedules[entryIDs[i]];
             // TODO: think - should be _isApprovedOrOwner???
@@ -339,6 +351,10 @@ contract RewardEscrowV2 is
                 /* add quantity to total */
                 total += quantity;
                 totalFee += fee;
+            }
+
+            unchecked {
+                ++i;
             }
         }
 
@@ -453,8 +469,11 @@ contract RewardEscrowV2 is
         address account
     ) external {
         uint256 entryIDsLength = entryIDs.length;
-        for (uint256 i = 0; i < entryIDsLength; ++i) {
+        for (uint256 i = 0; i < entryIDsLength; ) {
             _transferVestingEntry(entryIDs[i], account);
+            unchecked {
+                ++i;
+            }
         }
     }
 
@@ -472,8 +491,11 @@ contract RewardEscrowV2 is
         uint256[] calldata entryIDs
     ) external {
         uint256 entryIDsLength = entryIDs.length;
-        for (uint256 i = 0; i < entryIDsLength; ++i) {
+        for (uint256 i = 0; i < entryIDsLength; ) {
             transferFrom(from, to, entryIDs[i]);
+            unchecked {
+                ++i;
+            }
         }
     }
 
