@@ -15,7 +15,6 @@ import "./libraries/SafeDecimalMath.sol";
 import "./interfaces/IKwenta.sol";
 import "./interfaces/IStakingRewardsV2.sol";
 
-// TODO: totally remove transferVestingEntry, bulkTransferVestingEntries
 // TODO: replace notion of an entry completely with a token
 
 contract RewardEscrowV2 is
@@ -445,19 +444,6 @@ contract RewardEscrowV2 is
         stakingRewardsV2.unstakeEscrow(msg.sender, _amount);
     }
 
-    /**
-     * @notice Transfer a vested entry from one account to another
-     *  Sufficient escrowed KWENTA must be unstaked for the transfer to succeed
-     * @param entryID the id of the entry to transfer
-     * @param account The account to transfer the vesting entry to
-     */
-    function transferVestingEntry(uint256 entryID, address account)
-        external
-        override
-    {
-        _transferVestingEntry(entryID, account);
-    }
-
     // TODO: add to IRewardEscrowV2
     /**
      * @notice Transfer multiple tokens from one account to another
@@ -470,7 +456,7 @@ contract RewardEscrowV2 is
         address from,
         address to,
         uint256[] calldata entryIDs
-    ) external {
+    ) external override {
         uint256 entryIDsLength = entryIDs.length;
         for (uint256 i = 0; i < entryIDsLength; ) {
             transferFrom(from, to, entryIDs[i]);
@@ -523,6 +509,7 @@ contract RewardEscrowV2 is
         totalEscrowedAccountBalance[_account] -= _amount;
     }
 
+    // TODO: replace with mint override
     function _appendVestingEntry(
         address account,
         uint256 quantity,
@@ -566,10 +553,6 @@ contract RewardEscrowV2 is
         ++nextEntryId;
 
         emit VestingEntryCreated(account, quantity, duration, entryID);
-    }
-
-    function _transferVestingEntry(uint256 entryID, address account) internal {
-        transferFrom(msg.sender, account, entryID);
     }
 
     /* ========== UPGRADEABILITY ========== */

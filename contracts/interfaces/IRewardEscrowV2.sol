@@ -85,7 +85,7 @@ interface IRewardEscrowV2 {
 
     function unstakeEscrow(uint256 _amount) external;
 
-    function transferVestingEntry(uint256 entryID, address account) external;
+    function bulkTransferFrom(address from, address to, uint256[] calldata entryIDs) external;
 
     // Errors
     /// @notice Insufficient unstaked escrow to facilitate transfer
