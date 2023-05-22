@@ -23,7 +23,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
 
         // assert user1 has escrowed balance
         assertEq(rewardEscrowV2.totalEscrowedAccountBalance(user1), 1 ether);
-        assertEq(rewardEscrowV2.numVestingEntries(user1), 1);
+        assertEq(rewardEscrowV2.balanceOf(user1), 1);
 
         // attempt to steal other users vesting entry
         uint256 user1EntryID = rewardEscrowV2.getAccountVestingEntryIDs(user1, 0, 1)[0];
@@ -40,7 +40,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
 
         // assert user1 has escrowed balance
         assertEq(rewardEscrowV2.totalEscrowedAccountBalance(user1), amount);
-        assertEq(rewardEscrowV2.numVestingEntries(user1), 1);
+        assertEq(rewardEscrowV2.balanceOf(user1), 1);
 
         // attempt to steal other users vesting entry
         uint256 user1EntryID = rewardEscrowV2.getAccountVestingEntryIDs(user1, 0, 1)[0];
@@ -54,7 +54,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
 
         // assert user1 has escrowed balance
         assertEq(rewardEscrowV2.totalEscrowedAccountBalance(user1), 1 ether);
-        assertEq(rewardEscrowV2.numVestingEntries(user1), 1);
+        assertEq(rewardEscrowV2.balanceOf(user1), 1);
 
         // attempt to steal other users vesting entry
         uint256 user1EntryID = rewardEscrowV2.getAccountVestingEntryIDs(user1, 0, 1)[0];
@@ -72,7 +72,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
 
         // assert user1 has escrowed balance
         assertEq(rewardEscrowV2.totalEscrowedAccountBalance(user1), amount);
-        assertEq(rewardEscrowV2.numVestingEntries(user1), 1);
+        assertEq(rewardEscrowV2.balanceOf(user1), 1);
 
         // attempt to steal other users vesting entry
         uint256 user1EntryID = rewardEscrowV2.getAccountVestingEntryIDs(user1, 0, 1)[0];
@@ -109,8 +109,8 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
 
         // assert correct number of entries for each user
         uint256 user1EntryID = rewardEscrowV2.getAccountVestingEntryIDs(user1, 0, 1)[0];
-        assertEq(rewardEscrowV2.numVestingEntries(user1), 1);
-        assertEq(rewardEscrowV2.numVestingEntries(user2), 0);
+        assertEq(rewardEscrowV2.balanceOf(user1), 1);
+        assertEq(rewardEscrowV2.balanceOf(user2), 0);
 
         // get initial values
         (uint64 initialEndTime, uint256 initialEscrowAmount, uint256 initialDuration, uint8 initialEarlyVestingFee) =
@@ -121,8 +121,8 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         rewardEscrowV2.transferVestingEntry(user1EntryID, user2);
 
         // assert that the entry has been passed over to user2
-        assertEq(rewardEscrowV2.numVestingEntries(user1), 0);
-        assertEq(rewardEscrowV2.numVestingEntries(user2), 1);
+        assertEq(rewardEscrowV2.balanceOf(user1), 0);
+        assertEq(rewardEscrowV2.balanceOf(user2), 1);
 
         // check the right entryID has been transferred
         uint256 user2EntryID = rewardEscrowV2.getAccountVestingEntryIDs(user2, 0, 1)[0];
@@ -175,16 +175,16 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
 
         // assert correct number of entries for each user
         uint256 user1EntryID = rewardEscrowV2.getAccountVestingEntryIDs(user1, entryToTransferIndex, 1)[0];
-        assertEq(rewardEscrowV2.numVestingEntries(user1), numberOfEntries);
-        assertEq(rewardEscrowV2.numVestingEntries(user2), 0);
+        assertEq(rewardEscrowV2.balanceOf(user1), numberOfEntries);
+        assertEq(rewardEscrowV2.balanceOf(user2), 0);
 
         // transfer vesting entry from user1 to user2
         vm.prank(user1);
         rewardEscrowV2.transferVestingEntry(user1EntryID, user2);
 
         // assert that the entry has been passed over to user2
-        assertEq(rewardEscrowV2.numVestingEntries(user1), numberOfEntries - 1);
-        assertEq(rewardEscrowV2.numVestingEntries(user2), 1);
+        assertEq(rewardEscrowV2.balanceOf(user1), numberOfEntries - 1);
+        assertEq(rewardEscrowV2.balanceOf(user2), 1);
 
         // check the right entryID has been transferred
         uint256 user2EntryID = rewardEscrowV2.getAccountVestingEntryIDs(user2, 0, 1)[0];
@@ -269,7 +269,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
 
         // assert correct number of entries for each user
         uint256 user1EntryID = rewardEscrowV2.getAccountVestingEntryIDs(user1, 0, 1)[0];
-        assertEq(rewardEscrowV2.numVestingEntries(user1), 1);
+        assertEq(rewardEscrowV2.balanceOf(user1), 1);
 
         // get initial values
         (uint64 initialEndTime, uint256 initialEscrowAmount, uint256 initialDuration, uint8 initialEarlyVestingFee) =
@@ -280,7 +280,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         rewardEscrowV2.transferVestingEntry(user1EntryID, user1);
 
         // assert that the entry is still owned by user1
-        assertEq(rewardEscrowV2.numVestingEntries(user1), 1);
+        assertEq(rewardEscrowV2.balanceOf(user1), 1);
 
         // check the right entryID is still owned
         uint256 user1EntryIDAfter = rewardEscrowV2.getAccountVestingEntryIDs(user1, 0, 1)[0];
@@ -337,8 +337,8 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
 
         // assert correct number of entries for each user
         uint256 user1EntryID = rewardEscrowV2.getAccountVestingEntryIDs(user1, 0, 1)[0];
-        assertEq(rewardEscrowV2.numVestingEntries(user1), 1);
-        assertEq(rewardEscrowV2.numVestingEntries(user2), 0);
+        assertEq(rewardEscrowV2.balanceOf(user1), 1);
+        assertEq(rewardEscrowV2.balanceOf(user2), 0);
 
         // get initial values
         (uint64 initialEndTime, uint256 initialEscrowAmount, uint256 initialDuration, uint8 initialEarlyVestingFee) =
@@ -350,8 +350,8 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         rewardEscrowV2.bulkTransferVestingEntries(entryIDs, user2);
 
         // assert that the entry has been passed over to user2
-        assertEq(rewardEscrowV2.numVestingEntries(user1), 0);
-        assertEq(rewardEscrowV2.numVestingEntries(user2), 1);
+        assertEq(rewardEscrowV2.balanceOf(user1), 0);
+        assertEq(rewardEscrowV2.balanceOf(user2), 1);
 
         // check the right entryID has been transferred
         uint256 user2EntryID = rewardEscrowV2.getAccountVestingEntryIDs(user2, 0, 1)[0];
@@ -410,8 +410,8 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         // assert correct number of entries for each user
         uint256 firstEntryTransferredID =
             rewardEscrowV2.getAccountVestingEntryIDs(user1, startingEntryToTransferIndex, 1)[0];
-        assertEq(rewardEscrowV2.numVestingEntries(user1), numberOfEntries);
-        assertEq(rewardEscrowV2.numVestingEntries(user2), 0);
+        assertEq(rewardEscrowV2.balanceOf(user1), numberOfEntries);
+        assertEq(rewardEscrowV2.balanceOf(user2), 0);
 
         // add entryIDs to list for bulk transfer
         for (uint256 i = 0; i < numberOfEntriesTransferred; ++i) {
@@ -422,8 +422,8 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         rewardEscrowV2.bulkTransferVestingEntries(entryIDs, user2);
 
         // assert that the entries have been passed over to user2
-        assertEq(rewardEscrowV2.numVestingEntries(user1), numberOfEntries - numberOfEntriesTransferred);
-        assertEq(rewardEscrowV2.numVestingEntries(user2), numberOfEntriesTransferred);
+        assertEq(rewardEscrowV2.balanceOf(user1), numberOfEntries - numberOfEntriesTransferred);
+        assertEq(rewardEscrowV2.balanceOf(user2), numberOfEntriesTransferred);
 
         // check the right entryIDs have been transferred
         for (uint256 i = 0; i < numberOfEntriesTransferred; ++i) {
@@ -469,8 +469,8 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         assertEq(rewardEscrowV2.totalEscrowedAccountBalance(user2), 0);
 
         // assert correct number of entries for each user
-        assertEq(rewardEscrowV2.numVestingEntries(user1), numberOfEntries);
-        assertEq(rewardEscrowV2.numVestingEntries(user2), 0);
+        assertEq(rewardEscrowV2.balanceOf(user1), numberOfEntries);
+        assertEq(rewardEscrowV2.balanceOf(user2), 0);
 
         // add random selection of entryIDs to list for bulk transfer
         for (uint256 i = 0; i < numberOfEntries; ++i) {
@@ -483,8 +483,8 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         rewardEscrowV2.bulkTransferVestingEntries(entryIDs, user2);
 
         // assert that the entries have been passed over to user2
-        assertEq(rewardEscrowV2.numVestingEntries(user1), numberOfEntries - entryIDs.length);
-        assertEq(rewardEscrowV2.numVestingEntries(user2), entryIDs.length);
+        assertEq(rewardEscrowV2.balanceOf(user1), numberOfEntries - entryIDs.length);
+        assertEq(rewardEscrowV2.balanceOf(user2), entryIDs.length);
 
         // check the right entryIDs have been transferred
         for (uint256 i = 0; i < entryIDs.length; ++i) {
@@ -604,7 +604,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
 
         // assert correct number of entries for each user
         uint256 user1EntryID = rewardEscrowV2.getAccountVestingEntryIDs(user1, 0, 1)[0];
-        assertEq(rewardEscrowV2.numVestingEntries(user1), 1);
+        assertEq(rewardEscrowV2.balanceOf(user1), 1);
 
         // get initial values
         (uint64 initialEndTime, uint256 initialEscrowAmount, uint256 initialDuration, uint8 initialEarlyVestingFee) =
@@ -616,7 +616,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         rewardEscrowV2.bulkTransferVestingEntries(entryIDs, user1);
 
         // assert that the entry is still owned by user1
-        assertEq(rewardEscrowV2.numVestingEntries(user1), 1);
+        assertEq(rewardEscrowV2.balanceOf(user1), 1);
 
         // check the right entryID is still owned
         uint256 user1EntryIDAfter = rewardEscrowV2.getAccountVestingEntryIDs(user1, 0, 1)[0];

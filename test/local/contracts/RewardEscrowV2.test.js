@@ -324,7 +324,7 @@ contract(
 
         describe("Given there are no Escrow entries", async () => {
             it("then numVestingEntries should return 0", async () => {
-                assert.equal(0, await rewardEscrowV2.numVestingEntries(staker1));
+                assert.equal(0, await rewardEscrowV2.balanceOf(staker1));
             });
             it("then totalEscrowedAccountBalance should return 0", async () => {
                 assert.equal(
@@ -534,7 +534,7 @@ contract(
                     });
                     it("staker1 numVestingEntries is 1", async () => {
                         assert.bnEqual(
-                            await rewardEscrowV2.numVestingEntries(staker1),
+                            await rewardEscrowV2.balanceOf(staker1),
                             new BN(1)
                         );
                     });
@@ -702,7 +702,7 @@ contract(
                 });
                 it("Account1 numVestingEntries is 1", async () => {
                     assert.bnEqual(
-                        await rewardEscrowV2.numVestingEntries(staker1),
+                        await rewardEscrowV2.balanceOf(staker1),
                         new BN(1)
                     );
                 });
@@ -1122,7 +1122,7 @@ contract(
                 });
 
                 it("should have three vesting entries for the user", async () => {
-                    const numOfEntries = await rewardEscrowV2.numVestingEntries(
+                    const numOfEntries = await rewardEscrowV2.balanceOf(
                         staker1
                     );
                     assert.bnEqual(numOfEntries, new BN(3));
@@ -1330,7 +1330,7 @@ contract(
                 });
 
                 it("should have three vesting entries for the user", async () => {
-                    const numOfEntries = await rewardEscrowV2.numVestingEntries(
+                    const numOfEntries = await rewardEscrowV2.balanceOf(
                         staker1
                     );
                     assert.bnEqual(numOfEntries, new BN(3));
