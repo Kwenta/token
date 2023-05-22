@@ -38,6 +38,7 @@ contract RewardEscrowV2 is
     mapping(uint256 => VestingEntries.VestingEntry) public vestingSchedules;
 
     // Counter for new vesting entry ids
+    // TODO: delete and use totalSupply() instead
     uint256 public nextEntryId;
 
     // An account's total escrowed KWENTA balance to save recomputing this for fee extraction purposes
