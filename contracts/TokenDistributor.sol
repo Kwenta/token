@@ -115,7 +115,6 @@ contract TokenDistributor {
 
     /// @notice this function will fetch StakingRewardsV2 to see what their staked balance
     /// was at the start of the epoch then calculate proportional fees and transfer to user
-    //todo: fuzz this stuff
     function claimEpoch(address to, uint epochNumber) public {
         if (block.timestamp - lastCheckpoint > 86400) {
             checkpointToken();
