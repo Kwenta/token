@@ -7,15 +7,13 @@ import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721Enumer
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-// Libraries
-import "./libraries/SafeDecimalMath.sol";
-
 // Internal references
 import "./interfaces/IKwenta.sol";
 import "./interfaces/IStakingRewardsV2.sol";
 
 // TODO: replace notion of an entry completely with a token
 // TODO: think about safeTransfer, safeMint etc.
+// TODO: Think about what functions could be "approved for" with lower risk - such that they can be delegated from a hardware wallet to a hot wallet
 
 contract RewardEscrowV2 is
     IRewardEscrowV2,
@@ -23,8 +21,6 @@ contract RewardEscrowV2 is
     OwnableUpgradeable,
     UUPSUpgradeable
 {
-    using SafeDecimalMath for uint256;
-
     /* ========== CONSTANTS/IMMUTABLES ========== */
 
     /* Max escrow duration */
