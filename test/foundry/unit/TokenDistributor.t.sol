@@ -266,10 +266,45 @@ contract TokenDistributorTest is StakingSetup {
         tokenDistributor.claimEpoch(address(user2), 1);
     }
 
-    //todo: I can probably fuzz the fees that are sent to TokenDistributor
-    // and then make sure the the outcome is proportional to the fuzzing
+    /// @notice fuzz claimEpochFees
+    function testFuzzClaim(uint256 amount) public {
+        /// @dev make sure its less than this contract
+        /// holds and greater than 10 so the result isn't
+        /// 0 after dividing
+        vm.assume(amount < 100_000 ether);
+        vm.assume(amount > 10);
+        
+        kwenta.transfer(address(user1), 1);
+        kwenta.transfer(address(user2), 2);
+        vm.startPrank(address(user1));
+        kwenta.approve(address(stakingRewardsV2), 1);
+        stakingRewardsV2.stake(1);
+        vm.stopPrank();
+        vm.startPrank(address(user2));
+        kwenta.approve(address(stakingRewardsV2), 2);
+        stakingRewardsV2.stake(2);
+        vm.stopPrank();
+        /// @dev checkpoint at the end of epoch 0
+        /// to remove cross epoch distribution
+        goForward(604798);
+        tokenDistributor.checkpointToken();
 
-    //todo: test claiming across multiple weeks (when fees are split)
+        /// @dev send fees to TokenDistributor 1 second before
+        /// epoch 1 ends
+        goForward(604799);
+        kwenta.transfer(address(tokenDistributor), amount);
+        tokenDistributor.checkpointToken();
+        goForward(1);
+
+        /// @dev claim for epoch 1 at the first second of epoch 2
+        vm.prank(user1);
+        vm.expectEmit(true, true, false, true);
+        emit VestingEntryCreated(address(user1), amount / 3, 31449600, 1);
+        tokenDistributor.claimEpoch(address(user1), 1);
+
+    } 
+
+    //todo: test claiming when it doesnt make a new checkpoint
 
     //todo: test like multiple claims but when someone tries to claim new fees mid week
     // might not matter because 1 week wait
