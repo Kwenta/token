@@ -458,25 +458,6 @@ contract RewardEscrowV2 is
         _transferVestingEntry(entryID, account);
     }
 
-    /**
-     * @notice Transfer multiple vested entries from one account to another
-     *  Sufficient escrowed KWENTA must be unstaked for the transfer to succeed
-     * @param entryIDs a list of the ids of the entries to transfer
-     * @param account The account to transfer the vesting entries to
-     */
-    function bulkTransferVestingEntries(
-        uint256[] calldata entryIDs,
-        address account
-    ) external {
-        uint256 entryIDsLength = entryIDs.length;
-        for (uint256 i = 0; i < entryIDsLength; ) {
-            _transferVestingEntry(entryIDs[i], account);
-            unchecked {
-                ++i;
-            }
-        }
-    }
-
     // TODO: add to IRewardEscrowV2
     /**
      * @notice Transfer multiple tokens from one account to another
