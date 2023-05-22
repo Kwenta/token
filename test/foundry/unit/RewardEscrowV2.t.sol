@@ -86,13 +86,13 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     //////////////////////////////////////////////////////////////*/
 
     function test_Cannot_Transfer_Non_Existent_Entry() public {
-        vm.expectRevert(abi.encodeWithSelector(IRewardEscrowV2.InvalidEntry.selector, 50));
-        rewardEscrowV2.transferVestingEntry(50, user1);
+        vm.expectRevert("ERC721: invalid token ID");
+        rewardEscrowV2.transferFrom(address(this), user1, 50);
     }
 
     function test_Cannot_Transfer_Non_Existent_Entry_Fuzz(uint256 entryID) public {
         vm.assume(entryID > 0);
-        vm.expectRevert(abi.encodeWithSelector(IRewardEscrowV2.InvalidEntry.selector, entryID));
+        vm.expectRevert("ERC721: invalid token ID");
         rewardEscrowV2.transferVestingEntry(entryID, user1);
     }
 
@@ -312,7 +312,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     //////////////////////////////////////////////////////////////*/
 
     function test_Cannot_Bulk_Transfer_Non_Existent_Entry() public {
-        vm.expectRevert(abi.encodeWithSelector(IRewardEscrowV2.InvalidEntry.selector, 50));
+        vm.expectRevert("ERC721: invalid token ID");
         entryIDs.push(50);
         rewardEscrowV2.bulkTransferVestingEntries(entryIDs, user1);
     }
@@ -320,7 +320,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     function test_Cannot_Bulk_Transfer_Non_Existent_Entry_Fuzz(uint256 entryID) public {
         vm.assume(entryID > 0);
         entryIDs.push(entryID);
-        vm.expectRevert(abi.encodeWithSelector(IRewardEscrowV2.InvalidEntry.selector, entryID));
+        vm.expectRevert("ERC721: invalid token ID");
         rewardEscrowV2.bulkTransferVestingEntries(entryIDs, user1);
     }
 
