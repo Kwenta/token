@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
-// TODO: find out what this is
-pragma experimental ABIEncoderV2;
 
 // Inheritance
 import "./interfaces/IRewardEscrowV2.sol";
