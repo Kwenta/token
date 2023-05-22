@@ -76,7 +76,6 @@ contract RewardEscrowV2 is
     );
     event StakingRewardsSet(address stakingRewardsV2);
     event TreasuryDAOSet(address treasuryDAO);
-    event VestingEntryTransfer(address from, address to, uint256 entryID);
 
     /* ========== CONSTRUCTOR ========== */
 
@@ -488,6 +487,7 @@ contract RewardEscrowV2 is
         VestingEntries.VestingEntry memory entry = vestingSchedules[tokenId];
 
         uint256 unstakedEscrow = unstakedEscrowBalanceOf(from);
+        // TODO: think about ways around this - can tokens be staked and transferrable? - could an entry either be staked or unstaked?
         if (unstakedEscrow < entry.escrowAmount) {
             revert InsufficientUnstakedBalance(
                 tokenId, entry.escrowAmount, unstakedEscrow
@@ -498,8 +498,6 @@ contract RewardEscrowV2 is
 
         totalEscrowedAccountBalance[from] -= entry.escrowAmount;
         totalEscrowedAccountBalance[to] += entry.escrowAmount;
-
-        emit VestingEntryTransfer(from, to, tokenId);
     }
 
     // TODO: rethink this function
