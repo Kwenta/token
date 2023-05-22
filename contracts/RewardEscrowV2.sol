@@ -16,6 +16,7 @@ import "./interfaces/IKwenta.sol";
 import "./interfaces/IStakingRewardsV2.sol";
 
 // TODO: totally remove transferVestingEntry
+// TODO: replace notion of an entry completely with a token
 
 contract RewardEscrowV2 is
     IRewardEscrowV2,
@@ -458,6 +459,35 @@ contract RewardEscrowV2 is
         }
     }
 
+
+    /**
+     * @dev See {IERC721-transferFrom}.
+     */
+    function transferFrom(
+        address from,
+        address to,
+        uint256 tokenId
+    ) public override(ERC721Upgradeable, IERC721Upgradeable) {
+        if (tokenId >= nextEntryId) revert InvalidEntry(tokenId);
+        VestingEntries.VestingEntry memory entry = vestingSchedules[tokenId];
+        // TODO: think - should be _isApprovedOrOwner???
+        if (ownerOf(tokenId) != from) revert NotYourEntry(tokenId);
+
+        uint256 unstakedEscrow = unstakedEscrowBalanceOf(from);
+        if (unstakedEscrow < entry.escrowAmount) {
+            revert InsufficientUnstakedBalance(
+                tokenId, entry.escrowAmount, unstakedEscrow
+            );
+        }
+
+        super.transferFrom(from, to, tokenId);
+
+        totalEscrowedAccountBalance[from] -= entry.escrowAmount;
+        totalEscrowedAccountBalance[to] += entry.escrowAmount;
+
+        emit VestingEntryTransfer(from, to, tokenId);
+    }
+
     /* ========== INTERNALS ========== */
 
     /* Transfer vested tokens and update totalEscrowedAccountBalance, totalVestedAccountBalance */
@@ -524,24 +554,7 @@ contract RewardEscrowV2 is
     }
 
     function _transferVestingEntry(uint256 entryID, address account) internal {
-        if (entryID >= nextEntryId) revert InvalidEntry(entryID);
-        VestingEntries.VestingEntry memory entry = vestingSchedules[entryID];
-        // TODO: think - should be _isApprovedOrOwner???
-        if (ownerOf(entryID) != msg.sender) revert NotYourEntry(entryID);
-
-        uint256 unstakedEscrow = unstakedEscrowBalanceOf(msg.sender);
-        if (unstakedEscrow < entry.escrowAmount) {
-            revert InsufficientUnstakedBalance(
-                entryID, entry.escrowAmount, unstakedEscrow
-            );
-        }
-
         transferFrom(msg.sender, account, entryID);
-
-        totalEscrowedAccountBalance[msg.sender] -= entry.escrowAmount;
-        totalEscrowedAccountBalance[account] += entry.escrowAmount;
-
-        emit VestingEntryTransfer(msg.sender, account, entryID);
     }
 
     /* ========== UPGRADEABILITY ========== */
