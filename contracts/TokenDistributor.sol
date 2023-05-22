@@ -115,7 +115,8 @@ contract TokenDistributor {
 
     /// @notice this function will fetch StakingRewardsV2 to see what their staked balance
     /// was at the start of the epoch then calculate proportional fees and transfer to user
-    function claimEpoch(address to, uint epochNumber) public {
+    function claimEpoch(address to, uint epochNumber) public  returns(uint256) {
+        //todo: fix checkpoint for when the week ends and someone claims
         if (block.timestamp - lastCheckpoint > 86400) {
             checkpointToken();
         }
@@ -145,6 +146,16 @@ contract TokenDistributor {
 
         kwenta.approve(address(rewardEscrowV2), proportionalFees);
         rewardEscrowV2.createEscrowEntry(to, proportionalFees, 52 weeks, 90);
+
+        return proportionalFees;
+    }
+
+    /// @notice claim many epochs at once
+    function claimMany(address to, uint[] memory epochs) public {
+        for (uint i = 0; i < epochs.length; i++){
+            uint epochNumber = epochs[i];
+            claimEpoch(to, epochNumber);
+        }
     }
 
     /// @notice view function for calculating fees for an epoch
