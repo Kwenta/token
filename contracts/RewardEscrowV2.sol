@@ -401,7 +401,7 @@ contract RewardEscrowV2 is
         );
 
         /* Append vesting entry for the beneficiary address */
-        _appendVestingEntry(beneficiary, deposit, duration, earlyVestingFee);
+        _mint(beneficiary, deposit, duration, earlyVestingFee);
     }
 
     /**
@@ -417,7 +417,7 @@ contract RewardEscrowV2 is
         uint256 quantity,
         uint256 duration
     ) external override onlyStakingRewards {
-        _appendVestingEntry(
+        _mint(
             account, quantity, duration, DEFAULT_EARLY_VESTING_FEE
         );
     }
@@ -485,6 +485,7 @@ contract RewardEscrowV2 is
     }
 
     // TODO: rethink this function
+    // TODO: rethink wording => token vs entry => what is a token in this context, make clear distinction between erc20 (kwenta) and erc721 (KRE)
     /* Transfer vested tokens and update totalEscrowedAccountBalance, totalVestedAccountBalance */
     function _transferVestedTokens(address _account, uint256 _amount)
         internal
@@ -504,8 +505,7 @@ contract RewardEscrowV2 is
         totalEscrowedAccountBalance[_account] -= _amount;
     }
 
-    // TODO: replace with mint override
-    function _appendVestingEntry(
+    function _mint(
         address account,
         uint256 quantity,
         uint256 duration,
