@@ -163,7 +163,7 @@ contract TokenDistributor {
         uint thisWeek = (epochNumber * 1 weeks) + startTime;
         uint256 userStaked = stakingRewardsV2.balanceAtTime(to, thisWeek);
         uint256 totalStaked = stakingRewardsV2.totalSupplyAtTime(thisWeek);
-
+        //todo: this view doesnt have checks so if no one was staked it will / by 0
         uint256 proportionalFees = ((tokensPerEpoch[thisWeek] * userStaked) /
             totalStaked);
 
