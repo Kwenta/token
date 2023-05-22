@@ -44,8 +44,8 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
 
         // attempt to steal other users vesting entry
         uint256 user1EntryID = rewardEscrowV2.getAccountVestingEntryIDs(user1, 0, 1)[0];
-        vm.expectRevert(abi.encodeWithSelector(IRewardEscrowV2.NotYourEntry.selector, user1EntryID));
-        rewardEscrowV2.transferVestingEntry(user1EntryID, user2);
+        vm.expectRevert("ERC721: caller is not token owner or approved");
+        rewardEscrowV2.transferFrom(user1, user2, user1EntryID);
     }
 
     function test_Cannot_Bulk_Steal_Other_Users_Entries() public {
