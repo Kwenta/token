@@ -59,7 +59,7 @@ contract TokenDistributorTest is StakingSetup {
 
         kwenta.transfer(address(tokenDistributor), 10);
         goForward(604801);
-        
+
         vm.expectEmit(true, true, true, true);
         emit CheckpointToken(1814404, 10);
         vm.expectEmit(true, true, false, true);
@@ -130,7 +130,7 @@ contract TokenDistributorTest is StakingSetup {
         );
         tokenDistributor.claimEpoch(address(user1), 1);
     }
-    
+
     /// @notice claimEpoch fail - claim an epoch that had no staking
     function testClaimNoStaking() public {
         kwenta.transfer(address(tokenDistributor), 10);
@@ -144,7 +144,7 @@ contract TokenDistributorTest is StakingSetup {
         );
         tokenDistributor.claimEpoch(address(user1), 0);
     }
-    
+
     /// @notice claimEpoch fail - nonstaker tries to claim
     /// (cannot claim 0 fees)
     function testClaimNotStaker() public {
@@ -164,7 +164,7 @@ contract TokenDistributorTest is StakingSetup {
         );
         tokenDistributor.claimEpoch(address(user2), 1);
     }
-    
+
     /// @notice claimEpoch happy case with a person who
     /// was previously staked but is now unstaked and trying to
     /// claim their fees
@@ -200,7 +200,7 @@ contract TokenDistributorTest is StakingSetup {
         kwenta.approve(address(stakingRewardsV2), 2);
         stakingRewardsV2.stake(2);
         vm.stopPrank();
-        
+
         goForward(604801);
         /// @dev forward half a week so it puts fees in epoch 1
         goForward(304801);
@@ -210,10 +210,8 @@ contract TokenDistributorTest is StakingSetup {
 
         uint256 sum = tokenDistributor.calculateEpochFees(user1, 1);
         assertEq(sum, 111);
-
-
     }
-    
+
     /// @notice claimEpoch happy case with partial claims
     /// in earlier epochs 2 complete epochs with differing fees
     /// @dev also an integration test with RewardEscrowV2
@@ -235,7 +233,7 @@ contract TokenDistributorTest is StakingSetup {
 
         //kwenta.transfer(address(tokenDistributor), 1000);
         //tokenDistributor.checkpointToken();
-        
+
         goForward(604801);
         kwenta.transfer(address(tokenDistributor), 1000);
         tokenDistributor.checkpointToken();
@@ -246,7 +244,6 @@ contract TokenDistributorTest is StakingSetup {
         /// @dev during epoch #1, user1 claims their fees from #0
         /// and TokenDistributor receives 5000 in fees
 
-        
         vm.prank(user1);
         //vm.expectEmit(true, true, false, true);
         //emit VestingEntryCreated(address(user1), 333, 31449600, 1);
