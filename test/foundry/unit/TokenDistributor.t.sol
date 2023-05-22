@@ -345,4 +345,5 @@ contract TokenDistributorTest is StakingSetup {
         emit VestingEntryCreated(address(user1), amount / 3, 31449600, 1);
         tokenDistributor.claimEpoch(address(user1), 1);
     }
+    //todo: test the || for calling a checkpoint when claiming
 }

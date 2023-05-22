@@ -115,9 +115,14 @@ contract TokenDistributor {
 
     /// @notice this function will fetch StakingRewardsV2 to see what their staked balance
     /// was at the start of the epoch then calculate proportional fees and transfer to user
-    function claimEpoch(address to, uint epochNumber) public  returns(uint256) {
-        //todo: fix checkpoint for when the week ends and someone claims
-        if (block.timestamp - lastCheckpoint > 86400) {
+    function claimEpoch(address to, uint epochNumber) public returns (uint256) {
+        /// @dev if more than 24 hours from last checkpoint OR if it is less than 24 hours
+        /// since the start of the week. second condition is so that the end of a week always
+        /// gets updated before its claimed.
+        if (
+            (block.timestamp - lastCheckpoint > 86400) ||
+            (block.timestamp - (epochNumber / 1 weeks) * 1 weeks < 86400)
+        ) {
             checkpointToken();
         }
         /// @dev if the end of the epoch is > current time, revert
@@ -152,7 +157,7 @@ contract TokenDistributor {
 
     /// @notice claim many epochs at once
     function claimMany(address to, uint[] memory epochs) public {
-        for (uint i = 0; i < epochs.length; i++){
+        for (uint i = 0; i < epochs.length; i++) {
             uint epochNumber = epochs[i];
             claimEpoch(to, epochNumber);
         }
