@@ -17,6 +17,7 @@ import "./interfaces/IKwenta.sol";
 import "./interfaces/IStakingRewardsV2.sol";
 
 // TODO: replace notion of an entry completely with a token
+// TODO: think about safeTransfer, safeMint etc.
 
 contract RewardEscrowV2 is
     IRewardEscrowV2,
@@ -132,7 +133,6 @@ contract RewardEscrowV2 is
         return address(kwenta);
     }
 
-    // TODO: change this notice - ERC20 balance integration is gone
     /**
      * @notice A simple alias to totalEscrowedAccountBalance
      */
@@ -336,7 +336,6 @@ contract RewardEscrowV2 is
         for (uint256 i = 0; i < entryIDsLength; ++i) {
             VestingEntries.VestingEntry storage entry =
                 vestingSchedules[entryIDs[i]];
-            // TODO: think - should be _isApprovedOrOwner???
             if (_ownerOf(entryIDs[i]) != msg.sender) {
                 continue;
             }
@@ -441,7 +440,6 @@ contract RewardEscrowV2 is
         stakingRewardsV2.unstakeEscrow(msg.sender, _amount);
     }
 
-    // TODO: add to IRewardEscrowV2
     /**
      * @notice Transfer multiple tokens from one account to another
      *  Sufficient escrowed KWENTA must be unstaked for the transfer to succeed
