@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
+// TODO: find out what this is
 pragma experimental ABIEncoderV2;
 
 // Inheritance
@@ -323,20 +324,20 @@ contract RewardEscrowV2 is
 
     /* ========== MUTATIVE FUNCTIONS ========== */
 
+    // TODO: burn entries after they are vested?
     /**
      * Vest escrowed amounts that are claimable
      * Allows users to vest their vesting entries based on msg.sender
      */
-
     function vest(uint256[] calldata entryIDs) external override {
         uint256 total;
         uint256 totalFee;
         uint256 entryIDsLength = entryIDs.length;
-        for (uint256 i = 0; i < entryIDsLength; ) {
+        for (uint256 i = 0; i < entryIDsLength; ++i) {
             VestingEntries.VestingEntry storage entry =
                 vestingSchedules[entryIDs[i]];
             // TODO: think - should be _isApprovedOrOwner???
-            if (ownerOf(entryIDs[i]) != msg.sender) {
+            if (_ownerOf(entryIDs[i]) != msg.sender) {
                 continue;
             }
 
@@ -350,10 +351,6 @@ contract RewardEscrowV2 is
                 /* add quantity to total */
                 total += quantity;
                 totalFee += fee;
-            }
-
-            unchecked {
-                ++i;
             }
         }
 
