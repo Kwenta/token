@@ -514,7 +514,7 @@ contract(
                     });
                     it("Account 1 should have balance of 10 KWENTA", async () => {
                         assert.bnEqual(
-                            await rewardEscrowV2.balanceOf(staker1),
+                            await rewardEscrowV2.totalEscrowBalanceOf(staker1),
                             escrowAmount
                         );
                     });
@@ -690,7 +690,7 @@ contract(
                 });
                 it("Account1 should have balance of 10 KWENTA", async () => {
                     assert.bnEqual(
-                        await rewardEscrowV2.balanceOf(staker1),
+                        await rewardEscrowV2.totalEscrowBalanceOf(staker1),
                         escrowAmount
                     );
                 });
@@ -1885,7 +1885,7 @@ contract(
                 expect(
                     stakingRewardsV2Smock.unstakeEscrow
                 ).to.have.been.calledWith(staker1, escrowAmount);
-                assert.equal(await rewardEscrowV2.balanceOf(staker1), 0);
+                assert.equal(await rewardEscrowV2.totalEscrowBalanceOf(staker1), 0);
             });
         });
     }

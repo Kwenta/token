@@ -4,6 +4,7 @@ pragma experimental ABIEncoderV2;
 
 // Inheritance
 import "./interfaces/IRewardEscrowV2.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
@@ -16,6 +17,7 @@ import "./interfaces/IStakingRewardsV2.sol";
 
 contract RewardEscrowV2 is
     IRewardEscrowV2,
+    ERC721EnumerableUpgradeable,
     OwnableUpgradeable,
     UUPSUpgradeable
 {
@@ -98,6 +100,8 @@ contract RewardEscrowV2 is
         // Initialize inherited contracts
         __Ownable_init();
         __UUPSUpgradeable_init();
+        // TODO: what should these names be?
+        __ERC721_init("Kwenta Reward Escrow", "KRE");
 
         // transfer ownership
         transferOwnership(_owner);
@@ -138,10 +142,11 @@ contract RewardEscrowV2 is
         return address(kwenta);
     }
 
+    // TODO: change this notice - ERC20 balance integration is gone
     /**
-     * @notice A simple alias to totalEscrowedAccountBalance: provides ERC20 balance integration.
+     * @notice A simple alias to totalEscrowedAccountBalance
      */
-    function balanceOf(address account)
+    function totalEscrowBalanceOf(address account)
         public
         view
         override
@@ -531,7 +536,7 @@ contract RewardEscrowV2 is
         });
         _entryOwners[entryID] = account;
 
-        _addTokenToOwnerEnumeration(account, entryID);
+        _addEntryToOwnerEnumeration(account, entryID);
 
         /* Increment the next entry id. */
         ++nextEntryId;
@@ -539,14 +544,14 @@ contract RewardEscrowV2 is
         emit VestingEntryCreated(account, quantity, duration, entryID);
     }
 
-    function _addTokenToOwnerEnumeration(address to, uint256 entryID) private {
+    function _addEntryToOwnerEnumeration(address to, uint256 entryID) private {
         uint256 length = _entryBalances[to];
         _ownedEntries[to][length] = entryID;
         _ownedEntriesIndex[entryID] = length;
         _entryBalances[to] += 1;
     }
 
-    function _removeTokenFromOwnerEnumeration(address from, uint256 entryID)
+    function _removeEntryFromOwnerEnumeration(address from, uint256 entryID)
         private
     {
         // To prevent a gap in from's entrys array, we store the last entry in the index of the entry to delete, and
@@ -589,8 +594,8 @@ contract RewardEscrowV2 is
         totalEscrowedAccountBalance[account] += entry.escrowAmount;
 
         if (msg.sender != account) {
-            _removeTokenFromOwnerEnumeration(msg.sender, entryID);
-            _addTokenToOwnerEnumeration(account, entryID);
+            _removeEntryFromOwnerEnumeration(msg.sender, entryID);
+            _addEntryToOwnerEnumeration(account, entryID);
         }
 
         emit VestingEntryTransfer(msg.sender, account, entryID);

@@ -152,9 +152,9 @@ contract StakingV2MigrationTests is StakingTestHelpers {
         user3NonEscrowedStakeV2 = stakingRewardsV2.nonEscrowedBalanceOf(user3);
 
         // assert v2 rewards have been earned
-        assertGt(rewardEscrowV2.balanceOf(user1), 0);
-        assertGt(rewardEscrowV2.balanceOf(user2), 0);
-        assertGt(rewardEscrowV2.balanceOf(user3), 0);
+        assertGt(rewardEscrowV2.totalEscrowBalanceOf(user1), 0);
+        assertGt(rewardEscrowV2.totalEscrowBalanceOf(user2), 0);
+        assertGt(rewardEscrowV2.totalEscrowBalanceOf(user3), 0);
 
         // v2 staked balance is equal to escrowed + non-escrowed balance
         assertEq(
@@ -171,9 +171,9 @@ contract StakingV2MigrationTests is StakingTestHelpers {
         );
 
         // v2 reward escrow balance is equal to escrow staked balance
-        assertEq(rewardEscrowV2.balanceOf(user1), user1EscrowStakedV2);
-        assertEq(rewardEscrowV2.balanceOf(user2), user2EscrowStakedV2);
-        assertEq(rewardEscrowV2.balanceOf(user3), user3EscrowStakedV2);
+        assertEq(rewardEscrowV2.totalEscrowBalanceOf(user1), user1EscrowStakedV2);
+        assertEq(rewardEscrowV2.totalEscrowBalanceOf(user2), user2EscrowStakedV2);
+        assertEq(rewardEscrowV2.totalEscrowBalanceOf(user3), user3EscrowStakedV2);
     }
 
     function test_Migrate_Then_Move_Funds_From_V1_To_V2_And_Generate_New_Rewards_Fuzz(
@@ -305,7 +305,7 @@ contract StakingV2MigrationTests is StakingTestHelpers {
                 stakingRewardsV2.nonEscrowedBalanceOf(stakers[i]);
 
             // assert v2 rewards have been earned
-            assertGt(rewardEscrowV2.balanceOf(stakers[i]), 0);
+            assertGt(rewardEscrowV2.totalEscrowBalanceOf(stakers[i]), 0);
 
             // v2 staked balance is equal to escrowed + non-escrowed balance
             assertEq(
@@ -314,7 +314,7 @@ contract StakingV2MigrationTests is StakingTestHelpers {
             );
 
             // v2 reward escrow balance is equal to escrow staked balance
-            assertEq(rewardEscrowV2.balanceOf(stakers[i]), userEscrowStakedV2);
+            assertEq(rewardEscrowV2.totalEscrowBalanceOf(stakers[i]), userEscrowStakedV2);
         }
     }
 }

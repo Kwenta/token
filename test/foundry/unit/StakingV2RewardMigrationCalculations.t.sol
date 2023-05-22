@@ -38,7 +38,7 @@ contract StakingV2RewardMigrationCalculationTests is StakingTestHelpers {
         fundAccountAndStakeV2(user1, initialStake);
 
         // get initial rewards
-        uint256 rewards = rewardEscrowV2.balanceOf(user1);
+        uint256 rewards = rewardEscrowV2.totalEscrowBalanceOf(user1);
         // assert initial rewards are 0
         assertEq(rewards, 0);
 
@@ -67,7 +67,7 @@ contract StakingV2RewardMigrationCalculationTests is StakingTestHelpers {
         uint256 expectedRewards = 1 weeks / 3;
 
         // check rewards
-        rewards = rewardEscrowV2.balanceOf(user1);
+        rewards = rewardEscrowV2.totalEscrowBalanceOf(user1);
         assertEq(rewards, expectedRewards);
 
         // send in another 604800 (1 week) of rewards
@@ -80,7 +80,7 @@ contract StakingV2RewardMigrationCalculationTests is StakingTestHelpers {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.balanceOf(user1);
+        rewards = rewardEscrowV2.totalEscrowBalanceOf(user1);
         // we exect the same amount of rewards again as this week was exactly the same as the previous one
         uint256 numberOfPeriods = 2;
         assertEq(rewards, expectedRewards * numberOfPeriods);
@@ -102,7 +102,7 @@ contract StakingV2RewardMigrationCalculationTests is StakingTestHelpers {
         fundAccountAndStakeV2(user1, initialStake);
 
         // get initial rewards
-        uint256 rewards = rewardEscrowV2.balanceOf(user1);
+        uint256 rewards = rewardEscrowV2.totalEscrowBalanceOf(user1);
         // assert initial rewards are 0
         assertEq(rewards, 0);
 
@@ -119,7 +119,7 @@ contract StakingV2RewardMigrationCalculationTests is StakingTestHelpers {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.balanceOf(user1);
+        rewards = rewardEscrowV2.totalEscrowBalanceOf(user1);
         assertEq(rewards, expectedRewards);
 
         // move forward to the end of the rewards period
@@ -133,7 +133,7 @@ contract StakingV2RewardMigrationCalculationTests is StakingTestHelpers {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.balanceOf(user1);
+        rewards = rewardEscrowV2.totalEscrowBalanceOf(user1);
         assertEq(rewards, expectedRewards);
     }
 
@@ -161,7 +161,7 @@ contract StakingV2RewardMigrationCalculationTests is StakingTestHelpers {
         fundAccountAndStakeV2(user1, initialStake);
 
         // get initial rewards
-        uint256 rewards = rewardEscrowV2.balanceOf(user1);
+        uint256 rewards = rewardEscrowV2.totalEscrowBalanceOf(user1);
         // assert initial rewards are 0
         assertEq(rewards, 0);
 
@@ -178,7 +178,7 @@ contract StakingV2RewardMigrationCalculationTests is StakingTestHelpers {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.balanceOf(user1);
+        rewards = rewardEscrowV2.totalEscrowBalanceOf(user1);
         assertEq(rewards, expectedRewards);
 
         // move forward to the end of the rewards period
@@ -192,7 +192,7 @@ contract StakingV2RewardMigrationCalculationTests is StakingTestHelpers {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.balanceOf(user1);
+        rewards = rewardEscrowV2.totalEscrowBalanceOf(user1);
         assertEq(rewards, expectedRewards);
     }
 
@@ -209,7 +209,7 @@ contract StakingV2RewardMigrationCalculationTests is StakingTestHelpers {
         fundAccountAndStakeV2(user1, initialStake);
 
         // get initial rewards
-        uint256 rewards = rewardEscrowV2.balanceOf(user1);
+        uint256 rewards = rewardEscrowV2.totalEscrowBalanceOf(user1);
         // assert initial rewards are 0
         assertEq(rewards, 0);
 
@@ -226,7 +226,7 @@ contract StakingV2RewardMigrationCalculationTests is StakingTestHelpers {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.balanceOf(user1);
+        rewards = rewardEscrowV2.totalEscrowBalanceOf(user1);
         assertEq(rewards, expectedRewards);
 
         // move forward to the end of the rewards period
@@ -246,7 +246,7 @@ contract StakingV2RewardMigrationCalculationTests is StakingTestHelpers {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.balanceOf(user1);
+        rewards = rewardEscrowV2.totalEscrowBalanceOf(user1);
         assertEq(rewards, expectedRewards);
     }
 
@@ -261,7 +261,7 @@ contract StakingV2RewardMigrationCalculationTests is StakingTestHelpers {
         fundAccountAndStakeV2(user1, initialStake);
 
         // get initial rewards
-        uint256 rewards = rewardEscrowV2.balanceOf(user1);
+        uint256 rewards = rewardEscrowV2.totalEscrowBalanceOf(user1);
         // assert initial rewards are 0
         assertEq(rewards, 0);
 
@@ -278,7 +278,7 @@ contract StakingV2RewardMigrationCalculationTests is StakingTestHelpers {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.balanceOf(user1);
+        rewards = rewardEscrowV2.totalEscrowBalanceOf(user1);
         assertEq(rewards, expectedRewards);
 
         // move forward to the end of the rewards period
@@ -298,7 +298,7 @@ contract StakingV2RewardMigrationCalculationTests is StakingTestHelpers {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.balanceOf(user1);
+        rewards = rewardEscrowV2.totalEscrowBalanceOf(user1);
         assertEq(rewards, expectedRewards);
 
         // move forward to the end of the rewards period
@@ -318,7 +318,7 @@ contract StakingV2RewardMigrationCalculationTests is StakingTestHelpers {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.balanceOf(user1);
+        rewards = rewardEscrowV2.totalEscrowBalanceOf(user1);
         assertEq(rewards, expectedRewards);
     }
 
@@ -339,7 +339,7 @@ contract StakingV2RewardMigrationCalculationTests is StakingTestHelpers {
         fundAccountAndStakeV2(user1, initialStake);
 
         // get initial rewards
-        uint256 rewards = rewardEscrowV2.balanceOf(user1);
+        uint256 rewards = rewardEscrowV2.totalEscrowBalanceOf(user1);
         // assert initial rewards are 0
         assertEq(rewards, 0);
 
@@ -356,7 +356,7 @@ contract StakingV2RewardMigrationCalculationTests is StakingTestHelpers {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.balanceOf(user1);
+        rewards = rewardEscrowV2.totalEscrowBalanceOf(user1);
         assertEq(rewards, expectedRewards);
 
         for (uint256 i = 0; i < numberOfRounds; i++) {
@@ -377,7 +377,7 @@ contract StakingV2RewardMigrationCalculationTests is StakingTestHelpers {
             getStakingRewardsV2(user1);
 
             // check rewards
-            rewards = rewardEscrowV2.balanceOf(user1);
+            rewards = rewardEscrowV2.totalEscrowBalanceOf(user1);
             assertEq(rewards, expectedRewards);
         }
     }
@@ -407,7 +407,7 @@ contract StakingV2RewardMigrationCalculationTests is StakingTestHelpers {
         fundAccountAndStakeV2(user1, initialStake);
 
         // get initial rewards
-        uint256 rewards = rewardEscrowV2.balanceOf(user1);
+        uint256 rewards = rewardEscrowV2.totalEscrowBalanceOf(user1);
         // assert initial rewards are 0
         assertEq(rewards, 0);
 
@@ -424,7 +424,7 @@ contract StakingV2RewardMigrationCalculationTests is StakingTestHelpers {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.balanceOf(user1);
+        rewards = rewardEscrowV2.totalEscrowBalanceOf(user1);
         assertEq(rewards, expectedRewards);
 
         for (uint256 i = 0; i < numberOfRounds; i++) {
@@ -453,7 +453,7 @@ contract StakingV2RewardMigrationCalculationTests is StakingTestHelpers {
             getStakingRewardsV2(user1);
 
             // check rewards
-            rewards = rewardEscrowV2.balanceOf(user1);
+            rewards = rewardEscrowV2.totalEscrowBalanceOf(user1);
             assertEq(rewards, expectedRewards);
         }
     }
@@ -468,7 +468,7 @@ contract StakingV2RewardMigrationCalculationTests is StakingTestHelpers {
         fundAccountAndStakeV2(user1, initialStake);
 
         // get initial rewards
-        uint256 rewards = rewardEscrowV2.balanceOf(user1);
+        uint256 rewards = rewardEscrowV2.totalEscrowBalanceOf(user1);
         // assert initial rewards are 0
         assertEq(rewards, 0);
 
@@ -495,7 +495,7 @@ contract StakingV2RewardMigrationCalculationTests is StakingTestHelpers {
         uint256 expectedRewards = 1 weeks / 6;
 
         // check rewards
-        rewards = rewardEscrowV2.balanceOf(user1);
+        rewards = rewardEscrowV2.totalEscrowBalanceOf(user1);
         assertEq(rewards, expectedRewards);
 
         // fast forward 0.5 weeks - to the end of this period
@@ -505,7 +505,7 @@ contract StakingV2RewardMigrationCalculationTests is StakingTestHelpers {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.balanceOf(user1);
+        rewards = rewardEscrowV2.totalEscrowBalanceOf(user1);
         // we exect to claim the other half of this weeks rewards
         assertEq(rewards, expectedRewards * 2);
     }

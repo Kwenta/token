@@ -285,7 +285,7 @@ contract StakingTestHelpers is StakingSetup {
         view
         returns (uint256)
     {
-        return rewardEscrowV2.balanceOf(account)
+        return rewardEscrowV2.totalEscrowBalanceOf(account)
             - stakingRewardsV2.escrowedBalanceOf(account);
     }
 }
