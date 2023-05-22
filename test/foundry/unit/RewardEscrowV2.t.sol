@@ -314,17 +314,17 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     function test_Cannot_Bulk_Transfer_Non_Existent_Entry() public {
         vm.expectRevert("ERC721: invalid token ID");
         entryIDs.push(50);
-        rewardEscrowV2.bulkTransferVestingEntries(entryIDs, user1);
+        rewardEscrowV2.bulkTransferFrom(address(this), user1, entryIDs);
     }
 
     function test_Cannot_Bulk_Transfer_Non_Existent_Entry_Fuzz(uint256 entryID) public {
         vm.assume(entryID > 0);
         entryIDs.push(entryID);
         vm.expectRevert("ERC721: invalid token ID");
-        rewardEscrowV2.bulkTransferVestingEntries(entryIDs, user1);
+        rewardEscrowV2.bulkTransferFrom(address(this), user1, entryIDs);
     }
 
-    function test_bulkTransferVestingEntries_Unstaked() public {
+    function test_bulkTransferFrom_Unstaked() public {
         uint256 escrowAmount = 1 ether;
 
         // create the escrow entry
@@ -347,7 +347,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         // transfer vesting entry from user1 to user2
         vm.prank(user1);
         entryIDs.push(user1EntryID);
-        rewardEscrowV2.bulkTransferVestingEntries(entryIDs, user2);
+        rewardEscrowV2.bulkTransferFrom(user1, user2, entryIDs);
 
         // assert that the entry has been passed over to user2
         assertEq(rewardEscrowV2.balanceOf(user1), 0);
@@ -381,7 +381,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         assertEq(rewardEscrowV2.totalEscrowedBalance(), escrowAmount);
     }
 
-    function test_bulkTransferVestingEntries_Series_Unstaked_Fuzz(
+    function test_bulkTransferFrom_Series_Unstaked_Fuzz(
         uint32 escrowAmount,
         uint24 duration,
         uint8 numberOfEntries
@@ -419,7 +419,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         }
 
         vm.prank(user1);
-        rewardEscrowV2.bulkTransferVestingEntries(entryIDs, user2);
+        rewardEscrowV2.bulkTransferFrom(user1, user2, entryIDs);
 
         // assert that the entries have been passed over to user2
         assertEq(rewardEscrowV2.balanceOf(user1), numberOfEntries - numberOfEntriesTransferred);
@@ -446,7 +446,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         assertEq(rewardEscrowV2.totalEscrowedBalance(), totalEscrowedAmount);
     }
 
-    function test_bulkTransferVestingEntries_Random_Selection_Unstaked_Fuzz(
+    function test_bulkTransferFrom_Random_Selection_Unstaked_Fuzz(
         uint32 escrowAmount,
         uint24 duration,
         uint8 numberOfEntries
@@ -480,7 +480,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         }
 
         vm.prank(user1);
-        rewardEscrowV2.bulkTransferVestingEntries(entryIDs, user2);
+        rewardEscrowV2.bulkTransferFrom(user1, user2, entryIDs);
 
         // assert that the entries have been passed over to user2
         assertEq(rewardEscrowV2.balanceOf(user1), numberOfEntries - entryIDs.length);
@@ -507,7 +507,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         assertEq(rewardEscrowV2.totalEscrowedBalance(), totalEscrowedAmount);
     }
 
-    function test_bulkTransferVestingEntries_Insufficient_Unstaked() public {
+    function test_bulkTransferFrom_Insufficient_Unstaked() public {
         uint256 escrowAmount = 1 ether;
 
         // create the escrow entry
@@ -529,10 +529,10 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         vm.expectRevert(
             abi.encodeWithSelector(IRewardEscrowV2.InsufficientUnstakedBalance.selector, user1EntryIDB, escrowAmount, 0)
         );
-        rewardEscrowV2.bulkTransferVestingEntries(entryIDs, user2);
+        rewardEscrowV2.bulkTransferFrom(user1, user2, entryIDs);
     }
 
-    function test_bulkTransferVestingEntries_Insufficient_Unstaked_Fuzz(
+    function test_bulkTransferFrom_Insufficient_Unstaked_Fuzz(
         uint32 _escrowAmount,
         uint32 _stakedAmount,
         uint24 _duration,
@@ -589,10 +589,10 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
                 unstakedBalanceAtFailure
             )
         );
-        rewardEscrowV2.bulkTransferVestingEntries(entryIDs, user2);
+        rewardEscrowV2.bulkTransferFrom(user1, user2, entryIDs);
     }
 
-    function test_bulkTransferVestingEntries_To_Self() public {
+    function test_bulkTransferFrom_To_Self() public {
         uint256 escrowAmount = 1 ether;
 
         // create the escrow entry
@@ -610,10 +610,10 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         (uint64 initialEndTime, uint256 initialEscrowAmount, uint256 initialDuration, uint8 initialEarlyVestingFee) =
             rewardEscrowV2.getVestingEntry(user1EntryID);
 
-        // transfer vesting entry from user1 to user2
+        // bulk transfer vesting entries to self
         entryIDs.push(user1EntryID);
         vm.prank(user1);
-        rewardEscrowV2.bulkTransferVestingEntries(entryIDs, user1);
+        rewardEscrowV2.bulkTransferFrom(user1, user1, entryIDs);
 
         // assert that the entry is still owned by user1
         assertEq(rewardEscrowV2.balanceOf(user1), 1);
@@ -680,7 +680,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         rewardEscrowV2.transferFrom(user1, user2, user1EntryID);
     }
 
-    function test_bulkTransferVestingEntries_Events() public {
+    function test_bulkTransferFrom_Events() public {
         uint256 escrowAmount = 1 ether;
 
         // create the escrow entry
@@ -692,10 +692,10 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         vm.prank(user1);
         vm.expectEmit(true, true, true, true);
         emit Transfer(user1, user2, user1EntryID);
-        rewardEscrowV2.bulkTransferVestingEntries(entryIDs, user2);
+        rewardEscrowV2.bulkTransferFrom(user1, user2, entryIDs);
     }
 
-    function test_bulkTransferVestingEntries_Events_Fuzz(uint32 escrowAmount, uint24 duration, uint8 numberOfEntries)
+    function test_bulkTransferFrom_Events_Fuzz(uint32 escrowAmount, uint24 duration, uint8 numberOfEntries)
         public
     {
         vm.assume(escrowAmount > 0);
@@ -714,7 +714,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
             emit Transfer(user1, user2, i + 1);
         }
         vm.prank(user1);
-        rewardEscrowV2.bulkTransferVestingEntries(entryIDs, user2);
+        rewardEscrowV2.bulkTransferFrom(user1, user2, entryIDs);
     }
 
     /*//////////////////////////////////////////////////////////////
