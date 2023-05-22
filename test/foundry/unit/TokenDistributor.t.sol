@@ -196,7 +196,41 @@ contract TokenDistributorTest is StakingSetup {
         assertEq(sum, 111);
     }
 
-    //todo: fuzz calculateEpochFees, especially when checkpoints are across weeks
+    /// @notice fuzz calculateEpochFees, especially when checkpoints are across weeks
+    function testFuzzCalculateEpochFees(uint256 amount) public {
+        /// @dev make sure its less than this contract
+        /// holds and greater than 10 so the result isn't
+        /// 0 after dividing
+        vm.assume(amount < 100_000 ether);
+        vm.assume(amount > 10);
+
+        kwenta.transfer(address(user1), 1);
+        kwenta.transfer(address(user2), 2);
+        vm.startPrank(address(user1));
+        kwenta.approve(address(stakingRewardsV2), 1);
+        stakingRewardsV2.stake(1);
+        vm.stopPrank();
+        vm.startPrank(address(user2));
+        kwenta.approve(address(stakingRewardsV2), 2);
+        stakingRewardsV2.stake(2);
+        vm.stopPrank();
+        goForward(604798);
+
+        /// @dev send fees to TokenDistributor midway through epoch 1
+        /// this will be split between all of epoch 0 and half of 1
+        goForward(302400);
+        kwenta.transfer(address(tokenDistributor), amount);
+        uint256 timeSinceLastCheckpoint = block.timestamp - 604800;
+        tokenDistributor.checkpointToken();
+
+        uint256 result = tokenDistributor.calculateEpochFees(address(user2), 1);
+        /// @dev calculate the proprtion for this week (same as checkpoint math)
+        /// then get the proportion staked (2/3)
+        assertEq(
+            result,
+            (((amount * 302400) / timeSinceLastCheckpoint) * 2) / 3
+        );
+    }
 
     /// @notice claimEpoch happy case with partial claims
     /// in earlier epochs 2 complete epochs with differing fees
