@@ -15,6 +15,8 @@ import "./libraries/SafeDecimalMath.sol";
 import "./interfaces/IKwenta.sol";
 import "./interfaces/IStakingRewardsV2.sol";
 
+// TODO: totally remove transferVestingEntry
+
 contract RewardEscrowV2 is
     IRewardEscrowV2,
     ERC721EnumerableUpgradeable,
@@ -53,18 +55,6 @@ contract RewardEscrowV2 is
 
     // notice treasury address may change
     address public treasuryDAO;
-
-    // Mapping owner address to entry count
-    mapping(address => uint256) private _entryBalances;
-
-    // Mapping from owner to list of entryIDs
-    mapping(address => mapping(uint256 => uint256)) private _ownedEntries;
-
-    // Mapping from entryID to index on the owner tokens list
-    mapping(uint256 => uint256) private _ownedEntriesIndex;
-
-    // Mapping of who owns which entries
-    mapping(uint256 => address) private _entryOwners;
 
     /* ========== MODIFIERS ========== */
     modifier onlyStakingRewards() {
@@ -169,18 +159,6 @@ contract RewardEscrowV2 is
     }
 
     /**
-     * @notice The number of vesting dates in an account's schedule.
-     */
-    function numVestingEntries(address account)
-        external
-        view
-        override
-        returns (uint256)
-    {
-        return _entryBalances[account];
-    }
-
-    /**
      * @notice Get the details of a given vesting entry
      * @param entryID The id of the vesting entry.
      * @return endTime the vesting entry object
@@ -221,7 +199,7 @@ contract RewardEscrowV2 is
         }
 
         // If the page extends past the end of the list, truncate it.
-        uint256 numEntries = _entryBalances[account];
+        uint256 numEntries = balanceOf(account);
         if (endIndex > numEntries) {
             endIndex = numEntries;
         }
@@ -230,7 +208,7 @@ contract RewardEscrowV2 is
         VestingEntries.VestingEntryWithID[] memory vestingEntries =
             new VestingEntries.VestingEntryWithID[](n);
         for (uint256 i; i < n; ++i) {
-            uint256 entryID = _ownedEntries[account][i + index];
+            uint256 entryID = tokenOfOwnerByIndex(account, i + index);
 
             VestingEntries.VestingEntry memory entry = vestingSchedules[entryID];
 
@@ -251,7 +229,7 @@ contract RewardEscrowV2 is
         uint256 endIndex = index + pageSize;
 
         // If the page extends past the end of the list, truncate it.
-        uint256 numEntries = _entryBalances[account];
+        uint256 numEntries = balanceOf(account);
         if (endIndex > numEntries) {
             endIndex = numEntries;
         }
@@ -262,7 +240,7 @@ contract RewardEscrowV2 is
         uint256 n = endIndex - index;
         uint256[] memory page = new uint256[](n);
         for (uint256 i; i < n; ++i) {
-            page[i] = _ownedEntries[account][i + index];
+            page[i] = tokenOfOwnerByIndex(account, i + index);
         }
         return page;
     }
@@ -346,7 +324,8 @@ contract RewardEscrowV2 is
         for (uint256 i = 0; i < entryIDsLength; ++i) {
             VestingEntries.VestingEntry storage entry =
                 vestingSchedules[entryIDs[i]];
-            if (_entryOwners[entryIDs[i]] != msg.sender) {
+            // TODO: think - should be _isApprovedOrOwner???
+            if (ownerOf(entryIDs[i]) != msg.sender) {
                 continue;
             }
 
@@ -534,9 +513,9 @@ contract RewardEscrowV2 is
             duration: duration,
             earlyVestingFee: earlyVestingFee
         });
-        _entryOwners[entryID] = account;
 
-        _addEntryToOwnerEnumeration(account, entryID);
+        // TODO: think - should safeMint? - could use nonReentrant
+        _mint(account, entryID);
 
         /* Increment the next entry id. */
         ++nextEntryId;
@@ -544,40 +523,11 @@ contract RewardEscrowV2 is
         emit VestingEntryCreated(account, quantity, duration, entryID);
     }
 
-    function _addEntryToOwnerEnumeration(address to, uint256 entryID) private {
-        uint256 length = _entryBalances[to];
-        _ownedEntries[to][length] = entryID;
-        _ownedEntriesIndex[entryID] = length;
-        _entryBalances[to] += 1;
-    }
-
-    function _removeEntryFromOwnerEnumeration(address from, uint256 entryID)
-        private
-    {
-        // To prevent a gap in from's entrys array, we store the last entry in the index of the entry to delete, and
-        // then delete the last slot (swap and pop).
-
-        uint256 lastEntryIndex = _entryBalances[from] - 1;
-        uint256 entryIndex = _ownedEntriesIndex[entryID];
-
-        // When the entry to delete is the last entry, the swap operation is unnecessary
-        if (entryIndex != lastEntryIndex) {
-            uint256 lastEntryId = _ownedEntries[from][lastEntryIndex];
-
-            _ownedEntries[from][entryIndex] = lastEntryId; // Move the last entry to the slot of the to-delete entry
-            _ownedEntriesIndex[lastEntryId] = entryIndex; // Update the moved entry's index
-        }
-
-        // This also deletes the contents at the last position of the array
-        delete _ownedEntriesIndex[entryID];
-        delete _ownedEntries[from][lastEntryIndex];
-        _entryBalances[from] -= 1;
-    }
-
     function _transferVestingEntry(uint256 entryID, address account) internal {
         if (entryID >= nextEntryId) revert InvalidEntry(entryID);
         VestingEntries.VestingEntry memory entry = vestingSchedules[entryID];
-        if (_entryOwners[entryID] != msg.sender) revert NotYourEntry(entryID);
+        // TODO: think - should be _isApprovedOrOwner???
+        if (ownerOf(entryID) != msg.sender) revert NotYourEntry(entryID);
 
         uint256 unstakedEscrow = unstakedEscrowBalanceOf(msg.sender);
         if (unstakedEscrow < entry.escrowAmount) {
@@ -586,17 +536,10 @@ contract RewardEscrowV2 is
             );
         }
 
-        delete vestingSchedules[entryID];
-        vestingSchedules[entryID] = entry;
-        _entryOwners[entryID] = account;
+        transferFrom(msg.sender, account, entryID);
 
         totalEscrowedAccountBalance[msg.sender] -= entry.escrowAmount;
         totalEscrowedAccountBalance[account] += entry.escrowAmount;
-
-        if (msg.sender != account) {
-            _removeEntryFromOwnerEnumeration(msg.sender, entryID);
-            _addEntryToOwnerEnumeration(account, entryID);
-        }
 
         emit VestingEntryTransfer(msg.sender, account, entryID);
     }
