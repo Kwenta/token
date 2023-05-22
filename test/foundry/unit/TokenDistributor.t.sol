@@ -91,7 +91,9 @@ contract TokenDistributorTest is StakingSetup {
     /// @notice claimEpoch fail - no epoch to claim yet
     function testClaimNoEpochYet() public {
         vm.startPrank(user1);
-        vm.expectRevert();
+        vm.expectRevert(
+            abi.encodeWithSelector(TokenDistributor.CannotClaimYet.selector)
+        );
         tokenDistributor.claimEpoch(address(user1), 0);
     }
 
@@ -211,6 +213,8 @@ contract TokenDistributorTest is StakingSetup {
         uint256 sum = tokenDistributor.calculateEpochFees(user1, 1);
         assertEq(sum, 111);
     }
+
+    //todo: fuzz calculateEpochFees, especially when checkpoints are across weeks
 
     /// @notice claimEpoch happy case with partial claims
     /// in earlier epochs 2 complete epochs with differing fees
