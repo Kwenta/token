@@ -88,10 +88,6 @@ interface IRewardEscrowV2 {
     function transferVestingEntry(uint256 entryID, address account) external;
 
     // Errors
-    /// @notice An invalid entryID was provided
-    /// @param entryID The id of the invalid entry
-    error InvalidEntry(uint256 entryID);
-
     /// @notice Insufficient unstaked escrow to facilitate transfer
     /// @param entryID the id of the entry that couldn't be transferred
     /// @param escrowAmount the amount of escrow in the entry

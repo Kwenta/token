@@ -474,20 +474,17 @@ contract RewardEscrowV2 is
     ) external {
         uint256 entryIDsLength = entryIDs.length;
         for (uint256 i = 0; i < entryIDsLength; ++i) {
-            // _transferVestingEntry(entryIDs[i], account);
             transferFrom(from, to, entryIDs[i]);
         }
     }
 
-    /**
-     * @dev See {IERC721-transferFrom}.
-     */
-    function transferFrom(
+    /* ========== INTERNALS ========== */
+
+    function _transfer(
         address from,
         address to,
         uint256 tokenId
-    ) public override(ERC721Upgradeable, IERC721Upgradeable) {
-        if (tokenId >= nextEntryId) revert InvalidEntry(tokenId);
+    ) internal override {
         VestingEntries.VestingEntry memory entry = vestingSchedules[tokenId];
 
         uint256 unstakedEscrow = unstakedEscrowBalanceOf(from);
@@ -497,7 +494,7 @@ contract RewardEscrowV2 is
             );
         }
 
-        super.transferFrom(from, to, tokenId);
+        super._transfer(from, to, tokenId);
 
         totalEscrowedAccountBalance[from] -= entry.escrowAmount;
         totalEscrowedAccountBalance[to] += entry.escrowAmount;
@@ -505,8 +502,7 @@ contract RewardEscrowV2 is
         emit VestingEntryTransfer(from, to, tokenId);
     }
 
-    /* ========== INTERNALS ========== */
-
+    // TODO: rethink this function
     /* Transfer vested tokens and update totalEscrowedAccountBalance, totalVestedAccountBalance */
     function _transferVestedTokens(address _account, uint256 _amount)
         internal
@@ -517,6 +513,7 @@ contract RewardEscrowV2 is
         emit Vested(_account, _amount);
     }
 
+    // TODO: rethink this function
     function _reduceAccountEscrowBalances(address _account, uint256 _amount)
         internal
     {
