@@ -170,11 +170,3 @@ contract TokenDistributor {
         return proportionalFees;
     }
 }
-
-//mapping out the new structure:
-
-//checkpoint will calculate the fees for each week
-
-//claim will update checkpoint if ready (been more than 24 hrs) and then claim
-
-//calculateEpochFees (view) will calculate proprtional fees based off stored checkpoint values and V2.totalSupply/staking
