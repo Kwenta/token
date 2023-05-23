@@ -6,8 +6,8 @@ import {RewardEscrowV2} from "./RewardEscrowV2.sol";
 import {IKwenta} from "./interfaces/IKwenta.sol";
 
 contract TokenDistributor {
-    /// @notice event for tracking new epochs
-    event NewEpochCreated(uint block, uint epoch);
+    /// @notice event for a new checkpoint
+    event CheckpointToken(uint time, uint tokens);
 
     /// @notice error when user tries to create a new distribution too soon
     error LastEpochHasntEnded();
@@ -51,8 +51,6 @@ contract TokenDistributor {
 
     /// @notice array for tokens allocated to each epoch
     uint[1000000000000000] public tokensPerEpoch;
-
-    event CheckpointToken(uint time, uint tokens);
 
     constructor(
         address _kwenta,
