@@ -479,7 +479,7 @@ contract RewardEscrowV2 is
     function bulkTransferVestingEntries(
         uint256[] calldata entryIDs,
         address account
-    ) external {
+    ) external override {
         uint256 entryIDsLength = entryIDs.length;
         for (uint256 i = 0; i < entryIDsLength; ) {
             _transferVestingEntry(entryIDs[i], account);
