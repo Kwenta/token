@@ -116,12 +116,12 @@ contract TokenDistributor {
     /// @notice this function will fetch StakingRewardsV2 to see what their staked balance
     /// was at the start of the epoch then calculate proportional fees and transfer to user
     function claimEpoch(address to, uint epochNumber) public returns (uint256) {
-        /// @dev if more than 24 hours from last checkpoint OR if it is less than 24 hours
-        /// since the start of the week. second condition is so that the end of a week always
+        /// @dev if more than 24 hours from last checkpoint OR if it is the first
+        /// claim of the week. second condition is so that the end of a week always
         /// gets updated before its claimed.
         if (
             (block.timestamp - lastCheckpoint > 86400) ||
-            (block.timestamp - (epochNumber / 1 weeks) * 1 weeks < 86400)
+            ((block.timestamp - (lastCheckpoint / 1 weeks * 1 weeks)) > 604800)
         ) {
             checkpointToken();
         }
@@ -171,7 +171,9 @@ contract TokenDistributor {
         uint thisWeek = (epochNumber * 1 weeks) + startTime;
         uint256 userStaked = stakingRewardsV2.balanceAtTime(to, thisWeek);
         uint256 totalStaked = stakingRewardsV2.totalSupplyAtTime(thisWeek);
-        //todo: this view doesnt have checks so if no one was staked it will / by 0
+        if (totalStaked == 0) {
+            return totalStaked;
+        }
         uint256 proportionalFees = ((tokensPerEpoch[thisWeek] * userStaked) /
             totalStaked);
 
