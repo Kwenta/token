@@ -19,18 +19,18 @@ interface IRewardEscrowV2 {
     // Views
     function getKwentaAddress() external view returns (address);
 
-    function balanceOf(address account) external view returns (uint256);
+    function balanceOf(uint256 accountId) external view returns (uint256);
 
-    function unstakedEscrowBalanceOf(address account) external view returns (uint256);
+    function unstakedEscrowBalanceOf(uint256 accountId) external view returns (uint256);
 
-    function numVestingEntries(address account) external view returns (uint256);
+    function numVestingEntries(uint256 accountId) external view returns (uint256);
 
-    function totalEscrowedAccountBalance(address account)
+    function totalEscrowedAccountBalance(uint256 accountId)
         external
         view
         returns (uint256);
 
-    function totalVestedAccountBalance(address account)
+    function totalVestedAccountBalance(uint256 accountId)
         external
         view
         returns (uint256);
@@ -41,13 +41,13 @@ interface IRewardEscrowV2 {
         returns (uint256, uint256);
 
     function getVestingSchedules(
-        address account,
+        uint256 accountId,
         uint256 index,
         uint256 pageSize
     ) external view returns (VestingEntries.VestingEntryWithID[] memory);
 
     function getAccountVestingEntryIDs(
-        address account,
+        uint256 accountId,
         uint256 index,
         uint256 pageSize
     ) external view returns (uint256[] memory);
@@ -68,28 +68,28 @@ interface IRewardEscrowV2 {
         );
 
     // Mutative functions
-    function vest(uint256[] calldata entryIDs) external;
+    function vest(uint256 accountId, uint256[] calldata entryIDs) external;
 
     function createEscrowEntry(
-        address beneficiary,
+        uint256 beneficiary,
         uint256 deposit,
         uint256 duration,
         uint8 earlyVestingFee
     ) external;
 
     function appendVestingEntry(
-        address account,
+        uint256 accountId,
         uint256 quantity,
         uint256 duration
     ) external;
 
-    function stakeEscrow(uint256 _amount) external;
+    function stakeEscrow(uint256 _accountId, uint256 _amount) external;
 
-    function unstakeEscrow(uint256 _amount) external;
+    function unstakeEscrow(uint256 _accountId, uint256 _amount) external;
 
-    function transferVestingEntry(uint256 entryID, address account) external;
+    function transferVestingEntry(uint256 from, uint256 to, uint256 entryID) external;
 
-    function bulkTransferVestingEntries(uint256[] calldata entryIDs, address account) external;
+    function bulkTransferVestingEntries(uint256 from, uint256 to, uint256[] calldata entryIDs) external;
 
     // Errors
     /// @notice An invalid entryID was provided

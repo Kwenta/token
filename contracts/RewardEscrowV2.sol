@@ -9,6 +9,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 // Internal references
 import "./interfaces/IKwenta.sol";
 import "./interfaces/IStakingRewardsV2.sol";
+import "./StakingAccount.sol";
 
 contract RewardEscrowV2 is
     IRewardEscrowV2,
@@ -24,21 +25,28 @@ contract RewardEscrowV2 is
 
     IKwenta private kwenta;
 
+    /// @notice staking account contract which abstracts users "accounts" for staking
+    // TODO: update to IStakingAccount
+    StakingAccount public stakingAccount;
+
     /* ========== STATE VARIABLES ========== */
 
     IStakingRewardsV2 public stakingRewardsV2;
 
     // mapping of entryIDs to vesting entries
+    // entryID => VestingEntry
     mapping(uint256 => VestingEntries.VestingEntry) public vestingSchedules;
 
     // Counter for new vesting entry ids
     uint256 public nextEntryId;
 
     // An account's total escrowed KWENTA balance to save recomputing this for fee extraction purposes
-    mapping(address => uint256) public override totalEscrowedAccountBalance;
+    // accountId => totalEscrowedAccountBalance
+    mapping(uint256 => uint256) public override totalEscrowedAccountBalance;
 
     // An account's total vested reward KWENTA
-    mapping(address => uint256) public override totalVestedAccountBalance;
+    // accountId => totalVestedAccountBalance
+    mapping(uint256 => uint256) public override totalVestedAccountBalance;
 
     // The total remaining escrowed balance, for verifying the actual KWENTA balance of this contract against
     uint256 public totalEscrowedBalance;
@@ -47,16 +55,19 @@ contract RewardEscrowV2 is
     address public treasuryDAO;
 
     // Mapping owner address to entry count
-    mapping(address => uint256) private _entryBalances;
+    // accountId => entryCount
+    mapping(uint256 => uint256) private _entryBalances;
 
     // Mapping from owner to list of entryIDs
-    mapping(address => mapping(uint256 => uint256)) private _ownedEntries;
+    // accountId => entryID[]
+    mapping(uint256 => mapping(uint256 => uint256)) private _ownedEntries;
 
     // Mapping from entryID to index on the owner tokens list
     mapping(uint256 => uint256) private _ownedEntriesIndex;
 
     // Mapping of who owns which entries
-    mapping(uint256 => address) private _entryOwners;
+    // entryID => accountId
+    mapping(uint256 => uint256) private _entryOwners;
 
     /* ========== MODIFIERS ========== */
     modifier onlyStakingRewards() {
@@ -68,16 +79,16 @@ contract RewardEscrowV2 is
     }
 
     /* ========== EVENTS ========== */
-    event Vested(address indexed beneficiary, uint256 value);
+    event Vested(uint256 beneficiary, uint256 value);
     event VestingEntryCreated(
-        address indexed beneficiary,
+        uint256 beneficiary,
         uint256 value,
         uint256 duration,
         uint256 entryID
     );
     event StakingRewardsSet(address stakingRewardsV2);
     event TreasuryDAOSet(address treasuryDAO);
-    event VestingEntryTransfer(address from, address to, uint256 entryID);
+    event VestingEntryTransfer(uint256 from, uint256 to, uint256 entryID);
 
     /* ========== CONSTRUCTOR ========== */
 
@@ -123,6 +134,14 @@ contract RewardEscrowV2 is
         emit TreasuryDAOSet(treasuryDAO);
     }
 
+    /// @notice set StakingAccount address
+    /// @dev only owner may change address
+    function setStakingAccount(address _stakingAccount) external onlyOwner {
+        require(_stakingAccount != address(0), "RewardEscrow: Zero Address");
+        stakingAccount = StakingAccount(_stakingAccount);
+        // TODO: emit event
+    }
+
     /* ========== VIEW FUNCTIONS ========== */
 
     /**
@@ -135,38 +154,38 @@ contract RewardEscrowV2 is
     /**
      * @notice A simple alias to totalEscrowedAccountBalance: provides ERC20 balance integration.
      */
-    function balanceOf(address account)
+    function balanceOf(uint256 accountId)
         public
         view
         override
         returns (uint256)
     {
-        return totalEscrowedAccountBalance[account];
+        return totalEscrowedAccountBalance[accountId];
     }
 
     /**
      * @notice Get the amount of escrowed kwenta that is not staked for a given account
      */
-    function unstakedEscrowBalanceOf(address account)
+    function unstakedEscrowBalanceOf(uint256 accountId)
         public
         view
         override
         returns (uint256)
     {
-        return totalEscrowedAccountBalance[account]
-            - stakingRewardsV2.escrowedBalanceOf(account);
+        return totalEscrowedAccountBalance[accountId]
+            - stakingRewardsV2.escrowedBalanceOf(accountId);
     }
 
     /**
      * @notice The number of vesting dates in an account's schedule.
      */
-    function numVestingEntries(address account)
+    function numVestingEntries(uint256 accountId)
         external
         view
         override
         returns (uint256)
     {
-        return _entryBalances[account];
+        return _entryBalances[accountId];
     }
 
     /**
@@ -193,7 +212,7 @@ contract RewardEscrowV2 is
     }
 
     function getVestingSchedules(
-        address account,
+        uint256 accountId,
         uint256 index,
         uint256 pageSize
     )
@@ -210,7 +229,7 @@ contract RewardEscrowV2 is
         }
 
         // If the page extends past the end of the list, truncate it.
-        uint256 numEntries = _entryBalances[account];
+        uint256 numEntries = _entryBalances[accountId];
         if (endIndex > numEntries) {
             endIndex = numEntries;
         }
@@ -219,7 +238,7 @@ contract RewardEscrowV2 is
         VestingEntries.VestingEntryWithID[] memory vestingEntries =
             new VestingEntries.VestingEntryWithID[](n);
         for (uint256 i; i < n; ) {
-            uint256 entryID = _ownedEntries[account][i + index];
+            uint256 entryID = _ownedEntries[accountId][i + index];
 
             VestingEntries.VestingEntry memory entry = vestingSchedules[entryID];
 
@@ -237,14 +256,14 @@ contract RewardEscrowV2 is
     }
 
     function getAccountVestingEntryIDs(
-        address account,
+        uint256 accountId,
         uint256 index,
         uint256 pageSize
     ) external view override returns (uint256[] memory) {
         uint256 endIndex = index + pageSize;
 
         // If the page extends past the end of the list, truncate it.
-        uint256 numEntries = _entryBalances[account];
+        uint256 numEntries = _entryBalances[accountId];
         if (endIndex > numEntries) {
             endIndex = numEntries;
         }
@@ -255,7 +274,7 @@ contract RewardEscrowV2 is
         uint256 n = endIndex - index;
         uint256[] memory page = new uint256[](n);
         for (uint256 i; i < n; ) {
-            page[i] = _ownedEntries[account][i + index];
+            page[i] = _ownedEntries[accountId][i + index];
 
             unchecked {
                 ++i;
@@ -329,25 +348,25 @@ contract RewardEscrowV2 is
         earlyVestFee = initialFee * timeUntilVest / _entry.duration;
     }
 
-    function _isEscrowStaked(address _account) internal view returns (bool) {
-        return stakingRewardsV2.escrowedBalanceOf(_account) > 0;
+    function _isEscrowStaked(uint256 _accountId) internal view returns (bool) {
+        return stakingRewardsV2.escrowedBalanceOf(_accountId) > 0;
     }
 
     /* ========== MUTATIVE FUNCTIONS ========== */
 
     /**
      * Vest escrowed amounts that are claimable
-     * Allows users to vest their vesting entries based on msg.sender
+     * Allows users to vest their vesting entries based on accountId
      */
 
-    function vest(uint256[] calldata entryIDs) external override {
+    function vest(uint256 accountId, uint256[] calldata entryIDs) external override {
         uint256 total;
         uint256 totalFee;
         uint256 entryIDsLength = entryIDs.length;
         for (uint256 i = 0; i < entryIDsLength; ++i) {
             VestingEntries.VestingEntry storage entry =
                 vestingSchedules[entryIDs[i]];
-            if (_entryOwners[entryIDs[i]] != msg.sender) {
+            if (_entryOwners[entryIDs[i]] != accountId) {
                 continue;
             }
 
@@ -367,18 +386,18 @@ contract RewardEscrowV2 is
         /* Transfer vested tokens. Will revert if total > totalEscrowedAccountBalance */
         if (total != 0) {
             // Withdraw staked escrowed kwenta if needed for reward
-            if (_isEscrowStaked(msg.sender)) {
+            if (_isEscrowStaked(accountId)) {
                 uint256 totalWithFee = total + totalFee;
-                uint256 unstakedEscrow = unstakedEscrowBalanceOf(msg.sender);
+                uint256 unstakedEscrow = unstakedEscrowBalanceOf(accountId);
                 if (totalWithFee > unstakedEscrow) {
                     uint256 amountToUnstake = totalWithFee - unstakedEscrow;
-                    unstakeEscrow(amountToUnstake);
+                    unstakeEscrow(accountId, amountToUnstake);
                 }
             }
 
             // Send any fee to Treasury
             if (totalFee != 0) {
-                _reduceAccountEscrowBalances(msg.sender, totalFee);
+                _reduceAccountEscrowBalances(accountId, totalFee);
                 require(
                     kwenta.transfer(treasuryDAO, totalFee),
                     "RewardEscrow: Token Transfer Failed"
@@ -386,7 +405,7 @@ contract RewardEscrowV2 is
             }
 
             // Transfer kwenta
-            _transferVestedTokens(msg.sender, total);
+            _transferVestedTokens(accountId, total);
         }
     }
 
@@ -396,13 +415,14 @@ contract RewardEscrowV2 is
      * to spend the the amount being escrowed.
      */
     function createEscrowEntry(
-        address beneficiary,
+        uint256 beneficiary,
         uint256 deposit,
         uint256 duration,
         uint8 earlyVestingFee
     ) external override {
+        // TODO: improve this - ownerOf should revert if address(0) - hence require is useless
         require(
-            beneficiary != address(0), "Cannot create escrow with address(0)"
+            stakingAccount.ownerOf(beneficiary) != address(0), "Cannot create escrow with address(0)"
         );
 
         /* Transfer KWENTA from msg.sender */
@@ -419,17 +439,17 @@ contract RewardEscrowV2 is
      * @notice Add a new vesting entry at a given time and quantity to an account's schedule.
      * @dev A call to this should accompany a previous successful call to kwenta.transfer(rewardEscrow, amount),
      * to ensure that when the funds are withdrawn, there is enough balance.
-     * @param account The account to append a new vesting entry to.
+     * @param accountId The account to append a new vesting entry to.
      * @param quantity The quantity of KWENTA that will be escrowed.
      * @param duration The duration that KWENTA will be emitted.
      */
     function appendVestingEntry(
-        address account,
+        uint256 accountId,
         uint256 quantity,
         uint256 duration
     ) external override onlyStakingRewards {
         _appendVestingEntry(
-            account, quantity, duration, DEFAULT_EARLY_VESTING_FEE
+            accountId, quantity, duration, DEFAULT_EARLY_VESTING_FEE
         );
     }
 
@@ -438,8 +458,8 @@ contract RewardEscrowV2 is
      * @dev No tokens are transfered during this process, but the StakingRewards escrowed balance is updated.
      * @param _amount The amount of escrowed KWENTA to be staked.
      */
-    function stakeEscrow(uint256 _amount) external override {
-        stakingRewardsV2.stakeEscrow(msg.sender, _amount);
+    function stakeEscrow(uint256 _accountId, uint256 _amount) external override {
+        stakingRewardsV2.stakeEscrow(_accountId, _amount);
     }
 
     /**
@@ -447,36 +467,39 @@ contract RewardEscrowV2 is
      * @dev No tokens are transfered during this process, but the StakingRewards escrowed balance is updated.
      * @param _amount The amount of escrowed KWENTA to be unstaked.
      */
-    function unstakeEscrow(uint256 _amount) public override {
-        stakingRewardsV2.unstakeEscrow(msg.sender, _amount);
+    function unstakeEscrow(uint256 _accountId, uint256 _amount) public override {
+        stakingRewardsV2.unstakeEscrow(_accountId, _amount);
     }
 
     /**
      * @notice Transfer a vested entry from one account to another
      *  Sufficient escrowed KWENTA must be unstaked for the transfer to succeed
+     * @param from The account to transfer the vesting entry from
+     * @param to The account to transfer the vesting entry to
      * @param entryID the id of the entry to transfer
-     * @param account The account to transfer the vesting entry to
      */
-    function transferVestingEntry(uint256 entryID, address account)
+    function transferVestingEntry(uint256 from, uint256 to, uint256 entryID)
         external
         override
     {
-        _transferVestingEntry(entryID, account);
+        _transferVestingEntry(from, to, entryID);
     }
 
     /**
      * @notice Transfer multiple vested entries from one account to another
      *  Sufficient escrowed KWENTA must be unstaked for the transfer to succeed
+     * @param from The account to transfer the vesting entries from
+     * @param to The account to transfer the vesting entries to
      * @param entryIDs a list of the ids of the entries to transfer
-     * @param account The account to transfer the vesting entries to
      */
     function bulkTransferVestingEntries(
-        uint256[] calldata entryIDs,
-        address account
+        uint256 from,
+        uint256 to,
+        uint256[] calldata entryIDs
     ) external override {
         uint256 entryIDsLength = entryIDs.length;
         for (uint256 i = 0; i < entryIDsLength; ) {
-            _transferVestingEntry(entryIDs[i], account);
+            _transferVestingEntry(from, to, entryIDs[i]);
             unchecked {
                 ++i;
             }
@@ -486,25 +509,25 @@ contract RewardEscrowV2 is
     /* ========== INTERNALS ========== */
 
     /* Transfer vested tokens and update totalEscrowedAccountBalance, totalVestedAccountBalance */
-    function _transferVestedTokens(address _account, uint256 _amount)
+    function _transferVestedTokens(uint256 _accountId, uint256 _amount)
         internal
     {
-        _reduceAccountEscrowBalances(_account, _amount);
-        totalVestedAccountBalance[_account] += _amount;
-        kwenta.transfer(_account, _amount);
-        emit Vested(_account, _amount);
+        _reduceAccountEscrowBalances(_accountId, _amount);
+        totalVestedAccountBalance[_accountId] += _amount;
+        kwenta.transfer(stakingAccount.ownerOf(_accountId), _amount);
+        emit Vested(_accountId, _amount);
     }
 
-    function _reduceAccountEscrowBalances(address _account, uint256 _amount)
+    function _reduceAccountEscrowBalances(uint256 _accountId, uint256 _amount)
         internal
     {
         // Reverts if amount being vested is greater than the account's existing totalEscrowedAccountBalance
         totalEscrowedBalance -= _amount;
-        totalEscrowedAccountBalance[_account] -= _amount;
+        totalEscrowedAccountBalance[_accountId] -= _amount;
     }
 
     function _appendVestingEntry(
-        address account,
+        uint256 accountId,
         uint256 quantity,
         uint256 duration,
         uint8 earlyVestingFee
@@ -529,7 +552,7 @@ contract RewardEscrowV2 is
         uint256 endTime = block.timestamp + duration;
 
         /* Add quantity to account's escrowed balance */
-        totalEscrowedAccountBalance[account] += quantity;
+        totalEscrowedAccountBalance[accountId] += quantity;
 
         uint256 entryID = nextEntryId;
         vestingSchedules[entryID] = VestingEntries.VestingEntry({
@@ -538,24 +561,24 @@ contract RewardEscrowV2 is
             duration: duration,
             earlyVestingFee: earlyVestingFee
         });
-        _entryOwners[entryID] = account;
+        _entryOwners[entryID] = accountId;
 
-        _addTokenToOwnerEnumeration(account, entryID);
+        _addTokenToOwnerEnumeration(accountId, entryID);
 
         /* Increment the next entry id. */
         ++nextEntryId;
 
-        emit VestingEntryCreated(account, quantity, duration, entryID);
+        emit VestingEntryCreated(accountId, quantity, duration, entryID);
     }
 
-    function _addTokenToOwnerEnumeration(address to, uint256 entryID) private {
+    function _addTokenToOwnerEnumeration(uint256 to, uint256 entryID) private {
         uint256 length = _entryBalances[to];
         _ownedEntries[to][length] = entryID;
         _ownedEntriesIndex[entryID] = length;
         _entryBalances[to] += 1;
     }
 
-    function _removeTokenFromOwnerEnumeration(address from, uint256 entryID)
+    function _removeTokenFromOwnerEnumeration(uint256 from, uint256 entryID)
         private
     {
         // To prevent a gap in from's entrys array, we store the last entry in the index of the entry to delete, and
@@ -578,12 +601,12 @@ contract RewardEscrowV2 is
         _entryBalances[from] -= 1;
     }
 
-    function _transferVestingEntry(uint256 entryID, address account) internal {
+    function _transferVestingEntry(uint256 from, uint256 to, uint256 entryID) internal {
         if (entryID >= nextEntryId) revert InvalidEntry(entryID);
         VestingEntries.VestingEntry memory entry = vestingSchedules[entryID];
-        if (_entryOwners[entryID] != msg.sender) revert NotYourEntry(entryID);
+        if (_entryOwners[entryID] != from) revert NotYourEntry(entryID);
 
-        uint256 unstakedEscrow = unstakedEscrowBalanceOf(msg.sender);
+        uint256 unstakedEscrow = unstakedEscrowBalanceOf(from);
         if (unstakedEscrow < entry.escrowAmount) {
             revert InsufficientUnstakedBalance(
                 entryID, entry.escrowAmount, unstakedEscrow
@@ -592,17 +615,17 @@ contract RewardEscrowV2 is
 
         delete vestingSchedules[entryID];
         vestingSchedules[entryID] = entry;
-        _entryOwners[entryID] = account;
+        _entryOwners[entryID] = to;
 
-        totalEscrowedAccountBalance[msg.sender] -= entry.escrowAmount;
-        totalEscrowedAccountBalance[account] += entry.escrowAmount;
+        totalEscrowedAccountBalance[from] -= entry.escrowAmount;
+        totalEscrowedAccountBalance[to] += entry.escrowAmount;
 
-        if (msg.sender != account) {
-            _removeTokenFromOwnerEnumeration(msg.sender, entryID);
-            _addTokenToOwnerEnumeration(account, entryID);
+        if (from != to) {
+            _removeTokenFromOwnerEnumeration(from, entryID);
+            _addTokenToOwnerEnumeration(to, entryID);
         }
 
-        emit VestingEntryTransfer(msg.sender, account, entryID);
+        emit VestingEntryTransfer(from, to, entryID);
     }
 
     /* ========== UPGRADEABILITY ========== */
