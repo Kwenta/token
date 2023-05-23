@@ -34,18 +34,22 @@ contract TokenDistributor {
     /// @notice kwenta interface
     IKwenta public kwenta;
 
-    /// @notice Counter for new epochs (starts at 0)
-    uint256 public epoch;
-
     /// @notice rewards staking contract
     StakingRewardsV2 public stakingRewardsV2;
 
     /// @notice escrow contract which holds (and may stake) reward tokens
     RewardEscrowV2 public rewardEscrowV2;
 
+    /// @notice last recorded balance of KWENTA in contract
     uint public lastTokenBalance;
+
+    /// @notice last checkpoint time
     uint public lastCheckpoint;
+
+    /// @notice starting week of deployment
     uint public startTime;
+
+    /// @notice array for tokens allocated to each epoch
     uint[1000000000000000] public tokensPerEpoch;
 
     event CheckpointToken(uint time, uint tokens);
@@ -56,7 +60,6 @@ contract TokenDistributor {
         address _rewardEscrowV2
     ) {
         kwenta = IKwenta(_kwenta);
-        epoch = 0;
         stakingRewardsV2 = StakingRewardsV2(_stakingRewardsV2);
         rewardEscrowV2 = RewardEscrowV2(_rewardEscrowV2);
 
