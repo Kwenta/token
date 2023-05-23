@@ -10,6 +10,7 @@ import {RewardEscrowV2} from "../../../contracts/RewardEscrowV2.sol";
 import {SupplySchedule} from "../../../contracts/SupplySchedule.sol";
 import {StakingRewards} from "../../../contracts/StakingRewards.sol";
 import {StakingRewardsV2} from "../../../contracts/StakingRewardsV2.sol";
+import {StakingAccount} from "../../../contracts/StakingAccount.sol";
 import {MultipleMerkleDistributor} from
     "../../../contracts/MultipleMerkleDistributor.sol";
 import {IERC20} from "../../../contracts/interfaces/IERC20.sol";
@@ -33,6 +34,7 @@ contract StakingSetup is TestHelpers {
     SupplySchedule public supplySchedule;
     StakingRewards public stakingRewardsV1;
     StakingRewardsV2 public stakingRewardsV2;
+    StakingAccount public stakingAccount;
     MultipleMerkleDistributor public tradingRewards;
     Migrate public migrate;
 
@@ -91,8 +93,8 @@ contract StakingSetup is TestHelpers {
             )
         );
         require(deploymentSuccess, "Migrate.deploySystem failed");
-        (rewardEscrowV2, stakingRewardsV2,,) =
-            abi.decode(deploymentData, (RewardEscrowV2, StakingRewardsV2, address, address));
+        (rewardEscrowV2, stakingRewardsV2, stakingAccount,,, ) =
+            abi.decode(deploymentData, (RewardEscrowV2, StakingRewardsV2, StakingAccount, address, address, address));
 
         // Setup StakingV2
         (bool setupSuccess,) = address(migrate).delegatecall(
@@ -100,6 +102,7 @@ contract StakingSetup is TestHelpers {
                 migrate.setupSystem.selector,
                 address(rewardEscrowV2),
                 address(stakingRewardsV2),
+                address(stakingAccount),
                 address(treasury),
                 false
             )

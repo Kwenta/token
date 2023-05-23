@@ -62,7 +62,7 @@ contract StakingTestHelpers is StakingSetup {
     }
 
     // Note - this must be run before triggering notifyRewardAmount and getReward
-    function getExpectedRewardV2(uint256 reward, uint256 waitTime, address user)
+    function getExpectedRewardV2(uint256 reward, uint256 waitTime, uint256 accountId)
         public
         view
         returns (uint256)
@@ -71,11 +71,11 @@ contract StakingTestHelpers is StakingSetup {
         uint256 rewardsDuration = stakingRewardsV2.rewardsDuration();
         uint256 previousRewardPerToken = stakingRewardsV2.rewardPerToken();
         uint256 rewardsPerTokenPaid =
-            stakingRewardsV2.userRewardPerTokenPaid(user);
+            stakingRewardsV2.userRewardPerTokenPaid(accountId);
         uint256 totalSupply =
             stakingRewardsV2.totalSupply() + stakingRewardsV1.totalSupply();
         uint256 balance =
-            stakingRewardsV2.balanceOf(user) + stakingRewardsV1.balanceOf(user);
+            stakingRewardsV2.balanceOf(accountId) + stakingRewardsV1.balanceOf(stakingAccount.ownerOf(accountId));
 
         // general formula for rewards should be:
         // rewardRate = reward / rewardsDuration
@@ -196,48 +196,52 @@ contract StakingTestHelpers is StakingSetup {
         kwenta.approve(address(stakingRewardsV2), amount);
     }
 
-    function fundAccountAndStakeV2(address account, uint256 amount) public {
-        fundAndApproveAccountV2(account, amount);
-        vm.prank(account);
-        stakingRewardsV2.stake(amount);
+    function fundAccountAndStakeV2(uint256 accountId, uint256 amount) public {
+        fundAndApproveAccountV2(accountOwner(accountId), amount);
+        vm.prank(address(stakingAccount));
+        stakingRewardsV2.stake(accountId, amount);
     }
 
-    function stakeFundsV2(address account, uint256 amount) public {
-        vm.prank(account);
+    function stakeFundsV2(uint256 accountId, uint256 amount) public {
+        vm.prank(accountOwner(accountId));
         kwenta.approve(address(stakingRewardsV2), amount);
-        vm.prank(account);
-        stakingRewardsV2.stake(amount);
+        vm.prank(address(stakingAccount));
+        stakingRewardsV2.stake(accountId, amount);
     }
 
-    function unstakeFundsV2(address account, uint256 amount) public {
-        vm.prank(account);
-        stakingRewardsV2.unstake(amount);
+    function accountOwner(uint256 accountId) public view returns (address) {
+        return stakingAccount.ownerOf(accountId);
     }
 
-    function stakeEscrowedFundsV2(address account, uint256 amount) public {
-        if (amount != 0) createRewardEscrowEntryV2(account, amount, 52 weeks);
-        vm.prank(account);
-        rewardEscrowV2.stakeEscrow(amount);
+    function unstakeFundsV2(uint256 accountId, uint256 amount) public {
+        vm.prank(address(stakingAccount));
+        stakingRewardsV2.unstake(accountId, amount);
     }
 
-    function unstakeEscrowedFundsV2(address account, uint256 amount) public {
+    function stakeEscrowedFundsV2(uint256 accountId, uint256 amount) public {
+        if (amount != 0) createRewardEscrowEntryV2(accountId, amount, 52 weeks);
+        vm.prank(address(stakingAccount));
+        rewardEscrowV2.stakeEscrow(accountId, amount);
+    }
+
+    function unstakeEscrowedFundsV2(uint256 accountId, uint256 amount) public {
         vm.prank(address(rewardEscrowV2));
-        stakingRewardsV2.unstakeEscrow(account, amount);
+        stakingRewardsV2.unstakeEscrow(accountId, amount);
     }
 
     function createRewardEscrowEntryV2(
-        address account,
+        uint256 accountId,
         uint256 amount,
         uint256 duration
     ) public {
         vm.prank(treasury);
         kwenta.approve(address(rewardEscrowV2), amount);
         vm.prank(treasury);
-        rewardEscrowV2.createEscrowEntry(account, amount, duration, 90);
+        rewardEscrowV2.createEscrowEntry(accountId, amount, duration, 90);
     }
 
     function createRewardEscrowEntryV2(
-        address account,
+        uint256 accountId,
         uint256 amount,
         uint256 duration,
         uint8 earlyVestingFee
@@ -246,46 +250,46 @@ contract StakingTestHelpers is StakingSetup {
         kwenta.approve(address(rewardEscrowV2), amount);
         vm.prank(treasury);
         rewardEscrowV2.createEscrowEntry(
-            account, amount, duration, earlyVestingFee
+            accountId, amount, duration, earlyVestingFee
         );
     }
 
     function appendRewardEscrowEntryV2(
-        address account,
+        uint256 accountId,
         uint256 amount,
         uint256 duration
     ) public {
         vm.prank(treasury);
         kwenta.transfer(address(rewardEscrowV2), amount);
         vm.prank(address(stakingRewardsV2));
-        rewardEscrowV2.appendVestingEntry(account, amount, duration);
+        rewardEscrowV2.appendVestingEntry(accountId, amount, duration);
     }
 
-    function getStakingRewardsV2(address account) public {
-        vm.prank(account);
-        stakingRewardsV2.getReward();
+    function getStakingRewardsV2(uint256 accountId) public {
+        vm.prank(address(stakingRewardsV2));
+        stakingRewardsV2.getReward(accountId);
     }
 
     // INTEGRATION HELPERS
-    function stakeAllUnstakedEscrowV2(address account) public {
-        uint256 amount = getNonStakedEscrowAmountV2(account);
-        vm.prank(account);
-        rewardEscrowV2.stakeEscrow(amount);
+    function stakeAllUnstakedEscrowV2(uint256 accountId) public {
+        uint256 amount = getNonStakedEscrowAmountV2(accountId);
+        vm.prank(address(stakingAccount));
+        rewardEscrowV2.stakeEscrow(accountId, amount);
     }
 
-    function unstakeAllUnstakedEscrowV2(address account, uint256 amount)
+    function unstakeAllUnstakedEscrowV2(uint256 accountId, uint256 amount)
         public
     {
-        vm.prank(account);
-        rewardEscrowV2.unstakeEscrow(amount);
+        vm.prank(address(stakingAccount));
+        rewardEscrowV2.unstakeEscrow(accountId, amount);
     }
 
-    function getNonStakedEscrowAmountV2(address account)
+    function getNonStakedEscrowAmountV2(uint256 accountId)
         public
         view
         returns (uint256)
     {
-        return rewardEscrowV2.balanceOf(account)
-            - stakingRewardsV2.escrowedBalanceOf(account);
+        return rewardEscrowV2.balanceOf(accountId)
+            - stakingRewardsV2.escrowedBalanceOf(accountId);
     }
 }

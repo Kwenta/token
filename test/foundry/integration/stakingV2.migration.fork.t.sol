@@ -10,6 +10,7 @@ import {RewardEscrowV2} from "../../../contracts/RewardEscrowV2.sol";
 import {SupplySchedule} from "../../../contracts/SupplySchedule.sol";
 import {StakingRewards} from "../../../contracts/StakingRewards.sol";
 import {StakingRewardsV2} from "../../../contracts/StakingRewardsV2.sol";
+import {StakingAccount} from "../../../contracts/StakingAccount.sol";
 import "../utils/Constants.t.sol";
 
 contract StakingV2MigrationForkTests is StakingTestHelpers {
@@ -40,7 +41,7 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
         // set owners address code to trick the test into allowing onlyOwner functions to be called via script
         vm.etch(owner, address(new Migrate()).code);
 
-        (rewardEscrowV2, stakingRewardsV2,,) = Migrate(owner)
+        (rewardEscrowV2, stakingRewardsV2, stakingAccount,,,) = Migrate(owner)
             .runCompleteMigrationProcess({
             _owner: owner,
             _kwenta: address(kwenta),
@@ -82,18 +83,22 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
         assertEq(kwenta.balanceOf(user1), initialBalance + user1NonEscrowStakedV1);
         assertEq(rewardEscrowV1.balanceOf(user1), user1EscrowV1 + user1Earned);
 
+        // create a new staking account for user1
+        vm.prank(user1);
+        uint256 user1Account = stakingAccount.createAccount();
+
         // check initial v2 state
-        assertEq(stakingRewardsV2.balanceOf(user1), 0);
-        assertEq(stakingRewardsV2.earned(user1), 0);
-        assertEq(stakingRewardsV2.nonEscrowedBalanceOf(user1), 0);
-        assertEq(stakingRewardsV2.escrowedBalanceOf(user1), 0);
+        assertEq(stakingRewardsV2.balanceOf(user1Account), 0);
+        assertEq(stakingRewardsV2.earned(user1Account), 0);
+        assertEq(stakingRewardsV2.nonEscrowedBalanceOf(user1Account), 0);
+        assertEq(stakingRewardsV2.escrowedBalanceOf(user1Account), 0);
         assertEq(stakingRewardsV2.totalSupply(), 0);
-        assertEq(rewardEscrowV2.balanceOf(user1), 0);
+        assertEq(rewardEscrowV2.balanceOf(user1Account), 0);
 
         user1EscrowV1 = rewardEscrowV1.balanceOf(user1);
 
         // stake funds with v2
-        stakeFundsV2(user1, kwenta.balanceOf(user1));
+        stakeFundsV2(user1Account, kwenta.balanceOf(user1));
 
         // mint via supply schedule
         warpAndMint(2 weeks);
@@ -101,10 +106,10 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
         warpAndMint(2 weeks);
 
         // get rewards
-        getStakingRewardsV2(user1);
+        getStakingRewardsV2(user1Account);
 
         // stake the rewards
-        stakeAllUnstakedEscrowV2(user1);
+        stakeAllUnstakedEscrowV2(user1Account);
 
         // check StakingRewardsV1 balance unchanged
         assertEq(stakingRewardsV1.nonEscrowedBalanceOf(user1), 0);
@@ -114,17 +119,17 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
         // check RewardEscrowV1 balance unchanged
         assertEq(rewardEscrowV1.balanceOf(user1), user1EscrowV1);
 
-        uint256 user1EscrowStakedV2 = stakingRewardsV2.escrowedBalanceOf(user1);
-        uint256 user1NonEscrowedStakeV2 = stakingRewardsV2.nonEscrowedBalanceOf(user1);
+        uint256 user1EscrowStakedV2 = stakingRewardsV2.escrowedBalanceOf(user1Account);
+        uint256 user1NonEscrowedStakeV2 = stakingRewardsV2.nonEscrowedBalanceOf(user1Account);
 
         // assert v2 rewards have been earned
-        assertGt(rewardEscrowV2.balanceOf(user1), 0);
+        assertGt(rewardEscrowV2.balanceOf(user1Account), 0);
         // v2 staked balance is equal to escrowed + non-escrowed balance
         assertEq(
-            stakingRewardsV2.balanceOf(user1),
+            stakingRewardsV2.balanceOf(user1Account),
             user1EscrowStakedV2 + user1NonEscrowedStakeV2
         );
         // v2 reward escrow balance is equal to escrow staked balance
-        assertEq(rewardEscrowV2.balanceOf(user1), user1EscrowStakedV2);
+        assertEq(rewardEscrowV2.balanceOf(user1Account), user1EscrowStakedV2);
     }
 }

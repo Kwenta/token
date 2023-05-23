@@ -7,6 +7,7 @@ import {StakingRewards} from "../contracts/StakingRewards.sol";
 import {SupplySchedule} from "../contracts/SupplySchedule.sol";
 import {RewardEscrowV2} from "../contracts/RewardEscrowV2.sol";
 import {StakingRewardsV2} from "../contracts/StakingRewardsV2.sol";
+import {StakingAccount} from "../contracts/StakingAccount.sol";
 
 // Upgradeability imports
 import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
@@ -30,8 +31,10 @@ contract Migrate {
         returns (
             RewardEscrowV2 rewardEscrowV2,
             StakingRewardsV2 stakingRewardsV2,
+            StakingAccount stakingAccount,
             address rewardEscrowV2Implementation,
-            address stakingRewardsV2Implementation
+            address stakingRewardsV2Implementation,
+            address stakingAccountImplementation
         )
     {
         if (_printLogs) console.log("********* 1. DEPLOYMENT STARTING... *********");
@@ -68,6 +71,22 @@ contract Migrate {
         if (_printLogs) console.log(
             "Deployed StakingRewardsV2 Proxy at %s", address(stakingRewardsV2)
         );
+
+        // Deploy StakingAccount
+        stakingAccountImplementation = address(new StakingAccount());
+        stakingAccount = StakingAccount(address(new ERC1967Proxy(
+            stakingAccountImplementation,
+            abi.encodeWithSignature(
+                "initialize(address,address,address)",
+                _owner,
+                address(stakingRewardsV2),
+                address(rewardEscrowV2)
+            )
+        )));
+
+        if (_printLogs) console.log("Deployed StakingAccount Implementation at %s", stakingAccountImplementation);
+        if (_printLogs) console.log("Deployed StakingAccount Proxy at %s", address(stakingAccount));
+
         if (_printLogs) console.log(unicode"--------- 🚀 DEPLOYMENT COMPLETE 🚀 ---------");
     }
 
@@ -80,6 +99,7 @@ contract Migrate {
     function setupSystem(
         address _rewardEscrowV2,
         address _stakingRewardsV2,
+        address _stakingAccount,
         address _treasuryDAO,
         bool _printLogs
     ) public {
@@ -101,6 +121,25 @@ contract Migrate {
             "Switched RewardEscrowV2 to point to StakingRewardsV2 at %s",
             _stakingRewardsV2
         );
+
+        // Set RewardEscrowV2 StakingAccount
+        rewardEscrowV2.setStakingAccount(_stakingAccount);
+
+        if (_printLogs) console.log(
+            "Switched RewardEscrowV2 to point to StakingAccount at %s",
+            _stakingAccount
+        );
+
+        // Set StakingRewardsV2 StakingAccount
+        StakingRewardsV2 stakingRewardsV2 = StakingRewardsV2(_stakingRewardsV2);
+        stakingRewardsV2.setStakingAccount(_stakingAccount);
+
+
+        if (_printLogs) console.log(
+            "Switched StakingRewardsV2 to point to StakingAccount at %s",
+            _stakingAccount
+        );
+
         if (_printLogs) console.log(unicode"--------- 🔧 SETUP COMPLETE 🔧 ---------");
     }
 
@@ -143,17 +182,19 @@ contract Migrate {
         returns (
             RewardEscrowV2 rewardEscrowV2,
             StakingRewardsV2 stakingRewardsV2,
+            StakingAccount stakingAccount,
             address rewardEscrowV2Implementation,
-            address stakingRewardsV2Implementation
+            address stakingRewardsV2Implementation,
+            address stakingAccountImplementation
         )
     {
         // Step 1: Deploy StakingV2 contracts
-        (rewardEscrowV2, stakingRewardsV2, rewardEscrowV2Implementation, stakingRewardsV2Implementation) =
+        (rewardEscrowV2, stakingRewardsV2, stakingAccount, rewardEscrowV2Implementation, stakingRewardsV2Implementation, stakingAccountImplementation) =
             deploySystem(_owner, _kwenta, _supplySchedule, _stakingRewardsV1, _printLogs);
 
         // Step 2: Setup StakingV2 contracts
         setupSystem(
-            address(rewardEscrowV2), address(stakingRewardsV2), _treasuryDAO, _printLogs
+            address(rewardEscrowV2), address(stakingRewardsV2), address(stakingAccount), _treasuryDAO, _printLogs
         );
 
         // Step 3: Migrate SupplySchedule to point at StakingV2
