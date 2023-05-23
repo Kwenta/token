@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
+// TODO: remove
+import "forge-std/Test.sol";
+
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
@@ -12,6 +15,7 @@ import "./interfaces/IStakingRewardsV2.sol";
 import "./interfaces/IStakingRewards.sol";
 import "./interfaces/ISupplySchedule.sol";
 import "./interfaces/IRewardEscrowV2.sol";
+import "./StakingAccount.sol";
 
 /// @title KWENTA Staking Rewards
 /// @author SYNTHETIX, JaredBorders (jaredborders@proton.me), JChiaramonte7 (jeremy@bytecode.llc), tommyrharper (zeroknowledgeltd@gmail.com)
@@ -48,16 +52,22 @@ contract StakingRewardsV2 is
     /// @notice previous version of staking rewards contract - used for migration
     IStakingRewards public stakingRewardsV1;
 
+    /// @notice staking account contract which abstracts users "accounts" for staking
+    // TODO: update to IStakingAccount
+    StakingAccount public stakingAccount;
+
     /*///////////////////////////////////////////////////////////////
                                 STATE
     ///////////////////////////////////////////////////////////////*/
 
-    /// @notice number of tokens staked by address
+    /// @notice number of tokens staked by an account
     /// @dev this includes escrowed tokens stake
-    mapping(address => Checkpoint[]) public balances;
+    /// accountId => balance checkpoint
+    mapping(uint256 => Checkpoint[]) public balances;
 
     /// @notice number of staked escrow tokens by address
-    mapping(address => Checkpoint[]) public escrowedBalances;
+    /// accountId => escrowed balance checkpoint
+    mapping(uint256 => Checkpoint[]) public escrowedBalances;
 
     /// @notice total number of tokens staked in this contract
     Checkpoint[] public _totalSupply;
@@ -82,17 +92,21 @@ contract StakingRewardsV2 is
 
     /// @notice represents the rewardPerToken
     /// value the last time the stake calculated earned() rewards
-    mapping(address => uint256) public userRewardPerTokenPaid;
+    /// accountId => rewardPerTokenPaid
+    mapping(uint256 => uint256) public userRewardPerTokenPaid;
 
     /// @notice track rewards for a given user which changes when
     /// a user stakes, unstakes, or claims rewards
-    mapping(address => uint256) public rewards;
+    /// accountId => rewards
+    mapping(uint256 => uint256) public rewards;
 
     /// @notice tracks the last time staked for a given user
-    mapping(address => uint256) public userLastStakeTime;
+    /// accountId => lastStakeTime
+    mapping(uint256 => uint256) public userLastStakeTime;
 
     /// @notice tracks all addresses approved to take actions on behalf of a given account
-    mapping(address => mapping(address => bool)) public _operatorApprovals;
+    /// accountId => operator => approved
+    mapping(uint256 => mapping(address => bool)) public _operatorApprovals;
 
     /*///////////////////////////////////////////////////////////////
                                 EVENTS
@@ -103,29 +117,29 @@ contract StakingRewardsV2 is
     event RewardAdded(uint256 reward);
 
     /// @notice emitted when user stakes tokens
-    /// @param user: staker address
+    /// @param accountId: staker accountId
     /// @param amount: amount staked
-    event Staked(address indexed user, uint256 amount);
+    event Staked(uint256 indexed accountId, uint256 amount);
 
     /// @notice emitted when user unstakes tokens
-    /// @param user: address of user unstaking
+    /// @param accountId: accountId of user unstaking
     /// @param amount: amount unstaked
-    event Unstaked(address indexed user, uint256 amount);
+    event Unstaked(uint256 indexed accountId, uint256 amount);
 
     /// @notice emitted when escrow staked
-    /// @param user: owner of escrowed tokens address
+    /// @param accountId: owner of escrowed tokens accountId
     /// @param amount: amount staked
-    event EscrowStaked(address indexed user, uint256 amount);
+    event EscrowStaked(uint256 indexed accountId, uint256 amount);
 
     /// @notice emitted when staked escrow tokens are unstaked
-    /// @param user: owner of escrowed tokens address
+    /// @param accountId: owner of escrowed tokens accountId
     /// @param amount: amount unstaked
-    event EscrowUnstaked(address user, uint256 amount);
+    event EscrowUnstaked(uint256 accountId, uint256 amount);
 
     /// @notice emitted when user claims rewards
-    /// @param user: address of user claiming rewards
+    /// @param accountId: accountId of user claiming rewards
     /// @param reward: amount of reward token claimed
-    event RewardPaid(address indexed user, uint256 reward);
+    event RewardPaid(uint256 indexed accountId, uint256 reward);
 
     /// @notice emitted when rewards duration changes
     /// @param newDuration: denoted in seconds
@@ -144,7 +158,7 @@ contract StakingRewardsV2 is
     /// @param owner: owner of tokens
     /// @param operator: address of operator
     /// @param approved: whether or not operator is approved
-    event OperatorApproved(address owner, address operator, bool approved);
+    event OperatorApproved(uint256 owner, address operator, bool approved);
 
     /*//////////////////////////////////////////////////////////////
                                  ERRORS
@@ -169,9 +183,6 @@ contract StakingRewardsV2 is
     /// @notice the caller is not approved to take this action
     error NotApprovedOperator();
 
-    /// @notice attempted to approve self as an operator
-    error CannotApproveSelf();
-
     /*///////////////////////////////////////////////////////////////
                                 AUTH
     ///////////////////////////////////////////////////////////////*/
@@ -195,7 +206,7 @@ contract StakingRewardsV2 is
     }
 
     /// @notice access control modifier for approved operators
-    modifier onlyApprovedOperator(address owner) {
+    modifier onlyApprovedOperator(uint256 owner) {
         if (!_operatorApprovals[owner][msg.sender]) {
             revert NotApprovedOperator();
         }
@@ -203,9 +214,9 @@ contract StakingRewardsV2 is
     }
 
     /// @notice only allow execution after the unstaking cooldown period has elapsed
-    modifier afterCooldown(address account) {
+    modifier afterCooldown(uint256 accountId) {
         uint256 canUnstakeAt =
-            userLastStakeTime[account] + unstakingCooldownPeriod;
+            userLastStakeTime[accountId] + unstakingCooldownPeriod;
         if (canUnstakeAt > block.timestamp) {
             revert CannotUnstakeDuringCooldown(canUnstakeAt);
         }
@@ -273,31 +284,31 @@ contract StakingRewardsV2 is
 
     /// @notice Returns the total number of staked tokens for a user
     /// the sum of all escrowed and non-escrowed tokens
-    /// @param account: address of potential staker
+    /// @param accountId: accountId of potential staker
     /// @return amount of tokens staked by account
-    function balanceOf(address account)
+    function balanceOf(uint256 accountId)
         public
         view
         override
         returns (uint256)
     {
-        return balances[account].length == 0
+        return balances[accountId].length == 0
             ? 0
-            : balances[account][balances[account].length - 1].value;
+            : balances[accountId][balances[accountId].length - 1].value;
     }
 
     /// @notice Getter function for number of staked escrow tokens
-    /// @param account address to check the escrowed tokens staked
+    /// @param accountId account to check the escrowed tokens staked
     /// @return amount of escrowed tokens staked
-    function escrowedBalanceOf(address account)
+    function escrowedBalanceOf(uint256 accountId)
         public
         view
         override
         returns (uint256)
     {
-        return escrowedBalances[account].length == 0
+        return escrowedBalances[accountId].length == 0
             ? 0
-            : escrowedBalances[account][escrowedBalances[account].length - 1].value;
+            : escrowedBalances[accountId][escrowedBalances[accountId].length - 1].value;
     }
 
     /// @notice Getter function for the total number of v1 staked tokens
@@ -307,15 +318,16 @@ contract StakingRewardsV2 is
     }
 
     /// @notice Getter function for the number of v1 staked tokens
-    /// @param account address to check the tokens staked
+    /// @param accountId account to check the tokens staked
     /// @return amount of tokens staked
-    function v1BalanceOf(address account)
+    function v1BalanceOf(uint256 accountId)
         public
         view
         override
         returns (uint256)
     {
-        return stakingRewardsV1.balanceOf(account);
+        // TODO: think - is this legit???
+        return stakingRewardsV1.balanceOf(stakingAccount.ownerOf(accountId));
     }
 
     /// @return rewards for the duration specified by rewardsDuration
@@ -324,15 +336,15 @@ contract StakingRewardsV2 is
     }
 
     /// @notice Getter function for number of staked non-escrow tokens
-    /// @param account address to check the non-escrowed tokens staked
+    /// @param accountId account to check the non-escrowed tokens staked
     /// @return amount of non-escrowed tokens staked
-    function nonEscrowedBalanceOf(address account)
+    function nonEscrowedBalanceOf(uint256 accountId)
         public
         view
         override
         returns (uint256)
     {
-        return balanceOf(account) - escrowedBalanceOf(account);
+        return balanceOf(accountId) - escrowedBalanceOf(accountId);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -340,146 +352,148 @@ contract StakingRewardsV2 is
     ///////////////////////////////////////////////////////////////*/
 
     /// @notice stake token
+    /// @param accountId: account to stake tokens for
     /// @param amount: amount to stake
     /// @dev updateReward() called prior to function logic
-    function stake(uint256 amount)
+    function stake(uint256 accountId, uint256 amount)
         external
         override
         nonReentrant
         whenNotPaused
-        updateReward(msg.sender)
+        updateReward(accountId)
     {
         require(amount > 0, "StakingRewards: Cannot stake 0");
 
         // update state
-        userLastStakeTime[msg.sender] = block.timestamp;
+        userLastStakeTime[accountId] = block.timestamp;
         _addTotalSupplyCheckpoint(totalSupply() + amount);
-        _addBalancesCheckpoint(msg.sender, balanceOf(msg.sender) + amount);
+        _addBalancesCheckpoint(accountId, balanceOf(accountId) + amount);
 
         // transfer token to this contract from the caller
-        token.safeTransferFrom(msg.sender, address(this), amount);
+        // TODO: think if this is legit
+        token.safeTransferFrom(stakingAccount.ownerOf(accountId), address(this), amount);
 
-        // emit staking event and index msg.sender
-        emit Staked(msg.sender, amount);
+        // emit staking event and index accountId
+        emit Staked(accountId, amount);
     }
 
     /// @notice unstake token
     /// @param amount: amount to unstake
     /// @dev updateReward() called prior to function logic
-    function unstake(uint256 amount)
+    function unstake(uint256 accountId, uint256 amount)
         public
         override
         nonReentrant
-        updateReward(msg.sender)
-        afterCooldown(msg.sender)
+        updateReward(accountId)
+        afterCooldown(accountId)
     {
         require(amount > 0, "StakingRewards: Cannot Unstake 0");
         require(
-            amount <= nonEscrowedBalanceOf(msg.sender),
+            amount <= nonEscrowedBalanceOf(accountId),
             "StakingRewards: Invalid Amount"
         );
 
         // update state
         _addTotalSupplyCheckpoint(totalSupply() - amount);
-        _addBalancesCheckpoint(msg.sender, balanceOf(msg.sender) - amount);
+        _addBalancesCheckpoint(accountId, balanceOf(accountId) - amount);
 
         // transfer token from this contract to the caller
-        token.safeTransfer(msg.sender, amount);
+        token.safeTransfer(stakingAccount.ownerOf(accountId), amount);
 
-        // emit unstake event and index msg.sender
-        emit Unstaked(msg.sender, amount);
+        // emit unstake event and index accountId
+        emit Unstaked(accountId, amount);
     }
 
     /// @notice stake escrowed token
-    /// @param account: address which owns token
+    /// @param accountId: account which owns token
     /// @param amount: amount to stake
     /// @dev updateReward() called prior to function logic
-    /// @dev msg.sender NOT used (account is used)
-    function stakeEscrow(address account, uint256 amount)
+    function stakeEscrow(uint256 accountId, uint256 amount)
         external
         override
         onlyRewardEscrow
     {
-        _stakeEscrow(account, amount);
+        _stakeEscrow(accountId, amount);
     }
 
-    function _stakeEscrow(address account, uint256 amount)
+    function _stakeEscrow(uint256 accountId, uint256 amount)
         internal
         whenNotPaused
-        updateReward(account)
+        updateReward(accountId)
     {
         require(amount > 0, "StakingRewards: Cannot stake 0");
         // TODO: think if there I could do calc just querying rewardEscrow.totalEscrowedAccountBalance to save gas
-        uint256 unstakedEscrow = rewardEscrow.unstakedEscrowBalanceOf(account);
+        uint256 unstakedEscrow = rewardEscrow.unstakedEscrowBalanceOf(accountId);
         if (amount > unstakedEscrow) {
             revert InsufficientUnstakedEscrow(unstakedEscrow);
         }
 
         // update state
-        userLastStakeTime[account] = block.timestamp;
-        _addBalancesCheckpoint(account, balanceOf(account) + amount);
+        userLastStakeTime[accountId] = block.timestamp;
+        _addBalancesCheckpoint(accountId, balanceOf(accountId) + amount);
         _addEscrowedBalancesCheckpoint(
-            account, escrowedBalanceOf(account) + amount
+            accountId, escrowedBalanceOf(accountId) + amount
         );
 
         // updates total supply despite no new staking token being transfered.
         // escrowed tokens are locked in RewardEscrow
         _addTotalSupplyCheckpoint(totalSupply() + amount);
 
-        // emit escrow staking event and index _account
-        emit EscrowStaked(account, amount);
+        // emit escrow staking event and index accountId
+        emit EscrowStaked(accountId, amount);
     }
 
     /// @notice stake escrowed token on behalf of another account
-    /// @param account: address which owns token
+    /// @param accountId: account which owns token
     /// @param amount: amount to stake
-    function stakeEscrowOnBehalf(address account, uint256 amount)
+    function stakeEscrowOnBehalf(uint256 accountId, uint256 amount)
         external
         override
-        onlyApprovedOperator(account)
+        onlyApprovedOperator(accountId)
     {
-        _stakeEscrow(account, amount);
+        _stakeEscrow(accountId, amount);
     }
 
     /// @notice unstake escrowed token
-    /// @param account: address which owns token
+    /// @param accountId: account which owns token
     /// @param amount: amount to unstake
     /// @dev updateReward() called prior to function logic
     /// @dev msg.sender NOT used (account is used)
-    function unstakeEscrow(address account, uint256 amount)
+    function unstakeEscrow(uint256 accountId, uint256 amount)
         external
         override
         nonReentrant
         onlyRewardEscrow
-        updateReward(account)
-        afterCooldown(account)
+        updateReward(accountId)
+        afterCooldown(accountId)
     {
         require(amount > 0, "StakingRewards: Cannot Unstake 0");
         require(
-            escrowedBalanceOf(account) >= amount,
+            escrowedBalanceOf(accountId) >= amount,
             "StakingRewards: Invalid Amount"
         );
 
         // update state
-        _addBalancesCheckpoint(account, balanceOf(account) - amount);
+        _addBalancesCheckpoint(accountId, balanceOf(accountId) - amount);
         _addEscrowedBalancesCheckpoint(
-            account, escrowedBalanceOf(account) - amount
+            accountId, escrowedBalanceOf(accountId) - amount
         );
 
         // updates total supply despite no new staking token being transfered.
         // escrowed tokens are locked in RewardEscrow
         _addTotalSupplyCheckpoint(totalSupply() - amount);
 
-        // emit escrow unstaked event and index account
-        emit EscrowUnstaked(account, amount);
+        // emit escrow unstaked event and index accountId
+        emit EscrowUnstaked(accountId, amount);
     }
 
     /// @notice unstake all available staked non-escrowed tokens and
     /// claim any rewards
+    /// @param accountId: account to exit staking for
     // TODO: check for reentrancy via unstake()
-    function exit() external override {
-        unstake(nonEscrowedBalanceOf(msg.sender));
-        getReward();
+    function exit(uint256 accountId) external override {
+        unstake(accountId, nonEscrowedBalanceOf(accountId));
+        getReward(accountId);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -487,41 +501,42 @@ contract StakingRewardsV2 is
     ///////////////////////////////////////////////////////////////*/
 
     /// @notice caller claims any rewards generated from staking
+    /// @param accountId: account to claim rewards for
     /// @dev rewards are escrowed in RewardEscrow
     /// @dev updateReward() called prior to function logic
-    function getReward() public override {
-        _getReward(msg.sender);
+    function getReward(uint256 accountId) public override {
+        _getReward(accountId);
     }
 
-    function _getReward(address account)
+    function _getReward(uint256 accountId)
         internal
         nonReentrant
-        updateReward(account)
+        updateReward(accountId)
     {
-        uint256 reward = rewards[account];
+        uint256 reward = rewards[accountId];
         if (reward > 0) {
             // update state (first)
-            rewards[account] = 0;
+            rewards[accountId] = 0;
 
             // transfer token from this contract to the rewardEscrow
             // and create a vesting entry for the caller
             token.safeTransfer(address(rewardEscrow), reward);
-            rewardEscrow.appendVestingEntry(account, reward, 52 weeks);
+            rewardEscrow.appendVestingEntry(accountId, reward, 52 weeks);
 
-            // emit reward claimed event and index account
-            emit RewardPaid(account, reward);
+            // emit reward claimed event and index accountId
+            emit RewardPaid(accountId, reward);
         }
     }
 
     /// @notice caller claims any rewards generated from staking on behalf of another account
     /// The rewards will be escrowed in RewardEscrow with the account as the beneficiary
-    /// @param account: address which owns token
-    function getRewardOnBehalf(address account)
+    /// @param accountId: account which owns token
+    function getRewardOnBehalf(uint256 accountId)
         external
         override
-        onlyApprovedOperator(account)
+        onlyApprovedOperator(accountId)
     {
-        _getReward(account);
+        _getReward(accountId);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -529,19 +544,19 @@ contract StakingRewardsV2 is
     ///////////////////////////////////////////////////////////////*/
 
     /// @notice update reward state for the account and contract
-    /// @param account: address of account which rewards are being updated for
+    /// @param accountId: accountId of account which rewards are being updated for
     /// @dev contract state not specific to an account will be updated also
-    modifier updateReward(address account) {
+    modifier updateReward(uint256 accountId) {
         rewardPerTokenStored = rewardPerToken();
         lastUpdateTime = lastTimeRewardApplicable();
 
-        if (account != address(0)) {
+        if (accountId != 0) {
             // update amount of rewards a user can claim
-            rewards[account] = earned(account);
+            rewards[accountId] = earned(accountId);
 
             // update reward per token staked AT this given time
             // (i.e. when this user is interacting with StakingRewards)
-            userRewardPerTokenPaid[account] = rewardPerTokenStored;
+            userRewardPerTokenPaid[accountId] = rewardPerTokenStored;
         }
         _;
     }
@@ -574,18 +589,18 @@ contract StakingRewardsV2 is
     }
 
     /// @notice determine how much reward token an account has earned thus far
-    /// @param account: address of account earned amount is being calculated for
-    function earned(address account) public view override returns (uint256) {
-        uint256 v1Balance = v1BalanceOf(account);
-        uint256 v2Balance = balanceOf(account);
+    /// @param accountId: accountId of account earned amount is being calculated for
+    function earned(uint256 accountId) public view override returns (uint256) {
+        uint256 v1Balance = v1BalanceOf(accountId);
+        uint256 v2Balance = balanceOf(accountId);
         uint256 totalBalance = v1Balance + v2Balance;
 
         return (
             (
                 totalBalance
-                    * (rewardPerToken() - userRewardPerTokenPaid[account])
+                    * (rewardPerToken() - userRewardPerTokenPaid[accountId])
             ) / 1e18
-        ) + rewards[account];
+        ) + rewards[accountId];
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -593,27 +608,27 @@ contract StakingRewardsV2 is
     ///////////////////////////////////////////////////////////////*/
 
     /// @notice get the number of balances checkpoints for an account
-    /// @param account: address of account to check
+    /// @param accountId: accountId of account to check
     /// @return number of balances checkpoints
-    function balancesLength(address account)
+    function balancesLength(uint256 accountId)
         external
         view
         override
         returns (uint256)
     {
-        return balances[account].length;
+        return balances[accountId].length;
     }
 
     /// @notice get the number of escrowed balance checkpoints for an account
-    /// @param account: address of account to check
+    /// @param accountId: accountId of account to check
     /// @return number of escrowed balance checkpoints
-    function escrowedBalancesLength(address account)
+    function escrowedBalancesLength(uint256 accountId)
         external
         view
         override
         returns (uint256)
     {
-        return escrowedBalances[account].length;
+        return escrowedBalances[accountId].length;
     }
 
     /// @notice get the number of total supply checkpoints
@@ -623,29 +638,29 @@ contract StakingRewardsV2 is
     }
 
     /// @notice get a users balance at a given timestamp
-    /// @param account: address of account to check
+    /// @param accountId: accountId of account to check
     /// @param _timestamp: timestamp to check
     /// @return balance at given timestamp
-    function balanceAtTime(address account, uint256 _timestamp)
+    function balanceAtTime(uint256 accountId, uint256 _timestamp)
         external
         view
         override
         returns (uint256)
     {
-        return _checkpointBinarySearch(balances[account], _timestamp);
+        return _checkpointBinarySearch(balances[accountId], _timestamp);
     }
 
     /// @notice get a users escrowed balance at a given timestamp
-    /// @param account: address of account to check
+    /// @param accountId: accountId of account to check
     /// @param _timestamp: timestamp to check
     /// @return escrowed balance at given timestamp
-    function escrowedbalanceAtTime(address account, uint256 _timestamp)
+    function escrowedbalanceAtTime(uint256 accountId, uint256 _timestamp)
         external
         view
         override
         returns (uint256)
     {
-        return _checkpointBinarySearch(escrowedBalances[account], _timestamp);
+        return _checkpointBinarySearch(escrowedBalances[accountId], _timestamp);
     }
 
     /// @notice get the total supply at a given timestamp
@@ -693,34 +708,34 @@ contract StakingRewardsV2 is
     ///////////////////////////////////////////////////////////////*/
 
     /// @notice add a new balance checkpoint for an account
-    /// @param account: address of account to add checkpoint for
+    /// @param accountId: accountId of account to add checkpoint for
     /// @param value: value of checkpoint to add
-    function _addBalancesCheckpoint(address account, uint256 value) internal {
-        uint256 lastTimestamp = balances[account].length == 0
+    function _addBalancesCheckpoint(uint256 accountId, uint256 value) internal {
+        uint256 lastTimestamp = balances[accountId].length == 0
             ? 0
-            : balances[account][balances[account].length - 1].ts;
+            : balances[accountId][balances[accountId].length - 1].ts;
 
         if (lastTimestamp != block.timestamp) {
-            balances[account].push(Checkpoint(block.timestamp, value));
+            balances[accountId].push(Checkpoint(block.timestamp, value));
         } else {
-            balances[account][balances[account].length - 1].value = value;
+            balances[accountId][balances[accountId].length - 1].value = value;
         }
     }
 
     /// @notice add a new escrowed balance checkpoint for an account
-    /// @param account: address of account to add checkpoint for
+    /// @param accountId: accountId of account to add checkpoint for
     /// @param value: value of checkpoint to add
-    function _addEscrowedBalancesCheckpoint(address account, uint256 value)
+    function _addEscrowedBalancesCheckpoint(uint256 accountId, uint256 value)
         internal
     {
-        uint256 lastTimestamp = escrowedBalances[account].length == 0
+        uint256 lastTimestamp = escrowedBalances[accountId].length == 0
             ? 0
-            : escrowedBalances[account][escrowedBalances[account].length - 1].ts;
+            : escrowedBalances[accountId][escrowedBalances[accountId].length - 1].ts;
 
         if (lastTimestamp != block.timestamp) {
-            escrowedBalances[account].push(Checkpoint(block.timestamp, value));
+            escrowedBalances[accountId].push(Checkpoint(block.timestamp, value));
         } else {
-            escrowedBalances[account][escrowedBalances[account].length - 1]
+            escrowedBalances[accountId][escrowedBalances[accountId].length - 1]
                 .value = value;
         }
     }
@@ -750,7 +765,7 @@ contract StakingRewardsV2 is
         external
         override
         onlySupplySchedule
-        updateReward(address(0))
+        updateReward(0)
     {
         if (block.timestamp >= periodFinish) {
             rewardRate = reward / rewardsDuration;
@@ -798,6 +813,14 @@ contract StakingRewardsV2 is
         emit UnstakingCooldownPeriodUpdated(unstakingCooldownPeriod);
     }
 
+    /// @notice set StakingAccount address
+    /// @dev only owner may change address
+    function setStakingAccount(address _stakingAccount) external onlyOwner {
+        require(_stakingAccount != address(0), "RewardEscrow: Zero Address");
+        stakingAccount = StakingAccount(_stakingAccount);
+        // TODO: emit event
+    }
+
     /*///////////////////////////////////////////////////////////////
                                 PAUSABLE
     ///////////////////////////////////////////////////////////////*/
@@ -824,17 +847,16 @@ contract StakingRewardsV2 is
     {}
 
     /// @notice approve an operator to collect rewards and stake escrow on behalf of the sender
+    /// @param accountId: accountId of account to approve operator for
     /// @param operator: address of operator to approve
     /// @param approved: whether or not to approve the operator
-    function approveOperator(address operator, bool approved)
+    function approveOperator(uint256 accountId, address operator, bool approved)
         external
         override
     {
-        if (operator == msg.sender) revert CannotApproveSelf();
+        _operatorApprovals[accountId][operator] = approved;
 
-        _operatorApprovals[msg.sender][operator] = approved;
-
-        emit OperatorApproved(msg.sender, operator, approved);
+        emit OperatorApproved(accountId, operator, approved);
     }
 
     /// @notice added to support recovering LP Rewards from other systems

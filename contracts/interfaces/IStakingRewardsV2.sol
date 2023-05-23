@@ -9,36 +9,36 @@ interface IStakingRewardsV2 {
     function totalSupply() external view returns (uint256);
     function v1TotalSupply() external view returns (uint256);
     // staking state
-    function balanceOf(address account) external view returns (uint256);
-    function v1BalanceOf(address account) external view returns (uint256);
-    function escrowedBalanceOf(address account) external view returns (uint256);
-    function nonEscrowedBalanceOf(address account) external view returns (uint256);
+    function balanceOf(uint256 accountId) external view returns (uint256);
+    function v1BalanceOf(uint256 accountId) external view returns (uint256);
+    function escrowedBalanceOf(uint256 accountId) external view returns (uint256);
+    function nonEscrowedBalanceOf(uint256 accountId) external view returns (uint256);
     // rewards
     function getRewardForDuration() external view returns (uint256);
     function rewardPerToken() external view returns (uint256);
     function lastTimeRewardApplicable() external view returns (uint256);
-    function earned(address account) external view returns (uint256);
+    function earned(uint256 accountId) external view returns (uint256);
     // checkpointing
-    function balancesLength(address account) external view returns (uint256);
-    function escrowedBalancesLength(address account) external view returns (uint256);
+    function balancesLength(uint256 accountId) external view returns (uint256);
+    function escrowedBalancesLength(uint256 accountId) external view returns (uint256);
     function totalSupplyLength() external view returns (uint256);
-    function balanceAtTime(address account, uint256 block) external view returns (uint256);
-    function escrowedbalanceAtTime(address account, uint256 block) external view returns (uint256);
+    function balanceAtTime(uint256 accountId, uint256 block) external view returns (uint256);
+    function escrowedbalanceAtTime(uint256 accountId, uint256 block) external view returns (uint256);
     function totalSupplyAtTime(uint256 block) external view returns (uint256);
 
     /*//////////////////////////////////////////////////////////////
                                 Mutative
     //////////////////////////////////////////////////////////////*/
     // Staking/Unstaking
-    function stake(uint256 amount) external;
-    function unstake(uint256 amount) external;
-    function stakeEscrow(address account, uint256 amount) external;
-    function unstakeEscrow(address account, uint256 amount) external;
-    function stakeEscrowOnBehalf(address account, uint256 amount) external;
-    function exit() external;
+    function stake(uint256 accountId, uint256 amount) external;
+    function unstake(uint256 accountId, uint256 amount) external;
+    function stakeEscrow(uint256 accountId, uint256 amount) external;
+    function unstakeEscrow(uint256 accountId, uint256 amount) external;
+    function stakeEscrowOnBehalf(uint256 accountId, uint256 amount) external;
+    function exit(uint256 accountId) external;
     // claim rewards
-    function getReward() external;
-    function getRewardOnBehalf(address account) external;
+    function getReward(uint256 accountId) external;
+    function getRewardOnBehalf(uint256 accountId) external;
     // settings
     function notifyRewardAmount(uint256 reward) external;
     function setUnstakingCooldownPeriod(uint256 _rewardsDuration) external;
@@ -47,7 +47,7 @@ interface IStakingRewardsV2 {
     function pauseStakingRewards() external;
     function unpauseStakingRewards() external;
     // misc.
-    function approveOperator(address operator, bool approved) external;
+    function approveOperator(uint256 accountId, address operator, bool approved) external;
     function recoverERC20(address tokenAddress, uint256 tokenAmount) external;
 
     /*//////////////////////////////////////////////////////////////
