@@ -67,6 +67,45 @@ contract TokenDistributorTest is StakingSetup {
         tokenDistributor.claimEpoch(address(user1), 1);
     }
 
+    /// @notice make sure a checkpoint is created even if < 24 if it
+    /// is a new week
+    function testClaimEpochCheckpoint() public {
+        //setup
+        kwenta.transfer(address(user1), 1);
+        vm.startPrank(address(user1));
+        kwenta.approve(address(stakingRewardsV2), 1);
+        stakingRewardsV2.stake(1);
+        vm.stopPrank();
+        kwenta.transfer(address(user2), 2);
+        vm.startPrank(address(user2));
+        kwenta.approve(address(stakingRewardsV2), 2);
+        stakingRewardsV2.stake(2);
+        vm.stopPrank();
+        goForward(604801);
+
+        /// @dev checkpoint just before the week ends
+        kwenta.transfer(address(tokenDistributor), 10);
+        goForward(600000);
+        vm.expectEmit(true, true, true, true);
+        emit CheckpointToken(1809603, 10);
+        tokenDistributor.checkpointToken();
+        kwenta.transfer(address(tokenDistributor), 5);
+        goForward(4801);
+
+        /// @dev make sure a claim at the turn of the week
+        /// will checkpoint even if its < 24 hours
+        vm.expectEmit(true, true, true, true);
+        emit CheckpointToken(1814404, 5);
+        vm.expectEmit(true, true, false, true);
+        emit VestingEntryCreated(address(user1), 2, 31449600, 1);
+        tokenDistributor.claimEpoch(address(user1), 1);
+
+        /// @dev a claim < 24 hours and not the first one
+        /// of the week will not checkpoint which is correct
+        goForward(1000);
+        tokenDistributor.claimEpoch(address(user2), 1);
+    }
+
     /// @notice claimEpoch fail - epoch is not ready to claim
     function testClaimEpochNotReady() public {
         vm.startPrank(user1);
@@ -232,6 +271,8 @@ contract TokenDistributorTest is StakingSetup {
         );
     }
 
+    //todo: test calculate epoch fees for returning 0
+
     /// @notice claimEpoch happy case with partial claims
     /// in earlier epochs 2 complete epochs with differing fees
     /// @dev also an integration test with RewardEscrowV2
@@ -345,5 +386,4 @@ contract TokenDistributorTest is StakingSetup {
         emit VestingEntryCreated(address(user1), amount / 3, 31449600, 1);
         tokenDistributor.claimEpoch(address(user1), 1);
     }
-    //todo: test the || for calling a checkpoint when claiming
 }
