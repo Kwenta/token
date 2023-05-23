@@ -141,7 +141,6 @@ contract TokenDistributor {
         if ((epochNumber * 1 weeks) + 1 weeks + startTime > block.timestamp) {
             revert CannotClaimYet();
         }
-        //todo: double check if i need to require its not the same second as new epoch
         if (claimedEpochs[to][epochNumber] == true) {
             revert CannotClaimTwice();
         }
