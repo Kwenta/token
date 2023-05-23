@@ -271,7 +271,12 @@ contract TokenDistributorTest is StakingSetup {
         );
     }
 
-    //todo: test calculate epoch fees for returning 0
+    /// @notice test calculate epoch fees for returning 0
+    /// when total staked == 0
+    function testCalculateEpochFees0() public {
+        uint256 result = tokenDistributor.calculateEpochFees(address(user1), 1);
+        assertEq(result, 0);
+    }
 
     /// @notice claimEpoch happy case with partial claims
     /// in earlier epochs 2 complete epochs with differing fees
