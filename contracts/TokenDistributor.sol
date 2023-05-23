@@ -9,6 +9,9 @@ contract TokenDistributor {
     /// @notice event for a new checkpoint
     event CheckpointToken(uint time, uint tokens);
 
+    /// @notice error when offset is more than 7 days
+    error OffsetTooBig();
+
     /// @notice error when user tries to create a new distribution too soon
     error LastEpochHasntEnded();
 
@@ -52,17 +55,25 @@ contract TokenDistributor {
     /// @notice array for tokens allocated to each epoch
     uint[1000000000000000] public tokensPerEpoch;
 
+    /// @notice the week offset in seconds
+    uint offset;
+
     constructor(
         address _kwenta,
         address _stakingRewardsV2,
-        address _rewardEscrowV2
+        address _rewardEscrowV2,
+        uint _offset
     ) {
         kwenta = IKwenta(_kwenta);
         stakingRewardsV2 = StakingRewardsV2(_stakingRewardsV2);
         rewardEscrowV2 = RewardEscrowV2(_rewardEscrowV2);
 
-        //todo: add param for custom start day (startTime + param)
-        uint _t = (block.timestamp / 1 weeks) * 1 weeks;
+        /// @notice custom start day (startTime + param)
+        if (_offset > 6) {
+            revert OffsetTooBig();
+        }
+        offset = _offset * 86400;
+        uint _t = startOfWeek(block.timestamp);
         startTime = _t;
         lastCheckpoint = _t;
     }
@@ -75,7 +86,7 @@ contract TokenDistributor {
         uint t = lastCheckpoint;
         uint sinceLast = block.timestamp - t;
         lastCheckpoint = block.timestamp;
-        uint thisWeek = (t / 1 weeks) * 1 weeks;
+        uint thisWeek = startOfWeek(t);
         uint nextWeek = 0;
 
         /// @dev Loop for potential missed weeks
@@ -122,7 +133,7 @@ contract TokenDistributor {
         /// gets updated before its claimed.
         if (
             (block.timestamp - lastCheckpoint > 86400) ||
-            ((block.timestamp - (lastCheckpoint / 1 weeks * 1 weeks)) > 604800)
+            ((block.timestamp - startOfWeek(lastCheckpoint)) > 604800)
         ) {
             checkpointToken();
         }
@@ -179,5 +190,10 @@ contract TokenDistributor {
             totalStaked);
 
         return proportionalFees;
+    }
+
+    /// @notice function for calculating the start of a week with an offset
+    function startOfWeek(uint timestamp) public view returns (uint) {
+        return ((timestamp - offset) / 1 weeks * 1 weeks) + offset;
     }
 }
