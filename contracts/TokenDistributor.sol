@@ -56,7 +56,7 @@ contract TokenDistributor {
     uint[1000000000000000] public tokensPerEpoch;
 
     /// @notice the week offset in seconds
-    uint offset;
+    uint public offset;
 
     constructor(
         address _kwenta,
