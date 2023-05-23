@@ -27,7 +27,8 @@ contract TokenDistributorTest is StakingSetup {
         tokenDistributor = new TokenDistributor(
             address(kwenta),
             address(stakingRewardsV2),
-            address(rewardEscrowV2)
+            address(rewardEscrowV2),
+            0
         );
         vm.prank(treasury);
         kwenta.transfer(address(this), 100_000 ether);
@@ -390,5 +391,80 @@ contract TokenDistributorTest is StakingSetup {
         vm.expectEmit(true, true, false, true);
         emit VestingEntryCreated(address(user1), amount / 3, 31449600, 1);
         tokenDistributor.claimEpoch(address(user1), 1);
+    }
+
+    /// @notice test everything with a custom offset
+    function testOffset() public {
+        TokenDistributor tokenDistributorOffset = new TokenDistributor(
+            address(kwenta),
+            address(stakingRewardsV2),
+            address(rewardEscrowV2),
+            2
+        );
+
+        kwenta.transfer(address(user1), 1);
+        vm.startPrank(address(user1));
+        kwenta.approve(address(stakingRewardsV2), 1);
+        stakingRewardsV2.stake(1);
+        vm.stopPrank();
+
+        /// @dev fees received at the start of the epoch (should be + 2 days)
+        goForward(172801);
+        kwenta.transfer(address(tokenDistributorOffset), 100);
+
+        /// @dev checkpoint token < 24 hours before epoch end
+        goForward(600000);
+        vm.expectEmit(true, true, true, true);
+        emit CheckpointToken(1377603, 100);
+        tokenDistributorOffset.checkpointToken();
+        kwenta.transfer(address(tokenDistributorOffset), 5);
+        goForward(4801);
+
+        /// @dev claim at the start of the new epoch (should also checkpoint)
+        vm.expectEmit(true, true, true, true);
+        emit CheckpointToken(1382404, 5);
+        vm.expectEmit(true, true, false, true);
+        emit VestingEntryCreated(address(user1), 53, 31449600, 1);
+        tokenDistributorOffset.claimEpoch(address(user1), 1);
+
+        /// @dev user2 cant claim because they didnt stake
+        vm.expectRevert();
+        tokenDistributorOffset.claimEpoch(address(user2), 1);
+    }
+
+    /// @notice test startOfWeek
+    function testStartOfWeek() public {
+        /// @dev starts after another week so the startTime is != 0
+        goForward(604801);
+
+        TokenDistributor tokenDistributorOffset = new TokenDistributor(
+            address(kwenta),
+            address(stakingRewardsV2),
+            address(rewardEscrowV2),
+            2
+        );
+
+        /// @dev normally the start of the week would be 608400 but offset of 2
+        /// makes it it 777600 (608400 + 86400 * 2)
+        /// @note the current timestamp is 608402 but the start of the OFFSET week
+        /// is not for another 2 days
+        uint result = tokenDistributorOffset.startOfWeek(block.timestamp);
+        assertEq(result, 777600);
+
+        goForward(172800);
+        uint result2 = tokenDistributorOffset.startOfWeek(block.timestamp);
+        assertEq(result2, 1382400);
+
+        /// @dev this should be passed a normal week but just before the offset
+        /// week so nothing should change
+        goForward(604000);
+        uint result3 = tokenDistributorOffset.startOfWeek(block.timestamp);
+        assertEq(result3, 1382400);
+
+        /// @dev this is a few hundred seconds into a new offset week so should
+        /// be a different start time
+        goForward(1000);
+        uint result4 = tokenDistributorOffset.startOfWeek(block.timestamp);
+        assertEq(result4, 1987200);
     }
 }
