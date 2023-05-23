@@ -1,14 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
-pragma experimental ABIEncoderV2;
 
 // Inheritance
 import "./interfaces/IRewardEscrowV2.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-
-// Libraries
-import "./libraries/SafeDecimalMath.sol";
 
 // Internal references
 import "./interfaces/IKwenta.sol";
@@ -19,8 +15,6 @@ contract RewardEscrowV2 is
     OwnableUpgradeable,
     UUPSUpgradeable
 {
-    using SafeDecimalMath for uint256;
-
     /* ========== CONSTANTS/IMMUTABLES ========== */
 
     /* Max escrow duration */
@@ -224,7 +218,7 @@ contract RewardEscrowV2 is
         uint256 n = endIndex - index;
         VestingEntries.VestingEntryWithID[] memory vestingEntries =
             new VestingEntries.VestingEntryWithID[](n);
-        for (uint256 i; i < n; ++i) {
+        for (uint256 i; i < n; ) {
             uint256 entryID = _ownedEntries[account][i + index];
 
             VestingEntries.VestingEntry memory entry = vestingSchedules[entryID];
@@ -234,6 +228,10 @@ contract RewardEscrowV2 is
                 escrowAmount: entry.escrowAmount,
                 entryID: entryID
             });
+
+            unchecked {
+                ++i;
+            }
         }
         return vestingEntries;
     }
@@ -256,8 +254,12 @@ contract RewardEscrowV2 is
 
         uint256 n = endIndex - index;
         uint256[] memory page = new uint256[](n);
-        for (uint256 i; i < n; ++i) {
+        for (uint256 i; i < n; ) {
             page[i] = _ownedEntries[account][i + index];
+
+            unchecked {
+                ++i;
+            }
         }
         return page;
     }
@@ -269,7 +271,7 @@ contract RewardEscrowV2 is
         returns (uint256 total, uint256 totalFee)
     {
         uint256 entryIDsLength = entryIDs.length;
-        for (uint256 i = 0; i < entryIDsLength; ++i) {
+        for (uint256 i = 0; i < entryIDsLength; ) {
             VestingEntries.VestingEntry memory entry =
                 vestingSchedules[entryIDs[i]];
 
@@ -280,6 +282,10 @@ contract RewardEscrowV2 is
                 /* add quantity to total */
                 total += quantity;
                 totalFee += fee;
+            }
+
+            unchecked {
+                ++i;
             }
         }
     }
@@ -467,10 +473,13 @@ contract RewardEscrowV2 is
     function bulkTransferVestingEntries(
         uint256[] calldata entryIDs,
         address account
-    ) external {
+    ) external override {
         uint256 entryIDsLength = entryIDs.length;
-        for (uint256 i = 0; i < entryIDsLength; ++i) {
+        for (uint256 i = 0; i < entryIDsLength; ) {
             _transferVestingEntry(entryIDs[i], account);
+            unchecked {
+                ++i;
+            }
         }
     }
 

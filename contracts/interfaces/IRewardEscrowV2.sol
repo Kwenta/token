@@ -89,6 +89,8 @@ interface IRewardEscrowV2 {
 
     function transferVestingEntry(uint256 entryID, address account) external;
 
+    function bulkTransferVestingEntries(uint256[] calldata entryIDs, address account) external;
+
     // Errors
     /// @notice An invalid entryID was provided
     /// @param entryID The id of the invalid entry

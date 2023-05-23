@@ -409,6 +409,7 @@ contract StakingRewardsV2 is
         updateReward(account)
     {
         require(amount > 0, "StakingRewards: Cannot stake 0");
+        // TODO: think if there I could do calc just querying rewardEscrow.totalEscrowedAccountBalance to save gas
         uint256 unstakedEscrow = rewardEscrow.unstakedEscrowBalanceOf(account);
         if (amount > unstakedEscrow) {
             revert InsufficientUnstakedEscrow(unstakedEscrow);
