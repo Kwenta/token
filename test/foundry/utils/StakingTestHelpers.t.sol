@@ -292,4 +292,13 @@ contract StakingTestHelpers is StakingSetup {
         return rewardEscrowV2.balanceOf(accountId)
             - stakingRewardsV2.escrowedBalanceOf(accountId);
     }
+
+    /*//////////////////////////////////////////////////////////////
+                        StakingAccount Helpers
+    //////////////////////////////////////////////////////////////*/
+
+    function createStakingAccount(address user) public returns (uint256 userAccount) {
+        vm.prank(user);
+        userAccount = stakingAccount.createAccount();
+    }
 }

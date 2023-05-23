@@ -84,8 +84,7 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
         assertEq(rewardEscrowV1.balanceOf(user1), user1EscrowV1 + user1Earned);
 
         // create a new staking account for user1
-        vm.prank(user1);
-        uint256 user1Account = stakingAccount.createAccount();
+        uint256 user1Account = createStakingAccount(user1);
 
         // check initial v2 state
         assertEq(stakingRewardsV2.balanceOf(user1Account), 0);
