@@ -841,4 +841,34 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         uint256 amountVestedAfterFee = escrowAmount - (escrowAmount * earlyVestingFee / 100);
         assertEq(balanceAfter, balanceBefore + amountVestedAfterFee);
     }
+
+    /*//////////////////////////////////////////////////////////////
+                        Can Vest When Staked
+    //////////////////////////////////////////////////////////////*/
+
+    function test_Can_Vest_When_Escrow_Staked_Within_Cooldown() public {
+        uint256 escrowAmount = 1 ether;
+        uint256 duration = 52 weeks;
+        uint8 earlyVestingFee = 20;
+
+        // create entry
+        createRewardEscrowEntryV2(user1, escrowAmount, duration, earlyVestingFee);
+        uint256 balanceBefore = kwenta.balanceOf(user1);
+
+        // stake escrow
+        vm.prank(user1);
+        rewardEscrowV2.stakeEscrow(escrowAmount);
+
+        // vest entry
+        entryIDs.push(1);
+        vm.prank(user1);
+        rewardEscrowV2.vest(entryIDs);
+
+        // check vested balance
+        uint256 balanceAfter = kwenta.balanceOf(user1);
+        uint256 amountVestedAfterFee = escrowAmount - (escrowAmount * earlyVestingFee / 100);
+        assertEq(balanceAfter, balanceBefore + amountVestedAfterFee);
+    }
+
+
 }

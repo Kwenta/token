@@ -70,6 +70,8 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
     }
 
     function test_Only_RewardEscrowCan_Call_unStakeEscrow() public {
+        stakeEscrowedFundsV2(address(this), TEST_VALUE);
+        vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
         vm.expectRevert("StakingRewards: Only Reward Escrow");
         stakingRewardsV2.unstakeEscrow(address(this), TEST_VALUE);
     }
