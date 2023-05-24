@@ -6,7 +6,7 @@ interface ITokenDistributor {
     // View Functions
 
     /// @notice view function for calculating fees for an epoch
-    function calculateEpochFees() external view returns(uint256);
+    function calculateEpochFees(address to, uint epochNumber) external view returns(uint256);
 
     // Mutative Functions
 
