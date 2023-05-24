@@ -4,31 +4,11 @@ pragma solidity ^0.8.0;
 import {StakingRewardsV2} from "./StakingRewardsV2.sol";
 import {RewardEscrowV2} from "./RewardEscrowV2.sol";
 import {IKwenta} from "./interfaces/IKwenta.sol";
+import {ITokenDistributor} from "./interfaces/ITokenDistributor.sol";
 
-contract TokenDistributor {
+contract TokenDistributor is ITokenDistributor {
     /// @notice event for a new checkpoint
     event CheckpointToken(uint time, uint tokens);
-
-    /// @notice error when offset is more than 7 days
-    error OffsetTooBig();
-
-    /// @notice error when user tries to create a new distribution too soon
-    error LastEpochHasntEnded();
-
-    /// @notice error when user tries to claim a distribution too soon
-    error CannotClaimYet();
-
-    /// @notice error when user tries to claim in new distribution block
-    error CannotClaimInNewEpochBlock();
-
-    /// @notice error when user tries to claim for same epoch twice
-    error CannotClaimTwice();
-
-    /// @notice error when user tries to claim for epoch with 0 staking
-    error NothingStakedThatEpoch();
-
-    /// @notice error when user tries to claim 0 fees
-    error CannotClaim0Fees();
 
     /// @notice represents the status of if a person already
     /// claimed their epoch
@@ -79,7 +59,7 @@ contract TokenDistributor {
         lastCheckpoint = _t;
     }
 
-    function checkpointToken() public {
+    function checkpointToken() public override {
         uint tokenBalance = kwenta.balanceOf(address(this));
         uint toDistribute = tokenBalance - lastTokenBalance;
         lastTokenBalance = tokenBalance;
@@ -128,7 +108,7 @@ contract TokenDistributor {
 
     /// @notice this function will fetch StakingRewardsV2 to see what their staked balance
     /// was at the start of the epoch then calculate proportional fees and transfer to user
-    function claimEpoch(address to, uint epochNumber) public returns (uint256) {
+    function claimEpoch(address to, uint epochNumber) public override returns (uint256) {
         /// @dev if more than 24 hours from last checkpoint OR if it is the first
         /// claim of the week. second condition is so that the end of a week always
         /// gets updated before its claimed.
@@ -182,7 +162,7 @@ contract TokenDistributor {
     function calculateEpochFees(
         address to,
         uint epochNumber
-    ) public view returns (uint256) {
+    ) public view override returns (uint256) {
         uint thisWeek = (epochNumber * 1 weeks) + startTime; //todo: clarity
         //todo: make this into function
         uint256 userStaked = stakingRewardsV2.balanceAtTime(to, thisWeek);
@@ -200,4 +180,5 @@ contract TokenDistributor {
     function startOfWeek(uint timestamp) public view returns (uint) {
         return ((timestamp - offset) / 1 weeks * 1 weeks) + offset;
     }
+    //todo: make internal
 }
