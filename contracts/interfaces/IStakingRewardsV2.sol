@@ -33,6 +33,7 @@ interface IStakingRewardsV2 {
     function stake(uint256 amount) external;
     function unstake(uint256 amount) external;
     function stakeEscrow(address account, uint256 amount) external;
+    function unstakeEscrowSkipCooldown(address account, uint256 amount) external;
     function unstakeEscrow(address account, uint256 amount) external;
     function stakeEscrowOnBehalf(address account, uint256 amount) external;
     function exit() external;

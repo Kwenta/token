@@ -356,7 +356,7 @@ contract RewardEscrowV2 is
                 uint256 unstakedEscrow = unstakedEscrowBalanceOf(msg.sender);
                 if (totalWithFee > unstakedEscrow) {
                     uint256 amountToUnstake = totalWithFee - unstakedEscrow;
-                    unstakeEscrow(amountToUnstake);
+                    stakingRewardsV2.unstakeEscrowSkipCooldown(msg.sender, amountToUnstake);
                 }
             }
 

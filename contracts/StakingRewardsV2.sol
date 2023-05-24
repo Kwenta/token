@@ -441,6 +441,10 @@ contract StakingRewardsV2 is
         _stakeEscrow(account, amount);
     }
 
+    function unstakeEscrowSkipCooldown(address account, uint256 amount) external override {
+        _unstakeEscrow(account, amount);
+    }
+
     /// @notice unstake escrowed token
     /// @param account: address which owns token
     /// @param amount: amount to unstake
@@ -449,10 +453,16 @@ contract StakingRewardsV2 is
     function unstakeEscrow(address account, uint256 amount)
         external
         override
+        afterCooldown(account)
+    {
+        _unstakeEscrow(account, amount);
+    }
+
+    function _unstakeEscrow(address account, uint256 amount)
+        internal
         nonReentrant
         onlyRewardEscrow
         updateReward(account)
-        afterCooldown(account)
     {
         require(amount > 0, "StakingRewards: Cannot Unstake 0");
         require(
