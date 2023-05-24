@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.19;
 
+import {ITokenDistributor} from "../../../contracts/interfaces/ITokenDistributor.sol";
 import {TokenDistributor} from "../../../contracts/TokenDistributor.sol";
 import {Kwenta} from "../../../contracts/Kwenta.sol";
 import {StakingRewardsV2} from "../../../contracts/StakingRewardsV2.sol";
@@ -115,7 +116,7 @@ contract TokenDistributorTest is StakingSetup {
 
         goForward(304801);
         vm.expectRevert(
-            abi.encodeWithSelector(TokenDistributor.CannotClaimYet.selector)
+            abi.encodeWithSelector(ITokenDistributor.CannotClaimYet.selector)
         );
         tokenDistributor.claimEpoch(address(user1), 0);
     }
@@ -124,7 +125,7 @@ contract TokenDistributorTest is StakingSetup {
     function testClaimEpochAhead() public {
         vm.startPrank(user1);
         vm.expectRevert(
-            abi.encodeWithSelector(TokenDistributor.CannotClaimYet.selector)
+            abi.encodeWithSelector(ITokenDistributor.CannotClaimYet.selector)
         );
         tokenDistributor.claimEpoch(address(user1), 7);
     }
@@ -133,7 +134,7 @@ contract TokenDistributorTest is StakingSetup {
     function testClaimNoEpochYet() public {
         vm.startPrank(user1);
         vm.expectRevert(
-            abi.encodeWithSelector(TokenDistributor.CannotClaimYet.selector)
+            abi.encodeWithSelector(ITokenDistributor.CannotClaimYet.selector)
         );
         tokenDistributor.claimEpoch(address(user1), 0);
     }
@@ -152,7 +153,7 @@ contract TokenDistributorTest is StakingSetup {
         tokenDistributor.claimEpoch(address(user1), 1);
 
         vm.expectRevert(
-            abi.encodeWithSelector(TokenDistributor.CannotClaimTwice.selector)
+            abi.encodeWithSelector(ITokenDistributor.CannotClaimTwice.selector)
         );
         tokenDistributor.claimEpoch(address(user1), 1);
     }
@@ -165,7 +166,7 @@ contract TokenDistributorTest is StakingSetup {
         goForward(604801);
         vm.expectRevert(
             abi.encodeWithSelector(
-                TokenDistributor.NothingStakedThatEpoch.selector
+                ITokenDistributor.NothingStakedThatEpoch.selector
             )
         );
         tokenDistributor.claimEpoch(address(user1), 0);
@@ -186,7 +187,7 @@ contract TokenDistributorTest is StakingSetup {
 
         tokenDistributor.claimEpoch(address(user1), 1);
         vm.expectRevert(
-            abi.encodeWithSelector(TokenDistributor.CannotClaim0Fees.selector)
+            abi.encodeWithSelector(ITokenDistributor.CannotClaim0Fees.selector)
         );
         tokenDistributor.claimEpoch(address(user2), 1);
     }
