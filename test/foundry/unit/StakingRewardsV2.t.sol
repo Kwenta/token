@@ -88,6 +88,9 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
 
         vm.expectRevert("StakingRewards: Invalid Amount");
         unstakeEscrowedFundsV2(address(this), TEST_VALUE);
+
+        vm.expectRevert("StakingRewards: Invalid Amount");
+        unstakeEscrowSkipCooldownFundsV2(address(this), TEST_VALUE);
     }
 
     function test_Only_Owner_Can_Pause_Contract() public {
@@ -705,6 +708,9 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
 
         vm.expectRevert("StakingRewards: Invalid Amount");
         unstakeEscrowedFundsV2(address(this), TEST_VALUE);
+
+        vm.expectRevert("StakingRewards: Invalid Amount");
+        unstakeEscrowSkipCooldownFundsV2(address(this), TEST_VALUE);
     }
 
     function test_unstakeEscrow_Does_Not_Change_Token_Balances() public {
@@ -720,6 +726,26 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
 
         // unstake escrow
         unstakeEscrowedFundsV2(address(this), 1 weeks);
+
+        uint256 finalTokenBalance = kwenta.balanceOf(address(this));
+        uint256 finalEscrowTokenBalance =
+            kwenta.balanceOf(address(rewardEscrowV2));
+
+        // check both values unchanged
+        assertEq(initialTokenBalance, finalTokenBalance);
+        assertEq(initialEscrowTokenBalance, finalEscrowTokenBalance);
+    }
+
+    function test_unstakeEscrowSkipCooldown_Does_Not_Change_Token_Balances() public {
+        // stake escrow
+        stakeEscrowedFundsV2(address(this), 1 weeks);
+
+        uint256 initialTokenBalance = kwenta.balanceOf(address(this));
+        uint256 initialEscrowTokenBalance =
+            kwenta.balanceOf(address(rewardEscrowV2));
+
+        // unstake escrow
+        unstakeEscrowSkipCooldownFundsV2(address(this), 1 weeks);
 
         uint256 finalTokenBalance = kwenta.balanceOf(address(this));
         uint256 finalEscrowTokenBalance =
@@ -748,6 +774,21 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         assertEq(initialTotalSupply - 1 weeks, finalTotalSupply);
     }
 
+    function test_unstakeEscrowSkipCooldown_Does_Change_totalSupply() public {
+        // stake escrow
+        stakeEscrowedFundsV2(address(this), 1 weeks);
+
+        uint256 initialTotalSupply = stakingRewardsV2.totalSupply();
+
+        // unstake escrow
+        unstakeEscrowSkipCooldownFundsV2(address(this), 1 weeks);
+
+        uint256 finalTotalSupply = stakingRewardsV2.totalSupply();
+
+        // check total supply decreased
+        assertEq(initialTotalSupply - 1 weeks, finalTotalSupply);
+    }
+
     function test_unstakeEscrow_Does_Change_Balances_Mapping() public {
         // stake escrow
         stakeEscrowedFundsV2(address(this), 1 weeks);
@@ -759,6 +800,21 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
 
         // unstake escrow
         unstakeEscrowedFundsV2(address(this), 1 weeks);
+
+        uint256 finalBalance = stakingRewardsV2.balanceOf(address(this));
+
+        // check balance decreased
+        assertEq(initialBalance - 1 weeks, finalBalance);
+    }
+
+    function test_unstakeEscrowSkipCooldown_Does_Change_Balances_Mapping() public {
+        // stake escrow
+        stakeEscrowedFundsV2(address(this), 1 weeks);
+
+        uint256 initialBalance = stakingRewardsV2.balanceOf(address(this));
+
+        // unstake escrow
+        unstakeEscrowSkipCooldownFundsV2(address(this), 1 weeks);
 
         uint256 finalBalance = stakingRewardsV2.balanceOf(address(this));
 
@@ -788,6 +844,25 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         assertEq(initialEscrowBalance - 1 weeks, finalEscrowBalance);
     }
 
+    function test_unstakeEscrowSkipCooldown_Does_Change_Escrowed_Balances_Mapping()
+        public
+    {
+        // stake escrow
+        stakeEscrowedFundsV2(address(this), 1 weeks);
+
+        uint256 initialEscrowBalance =
+            stakingRewardsV2.escrowedBalanceOf(address(this));
+
+        // unstake escrow
+        unstakeEscrowSkipCooldownFundsV2(address(this), 1 weeks);
+
+        uint256 finalEscrowBalance =
+            stakingRewardsV2.escrowedBalanceOf(address(this));
+
+        // check balance decreased
+        assertEq(initialEscrowBalance - 1 weeks, finalEscrowBalance);
+    }
+
     function test_Cannot_unstakeEscrow_More_Than_Escrow_Staked() public {
         // stake escrow
         stakeEscrowedFundsV2(address(this), 1 weeks);
@@ -797,6 +872,10 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         // unstake more escrow
         vm.expectRevert("StakingRewards: Invalid Amount");
         unstakeEscrowedFundsV2(address(this), 2 weeks);
+
+        // unstake more escrow
+        vm.expectRevert("StakingRewards: Invalid Amount");
+        unstakeEscrowSkipCooldownFundsV2(address(this), 2 weeks);
     }
 
     function test_Cannot_unstakeEscrow_0() public {
@@ -808,6 +887,10 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         // unstake 0 escrow
         vm.expectRevert("StakingRewards: Cannot Unstake 0");
         unstakeEscrowedFundsV2(address(this), 0);
+
+        // unstake 0 escrow
+        vm.expectRevert("StakingRewards: Cannot Unstake 0");
+        unstakeEscrowSkipCooldownFundsV2(address(this), 0);
     }
 
     /*//////////////////////////////////////////////////////////////

@@ -225,6 +225,11 @@ contract StakingTestHelpers is StakingSetup {
         stakingRewardsV2.unstakeEscrow(account, amount);
     }
 
+    function unstakeEscrowSkipCooldownFundsV2(address account, uint256 amount) public {
+        vm.prank(address(rewardEscrowV2));
+        stakingRewardsV2.unstakeEscrowSkipCooldown(account, amount);
+    }
+
     function createRewardEscrowEntryV2(
         address account,
         uint256 amount,
