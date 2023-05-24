@@ -47,6 +47,9 @@ contract TokenDistributorTest is StakingSetup {
         tokenDistributor.checkpointToken();
     }
 
+    //todo: test checkpointing in more cases, look at velo or curve
+    // take their tests and convert it to forge
+
     /// @notice claimEpoch happy case
     function testClaimEpoch() public {
         //setup
@@ -271,6 +274,10 @@ contract TokenDistributorTest is StakingSetup {
         );
     }
 
+    //todo: next level fuzz: fuzz the amount that they stake, and fuzz the users, fuzz the time
+
+    //todo: double check if multiple weeks are missed
+
     /// @notice test calculate epoch fees for returning 0
     /// when total staked == 0
     function testCalculateEpochFees0() public {
@@ -392,6 +399,8 @@ contract TokenDistributorTest is StakingSetup {
         tokenDistributor.claimEpoch(address(user1), 1);
     }
 
+    //todo: go deeper with fuzzing
+
     /// @notice test everything with a custom offset
     function testOffset() public {
         TokenDistributor tokenDistributorOffset = new TokenDistributor(
@@ -466,4 +475,9 @@ contract TokenDistributorTest is StakingSetup {
         uint result4 = tokenDistributorOffset.startOfWeek(block.timestamp);
         assertEq(result4, 1987200);
     }
+    //todo: fuzz test offsetting
+
+    //todo: test how many weeks we can go without - how much gas will it cost
+
+    //todo: change seconds to 1 weeks or 1 days
 }

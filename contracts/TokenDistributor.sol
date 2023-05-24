@@ -54,6 +54,7 @@ contract TokenDistributor {
 
     /// @notice array for tokens allocated to each epoch
     uint[1000000000000000] public tokensPerEpoch;
+    //todo: look at that^
 
     /// @notice the week offset in seconds
     uint public offset;
@@ -90,8 +91,8 @@ contract TokenDistributor {
         uint nextWeek = 0;
 
         /// @dev Loop for potential missed weeks
-        /// iterates until caught up, unlikely to go to 20
-        for (uint i = 0; i < 20; i++) {
+        /// iterates until caught up, unlikely to go to 52
+        for (uint i = 0; i < 52; i++) {
             nextWeek = thisWeek + 1 weeks;
 
             if (block.timestamp < nextWeek) {
@@ -132,8 +133,8 @@ contract TokenDistributor {
         /// claim of the week. second condition is so that the end of a week always
         /// gets updated before its claimed.
         if (
-            (block.timestamp - lastCheckpoint > 86400) ||
-            ((block.timestamp - startOfWeek(lastCheckpoint)) > 604800)
+            (block.timestamp - lastCheckpoint > 1 days) ||
+            ((block.timestamp - startOfWeek(lastCheckpoint)) > 1 weeks) //todo: break up if statement
         ) {
             checkpointToken();
         }
@@ -162,8 +163,11 @@ contract TokenDistributor {
 
         kwenta.approve(address(rewardEscrowV2), proportionalFees);
         rewardEscrowV2.createEscrowEntry(to, proportionalFees, 52 weeks, 90);
-
+        //todo: remove return
         return proportionalFees;
+        //todo: events
+
+        //todo: make interface
     }
 
     /// @notice claim many epochs at once
@@ -179,7 +183,8 @@ contract TokenDistributor {
         address to,
         uint epochNumber
     ) public view returns (uint256) {
-        uint thisWeek = (epochNumber * 1 weeks) + startTime;
+        uint thisWeek = (epochNumber * 1 weeks) + startTime; //todo: clarity
+        //todo: make this into function
         uint256 userStaked = stakingRewardsV2.balanceAtTime(to, thisWeek);
         uint256 totalStaked = stakingRewardsV2.totalSupplyAtTime(thisWeek);
         if (totalStaked == 0) {
