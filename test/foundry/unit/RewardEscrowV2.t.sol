@@ -870,5 +870,40 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         assertEq(balanceAfter, balanceBefore + amountVestedAfterFee);
     }
 
+    function test_Can_Vest_When_Escrow_Staked_Within_Cooldown_Fuzz(
+        uint32 _escrowAmount,
+        uint32 _stakingAmount,
+        uint24 _duration,
+        uint8 _earlyVestingFee
+    ) public {
+        uint256 escrowAmount = _escrowAmount;
+        uint256 stakingAmount = _stakingAmount;
+        uint256 duration = _duration;
+        uint8 earlyVestingFee = _earlyVestingFee;
+
+        vm.assume(escrowAmount > 0);
+        vm.assume(stakingAmount > 0);
+        vm.assume(stakingAmount <= escrowAmount);
+        vm.assume(duration > 0);
+        vm.assume(earlyVestingFee <= 100);
+
+        // create entry
+        createRewardEscrowEntryV2(user1, escrowAmount, duration, earlyVestingFee);
+        uint256 balanceBefore = kwenta.balanceOf(user1);
+
+        // stake escrow
+        vm.prank(user1);
+        rewardEscrowV2.stakeEscrow(escrowAmount);
+
+        // vest entry
+        entryIDs.push(1);
+        vm.prank(user1);
+        rewardEscrowV2.vest(entryIDs);
+
+        // check vested balance
+        uint256 balanceAfter = kwenta.balanceOf(user1);
+        uint256 amountVestedAfterFee = escrowAmount - (escrowAmount * earlyVestingFee / 100);
+        assertEq(balanceAfter, balanceBefore + amountVestedAfterFee);
+    }
 
 }
