@@ -10,6 +10,9 @@ contract TokenDistributor is ITokenDistributor {
     /// @notice event for a new checkpoint
     event CheckpointToken(uint time, uint tokens);
 
+    /// @notice event for a epoch that gets claimed
+    event EpochClaim(address user, uint epoch, uint tokens);
+
     /// @notice represents the status of if a person already
     /// claimed their epoch
     mapping(address => mapping(uint => bool)) public claimedEpochs;
@@ -108,7 +111,7 @@ contract TokenDistributor is ITokenDistributor {
 
     /// @notice this function will fetch StakingRewardsV2 to see what their staked balance
     /// was at the start of the epoch then calculate proportional fees and transfer to user
-    function claimEpoch(address to, uint epochNumber) public override returns (uint256) {
+    function claimEpoch(address to, uint epochNumber) public override {
         /// @dev if more than 24 hours from last checkpoint OR if it is the first
         /// claim of the week. second condition is so that the end of a week always
         /// gets updated before its claimed.
@@ -143,9 +146,8 @@ contract TokenDistributor is ITokenDistributor {
 
         kwenta.approve(address(rewardEscrowV2), proportionalFees);
         rewardEscrowV2.createEscrowEntry(to, proportionalFees, 52 weeks, 90);
-        //todo: remove return
-        return proportionalFees;
-        //todo: events
+        
+        emit EpochClaim(to, epochNumber, proportionalFees);
 
         //todo: make interface
     }

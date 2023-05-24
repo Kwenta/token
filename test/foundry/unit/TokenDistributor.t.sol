@@ -481,4 +481,6 @@ contract TokenDistributorTest is StakingSetup {
     //todo: test how many weeks we can go without - how much gas will it cost
 
     //todo: change seconds to 1 weeks or 1 days
+
+    //todo: test the new EpochClaim event
 }

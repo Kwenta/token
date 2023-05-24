@@ -12,7 +12,7 @@ interface ITokenDistributor {
 
     function checkpointToken() external;
 
-    function claimEpoch(address to, uint epochNumber) external returns (uint256);
+    function claimEpoch(address to, uint epochNumber) external;
 
     function claimMany(address to, uint[] memory epochs) external;
 
