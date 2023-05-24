@@ -146,10 +146,8 @@ contract TokenDistributor is ITokenDistributor {
 
         kwenta.approve(address(rewardEscrowV2), proportionalFees);
         rewardEscrowV2.createEscrowEntry(to, proportionalFees, 52 weeks, 90);
-        
-        emit EpochClaim(to, epochNumber, proportionalFees);
 
-        //todo: make interface
+        emit EpochClaim(to, epochNumber, proportionalFees);
     }
 
     /// @notice claim many epochs at once
@@ -180,7 +178,7 @@ contract TokenDistributor is ITokenDistributor {
 
     /// @notice function for calculating the start of a week with an offset
     function startOfWeek(uint timestamp) public view returns (uint) {
-        return ((timestamp - offset) / 1 weeks * 1 weeks) + offset;
+        return (((timestamp - offset) / 1 weeks) * 1 weeks) + offset;
     }
     //todo: make internal
 }

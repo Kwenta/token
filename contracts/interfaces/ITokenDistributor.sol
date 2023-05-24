@@ -2,11 +2,13 @@
 pragma solidity ^0.8.19;
 
 interface ITokenDistributor {
-
     // View Functions
 
     /// @notice view function for calculating fees for an epoch
-    function calculateEpochFees(address to, uint epochNumber) external view returns(uint256);
+    function calculateEpochFees(
+        address to,
+        uint epochNumber
+    ) external view returns (uint256);
 
     // Mutative Functions
 
@@ -16,8 +18,6 @@ interface ITokenDistributor {
 
     function claimMany(address to, uint[] memory epochs) external;
 
-
-    
     // Errors
 
     /// @notice error when offset is more than 7 days
@@ -40,5 +40,4 @@ interface ITokenDistributor {
 
     /// @notice error when user tries to claim 0 fees
     error CannotClaim0Fees();
-
 }
