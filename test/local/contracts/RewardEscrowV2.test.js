@@ -1858,9 +1858,9 @@ contract(
 
                 await fastForward(YEAR);
                 await rewardEscrowV2.vest([1], { from: staker1 });
-                expect(stakingRewardsV2Smock.unstakeEscrow).to.have.callCount(1);
+                expect(stakingRewardsV2Smock.unstakeEscrowSkipCooldown).to.have.callCount(1);
                 expect(
-                    stakingRewardsV2Smock.unstakeEscrow
+                    stakingRewardsV2Smock.unstakeEscrowSkipCooldown
                 ).to.have.been.calledWith(staker1, escrowAmount);
             });
 
@@ -1883,7 +1883,7 @@ contract(
                 await fastForward(YEAR / 2);
                 await rewardEscrowV2.vest([1], { from: staker1 });
                 expect(
-                    stakingRewardsV2Smock.unstakeEscrow
+                    stakingRewardsV2Smock.unstakeEscrowSkipCooldown
                 ).to.have.been.calledWith(staker1, escrowAmount);
                 assert.equal(await rewardEscrowV2.totalEscrowBalanceOf(staker1), 0);
             });
