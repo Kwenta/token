@@ -21,7 +21,7 @@ contract StakingRewardsOnBehalfActionsTests is DefaultStakingV2Setup {
 
         // claim rewards on behalf as user2
         vm.prank(user2);
-        vm.expectRevert(IStakingRewardsV2.NotApprovedOperator.selector);
+        vm.expectRevert(IStakingRewardsV2.NotApproved.selector);
         stakingRewardsV2.getRewardOnBehalf(address(this));
     }
 
@@ -51,7 +51,7 @@ contract StakingRewardsOnBehalfActionsTests is DefaultStakingV2Setup {
 
         // claim rewards on behalf as user2
         vm.prank(caller);
-        vm.expectRevert(IStakingRewardsV2.NotApprovedOperator.selector);
+        vm.expectRevert(IStakingRewardsV2.NotApproved.selector);
         stakingRewardsV2.getRewardOnBehalf(address(this));
     }
 
@@ -63,7 +63,7 @@ contract StakingRewardsOnBehalfActionsTests is DefaultStakingV2Setup {
 
         // stake escrow on behalf as user2
         vm.prank(user2);
-        vm.expectRevert(IStakingRewardsV2.NotApprovedOperator.selector);
+        vm.expectRevert(IStakingRewardsV2.NotApproved.selector);
         stakingRewardsV2.stakeEscrowOnBehalf(address(this), TEST_VALUE);
     }
 
@@ -91,7 +91,7 @@ contract StakingRewardsOnBehalfActionsTests is DefaultStakingV2Setup {
 
         // stake escrow on behalf as user2
         vm.prank(caller);
-        vm.expectRevert(IStakingRewardsV2.NotApprovedOperator.selector);
+        vm.expectRevert(IStakingRewardsV2.NotApproved.selector);
         stakingRewardsV2.stakeEscrowOnBehalf(owner, escrowAmount);
     }
 

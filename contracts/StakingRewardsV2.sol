@@ -113,7 +113,7 @@ contract StakingRewardsV2 is
     /// @notice access control modifier for approved operators
     modifier onlyApprovedOperator(address owner) {
         if (!_operatorApprovals[owner][msg.sender]) {
-            revert NotApprovedOperator();
+            revert NotApproved();
         }
         _;
     }

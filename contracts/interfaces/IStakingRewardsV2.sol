@@ -154,7 +154,7 @@ interface IStakingRewardsV2 {
     error InsufficientUnstakedEscrow(uint256 unstakedEscrow);
 
     /// @notice the caller is not approved to take this action
-    error NotApprovedOperator();
+    error NotApproved();
 
     /// @notice attempted to approve self as an operator
     error CannotApproveSelf();
