@@ -4,6 +4,7 @@ pragma solidity ^0.8.19;
 import "forge-std/Test.sol";
 import {DefaultStakingV2Setup} from "../utils/DefaultStakingV2Setup.t.sol";
 import {IRewardEscrowV2, VestingEntries} from "../../../contracts/interfaces/IRewardEscrowV2.sol";
+import {IStakingRewardsV2} from "../../../contracts/interfaces/IStakingRewardsV2.sol";
 import "../utils/Constants.t.sol";
 
 contract RewardEscrowV2Tests is DefaultStakingV2Setup {
@@ -671,7 +672,8 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     function test_Should_Return_Schedules() public {
         createXEntries(260);
 
-        VestingEntries.VestingEntryWithID[] memory entries = rewardEscrowV2.getVestingSchedules(address(this), 0, 300);
+        VestingEntries.VestingEntryWithID[] memory entries =
+            rewardEscrowV2.getVestingSchedules(address(this), 0, 300);
 
         assertEq(entries.length, 260);
     }
@@ -690,6 +692,17 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         uint256[] memory entries = rewardEscrowV2.getAccountVestingEntryIDs(address(this), 130, 300);
 
         assertEq(entries.length, 130);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                            Staking Escrow
+    //////////////////////////////////////////////////////////////*/
+
+    function test_Should_Revert_If_Staker_Has_No_Escrow() public {
+        vm.expectRevert(
+            abi.encodeWithSelector(IStakingRewardsV2.InsufficientUnstakedEscrow.selector, 0)
+        );
+        rewardEscrowV2.stakeEscrow(1 ether);
     }
 
     /*//////////////////////////////////////////////////////////////
