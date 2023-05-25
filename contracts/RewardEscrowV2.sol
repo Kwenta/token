@@ -453,10 +453,7 @@ contract RewardEscrowV2 is
     {
         /* No empty or already-passed vesting entries allowed. */
         if (quantity == 0) revert ZeroAmount();
-        require(
-            duration > 0 && duration <= MAX_DURATION,
-            "Cannot escrow with 0 duration OR above max_duration"
-        );
+        if (duration == 0 || duration > MAX_DURATION) revert InvalidDuration();
         if (earlyVestingFee > 100) revert MaxEarlyVestingFeeIs100();
 
         /* There must be enough balance in the contract to provide for the vesting entry. */
