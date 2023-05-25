@@ -351,5 +351,17 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
                                 Vesting
     //////////////////////////////////////////////////////////////*/
 
-    // function
+    function test_Should_Vest_0_If_EntryID_Does_Not_Exist() public {
+        appendRewardEscrowEntryV2(address(this), 1000 ether, 52 weeks);
+        vm.warp(block.timestamp + 26 weeks);
+
+        entryIDs.push(200);
+        rewardEscrowV2.vest(entryIDs);
+
+        assertEq(rewardEscrowV2.totalVestedAccountBalance(address(this)), 0);
+        assertEq(kwenta.balanceOf(address(this)), 0);
+        assertEq(rewardEscrowV2.totalEscrowedAccountBalance(address(this)), 1000 ether);)
+    }
+
+    // TODO: test vesting failure do to failed token transfer by transfering kwenta out of reward escrow using vm.prank
 }
