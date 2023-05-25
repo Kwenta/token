@@ -142,12 +142,12 @@ interface IStakingRewardsV2 {
     error MustWaitForUnlock(uint256 canUnstakeAt);
 
     /// @notice error when trying to set a cooldown period below the minimum
-    /// @param MIN_COOLDOWN_PERIOD minimum cooldown period
-    error CooldownPeriodTooLow(uint256 MIN_COOLDOWN_PERIOD);
+    /// @param minCooldownPeriod minimum cooldown period
+    error CooldownPeriodTooLow(uint256 minCooldownPeriod);
 
     /// @notice error when trying to set a cooldown period above the maximum
-    /// @param MAX_COOLDOWN_PERIOD maximum cooldown period
-    error CooldownPeriodTooHigh(uint256 MAX_COOLDOWN_PERIOD);
+    /// @param maxCooldownPeriod maximum cooldown period
+    error CooldownPeriodTooHigh(uint256 maxCooldownPeriod);
 
     /// @notice error when trying to stakeEscrow more than the unstakedEscrow available
     /// @param unstakedEscrow amount of unstaked escrow
