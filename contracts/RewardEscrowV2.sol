@@ -62,14 +62,6 @@ contract RewardEscrowV2 is
         _;
     }
 
-    /* ========== EVENTS ========== */
-    event Vested(address indexed beneficiary, uint256 value);
-    event VestingEntryCreated(
-        address indexed beneficiary, uint256 value, uint256 duration, uint256 entryID
-    );
-    event StakingRewardsSet(address stakingRewardsV2);
-    event TreasuryDAOSet(address treasuryDAO);
-
     /* ========== CONSTRUCTOR ========== */
 
     /// @dev disable default constructor for disable implementation contract

@@ -68,6 +68,14 @@ interface IRewardEscrowV2 {
 
     function bulkTransferFrom(address from, address to, uint256[] calldata entryIDs) external;
 
+    /* ========== EVENTS ========== */
+    event Vested(address indexed beneficiary, uint256 value);
+    event VestingEntryCreated(
+        address indexed beneficiary, uint256 value, uint256 duration, uint256 entryID
+    );
+    event StakingRewardsSet(address stakingRewardsV2);
+    event TreasuryDAOSet(address treasuryDAO);
+
     // Errors
     /// @notice Insufficient unstaked escrow to facilitate transfer
     /// @param entryID the id of the entry that couldn't be transferred
