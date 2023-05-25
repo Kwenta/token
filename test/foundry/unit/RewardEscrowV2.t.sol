@@ -18,4 +18,8 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     function test_Should_Set_Owner() public {
         assertEq(address(rewardEscrowV2.owner()), address(this));
     }
+
+    function test_Should_Set_StakingRewards() public {
+        assertEq(address(rewardEscrowV2.stakingRewardsV2()), address(stakingRewardsV2));
+    }
 }
