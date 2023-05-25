@@ -25,6 +25,7 @@ contract StakingTestHelpers is StakingSetup {
     event OperatorApproved(address owner, address operator, bool approved);
     event RewardPaid(address indexed account, uint256 reward);
     event EscrowStaked(address indexed user, uint256 amount);
+    event Vested(address indexed beneficiary, uint256 value);
 
     /*//////////////////////////////////////////////////////////////
                         Reward Calculation Helpers
