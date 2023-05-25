@@ -153,4 +153,13 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         (uint256 claimable,) = rewardEscrowV2.getVestingEntryClaimable(1);
         assertEq(claimable, 11 ether / 2);
     }
+
+    function test_Correct_Amount_Claimable_After_1_Year() public {
+        appendRewardEscrowEntryV2(address(this), 10 ether, 52 weeks);
+
+        vm.warp(block.timestamp + 52 weeks);
+
+        (uint256 claimable,) = rewardEscrowV2.getVestingEntryClaimable(1);
+        assertEq(claimable, 10 ether);
+    }
 }
