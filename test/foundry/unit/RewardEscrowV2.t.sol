@@ -105,6 +105,14 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         rewardEscrowV2.appendVestingEntry(address(this), 1 ether, maxDuration + 1);
     }
 
+    function test_appendVestingEntry_Should_Revert_If_Beneficiary_Address_Is_Zero() public {
+        vm.prank(treasury);
+        kwenta.transfer(address(rewardEscrowV2), 1 ether);
+        vm.prank(address(stakingRewardsV2));
+        vm.expectRevert("ERC721: mint to the zero address");
+        rewardEscrowV2.appendVestingEntry(address(0), 1 ether, 52 weeks);
+    }
+
     /*//////////////////////////////////////////////////////////////
                         Appending Vesting Schedules
     //////////////////////////////////////////////////////////////*/
@@ -244,5 +252,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         vm.prank(treasury);
         rewardEscrowV2.createEscrowEntry(address(this), 1 ether, 52 weeks, 101);
     }
+
+
 
 }
