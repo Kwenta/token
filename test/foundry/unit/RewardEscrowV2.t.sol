@@ -71,15 +71,22 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
                         Appending Vesting Schedules
     //////////////////////////////////////////////////////////////*/
 
+    // TODO: ensure tested for createVestingEntry
     function test_Should_Not_Append_Entries_With_0_Amount() public {
         vm.expectRevert(IRewardEscrowV2.ZeroAmount.selector);
         vm.prank(address(stakingRewardsV2));
         rewardEscrowV2.appendVestingEntry(address(this), 0, 52 weeks);
     }
 
+    // TODO: ensure tested for createVestingEntry
     function test_Should_Not_Create_A_Vesting_Entry_Insufficient_Kwenta() public {
         vm.expectRevert(IRewardEscrowV2.InsufficientBalance.selector);
         vm.prank(address(stakingRewardsV2));
+        rewardEscrowV2.appendVestingEntry(address(this), 1 ether, 52 weeks);
+    }
+
+    function test_Should_Revert_If_Not_StakingRewards() public {
+        vm.expectRevert(IRewardEscrowV2.OnlyStakingRewards.selector);
         rewardEscrowV2.appendVestingEntry(address(this), 1 ether, 52 weeks);
     }
 }
