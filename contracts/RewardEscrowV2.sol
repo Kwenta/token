@@ -32,6 +32,7 @@ contract RewardEscrowV2 is
 
     /* ========== STATE VARIABLES ========== */
 
+    // TODO: update to stakingRewards with V2 on the end
     IStakingRewardsV2 public stakingRewardsV2;
 
     // mapping of entryIDs to vesting entries
@@ -327,6 +328,8 @@ contract RewardEscrowV2 is
             // Send any fee to Treasury
             if (totalFee != 0) {
                 _reduceAccountEscrowBalances(msg.sender, totalFee);
+                // TODO: add this in
+                // if (!kwenta.transfer(treasuryDAO, totalFee)) revert TransferFailed();
                 require(
                     kwenta.transfer(treasuryDAO, totalFee), "RewardEscrow: Token Transfer Failed"
                 );
@@ -449,7 +452,7 @@ contract RewardEscrowV2 is
         internal
     {
         /* No empty or already-passed vesting entries allowed. */
-        require(quantity != 0, "Quantity cannot be zero");
+        if (quantity == 0) revert ZeroAmount();
         require(
             duration > 0 && duration <= MAX_DURATION,
             "Cannot escrow with 0 duration OR above max_duration"
