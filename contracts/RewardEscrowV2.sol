@@ -285,7 +285,7 @@ contract RewardEscrowV2 is
 
     /* ========== MUTATIVE FUNCTIONS ========== */
 
-    // TODO: burn entries after they are vested?
+    // TODO: burn entries after they are vested - YES - and needs testing
     /**
      * Vest escrowed amounts that are claimable
      * Allows users to vest their vesting entries based on msg.sender
