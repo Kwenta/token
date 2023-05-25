@@ -12,19 +12,6 @@ require("chai")
     .use(smock.matchers)
     .should();
 
-const send = (payload) => {
-    if (!payload.jsonrpc) payload.jsonrpc = "2.0";
-    if (!payload.id) payload.id = new Date().getTime();
-
-    return new Promise((resolve, reject) => {
-        web3.currentProvider.send(payload, (error, result) => {
-            if (error) return reject(error);
-
-            return resolve(result);
-        });
-    });
-};
-
 const assertRevert = async (blockOrPromise, reason) => {
     let errorCaught = false;
     try {
@@ -48,56 +35,6 @@ const assertRevert = async (blockOrPromise, reason) => {
     );
 };
 
-const assertEventEqual = (
-    actualEventOrTransaction,
-    expectedEvent,
-    expectedArgs
-) => {
-    // If they pass in a whole transaction we need to extract the first log, otherwise we already have what we need
-    const event = Array.isArray(actualEventOrTransaction.logs)
-        ? actualEventOrTransaction.logs[0]
-        : actualEventOrTransaction;
-
-    if (!event) {
-        assert.fail(new Error("No event was generated from this transaction"));
-    }
-
-    // Assert the names are the same.
-    assert.strictEqual(event.event, expectedEvent);
-
-    assertDeepEqual(event.args, expectedArgs);
-    // Note: this means that if you don't assert args they'll pass regardless.
-    // Ensure you pass in all the args you need to assert on.
-};
-
-const assertDeepEqual = (actual, expected, context) => {
-    // Check if it's a value type we can assert on straight away.
-    if (BN.isBN(actual) || BN.isBN(expected)) {
-        assertBNEqual(actual, expected, context);
-    } else if (
-        typeof expected === "string" ||
-        typeof actual === "string" ||
-        typeof expected === "number" ||
-        typeof actual === "number" ||
-        typeof expected === "boolean" ||
-        typeof actual === "boolean"
-    ) {
-        assert.strictEqual(actual, expected, context);
-    }
-    // Otherwise dig through the deeper object and recurse
-    else if (Array.isArray(expected)) {
-        for (let i = 0; i < expected.length; i++) {
-            assertDeepEqual(actual[i], expected[i], `(array index: ${i}) `);
-        }
-    } else {
-        for (const key of Object.keys(expected)) {
-            assertDeepEqual(actual[key], expected[key], `(key: ${key}) `);
-        }
-    }
-};
-
-const mineBlock = () => send({ method: "evm_mine" });
-
 const StakingRewards = artifacts.require(
     "contracts/StakingRewards.sol:StakingRewards"
 );
@@ -110,74 +47,11 @@ const RewardEscrowV2 = artifacts.require("RewardEscrowV2");
 const NAME = "Kwenta";
 const SYMBOL = "KWENTA";
 const INITIAL_SUPPLY = hre.ethers.utils.parseUnits("313373");
-const DEFAULT_EARLY_VESTING_FEE = new BN(90);
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 const toUnit = (amount) => toBN(toWei(amount.toString(), "ether"));
 
-const currentTime = async () => {
-    const { timestamp } = await web3.eth.getBlock("latest");
-    return timestamp;
-};
-const fastForward = async (seconds) => {
-    // It's handy to be able to be able to pass big numbers in as we can just
-    // query them from the contract, then send them back. If not changed to
-    // a number, this causes much larger fast forwards than expected without error.
-    if (BN.isBN(seconds)) seconds = seconds.toNumber();
-
-    // And same with strings.
-    if (typeof seconds === "string") seconds = parseFloat(seconds);
-
-    let params = {
-        method: "evm_increaseTime",
-        params: [seconds],
-    };
-
-    if (hardhat.ovm) {
-        params = {
-            method: "evm_setNextBlockTimestamp",
-            params: [(await currentTime()) + seconds],
-        };
-    }
-
-    await send(params);
-
-    await mineBlock();
-};
-const assertBNEqual = (actualBN, expectedBN, context) => {
-    assert.strictEqual(actualBN.toString(), expectedBN.toString(), context);
-};
-
-const assertBNClose = (actualBN, expectedBN, varianceParam = "10") => {
-    const actual = BN.isBN(actualBN) ? actualBN : new BN(actualBN);
-    const expected = BN.isBN(expectedBN) ? expectedBN : new BN(expectedBN);
-    const variance = BN.isBN(varianceParam)
-        ? varianceParam
-        : new BN(varianceParam);
-    const actualDelta = expected.sub(actual).abs();
-
-    assert.ok(
-        actual.gte(expected.sub(variance)),
-        `Number is too small to be close (Delta between actual and expected is ${actualDelta.toString()}, but variance was only ${variance.toString()}`
-    );
-    assert.ok(
-        actual.lte(expected.add(variance)),
-        `Number is too large to be close (Delta between actual and expected is ${actualDelta.toString()}, but variance was only ${variance.toString()})`
-    );
-};
-
-const assertBNGreaterThan = (aBN, bBN) => {
-    assert.ok(
-        aBN.gt(bBN),
-        `${aBN.toString()} is not greater than ${bBN.toString()}`
-    );
-};
-
 assert.revert = assertRevert;
-assert.bnEqual = assertBNEqual;
-assert.eventEqual = assertEventEqual;
-assert.bnClose = assertBNClose;
-assert.bnGreaterThan = assertBNGreaterThan;
 
 const deployRewardEscrowV2 = async (owner, kwenta) => {
     const RewardEscrowV2Factory = await ethers.getContractFactory(
@@ -215,8 +89,6 @@ const deployStakingRewardsV2 = async (
 
 contract("RewardEscrowV2 KWENTA", ([owner, staker1, staker2, treasuryDAO]) => {
     console.log("Start tests");
-    const WEEK = 604800;
-    const YEAR = 31556926;
     let stakingRewards;
     let stakingRewardsV2;
     let stakingToken;
