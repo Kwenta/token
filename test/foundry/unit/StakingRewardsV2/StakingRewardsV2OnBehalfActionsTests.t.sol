@@ -235,7 +235,9 @@ contract StakingRewardsV2OnBehalfActionsTests is DefaultStakingV2Setup {
         // stake escrow on behalf
         vm.prank(user1);
         vm.expectRevert(
-            abi.encodeWithSelector(IStakingRewardsV2.InsufficientUnstakedEscrow.selector, TEST_VALUE)
+            abi.encodeWithSelector(
+                IStakingRewardsV2.InsufficientUnstakedEscrow.selector, TEST_VALUE
+            )
         );
         stakingRewardsV2.stakeEscrowOnBehalf(address(this), TEST_VALUE + 1);
     }

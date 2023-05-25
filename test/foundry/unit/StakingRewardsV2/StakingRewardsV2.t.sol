@@ -323,7 +323,9 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
     function test_Cannot_StakeEscrow_Too_Much() public {
         createRewardEscrowEntryV2(address(this), TEST_VALUE, 52 weeks);
         vm.expectRevert(
-            abi.encodeWithSelector(IStakingRewardsV2.InsufficientUnstakedEscrow.selector, TEST_VALUE)
+            abi.encodeWithSelector(
+                IStakingRewardsV2.InsufficientUnstakedEscrow.selector, TEST_VALUE
+            )
         );
         rewardEscrowV2.stakeEscrow(TEST_VALUE + 1);
     }
