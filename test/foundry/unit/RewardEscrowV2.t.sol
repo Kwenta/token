@@ -71,27 +71,24 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
                 Appending Vesting Schedules Error
     //////////////////////////////////////////////////////////////*/
 
-    // TODO: ensure tested for createVestingEntry
-    function test_Should_Not_Append_Entries_With_0_Amount() public {
+    function test_appendVestingEntry_Should_Not_Append_Entries_With_0_Amount() public {
         vm.expectRevert(IRewardEscrowV2.ZeroAmount.selector);
         vm.prank(address(stakingRewardsV2));
         rewardEscrowV2.appendVestingEntry(address(this), 0, 52 weeks);
     }
 
-    // TODO: ensure tested for createVestingEntry
-    function test_Should_Not_Create_A_Vesting_Entry_Insufficient_Kwenta() public {
+    function test_appendVestingEntry_Should_Not_Create_A_Vesting_Entry_Insufficient_Kwenta() public {
         vm.expectRevert(IRewardEscrowV2.InsufficientBalance.selector);
         vm.prank(address(stakingRewardsV2));
         rewardEscrowV2.appendVestingEntry(address(this), 1 ether, 52 weeks);
     }
 
-    function test_Should_Revert_If_Not_StakingRewards() public {
+    function test_appendVestingEntry_Should_Revert_If_Not_StakingRewards() public {
         vm.expectRevert(IRewardEscrowV2.OnlyStakingRewards.selector);
         rewardEscrowV2.appendVestingEntry(address(this), 1 ether, 52 weeks);
     }
 
-    // TODO: ensure tested for createVestingEntry
-    function test_Should_Revert_If_Duration_Is_0() public {
+    function test_appendVestingEntry_Should_Revert_If_Duration_Is_0() public {
         vm.prank(treasury);
         kwenta.transfer(address(rewardEscrowV2), 1 ether);
         vm.prank(address(stakingRewardsV2));
@@ -99,8 +96,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         rewardEscrowV2.appendVestingEntry(address(this), 1 ether, 0);
     }
 
-    // TODO: ensure tested for createVestingEntry
-    function test_Should_Revert_If_Duration_Is_Greater_Than_Max() public {
+    function test_appendVestingEntry_Should_Revert_If_Duration_Is_Greater_Than_Max() public {
         uint256 maxDuration = rewardEscrowV2.MAX_DURATION();
         vm.prank(treasury);
         kwenta.transfer(address(rewardEscrowV2), 1 ether);
@@ -181,6 +177,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         assertEq(claimable, 10 ether);
     }
 
+    // TODO: create full fuzz test for different claim, amounts, waitTime and duration
     function test_Correct_Amount_Claimable_After_1_Year_Fuzz(uint32 _amount) public {
         uint256 amount = _amount;
         vm.assume(amount > 0);
@@ -192,4 +189,37 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         (uint256 claimable,) = rewardEscrowV2.getVestingEntryClaimable(1);
         assertEq(claimable, amount);
     }
+
+    /*//////////////////////////////////////////////////////////////
+                        Creating Vesting Schedules
+    //////////////////////////////////////////////////////////////*/
+
+    function test_createEscrowEntry_Should_Not_Append_Entries_With_0_Amount() public {
+        vm.expectRevert(IRewardEscrowV2.ZeroAmount.selector);
+        rewardEscrowV2.createEscrowEntry(address(this), 0, 52 weeks, 90);
+    }
+
+    function test_createEscrowEntry_Should_Not_Create_A_Vesting_Entry_Insufficient_Kwenta() public {
+        vm.expectRevert("ERC20: transfer amount exceeds balance");
+        rewardEscrowV2.createEscrowEntry(address(this), 1 ether, 52 weeks, 90);
+    }
+
+    function test_createEscrowEntry_Should_Revert_If_Duration_Is_0() public {
+        vm.prank(treasury);
+        kwenta.approve(address(rewardEscrowV2), 1 ether);
+        vm.expectRevert(IRewardEscrowV2.InvalidDuration.selector);
+        vm.prank(treasury);
+        rewardEscrowV2.createEscrowEntry(address(this), 1 ether, 0, 90);
+    }
+
+    // function test_createEscrowEntry_Should_Revert_If_Duration_Is_Greater_Than_Max() public {
+    //     uint256 maxDuration = rewardEscrowV2.MAX_DURATION();
+    //     vm.prank(treasury);
+    //     kwenta.transfer(address(rewardEscrowV2), 1 ether);
+    //     vm.expectRevert(IRewardEscrowV2.InvalidDuration.selector);
+    //     rewardEscrowV2.createEscrowEntry(address(this), 1 ether, maxDuration + 1, 90);
+    // }
+
+    // TODO: add check for reversion if earlyVestingFee is 0
+
 }
