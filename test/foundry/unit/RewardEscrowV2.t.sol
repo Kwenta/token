@@ -134,4 +134,9 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         appendRewardEscrowEntryV2(address(this), 10 ether, 52 weeks);
         assertEq(rewardEscrowV2.totalEscrowedAccountBalance(address(this)), 10 ether);
     }
+
+    function test_totalVestedAccountBalance_Should_Be_Zero() public {
+        appendRewardEscrowEntryV2(address(this), 10 ether, 52 weeks);
+        assertEq(rewardEscrowV2.totalVestedAccountBalance(address(this)), 0);
+    }
 }
