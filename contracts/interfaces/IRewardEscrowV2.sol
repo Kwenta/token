@@ -10,9 +10,9 @@ library VestingEntries {
     }
 
     struct VestingEntryWithID {
-        uint64 endTime;
         uint256 escrowAmount;
         uint256 entryID;
+        uint64 endTime;
     }
 }
 
