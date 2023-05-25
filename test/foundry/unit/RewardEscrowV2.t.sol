@@ -14,4 +14,8 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     function test_Should_Have_A_Kwenta_Token() public {
         assertEq(address(rewardEscrowV2.getKwentaAddress()), address(kwenta));
     }
+
+    function test_Should_Set_Owner() public {
+        assertEq(address(rewardEscrowV2.owner()), address(this));
+    }
 }
