@@ -182,7 +182,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
     //////////////////////////////////////////////////////////////*/
 
     function test_Cannot_Recover_Staking_Token() public {
-        vm.expectRevert("StakingRewards: Cannot unstake the staking token");
+        vm.expectRevert(IStakingRewardsV2.CannotRecoverStakingToken.selector);
         stakingRewardsV2.recoverERC20(address(kwenta), TEST_VALUE);
     }
 
