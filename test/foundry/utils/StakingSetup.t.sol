@@ -39,6 +39,8 @@ contract StakingSetup is TestHelpers {
     address rewardEscrowV2Implementation;
     address stakingRewardsV2Implementation;
 
+    uint256[] public entryIDs;
+
     /*//////////////////////////////////////////////////////////////
                                 Setup
     //////////////////////////////////////////////////////////////*/
