@@ -443,4 +443,19 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         emit Vested(address(this), 1000 ether);
         rewardEscrowV2.vest(entryIDs);
     }
+
+    /*//////////////////////////////////////////////////////////////
+                        Vesting Multiple Entries
+    //////////////////////////////////////////////////////////////*/
+
+    function test_Should_Have_Three_Entries() public {
+        createRewardEscrowEntryV2(address(this), 200 ether, 52 weeks, 90);
+        vm.warp(block.timestamp + 1 weeks);
+        createRewardEscrowEntryV2(address(this), 300 ether, 52 weeks, 90);
+        vm.warp(block.timestamp + 1 weeks);
+        createRewardEscrowEntryV2(address(this), 500 ether, 52 weeks, 90);
+        vm.warp(block.timestamp + 3 weeks);
+
+        assertEq(rewardEscrowV2.balanceOf(address(this)), 3);
+    }
 }
