@@ -89,9 +89,9 @@ contract RewardEscrowV2 is
     * @notice Function used to define the StakingRewards to use
     */
     function setStakingRewardsV2(address _stakingRewardsV2) public onlyOwner {
-        // TODO: check if I should have this test:
-        // if (_stakingRewardsV2 == address(0)) revert ZeroAddress();
+        if (_stakingRewardsV2 == address(0)) revert ZeroAddress();
         if (address(stakingRewardsV2) != address(0)) revert StakingRewardsAlreadySet();
+
         stakingRewardsV2 = IStakingRewardsV2(_stakingRewardsV2);
         emit StakingRewardsSet(address(_stakingRewardsV2));
     }
@@ -99,7 +99,7 @@ contract RewardEscrowV2 is
     /// @notice set treasuryDAO address
     /// @dev only owner may change address
     function setTreasuryDAO(address _treasuryDAO) external onlyOwner {
-        require(_treasuryDAO != address(0), "RewardEscrow: Zero Address");
+        if (_treasuryDAO == address(0)) revert ZeroAddress();
         treasuryDAO = _treasuryDAO;
         emit TreasuryDAOSet(treasuryDAO);
     }

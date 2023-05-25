@@ -93,4 +93,7 @@ interface IRewardEscrowV2 {
 
     /// @notice staking rewards is only allowed to be set once
     error StakingRewardsAlreadySet();
+
+    /// @notice cannot set this value to the zero address
+    error ZeroAddress();
 }
