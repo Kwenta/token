@@ -235,9 +235,7 @@ contract StakingRewardsOnBehalfActionsTests is DefaultStakingV2Setup {
         // stake escrow on behalf
         vm.prank(user1);
         vm.expectRevert(
-            abi.encodeWithSelector(
-                StakingRewardsV2.InsufficientUnstakedEscrow.selector, TEST_VALUE
-            )
+            abi.encodeWithSelector(StakingRewardsV2.InsufficientUnstakedEscrow.selector, TEST_VALUE)
         );
         stakingRewardsV2.stakeEscrowOnBehalf(address(this), TEST_VALUE + 1);
     }
@@ -266,8 +264,7 @@ contract StakingRewardsOnBehalfActionsTests is DefaultStakingV2Setup {
         vm.prank(operator);
         vm.expectRevert(
             abi.encodeWithSelector(
-                StakingRewardsV2.InsufficientUnstakedEscrow.selector,
-                escrowAmount
+                StakingRewardsV2.InsufficientUnstakedEscrow.selector, escrowAmount
             )
         );
         stakingRewardsV2.stakeEscrowOnBehalf(owner, amountToEscrowStake);
@@ -366,11 +363,9 @@ contract StakingRewardsOnBehalfActionsTests is DefaultStakingV2Setup {
         stakingRewardsV2.approveOperator(user1, true);
     }
 
-    function test_approveOperator_Emits_Event_Fuzz(
-        address owner,
-        address operator,
-        bool approved
-    ) public {
+    function test_approveOperator_Emits_Event_Fuzz(address owner, address operator, bool approved)
+        public
+    {
         vm.assume(owner != address(0));
         vm.assume(operator != address(0));
         vm.assume(owner != operator);

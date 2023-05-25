@@ -40,8 +40,7 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
         // set owners address code to trick the test into allowing onlyOwner functions to be called via script
         vm.etch(owner, address(new Migrate()).code);
 
-        (rewardEscrowV2, stakingRewardsV2,,) = Migrate(owner)
-            .runCompleteMigrationProcess({
+        (rewardEscrowV2, stakingRewardsV2,,) = Migrate(owner).runCompleteMigrationProcess({
             _owner: owner,
             _kwenta: address(kwenta),
             _supplySchedule: address(supplySchedule),
@@ -55,12 +54,10 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
                                  TESTS
     //////////////////////////////////////////////////////////////*/
 
-    function test_Migrate_Then_Move_Funds_From_V1_To_V2_And_Generate_New_Rewards(
-    ) public {
+    function test_Migrate_Then_Move_Funds_From_V1_To_V2_And_Generate_New_Rewards() public {
         uint256 user1StakedV1 = stakingRewardsV1.balanceOf(user1);
         uint256 user1EscrowStakedV1 = stakingRewardsV1.escrowedBalanceOf(user1);
-        uint256 user1NonEscrowStakedV1 =
-            stakingRewardsV1.nonEscrowedBalanceOf(user1);
+        uint256 user1NonEscrowStakedV1 = stakingRewardsV1.nonEscrowedBalanceOf(user1);
         uint256 user1Earned = stakingRewardsV1.earned(user1);
         uint256 user1EscrowV1 = rewardEscrowV1.balanceOf(user1);
         uint256 initialBalance = kwenta.balanceOf(user1);
@@ -120,10 +117,7 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
         // assert v2 rewards have been earned
         assertGt(rewardEscrowV2.totalEscrowBalanceOf(user1), 0);
         // v2 staked balance is equal to escrowed + non-escrowed balance
-        assertEq(
-            stakingRewardsV2.balanceOf(user1),
-            user1EscrowStakedV2 + user1NonEscrowedStakeV2
-        );
+        assertEq(stakingRewardsV2.balanceOf(user1), user1EscrowStakedV2 + user1NonEscrowedStakeV2);
         // v2 reward escrow balance is equal to escrow staked balance
         assertEq(rewardEscrowV2.totalEscrowBalanceOf(user1), user1EscrowStakedV2);
     }

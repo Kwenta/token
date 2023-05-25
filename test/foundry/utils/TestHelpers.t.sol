@@ -64,7 +64,10 @@ contract TestHelpers is Test {
     /// @param _min min value
     /// @param salt salt to influence random number
     /// @return result psuedorandom number
-    function getPseudoRandomNumber(uint256 _max, uint256 _min, uint256 salt) internal returns (uint256 result) {
+    function getPseudoRandomNumber(uint256 _max, uint256 _min, uint256 salt)
+        internal
+        returns (uint256 result)
+    {
         require(_min <= _max, "min must be <= max");
         if (_max == _min) return _max;
 

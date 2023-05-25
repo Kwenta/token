@@ -7,7 +7,7 @@ cache_path = 'forge-cache'
 optimizer_runs = 1_000_000
 
 [fmt]
-line_length = 80
+line_length = 100
 number_underscore = "thousands"
 
 [rpc_endpoints]

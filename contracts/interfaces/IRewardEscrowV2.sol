@@ -8,6 +8,7 @@ library VestingEntries {
         uint64 endTime;
         uint8 earlyVestingFee;
     }
+
     struct VestingEntryWithID {
         uint64 endTime;
         uint256 escrowAmount;
@@ -23,47 +24,31 @@ interface IRewardEscrowV2 {
 
     function unstakedEscrowBalanceOf(address account) external view returns (uint256);
 
-    function totalEscrowedAccountBalance(address account)
-        external
-        view
-        returns (uint256);
+    function totalEscrowedAccountBalance(address account) external view returns (uint256);
 
-    function totalVestedAccountBalance(address account)
-        external
-        view
-        returns (uint256);
+    function totalVestedAccountBalance(address account) external view returns (uint256);
 
     function getVestingQuantity(uint256[] calldata entryIDs)
         external
         view
         returns (uint256, uint256);
 
-    function getVestingSchedules(
-        address account,
-        uint256 index,
-        uint256 pageSize
-    ) external view returns (VestingEntries.VestingEntryWithID[] memory);
-
-    function getAccountVestingEntryIDs(
-        address account,
-        uint256 index,
-        uint256 pageSize
-    ) external view returns (uint256[] memory);
-
-    function getVestingEntryClaimable(uint256 entryID)
+    function getVestingSchedules(address account, uint256 index, uint256 pageSize)
         external
         view
-        returns (uint256, uint256);
+        returns (VestingEntries.VestingEntryWithID[] memory);
+
+    function getAccountVestingEntryIDs(address account, uint256 index, uint256 pageSize)
+        external
+        view
+        returns (uint256[] memory);
+
+    function getVestingEntryClaimable(uint256 entryID) external view returns (uint256, uint256);
 
     function getVestingEntry(uint256 entryID)
         external
         view
-        returns (
-            uint64,
-            uint256,
-            uint256,
-            uint8
-        );
+        returns (uint64, uint256, uint256, uint8);
 
     // Mutative functions
     function vest(uint256[] calldata entryIDs) external;
@@ -75,11 +60,7 @@ interface IRewardEscrowV2 {
         uint8 earlyVestingFee
     ) external;
 
-    function appendVestingEntry(
-        address account,
-        uint256 quantity,
-        uint256 duration
-    ) external;
+    function appendVestingEntry(address account, uint256 quantity, uint256 duration) external;
 
     function stakeEscrow(uint256 _amount) external;
 
@@ -92,7 +73,9 @@ interface IRewardEscrowV2 {
     /// @param entryID the id of the entry that couldn't be transferred
     /// @param escrowAmount the amount of escrow in the entry
     /// @param unstakedBalance the amount of unstaked escrow in the account
-    error InsufficientUnstakedBalance(uint256 entryID, uint256 escrowAmount, uint256 unstakedBalance);
+    error InsufficientUnstakedBalance(
+        uint256 entryID, uint256 escrowAmount, uint256 unstakedBalance
+    );
 
     /// @notice Attempted to set entry early vesting fee beyond 100%
     error MaxEarlyVestingFeeIs100();

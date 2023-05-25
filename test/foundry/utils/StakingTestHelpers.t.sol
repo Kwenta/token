@@ -10,8 +10,7 @@ import {RewardEscrowV2} from "../../../contracts/RewardEscrowV2.sol";
 import {SupplySchedule} from "../../../contracts/SupplySchedule.sol";
 import {StakingRewards} from "../../../contracts/StakingRewards.sol";
 import {StakingRewardsV2} from "../../../contracts/StakingRewardsV2.sol";
-import {MultipleMerkleDistributor} from
-    "../../../contracts/MultipleMerkleDistributor.sol";
+import {MultipleMerkleDistributor} from "../../../contracts/MultipleMerkleDistributor.sol";
 import {IERC20} from "../../../contracts/interfaces/IERC20.sol";
 import "../utils/Constants.t.sol";
 
@@ -40,8 +39,7 @@ contract StakingTestHelpers is StakingSetup {
         // This defaults to 7 days
         uint256 rewardsDuration = stakingRewardsV1.rewardsDuration();
         uint256 previousRewardPerToken = stakingRewardsV1.rewardPerToken();
-        uint256 rewardsPerTokenPaid =
-            stakingRewardsV1.userRewardPerTokenPaid(user);
+        uint256 rewardsPerTokenPaid = stakingRewardsV1.userRewardPerTokenPaid(user);
         uint256 totalSupply = stakingRewardsV1.totalSupply();
         uint256 balance = stakingRewardsV1.balanceOf(user);
 
@@ -53,8 +51,7 @@ contract StakingTestHelpers is StakingSetup {
         // rewards = (balance * rewardsPerTokenForUser) / 1e18
         uint256 rewardRate = reward / rewardsDuration;
         uint256 newRewards = rewardRate * min(waitTime, rewardsDuration);
-        uint256 rewardPerToken =
-            previousRewardPerToken + (newRewards * 1e18 / totalSupply);
+        uint256 rewardPerToken = previousRewardPerToken + (newRewards * 1e18 / totalSupply);
         uint256 rewardsPerTokenForUser = rewardPerToken - rewardsPerTokenPaid;
         uint256 expectedRewards = balance * rewardsPerTokenForUser / 1e18;
 
@@ -70,12 +67,9 @@ contract StakingTestHelpers is StakingSetup {
         // This defaults to 7 days
         uint256 rewardsDuration = stakingRewardsV2.rewardsDuration();
         uint256 previousRewardPerToken = stakingRewardsV2.rewardPerToken();
-        uint256 rewardsPerTokenPaid =
-            stakingRewardsV2.userRewardPerTokenPaid(user);
-        uint256 totalSupply =
-            stakingRewardsV2.totalSupply() + stakingRewardsV1.totalSupply();
-        uint256 balance =
-            stakingRewardsV2.balanceOf(user) + stakingRewardsV1.balanceOf(user);
+        uint256 rewardsPerTokenPaid = stakingRewardsV2.userRewardPerTokenPaid(user);
+        uint256 totalSupply = stakingRewardsV2.totalSupply() + stakingRewardsV1.totalSupply();
+        uint256 balance = stakingRewardsV2.balanceOf(user) + stakingRewardsV1.balanceOf(user);
 
         // general formula for rewards should be:
         // rewardRate = reward / rewardsDuration
@@ -85,8 +79,7 @@ contract StakingTestHelpers is StakingSetup {
         // rewards = (balance * rewardsPerTokenForUser) / 1e18
         uint256 rewardRate = reward / rewardsDuration;
         uint256 newRewards = rewardRate * min(waitTime, rewardsDuration);
-        uint256 rewardPerToken =
-            previousRewardPerToken + (newRewards * 1e18 / totalSupply);
+        uint256 rewardPerToken = previousRewardPerToken + (newRewards * 1e18 / totalSupply);
         uint256 rewardsPerTokenForUser = rewardPerToken - rewardsPerTokenPaid;
         uint256 expectedRewards = balance * rewardsPerTokenForUser / 1e18;
 
@@ -156,20 +149,13 @@ contract StakingTestHelpers is StakingSetup {
         rewardEscrowV1.stakeEscrow(amount);
     }
 
-    function unstakeAllUnstakedEscrowV1(address account, uint256 amount)
-        public
-    {
+    function unstakeAllUnstakedEscrowV1(address account, uint256 amount) public {
         vm.prank(account);
         rewardEscrowV1.unstakeEscrow(amount);
     }
 
-    function getNonStakedEscrowAmountV1(address account)
-        public
-        view
-        returns (uint256)
-    {
-        return rewardEscrowV1.balanceOf(account)
-            - stakingRewardsV1.escrowedBalanceOf(account);
+    function getNonStakedEscrowAmountV1(address account) public view returns (uint256) {
+        return rewardEscrowV1.balanceOf(account) - stakingRewardsV1.escrowedBalanceOf(account);
     }
 
     function warpAndMint(uint256 time) public {
@@ -230,11 +216,7 @@ contract StakingTestHelpers is StakingSetup {
         stakingRewardsV2.unstakeEscrowSkipCooldown(account, amount);
     }
 
-    function createRewardEscrowEntryV2(
-        address account,
-        uint256 amount,
-        uint256 duration
-    ) public {
+    function createRewardEscrowEntryV2(address account, uint256 amount, uint256 duration) public {
         vm.prank(treasury);
         kwenta.approve(address(rewardEscrowV2), amount);
         vm.prank(treasury);
@@ -250,16 +232,10 @@ contract StakingTestHelpers is StakingSetup {
         vm.prank(treasury);
         kwenta.approve(address(rewardEscrowV2), amount);
         vm.prank(treasury);
-        rewardEscrowV2.createEscrowEntry(
-            account, amount, duration, earlyVestingFee
-        );
+        rewardEscrowV2.createEscrowEntry(account, amount, duration, earlyVestingFee);
     }
 
-    function appendRewardEscrowEntryV2(
-        address account,
-        uint256 amount,
-        uint256 duration
-    ) public {
+    function appendRewardEscrowEntryV2(address account, uint256 amount, uint256 duration) public {
         vm.prank(treasury);
         kwenta.transfer(address(rewardEscrowV2), amount);
         vm.prank(address(stakingRewardsV2));
@@ -278,18 +254,12 @@ contract StakingTestHelpers is StakingSetup {
         rewardEscrowV2.stakeEscrow(amount);
     }
 
-    function unstakeAllUnstakedEscrowV2(address account, uint256 amount)
-        public
-    {
+    function unstakeAllUnstakedEscrowV2(address account, uint256 amount) public {
         vm.prank(account);
         rewardEscrowV2.unstakeEscrow(amount);
     }
 
-    function getNonStakedEscrowAmountV2(address account)
-        public
-        view
-        returns (uint256)
-    {
+    function getNonStakedEscrowAmountV2(address account) public view returns (uint256) {
         return rewardEscrowV2.totalEscrowBalanceOf(account)
             - stakingRewardsV2.escrowedBalanceOf(account);
     }

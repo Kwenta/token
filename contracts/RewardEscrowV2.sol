@@ -65,10 +65,7 @@ contract RewardEscrowV2 is
     /* ========== EVENTS ========== */
     event Vested(address indexed beneficiary, uint256 value);
     event VestingEntryCreated(
-        address indexed beneficiary,
-        uint256 value,
-        uint256 duration,
-        uint256 entryID
+        address indexed beneficiary, uint256 value, uint256 duration, uint256 entryID
     );
     event StakingRewardsSet(address stakingRewardsV2);
     event TreasuryDAOSet(address treasuryDAO);
@@ -103,10 +100,7 @@ contract RewardEscrowV2 is
     * @notice Function used to define the StakingRewards to use
     */
     function setStakingRewardsV2(address _stakingRewardsV2) public onlyOwner {
-        require(
-            address(stakingRewardsV2) == address(0),
-            "Staking Rewards already set"
-        );
+        require(address(stakingRewardsV2) == address(0), "Staking Rewards already set");
         stakingRewardsV2 = IStakingRewardsV2(_stakingRewardsV2);
         emit StakingRewardsSet(address(_stakingRewardsV2));
     }
@@ -131,26 +125,15 @@ contract RewardEscrowV2 is
     /**
      * @notice A simple alias to totalEscrowedAccountBalance
      */
-    function totalEscrowBalanceOf(address account)
-        public
-        view
-        override
-        returns (uint256)
-    {
+    function totalEscrowBalanceOf(address account) public view override returns (uint256) {
         return totalEscrowedAccountBalance[account];
     }
 
     /**
      * @notice Get the amount of escrowed kwenta that is not staked for a given account
      */
-    function unstakedEscrowBalanceOf(address account)
-        public
-        view
-        override
-        returns (uint256)
-    {
-        return totalEscrowedAccountBalance[account]
-            - stakingRewardsV2.escrowedBalanceOf(account);
+    function unstakedEscrowBalanceOf(address account) public view override returns (uint256) {
+        return totalEscrowedAccountBalance[account] - stakingRewardsV2.escrowedBalanceOf(account);
     }
 
     /**
@@ -163,12 +146,7 @@ contract RewardEscrowV2 is
         external
         view
         override
-        returns (
-            uint64 endTime,
-            uint256 escrowAmount,
-            uint256 duration,
-            uint8 earlyVestingFee
-        )
+        returns (uint64 endTime, uint256 escrowAmount, uint256 duration, uint8 earlyVestingFee)
     {
         endTime = vestingSchedules[entryID].endTime;
         escrowAmount = vestingSchedules[entryID].escrowAmount;
@@ -176,11 +154,7 @@ contract RewardEscrowV2 is
         earlyVestingFee = vestingSchedules[entryID].earlyVestingFee;
     }
 
-    function getVestingSchedules(
-        address account,
-        uint256 index,
-        uint256 pageSize
-    )
+    function getVestingSchedules(address account, uint256 index, uint256 pageSize)
         external
         view
         override
@@ -202,7 +176,7 @@ contract RewardEscrowV2 is
         uint256 n = endIndex - index;
         VestingEntries.VestingEntryWithID[] memory vestingEntries =
             new VestingEntries.VestingEntryWithID[](n);
-        for (uint256 i; i < n; ) {
+        for (uint256 i; i < n;) {
             uint256 entryID = tokenOfOwnerByIndex(account, i + index);
 
             VestingEntries.VestingEntry memory entry = vestingSchedules[entryID];
@@ -220,11 +194,12 @@ contract RewardEscrowV2 is
         return vestingEntries;
     }
 
-    function getAccountVestingEntryIDs(
-        address account,
-        uint256 index,
-        uint256 pageSize
-    ) external view override returns (uint256[] memory) {
+    function getAccountVestingEntryIDs(address account, uint256 index, uint256 pageSize)
+        external
+        view
+        override
+        returns (uint256[] memory)
+    {
         uint256 endIndex = index + pageSize;
 
         // If the page extends past the end of the list, truncate it.
@@ -238,7 +213,7 @@ contract RewardEscrowV2 is
 
         uint256 n = endIndex - index;
         uint256[] memory page = new uint256[](n);
-        for (uint256 i; i < n; ) {
+        for (uint256 i; i < n;) {
             page[i] = tokenOfOwnerByIndex(account, i + index);
 
             unchecked {
@@ -255,9 +230,8 @@ contract RewardEscrowV2 is
         returns (uint256 total, uint256 totalFee)
     {
         uint256 entryIDsLength = entryIDs.length;
-        for (uint256 i = 0; i < entryIDsLength; ) {
-            VestingEntries.VestingEntry memory entry =
-                vestingSchedules[entryIDs[i]];
+        for (uint256 i = 0; i < entryIDsLength;) {
+            VestingEntries.VestingEntry memory entry = vestingSchedules[entryIDs[i]];
 
             /* Skip entry if escrowAmount == 0 */
             if (entry.escrowAmount != 0) {
@@ -329,8 +303,7 @@ contract RewardEscrowV2 is
         uint256 totalFee;
         uint256 entryIDsLength = entryIDs.length;
         for (uint256 i = 0; i < entryIDsLength; ++i) {
-            VestingEntries.VestingEntry storage entry =
-                vestingSchedules[entryIDs[i]];
+            VestingEntries.VestingEntry storage entry = vestingSchedules[entryIDs[i]];
             if (_ownerOf(entryIDs[i]) != msg.sender) {
                 continue;
             }
@@ -364,8 +337,7 @@ contract RewardEscrowV2 is
             if (totalFee != 0) {
                 _reduceAccountEscrowBalances(msg.sender, totalFee);
                 require(
-                    kwenta.transfer(treasuryDAO, totalFee),
-                    "RewardEscrow: Token Transfer Failed"
+                    kwenta.transfer(treasuryDAO, totalFee), "RewardEscrow: Token Transfer Failed"
                 );
             }
 
@@ -385,15 +357,10 @@ contract RewardEscrowV2 is
         uint256 duration,
         uint8 earlyVestingFee
     ) external override {
-        require(
-            beneficiary != address(0), "Cannot create escrow with address(0)"
-        );
+        require(beneficiary != address(0), "Cannot create escrow with address(0)");
 
         /* Transfer KWENTA from msg.sender */
-        require(
-            kwenta.transferFrom(msg.sender, address(this), deposit),
-            "Token transfer failed"
-        );
+        require(kwenta.transferFrom(msg.sender, address(this), deposit), "Token transfer failed");
 
         /* Append vesting entry for the beneficiary address */
         _mint(beneficiary, deposit, duration, earlyVestingFee);
@@ -407,14 +374,12 @@ contract RewardEscrowV2 is
      * @param quantity The quantity of KWENTA that will be escrowed.
      * @param duration The duration that KWENTA will be emitted.
      */
-    function appendVestingEntry(
-        address account,
-        uint256 quantity,
-        uint256 duration
-    ) external override onlyStakingRewards {
-        _mint(
-            account, quantity, duration, DEFAULT_EARLY_VESTING_FEE
-        );
+    function appendVestingEntry(address account, uint256 quantity, uint256 duration)
+        external
+        override
+        onlyStakingRewards
+    {
+        _mint(account, quantity, duration, DEFAULT_EARLY_VESTING_FEE);
     }
 
     /**
@@ -442,13 +407,12 @@ contract RewardEscrowV2 is
      * @param to The account to transfer the tokens to
      * @param entryIDs a list of the ids of the entries to transfer
      */
-    function bulkTransferFrom(
-        address from,
-        address to,
-        uint256[] calldata entryIDs
-    ) external override {
+    function bulkTransferFrom(address from, address to, uint256[] calldata entryIDs)
+        external
+        override
+    {
         uint256 entryIDsLength = entryIDs.length;
-        for (uint256 i = 0; i < entryIDsLength; ) {
+        for (uint256 i = 0; i < entryIDsLength;) {
             transferFrom(from, to, entryIDs[i]);
             unchecked {
                 ++i;
@@ -458,19 +422,13 @@ contract RewardEscrowV2 is
 
     /* ========== INTERNALS ========== */
 
-    function _transfer(
-        address from,
-        address to,
-        uint256 tokenId
-    ) internal override {
+    function _transfer(address from, address to, uint256 tokenId) internal override {
         VestingEntries.VestingEntry memory entry = vestingSchedules[tokenId];
 
         uint256 unstakedEscrow = unstakedEscrowBalanceOf(from);
         // TODO: think about ways around this - can tokens be staked and transferrable? - could an entry either be staked or unstaked?
         if (unstakedEscrow < entry.escrowAmount) {
-            revert InsufficientUnstakedBalance(
-                tokenId, entry.escrowAmount, unstakedEscrow
-            );
+            revert InsufficientUnstakedBalance(tokenId, entry.escrowAmount, unstakedEscrow);
         }
 
         super._transfer(from, to, tokenId);
@@ -482,9 +440,7 @@ contract RewardEscrowV2 is
     // TODO: rethink this function
     // TODO: rethink wording => token vs entry => what is a token in this context, make clear distinction between erc20 (kwenta) and erc721 (KRE)
     /* Transfer vested tokens and update totalEscrowedAccountBalance, totalVestedAccountBalance */
-    function _transferVestedTokens(address _account, uint256 _amount)
-        internal
-    {
+    function _transferVestedTokens(address _account, uint256 _amount) internal {
         _reduceAccountEscrowBalances(_account, _amount);
         totalVestedAccountBalance[_account] += _amount;
         kwenta.transfer(_account, _amount);
@@ -492,20 +448,15 @@ contract RewardEscrowV2 is
     }
 
     // TODO: rethink this function - could go in a burn function
-    function _reduceAccountEscrowBalances(address _account, uint256 _amount)
-        internal
-    {
+    function _reduceAccountEscrowBalances(address _account, uint256 _amount) internal {
         // Reverts if amount being vested is greater than the account's existing totalEscrowedAccountBalance
         totalEscrowedBalance -= _amount;
         totalEscrowedAccountBalance[_account] -= _amount;
     }
 
-    function _mint(
-        address account,
-        uint256 quantity,
-        uint256 duration,
-        uint8 earlyVestingFee
-    ) internal {
+    function _mint(address account, uint256 quantity, uint256 duration, uint8 earlyVestingFee)
+        internal
+    {
         /* No empty or already-passed vesting entries allowed. */
         require(quantity != 0, "Quantity cannot be zero");
         require(
@@ -547,9 +498,5 @@ contract RewardEscrowV2 is
 
     /* ========== UPGRADEABILITY ========== */
 
-    function _authorizeUpgrade(address newImplementation)
-        internal
-        override
-        onlyOwner
-    {}
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 }

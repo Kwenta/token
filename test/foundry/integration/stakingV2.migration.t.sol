@@ -10,8 +10,7 @@ contract StakingV2MigrationTests is StakingTestHelpers {
                             Migration Tests
     //////////////////////////////////////////////////////////////*/
 
-    function test_Migrate_Then_Move_Funds_From_V1_To_V2_And_Generate_New_Rewards(
-    ) public {
+    function test_Migrate_Then_Move_Funds_From_V1_To_V2_And_Generate_New_Rewards() public {
         // Stake tokens in StakingV1
         fundAccountAndStakeV1(user1, 10 ether);
         fundAccountAndStakeV1(user2, 20 ether);
@@ -46,12 +45,9 @@ contract StakingV2MigrationTests is StakingTestHelpers {
         uint256 user2EscrowStakedV1 = stakingRewardsV1.escrowedBalanceOf(user2);
         uint256 user3EscrowStakedV1 = stakingRewardsV1.escrowedBalanceOf(user3);
 
-        uint256 user1NonEscrowedStakeV1 =
-            stakingRewardsV1.nonEscrowedBalanceOf(user1);
-        uint256 user2NonEscrowedStakeV1 =
-            stakingRewardsV1.nonEscrowedBalanceOf(user2);
-        uint256 user3NonEscrowedStakeV1 =
-            stakingRewardsV1.nonEscrowedBalanceOf(user3);
+        uint256 user1NonEscrowedStakeV1 = stakingRewardsV1.nonEscrowedBalanceOf(user1);
+        uint256 user2NonEscrowedStakeV1 = stakingRewardsV1.nonEscrowedBalanceOf(user2);
+        uint256 user3NonEscrowedStakeV1 = stakingRewardsV1.nonEscrowedBalanceOf(user3);
 
         // assert v1 rewards have been earned
         assertGt(user1EscrowV1, 0);
@@ -59,18 +55,9 @@ contract StakingV2MigrationTests is StakingTestHelpers {
         assertGt(user3EscrowV1, 0);
 
         // v1 staked balance is equal to escrowed + non-escrowed balance
-        assertEq(
-            stakingRewardsV1.balanceOf(user1),
-            user1EscrowStakedV1 + user1NonEscrowedStakeV1
-        );
-        assertEq(
-            stakingRewardsV1.balanceOf(user2),
-            user2EscrowStakedV1 + user2NonEscrowedStakeV1
-        );
-        assertEq(
-            stakingRewardsV1.balanceOf(user3),
-            user3EscrowStakedV1 + user3NonEscrowedStakeV1
-        );
+        assertEq(stakingRewardsV1.balanceOf(user1), user1EscrowStakedV1 + user1NonEscrowedStakeV1);
+        assertEq(stakingRewardsV1.balanceOf(user2), user2EscrowStakedV1 + user2NonEscrowedStakeV1);
+        assertEq(stakingRewardsV1.balanceOf(user3), user3EscrowStakedV1 + user3NonEscrowedStakeV1);
 
         // v1 reward escrow balance is equal to escrow staked balance
         assertEq(user1EscrowV1, user1EscrowStakedV1);
@@ -85,12 +72,9 @@ contract StakingV2MigrationTests is StakingTestHelpers {
         exitStakingV1(user3);
         stakeFundsV2(user3, user3NonEscrowedStakeV1);
 
-        uint256 user1NonEscrowedStakeV2 =
-            stakingRewardsV2.nonEscrowedBalanceOf(user1);
-        uint256 user2NonEscrowedStakeV2 =
-            stakingRewardsV2.nonEscrowedBalanceOf(user2);
-        uint256 user3NonEscrowedStakeV2 =
-            stakingRewardsV2.nonEscrowedBalanceOf(user3);
+        uint256 user1NonEscrowedStakeV2 = stakingRewardsV2.nonEscrowedBalanceOf(user1);
+        uint256 user2NonEscrowedStakeV2 = stakingRewardsV2.nonEscrowedBalanceOf(user2);
+        uint256 user3NonEscrowedStakeV2 = stakingRewardsV2.nonEscrowedBalanceOf(user3);
 
         // check full balance migrated
         assertEq(user1NonEscrowedStakeV1, user1NonEscrowedStakeV2);
@@ -157,18 +141,9 @@ contract StakingV2MigrationTests is StakingTestHelpers {
         assertGt(rewardEscrowV2.totalEscrowBalanceOf(user3), 0);
 
         // v2 staked balance is equal to escrowed + non-escrowed balance
-        assertEq(
-            stakingRewardsV2.balanceOf(user1),
-            user1EscrowStakedV2 + user1NonEscrowedStakeV2
-        );
-        assertEq(
-            stakingRewardsV2.balanceOf(user2),
-            user2EscrowStakedV2 + user2NonEscrowedStakeV2
-        );
-        assertEq(
-            stakingRewardsV2.balanceOf(user3),
-            user3EscrowStakedV2 + user3NonEscrowedStakeV2
-        );
+        assertEq(stakingRewardsV2.balanceOf(user1), user1EscrowStakedV2 + user1NonEscrowedStakeV2);
+        assertEq(stakingRewardsV2.balanceOf(user2), user2EscrowStakedV2 + user2NonEscrowedStakeV2);
+        assertEq(stakingRewardsV2.balanceOf(user3), user3EscrowStakedV2 + user3NonEscrowedStakeV2);
 
         // v2 reward escrow balance is equal to escrow staked balance
         assertEq(rewardEscrowV2.totalEscrowBalanceOf(user1), user1EscrowStakedV2);
@@ -192,8 +167,7 @@ contract StakingV2MigrationTests is StakingTestHelpers {
 
         // Stake tokens in StakingV1
         for (uint8 i = 0; i < numberOfStakers; i++) {
-            uint256 fundingAmount =
-                getPseudoRandomNumber(maxFundingAmount, 1, i);
+            uint256 fundingAmount = getPseudoRandomNumber(maxFundingAmount, 1, i);
             fundAccountAndStakeV1(stakers[i], fundingAmount);
         }
 
@@ -224,8 +198,7 @@ contract StakingV2MigrationTests is StakingTestHelpers {
         for (uint8 i = 0; i < numberOfStakers; i++) {
             address staker = stakers[i];
             userEscrowedStakeV1[i] = stakingRewardsV1.escrowedBalanceOf(staker);
-            userNonEscrowedStakeV1[i] =
-                stakingRewardsV1.nonEscrowedBalanceOf(staker);
+            userNonEscrowedStakeV1[i] = stakingRewardsV1.nonEscrowedBalanceOf(staker);
             userEscrowV1[i] = rewardEscrowV1.balanceOf(staker);
 
             // assert v1 rewards have been earned
@@ -249,14 +222,10 @@ contract StakingV2MigrationTests is StakingTestHelpers {
 
         for (uint8 i = 0; i < numberOfStakers; i++) {
             // check full balance migrated
-            assertEq(
-                userNonEscrowedStakeV1[i],
-                stakingRewardsV2.nonEscrowedBalanceOf(stakers[i])
-            );
+            assertEq(userNonEscrowedStakeV1[i], stakingRewardsV2.nonEscrowedBalanceOf(stakers[i]));
 
             // update non-escrowed stake
-            userNonEscrowedStakeV1[i] =
-                stakingRewardsV1.nonEscrowedBalanceOf(stakers[i]);
+            userNonEscrowedStakeV1[i] = stakingRewardsV1.nonEscrowedBalanceOf(stakers[i]);
 
             // check nothing left in V1
             assertEq(userNonEscrowedStakeV1[i], 0);
@@ -281,36 +250,26 @@ contract StakingV2MigrationTests is StakingTestHelpers {
         // check StakingRewardsV1 balance unchanged
         for (uint8 i = 0; i < numberOfStakers; i++) {
             assertEq(stakingRewardsV1.nonEscrowedBalanceOf(stakers[i]), 0);
-            assertEq(
-                stakingRewardsV1.escrowedBalanceOf(stakers[i]),
-                userEscrowedStakeV1[i]
-            );
-            assertEq(
-                stakingRewardsV1.balanceOf(stakers[i]), userEscrowedStakeV1[i]
-            );
+            assertEq(stakingRewardsV1.escrowedBalanceOf(stakers[i]), userEscrowedStakeV1[i]);
+            assertEq(stakingRewardsV1.balanceOf(stakers[i]), userEscrowedStakeV1[i]);
         }
 
         // check RewardEscrowV1 balance unchanged
         for (uint8 i = 0; i < numberOfStakers; i++) {
             assertEq(rewardEscrowV1.balanceOf(stakers[i]), userEscrowV1[i]);
-            assertEq(
-                rewardEscrowV1.balanceOf(stakers[i]), userEscrowedStakeV1[i]
-            );
+            assertEq(rewardEscrowV1.balanceOf(stakers[i]), userEscrowedStakeV1[i]);
         }
 
         for (uint8 i = 0; i < numberOfStakers; i++) {
-            uint256 userEscrowStakedV2 =
-                stakingRewardsV2.escrowedBalanceOf(stakers[i]);
-            uint256 userNonEscrowedStakeV2 =
-                stakingRewardsV2.nonEscrowedBalanceOf(stakers[i]);
+            uint256 userEscrowStakedV2 = stakingRewardsV2.escrowedBalanceOf(stakers[i]);
+            uint256 userNonEscrowedStakeV2 = stakingRewardsV2.nonEscrowedBalanceOf(stakers[i]);
 
             // assert v2 rewards have been earned
             assertGt(rewardEscrowV2.totalEscrowBalanceOf(stakers[i]), 0);
 
             // v2 staked balance is equal to escrowed + non-escrowed balance
             assertEq(
-                stakingRewardsV2.balanceOf(stakers[i]),
-                userEscrowStakedV2 + userNonEscrowedStakeV2
+                stakingRewardsV2.balanceOf(stakers[i]), userEscrowStakedV2 + userNonEscrowedStakeV2
             );
 
             // v2 reward escrow balance is equal to escrow staked balance

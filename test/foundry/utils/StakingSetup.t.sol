@@ -10,8 +10,7 @@ import {RewardEscrowV2} from "../../../contracts/RewardEscrowV2.sol";
 import {SupplySchedule} from "../../../contracts/SupplySchedule.sol";
 import {StakingRewards} from "../../../contracts/StakingRewards.sol";
 import {StakingRewardsV2} from "../../../contracts/StakingRewardsV2.sol";
-import {MultipleMerkleDistributor} from
-    "../../../contracts/MultipleMerkleDistributor.sol";
+import {MultipleMerkleDistributor} from "../../../contracts/MultipleMerkleDistributor.sol";
 import {IERC20} from "../../../contracts/interfaces/IERC20.sol";
 import "../utils/Constants.t.sol";
 
@@ -71,16 +70,14 @@ contract StakingSetup is TestHelpers {
             address(rewardEscrowV1),
             address(supplySchedule)
         );
-        tradingRewards =
-            new MultipleMerkleDistributor(address(this), address(kwenta));
+        tradingRewards = new MultipleMerkleDistributor(address(this), address(kwenta));
         supplySchedule.setStakingRewards(address(stakingRewardsV1));
         supplySchedule.setTradingRewards(address(tradingRewards));
         rewardEscrowV1.setStakingRewards(address(stakingRewardsV1));
 
         // Deploy StakingV2
         migrate = new Migrate();
-        (bool deploymentSuccess, bytes memory deploymentData) = address(migrate)
-            .delegatecall(
+        (bool deploymentSuccess, bytes memory deploymentData) = address(migrate).delegatecall(
             abi.encodeWithSelector(
                 migrate.deploySystem.selector,
                 address(this),
@@ -123,5 +120,4 @@ contract StakingSetup is TestHelpers {
         );
         require(migrationSuccess, "Migrate.migrateSystem failed");
     }
-
 }
