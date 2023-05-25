@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.19;
 
-import {TestHelpers} from "../utils/helpers/TestHelpers.t.sol";
+import {TestHelpers} from "./TestHelpers.t.sol";
 
 contract TestHelpersTests is TestHelpers {
     function test_getPseudoRandomNumber_Fuzz(uint256 max, uint16 min, uint128 salt) public {
