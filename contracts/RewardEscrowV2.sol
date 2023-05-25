@@ -328,12 +328,10 @@ contract RewardEscrowV2 is
             // Send any fee to Treasury
             if (totalFee != 0) {
                 _reduceAccountEscrowBalances(msg.sender, totalFee);
-                // TODO: add this in
-                /// @dev this will revert if the transfer fails
-                // kwenta.transfer(treasuryDAO, totalFee);
-                require(
-                    kwenta.transfer(treasuryDAO, totalFee), "RewardEscrow: Token Transfer Failed"
-                );
+
+                /// @dev this will revert if the kwenta token transfer fails
+                /// @dev if using this with a different token, make sure to check the return value
+                kwenta.transfer(treasuryDAO, totalFee);
             }
 
             // Transfer kwenta
@@ -355,7 +353,7 @@ contract RewardEscrowV2 is
         if (beneficiary == address(0)) revert ZeroAddress();
         if (earlyVestingFee == 0) revert ZeroEarlyVestingFee();
 
-        // TODO: test this is the case on the deployed version
+        // TODO: test this is the case on on fork
         /// @dev this will revert if the kwenta token transfer fails
         /// @dev if using this with a different token, make sure to check the return value
         kwenta.transferFrom(msg.sender, address(this), deposit);
