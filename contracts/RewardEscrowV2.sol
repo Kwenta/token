@@ -39,7 +39,7 @@ contract RewardEscrowV2 is
     mapping(uint256 => VestingEntries.VestingEntry) public vestingSchedules;
 
     // Counter for new vesting entry ids
-    // TODO: delete and use totalSupply() instead
+    // TODO: delete and use totalSupply() instead - maybe not with burn decrementing it?
     uint256 public nextEntryId;
 
     // An account's total escrowed KWENTA balance to save recomputing this for fee extraction purposes
@@ -285,7 +285,6 @@ contract RewardEscrowV2 is
 
     /* ========== MUTATIVE FUNCTIONS ========== */
 
-    // TODO: burn entries after they are vested - YES - and needs testing
     /**
      * Vest escrowed amounts that are claimable
      * Allows users to vest their vesting entries based on msg.sender
@@ -305,7 +304,7 @@ contract RewardEscrowV2 is
                 (uint256 quantity, uint256 fee) = _claimableAmount(entry);
 
                 /* update entry to remove escrowAmount */
-                entry.escrowAmount = 0;
+                _burn(entryIDs[i]);
 
                 /* add quantity to total */
                 total += quantity;
@@ -421,6 +420,7 @@ contract RewardEscrowV2 is
     function _transfer(address from, address to, uint256 tokenId) internal override {
         VestingEntries.VestingEntry memory entry = vestingSchedules[tokenId];
 
+        // TODO: more efficient way for bulk transfer without querying each time?
         uint256 unstakedEscrow = unstakedEscrowBalanceOf(from);
         // TODO: think about ways around this - can tokens be staked and transferrable? - could an entry either be staked or unstaked?
         if (unstakedEscrow < entry.escrowAmount) {
@@ -431,6 +431,11 @@ contract RewardEscrowV2 is
 
         totalEscrowedAccountBalance[from] -= entry.escrowAmount;
         totalEscrowedAccountBalance[to] += entry.escrowAmount;
+    }
+
+    function _burn(uint256 tokenId) internal override {
+        delete vestingSchedules[tokenId];
+        super._burn(tokenId);
     }
 
     // TODO: rethink this function
