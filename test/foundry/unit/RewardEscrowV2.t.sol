@@ -199,7 +199,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         rewardEscrowV2.createEscrowEntry(address(this), 0, 52 weeks, 90);
     }
 
-    function test_createEscrowEntry_Should_Not_Create_A_Vesting_Entry_Insufficient_Kwenta() public {
+    function test_createEscrowEntry_Should_Not_Create_A_Vesting_Entry_Without_Allowance() public {
         vm.expectRevert("ERC20: transfer amount exceeds balance");
         rewardEscrowV2.createEscrowEntry(address(this), 1 ether, 52 weeks, 90);
     }

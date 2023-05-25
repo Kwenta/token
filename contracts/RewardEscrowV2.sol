@@ -354,6 +354,7 @@ contract RewardEscrowV2 is
     ) external override {
         if (beneficiary == address(0)) revert ZeroAddress();
 
+        // TODO: test this is the case on the deployed version
         /// @dev this will revert if the kwenta token transfer fails
         /// @dev if using this with a different token, make sure to check the return value
         kwenta.transferFrom(msg.sender, address(this), deposit);
