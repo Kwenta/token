@@ -137,6 +137,9 @@ interface IStakingRewardsV2 {
     /// @notice previous rewards period must be complete before changing the duration for the new period
     error RewardsPeriodNotComplete();
 
+    /// @notice recovering the staking token is not allowed
+    error CannotRecoverStakingToken();
+
     /// @notice error when user tries unstake during the cooldown period
     /// @param canUnstakeAt timestamp when user can unstake
     error MustWaitForUnlock(uint256 canUnstakeAt);

@@ -682,7 +682,7 @@ contract StakingRewardsV2 is
     /// @param tokenAddress: address of token to be recovered
     /// @param tokenAmount: amount of token to be recovered
     function recoverERC20(address tokenAddress, uint256 tokenAmount) external override onlyOwner {
-        require(tokenAddress != address(token), "StakingRewards: Cannot unstake the staking token");
+        if (tokenAddress == address(token)) revert CannotRecoverStakingToken();
         IERC20(tokenAddress).safeTransfer(owner(), tokenAmount);
         emit Recovered(tokenAddress, tokenAmount);
     }
