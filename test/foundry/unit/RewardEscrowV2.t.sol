@@ -273,4 +273,9 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         createRewardEscrowEntryV2(address(this), TEST_VALUE, 52 weeks, 90);
         assertEq(rewardEscrowV2.nextEntryId(), 2);
     }
+
+    function test_Increments_totalEscrowedBalance() public {
+        createRewardEscrowEntryV2(address(this), TEST_VALUE, 52 weeks, 90);
+        assertEq(rewardEscrowV2.totalEscrowedBalance(), TEST_VALUE);
+    }
 }
