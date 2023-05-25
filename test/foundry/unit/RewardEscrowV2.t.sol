@@ -615,12 +615,12 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         assertEq(kwenta.balanceOf(address(rewardEscrowV2)), 0);
     }
 
-    // function test_vest_Should_Emit_Correct_Event_For_Three_Entries() public {
-    //     create3EntriesWithDifferentDurations(address(this));
-    //     vm.expectEmit(true, true, true, true);
-    //     emit Vested(address(this), 2342435 ether);
-    //     vestAllEntries(address(this));
-    // }
+    function test_vest_Should_Emit_Correct_Event_For_Three_Entries() public {
+        create3EntriesWithDifferentDurations(address(this));
+        vm.expectEmit(true, true, true, true);
+        emit Vested(address(this), 775 ether);
+        vestAllEntries(address(this));
+    }
 
     // function test_vest_Two_Entries_Should_Update_totalEscrowedAccountBalance() public {
     //     create3EntriesWithDifferentDurations(address(this));
