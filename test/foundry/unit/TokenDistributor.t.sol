@@ -59,6 +59,8 @@ contract TokenDistributorTest is StakingSetup {
         tokenDistributor.checkpointToken();
     }
 
+    //todo: fuzz the checkpointing
+
     /// @notice claimEpoch happy case
     function testClaimEpoch() public {
         //setup
@@ -276,11 +278,46 @@ contract TokenDistributorTest is StakingSetup {
         tokenDistributor.checkpointToken();
 
         uint256 result = tokenDistributor.calculateEpochFees(address(user2), 1);
-        /// @dev calculate the proprtion for this week (same as checkpoint math)
+        /// @dev calculate the proportion for this week (same as checkpoint math)
         /// then get the proportion staked (2/3)
         assertEq(
             result,
             (((amount * .5 weeks) / timeSinceLastCheckpoint) * 2) / 3
+        );
+    }
+
+    /// @notice fuzz calculateEpochFees, especially for when multiple weeks are missed
+    function testFuzzCalculateMultipleWeeksMissed(uint256 amount) public {
+        /// @dev make sure its less than this contract
+        /// holds and greater than 10 so the result isn't
+        /// 0 after dividing
+        vm.assume(amount < 100_000 ether);
+        vm.assume(amount > 10);
+
+        kwenta.transfer(address(user1), 1);
+        kwenta.transfer(address(user2), 2);
+        vm.startPrank(address(user1));
+        kwenta.approve(address(stakingRewardsV2), 1);
+        stakingRewardsV2.stake(1);
+        vm.stopPrank();
+        vm.startPrank(address(user2));
+        kwenta.approve(address(stakingRewardsV2), 2);
+        stakingRewardsV2.stake(2);
+        vm.stopPrank();
+        goForward(1 weeks - 2);
+
+        /// @dev send fees to TokenDistributor midway through epoch 3
+        /// this will be split between epochs 0 - 3.5
+        goForward(2.5 weeks);
+        kwenta.transfer(address(tokenDistributor), amount);
+        tokenDistributor.checkpointToken();
+
+        uint256 result = tokenDistributor.calculateEpochFees(address(user2), 1);
+        /// @dev calculate the proportion for this week (same as checkpoint math)
+        /// then get the proportion staked (2/3)
+        assertEq(
+            result,
+            (((amount * 1 weeks) / 3.5 weeks) * 2) / 3
         );
     }
 
@@ -603,4 +640,6 @@ contract TokenDistributorTest is StakingSetup {
     }
 
     //todo: fuzz test offsetting
+
+    //todo: do a complete test with TokenDistributor deployed after V2
 }
