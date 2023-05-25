@@ -11,6 +11,7 @@ import {SupplySchedule} from "../../../contracts/SupplySchedule.sol";
 import {StakingRewards} from "../../../contracts/StakingRewards.sol";
 import {StakingRewardsV2} from "../../../contracts/StakingRewardsV2.sol";
 import {MultipleMerkleDistributor} from "../../../contracts/MultipleMerkleDistributor.sol";
+import {IRewardEscrowV2} from "../../../contracts/interfaces/IRewardEscrowV2.sol";
 import {IERC20} from "../../../contracts/interfaces/IERC20.sol";
 import "../utils/Constants.t.sol";
 
@@ -100,6 +101,10 @@ contract StakingSetup is TestHelpers {
             rewardEscrowV2Implementation,
             stakingRewardsV2Implementation
         ) = abi.decode(deploymentData, (RewardEscrowV2, StakingRewardsV2, address, address));
+
+        // check staking rewards cannot be set to 0
+        vm.expectRevert(IRewardEscrowV2.ZeroAddress.selector);
+        rewardEscrowV2.setStakingRewardsV2(address(0));
 
         // Setup StakingV2
         (bool setupSuccess,) = address(migrate).delegatecall(
