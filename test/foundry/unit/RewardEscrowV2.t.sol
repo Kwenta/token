@@ -718,6 +718,29 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         rewardEscrowV2.stakeEscrow(2 ether);
     }
 
+    function test_Should_Revert_If_Insufficient_Escrow_Fuzz(
+        uint32 amount,
+        uint8 amountToStakeInitially
+    ) public {
+        vm.assume(amount > 0);
+        vm.assume(amountToStakeInitially > 0);
+        vm.assume(amountToStakeInitially < amount);
+
+        createRewardEscrowEntryV2(address(this), amount, 52 weeks);
+
+        // stake half the escrow
+        rewardEscrowV2.stakeEscrow(amountToStakeInitially);
+
+        // attempt to stake full amount now
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IStakingRewardsV2.InsufficientUnstakedEscrow.selector,
+                amount - amountToStakeInitially
+            )
+        );
+        rewardEscrowV2.stakeEscrow(amount);
+    }
+
     /*//////////////////////////////////////////////////////////////
                                 Helpers
     //////////////////////////////////////////////////////////////*/
