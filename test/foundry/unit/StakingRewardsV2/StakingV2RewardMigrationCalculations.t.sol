@@ -2,14 +2,32 @@
 pragma solidity ^0.8.19;
 
 import "forge-std/Test.sol";
-import {DefaultStakingV2Setup} from "../utils/DefaultStakingV2Setup.t.sol";
-import "../utils/Constants.t.sol";
+import {StakingTestHelpers} from "../../utils/StakingTestHelpers.t.sol";
+import "../../utils/Constants.t.sol";
 
-contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
+contract StakingV2RewardMigrationCalculationTests is StakingTestHelpers {
     /*//////////////////////////////////////////////////////////////
-                Staking Rewards V2 Calculation Tests
+                                Setup
     //////////////////////////////////////////////////////////////*/
 
+    function setUp() public virtual override {
+        // Deploy v1 and v2
+        super.setUp();
+
+        // fund and stake in v1
+        fundAccountAndStakeV1(user1, 1 ether);
+        fundAccountAndStakeV1(user2, 1 ether);
+        fundAccountAndStakeV1(user3, 1 ether);
+        fundAccountAndStakeV1(user4, 1 ether);
+        fundAccountAndStakeV1(user5, 1 ether);
+
+        // switch to staking v2
+        switchToStakingV2();
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                    Rewards Migration Calculation Tests
+    //////////////////////////////////////////////////////////////*/
     function test_Staking_Rewards_One_Staker() public {
         // this is 7 days by default
         uint256 lengthOfPeriod = stakingRewardsV2.rewardsDuration();
@@ -41,10 +59,12 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
 
         // applying this calculation to the test case:
         // newRewards = 1 weeks * min(1 weeks, 1 weeks) / 1 weeks = 1 weeks
-        // rewardPerToken = 0 + (1 weeks * 1e18 / 1 ether) = 1 weeks
-        // rewardsPerTokenForUser = 1 weeks - 0 = 1 weeks
-        // rewards = (1 ether * 1 weeks) / 1e18 = 1 weeks
-        uint256 expectedRewards = 1 weeks;
+        // totalSupply = stakingV1 totalSuplly + stakingV2 totalSupply = 5 ether + 1 ether = 6 ether
+        // rewardPerToken = 0 + (1 weeks * 1e18 / 6 ether) = 1/6 weeks
+        // rewardsPerTokenForUser = 1/6 weeks - 0 = 1/6 weeks
+        // balance = stakingV1 balance + stakingV2 balance = 1 ether + 1 ether  = 2 ether
+        // rewards = (2 ether * 1/6 weeks) / 1e18 = 1/3 weeks
+        uint256 expectedRewards = 1 weeks / 3;
 
         // check rewards
         rewards = rewardEscrowV2.totalEscrowBalanceOf(user1);
@@ -418,7 +438,11 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         for (uint256 i = 0; i < numberOfRounds; i++) {
             // add another staker
             address otherUser = createUser();
-            fundAccountAndStakeV2(otherUser, getPseudoRandomNumber(10 ether, 1, initialStake));
+            if (flipCoin()) {
+                fundAccountAndStakeV1(otherUser, getPseudoRandomNumber(10 ether, 1, initialStake));
+            } else {
+                fundAccountAndStakeV2(otherUser, getPseudoRandomNumber(10 ether, 1, initialStake));
+            }
 
             // move forward to the end of the rewards period
             jumpToEndOfRewardsPeriod(waitTime);
@@ -473,10 +497,10 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
 
         // applying this calculation to the test case:
         // newRewards = 1 weeks * min(0.5 weeks, 1 weeks) / 1 weeks = 0.5 weeks
-        // rewardPerToken = 0 + (0.5 weeks * 1e18 / 1 ether) = 0.5 weeks
-        // rewardsPerTokenForUser = 0.5 weeks - 0 = 0.5 weeks
-        // rewards = (1 ether * 0.5 weeks) / 1e18 = 0.5 weeks
-        uint256 expectedRewards = 1 weeks / 2;
+        // rewardPerToken = 0 + (0.5 weeks * 1e18 / 6 ether) = 1/12 weeks
+        // rewardsPerTokenForUser = 1/12 weeks - 0 = 1/12 weeks
+        // rewards = (2 ether * 1/12 weeks) / 1e18 = 1/6 weeks
+        uint256 expectedRewards = 1 weeks / 6;
 
         // check rewards
         rewards = rewardEscrowV2.totalEscrowBalanceOf(user1);
