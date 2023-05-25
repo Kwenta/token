@@ -498,6 +498,27 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         assertEq(rewardEscrowV2.totalEscrowedBalance(), 0);
     }
 
+    function test_Should_Ignore_Duplicate_Entires() public {
+        create3Entries(address(this));
+        uint256[] memory entries = rewardEscrowV2.getAccountVestingEntryIDs(address(this), 0, 100);
+        for (uint256 i = 0; i < entries.length; i++) {
+            entryIDs.push(entries[i]);
+            entryIDs.push(entries[i]);
+        }
+        rewardEscrowV2.vest(entryIDs);
+
+        // Check only 3 entries were vested
+        assertEq(kwenta.balanceOf(address(this)), 1000 ether);
+        assertEq(kwenta.balanceOf(address(rewardEscrowV2)), 0);
+
+        // Attempt to vest again
+        rewardEscrowV2.vest(entryIDs);
+
+        // Check only 3 entries were vested
+        assertEq(kwenta.balanceOf(address(this)), 1000 ether);
+        assertEq(kwenta.balanceOf(address(rewardEscrowV2)), 0);
+    }
+
     /*//////////////////////////////////////////////////////////////
                                 Helpers
     //////////////////////////////////////////////////////////////*/
