@@ -139,7 +139,7 @@ interface IStakingRewardsV2 {
 
     /// @notice error when user tries unstake during the cooldown period
     /// @param canUnstakeAt timestamp when user can unstake
-    error CannotUnstakeDuringCooldown(uint256 canUnstakeAt);
+    error MustWaitForUnlock(uint256 canUnstakeAt);
 
     /// @notice error when trying to set a cooldown period below the minimum
     /// @param MIN_COOLDOWN_PERIOD minimum cooldown period

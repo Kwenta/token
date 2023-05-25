@@ -21,7 +21,7 @@ contract StakingV2CooldownPeriodTests is DefaultStakingV2Setup {
         // unstake immediately
         vm.expectRevert(
             abi.encodeWithSelector(
-                IStakingRewardsV2.CannotUnstakeDuringCooldown.selector, canUnstakeAt
+                IStakingRewardsV2.MustWaitForUnlock.selector, canUnstakeAt
             )
         );
         stakingRewardsV2.unstake(TEST_VALUE);
@@ -30,7 +30,7 @@ contract StakingV2CooldownPeriodTests is DefaultStakingV2Setup {
         vm.warp(stakedAt + cooldownPeriod / 2);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IStakingRewardsV2.CannotUnstakeDuringCooldown.selector, canUnstakeAt
+                IStakingRewardsV2.MustWaitForUnlock.selector, canUnstakeAt
             )
         );
         stakingRewardsV2.unstake(TEST_VALUE);
@@ -39,7 +39,7 @@ contract StakingV2CooldownPeriodTests is DefaultStakingV2Setup {
         vm.warp(stakedAt + cooldownPeriod - 1);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IStakingRewardsV2.CannotUnstakeDuringCooldown.selector, canUnstakeAt
+                IStakingRewardsV2.MustWaitForUnlock.selector, canUnstakeAt
             )
         );
         stakingRewardsV2.unstake(TEST_VALUE);
@@ -60,7 +60,7 @@ contract StakingV2CooldownPeriodTests is DefaultStakingV2Setup {
         if (waitTime < cooldownPeriod) {
             vm.expectRevert(
                 abi.encodeWithSelector(
-                    IStakingRewardsV2.CannotUnstakeDuringCooldown.selector, canUnstakeAt
+                    IStakingRewardsV2.MustWaitForUnlock.selector, canUnstakeAt
                 )
             );
         }
@@ -78,7 +78,7 @@ contract StakingV2CooldownPeriodTests is DefaultStakingV2Setup {
         // unstake immediately
         vm.expectRevert(
             abi.encodeWithSelector(
-                IStakingRewardsV2.CannotUnstakeDuringCooldown.selector, canUnstakeAt
+                IStakingRewardsV2.MustWaitForUnlock.selector, canUnstakeAt
             )
         );
         unstakeEscrowedFundsV2(address(this), TEST_VALUE);
@@ -87,7 +87,7 @@ contract StakingV2CooldownPeriodTests is DefaultStakingV2Setup {
         vm.warp(stakedAt + cooldownPeriod / 2);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IStakingRewardsV2.CannotUnstakeDuringCooldown.selector, canUnstakeAt
+                IStakingRewardsV2.MustWaitForUnlock.selector, canUnstakeAt
             )
         );
         unstakeEscrowedFundsV2(address(this), TEST_VALUE);
@@ -96,7 +96,7 @@ contract StakingV2CooldownPeriodTests is DefaultStakingV2Setup {
         vm.warp(stakedAt + cooldownPeriod - 1);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IStakingRewardsV2.CannotUnstakeDuringCooldown.selector, canUnstakeAt
+                IStakingRewardsV2.MustWaitForUnlock.selector, canUnstakeAt
             )
         );
         unstakeEscrowedFundsV2(address(this), TEST_VALUE);
@@ -119,7 +119,7 @@ contract StakingV2CooldownPeriodTests is DefaultStakingV2Setup {
         if (waitTime < cooldownPeriod) {
             vm.expectRevert(
                 abi.encodeWithSelector(
-                    IStakingRewardsV2.CannotUnstakeDuringCooldown.selector, canUnstakeAt
+                    IStakingRewardsV2.MustWaitForUnlock.selector, canUnstakeAt
                 )
             );
         }
@@ -171,7 +171,7 @@ contract StakingV2CooldownPeriodTests is DefaultStakingV2Setup {
         vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod() / 2);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IStakingRewardsV2.CannotUnstakeDuringCooldown.selector, canUnstakeAt
+                IStakingRewardsV2.MustWaitForUnlock.selector, canUnstakeAt
             )
         );
         stakingRewardsV2.unstake(TEST_VALUE);
@@ -192,7 +192,7 @@ contract StakingV2CooldownPeriodTests is DefaultStakingV2Setup {
         vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod() / 2);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IStakingRewardsV2.CannotUnstakeDuringCooldown.selector, canUnstakeAt
+                IStakingRewardsV2.MustWaitForUnlock.selector, canUnstakeAt
             )
         );
         unstakeEscrowedFundsV2(address(this), TEST_VALUE);
@@ -268,7 +268,7 @@ contract StakingV2CooldownPeriodTests is DefaultStakingV2Setup {
             // Expect revert if unstaking before cooldown period
             vm.expectRevert(
                 abi.encodeWithSelector(
-                    IStakingRewardsV2.CannotUnstakeDuringCooldown.selector, canUnstakeAt
+                    IStakingRewardsV2.MustWaitForUnlock.selector, canUnstakeAt
                 )
             );
         }
@@ -279,7 +279,7 @@ contract StakingV2CooldownPeriodTests is DefaultStakingV2Setup {
             // Expect revert if unstaking before cooldown period
             vm.expectRevert(
                 abi.encodeWithSelector(
-                    IStakingRewardsV2.CannotUnstakeDuringCooldown.selector, canUnstakeAt
+                    IStakingRewardsV2.MustWaitForUnlock.selector, canUnstakeAt
                 )
             );
         }

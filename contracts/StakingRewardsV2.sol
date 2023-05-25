@@ -122,7 +122,7 @@ contract StakingRewardsV2 is
     modifier afterCooldown(address account) {
         uint256 canUnstakeAt = userLastStakeTime[account] + unstakingCooldownPeriod;
         if (canUnstakeAt > block.timestamp) {
-            revert CannotUnstakeDuringCooldown(canUnstakeAt);
+            revert MustWaitForUnlock(canUnstakeAt);
         }
         _;
     }
