@@ -602,6 +602,20 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     }
 
     /*//////////////////////////////////////////////////////////////
+                Vesting Fully and Partially Vested Entries
+    //////////////////////////////////////////////////////////////*/
+
+    function test_Entries_1_And_2_Fully_Vested_And_3_Partially_Vested() public {
+        create3EntriesWithDifferentDurationsAndVestAll(address(this));
+
+        // check entry1 + entry2 + some of entry3 vested
+        assertGt(kwenta.balanceOf(address(this)), 500 ether);
+
+        // check reward escrow is empty
+        assertEq(kwenta.balanceOf(address(rewardEscrowV2)), 0);
+    }
+
+    /*//////////////////////////////////////////////////////////////
                                 Helpers
     //////////////////////////////////////////////////////////////*/
 
@@ -640,6 +654,11 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     function create3EntriesWithDifferentDurationsAndVestFirstTwo(address user) public {
         create3EntriesWithDifferentDurations(user);
         vestXEntries(user, 2);
+    }
+
+    function create3EntriesWithDifferentDurationsAndVestAll(address user) public {
+        create3EntriesWithDifferentDurations(user);
+        vestAllEntries(user);
     }
 
     function create3EntriesWithDifferentDurations(address user) public {
