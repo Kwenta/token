@@ -55,10 +55,7 @@ contract RewardEscrowV2 is
 
     /* ========== MODIFIERS ========== */
     modifier onlyStakingRewards() {
-        require(
-            msg.sender == address(stakingRewardsV2),
-            "Only the StakingRewards can perform this action"
-        );
+        if (msg.sender != address(stakingRewardsV2)) revert OnlyStakingRewards();
         _;
     }
 
@@ -92,7 +89,9 @@ contract RewardEscrowV2 is
     * @notice Function used to define the StakingRewards to use
     */
     function setStakingRewardsV2(address _stakingRewardsV2) public onlyOwner {
-        require(address(stakingRewardsV2) == address(0), "Staking Rewards already set");
+        // TODO: check if I should have this test:
+        // if (_stakingRewardsV2 == address(0)) revert ZeroAddress();
+        if (address(stakingRewardsV2) != address(0)) revert StakingRewardsAlreadySet();
         stakingRewardsV2 = IStakingRewardsV2(_stakingRewardsV2);
         emit StakingRewardsSet(address(_stakingRewardsV2));
     }

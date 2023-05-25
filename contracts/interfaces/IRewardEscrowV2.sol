@@ -87,4 +87,10 @@ interface IRewardEscrowV2 {
 
     /// @notice Attempted to set entry early vesting fee beyond 100%
     error MaxEarlyVestingFeeIs100();
+
+    /// @notice error someone other than staking rewards calls an onlyStakingRewards function
+    error OnlyStakingRewards();
+
+    /// @notice staking rewards is only allowed to be set once
+    error StakingRewardsAlreadySet();
 }
