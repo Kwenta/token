@@ -107,6 +107,7 @@ const NAME = "Kwenta";
 const SYMBOL = "KWENTA";
 const INITIAL_SUPPLY = hre.ethers.utils.parseUnits("313373");
 const DEFAULT_EARLY_VESTING_FEE = new BN(90);
+const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 
 const toUnit = (amount) => toBN(toWei(amount.toString(), "ether"));
@@ -243,6 +244,13 @@ contract(
 
             SRsigner = await ethers.getSigner(stakingRewardsV2.address);
 
+            await assert.revert(
+                rewardEscrowV2.setStakingRewardsV2(ZERO_ADDRESS, {
+                    from: owner,
+                }),
+                "ZeroAddress"
+            );
+
             await rewardEscrowV2.setStakingRewardsV2(stakingRewardsV2.address, {
                 from: owner,
             });
@@ -304,6 +312,15 @@ contract(
                     treasuryDAOAddress,
                     treasuryDAO,
                     "Wrong treasury address"
+                );
+            });
+
+            it("Should not allow the Treasury to be set to the zero address", async () => {
+                await assert.revert(
+                    rewardEscrowV2.setTreasuryDAO(ZERO_ADDRESS, {
+                        from: owner,
+                    }),
+                    "ZeroAddress"
                 );
             });
 
