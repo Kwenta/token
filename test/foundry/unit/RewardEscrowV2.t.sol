@@ -331,13 +331,9 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     }
 
     function test_getAccountVestingEntryIDs() public {
-        createRewardEscrowEntryV2(user1, 200 ether, 52 weeks, 90);
-        vm.warp(block.timestamp + 1 weeks);
-        createRewardEscrowEntryV2(user1, 300 ether, 52 weeks, 90);
-        vm.warp(block.timestamp + 1 weeks);
-        createRewardEscrowEntryV2(user1, 500 ether, 52 weeks, 90);
+        create3Entries();
 
-        uint256[] memory entries = rewardEscrowV2.getAccountVestingEntryIDs(user1, 0, 3);
+        uint256[] memory entries = rewardEscrowV2.getAccountVestingEntryIDs(address(this), 0, 3);
 
         assertEq(entries.length, 3);
 
@@ -449,23 +445,12 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     //////////////////////////////////////////////////////////////*/
 
     function test_Should_Have_Three_Entries() public {
-        createRewardEscrowEntryV2(address(this), 200 ether, 52 weeks, 90);
-        vm.warp(block.timestamp + 1 weeks);
-        createRewardEscrowEntryV2(address(this), 300 ether, 52 weeks, 90);
-        vm.warp(block.timestamp + 1 weeks);
-        createRewardEscrowEntryV2(address(this), 500 ether, 52 weeks, 90);
-        vm.warp(block.timestamp + 3 weeks);
-
+        create3Entries();
         assertEq(rewardEscrowV2.balanceOf(address(this)), 3);
     }
 
     function test_User_Cannot_Vest_Other_Users_Entries() public {
-        createRewardEscrowEntryV2(address(this), 200 ether, 52 weeks, 90);
-        vm.warp(block.timestamp + 1 weeks);
-        createRewardEscrowEntryV2(address(this), 300 ether, 52 weeks, 90);
-        vm.warp(block.timestamp + 1 weeks);
-        createRewardEscrowEntryV2(address(this), 500 ether, 52 weeks, 90);
-        vm.warp(block.timestamp + 3 weeks);
+        create3Entries();
 
         entryIDs.push(1);
         entryIDs.push(2);
@@ -482,5 +467,22 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
 
         // kwenta is all still locked in reward escrow
         assertEq(kwenta.balanceOf(address(rewardEscrowV2)), 1000 ether);
+    }
+
+    function test_Should_Vest_All_Entries() public {
+        create3Entries();
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                                Helpers
+    //////////////////////////////////////////////////////////////*/
+
+    function create3Entries() public {
+        createRewardEscrowEntryV2(address(this), 200 ether, 52 weeks, 90);
+        vm.warp(block.timestamp + 1 weeks);
+        createRewardEscrowEntryV2(address(this), 300 ether, 52 weeks, 90);
+        vm.warp(block.timestamp + 1 weeks);
+        createRewardEscrowEntryV2(address(this), 500 ether, 52 weeks, 90);
+        vm.warp(block.timestamp + 3 weeks);
     }
 }
