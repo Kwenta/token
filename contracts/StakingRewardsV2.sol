@@ -242,7 +242,7 @@ contract StakingRewardsV2 is
         whenNotPaused
         updateReward(msg.sender)
     {
-        if (amount == 0) revert AmountMustBeGreaterThanZero();
+        if (amount == 0) revert AmountZero();
 
         // update state
         userLastStakeTime[msg.sender] = block.timestamp;
@@ -266,7 +266,7 @@ contract StakingRewardsV2 is
         updateReward(msg.sender)
         afterCooldown(msg.sender)
     {
-        if (amount == 0) revert AmountMustBeGreaterThanZero();
+        if (amount == 0) revert AmountZero();
         if (amount > nonEscrowedBalanceOf(msg.sender)) revert InsufficientBalance();
 
         // update state
@@ -294,7 +294,7 @@ contract StakingRewardsV2 is
         whenNotPaused
         updateReward(account)
     {
-        if (amount == 0) revert AmountMustBeGreaterThanZero();
+        if (amount == 0) revert AmountZero();
         // TODO: think if there I could do calc just querying rewardEscrow.totalEscrowedAccountBalance to save gas
         uint256 unstakedEscrow = rewardEscrow.unstakedEscrowBalanceOf(account);
         if (amount > unstakedEscrow) {
@@ -348,7 +348,7 @@ contract StakingRewardsV2 is
         onlyRewardEscrow
         updateReward(account)
     {
-        if (amount == 0) revert AmountMustBeGreaterThanZero();
+        if (amount == 0) revert AmountZero();
         if (amount > escrowedBalanceOf(account)) revert InsufficientBalance();
 
         // update state

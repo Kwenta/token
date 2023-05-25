@@ -129,9 +129,7 @@ interface IStakingRewardsV2 {
     error OnlySupplySchedule();
 
     /// @notice error when user tries to stake/unstake 0 tokens
-    error AmountMustBeGreaterThanZero();
-    // TODO: rename to AmountZero()
-    // error AmountZero();
+    error AmountZero();
 
     /// @notice the user does not have enough tokens to unstake that amount
     error InsufficientBalance();

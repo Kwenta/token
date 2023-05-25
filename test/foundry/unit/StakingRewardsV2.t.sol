@@ -302,7 +302,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
 
     function test_Cannot_stake_0() public {
         fundAndApproveAccountV2(address(this), TEST_VALUE);
-        vm.expectRevert(IStakingRewardsV2.AmountMustBeGreaterThanZero.selector);
+        vm.expectRevert(IStakingRewardsV2.AmountZero.selector);
         stakingRewardsV2.stake(0);
     }
 
@@ -377,7 +377,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
     }
 
     function test_Cannot_Escrow_Stake_0() public {
-        vm.expectRevert(IStakingRewardsV2.AmountMustBeGreaterThanZero.selector);
+        vm.expectRevert(IStakingRewardsV2.AmountZero.selector);
         stakeEscrowedFundsV2(address(this), 0);
     }
 
@@ -400,7 +400,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
 
         // exit - this fails because exit uses unstake not unstakeEscrow
-        vm.expectRevert(IStakingRewardsV2.AmountMustBeGreaterThanZero.selector);
+        vm.expectRevert(IStakingRewardsV2.AmountZero.selector);
         stakingRewardsV2.exit();
     }
 
@@ -665,7 +665,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
     function test_Cannot_unstake_0() public {
         vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
 
-        vm.expectRevert(IStakingRewardsV2.AmountMustBeGreaterThanZero.selector);
+        vm.expectRevert(IStakingRewardsV2.AmountZero.selector);
         stakingRewardsV2.unstake(0);
     }
 
@@ -843,11 +843,11 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
 
         // unstake 0 escrow
-        vm.expectRevert(IStakingRewardsV2.AmountMustBeGreaterThanZero.selector);
+        vm.expectRevert(IStakingRewardsV2.AmountZero.selector);
         unstakeEscrowedFundsV2(address(this), 0);
 
         // unstake 0 escrow
-        vm.expectRevert(IStakingRewardsV2.AmountMustBeGreaterThanZero.selector);
+        vm.expectRevert(IStakingRewardsV2.AmountZero.selector);
         unstakeEscrowSkipCooldownFundsV2(address(this), 0);
     }
 
