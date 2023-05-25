@@ -363,16 +363,30 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         assertEq(rewardEscrowV2.totalEscrowedAccountBalance(address(this)), 1000 ether);
     }
 
-    function test_Should_Have_55_Percent_Of_Entry_Claimable() public {
+    function test_vest_Should_Properly_Distribute_Escrow() public {
         appendRewardEscrowEntryV2(address(this), 1000 ether, 52 weeks);
         vm.warp(block.timestamp + 26 weeks);
+
+        uint256 treasuryBalanceBefore = kwenta.balanceOf(treasury);
 
         entryIDs.push(1);
         rewardEscrowV2.vest(entryIDs);
 
+        uint256 treasuryBalanceAfter = kwenta.balanceOf(treasury);
+        uint256 treasuryReceived = treasuryBalanceAfter - treasuryBalanceBefore;
+
+        // 45% should go to the treasury
+        assertEq(treasuryReceived, 450 ether);
+
+        // 55% should go to the staker
         assertEq(rewardEscrowV2.totalVestedAccountBalance(address(this)), 550 ether);
         assertEq(kwenta.balanceOf(address(this)), 550 ether);
         assertEq(rewardEscrowV2.totalEscrowedAccountBalance(address(this)), 0);
+
+        // Nothing should be left in reward escrow
+        assertEq(rewardEscrowV2.totalEscrowedBalance(), 0);
+        assertEq(rewardEscrowV2.totalEscrowedAccountBalance(address(this)), 0);
+        assertEq(kwenta.balanceOf(address(rewardEscrowV2)), 0);
     }
 
     // TODO: test vesting failure do to failed token transfer by transfering kwenta out of reward escrow using vm.prank
