@@ -97,9 +97,6 @@ interface IRewardEscrowV2 {
     /// @notice cannot set this value to the zero address
     error ZeroAddress();
 
-    // /// @notice token transfer failed
-    // error TransferFailed();
-
     /// @notice cannot mint entries with zero escrow
     error ZeroAmount();
 

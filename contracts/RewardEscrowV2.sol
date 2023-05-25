@@ -329,7 +329,8 @@ contract RewardEscrowV2 is
             if (totalFee != 0) {
                 _reduceAccountEscrowBalances(msg.sender, totalFee);
                 // TODO: add this in
-                // if (!kwenta.transfer(treasuryDAO, totalFee)) revert TransferFailed();
+                /// @dev this will revert if the transfer fails
+                // kwenta.transfer(treasuryDAO, totalFee);
                 require(
                     kwenta.transfer(treasuryDAO, totalFee), "RewardEscrow: Token Transfer Failed"
                 );
@@ -353,8 +354,8 @@ contract RewardEscrowV2 is
     ) external override {
         require(beneficiary != address(0), "Cannot create escrow with address(0)");
 
-        /* Transfer KWENTA from msg.sender */
-        require(kwenta.transferFrom(msg.sender, address(this), deposit), "Token transfer failed");
+        /// @dev this will revert if the transfer fails
+        kwenta.transferFrom(msg.sender, address(this), deposit);
 
         /* Append vesting entry for the beneficiary address */
         _mint(beneficiary, deposit, duration, earlyVestingFee);
