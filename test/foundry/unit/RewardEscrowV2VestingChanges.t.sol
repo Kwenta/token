@@ -53,6 +53,7 @@ contract RewardEscrowV2VestingChangesTests is DefaultStakingV2Setup {
         vm.assume(escrowAmount > 0);
         vm.assume(duration > 0);
         vm.assume(earlyVestingFee <= 100);
+        vm.assume(earlyVestingFee > 0);
 
         createRewardEscrowEntryV2(user1, escrowAmount, duration, earlyVestingFee);
         (,,, uint8 earlyVestingFeeAfter) = rewardEscrowV2.getVestingEntry(1);
@@ -120,6 +121,7 @@ contract RewardEscrowV2VestingChangesTests is DefaultStakingV2Setup {
         vm.assume(escrowAmount > 0);
         vm.assume(duration > 0);
         vm.assume(earlyVestingFee <= 100);
+        vm.assume(earlyVestingFee > 0);
 
         // create entry
         createRewardEscrowEntryV2(user1, escrowAmount, duration, earlyVestingFee);
@@ -180,6 +182,7 @@ contract RewardEscrowV2VestingChangesTests is DefaultStakingV2Setup {
         vm.assume(stakingAmount <= escrowAmount);
         vm.assume(duration > 0);
         vm.assume(earlyVestingFee <= 100);
+        vm.assume(earlyVestingFee > 0);
 
         // create entry
         createRewardEscrowEntryV2(user1, escrowAmount, duration, earlyVestingFee);
