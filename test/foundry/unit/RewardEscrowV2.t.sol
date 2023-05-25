@@ -741,6 +741,22 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         rewardEscrowV2.stakeEscrow(amount);
     }
 
+    function test_Should_Stake_Escrow() public {
+        createRewardEscrowEntryV2(address(this), 1 ether, 52 weeks);
+        rewardEscrowV2.stakeEscrow(1 ether);
+        assertEq(rewardEscrowV2.totalEscrowedBalance(), 1 ether);
+        assertEq(stakingRewardsV2.escrowedBalanceOf(address(this)), 1 ether);
+    }
+
+    function test_Should_Stake_Escrow_Fuzz(uint32 amount) public {
+        vm.assume(amount > 0);
+
+        createRewardEscrowEntryV2(address(this), amount, 52 weeks);
+        rewardEscrowV2.stakeEscrow(amount);
+        assertEq(rewardEscrowV2.totalEscrowedBalance(), amount);
+        assertEq(stakingRewardsV2.escrowedBalanceOf(address(this)), amount);
+    }
+
     /*//////////////////////////////////////////////////////////////
                                 Helpers
     //////////////////////////////////////////////////////////////*/
