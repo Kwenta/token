@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
 import {DefaultStakingV2Setup} from "../utils/DefaultStakingV2Setup.t.sol";
-import {StakingRewardsV2} from "../../../contracts/StakingRewardsV2.sol";
+import {IStakingRewardsV2} from "../../../contracts/interfaces/IStakingRewardsV2.sol";
 import "../utils/Constants.t.sol";
 
 contract StakingRewardsOnBehalfActionsTests is DefaultStakingV2Setup {
@@ -21,7 +21,7 @@ contract StakingRewardsOnBehalfActionsTests is DefaultStakingV2Setup {
 
         // claim rewards on behalf as user2
         vm.prank(user2);
-        vm.expectRevert(StakingRewardsV2.NotApprovedOperator.selector);
+        vm.expectRevert(IStakingRewardsV2.NotApprovedOperator.selector);
         stakingRewardsV2.getRewardOnBehalf(address(this));
     }
 
@@ -51,7 +51,7 @@ contract StakingRewardsOnBehalfActionsTests is DefaultStakingV2Setup {
 
         // claim rewards on behalf as user2
         vm.prank(caller);
-        vm.expectRevert(StakingRewardsV2.NotApprovedOperator.selector);
+        vm.expectRevert(IStakingRewardsV2.NotApprovedOperator.selector);
         stakingRewardsV2.getRewardOnBehalf(address(this));
     }
 
@@ -63,7 +63,7 @@ contract StakingRewardsOnBehalfActionsTests is DefaultStakingV2Setup {
 
         // stake escrow on behalf as user2
         vm.prank(user2);
-        vm.expectRevert(StakingRewardsV2.NotApprovedOperator.selector);
+        vm.expectRevert(IStakingRewardsV2.NotApprovedOperator.selector);
         stakingRewardsV2.stakeEscrowOnBehalf(address(this), TEST_VALUE);
     }
 
@@ -91,17 +91,17 @@ contract StakingRewardsOnBehalfActionsTests is DefaultStakingV2Setup {
 
         // stake escrow on behalf as user2
         vm.prank(caller);
-        vm.expectRevert(StakingRewardsV2.NotApprovedOperator.selector);
+        vm.expectRevert(IStakingRewardsV2.NotApprovedOperator.selector);
         stakingRewardsV2.stakeEscrowOnBehalf(owner, escrowAmount);
     }
 
     function test_Cannot_Approve_Self() public {
-        vm.expectRevert(StakingRewardsV2.CannotApproveSelf.selector);
+        vm.expectRevert(IStakingRewardsV2.CannotApproveSelf.selector);
         stakingRewardsV2.approveOperator(address(this), true);
     }
 
     function test_Cannot_Approve_Self_Fuzz(address owner) public {
-        vm.expectRevert(StakingRewardsV2.CannotApproveSelf.selector);
+        vm.expectRevert(IStakingRewardsV2.CannotApproveSelf.selector);
         vm.prank(owner);
         stakingRewardsV2.approveOperator(owner, true);
     }
@@ -235,7 +235,7 @@ contract StakingRewardsOnBehalfActionsTests is DefaultStakingV2Setup {
         // stake escrow on behalf
         vm.prank(user1);
         vm.expectRevert(
-            abi.encodeWithSelector(StakingRewardsV2.InsufficientUnstakedEscrow.selector, TEST_VALUE)
+            abi.encodeWithSelector(IStakingRewardsV2.InsufficientUnstakedEscrow.selector, TEST_VALUE)
         );
         stakingRewardsV2.stakeEscrowOnBehalf(address(this), TEST_VALUE + 1);
     }
@@ -264,7 +264,7 @@ contract StakingRewardsOnBehalfActionsTests is DefaultStakingV2Setup {
         vm.prank(operator);
         vm.expectRevert(
             abi.encodeWithSelector(
-                StakingRewardsV2.InsufficientUnstakedEscrow.selector, escrowAmount
+                IStakingRewardsV2.InsufficientUnstakedEscrow.selector, escrowAmount
             )
         );
         stakingRewardsV2.stakeEscrowOnBehalf(owner, amountToEscrowStake);

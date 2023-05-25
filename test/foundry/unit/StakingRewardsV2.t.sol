@@ -3,7 +3,7 @@ pragma solidity ^0.8.19;
 
 import "forge-std/Test.sol";
 import {DefaultStakingV2Setup} from "../utils/DefaultStakingV2Setup.t.sol";
-import {StakingRewardsV2} from "../../../contracts/StakingRewardsV2.sol";
+import {IStakingRewardsV2} from "../../../contracts/interfaces/IStakingRewardsV2.sol";
 import "../utils/Constants.t.sol";
 
 contract StakingRewardsV2Test is DefaultStakingV2Setup {
@@ -323,7 +323,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
     function test_Cannot_StakeEscrow_Too_Much() public {
         createRewardEscrowEntryV2(address(this), TEST_VALUE, 52 weeks);
         vm.expectRevert(
-            abi.encodeWithSelector(StakingRewardsV2.InsufficientUnstakedEscrow.selector, TEST_VALUE)
+            abi.encodeWithSelector(IStakingRewardsV2.InsufficientUnstakedEscrow.selector, TEST_VALUE)
         );
         rewardEscrowV2.stakeEscrow(TEST_VALUE + 1);
     }
@@ -340,7 +340,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         createRewardEscrowEntryV2(address(this), escrowAmount, duration);
         vm.expectRevert(
             abi.encodeWithSelector(
-                StakingRewardsV2.InsufficientUnstakedEscrow.selector, escrowAmount
+                IStakingRewardsV2.InsufficientUnstakedEscrow.selector, escrowAmount
             )
         );
         rewardEscrowV2.stakeEscrow(amountToEscrowStake);
