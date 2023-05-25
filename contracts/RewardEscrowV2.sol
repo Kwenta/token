@@ -352,9 +352,10 @@ contract RewardEscrowV2 is
         uint256 duration,
         uint8 earlyVestingFee
     ) external override {
-        require(beneficiary != address(0), "Cannot create escrow with address(0)");
+        if (beneficiary == address(0)) revert ZeroAddress();
 
-        /// @dev this will revert if the transfer fails
+        /// @dev this will revert if the kwenta token transfer fails
+        /// @dev if using this with a different token, make sure to check the return value
         kwenta.transferFrom(msg.sender, address(this), deposit);
 
         /* Append vesting entry for the beneficiary address */
