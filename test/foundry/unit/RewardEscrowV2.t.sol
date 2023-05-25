@@ -774,6 +774,22 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         assertEq(stakingRewardsV2.escrowedBalanceOf(address(this)), 1 ether);
     }
 
+    function test_Should_Unstake_To_Vest_If_Needed() public {
+        createRewardEscrowEntryV2(address(this), 1 ether, 52 weeks);
+
+        // stake all the escrow
+        rewardEscrowV2.stakeEscrow(1 ether);
+
+        // vest all entries
+        vm.warp(block.timestamp + 52 weeks);
+        vestXEntries(address(this), 1);
+
+        // check escrowed balance
+        assertEq(rewardEscrowV2.totalEscrowedBalance(), 0 ether);
+        // escrow should have been unstaked
+        assertEq(stakingRewardsV2.escrowedBalanceOf(address(this)), 0 ether);
+    }
+
     /*//////////////////////////////////////////////////////////////
                                 Helpers
     //////////////////////////////////////////////////////////////*/
