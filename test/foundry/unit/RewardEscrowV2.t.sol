@@ -435,7 +435,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         vm.warp(block.timestamp + 52 weeks);
         entryIDs.push(1);
 
-        vm.expectEmit(true, true, true, false);
+        vm.expectEmit(true, true, true, true);
         emit Vested(address(this), 1000 ether);
         rewardEscrowV2.vest(entryIDs);
     }
@@ -472,7 +472,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
 
     function test_Should_Emit_Correct_Vested_Event() public {
         create3Entries(address(this));
-        vm.expectEmit(true, true, true, false);
+        vm.expectEmit(true, true, true, true);
         emit Vested(address(this), 1000 ether);
         vestAllEntries(address(this));
     }
@@ -554,7 +554,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
 
     function test_vest_Should_Emit_Correct_Event_For_Two_Entries() public {
         create3EntriesWithDifferentDurations(address(this));
-        vm.expectEmit(true, true, true, false);
+        vm.expectEmit(true, true, true, true);
         emit Vested(address(this), 500 ether);
         vestXEntries(address(this), 2);
     }
@@ -614,6 +614,56 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         // check reward escrow is empty
         assertEq(kwenta.balanceOf(address(rewardEscrowV2)), 0);
     }
+
+    // function test_vest_Should_Emit_Correct_Event_For_Three_Entries() public {
+    //     create3EntriesWithDifferentDurations(address(this));
+    //     vm.expectEmit(true, true, true, true);
+    //     emit Vested(address(this), 2342435 ether);
+    //     vestAllEntries(address(this));
+    // }
+
+    // function test_vest_Two_Entries_Should_Update_totalEscrowedAccountBalance() public {
+    //     create3EntriesWithDifferentDurations(address(this));
+    //     assertEq(rewardEscrowV2.totalEscrowedAccountBalance(address(this)), 1000 ether);
+    //     vestXEntries(address(this), 2);
+    //     assertEq(rewardEscrowV2.totalEscrowedAccountBalance(address(this)), 500 ether);
+    // }
+
+    // function test_vest_Two_Entries_Should_Update_totalVestedAccountBalance() public {
+    //     create3EntriesWithDifferentDurations(address(this));
+    //     assertEq(rewardEscrowV2.totalVestedAccountBalance(address(this)), 0);
+    //     vestXEntries(address(this), 2);
+    //     assertEq(rewardEscrowV2.totalVestedAccountBalance(address(this)), 500 ether);
+    // }
+
+    // function test_vest_Two_Entries_Should_Update_totalEscrowedBalance() public {
+    //     create3EntriesWithDifferentDurations(address(this));
+    //     assertEq(rewardEscrowV2.totalEscrowedBalance(), 1000 ether);
+    //     vestXEntries(address(this), 2);
+    //     assertEq(rewardEscrowV2.totalEscrowedBalance(), 500 ether);
+    // }
+
+    // function test_vest_Two_Entries_Should_Ignore_Duplicate_Entires() public {
+    //     create3EntriesWithDifferentDurations(address(this));
+    //     uint256[] memory entries = rewardEscrowV2.getAccountVestingEntryIDs(address(this), 0, 100);
+    //     for (uint256 i = 0; i < 2; i++) {
+    //         entryIDs.push(entries[i]);
+    //         entryIDs.push(entries[i]);
+    //     }
+    //     rewardEscrowV2.vest(entryIDs);
+
+    //     // Check only 2 entries were vested
+    //     assertEq(kwenta.balanceOf(address(this)), 500 ether);
+    //     assertEq(kwenta.balanceOf(address(rewardEscrowV2)), 500 ether);
+
+    //     // Attempt to vest again
+    //     rewardEscrowV2.vest(entryIDs);
+
+    //     // Check only 2 entries were vested
+    //     assertEq(kwenta.balanceOf(address(this)), 500 ether);
+    //     assertEq(kwenta.balanceOf(address(rewardEscrowV2)), 500 ether);
+    // }
+
 
     /*//////////////////////////////////////////////////////////////
                                 Helpers
