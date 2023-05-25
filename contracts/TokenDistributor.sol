@@ -163,7 +163,7 @@ contract TokenDistributor is ITokenDistributor {
         address to,
         uint epochNumber
     ) public view override returns (uint256) {
-        uint epochStart = _startOfEpoch(epochNumber); //todo: clarity
+        uint epochStart = _startOfEpoch(epochNumber);
         uint256 userStaked = stakingRewardsV2.balanceAtTime(to, epochStart);
         uint256 totalStaked = stakingRewardsV2.totalSupplyAtTime(epochStart);
         if (totalStaked == 0) {
