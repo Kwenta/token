@@ -477,6 +477,13 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         vestAllEntries(address(this));
     }
 
+    function test_Should_Update_totalEscrowedAccountBalance() public {
+        create3Entries(address(this));
+        assertEq(rewardEscrowV2.totalEscrowedAccountBalance(address(this)), 1000 ether);
+        vestAllEntries(address(this));
+        assertEq(rewardEscrowV2.totalEscrowedAccountBalance(address(this)), 0);
+    }
+
     /*//////////////////////////////////////////////////////////////
                                 Helpers
     //////////////////////////////////////////////////////////////*/
