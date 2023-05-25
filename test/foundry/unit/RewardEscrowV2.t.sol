@@ -90,11 +90,21 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         rewardEscrowV2.appendVestingEntry(address(this), 1 ether, 52 weeks);
     }
 
+    // TODO: ensure tested for createVestingEntry
     function test_Should_Revert_If_Duration_Is_0() public {
         vm.prank(treasury);
         kwenta.transfer(address(rewardEscrowV2), 1 ether);
         vm.prank(address(stakingRewardsV2));
         vm.expectRevert(IRewardEscrowV2.InvalidDuration.selector);
         rewardEscrowV2.appendVestingEntry(address(this), 1 ether, 0);
+    }
+
+    function test_Should_Revert_If_Duration_Is_Greater_Than_Max() public {
+        uint256 maxDuration = rewardEscrowV2.MAX_DURATION();
+        vm.prank(treasury);
+        kwenta.transfer(address(rewardEscrowV2), 1 ether);
+        vm.prank(address(stakingRewardsV2));
+        vm.expectRevert(IRewardEscrowV2.InvalidDuration.selector);
+        rewardEscrowV2.appendVestingEntry(address(this), 1 ether, maxDuration + 1);
     }
 }
