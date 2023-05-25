@@ -100,7 +100,7 @@ contract StakingRewardsV2 is
 
     /// @notice access control modifier for rewardEscrow
     modifier onlyRewardEscrow() {
-        require(msg.sender == address(rewardEscrow), "StakingRewards: Only Reward Escrow");
+        if (msg.sender != address(rewardEscrow)) revert OnlyRewardEscrow();
         _;
     }
 
