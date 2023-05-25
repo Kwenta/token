@@ -106,7 +106,7 @@ contract StakingRewardsV2 is
 
     /// @notice access control modifier for rewardEscrow
     modifier onlySupplySchedule() {
-        require(msg.sender == address(supplySchedule), "StakingRewards: Only Supply Schedule");
+        if (msg.sender != address(supplySchedule)) revert OnlySupplySchedule();
         _;
     }
 

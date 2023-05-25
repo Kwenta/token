@@ -125,6 +125,9 @@ interface IStakingRewardsV2 {
     /// @notice error someone other than reward escrow calls an onlyRewardEscrow function
     error OnlyRewardEscrow();
 
+    /// @notice error someone other than the supply schedule calls an onlySupplySchedule function
+    error OnlySupplySchedule();
+
     /// @notice error when user tries unstake during the cooldown period
     /// @param canUnstakeAt timestamp when user can unstake
     error CannotUnstakeDuringCooldown(uint256 canUnstakeAt);
