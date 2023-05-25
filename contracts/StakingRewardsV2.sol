@@ -7,7 +7,6 @@ import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import "./utils/Owned.sol";
 import "./interfaces/IStakingRewardsV2.sol";
 import "./interfaces/IStakingRewards.sol";
 import "./interfaces/ISupplySchedule.sol";
