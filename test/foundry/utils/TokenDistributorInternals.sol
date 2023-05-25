@@ -19,4 +19,8 @@ contract TokenDistributorInternals is TokenDistributor {
         return _startOfEpoch(epochNumber);
     }
 
+    function checkpointWhenReady() public {
+        _checkpointWhenReady();
+    }
+
 }

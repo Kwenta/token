@@ -507,7 +507,7 @@ contract TokenDistributorTest is StakingSetup {
     /// @notice test _startOfEpoch so that it follows an offset like _startOfWeek
     function testStartOfEpoch() public {
 
-        TokenDistributorInternals tD = new TokenDistributorInternals(
+        TokenDistributorInternals tDI = new TokenDistributorInternals(
             address(kwenta),
             address(stakingRewardsV2),
             address(rewardEscrowV2),
@@ -515,11 +515,89 @@ contract TokenDistributorTest is StakingSetup {
         );
 
         
-        assertEq(tD.startOfWeek(block.timestamp), tD.startOfEpoch(0));
+        assertEq(tDI.startOfWeek(block.timestamp), tDI.startOfEpoch(0));
 
         goForward(2 days);
 
-        assertEq(tD.startOfWeek(block.timestamp), tD.startOfEpoch(1));
+        assertEq(tDI.startOfWeek(block.timestamp), tDI.startOfEpoch(1));
+
+    }
+
+    // Test _checkpointWhenReady
+
+    /// @notice test _checkpointWhenReady for when its < 24 hrs and not a new week
+    function testFailCheckpointWhenNotReady() public {
+        TokenDistributorInternals tDI = new TokenDistributorInternals(
+            address(kwenta),
+            address(stakingRewardsV2),
+            address(rewardEscrowV2),
+            2
+        );
+
+        tDI.checkpointToken();
+        vm.expectEmit(false, false, false, true);
+        emit CheckpointToken(604802, 0);
+        /// @dev this does not checkpoint and fails
+        tDI.checkpointWhenReady();
+    }
+
+    /// @notice test _checkpointWhenReady for when its > 24 hrs and not new week
+    function testCheckpointWhenReady24Hrs() public {
+        TokenDistributorInternals tDI = new TokenDistributorInternals(
+            address(kwenta),
+            address(stakingRewardsV2),
+            address(rewardEscrowV2),
+            2
+        );
+
+        goForward(1 days + 1);
+        uint result = tDI.startOfWeek(block.timestamp);
+        assertEq(result, 172800);
+        vm.expectEmit(false, false, false, true);
+        emit CheckpointToken(691203, 0);
+        tDI.checkpointWhenReady();
+    }
+
+    /// @notice test _checkpointWhenReady for when its > 24 hrs and is new week
+    function testCheckpointWhen24hrsAndNewWeek() public {
+        TokenDistributorInternals tDI = new TokenDistributorInternals(
+            address(kwenta),
+            address(stakingRewardsV2),
+            address(rewardEscrowV2),
+            2
+        );
+
+        uint result = tDI.startOfWeek(block.timestamp);
+        assertEq(result, 172800);
+
+        goForward(3 days);
+        uint result2 = tDI.startOfWeek(block.timestamp);
+        assertEq(result2, 777600);
+        vm.expectEmit(false, false, false, true);
+        emit CheckpointToken(864002, 0);
+        tDI.checkpointWhenReady();
+    }
+
+    /// @notice test _checkpointWhenReady for when its < 24 hrs and is new week
+    function testCheckpointWhenReadyNewWeek() public {
+        TokenDistributorInternals tDI = new TokenDistributorInternals(
+            address(kwenta),
+            address(stakingRewardsV2),
+            address(rewardEscrowV2),
+            2
+        );
+
+        goForward(3 days / 2);
+        uint result = tDI.startOfWeek(block.timestamp);
+        assertEq(result, 172800);
+        tDI.checkpointToken();
+
+        goForward(1 days);
+        uint result2 = tDI.startOfWeek(block.timestamp);
+        assertEq(result2, 777600);
+        vm.expectEmit(false, false, false, true);
+        emit CheckpointToken(820802, 0);
+        tDI.checkpointWhenReady();    
 
     }
 
@@ -528,6 +606,4 @@ contract TokenDistributorTest is StakingSetup {
     //todo: test how many weeks we can go without - how much gas will it cost
 
     //todo: change seconds to 1 weeks or 1 days
-
-    //todo: explicitly test _checkpointWhenReady, maybe extract from previous tests
 }
