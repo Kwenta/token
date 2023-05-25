@@ -329,4 +329,27 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         assertEq(entries[2].endTime, startTime + 52 weeks + 2 weeks);
         assertEq(entries[2].escrowAmount, 500 ether);
     }
+
+    function test_getAccountVestingEntryIDs() public {
+        createRewardEscrowEntryV2(user1, 200 ether, 52 weeks, 90);
+        vm.warp(block.timestamp + 1 weeks);
+        createRewardEscrowEntryV2(user1, 300 ether, 52 weeks, 90);
+        vm.warp(block.timestamp + 1 weeks);
+        createRewardEscrowEntryV2(user1, 500 ether, 52 weeks, 90);
+
+        uint256[] memory entries =
+            rewardEscrowV2.getAccountVestingEntryIDs(user1, 0, 3);
+
+        assertEq(entries.length, 3);
+
+        assertEq(entries[0], 1);
+        assertEq(entries[1], 2);
+        assertEq(entries[2], 3);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                                Vesting
+    //////////////////////////////////////////////////////////////*/
+
+    // function
 }
