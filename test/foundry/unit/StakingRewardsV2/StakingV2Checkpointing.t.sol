@@ -2,7 +2,7 @@
 pragma solidity ^0.8.19;
 
 import "forge-std/Test.sol";
-import {DefaultStakingV2Setup} from "../../utils/DefaultStakingV2Setup.t.sol";
+import {DefaultStakingV2Setup} from "../../utils/setup/DefaultStakingV2Setup.t.sol";
 import "../../utils/Constants.t.sol";
 
 contract StakingV2CheckpointingTests is DefaultStakingV2Setup {

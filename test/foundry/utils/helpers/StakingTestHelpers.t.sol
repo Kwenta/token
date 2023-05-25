@@ -3,7 +3,7 @@ pragma solidity ^0.8.19;
 
 import "forge-std/Test.sol";
 import {Migrate} from "../../../../scripts/Migrate.s.sol";
-import {StakingSetup} from "../../utils/StakingSetup.t.sol";
+import {StakingSetup} from "../../utils/setup/StakingSetup.t.sol";
 import {Kwenta} from "../../../../contracts/Kwenta.sol";
 import {RewardEscrow} from "../../../../contracts/RewardEscrow.sol";
 import {RewardEscrowV2} from "../../../../contracts/RewardEscrowV2.sol";
