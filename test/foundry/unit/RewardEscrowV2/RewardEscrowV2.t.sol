@@ -2,10 +2,12 @@
 pragma solidity ^0.8.19;
 
 import "forge-std/Test.sol";
-import {DefaultStakingV2Setup} from "../utils/DefaultStakingV2Setup.t.sol";
-import {IRewardEscrowV2, VestingEntries} from "../../../contracts/interfaces/IRewardEscrowV2.sol";
-import {IStakingRewardsV2} from "../../../contracts/interfaces/IStakingRewardsV2.sol";
-import "../utils/Constants.t.sol";
+import {DefaultStakingV2Setup} from "../../utils/DefaultStakingV2Setup.t.sol";
+import {
+    IRewardEscrowV2, VestingEntries
+} from "../../../../contracts/interfaces/IRewardEscrowV2.sol";
+import {IStakingRewardsV2} from "../../../../contracts/interfaces/IStakingRewardsV2.sol";
+import "../../utils/Constants.t.sol";
 
 contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     /*//////////////////////////////////////////////////////////////
