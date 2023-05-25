@@ -64,21 +64,21 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
     }
 
     function test_Only_RewardEscrowCan_Call_stakeEscrow() public {
-        vm.expectRevert("StakingRewards: Only Reward Escrow");
+        vm.expectRevert(IStakingRewardsV2.OnlyRewardEscrow.selector);
         stakingRewardsV2.stakeEscrow(address(this), TEST_VALUE);
     }
 
     function test_Only_RewardEscrowCan_Call_unstakeEscrow() public {
         stakeEscrowedFundsV2(address(this), TEST_VALUE);
         vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
-        vm.expectRevert("StakingRewards: Only Reward Escrow");
+        vm.expectRevert(IStakingRewardsV2.OnlyRewardEscrow.selector);
         stakingRewardsV2.unstakeEscrow(address(this), TEST_VALUE);
     }
 
     function test_Only_RewardEscrowCan_Call_unstakeEscrowSkipCooldown() public {
         stakeEscrowedFundsV2(address(this), TEST_VALUE);
         vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
-        vm.expectRevert("StakingRewards: Only Reward Escrow");
+        vm.expectRevert(IStakingRewardsV2.OnlyRewardEscrow.selector);
         stakingRewardsV2.unstakeEscrowSkipCooldown(address(this), TEST_VALUE);
     }
 
