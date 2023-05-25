@@ -40,4 +40,30 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     function test_Should_Set_nextEntryId_To_1() public {
         assertEq(rewardEscrowV2.nextEntryId(), 1);
     }
+
+    /*//////////////////////////////////////////////////////////////
+                        When no escrow entries
+    //////////////////////////////////////////////////////////////*/
+
+    function test_totalSupply_Should_Be_0() public {
+        assertEq(rewardEscrowV2.totalSupply(), 0);
+    }
+
+    function test_balanceOf_Should_Be_0() public {
+        assertEq(rewardEscrowV2.balanceOf(address(this)), 0);
+    }
+
+    function test_totalEscrowedAccountBalance_Should_Be_0() public {
+        assertEq(rewardEscrowV2.totalEscrowedAccountBalance(address(this)), 0);
+    }
+
+    function test_totalVestedAccountBalance_Should_Be_0() public {
+        assertEq(rewardEscrowV2.totalVestedAccountBalance(address(this)), 0);
+    }
+
+    function test_vest_Should_Do_Nothing_And_Not_Revert() public {
+        entryIDs.push(0);
+        rewardEscrowV2.vest(entryIDs);
+        assertEq(rewardEscrowV2.totalVestedAccountBalance(address(this)), 0);
+    }
 }
