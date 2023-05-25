@@ -2,7 +2,7 @@
 pragma solidity ^0.8.19;
 
 import "forge-std/Test.sol";
-import {StakingTestHelpers} from "../utils/StakingTestHelpers.t.sol";
+import {StakingTestHelpers} from "../utils/helpers/StakingTestHelpers.t.sol";
 import "../utils/Constants.t.sol";
 
 contract StakingV2MigrationTests is StakingTestHelpers {
