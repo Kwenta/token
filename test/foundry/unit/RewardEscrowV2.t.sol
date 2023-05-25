@@ -780,12 +780,32 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         // stake all the escrow
         rewardEscrowV2.stakeEscrow(1 ether);
 
-        // vest all entries
+        // move to end of vesting period
         vm.warp(block.timestamp + 52 weeks);
-        vestXEntries(address(this), 1);
+
+        // vest all entries
+        vestAllEntries(address(this));
 
         // check escrowed balance
         assertEq(rewardEscrowV2.totalEscrowedBalance(), 0 ether);
+        // escrow should have been unstaked
+        assertEq(stakingRewardsV2.escrowedBalanceOf(address(this)), 0 ether);
+    }
+
+    function test_Should_Unstake_Escrow_Partially_To_Vest() public {
+        createRewardEscrowEntryV2(address(this), 100 ether, 52 weeks);
+
+        // stake all the escrow
+        rewardEscrowV2.stakeEscrow(100 ether);
+
+        // move halfway to end of vesting period
+        vm.warp(block.timestamp + 26 weeks);
+
+        // vest all entries
+        vestAllEntries(address(this));
+
+        // check escrowed balance
+        assertEq(rewardEscrowV2.totalEscrowBalanceOf(address(this)), 0 ether);
         // escrow should have been unstaked
         assertEq(stakingRewardsV2.escrowedBalanceOf(address(this)), 0 ether);
     }
