@@ -664,10 +664,27 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         assertEq(kwenta.balanceOf(address(rewardEscrowV2)), 0 ether);
     }
 
+    /*//////////////////////////////////////////////////////////////
+                    Stress Test Reading Vesting Schedule
+    //////////////////////////////////////////////////////////////*/
+
+    function test_Should_Return_Schedules() public {
+        createXEntries(260);
+
+        VestingEntries.VestingEntryWithID[] memory entries = rewardEscrowV2.getVestingSchedules(address(this), 0, 300);
+
+        assertEq(entries.length, 260);
+    }
 
     /*//////////////////////////////////////////////////////////////
                                 Helpers
     //////////////////////////////////////////////////////////////*/
+
+    function createXEntries(uint256 numEntries) public {
+        for (uint256 i = 0; i < numEntries; i++) {
+            createRewardEscrowEntryV2(address(this), TEST_VALUE, 52 weeks);
+        }
+    }
 
     function createAndVest3Entries(address user) public {
         create3Entries(user);
