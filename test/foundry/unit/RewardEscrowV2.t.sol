@@ -559,6 +559,48 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         vestXEntries(address(this), 2);
     }
 
+    function test_vest_Two_Entries_Should_Update_totalEscrowedAccountBalance() public {
+        create3EntriesWithDifferentDurations(address(this));
+        assertEq(rewardEscrowV2.totalEscrowedAccountBalance(address(this)), 1000 ether);
+        vestXEntries(address(this), 2);
+        assertEq(rewardEscrowV2.totalEscrowedAccountBalance(address(this)), 500 ether);
+    }
+
+    function test_vest_Two_Entries_Should_Update_totalVestedAccountBalance() public {
+        create3EntriesWithDifferentDurations(address(this));
+        assertEq(rewardEscrowV2.totalVestedAccountBalance(address(this)), 0);
+        vestXEntries(address(this), 2);
+        assertEq(rewardEscrowV2.totalVestedAccountBalance(address(this)), 500 ether);
+    }
+
+    function test_vest_Two_Entries_Should_Update_totalEscrowedBalance() public {
+        create3EntriesWithDifferentDurations(address(this));
+        assertEq(rewardEscrowV2.totalEscrowedBalance(), 1000 ether);
+        vestXEntries(address(this), 2);
+        assertEq(rewardEscrowV2.totalEscrowedBalance(), 500 ether);
+    }
+
+    function test_vest_Two_Entries_Should_Ignore_Duplicate_Entires() public {
+        create3EntriesWithDifferentDurations(address(this));
+        uint256[] memory entries = rewardEscrowV2.getAccountVestingEntryIDs(address(this), 0, 100);
+        for (uint256 i = 0; i < 2; i++) {
+            entryIDs.push(entries[i]);
+            entryIDs.push(entries[i]);
+        }
+        rewardEscrowV2.vest(entryIDs);
+
+        // Check only 2 entries were vested
+        assertEq(kwenta.balanceOf(address(this)), 500 ether);
+        assertEq(kwenta.balanceOf(address(rewardEscrowV2)), 500 ether);
+
+        // Attempt to vest again
+        rewardEscrowV2.vest(entryIDs);
+
+        // Check only 2 entries were vested
+        assertEq(kwenta.balanceOf(address(this)), 500 ether);
+        assertEq(kwenta.balanceOf(address(rewardEscrowV2)), 500 ether);
+    }
+
     /*//////////////////////////////////////////////////////////////
                                 Helpers
     //////////////////////////////////////////////////////////////*/
