@@ -394,7 +394,7 @@ contract(
                                 from: staker1,
                             }
                         ),
-                        "Only the StakingRewards can perform this action"
+                        "OnlyStakingRewards"
                     );
                 });
                 it("should revert appending a vesting entry with a zero amount", async () => {
