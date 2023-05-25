@@ -520,6 +520,15 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     }
 
     /*//////////////////////////////////////////////////////////////
+                Multiple Entries With Different Durations
+    //////////////////////////////////////////////////////////////*/
+
+    function test_3_Entries_Registered_With_User() public {
+        create3EntriesWithDifferentDurations(address(this));
+        assertEq(rewardEscrowV2.balanceOf(address(this)), 3);
+    }
+
+    /*//////////////////////////////////////////////////////////////
                                 Helpers
     //////////////////////////////////////////////////////////////*/
 
@@ -544,5 +553,13 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         vm.warp(block.timestamp + 1 weeks);
         createRewardEscrowEntryV2(user, 500 ether, 52 weeks, 90);
         vm.warp(block.timestamp + 52 weeks);
+    }
+
+    function create3EntriesWithDifferentDurations(address user) public {
+        createRewardEscrowEntryV2(user, 200 ether, 52 weeks, 90);
+        vm.warp(block.timestamp + 1 weeks);
+        createRewardEscrowEntryV2(user, 300 ether, 52 weeks, 90);
+        vm.warp(block.timestamp + 1 weeks);
+        createRewardEscrowEntryV2(user, 500 ether, 52 weeks * 2, 90);
     }
 }
