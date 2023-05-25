@@ -629,17 +629,17 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         assertEq(rewardEscrowV2.totalEscrowedAccountBalance(address(this)), 0 ether);
     }
 
-    // function test_vest_Two_Entries_Should_Update_totalVestedAccountBalance() public {
-    //     create3EntriesWithDifferentDurations(address(this));
-    //     assertEq(rewardEscrowV2.totalVestedAccountBalance(address(this)), 0);
-    //     vestXEntries(address(this), 2);
-    //     assertEq(rewardEscrowV2.totalVestedAccountBalance(address(this)), 500 ether);
-    // }
+    function test_vest_Three_Entries_Should_Update_totalVestedAccountBalance() public {
+        create3EntriesWithDifferentDurations(address(this));
+        assertEq(rewardEscrowV2.totalVestedAccountBalance(address(this)), 0);
+        vestAllEntries(address(this));
+        assertEq(rewardEscrowV2.totalVestedAccountBalance(address(this)), 775 ether);
+    }
 
     // function test_vest_Two_Entries_Should_Update_totalEscrowedBalance() public {
     //     create3EntriesWithDifferentDurations(address(this));
     //     assertEq(rewardEscrowV2.totalEscrowedBalance(), 1000 ether);
-    //     vestXEntries(address(this), 2);
+    //     vestAllEntries(address(this));
     //     assertEq(rewardEscrowV2.totalEscrowedBalance(), 500 ether);
     // }
 
