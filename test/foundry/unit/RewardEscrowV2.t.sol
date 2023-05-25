@@ -458,4 +458,29 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
 
         assertEq(rewardEscrowV2.balanceOf(address(this)), 3);
     }
+
+    function test_User_Cannot_Vest_Other_Users_Entries() public {
+        createRewardEscrowEntryV2(address(this), 200 ether, 52 weeks, 90);
+        vm.warp(block.timestamp + 1 weeks);
+        createRewardEscrowEntryV2(address(this), 300 ether, 52 weeks, 90);
+        vm.warp(block.timestamp + 1 weeks);
+        createRewardEscrowEntryV2(address(this), 500 ether, 52 weeks, 90);
+        vm.warp(block.timestamp + 3 weeks);
+
+        entryIDs.push(1);
+        entryIDs.push(2);
+        entryIDs.push(3);
+
+        vm.prank(user1);
+        rewardEscrowV2.vest(entryIDs);
+
+        // kwenta not vested to owner of entries
+        assertEq(kwenta.balanceOf(address(this)), 0);
+
+        // kwenta not vested and sent to user attempting to steal
+        assertEq(kwenta.balanceOf(user1), 0);
+
+        // kwenta is all still locked in reward escrow
+        assertEq(kwenta.balanceOf(address(rewardEscrowV2)), 1000 ether);
+    }
 }
