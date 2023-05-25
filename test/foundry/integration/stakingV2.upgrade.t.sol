@@ -53,7 +53,7 @@ contract StakingV2UpgradeTests is DefaultStakingV2Setup {
     }
 
     /*//////////////////////////////////////////////////////////////
-                            Upgrade Tests
+                        Upgrade StakingRewardsV2
     //////////////////////////////////////////////////////////////*/
 
     function test_Upgrade_StakingRewardsV2_To_V3() public {
@@ -84,6 +84,11 @@ contract StakingV2UpgradeTests is DefaultStakingV2Setup {
         assertEq(stakingRewardsV3.newFunctionality(), 42);
         assertEq(stakingRewardsV3.newNum(), 5);
     }
+
+
+    /*//////////////////////////////////////////////////////////////
+                        Upgrade RewardEscrowV2
+    //////////////////////////////////////////////////////////////*/
 
     function test_Upgrade_RewardEscrowV2_To_V3() public {
         address rewardEscrowV3Implementation =
