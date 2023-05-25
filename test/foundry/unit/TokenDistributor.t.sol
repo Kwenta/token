@@ -11,6 +11,7 @@ import {StakingSetup} from "../utils/StakingSetup.t.sol";
 
 contract TokenDistributorTest is StakingSetup {
     event CheckpointToken(uint time, uint tokens);
+    event EpochClaim(address user, uint epoch, uint tokens);
     event VestingEntryCreated(
         address indexed beneficiary,
         uint256 value,
@@ -69,6 +70,8 @@ contract TokenDistributorTest is StakingSetup {
         emit CheckpointToken(1814404, 10);
         vm.expectEmit(true, true, false, true);
         emit VestingEntryCreated(address(user1), 4, 31449600, 1);
+        vm.expectEmit(true, true, true, true);
+        emit EpochClaim(address(user1), 1, 4);
         tokenDistributor.claimEpoch(address(user1), 1);
     }
 
@@ -525,8 +528,6 @@ contract TokenDistributorTest is StakingSetup {
     //todo: test how many weeks we can go without - how much gas will it cost
 
     //todo: change seconds to 1 weeks or 1 days
-
-    //todo: test the new EpochClaim event
 
     //todo: explicitly test _checkpointWhenReady, maybe extract from previous tests
 }
