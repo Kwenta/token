@@ -636,12 +636,12 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         assertEq(rewardEscrowV2.totalVestedAccountBalance(address(this)), 775 ether);
     }
 
-    // function test_vest_Two_Entries_Should_Update_totalEscrowedBalance() public {
-    //     create3EntriesWithDifferentDurations(address(this));
-    //     assertEq(rewardEscrowV2.totalEscrowedBalance(), 1000 ether);
-    //     vestAllEntries(address(this));
-    //     assertEq(rewardEscrowV2.totalEscrowedBalance(), 500 ether);
-    // }
+    function test_vest_Three_Entries_Should_Update_totalEscrowedBalance() public {
+        create3EntriesWithDifferentDurations(address(this));
+        assertEq(rewardEscrowV2.totalEscrowedBalance(), 1000 ether);
+        vestAllEntries(address(this));
+        assertEq(rewardEscrowV2.totalEscrowedBalance(), 0 ether);
+    }
 
     // function test_vest_Two_Entries_Should_Ignore_Duplicate_Entires() public {
     //     create3EntriesWithDifferentDurations(address(this));
