@@ -14,4 +14,9 @@ contract TokenDistributorInternals is TokenDistributor {
     function startOfWeek(uint timestamp) public view returns (uint) {
         return _startOfWeek(timestamp);
     }
+
+    function startOfEpoch(uint epochNumber) public view returns (uint) {
+        return _startOfEpoch(epochNumber);
+    }
+
 }

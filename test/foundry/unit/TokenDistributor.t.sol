@@ -477,6 +477,49 @@ contract TokenDistributorTest is StakingSetup {
         uint result4 = tokenDistributorOffset.startOfWeek(block.timestamp);
         assertEq(result4, 1987200);
     }
+
+    /// @notice test claiming an unready epoch with an offset
+    function testCannotClaimYetOffset() public {
+        TokenDistributorInternals tokenDistributorOffset = new TokenDistributorInternals(
+            address(kwenta),
+            address(stakingRewardsV2),
+            address(rewardEscrowV2),
+            2
+        );
+
+        vm.startPrank(user1);
+
+        /// @dev this goForward gets it right before the offset week changes
+        /// but a regular week has already changed. claim should revert because
+        /// it is offset and still not ready to claim
+        goForward(2 days - 3);
+        uint result = tokenDistributorOffset.startOfWeek(block.timestamp);
+        assertEq(result, 172800);
+        vm.expectRevert(
+            abi.encodeWithSelector(ITokenDistributor.CannotClaimYet.selector)
+        );
+        tokenDistributorOffset.claimEpoch(address(user1), 0);
+    }
+
+    /// @notice test _startOfEpoch so that it follows an offset like _startOfWeek
+    function testStartOfEpoch() public {
+
+        TokenDistributorInternals tD = new TokenDistributorInternals(
+            address(kwenta),
+            address(stakingRewardsV2),
+            address(rewardEscrowV2),
+            2
+        );
+
+        
+        assertEq(tD.startOfWeek(block.timestamp), tD.startOfEpoch(0));
+
+        goForward(2 days);
+
+        assertEq(tD.startOfWeek(block.timestamp), tD.startOfEpoch(1));
+
+    }
+
     //todo: fuzz test offsetting
 
     //todo: test how many weeks we can go without - how much gas will it cost

@@ -122,14 +122,14 @@ contract TokenDistributor is ITokenDistributor {
             checkpointToken();
         }
         /// @dev if the end of the epoch is > current time, revert
-        if ((epochNumber * 1 weeks) + 1 weeks + startTime > block.timestamp) {
+        if (_startOfEpoch(epochNumber) + 1 weeks > block.timestamp) {
             revert CannotClaimYet();
         }
         if (claimedEpochs[to][epochNumber] == true) {
             revert CannotClaimTwice();
         }
         uint256 totalStaked = stakingRewardsV2.totalSupplyAtTime(
-            (epochNumber * 1 weeks) + startTime
+            _startOfEpoch(epochNumber)
         );
         if (totalStaked == 0) {
             revert NothingStakedThatEpoch();
@@ -163,14 +163,13 @@ contract TokenDistributor is ITokenDistributor {
         address to,
         uint epochNumber
     ) public view override returns (uint256) {
-        uint thisWeek = (epochNumber * 1 weeks) + startTime; //todo: clarity
-        //todo: make this into function
-        uint256 userStaked = stakingRewardsV2.balanceAtTime(to, thisWeek);
-        uint256 totalStaked = stakingRewardsV2.totalSupplyAtTime(thisWeek);
+        uint epochStart = _startOfEpoch(epochNumber); //todo: clarity
+        uint256 userStaked = stakingRewardsV2.balanceAtTime(to, epochStart);
+        uint256 totalStaked = stakingRewardsV2.totalSupplyAtTime(epochStart);
         if (totalStaked == 0) {
             return totalStaked;
         }
-        uint256 proportionalFees = ((tokensPerEpoch[thisWeek] * userStaked) /
+        uint256 proportionalFees = ((tokensPerEpoch[epochStart] * userStaked) /
             totalStaked);
 
         return proportionalFees;
@@ -180,4 +179,10 @@ contract TokenDistributor is ITokenDistributor {
     function _startOfWeek(uint timestamp) internal view returns (uint) {
         return (((timestamp - offset) / 1 weeks) * 1 weeks) + offset;
     }
+
+    /// @notice function for calculating the start of an epoch
+    function _startOfEpoch(uint epochNumber) internal view returns (uint) {
+        return (epochNumber * 1 weeks) + startTime;
+    }
+
 }
