@@ -542,6 +542,10 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         assertEq(kwenta.balanceOf(address(rewardEscrowV2)), 1000 ether);
     }
 
+    function test_vest_First_Two_Entries() public {
+        create3EntriesWithDifferentDurationsAndVestFirstTwo(address(this));
+    }
+
     /*//////////////////////////////////////////////////////////////
                                 Helpers
     //////////////////////////////////////////////////////////////*/
@@ -560,6 +564,15 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         rewardEscrowV2.vest(entryIDs);
     }
 
+    function vestXEntries(address user, uint256 numToVest) public {
+        uint256[] memory entries = rewardEscrowV2.getAccountVestingEntryIDs(user, 0, 100);
+        for (uint256 i = 0; i < numToVest; i++) {
+            entryIDs.push(entries[i]);
+        }
+        vm.prank(user);
+        rewardEscrowV2.vest(entryIDs);
+    }
+
     function create3Entries(address user) public {
         createRewardEscrowEntryV2(user, 200 ether, 52 weeks, 90);
         vm.warp(block.timestamp + 1 weeks);
@@ -567,6 +580,11 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         vm.warp(block.timestamp + 1 weeks);
         createRewardEscrowEntryV2(user, 500 ether, 52 weeks, 90);
         vm.warp(block.timestamp + 52 weeks);
+    }
+
+    function create3EntriesWithDifferentDurationsAndVestFirstTwo(address user) public {
+        create3EntriesWithDifferentDurations(user);
+        vestXEntries(user, 2);
     }
 
     function create3EntriesWithDifferentDurations(address user) public {
