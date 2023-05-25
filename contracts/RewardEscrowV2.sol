@@ -353,6 +353,7 @@ contract RewardEscrowV2 is
         uint8 earlyVestingFee
     ) external override {
         if (beneficiary == address(0)) revert ZeroAddress();
+        if (earlyVestingFee == 0) revert ZeroEarlyVestingFee();
 
         // TODO: test this is the case on the deployed version
         /// @dev this will revert if the kwenta token transfer fails
@@ -457,7 +458,7 @@ contract RewardEscrowV2 is
         /* No empty or already-passed vesting entries allowed. */
         if (quantity == 0) revert ZeroAmount();
         if (duration == 0 || duration > MAX_DURATION) revert InvalidDuration();
-        if (earlyVestingFee > 100) revert MaxEarlyVestingFeeIs100();
+        if (earlyVestingFee > 100) revert EarlyVestingFeeTooHigh();
 
         /* There must be enough balance in the contract to provide for the vesting entry. */
         totalEscrowedBalance += quantity;
