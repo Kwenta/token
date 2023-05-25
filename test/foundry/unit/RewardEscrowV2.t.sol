@@ -676,6 +676,14 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         assertEq(entries.length, 260);
     }
 
+    function test_Should_Return_List_Of_Entries() public {
+        createXEntries(260);
+
+        uint256[] memory entries = rewardEscrowV2.getAccountVestingEntryIDs(address(this), 0, 300);
+
+        assertEq(entries.length, 260);
+    }
+
     /*//////////////////////////////////////////////////////////////
                                 Helpers
     //////////////////////////////////////////////////////////////*/
