@@ -212,13 +212,22 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         rewardEscrowV2.createEscrowEntry(address(this), 1 ether, 0, 90);
     }
 
-    // function test_createEscrowEntry_Should_Revert_If_Duration_Is_Greater_Than_Max() public {
-    //     uint256 maxDuration = rewardEscrowV2.MAX_DURATION();
-    //     vm.prank(treasury);
-    //     kwenta.transfer(address(rewardEscrowV2), 1 ether);
-    //     vm.expectRevert(IRewardEscrowV2.InvalidDuration.selector);
-    //     rewardEscrowV2.createEscrowEntry(address(this), 1 ether, maxDuration + 1, 90);
-    // }
+    function test_createEscrowEntry_Should_Revert_If_Duration_Is_Greater_Than_Max() public {
+        uint256 maxDuration = rewardEscrowV2.MAX_DURATION();
+        vm.prank(treasury);
+        kwenta.approve(address(rewardEscrowV2), 1 ether);
+        vm.expectRevert(IRewardEscrowV2.InvalidDuration.selector);
+        vm.prank(treasury);
+        rewardEscrowV2.createEscrowEntry(address(this), 1 ether, maxDuration + 1, 90);
+    }
+
+    function test_createEscrowEntry_Should_Revert_If_Beneficiary_Address_Is_Zero() public {
+        vm.prank(treasury);
+        kwenta.approve(address(rewardEscrowV2), 1 ether);
+        vm.expectRevert(IRewardEscrowV2.ZeroAddress.selector);
+        vm.prank(treasury);
+        rewardEscrowV2.createEscrowEntry(address(0), 1 ether, 52 weeks, 90);
+    }
 
     // TODO: add check for reversion if earlyVestingFee is 0
 
