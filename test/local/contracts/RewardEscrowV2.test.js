@@ -811,6 +811,7 @@ contract(
                     owner,
                     treasuryDAO
                 );
+                // mockedKwenta = smock.fake("Kwenta");
 
                 rewardEscrowV2 = await deployRewardEscrowV2(
                     owner,
@@ -858,6 +859,18 @@ contract(
                     // Need to go into the future to vest
                     await fastForward(timeElapsed);
                 });
+
+                // it("should throw error if transfer fails", async () => {
+                //     // mock transfer to fail
+                //     mockedKwenta.transfer.returns(false);
+
+                //     await assert.revert(
+                //         rewardEscrowV2.vest([entryID], {
+                //             from: staker1,
+                //         }),
+                //         "TransferFailed"
+                //     );
+                // });
 
                 it("should vest 0 amount if entryID does not exist for user", async () => {
                     const randomID = 200;
