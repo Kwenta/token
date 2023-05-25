@@ -601,6 +601,4 @@ contract TokenDistributorTest is StakingSetup {
     }
 
     //todo: fuzz test offsetting
-
-    //todo: test how many weeks we can go without - how much gas will it cost
 }
