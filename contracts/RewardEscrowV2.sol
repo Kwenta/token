@@ -462,10 +462,7 @@ contract RewardEscrowV2 is
         /* There must be enough balance in the contract to provide for the vesting entry. */
         totalEscrowedBalance += quantity;
 
-        require(
-            totalEscrowedBalance <= kwenta.balanceOf(address(this)),
-            "Must be enough balance in the contract to provide for the vesting entry"
-        );
+        if (kwenta.balanceOf(address(this)) < totalEscrowedBalance) revert InsufficientBalance();
 
         /* Escrow the tokens for duration. */
         uint256 endTime = block.timestamp + duration;

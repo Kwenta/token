@@ -102,4 +102,7 @@ interface IRewardEscrowV2 {
 
     /// @notice cannot mint entries with zero escrow
     error ZeroAmount();
+
+    /// @notice Must be enough balance in the contract to provide for the vesting entry
+    error InsufficientBalance();
 }
