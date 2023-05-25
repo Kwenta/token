@@ -366,10 +366,13 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         appendRewardEscrowEntryV2(address(this), 1000 ether, 52 weeks);
         vm.warp(block.timestamp + 26 weeks);
 
-        // check initial claimable amount
+        // check initial values
         (uint256 claimable, uint256 fee) = rewardEscrowV2.getVestingEntryClaimable(1);
         assertEq(claimable, 550 ether);
         assertEq(fee, 450 ether);
+        assertEq(rewardEscrowV2.totalEscrowedBalance(), 1000 ether);
+        assertEq(rewardEscrowV2.totalEscrowedAccountBalance(address(this)), 1000 ether);
+        assertEq(rewardEscrowV2.totalVestedAccountBalance(address(this)), 0);
 
         uint256 treasuryBalanceBefore = kwenta.balanceOf(treasury);
 
