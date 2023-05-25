@@ -26,4 +26,9 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     function test_Should_Set_Treasury() public {
         assertEq(address(rewardEscrowV2.treasuryDAO()), address(treasury));
     }
+
+    function test_Should_Not_Allow_Treasury_To_Be_Set_To_Zero_Address() public {
+        vm.expectRevert(IRewardEscrowV2.ZeroAddress.selector);
+        rewardEscrowV2.setTreasuryDAO(address(0));
+    }
 }
