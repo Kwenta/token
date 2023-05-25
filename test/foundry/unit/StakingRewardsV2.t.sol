@@ -85,10 +85,10 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
     function test_Cannot_unstakeEscrow_Invalid_Amount() public {
         vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
 
-        vm.expectRevert("StakingRewards: Invalid Amount");
+        vm.expectRevert(IStakingRewardsV2.InsufficientBalance.selector);
         unstakeEscrowedFundsV2(address(this), TEST_VALUE);
 
-        vm.expectRevert("StakingRewards: Invalid Amount");
+        vm.expectRevert(IStakingRewardsV2.InsufficientBalance.selector);
         unstakeEscrowSkipCooldownFundsV2(address(this), TEST_VALUE);
     }
 
@@ -389,7 +389,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
 
         // this would work if unstakeEscrow was called
         // but unstake is called so it fails
-        vm.expectRevert("StakingRewards: Invalid Amount");
+        vm.expectRevert(IStakingRewardsV2.InsufficientBalance.selector);
         stakingRewardsV2.unstake(TEST_VALUE);
     }
 
@@ -642,7 +642,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
     function test_Cannot_unstake_If_Nothing_Staked() public {
         vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
 
-        vm.expectRevert("StakingRewards: Invalid Amount");
+        vm.expectRevert(IStakingRewardsV2.InsufficientBalance.selector);
         stakingRewardsV2.unstake(TEST_VALUE);
     }
 
@@ -678,10 +678,10 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
     function test_Cannot_unstakeEscrow_If_None_Staked() public {
         vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
 
-        vm.expectRevert("StakingRewards: Invalid Amount");
+        vm.expectRevert(IStakingRewardsV2.InsufficientBalance.selector);
         unstakeEscrowedFundsV2(address(this), TEST_VALUE);
 
-        vm.expectRevert("StakingRewards: Invalid Amount");
+        vm.expectRevert(IStakingRewardsV2.InsufficientBalance.selector);
         unstakeEscrowSkipCooldownFundsV2(address(this), TEST_VALUE);
     }
 
@@ -830,11 +830,11 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
 
         // unstake more escrow
-        vm.expectRevert("StakingRewards: Invalid Amount");
+        vm.expectRevert(IStakingRewardsV2.InsufficientBalance.selector);
         unstakeEscrowedFundsV2(address(this), 2 weeks);
 
         // unstake more escrow
-        vm.expectRevert("StakingRewards: Invalid Amount");
+        vm.expectRevert(IStakingRewardsV2.InsufficientBalance.selector);
         unstakeEscrowSkipCooldownFundsV2(address(this), 2 weeks);
     }
 
