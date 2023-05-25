@@ -3,6 +3,7 @@ pragma solidity 0.8.19;
 
 import {ITokenDistributor} from "../../../contracts/interfaces/ITokenDistributor.sol";
 import {TokenDistributor} from "../../../contracts/TokenDistributor.sol";
+import {TokenDistributorInternals} from "../utils/TokenDistributorInternals.sol";
 import {Kwenta} from "../../../contracts/Kwenta.sol";
 import {StakingRewardsV2} from "../../../contracts/StakingRewardsV2.sol";
 import {RewardEscrowV2} from "../../../contracts/RewardEscrowV2.sol";
@@ -446,7 +447,7 @@ contract TokenDistributorTest is StakingSetup {
         /// @dev starts after another week so the startTime is != 0
         goForward(604801);
 
-        TokenDistributor tokenDistributorOffset = new TokenDistributor(
+        TokenDistributorInternals tokenDistributorOffset = new TokenDistributorInternals(
             address(kwenta),
             address(stakingRewardsV2),
             address(rewardEscrowV2),

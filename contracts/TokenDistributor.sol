@@ -57,7 +57,7 @@ contract TokenDistributor is ITokenDistributor {
             revert OffsetTooBig();
         }
         offset = _offset * 86400;
-        uint _t = startOfWeek(block.timestamp);
+        uint _t = _startOfWeek(block.timestamp);
         startTime = _t;
         lastCheckpoint = _t;
     }
@@ -70,7 +70,7 @@ contract TokenDistributor is ITokenDistributor {
         uint t = lastCheckpoint;
         uint sinceLast = block.timestamp - t;
         lastCheckpoint = block.timestamp;
-        uint thisWeek = startOfWeek(t);
+        uint thisWeek = _startOfWeek(t);
         uint nextWeek = 0;
 
         /// @dev Loop for potential missed weeks
@@ -117,7 +117,7 @@ contract TokenDistributor is ITokenDistributor {
         /// gets updated before its claimed.
         if (
             (block.timestamp - lastCheckpoint > 1 days) ||
-            ((block.timestamp - startOfWeek(lastCheckpoint)) > 1 weeks) //todo: break up if statement
+            ((block.timestamp - _startOfWeek(lastCheckpoint)) > 1 weeks) //todo: break up if statement
         ) {
             checkpointToken();
         }
@@ -177,8 +177,7 @@ contract TokenDistributor is ITokenDistributor {
     }
 
     /// @notice function for calculating the start of a week with an offset
-    function startOfWeek(uint timestamp) public view returns (uint) {
+    function _startOfWeek(uint timestamp) internal view returns (uint) {
         return (((timestamp - offset) / 1 weeks) * 1 weeks) + offset;
     }
-    //todo: make internal
 }
