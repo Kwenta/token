@@ -68,7 +68,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     }
 
     /*//////////////////////////////////////////////////////////////
-                        Appending Vesting Schedules
+                Appending Vesting Schedules Error
     //////////////////////////////////////////////////////////////*/
 
     // TODO: ensure tested for createVestingEntry
@@ -99,6 +99,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         rewardEscrowV2.appendVestingEntry(address(this), 1 ether, 0);
     }
 
+    // TODO: ensure tested for createVestingEntry
     function test_Should_Revert_If_Duration_Is_Greater_Than_Max() public {
         uint256 maxDuration = rewardEscrowV2.MAX_DURATION();
         vm.prank(treasury);
@@ -106,5 +107,21 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         vm.prank(address(stakingRewardsV2));
         vm.expectRevert(IRewardEscrowV2.InvalidDuration.selector);
         rewardEscrowV2.appendVestingEntry(address(this), 1 ether, maxDuration + 1);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                    Appending Vesting Schedules
+    //////////////////////////////////////////////////////////////*/
+
+    function test_Should_Return_Vesting_Entry() public {
+        appendRewardEscrowEntryV2(address(this), 10 ether, 52 weeks);
+
+        (uint64 endTime, uint256 escrowAmount, uint256 duration, uint8 earlyVestingFee) =
+            rewardEscrowV2.getVestingEntry(1);
+
+        assertEq(endTime, block.timestamp + 52 weeks);
+        assertEq(escrowAmount, 10 ether);
+        assertEq(duration, 52 weeks);
+        assertEq(earlyVestingFee, 90);
     }
 }
