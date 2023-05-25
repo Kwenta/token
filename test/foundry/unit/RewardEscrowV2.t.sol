@@ -191,7 +191,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     }
 
     /*//////////////////////////////////////////////////////////////
-                        Creating Vesting Schedules
+                    Creating Vesting Schedules Errors
     //////////////////////////////////////////////////////////////*/
 
     function test_createEscrowEntry_Should_Not_Append_Entries_With_0_Amount() public {
@@ -229,6 +229,20 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         rewardEscrowV2.createEscrowEntry(address(0), 1 ether, 52 weeks, 90);
     }
 
-    // TODO: add check for reversion if earlyVestingFee is 0
+    function test_createEscrowEntry_Should_Revert_If_Early_Vesting_Fee_Is_0() public {
+        vm.prank(treasury);
+        kwenta.approve(address(rewardEscrowV2), 1 ether);
+        vm.expectRevert(IRewardEscrowV2.ZeroEarlyVestingFee.selector);
+        vm.prank(treasury);
+        rewardEscrowV2.createEscrowEntry(address(this), 1 ether, 52 weeks, 0);
+    }
+
+    function test_createEscrowEntry_Should_Revert_If_Early_Vesting_Fee_Is_Over_100() public {
+        vm.prank(treasury);
+        kwenta.approve(address(rewardEscrowV2), 1 ether);
+        vm.expectRevert(IRewardEscrowV2.EarlyVestingFeeTooHigh.selector);
+        vm.prank(treasury);
+        rewardEscrowV2.createEscrowEntry(address(this), 1 ether, 52 weeks, 101);
+    }
 
 }

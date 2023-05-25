@@ -67,7 +67,7 @@ contract RewardEscrowV2VestingChangesTests is DefaultStakingV2Setup {
         kwenta.approve(address(rewardEscrowV2), 1 ether);
 
         vm.prank(treasury);
-        vm.expectRevert(IRewardEscrowV2.MaxEarlyVestingFeeIs100.selector);
+        vm.expectRevert(IRewardEscrowV2.EarlyVestingFeeTooHigh.selector);
         rewardEscrowV2.createEscrowEntry(user1, 1 ether, 52 weeks, earlyVestingFee);
     }
 
@@ -84,7 +84,7 @@ contract RewardEscrowV2VestingChangesTests is DefaultStakingV2Setup {
         kwenta.approve(address(rewardEscrowV2), escrowAmount);
 
         vm.prank(treasury);
-        vm.expectRevert(IRewardEscrowV2.MaxEarlyVestingFeeIs100.selector);
+        vm.expectRevert(IRewardEscrowV2.EarlyVestingFeeTooHigh.selector);
         rewardEscrowV2.createEscrowEntry(user1, escrowAmount, duration, earlyVestingFee);
     }
 
