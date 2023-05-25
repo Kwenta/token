@@ -268,4 +268,9 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         assertEq(duration, 52 weeks);
         assertEq(earlyVestingFee, 90);
     }
+
+    function test_Increments_The_Next_Entry_ID() public {
+        createRewardEscrowEntryV2(address(this), TEST_VALUE, 52 weeks, 90);
+        assertEq(rewardEscrowV2.nextEntryId(), 2);
+    }
 }
