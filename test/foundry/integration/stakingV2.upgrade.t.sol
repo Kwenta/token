@@ -49,6 +49,20 @@ contract StakingV2UpgradeTests is DefaultStakingV2Setup {
     }
 
     /*//////////////////////////////////////////////////////////////
+                        Initial Proxy Setup
+    //////////////////////////////////////////////////////////////*/
+
+    function test_RewardEscrowV2_Implementation_Cannot_Be_Initialized() public {
+        vm.expectRevert("Initializable: contract is already initialized");
+        rewardEscrowV2.initialize(address(0), address(0));
+    }
+
+    function test_StakingRewardsV2_Implementation_Cannot_Be_Initialized() public {
+        vm.expectRevert("Initializable: contract is already initialized");
+        stakingRewardsV2.initialize(address(0), address(0), address(0), address(0), address(0));
+    }
+
+    /*//////////////////////////////////////////////////////////////
                         Upgrade StakingRewardsV2
     //////////////////////////////////////////////////////////////*/
 

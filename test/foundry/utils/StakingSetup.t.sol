@@ -25,6 +25,7 @@ contract StakingSetup is TestHelpers {
     address public user3;
     address public user4;
     address public user5;
+
     IERC20 public mockToken;
     Kwenta public kwenta;
     RewardEscrow public rewardEscrowV1;
@@ -34,6 +35,9 @@ contract StakingSetup is TestHelpers {
     StakingRewardsV2 public stakingRewardsV2;
     MultipleMerkleDistributor public tradingRewards;
     Migrate public migrate;
+
+    address rewardEscrowV2Implementation;
+    address stakingRewardsV2Implementation;
 
     /*//////////////////////////////////////////////////////////////
                                 Setup
@@ -88,8 +92,12 @@ contract StakingSetup is TestHelpers {
             )
         );
         require(deploymentSuccess, "Migrate.deploySystem failed");
-        (rewardEscrowV2, stakingRewardsV2,,) =
-            abi.decode(deploymentData, (RewardEscrowV2, StakingRewardsV2, address, address));
+        (
+            rewardEscrowV2,
+            stakingRewardsV2,
+            rewardEscrowV2Implementation,
+            stakingRewardsV2Implementation
+        ) = abi.decode(deploymentData, (RewardEscrowV2, StakingRewardsV2, address, address));
 
         // Setup StakingV2
         (bool setupSuccess,) = address(migrate).delegatecall(
