@@ -413,4 +413,21 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         vm.expectRevert("ERC20: transfer amount exceeds balance");
         rewardEscrowV2.vest(entryIDs);
     }
+
+    function test_vest_After_Duration_Has_Ended() public {
+        appendRewardEscrowEntryV2(address(this), 1000 ether, 52 weeks);
+        vm.warp(block.timestamp + 52 weeks);
+
+        entryIDs.push(1);
+        rewardEscrowV2.vest(entryIDs);
+
+        // check user has all their kwenta
+        assertEq(rewardEscrowV2.totalVestedAccountBalance(address(this)), 1000 ether);
+        assertEq(kwenta.balanceOf(address(this)), 1000 ether);
+        assertEq(rewardEscrowV2.totalEscrowedAccountBalance(address(this)), 0);
+
+        // Nothing should be left in reward escrow
+        assertEq(rewardEscrowV2.totalEscrowedBalance(), 0);
+        assertEq(kwenta.balanceOf(address(rewardEscrowV2)), 0);
+    }
 }
