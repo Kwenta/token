@@ -544,6 +544,12 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
 
     function test_vest_First_Two_Entries() public {
         create3EntriesWithDifferentDurationsAndVestFirstTwo(address(this));
+
+        // user has entry1 + entry2 amount
+        assertEq(kwenta.balanceOf(address(this)), 500 ether);
+
+        // reward escrow has entry3 amount
+        assertEq(kwenta.balanceOf(address(rewardEscrowV2)), 500 ether);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -593,5 +599,6 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         createRewardEscrowEntryV2(user, 300 ether, 52 weeks, 90);
         vm.warp(block.timestamp + 1 weeks);
         createRewardEscrowEntryV2(user, 500 ether, 52 weeks * 2, 90);
+        vm.warp(block.timestamp + 52 weeks);
     }
 }
