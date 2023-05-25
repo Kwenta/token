@@ -50,8 +50,14 @@ contract TokenDistributorTest is StakingSetup {
         tokenDistributor.checkpointToken();
     }
 
-    //todo: test checkpointing in more cases, look at velo or curve
-    // take their tests and convert it to forge
+    /// @notice checkpointToken for missed weeks
+    function testCheckpointTokenManyMissed() public {
+        kwenta.transfer(address(tokenDistributor), 10);
+        goForward(5 weeks);
+        vm.expectEmit(true, true, true, true);
+        emit CheckpointToken(6 weeks + 2, 10);
+        tokenDistributor.checkpointToken();
+    }
 
     /// @notice claimEpoch happy case
     function testClaimEpoch() public {
@@ -450,11 +456,11 @@ contract TokenDistributorTest is StakingSetup {
         goForward(1 weeks);
 
         TokenDistributorInternals tokenDistributorOffset = new TokenDistributorInternals(
-            address(kwenta),
-            address(stakingRewardsV2),
-            address(rewardEscrowV2),
-            2
-        );
+                address(kwenta),
+                address(stakingRewardsV2),
+                address(rewardEscrowV2),
+                2
+            );
 
         /// @dev normally the start of the week would be 608400 but offset of 2
         /// makes it it 777600 (608400 + 86400 * 2)
@@ -483,11 +489,11 @@ contract TokenDistributorTest is StakingSetup {
     /// @notice test claiming an unready epoch with an offset
     function testCannotClaimYetOffset() public {
         TokenDistributorInternals tokenDistributorOffset = new TokenDistributorInternals(
-            address(kwenta),
-            address(stakingRewardsV2),
-            address(rewardEscrowV2),
-            2
-        );
+                address(kwenta),
+                address(stakingRewardsV2),
+                address(rewardEscrowV2),
+                2
+            );
 
         vm.startPrank(user1);
 
@@ -505,7 +511,6 @@ contract TokenDistributorTest is StakingSetup {
 
     /// @notice test _startOfEpoch so that it follows an offset like _startOfWeek
     function testStartOfEpoch() public {
-
         TokenDistributorInternals tDI = new TokenDistributorInternals(
             address(kwenta),
             address(stakingRewardsV2),
@@ -513,13 +518,11 @@ contract TokenDistributorTest is StakingSetup {
             2
         );
 
-        
         assertEq(tDI.startOfWeek(block.timestamp), tDI.startOfEpoch(0));
 
         goForward(2 days);
 
         assertEq(tDI.startOfWeek(block.timestamp), tDI.startOfEpoch(1));
-
     }
 
     // Test _checkpointWhenReady
@@ -596,8 +599,7 @@ contract TokenDistributorTest is StakingSetup {
         assertEq(result2, 1 weeks + 2 days);
         vm.expectEmit(false, false, false, true);
         emit CheckpointToken(1 weeks + 2.5 days + 2, 0);
-        tDI.checkpointWhenReady();    
-
+        tDI.checkpointWhenReady();
     }
 
     //todo: fuzz test offsetting
