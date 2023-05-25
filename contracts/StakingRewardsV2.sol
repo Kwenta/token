@@ -621,10 +621,8 @@ contract StakingRewardsV2 is
     /// @notice set rewards duration
     /// @param _rewardsDuration: denoted in seconds
     function setRewardsDuration(uint256 _rewardsDuration) external override onlyOwner {
-        require(
-            block.timestamp > periodFinish,
-            "StakingRewards: Previous rewards period must be complete before changing the duration for the new period"
-        );
+        if (block.timestamp <= periodFinish) revert RewardsPeriodNotComplete();
+
         rewardsDuration = _rewardsDuration;
         emit RewardsDurationUpdated(rewardsDuration);
     }

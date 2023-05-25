@@ -130,9 +130,14 @@ interface IStakingRewardsV2 {
 
     /// @notice error when user tries to stake/unstake 0 tokens
     error AmountMustBeGreaterThanZero();
+    // TODO: rename to AmountZero()
+    // error AmountZero();
 
     /// @notice the user does not have enough tokens to unstake that amount
     error InsufficientBalance();
+
+    /// @notice previous rewards period must be complete before changing the duration for the new period
+    error RewardsPeriodNotComplete();
 
     /// @notice error when user tries unstake during the cooldown period
     /// @param canUnstakeAt timestamp when user can unstake
