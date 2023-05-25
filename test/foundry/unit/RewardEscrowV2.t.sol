@@ -110,7 +110,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     }
 
     /*//////////////////////////////////////////////////////////////
-                    Appending Vesting Schedules
+                        Appending Vesting Schedules
     //////////////////////////////////////////////////////////////*/
 
     function test_Should_Return_Vesting_Entry() public {
@@ -143,5 +143,14 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     function test_balanceOf_Should_Be_Incremented() public {
         appendRewardEscrowEntryV2(address(this), 10 ether, 52 weeks);
         assertEq(rewardEscrowV2.balanceOf(address(this)), 1);
+    }
+
+    function test_Correct_Amount_Claimable_After_6_Months() public {
+        appendRewardEscrowEntryV2(address(this), 10 ether, 52 weeks);
+
+        vm.warp(block.timestamp + 26 weeks);
+
+        (uint256 claimable,) = rewardEscrowV2.getVestingEntryClaimable(1);
+        assertEq(claimable, 11 ether / 2);
     }
 }
