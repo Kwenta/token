@@ -434,7 +434,9 @@ contract RewardEscrowV2 is
     }
 
     function _burn(uint256 tokenId) internal override {
-        delete vestingSchedules[tokenId];
+        // TODO: should delete the whole entry? or just the escrowAmount as before?
+        // delete vestingSchedules[tokenId];
+        vestingSchedules[tokenId].escrowAmount = 0;
         super._burn(tokenId);
     }
 
