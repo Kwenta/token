@@ -158,5 +158,4 @@ interface IStakingRewardsV2 {
 
     /// @notice attempted to approve self as an operator
     error CannotApproveSelf();
-
 }
