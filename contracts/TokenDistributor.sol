@@ -112,15 +112,7 @@ contract TokenDistributor is ITokenDistributor {
     /// @notice this function will fetch StakingRewardsV2 to see what their staked balance
     /// was at the start of the epoch then calculate proportional fees and transfer to user
     function claimEpoch(address to, uint epochNumber) public override {
-        /// @dev if more than 24 hours from last checkpoint OR if it is the first
-        /// claim of the week. second condition is so that the end of a week always
-        /// gets updated before its claimed.
-        if (
-            (block.timestamp - lastCheckpoint > 1 days) ||
-            ((block.timestamp - _startOfWeek(lastCheckpoint)) > 1 weeks) //todo: break up if statement
-        ) {
-            checkpointToken();
-        }
+        _checkpointWhenReady();
         /// @dev if the end of the epoch is > current time, revert
         if (_startOfEpoch(epochNumber) + 1 weeks > block.timestamp) {
             revert CannotClaimYet();
@@ -185,4 +177,17 @@ contract TokenDistributor is ITokenDistributor {
         return (epochNumber * 1 weeks) + startTime;
     }
 
+    /// @notice function for determining if a checkpoint is necessary
+    function _checkpointWhenReady() internal {
+        /// @dev if more than 24 hours from last checkpoint
+        if ((block.timestamp - lastCheckpoint > 1 days)) {
+            checkpointToken();
+        }
+        /// @dev if it is the first claim of the week then checkpoint.
+        /// this condition is so that the end of a week always
+        /// gets updated before its claimed (even if < 24 hrs)
+        if ((block.timestamp - _startOfWeek(lastCheckpoint)) > 1 weeks) {
+            checkpointToken();
+        }
+    }
 }

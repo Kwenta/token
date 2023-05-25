@@ -527,4 +527,6 @@ contract TokenDistributorTest is StakingSetup {
     //todo: change seconds to 1 weeks or 1 days
 
     //todo: test the new EpochClaim event
+
+    //todo: explicitly test _checkpointWhenReady, maybe extract from previous tests
 }
