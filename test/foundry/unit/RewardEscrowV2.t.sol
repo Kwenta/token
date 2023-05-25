@@ -8,7 +8,7 @@ import "../utils/Constants.t.sol";
 
 contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     /*//////////////////////////////////////////////////////////////
-                        Deploys correctly
+                        Deploys Correctly
     //////////////////////////////////////////////////////////////*/
 
     function test_Should_Have_A_Kwenta_Token() public {
@@ -42,7 +42,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     }
 
     /*//////////////////////////////////////////////////////////////
-                        When no escrow entries
+                        When No Escrow Entries
     //////////////////////////////////////////////////////////////*/
 
     function test_totalSupply_Should_Be_0() public {
@@ -65,5 +65,15 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         entryIDs.push(0);
         rewardEscrowV2.vest(entryIDs);
         assertEq(rewardEscrowV2.totalVestedAccountBalance(address(this)), 0);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                        Appending Vesting Schedules
+    //////////////////////////////////////////////////////////////*/
+
+    function test_Should_Not_Append_Entries_With_0_Amount() public {
+        vm.expectRevert(IRewardEscrowV2.ZeroAmount.selector);
+        vm.prank(address(stakingRewardsV2));
+        rewardEscrowV2.appendVestingEntry(address(this), 0, 52 weeks);
     }
 }
