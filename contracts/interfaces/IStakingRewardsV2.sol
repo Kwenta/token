@@ -131,6 +131,9 @@ interface IStakingRewardsV2 {
     /// @notice error when user tries to stake/unstake 0 tokens
     error AmountMustBeGreaterThanZero();
 
+    /// @notice the user does not have enough tokens to unstake that amount
+    error InsufficientBalance();
+
     /// @notice error when user tries unstake during the cooldown period
     /// @param canUnstakeAt timestamp when user can unstake
     error CannotUnstakeDuringCooldown(uint256 canUnstakeAt);

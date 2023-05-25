@@ -267,7 +267,7 @@ contract StakingRewardsV2 is
         afterCooldown(msg.sender)
     {
         if (amount == 0) revert AmountMustBeGreaterThanZero();
-        require(amount <= nonEscrowedBalanceOf(msg.sender), "StakingRewards: Invalid Amount");
+        if (amount > nonEscrowedBalanceOf(msg.sender)) revert InsufficientBalance();
 
         // update state
         _addTotalSupplyCheckpoint(totalSupply() - amount);
@@ -349,7 +349,7 @@ contract StakingRewardsV2 is
         updateReward(account)
     {
         if (amount == 0) revert AmountMustBeGreaterThanZero();
-        require(escrowedBalanceOf(account) >= amount, "StakingRewards: Invalid Amount");
+        if (amount > escrowedBalanceOf(account)) revert InsufficientBalance();
 
         // update state
         _addBalancesCheckpoint(account, balanceOf(account) - amount);
