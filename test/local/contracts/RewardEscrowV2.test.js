@@ -312,7 +312,7 @@ contract(
                     rewardEscrowV2.setStakingRewardsV2(stakingRewardsV2.address, {
                         from: owner,
                     }),
-                    "Staking Rewards already set"
+                    "StakingRewardsAlreadySet"
                 );
             });
 
