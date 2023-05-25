@@ -560,9 +560,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         vm.warp(1 days);
 
         // set rewards duration
-        vm.expectRevert(
-            "StakingRewards: Previous rewards period must be complete before changing the duration for the new period"
-        );
+        vm.expectRevert(IStakingRewardsV2.RewardsPeriodNotComplete.selector);
         stakingRewardsV2.setRewardsDuration(30 days);
     }
 
