@@ -3,7 +3,7 @@ pragma solidity ^0.8.19;
 
 import "forge-std/Test.sol";
 import {DefaultStakingV2Setup} from "../utils/DefaultStakingV2Setup.t.sol";
-import {IRewardEscrowV2} from "../../../contracts/interfaces/IRewardEscrowV2.sol";
+import {IRewardEscrowV2, VestingEntries} from "../../../contracts/interfaces/IRewardEscrowV2.sol";
 import "../utils/Constants.t.sol";
 
 contract RewardEscrowV2Tests is DefaultStakingV2Setup {
@@ -77,7 +77,9 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         rewardEscrowV2.appendVestingEntry(address(this), 0, 52 weeks);
     }
 
-    function test_appendVestingEntry_Should_Not_Create_A_Vesting_Entry_Insufficient_Kwenta() public {
+    function test_appendVestingEntry_Should_Not_Create_A_Vesting_Entry_Insufficient_Kwenta()
+        public
+    {
         vm.expectRevert(IRewardEscrowV2.InsufficientBalance.selector);
         vm.prank(address(stakingRewardsV2));
         rewardEscrowV2.appendVestingEntry(address(this), 1 ether, 52 weeks);
@@ -292,5 +294,39 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     function test_balanceOf_Is_Incremented() public {
         createRewardEscrowEntryV2(address(this), TEST_VALUE, 52 weeks, 90);
         assertEq(rewardEscrowV2.balanceOf(address(this)), 1);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                        Read Vesting Schedules
+    //////////////////////////////////////////////////////////////*/
+
+    function test_getVestingSchedules() public {
+        uint256 startTime = block.timestamp;
+
+        createRewardEscrowEntryV2(user1, 200 ether, 52 weeks, 90);
+        vm.warp(block.timestamp + 1 weeks);
+        createRewardEscrowEntryV2(user1, 300 ether, 52 weeks, 90);
+        vm.warp(block.timestamp + 1 weeks);
+        createRewardEscrowEntryV2(user1, 500 ether, 52 weeks, 90);
+
+        VestingEntries.VestingEntryWithID[] memory entries =
+            rewardEscrowV2.getVestingSchedules(user1, 0, 3);
+
+        assertEq(entries.length, 3);
+
+        // Check entry 1
+        assertEq(entries[0].entryID, 1);
+        assertEq(entries[0].endTime, startTime + 52 weeks);
+        assertEq(entries[0].escrowAmount, 200 ether);
+
+        // Check entry 2
+        assertEq(entries[1].entryID, 2);
+        assertEq(entries[1].endTime, startTime + 52 weeks + 1 weeks);
+        assertEq(entries[1].escrowAmount, 300 ether);
+
+        // Check entry 3
+        assertEq(entries[2].entryID, 3);
+        assertEq(entries[2].endTime, startTime + 52 weeks + 2 weeks);
+        assertEq(entries[2].escrowAmount, 500 ether);
     }
 }
