@@ -552,6 +552,13 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         assertEq(kwenta.balanceOf(address(rewardEscrowV2)), 500 ether);
     }
 
+    function test_vest_Should_Emit_Correct_Event_For_Two_Entries() public {
+        create3EntriesWithDifferentDurations(address(this));
+        vm.expectEmit(true, true, true, false);
+        emit Vested(address(this), 500 ether);
+        vestXEntries(address(this), 2);
+    }
+
     /*//////////////////////////////////////////////////////////////
                                 Helpers
     //////////////////////////////////////////////////////////////*/
