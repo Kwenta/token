@@ -47,7 +47,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
     //////////////////////////////////////////////////////////////*/
 
     function test_Only_SupplySchedule_Can_Call_notifyRewardAmount() public {
-        vm.expectRevert("StakingRewards: Only Supply Schedule");
+        vm.expectRevert(IStakingRewardsV2.OnlySupplySchedule.selector);
         stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
     }
 
