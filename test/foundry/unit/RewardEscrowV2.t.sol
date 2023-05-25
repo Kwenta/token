@@ -498,7 +498,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         assertEq(rewardEscrowV2.totalEscrowedBalance(), 0);
     }
 
-    function test_Should_Ignore_Duplicate_Entires() public {
+    function test_Should_Ignore_Duplicate_Entries() public {
         create3Entries(address(this));
         uint256[] memory entries = rewardEscrowV2.getAccountVestingEntryIDs(address(this), 0, 100);
         for (uint256 i = 0; i < entries.length; i++) {
@@ -580,7 +580,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         assertEq(rewardEscrowV2.totalEscrowedBalance(), 500 ether);
     }
 
-    function test_vest_Two_Entries_Should_Ignore_Duplicate_Entires() public {
+    function test_vest_Two_Entries_Should_Ignore_Duplicate_Entries() public {
         create3EntriesWithDifferentDurations(address(this));
         uint256[] memory entries = rewardEscrowV2.getAccountVestingEntryIDs(address(this), 0, 100);
         for (uint256 i = 0; i < 2; i++) {
@@ -643,26 +643,26 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         assertEq(rewardEscrowV2.totalEscrowedBalance(), 0 ether);
     }
 
-    // function test_vest_Two_Entries_Should_Ignore_Duplicate_Entires() public {
-    //     create3EntriesWithDifferentDurations(address(this));
-    //     uint256[] memory entries = rewardEscrowV2.getAccountVestingEntryIDs(address(this), 0, 100);
-    //     for (uint256 i = 0; i < 2; i++) {
-    //         entryIDs.push(entries[i]);
-    //         entryIDs.push(entries[i]);
-    //     }
-    //     rewardEscrowV2.vest(entryIDs);
+    function test_vest_Three_Entries_Should_Ignore_Duplicate_Entries() public {
+        create3EntriesWithDifferentDurations(address(this));
+        uint256[] memory entries = rewardEscrowV2.getAccountVestingEntryIDs(address(this), 0, 100);
+        for (uint256 i = 0; i < entries.length; i++) {
+            entryIDs.push(entries[i]);
+            entryIDs.push(entries[i]);
+        }
+        rewardEscrowV2.vest(entryIDs);
 
-    //     // Check only 2 entries were vested
-    //     assertEq(kwenta.balanceOf(address(this)), 500 ether);
-    //     assertEq(kwenta.balanceOf(address(rewardEscrowV2)), 500 ether);
+        // Check only 2 entries were vested
+        assertEq(kwenta.balanceOf(address(this)), 775 ether);
+        assertEq(kwenta.balanceOf(address(rewardEscrowV2)), 0 ether);
 
-    //     // Attempt to vest again
-    //     rewardEscrowV2.vest(entryIDs);
+        // Attempt to vest again
+        rewardEscrowV2.vest(entryIDs);
 
-    //     // Check only 2 entries were vested
-    //     assertEq(kwenta.balanceOf(address(this)), 500 ether);
-    //     assertEq(kwenta.balanceOf(address(rewardEscrowV2)), 500 ether);
-    // }
+        // Check only 2 entries were vested
+        assertEq(kwenta.balanceOf(address(this)), 775 ether);
+        assertEq(kwenta.balanceOf(address(rewardEscrowV2)), 0 ether);
+    }
 
 
     /*//////////////////////////////////////////////////////////////
