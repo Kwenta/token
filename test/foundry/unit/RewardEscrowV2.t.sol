@@ -389,5 +389,15 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         assertEq(kwenta.balanceOf(address(rewardEscrowV2)), 0);
     }
 
-    // TODO: test vesting failure do to failed token transfer by transfering kwenta out of reward escrow using vm.prank
+    function test_Should_Revert_If_Kwenta_Transfer_Fails() public {
+        appendRewardEscrowEntryV2(address(this), 1000 ether, 52 weeks);
+
+        // force kwenta out of reward escrow to cause a failure
+        vm.prank(address(rewardEscrowV2));
+        kwenta.transfer(user2, 700 ether);
+
+        entryIDs.push(1);
+        vm.expectRevert("ERC20: transfer amount exceeds balance");
+        rewardEscrowV2.vest(entryIDs);
+    }
 }
