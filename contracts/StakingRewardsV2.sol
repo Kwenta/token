@@ -242,7 +242,7 @@ contract StakingRewardsV2 is
         whenNotPaused
         updateReward(msg.sender)
     {
-        require(amount > 0, "StakingRewards: Cannot stake 0");
+        if (amount == 0) revert AmountMustBeGreaterThanZero();
 
         // update state
         userLastStakeTime[msg.sender] = block.timestamp;
@@ -266,7 +266,7 @@ contract StakingRewardsV2 is
         updateReward(msg.sender)
         afterCooldown(msg.sender)
     {
-        require(amount > 0, "StakingRewards: Cannot Unstake 0");
+        if (amount == 0) revert AmountMustBeGreaterThanZero();
         require(amount <= nonEscrowedBalanceOf(msg.sender), "StakingRewards: Invalid Amount");
 
         // update state
@@ -294,7 +294,7 @@ contract StakingRewardsV2 is
         whenNotPaused
         updateReward(account)
     {
-        require(amount > 0, "StakingRewards: Cannot stake 0");
+        if (amount == 0) revert AmountMustBeGreaterThanZero();
         // TODO: think if there I could do calc just querying rewardEscrow.totalEscrowedAccountBalance to save gas
         uint256 unstakedEscrow = rewardEscrow.unstakedEscrowBalanceOf(account);
         if (amount > unstakedEscrow) {
@@ -348,7 +348,7 @@ contract StakingRewardsV2 is
         onlyRewardEscrow
         updateReward(account)
     {
-        require(amount > 0, "StakingRewards: Cannot Unstake 0");
+        if (amount == 0) revert AmountMustBeGreaterThanZero();
         require(escrowedBalanceOf(account) >= amount, "StakingRewards: Invalid Amount");
 
         // update state
