@@ -434,9 +434,9 @@ contract RewardEscrowV2 is
     }
 
     function _burn(uint256 tokenId) internal override {
-        // TODO: should delete the whole entry? or just the escrowAmount as before?
-        // delete vestingSchedules[tokenId];
-        vestingSchedules[tokenId].escrowAmount = 0;
+        // TODO: should delete the whole entry? or just the escrowAmount as before? gas savings?
+        // vestingSchedules[tokenId].escrowAmount = 0;
+        delete vestingSchedules[tokenId];
         super._burn(tokenId);
     }
 
@@ -490,6 +490,7 @@ contract RewardEscrowV2 is
         /* Increment the next entry id. */
         ++nextEntryId;
 
+        // TODO: add earlyVestingFee to this event
         emit VestingEntryCreated(account, quantity, duration, entryID);
     }
 

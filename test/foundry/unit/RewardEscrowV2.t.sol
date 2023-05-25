@@ -369,6 +369,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         // check initial claimable amount
         (uint256 claimable, uint256 fee) = rewardEscrowV2.getVestingEntryClaimable(1);
         assertEq(claimable, 550 ether);
+        assertEq(fee, 450 ether);
 
         uint256 treasuryBalanceBefore = kwenta.balanceOf(treasury);
 
@@ -392,15 +393,13 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         assertEq(kwenta.balanceOf(address(rewardEscrowV2)), 0);
 
         // check entry has been burned
-        // (uint64 endTime, uint256 escrowAmount, uint256 duration, uint8 earlyVestingFee) =
-        //     rewardEscrowV2.getVestingEntry(1);
-        (, uint256 escrowAmount,,) = rewardEscrowV2.getVestingEntry(1);
+        (uint64 endTime, uint256 escrowAmount, uint256 duration, uint8 earlyVestingFee) =
+            rewardEscrowV2.getVestingEntry(1);
         assertEq(rewardEscrowV2.balanceOf(address(this)), 0);
         assertEq(escrowAmount, 0);
-        // TODO: think - should these be set to 0?
-        // assertEq(endTime, 0);
-        // assertEq(duration, 0);
-        // assertEq(earlyVestingFee, 0);
+        assertEq(endTime, 0);
+        assertEq(duration, 0);
+        assertEq(earlyVestingFee, 0);
     }
 
     function test_Should_Revert_If_Kwenta_Transfer_Fails() public {
