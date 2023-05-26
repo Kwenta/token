@@ -1022,7 +1022,5 @@ contract TokenDistributorTest is StakingSetup {
         tDI.checkpointWhenReady();
     }
 
-    //todo: fuzz test offsetting
-
     //todo: do a complete test with TokenDistributor deployed after V2
 }
