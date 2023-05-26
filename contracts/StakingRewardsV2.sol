@@ -226,11 +226,11 @@ contract StakingRewardsV2 is
         _addTotalSupplyCheckpoint(totalSupply() + amount);
         _addBalancesCheckpoint(msg.sender, balanceOf(msg.sender) + amount);
 
-        // transfer token to this contract from the caller
-        token.safeTransferFrom(msg.sender, address(this), amount);
-
         // emit staking event and index msg.sender
         emit Staked(msg.sender, amount);
+
+        // transfer token to this contract from the caller
+        token.safeTransferFrom(msg.sender, address(this), amount);
     }
 
     /// @inheritdoc IStakingRewardsV2
@@ -248,11 +248,11 @@ contract StakingRewardsV2 is
         _addTotalSupplyCheckpoint(totalSupply() - amount);
         _addBalancesCheckpoint(msg.sender, balanceOf(msg.sender) - amount);
 
-        // transfer token from this contract to the caller
-        token.safeTransfer(msg.sender, amount);
-
         // emit unstake event and index msg.sender
         emit Unstaked(msg.sender, amount);
+
+        // transfer token from this contract to the caller
+        token.safeTransfer(msg.sender, amount);
     }
 
     /// @inheritdoc IStakingRewardsV2
