@@ -319,6 +319,48 @@ contract TokenDistributorTest is StakingSetup {
         );
     }
 
+    /// @notice fuzz calculateEpochFees, when staking amounts are random
+    function testFuzzStakingCalculateEpochFees(uint256 amount, uint256 staking1, uint256 staking2) public {
+        /// @dev make sure its less than this contract
+        /// holds and greater than 10 so the result isn't
+        /// 0 after dividing
+        vm.assume(amount < 10_000 ether);
+        vm.assume(amount > 10);
+
+        vm.assume(staking1 < 45_000 ether);
+        vm.assume(staking1 > 0);
+
+        vm.assume(staking2 < 45_000 ether);
+        vm.assume(staking2 > 0);
+
+        kwenta.transfer(address(user1), staking1);
+        kwenta.transfer(address(user2), staking2);
+        vm.startPrank(address(user1));
+        kwenta.approve(address(stakingRewardsV2), staking1);
+        stakingRewardsV2.stake(staking1);
+        vm.stopPrank();
+        vm.startPrank(address(user2));
+        kwenta.approve(address(stakingRewardsV2), staking2);
+        stakingRewardsV2.stake(staking2);
+        vm.stopPrank();
+        goForward(1 weeks - 2);
+
+        /// @dev send fees to TokenDistributor midway through epoch 1
+        /// this will be split between all of epoch 0 and half of 1
+        goForward(.5 weeks);
+        kwenta.transfer(address(tokenDistributor), amount);
+        uint256 timeSinceLastCheckpoint = block.timestamp - 1 weeks;
+        tokenDistributor.checkpointToken();
+
+        uint256 result = tokenDistributor.calculateEpochFees(address(user2), 1);
+        /// @dev calculate the proportion for this week (same as checkpoint math)
+        /// then get the proportion staked (2/3)
+        assertEq(
+            result,
+            (((amount * .5 weeks) / timeSinceLastCheckpoint) * staking2) / (staking1 + staking2)
+        );
+    }
+
     //todo: next level fuzz: fuzz the amount that they stake, and fuzz the users, fuzz the time
 
     /// @notice test calculate epoch fees for returning 0
