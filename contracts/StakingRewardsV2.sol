@@ -77,7 +77,7 @@ contract StakingRewardsV2 is
     uint256 public rewardPerTokenStored;
 
     /// @notice the period of time a user has to wait after staking to unstake
-    uint256 public unstakingCooldownPeriod;
+    uint256 public cooldownPeriod;
 
     /// @notice represents the rewardPerToken
     /// value the last time the stake calculated earned() rewards
@@ -119,7 +119,7 @@ contract StakingRewardsV2 is
 
     /// @notice only allow execution after the unstaking cooldown period has elapsed
     modifier afterCooldown(address account) {
-        uint256 canUnstakeAt = userLastStakeTime[account] + unstakingCooldownPeriod;
+        uint256 canUnstakeAt = userLastStakeTime[account] + cooldownPeriod;
         if (canUnstakeAt > block.timestamp) {
             revert MustWaitForUnlock(canUnstakeAt);
         }
@@ -169,7 +169,7 @@ contract StakingRewardsV2 is
 
         // define values
         rewardsDuration = 1 weeks;
-        unstakingCooldownPeriod = 2 weeks;
+        cooldownPeriod = 2 weeks;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -627,21 +627,21 @@ contract StakingRewardsV2 is
     }
 
     /// @notice set unstaking cooldown period
-    /// @param _unstakingCooldownPeriod: denoted in seconds
-    function setUnstakingCooldownPeriod(uint256 _unstakingCooldownPeriod)
+    /// @param _cooldownPeriod: denoted in seconds
+    function setUnstakingCooldownPeriod(uint256 _cooldownPeriod)
         external
         override
         onlyOwner
     {
-        if (_unstakingCooldownPeriod < MIN_COOLDOWN_PERIOD) {
+        if (_cooldownPeriod < MIN_COOLDOWN_PERIOD) {
             revert CooldownPeriodTooLow(MIN_COOLDOWN_PERIOD);
         }
-        if (_unstakingCooldownPeriod > MAX_COOLDOWN_PERIOD) {
+        if (_cooldownPeriod > MAX_COOLDOWN_PERIOD) {
             revert CooldownPeriodTooHigh(MAX_COOLDOWN_PERIOD);
         }
 
-        unstakingCooldownPeriod = _unstakingCooldownPeriod;
-        emit UnstakingCooldownPeriodUpdated(unstakingCooldownPeriod);
+        cooldownPeriod = _cooldownPeriod;
+        emit UnstakingCooldownPeriodUpdated(cooldownPeriod);
     }
 
     /*///////////////////////////////////////////////////////////////
