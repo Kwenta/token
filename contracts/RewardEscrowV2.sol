@@ -31,7 +31,7 @@ contract RewardEscrowV2 is
     IKwenta private kwenta;
 
     // TODO: update to stakingRewards with V2 on the end
-    IStakingRewardsV2 public stakingRewardsV2;
+    IStakingRewardsV2 public stakingRewards;
 
     /* ========== STATE VARIABLES ========== */
 
@@ -56,7 +56,7 @@ contract RewardEscrowV2 is
 
     /* ========== MODIFIERS ========== */
     modifier onlyStakingRewards() {
-        if (msg.sender != address(stakingRewardsV2)) revert OnlyStakingRewards();
+        if (msg.sender != address(stakingRewards)) revert OnlyStakingRewards();
         _;
     }
 
@@ -89,12 +89,12 @@ contract RewardEscrowV2 is
     /*
     * @notice Function used to define the StakingRewards to use
     */
-    function setStakingRewardsV2(address _stakingRewardsV2) public onlyOwner {
-        if (_stakingRewardsV2 == address(0)) revert ZeroAddress();
-        if (address(stakingRewardsV2) != address(0)) revert StakingRewardsAlreadySet();
+    function setStakingRewardsV2(address _stakingRewards) public onlyOwner {
+        if (_stakingRewards == address(0)) revert ZeroAddress();
+        if (address(stakingRewards) != address(0)) revert StakingRewardsAlreadySet();
 
-        stakingRewardsV2 = IStakingRewardsV2(_stakingRewardsV2);
-        emit StakingRewardsSet(address(_stakingRewardsV2));
+        stakingRewards = IStakingRewardsV2(_stakingRewards);
+        emit StakingRewardsSet(address(_stakingRewards));
     }
 
     /// @notice set treasuryDAO address
@@ -125,7 +125,7 @@ contract RewardEscrowV2 is
      * @notice Get the amount of escrowed kwenta that is not staked for a given account
      */
     function unstakedEscrowBalanceOf(address account) public view override returns (uint256) {
-        return totalEscrowedAccountBalance[account] - stakingRewardsV2.escrowedBalanceOf(account);
+        return totalEscrowedAccountBalance[account] - stakingRewards.escrowedBalanceOf(account);
     }
 
     /**
@@ -280,7 +280,7 @@ contract RewardEscrowV2 is
     }
 
     function _isEscrowStaked(address _account) internal view returns (bool) {
-        return stakingRewardsV2.escrowedBalanceOf(_account) > 0;
+        return stakingRewards.escrowedBalanceOf(_account) > 0;
     }
 
     /* ========== MUTATIVE FUNCTIONS ========== */
@@ -320,7 +320,7 @@ contract RewardEscrowV2 is
                 uint256 unstakedEscrow = unstakedEscrowBalanceOf(msg.sender);
                 if (totalWithFee > unstakedEscrow) {
                     uint256 amountToUnstake = totalWithFee - unstakedEscrow;
-                    stakingRewardsV2.unstakeEscrowSkipCooldown(msg.sender, amountToUnstake);
+                    stakingRewards.unstakeEscrowSkipCooldown(msg.sender, amountToUnstake);
                 }
             }
 
@@ -383,7 +383,7 @@ contract RewardEscrowV2 is
      * @param _amount The amount of escrowed KWENTA to be staked.
      */
     function stakeEscrow(uint256 _amount) external override {
-        stakingRewardsV2.stakeEscrow(msg.sender, _amount);
+        stakingRewards.stakeEscrow(msg.sender, _amount);
     }
 
     /**
@@ -392,7 +392,7 @@ contract RewardEscrowV2 is
      * @param _amount The amount of escrowed KWENTA to be unstaked.
      */
     function unstakeEscrow(uint256 _amount) public override {
-        stakingRewardsV2.unstakeEscrow(msg.sender, _amount);
+        stakingRewards.unstakeEscrow(msg.sender, _amount);
     }
 
     /**
