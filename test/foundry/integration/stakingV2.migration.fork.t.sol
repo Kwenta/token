@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.19;
 
-import "forge-std/Test.sol";
+import {console} from "forge-std/Test.sol";
 import {StakingTestHelpers} from "../utils/helpers/StakingTestHelpers.t.sol";
 import {Migrate} from "../../../scripts/Migrate.s.sol";
 import {Kwenta} from "../../../contracts/Kwenta.sol";

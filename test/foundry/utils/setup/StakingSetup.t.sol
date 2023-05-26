@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import "forge-std/Test.sol";
+import {console} from "forge-std/Test.sol";
 import {Migrate} from "../../../../scripts/Migrate.s.sol";
 import {TestHelpers} from "../../utils/helpers/TestHelpers.t.sol";
 import {Kwenta} from "../../../../contracts/Kwenta.sol";

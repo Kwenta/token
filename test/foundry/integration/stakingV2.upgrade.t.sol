@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import "forge-std/Test.sol";
+import {console} from "forge-std/Test.sol";
 import {DefaultStakingV2Setup} from "../utils/setup/DefaultStakingV2Setup.t.sol";
 import {MockStakingRewardsV3} from "../utils/mocks/MockStakingRewardsV3.t.sol";
 import {MockRewardEscrowV3} from "../utils/mocks/MockRewardEscrowV3.t.sol";
