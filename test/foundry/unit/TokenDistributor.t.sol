@@ -596,10 +596,10 @@ contract TokenDistributorTest is StakingSetup {
         vm.assume(staking2 < 45_000 ether);
         vm.assume(staking2 > 0);
 
-        vm.assume(time < 1 weeks * 52);
-
         /// @dev this is so we dont get "Cannot claim 0 fees"
+        vm.assume(time < 52 weeks);
         vm.assume((amount * staking1) / (staking1 + staking2) > 0);
+        vm.assume((amount * staking2) / (staking1 + staking2) > 0);
 
         kwenta.transfer(address(user1), staking1);
         kwenta.transfer(address(user2), staking2);
@@ -626,6 +626,7 @@ contract TokenDistributorTest is StakingSetup {
         goForward(time);
         uint proportionalFees = (((amount * 1 weeks) / (time + 1 weeks)) *
             staking1) / (staking1 + staking2);
+        vm.assume(proportionalFees > 0);
 
         /// @dev claim for epoch 1 at the first second of epoch 2
         vm.prank(user1);
@@ -818,10 +819,13 @@ contract TokenDistributorTest is StakingSetup {
         vm.assume(staking3 > 0);
 
         /// @dev this is so we dont get "Cannot claim 0 fees"
-        vm.assume(amount > staking1 + staking2 + staking3);
-        vm.assume((amount * staking2) / (staking1 + staking2 + staking3) > 0);
-
         vm.assume(time < 52 weeks);
+        vm.assume(amount > staking1 + staking2 + staking3);
+        vm.assume((amount * staking1) / (staking1 + staking2 + staking3) > 0);
+        vm.assume((amount * staking2) / (staking1 + staking2 + staking3) > 0);
+        vm.assume((amount * staking3) / (staking1 + staking2 + staking3) > 0);
+
+        
 
         kwenta.transfer(address(user1), staking1);
         vm.startPrank(address(user1));
