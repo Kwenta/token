@@ -70,20 +70,20 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
 
     function test_Only_RewardEscrowCan_Call_unstakeEscrow() public {
         stakeEscrowedFundsV2(address(this), TEST_VALUE);
-        vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+        vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod());
         vm.expectRevert(IStakingRewardsV2.OnlyRewardEscrow.selector);
         stakingRewardsV2.unstakeEscrow(address(this), TEST_VALUE);
     }
 
     function test_Only_RewardEscrowCan_Call_unstakeEscrowSkipCooldown() public {
         stakeEscrowedFundsV2(address(this), TEST_VALUE);
-        vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+        vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod());
         vm.expectRevert(IStakingRewardsV2.OnlyRewardEscrow.selector);
         stakingRewardsV2.unstakeEscrowSkipCooldown(address(this), TEST_VALUE);
     }
 
     function test_Cannot_unstakeEscrow_Invalid_Amount() public {
-        vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+        vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod());
 
         vm.expectRevert(IStakingRewardsV2.InsufficientBalance.selector);
         unstakeEscrowedFundsV2(address(this), TEST_VALUE);
@@ -387,7 +387,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         // stake escrow
         stakeEscrowedFundsV2(address(this), TEST_VALUE);
 
-        vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+        vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod());
 
         // this would work if unstakeEscrow was called
         // but unstake is called so it fails
@@ -399,7 +399,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         // stake escrow
         stakeEscrowedFundsV2(address(this), TEST_VALUE);
 
-        vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+        vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod());
 
         // exit - this fails because exit uses unstake not unstakeEscrow
         vm.expectRevert(IStakingRewardsV2.AmountZero.selector);
@@ -640,7 +640,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
     //////////////////////////////////////////////////////////////*/
 
     function test_Cannot_unstake_If_Nothing_Staked() public {
-        vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+        vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod());
 
         vm.expectRevert(IStakingRewardsV2.InsufficientBalance.selector);
         stakingRewardsV2.unstake(TEST_VALUE);
@@ -665,7 +665,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
     }
 
     function test_Cannot_unstake_0() public {
-        vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+        vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod());
 
         vm.expectRevert(IStakingRewardsV2.AmountZero.selector);
         stakingRewardsV2.unstake(0);
@@ -676,7 +676,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
     //////////////////////////////////////////////////////////////*/
 
     function test_Cannot_unstakeEscrow_If_None_Staked() public {
-        vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+        vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod());
 
         vm.expectRevert(IStakingRewardsV2.InsufficientBalance.selector);
         unstakeEscrowedFundsV2(address(this), TEST_VALUE);
@@ -827,7 +827,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         // stake escrow
         stakeEscrowedFundsV2(address(this), 1 weeks);
 
-        vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+        vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod());
 
         // unstake more escrow
         vm.expectRevert(IStakingRewardsV2.InsufficientBalance.selector);
@@ -842,7 +842,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         // stake escrow
         stakeEscrowedFundsV2(address(this), 1 weeks);
 
-        vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+        vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod());
 
         // unstake 0 escrow
         vm.expectRevert(IStakingRewardsV2.AmountZero.selector);

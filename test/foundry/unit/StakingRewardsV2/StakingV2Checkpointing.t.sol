@@ -22,7 +22,7 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
         assertEq(value, TEST_VALUE);
 
         // move beyond cold period
-        vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+        vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod());
 
         // update block number
         vm.warp(block.timestamp + 1);
@@ -50,7 +50,7 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
         assertEq(value, TEST_VALUE);
 
         // move beyond cold period
-        vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+        vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod());
 
         // update block number
         vm.warp(block.timestamp + 1);
@@ -99,7 +99,7 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
             assertEq(value, previousTotal + amountToStake);
 
             // move beyond cold period
-            vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+            vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod());
 
             // update block number
             vm.warp(block.timestamp + timestampAdvance);
@@ -152,7 +152,7 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
             assertEq(value, previousTotal + amountToStake);
 
             // move beyond cold period
-            vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+            vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod());
 
             // update block number
             vm.warp(block.timestamp + timestampAdvance);
@@ -192,7 +192,7 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
         assertEq(value, TEST_VALUE);
 
         // move beyond cold period
-        vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+        vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod());
 
         // update block number
         vm.warp(block.timestamp + 1);
@@ -240,7 +240,7 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
             assertEq(value, previousTotal + amountToStake);
 
             // move beyond cold period
-            vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+            vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod());
 
             // update block number
             vm.warp(block.timestamp + timestampAdvance);
@@ -277,7 +277,7 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
         assertEq(value, TEST_VALUE);
 
         // move beyond cold period
-        vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+        vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod());
 
         // update block number
         vm.warp(block.timestamp + 1);
@@ -305,7 +305,7 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
         assertEq(value, TEST_VALUE);
 
         // move beyond cold period
-        vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+        vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod());
 
         // update block number
         vm.warp(block.timestamp + 1);
@@ -357,7 +357,7 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
             assertEq(value, previousTotal + amountToStake);
 
             // move beyond cold period
-            vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+            vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod());
 
             // update block number
             vm.warp(block.timestamp + timestampAdvance);
@@ -422,7 +422,7 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
                 expectedValue = totalStaked;
             }
             fundAccountAndStakeV2(address(this), amount);
-            vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+            vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod());
         }
 
         uint256 value = stakingRewardsV2.balanceAtTime(address(this), timestampToFind);
@@ -446,7 +446,7 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
                 expectedValue = totalStaked;
             }
             fundAccountAndStakeV2(address(this), amount);
-            vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+            vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod());
         }
 
         uint256 value = stakingRewardsV2.balanceAtTime(address(this), timestampToFind);
@@ -464,14 +464,14 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
             totalStaked += amount;
             fundAccountAndStakeV2(address(this), amount);
             if (block.timestamp == xCooldownPeriods(2)) {
-                vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+                vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod());
                 stakingRewardsV2.unstake(amount);
                 stakingRewardsV2.unstake(amount);
                 totalStaked -= amount;
                 totalStaked -= amount;
             }
             if (block.timestamp == xCooldownPeriods(5)) {
-                vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+                vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod());
                 stakingRewardsV2.unstake(amount);
                 stakingRewardsV2.unstake(amount);
                 stakingRewardsV2.unstake(amount);
@@ -482,7 +482,7 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
             if (timestampToFind == block.timestamp) {
                 expectedValue = totalStaked;
             }
-            vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+            vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod());
         }
 
         uint256 value = stakingRewardsV2.balanceAtTime(address(this), timestampToFind);
@@ -784,6 +784,6 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
     //////////////////////////////////////////////////////////////*/
 
     function xCooldownPeriods(uint256 numCooldowns) public view returns (uint256) {
-        return 1 + (numCooldowns * stakingRewardsV2.unstakingCooldownPeriod());
+        return 1 + (numCooldowns * stakingRewardsV2.cooldownPeriod());
     }
 }

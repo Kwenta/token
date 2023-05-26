@@ -14,7 +14,7 @@ contract StakingV2CooldownPeriodTests is DefaultStakingV2Setup {
         // stake
         fundAccountAndStakeV2(address(this), TEST_VALUE);
 
-        uint256 cooldownPeriod = stakingRewardsV2.unstakingCooldownPeriod();
+        uint256 cooldownPeriod = stakingRewardsV2.cooldownPeriod();
         uint256 canUnstakeAt = block.timestamp + cooldownPeriod;
         uint256 stakedAt = block.timestamp;
 
@@ -45,7 +45,7 @@ contract StakingV2CooldownPeriodTests is DefaultStakingV2Setup {
         // stake
         fundAccountAndStakeV2(address(this), stakeAmount);
 
-        uint256 cooldownPeriod = stakingRewardsV2.unstakingCooldownPeriod();
+        uint256 cooldownPeriod = stakingRewardsV2.cooldownPeriod();
         uint256 canUnstakeAt = block.timestamp + cooldownPeriod;
         uint256 stakedAt = block.timestamp;
 
@@ -63,7 +63,7 @@ contract StakingV2CooldownPeriodTests is DefaultStakingV2Setup {
         // stake
         stakeEscrowedFundsV2(address(this), TEST_VALUE);
 
-        uint256 cooldownPeriod = stakingRewardsV2.unstakingCooldownPeriod();
+        uint256 cooldownPeriod = stakingRewardsV2.cooldownPeriod();
         uint256 canUnstakeAt = block.timestamp + cooldownPeriod;
         uint256 stakedAt = block.timestamp;
 
@@ -96,7 +96,7 @@ contract StakingV2CooldownPeriodTests is DefaultStakingV2Setup {
         // stake
         stakeEscrowedFundsV2(address(this), stakeAmount);
 
-        uint256 cooldownPeriod = stakingRewardsV2.unstakingCooldownPeriod();
+        uint256 cooldownPeriod = stakingRewardsV2.cooldownPeriod();
         uint256 canUnstakeAt = block.timestamp + cooldownPeriod;
         uint256 stakedAt = block.timestamp;
 
@@ -123,7 +123,7 @@ contract StakingV2CooldownPeriodTests is DefaultStakingV2Setup {
         stakingRewardsV2.stake(TEST_VALUE);
 
         // stake half the cooldown period later again
-        vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod() / 2);
+        vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod() / 2);
         stakingRewardsV2.stake(TEST_VALUE);
     }
 
@@ -135,7 +135,7 @@ contract StakingV2CooldownPeriodTests is DefaultStakingV2Setup {
         stakeEscrowedFundsV2(address(this), TEST_VALUE);
 
         // stake half the cooldown period later again
-        vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod() / 2);
+        vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod() / 2);
         stakeEscrowedFundsV2(address(this), TEST_VALUE);
     }
 
@@ -145,14 +145,14 @@ contract StakingV2CooldownPeriodTests is DefaultStakingV2Setup {
         stakingRewardsV2.stake(TEST_VALUE);
 
         // stake half the cooldown period later again
-        vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod() / 2);
+        vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod() / 2);
         stakingRewardsV2.stake(TEST_VALUE);
 
         // expected can unstakeAt time is now the cooldown period from now
-        uint256 canUnstakeAt = block.timestamp + stakingRewardsV2.unstakingCooldownPeriod();
+        uint256 canUnstakeAt = block.timestamp + stakingRewardsV2.cooldownPeriod();
 
         // cannot unstake another half period later
-        vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod() / 2);
+        vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod() / 2);
         vm.expectRevert(
             abi.encodeWithSelector(IStakingRewardsV2.MustWaitForUnlock.selector, canUnstakeAt)
         );
@@ -164,14 +164,14 @@ contract StakingV2CooldownPeriodTests is DefaultStakingV2Setup {
         stakeEscrowedFundsV2(address(this), TEST_VALUE);
 
         // stake half the cooldown period later again
-        vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod() / 2);
+        vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod() / 2);
         stakeEscrowedFundsV2(address(this), TEST_VALUE);
 
         // expected can unstakeAt time is now the cooldown period from now
-        uint256 canUnstakeAt = block.timestamp + stakingRewardsV2.unstakingCooldownPeriod();
+        uint256 canUnstakeAt = block.timestamp + stakingRewardsV2.cooldownPeriod();
 
         // cannot unstake another half period later
-        vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod() / 2);
+        vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod() / 2);
         vm.expectRevert(
             abi.encodeWithSelector(IStakingRewardsV2.MustWaitForUnlock.selector, canUnstakeAt)
         );
@@ -199,7 +199,7 @@ contract StakingV2CooldownPeriodTests is DefaultStakingV2Setup {
         stakingRewardsV2.setUnstakingCooldownPeriod(newCooldownPeriod);
 
         // Check cooldown period is updated
-        assertEq(stakingRewardsV2.unstakingCooldownPeriod(), newCooldownPeriod);
+        assertEq(stakingRewardsV2.cooldownPeriod(), newCooldownPeriod);
 
         // stake
         fundAccountAndStakeV2(address(this), TEST_VALUE);
@@ -231,7 +231,7 @@ contract StakingV2CooldownPeriodTests is DefaultStakingV2Setup {
         stakingRewardsV2.setUnstakingCooldownPeriod(newCooldownPeriod);
 
         // Check cooldown period is updated
-        assertEq(stakingRewardsV2.unstakingCooldownPeriod(), newCooldownPeriod);
+        assertEq(stakingRewardsV2.cooldownPeriod(), newCooldownPeriod);
 
         // stake
         fundAccountAndStakeV2(address(this), TEST_VALUE);
