@@ -182,21 +182,21 @@ contract StakingV2CooldownPeriodTests is DefaultStakingV2Setup {
                         Changing Cooldown Period
     //////////////////////////////////////////////////////////////*/
 
-    function test_setUnstakingCooldownPeriod_Is_Only_Owner() public {
+    function test_setCooldownPeriod_Is_Only_Owner() public {
         vm.expectRevert("Ownable: caller is not the owner");
         vm.prank(user1);
-        stakingRewardsV2.setUnstakingCooldownPeriod(1 weeks);
+        stakingRewardsV2.setCooldownPeriod(1 weeks);
     }
 
-    function test_setUnstakingCooldownPeriod() public {
+    function test_setCooldownPeriod() public {
         uint256 newCooldownPeriod = 1 weeks;
 
         // Expect correct event emitted
         vm.expectEmit(true, false, false, true);
-        emit UnstakingCooldownPeriodUpdated(newCooldownPeriod);
+        emit CooldownPeriodUpdated(newCooldownPeriod);
 
         // Set new cooldown period
-        stakingRewardsV2.setUnstakingCooldownPeriod(newCooldownPeriod);
+        stakingRewardsV2.setCooldownPeriod(newCooldownPeriod);
 
         // Check cooldown period is updated
         assertEq(stakingRewardsV2.cooldownPeriod(), newCooldownPeriod);
@@ -217,7 +217,7 @@ contract StakingV2CooldownPeriodTests is DefaultStakingV2Setup {
         unstakeEscrowedFundsV2(address(this), TEST_VALUE);
     }
 
-    function test_setUnstakingCooldownPeriod_Fuzz(uint128 newCooldownPeriod, uint128 timeJump)
+    function test_setCooldownPeriod_Fuzz(uint128 newCooldownPeriod, uint128 timeJump)
         public
     {
         vm.assume(newCooldownPeriod > stakingRewardsV2.MIN_COOLDOWN_PERIOD());
@@ -225,10 +225,10 @@ contract StakingV2CooldownPeriodTests is DefaultStakingV2Setup {
 
         // Expect correct event emitted
         vm.expectEmit(true, false, false, true);
-        emit UnstakingCooldownPeriodUpdated(newCooldownPeriod);
+        emit CooldownPeriodUpdated(newCooldownPeriod);
 
         // Set new cooldown period
-        stakingRewardsV2.setUnstakingCooldownPeriod(newCooldownPeriod);
+        stakingRewardsV2.setCooldownPeriod(newCooldownPeriod);
 
         // Check cooldown period is updated
         assertEq(stakingRewardsV2.cooldownPeriod(), newCooldownPeriod);
@@ -263,21 +263,21 @@ contract StakingV2CooldownPeriodTests is DefaultStakingV2Setup {
         unstakeEscrowedFundsV2(address(this), TEST_VALUE);
     }
 
-    function test_setUnstakingCooldownPeriod_Range() public {
+    function test_setCooldownPeriod_Range() public {
         // Expect revert if cooldown period is too low
         vm.expectRevert(
             abi.encodeWithSelector(IStakingRewardsV2.CooldownPeriodTooLow.selector, 1 weeks)
         );
-        stakingRewardsV2.setUnstakingCooldownPeriod(1 weeks - 1);
+        stakingRewardsV2.setCooldownPeriod(1 weeks - 1);
 
         // Expect revert if cooldown period is too high
         vm.expectRevert(
             abi.encodeWithSelector(IStakingRewardsV2.CooldownPeriodTooHigh.selector, 52 weeks)
         );
-        stakingRewardsV2.setUnstakingCooldownPeriod(52 weeks + 1);
+        stakingRewardsV2.setCooldownPeriod(52 weeks + 1);
     }
 
-    function test_setUnstakingCooldownPeriod_Range_Fuzz(uint256 newCooldownPeriod) public {
+    function test_setCooldownPeriod_Range_Fuzz(uint256 newCooldownPeriod) public {
         // Expect revert if cooldown period is too low
         if (newCooldownPeriod < 1 weeks) {
             vm.expectRevert(
@@ -299,6 +299,6 @@ contract StakingV2CooldownPeriodTests is DefaultStakingV2Setup {
         }
 
         // Set new cooldown period
-        stakingRewardsV2.setUnstakingCooldownPeriod(newCooldownPeriod);
+        stakingRewardsV2.setCooldownPeriod(newCooldownPeriod);
     }
 }
