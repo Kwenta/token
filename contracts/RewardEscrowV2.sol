@@ -30,10 +30,10 @@ contract RewardEscrowV2 is
 
     IKwenta private kwenta;
 
-    /* ========== STATE VARIABLES ========== */
-
     // TODO: update to stakingRewards with V2 on the end
     IStakingRewardsV2 public stakingRewardsV2;
+
+    /* ========== STATE VARIABLES ========== */
 
     // mapping of entryIDs to vesting entries
     mapping(uint256 => VestingEntries.VestingEntry) public vestingSchedules;
