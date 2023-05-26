@@ -519,7 +519,54 @@ contract TokenDistributorTest is StakingSetup {
         tokenDistributor.claimEpoch(address(user1), 1);
     }
 
-    //todo: go deeper with fuzzing
+    /// @notice fuzz claimEpochFees, fuzz staking
+    function testFuzzStakingClaim(uint256 amount, uint256 staking1, uint256 staking2) public {
+        /// @dev make sure its less than this contract
+        /// holds and greater than 10 so the result isn't
+        /// 0 after dividing
+        vm.assume(amount < 10_000 ether);
+        vm.assume(amount > 10);
+
+        vm.assume(staking1 < 45_000 ether);
+        vm.assume(staking1 > 0);
+
+        vm.assume(staking2 < 45_000 ether);
+        vm.assume(staking2 > 0);
+
+        /// @dev this is so we dont get "Cannot claim 0 fees"
+        vm.assume(amount * staking1 / (staking1 + staking2) > 0);
+
+        kwenta.transfer(address(user1), staking1);
+        kwenta.transfer(address(user2), staking2);
+        vm.startPrank(address(user1));
+        kwenta.approve(address(stakingRewardsV2), staking1);
+        stakingRewardsV2.stake(staking1);
+        vm.stopPrank();
+        vm.startPrank(address(user2));
+        kwenta.approve(address(stakingRewardsV2), staking2);
+        stakingRewardsV2.stake(staking2);
+        vm.stopPrank();
+        /// @dev checkpoint at the end of epoch 0
+        /// to remove cross epoch distribution
+        /// -2 because setup takes 2 seconds
+        goForward(1 weeks - 2);
+        tokenDistributor.checkpointToken();
+
+        /// @dev send fees to TokenDistributor 1 second before
+        /// epoch 1 ends
+        goForward(1 weeks - 1);
+        kwenta.transfer(address(tokenDistributor), amount);
+        tokenDistributor.checkpointToken();
+        goForward(1);
+
+        /// @dev claim for epoch 1 at the first second of epoch 2
+        vm.prank(user1);
+        vm.expectEmit(true, true, false, true);
+        emit VestingEntryCreated(address(user1), amount * staking1 / (staking1 + staking2), 31449600, 1);
+        tokenDistributor.claimEpoch(address(user1), 1);
+    }
+
+    //todo: go deeper with fuzzing (time)
 
     /// @notice test everything with a custom offset
     function testOffset() public {
