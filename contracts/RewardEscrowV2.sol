@@ -2,14 +2,14 @@
 pragma solidity ^0.8.19;
 
 // Inheritance
-import "./interfaces/IRewardEscrowV2.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {IRewardEscrowV2, VestingEntries} from "./interfaces/IRewardEscrowV2.sol";
+import {ERC721EnumerableUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 // Internal references
-import "./interfaces/IKwenta.sol";
-import "./interfaces/IStakingRewardsV2.sol";
+import {IKwenta} from "./interfaces/IKwenta.sol";
+import {IStakingRewardsV2} from "./interfaces/IStakingRewardsV2.sol";
 
 // TODO: reintroduce notion of an entry - replace "token" naming convention with "entry" where appropriate
 // TODO: think about safeTransfer, safeMint etc.
