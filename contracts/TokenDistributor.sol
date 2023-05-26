@@ -37,7 +37,6 @@ contract TokenDistributor is ITokenDistributor {
 
     /// @notice array for tokens allocated to each epoch
     uint[1000000000000000] public tokensPerEpoch;
-    //todo: look at that^
 
     /// @notice the week offset in seconds
     uint public offset;
