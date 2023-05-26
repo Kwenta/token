@@ -110,7 +110,7 @@ contract StakingRewardsV2 is
     }
 
     /// @notice access control modifier for approved operators
-    modifier onlyApprovedOperator(address owner) {
+    modifier onlyOperator(address owner) {
         if (!_operatorApprovals[owner][msg.sender]) {
             revert NotApproved();
         }
@@ -319,7 +319,7 @@ contract StakingRewardsV2 is
     function stakeEscrowOnBehalf(address account, uint256 amount)
         external
         override
-        onlyApprovedOperator(account)
+        onlyOperator(account)
     {
         _stakeEscrow(account, amount);
     }
@@ -400,7 +400,7 @@ contract StakingRewardsV2 is
     /// @notice caller claims any rewards generated from staking on behalf of another account
     /// The rewards will be escrowed in RewardEscrow with the account as the beneficiary
     /// @param account: address which owns token
-    function getRewardOnBehalf(address account) external override onlyApprovedOperator(account) {
+    function getRewardOnBehalf(address account) external override onlyOperator(account) {
         _getReward(account);
     }
 
