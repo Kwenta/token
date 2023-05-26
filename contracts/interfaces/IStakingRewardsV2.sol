@@ -272,7 +272,7 @@ interface IStakingRewardsV2 {
     event OperatorApproved(address owner, address operator, bool approved);
 
     /*//////////////////////////////////////////////////////////////
-                                 ERRORS
+                                ERRORS
     //////////////////////////////////////////////////////////////*/
 
     /// @notice error someone other than reward escrow calls an onlyRewardEscrow function

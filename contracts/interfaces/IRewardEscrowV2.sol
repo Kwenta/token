@@ -17,7 +17,10 @@ library VestingEntries {
 }
 
 interface IRewardEscrowV2 {
-    // Views
+    /*///////////////////////////////////////////////////////////////
+                                VIEWS
+    ///////////////////////////////////////////////////////////////*/
+
     function getKwentaAddress() external view returns (address);
 
     function totalEscrowedBalanceOf(address account) external view returns (uint256);
@@ -50,7 +53,10 @@ interface IRewardEscrowV2 {
         view
         returns (uint64, uint256, uint256, uint8);
 
-    // Mutative functions
+    /*///////////////////////////////////////////////////////////////
+                            MUTATIVE FUNCTIONS
+    ///////////////////////////////////////////////////////////////*/
+
     function vest(uint256[] calldata entryIDs) external;
 
     function createEscrowEntry(
@@ -68,7 +74,10 @@ interface IRewardEscrowV2 {
 
     function bulkTransferFrom(address from, address to, uint256[] calldata entryIDs) external;
 
-    /* ========== EVENTS ========== */
+    /*///////////////////////////////////////////////////////////////
+                                EVENTS
+    ///////////////////////////////////////////////////////////////*/
+
     event Vested(address indexed beneficiary, uint256 value);
     event VestingEntryCreated(
         address indexed beneficiary, uint256 value, uint256 duration, uint256 entryID
@@ -76,7 +85,10 @@ interface IRewardEscrowV2 {
     event StakingRewardsSet(address stakingRewardsV2);
     event TreasuryDAOSet(address treasuryDAO);
 
-    // Errors
+    /*//////////////////////////////////////////////////////////////
+                                ERRORS
+    //////////////////////////////////////////////////////////////*/
+
     /// @notice Insufficient unstaked escrow to facilitate transfer
     /// @param entryID the id of the entry that couldn't be transferred
     /// @param escrowAmount the amount of escrow in the entry

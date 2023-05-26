@@ -15,13 +15,18 @@ import {IStakingRewardsV2} from "./interfaces/IStakingRewardsV2.sol";
 // TODO: think about safeTransfer, safeMint etc.
 // TODO: Think about what functions could be "approved for" with lower risk - such that they can be delegated from a hardware wallet to a hot wallet
 
+/// @title KWENTA Reward Escrow
+/// @author SYNTHETIX, JaredBorders (jaredborders@proton.me), JChiaramonte7 (jeremy@bytecode.llc), tommyrharper (zeroknowledgeltd@gmail.com)
+/// @notice Updated version of Synthetix's RewardEscrow with new features specific to Kwenta
 contract RewardEscrowV2 is
     IRewardEscrowV2,
     ERC721EnumerableUpgradeable,
     OwnableUpgradeable,
     UUPSUpgradeable
 {
-    /* ========== CONSTANTS/IMMUTABLES ========== */
+    /*///////////////////////////////////////////////////////////////
+                        CONSTANTS/IMMUTABLES
+    ///////////////////////////////////////////////////////////////*/
 
     /* Max escrow duration */
     uint256 public constant MAX_DURATION = 4 * 52 weeks; // Default max 4 years duration
@@ -32,7 +37,9 @@ contract RewardEscrowV2 is
 
     IStakingRewardsV2 public stakingRewards;
 
-    /* ========== STATE VARIABLES ========== */
+    /*///////////////////////////////////////////////////////////////
+                                STATE
+    ///////////////////////////////////////////////////////////////*/
 
     // mapping of entryIDs to vesting entries
     mapping(uint256 => VestingEntries.VestingEntry) public vestingSchedules;
@@ -53,13 +60,18 @@ contract RewardEscrowV2 is
     // notice treasury address may change
     address public treasuryDAO;
 
-    /* ========== MODIFIERS ========== */
+    /*///////////////////////////////////////////////////////////////
+                                AUTH
+    ///////////////////////////////////////////////////////////////*/
+
     modifier onlyStakingRewards() {
         if (msg.sender != address(stakingRewards)) revert OnlyStakingRewards();
         _;
     }
 
-    /* ========== CONSTRUCTOR ========== */
+    /*///////////////////////////////////////////////////////////////
+                        CONSTRUCTOR / INITIALIZER
+    ///////////////////////////////////////////////////////////////*/
 
     /// @dev disable default constructor for disable implementation contract
     /// Actual contract construction will take place in the initialize function via proxy
@@ -83,7 +95,9 @@ contract RewardEscrowV2 is
         kwenta = IKwenta(_kwenta);
     }
 
-    /* ========== SETTERS ========== */
+    /*///////////////////////////////////////////////////////////////
+                                SETTERS
+    ///////////////////////////////////////////////////////////////*/
 
     /*
     * @notice Function used to define the StakingRewards to use
@@ -104,7 +118,9 @@ contract RewardEscrowV2 is
         emit TreasuryDAOSet(treasuryDAO);
     }
 
-    /* ========== VIEW FUNCTIONS ========== */
+    /*///////////////////////////////////////////////////////////////
+                                VIEWS
+    ///////////////////////////////////////////////////////////////*/
 
     /**
      * @notice helper function to return kwenta address
@@ -282,7 +298,9 @@ contract RewardEscrowV2 is
         return stakingRewards.escrowedBalanceOf(_account) > 0;
     }
 
-    /* ========== MUTATIVE FUNCTIONS ========== */
+    /*///////////////////////////////////////////////////////////////
+                            MUTATIVE FUNCTIONS
+    ///////////////////////////////////////////////////////////////*/
 
     /**
      * Vest escrowed amounts that are claimable
@@ -414,7 +432,9 @@ contract RewardEscrowV2 is
         }
     }
 
-    /* ========== INTERNALS ========== */
+    /*///////////////////////////////////////////////////////////////
+                                INTERNALS
+    ///////////////////////////////////////////////////////////////*/
 
     function _transfer(address from, address to, uint256 tokenId) internal override {
         VestingEntries.VestingEntry memory entry = vestingSchedules[tokenId];
@@ -492,8 +512,6 @@ contract RewardEscrowV2 is
         // TODO: add earlyVestingFee to this event
         emit VestingEntryCreated(account, quantity, duration, entryID);
     }
-
-    /* ========== UPGRADEABILITY ========== */
 
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 }
