@@ -1109,4 +1109,74 @@ contract TokenDistributorTest is StakingSetup {
         emit EpochClaim(address(user3), 1, proportionalFees3);
         tokenDistributorOffset.claimEpoch(address(user3), 1);
     }
+
+    /// @notice fuzz offset
+    function testFuzzOffset(
+        uint amount,
+        uint128 staking1,
+        uint128 staking2,
+        uint8 offset
+    ) public {
+        /// @dev make sure its less than this contract
+        /// holds and greater than 10 so the result isn't
+        /// 0 after dividing
+        vm.assume(amount < 25_000 ether);
+        vm.assume(amount > 10);
+
+        vm.assume(staking1 < 25_000 ether);
+        vm.assume(staking1 > 0);
+
+        vm.assume(staking2 < 25_000 ether);
+        vm.assume(staking2 > 0);
+
+        /// @dev this is so we dont get "Cannot claim 0 fees"
+        vm.assume(amount > staking1 + staking2);
+        vm.assume((amount * staking1) / (staking1 + staking2) > 0);
+        vm.assume((amount * staking2) / (staking1 + staking2) > 0);
+
+        vm.assume(offset < 7);
+        vm.assume(offset > 0);
+
+        kwenta.transfer(address(user1), staking1);
+        vm.startPrank(address(user1));
+        kwenta.approve(address(stakingRewardsV2), staking1);
+        stakingRewardsV2.stake(staking1);
+        vm.stopPrank();
+
+        kwenta.transfer(address(user2), staking2);
+        vm.startPrank(address(user2));
+        kwenta.approve(address(stakingRewardsV2), staking2);
+        stakingRewardsV2.stake(staking2);
+        vm.stopPrank();
+
+        goForward(3 weeks);
+
+        TokenDistributor tokenDistributorOffset = new TokenDistributor(
+            address(kwenta),
+            address(stakingRewardsV2),
+            address(rewardEscrowV2),
+            offset
+        );
+
+        /// @dev fees received at the start of the epoch
+        goForward((offset * 1 days) - 2);
+        tokenDistributorOffset.checkpointToken();
+        kwenta.transfer(address(tokenDistributorOffset), amount);
+
+        /// @dev claim at the start of the new epoch (should also checkpoint)
+        goForward(1 weeks);
+        uint proportionalFees1 = ((((amount * 1 weeks) / (1 weeks)) *
+            staking1) / (staking1 + staking2));
+        vm.expectEmit(true, true, true, true);
+        emit CheckpointToken(5 weeks + (offset * 1 days), amount);
+        vm.expectEmit(true, true, true, true);
+        emit EpochClaim(address(user1), 1, proportionalFees1);
+        tokenDistributorOffset.claimEpoch(address(user1), 1);
+
+        uint proportionalFees2 = ((((amount * 1 weeks) / (1 weeks)) *
+            staking2) / (staking1 + staking2));
+        vm.expectEmit(true, true, true, true);
+        emit EpochClaim(address(user2), 1, proportionalFees2);
+        tokenDistributorOffset.claimEpoch(address(user2), 1);
+    }
 }
