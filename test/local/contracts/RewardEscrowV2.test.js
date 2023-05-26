@@ -184,7 +184,7 @@ contract("RewardEscrowV2 KWENTA", ([owner, staker1, staker2, treasuryDAO]) => {
 
         it("Should have set StakingRewards correctly", async () => {
             const stakingRewardsV2Address =
-                await rewardEscrowV2.stakingRewardsV2();
+                await rewardEscrowV2.stakingRewards();
             assert.equal(
                 stakingRewardsV2Address,
                 stakingRewardsV2.address,
