@@ -3,6 +3,19 @@ pragma solidity ^0.8.19;
 
 interface IStakingRewardsV2 {
     /*//////////////////////////////////////////////////////////////
+                                Structs
+    //////////////////////////////////////////////////////////////*/
+
+    // TODO: store block on here also!!!
+    /// @notice A checkpoint for tracking values at a given timestamp
+    struct Checkpoint {
+        // The timestamp when the value was generated
+        uint256 ts;
+        // The value of the checkpoint
+        uint256 value;
+    }
+
+    /*//////////////////////////////////////////////////////////////
                                 Views
     //////////////////////////////////////////////////////////////*/
     // token state
@@ -53,19 +66,6 @@ interface IStakingRewardsV2 {
     // misc.
     function approveOperator(address operator, bool approved) external;
     function recoverERC20(address tokenAddress, uint256 tokenAmount) external;
-
-    /*//////////////////////////////////////////////////////////////
-                                Structs
-    //////////////////////////////////////////////////////////////*/
-
-    // TODO: store block on here also!!!
-    /// @notice A checkpoint for tracking values at a given timestamp
-    struct Checkpoint {
-        // The timestamp when the value was generated
-        uint256 ts;
-        // The value of the checkpoint
-        uint256 value;
-    }
 
     /*///////////////////////////////////////////////////////////////
                                 EVENTS

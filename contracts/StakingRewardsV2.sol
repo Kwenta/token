@@ -28,7 +28,7 @@ contract StakingRewardsV2 is
     using SafeERC20 for IERC20;
 
     /*///////////////////////////////////////////////////////////////
-                                CONSTANTS
+                        CONSTANTS/IMMUTABLES
     ///////////////////////////////////////////////////////////////*/
 
     /// @notice minimum time length of the unstaking cooldown period
