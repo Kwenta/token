@@ -139,19 +139,14 @@ contract StakingRewardsV2 is
         _disableInitializers();
     }
 
-    /// @notice configure StakingRewards state
-    /// @dev owner set to address that deployed StakingRewards
-    /// @param _token: token used for staking and for rewards
-    /// @param _rewardEscrow: escrow contract which holds (and may stake) reward tokens
-    /// @param _supplySchedule: handles reward token minting logic
-    /// @dev this function should be called via proxy, not via direct contract interaction
+    /// @inheritdoc IStakingRewardsV2
     function initialize(
         address _token,
         address _rewardEscrow,
         address _supplySchedule,
         address _stakingRewardsV1,
         address _owner
-    ) external initializer {
+    ) external override initializer {
         // initialize owner
         __Ownable_init();
         __ReentrancyGuard_init();
@@ -178,53 +173,36 @@ contract StakingRewardsV2 is
                                 VIEWS
     ///////////////////////////////////////////////////////////////*/
 
-    /// @dev returns staked tokens which will likely not be equal to total tokens
-    /// in the contract since reward and staking tokens are the same
-    /// @return total amount of tokens that are being staked
+    /// @inheritdoc IStakingRewardsV2
     function totalSupply() public view override returns (uint256) {
         return _totalSupply.length == 0 ? 0 : _totalSupply[_totalSupply.length - 1].value;
     }
 
-    /// @notice Returns the total number of staked tokens for a user
-    /// the sum of all escrowed and non-escrowed tokens
-    /// @param account: address of potential staker
-    /// @return amount of tokens staked by account
+    /// @inheritdoc IStakingRewardsV2
+    function v1TotalSupply() public view override returns (uint256) {
+        return stakingRewardsV1.totalSupply();
+    }
+
+    /// @inheritdoc IStakingRewardsV2
     function balanceOf(address account) public view override returns (uint256) {
         return balances[account].length == 0
             ? 0
             : balances[account][balances[account].length - 1].value;
     }
 
-    /// @notice Getter function for number of staked escrow tokens
-    /// @param account address to check the escrowed tokens staked
-    /// @return amount of escrowed tokens staked
+    /// @inheritdoc IStakingRewardsV2
+    function v1BalanceOf(address account) public view override returns (uint256) {
+        return stakingRewardsV1.balanceOf(account);
+    }
+
+    /// @inheritdoc IStakingRewardsV2
     function escrowedBalanceOf(address account) public view override returns (uint256) {
         return escrowedBalances[account].length == 0
             ? 0
             : escrowedBalances[account][escrowedBalances[account].length - 1].value;
     }
 
-    /// @notice Getter function for the total number of v1 staked tokens
-    /// @return amount of tokens staked in v1
-    function v1TotalSupply() public view override returns (uint256) {
-        return stakingRewardsV1.totalSupply();
-    }
-
-    /// @notice Getter function for the number of v1 staked tokens
-    /// @param account address to check the tokens staked
-    /// @return amount of tokens staked
-    function v1BalanceOf(address account) public view override returns (uint256) {
-        return stakingRewardsV1.balanceOf(account);
-    }
-
-    /// @return rewards for the duration specified by rewardsDuration
-    function getRewardForDuration() external view override returns (uint256) {
-        return rewardRate * rewardsDuration;
-    }
-
-    /// @notice Getter function for number of staked non-escrow tokens
-    /// @param account address to check the non-escrowed tokens staked
-    /// @return amount of non-escrowed tokens staked
+    /// @inheritdoc IStakingRewardsV2
     function nonEscrowedBalanceOf(address account) public view override returns (uint256) {
         return balanceOf(account) - escrowedBalanceOf(account);
     }
@@ -233,9 +211,7 @@ contract StakingRewardsV2 is
                             STAKE/UNSTAKE
     ///////////////////////////////////////////////////////////////*/
 
-    /// @notice stake token
-    /// @param amount: amount to stake
-    /// @dev updateReward() called prior to function logic
+    /// @inheritdoc IStakingRewardsV2
     function stake(uint256 amount)
         external
         override
@@ -257,9 +233,7 @@ contract StakingRewardsV2 is
         emit Staked(msg.sender, amount);
     }
 
-    /// @notice unstake token
-    /// @param amount: amount to unstake
-    /// @dev updateReward() called prior to function logic
+    /// @inheritdoc IStakingRewardsV2
     function unstake(uint256 amount)
         public
         override
@@ -281,11 +255,7 @@ contract StakingRewardsV2 is
         emit Unstaked(msg.sender, amount);
     }
 
-    /// @notice stake escrowed token
-    /// @param account: address which owns token
-    /// @param amount: amount to stake
-    /// @dev updateReward() called prior to function logic
-    /// @dev msg.sender NOT used (account is used)
+    /// @inheritdoc IStakingRewardsV2
     function stakeEscrow(address account, uint256 amount) external override onlyRewardEscrow {
         _stakeEscrow(account, amount);
     }
@@ -315,9 +285,7 @@ contract StakingRewardsV2 is
         emit EscrowStaked(account, amount);
     }
 
-    /// @notice stake escrowed token on behalf of another account
-    /// @param account: address which owns token
-    /// @param amount: amount to stake
+    /// @inheritdoc IStakingRewardsV2
     function stakeEscrowOnBehalf(address account, uint256 amount)
         external
         override
@@ -326,20 +294,17 @@ contract StakingRewardsV2 is
         _stakeEscrow(account, amount);
     }
 
-    function unstakeEscrowSkipCooldown(address account, uint256 amount) external override {
-        _unstakeEscrow(account, amount);
-    }
-
-    /// @notice unstake escrowed token
-    /// @param account: address which owns token
-    /// @param amount: amount to unstake
-    /// @dev updateReward() called prior to function logic
-    /// @dev msg.sender NOT used (account is used)
+    /// @inheritdoc IStakingRewardsV2
     function unstakeEscrow(address account, uint256 amount)
         external
         override
         afterCooldown(account)
     {
+        _unstakeEscrow(account, amount);
+    }
+
+    /// @inheritdoc IStakingRewardsV2
+    function unstakeEscrowSkipCooldown(address account, uint256 amount) external override {
         _unstakeEscrow(account, amount);
     }
 
@@ -364,8 +329,7 @@ contract StakingRewardsV2 is
         emit EscrowUnstaked(account, amount);
     }
 
-    /// @notice unstake all available staked non-escrowed tokens and
-    /// claim any rewards
+    /// @inheritdoc IStakingRewardsV2
     // TODO: check for reentrancy via unstake()
     function exit() external override {
         unstake(nonEscrowedBalanceOf(msg.sender));
@@ -376,9 +340,7 @@ contract StakingRewardsV2 is
                             CLAIM REWARDS
     ///////////////////////////////////////////////////////////////*/
 
-    /// @notice caller claims any rewards generated from staking
-    /// @dev rewards are escrowed in RewardEscrow
-    /// @dev updateReward() called prior to function logic
+    /// @inheritdoc IStakingRewardsV2
     function getReward() public override {
         _getReward(msg.sender);
     }
@@ -399,9 +361,7 @@ contract StakingRewardsV2 is
         }
     }
 
-    /// @notice caller claims any rewards generated from staking on behalf of another account
-    /// The rewards will be escrowed in RewardEscrow with the account as the beneficiary
-    /// @param account: address which owns token
+    /// @inheritdoc IStakingRewardsV2
     function getRewardOnBehalf(address account) external override onlyOperator(account) {
         _getReward(account);
     }
@@ -428,9 +388,12 @@ contract StakingRewardsV2 is
         _;
     }
 
-    /// @notice calculate running sum of reward per total tokens staked
-    /// at this specific time
-    /// @return running sum of reward per total tokens staked
+    /// @inheritdoc IStakingRewardsV2
+    function getRewardForDuration() external view override returns (uint256) {
+        return rewardRate * rewardsDuration;
+    }
+
+    /// @inheritdoc IStakingRewardsV2
     function rewardPerToken() public view override returns (uint256) {
         uint256 sumOfAllStakedTokens = totalSupply() + v1TotalSupply();
 
@@ -445,13 +408,12 @@ contract StakingRewardsV2 is
             );
     }
 
-    /// @return timestamp of the last time rewards are applicable
+    /// @inheritdoc IStakingRewardsV2
     function lastTimeRewardApplicable() public view override returns (uint256) {
         return block.timestamp < periodFinish ? block.timestamp : periodFinish;
     }
 
-    /// @notice determine how much reward token an account has earned thus far
-    /// @param account: address of account earned amount is being calculated for
+    /// @inheritdoc IStakingRewardsV2
     function earned(address account) public view override returns (uint256) {
         uint256 v1Balance = v1BalanceOf(account);
         uint256 v2Balance = balanceOf(account);
@@ -465,30 +427,22 @@ contract StakingRewardsV2 is
                             CHECKPOINTING VIEWS
     ///////////////////////////////////////////////////////////////*/
 
-    /// @notice get the number of balances checkpoints for an account
-    /// @param account: address of account to check
-    /// @return number of balances checkpoints
+    /// @inheritdoc IStakingRewardsV2
     function balancesLength(address account) external view override returns (uint256) {
         return balances[account].length;
     }
 
-    /// @notice get the number of escrowed balance checkpoints for an account
-    /// @param account: address of account to check
-    /// @return number of escrowed balance checkpoints
+    /// @inheritdoc IStakingRewardsV2
     function escrowedBalancesLength(address account) external view override returns (uint256) {
         return escrowedBalances[account].length;
     }
 
-    /// @notice get the number of total supply checkpoints
-    /// @return number of total supply checkpoints
+    /// @inheritdoc IStakingRewardsV2
     function totalSupplyLength() external view override returns (uint256) {
         return _totalSupply.length;
     }
 
-    /// @notice get a users balance at a given timestamp
-    /// @param account: address of account to check
-    /// @param _timestamp: timestamp to check
-    /// @return balance at given timestamp
+    /// @inheritdoc IStakingRewardsV2
     function balanceAtTime(address account, uint256 _timestamp)
         external
         view
@@ -498,10 +452,7 @@ contract StakingRewardsV2 is
         return _checkpointBinarySearch(balances[account], _timestamp);
     }
 
-    /// @notice get a users escrowed balance at a given timestamp
-    /// @param account: address of account to check
-    /// @param _timestamp: timestamp to check
-    /// @return escrowed balance at given timestamp
+    /// @inheritdoc IStakingRewardsV2
     function escrowedbalanceAtTime(address account, uint256 _timestamp)
         external
         view
@@ -511,9 +462,7 @@ contract StakingRewardsV2 is
         return _checkpointBinarySearch(escrowedBalances[account], _timestamp);
     }
 
-    /// @notice get the total supply at a given timestamp
-    /// @param _timestamp: timestamp to check
-    /// @return total supply at given timestamp
+    /// @inheritdoc IStakingRewardsV2
     function totalSupplyAtTime(uint256 _timestamp) external view override returns (uint256) {
         return _checkpointBinarySearch(_totalSupply, _timestamp);
     }
@@ -597,9 +546,7 @@ contract StakingRewardsV2 is
                                 SETTINGS
     ///////////////////////////////////////////////////////////////*/
 
-    /// @notice configure reward rate
-    /// @param reward: amount of token to be distributed over a period
-    /// @dev updateReward() called prior to function logic (with zero address)
+    /// @inheritdoc IStakingRewardsV2
     function notifyRewardAmount(uint256 reward)
         external
         override
@@ -619,8 +566,7 @@ contract StakingRewardsV2 is
         emit RewardAdded(reward);
     }
 
-    /// @notice set rewards duration
-    /// @param _rewardsDuration: denoted in seconds
+    /// @inheritdoc IStakingRewardsV2
     function setRewardsDuration(uint256 _rewardsDuration) external override onlyOwner {
         if (block.timestamp <= periodFinish) revert RewardsPeriodNotComplete();
 
@@ -628,8 +574,7 @@ contract StakingRewardsV2 is
         emit RewardsDurationUpdated(rewardsDuration);
     }
 
-    /// @notice set unstaking cooldown period
-    /// @param _cooldownPeriod: denoted in seconds
+    /// @inheritdoc IStakingRewardsV2
     function setCooldownPeriod(uint256 _cooldownPeriod) external override onlyOwner {
         if (_cooldownPeriod < MIN_COOLDOWN_PERIOD) {
             revert CooldownPeriodTooLow(MIN_COOLDOWN_PERIOD);
@@ -646,12 +591,12 @@ contract StakingRewardsV2 is
                                 PAUSABLE
     ///////////////////////////////////////////////////////////////*/
 
-    /// @dev Triggers stopped state
+    /// @inheritdoc IStakingRewardsV2
     function pauseStakingRewards() external override onlyOwner {
         _pause();
     }
 
-    /// @dev Returns to normal state.
+    /// @inheritdoc IStakingRewardsV2
     function unpauseStakingRewards() external override onlyOwner {
         _unpause();
     }
@@ -663,9 +608,7 @@ contract StakingRewardsV2 is
     /// @dev this function is used by the proxy to set the access control for upgrading the implementation contract
     function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
-    /// @notice approve an operator to collect rewards and stake escrow on behalf of the sender
-    /// @param operator: address of operator to approve
-    /// @param approved: whether or not to approve the operator
+    /// @inheritdoc IStakingRewardsV2
     function approveOperator(address operator, bool approved) external override {
         if (operator == msg.sender) revert CannotApproveSelf();
 
@@ -674,10 +617,7 @@ contract StakingRewardsV2 is
         emit OperatorApproved(msg.sender, operator, approved);
     }
 
-    /// @notice added to support recovering LP Rewards from other systems
-    /// such as BAL to be distributed to holders
-    /// @param tokenAddress: address of token to be recovered
-    /// @param tokenAmount: amount of token to be recovered
+    /// @inheritdoc IStakingRewardsV2
     function recoverERC20(address tokenAddress, uint256 tokenAmount) external override onlyOwner {
         if (tokenAddress == address(token)) revert CannotRecoverStakingToken();
         IERC20(tokenAddress).safeTransfer(owner(), tokenAmount);

@@ -30,7 +30,6 @@ contract RewardEscrowV2 is
 
     IKwenta private kwenta;
 
-    // TODO: update to stakingRewards with V2 on the end
     IStakingRewardsV2 public stakingRewards;
 
     /* ========== STATE VARIABLES ========== */
