@@ -398,8 +398,6 @@ contract TokenDistributorTest is StakingSetup {
         );
     }
 
-    //todo: next level fuzz: fuzz the amount that they stake, and fuzz the users, fuzz the time
-
     /// @notice test calculate epoch fees for returning 0
     /// when total staked == 0
     function testCalculateEpochFees0() public {
