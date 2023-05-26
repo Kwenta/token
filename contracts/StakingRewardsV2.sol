@@ -151,7 +151,7 @@ contract StakingRewardsV2 is
         address _supplySchedule,
         address _stakingRewardsV1,
         address _owner
-    ) public initializer {
+    ) external initializer {
         // initialize owner
         __Ownable_init();
         __ReentrancyGuard_init();
