@@ -59,8 +59,6 @@ contract TokenDistributorTest is StakingSetup {
         tokenDistributor.checkpointToken();
     }
 
-    //todo: fuzz the checkpointing
-
     /// @notice claimEpoch happy case
     function testClaimEpoch() public {
         //setup
@@ -322,8 +320,6 @@ contract TokenDistributorTest is StakingSetup {
     }
 
     //todo: next level fuzz: fuzz the amount that they stake, and fuzz the users, fuzz the time
-
-    //todo: double check if multiple weeks are missed
 
     /// @notice test calculate epoch fees for returning 0
     /// when total staked == 0
