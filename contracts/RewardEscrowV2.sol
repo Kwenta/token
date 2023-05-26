@@ -117,7 +117,7 @@ contract RewardEscrowV2 is
     /**
      * @notice A simple alias to totalEscrowedAccountBalance
      */
-    function totalEscrowBalanceOf(address account) public view override returns (uint256) {
+    function totalEscrowedBalanceOf(address account) public view override returns (uint256) {
         return totalEscrowedAccountBalance[account];
     }
 

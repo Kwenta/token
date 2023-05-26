@@ -261,7 +261,7 @@ contract StakingTestHelpers is StakingSetup {
     }
 
     function getNonStakedEscrowAmountV2(address account) public view returns (uint256) {
-        return rewardEscrowV2.totalEscrowBalanceOf(account)
+        return rewardEscrowV2.totalEscrowedBalanceOf(account)
             - stakingRewardsV2.escrowedBalanceOf(account);
     }
 }

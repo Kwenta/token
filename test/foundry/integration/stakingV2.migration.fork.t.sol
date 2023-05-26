@@ -85,7 +85,7 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
         assertEq(stakingRewardsV2.nonEscrowedBalanceOf(user1), 0);
         assertEq(stakingRewardsV2.escrowedBalanceOf(user1), 0);
         assertEq(stakingRewardsV2.totalSupply(), 0);
-        assertEq(rewardEscrowV2.totalEscrowBalanceOf(user1), 0);
+        assertEq(rewardEscrowV2.totalEscrowedBalanceOf(user1), 0);
 
         user1EscrowV1 = rewardEscrowV1.balanceOf(user1);
 
@@ -115,10 +115,10 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
         uint256 user1NonEscrowedStakeV2 = stakingRewardsV2.nonEscrowedBalanceOf(user1);
 
         // assert v2 rewards have been earned
-        assertGt(rewardEscrowV2.totalEscrowBalanceOf(user1), 0);
+        assertGt(rewardEscrowV2.totalEscrowedBalanceOf(user1), 0);
         // v2 staked balance is equal to escrowed + non-escrowed balance
         assertEq(stakingRewardsV2.balanceOf(user1), user1EscrowStakedV2 + user1NonEscrowedStakeV2);
         // v2 reward escrow balance is equal to escrow staked balance
-        assertEq(rewardEscrowV2.totalEscrowBalanceOf(user1), user1EscrowStakedV2);
+        assertEq(rewardEscrowV2.totalEscrowedBalanceOf(user1), user1EscrowStakedV2);
     }
 }

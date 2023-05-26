@@ -20,7 +20,7 @@ interface IRewardEscrowV2 {
     // Views
     function getKwentaAddress() external view returns (address);
 
-    function totalEscrowBalanceOf(address account) external view returns (uint256);
+    function totalEscrowedBalanceOf(address account) external view returns (uint256);
 
     function unstakedEscrowBalanceOf(address account) external view returns (uint256);
 

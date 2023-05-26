@@ -139,7 +139,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         assertEq(rewardEscrowV2.nextEntryId(), 2);
     }
 
-    function test_totalEscrowBalanceOf_Should_Be_Incremented() public {
+    function test_totalEscrowedBalanceOf_Should_Be_Incremented() public {
         appendRewardEscrowEntryV2(address(this), TEST_VALUE, 52 weeks);
         assertEq(rewardEscrowV2.totalEscrowedAccountBalance(address(this)), TEST_VALUE);
     }
@@ -284,9 +284,9 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         assertEq(rewardEscrowV2.totalEscrowedBalance(), TEST_VALUE);
     }
 
-    function test_Increments_totalEscrowBalanceOf() public {
+    function test_Increments_totalEscrowedBalanceOf() public {
         createRewardEscrowEntryV2(address(this), TEST_VALUE, 52 weeks, 90);
-        assertEq(rewardEscrowV2.totalEscrowBalanceOf(address(this)), TEST_VALUE);
+        assertEq(rewardEscrowV2.totalEscrowedBalanceOf(address(this)), TEST_VALUE);
     }
 
     function test_totalVestedAccountBalance_Remains_0() public {
@@ -807,7 +807,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         vestAllEntries(address(this));
 
         // check escrowed balance
-        assertEq(rewardEscrowV2.totalEscrowBalanceOf(address(this)), 0 ether);
+        assertEq(rewardEscrowV2.totalEscrowedBalanceOf(address(this)), 0 ether);
         // escrow should have been unstaked
         assertEq(stakingRewardsV2.escrowedBalanceOf(address(this)), 0 ether);
     }
