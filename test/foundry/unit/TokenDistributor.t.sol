@@ -354,7 +354,7 @@ contract TokenDistributorTest is StakingSetup {
 
         uint256 result = tokenDistributor.calculateEpochFees(address(user2), 1);
         /// @dev calculate the proportion for this week (same as checkpoint math)
-        /// then get the proportion staked (2/3)
+        /// then get the proportion staked
         assertEq(
             result,
             (((amount * .5 weeks) / timeSinceLastCheckpoint) * staking2) / (staking1 + staking2)
