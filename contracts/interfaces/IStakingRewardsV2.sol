@@ -58,7 +58,7 @@ interface IStakingRewardsV2 {
                                 Structs
     //////////////////////////////////////////////////////////////*/
 
-    // TODO: store block on here also?
+    // TODO: store block on here also!!!
     /// @notice A checkpoint for tracking values at a given timestamp
     struct Checkpoint {
         // The timestamp when the value was generated
