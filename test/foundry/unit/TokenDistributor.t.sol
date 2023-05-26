@@ -313,14 +313,15 @@ contract TokenDistributorTest is StakingSetup {
         uint256 result = tokenDistributor.calculateEpochFees(address(user2), 1);
         /// @dev calculate the proportion for this week (same as checkpoint math)
         /// then get the proportion staked (2/3)
-        assertEq(
-            result,
-            (((amount * 1 weeks) / 3.5 weeks) * 2) / 3
-        );
+        assertEq(result, (((amount * 1 weeks) / 3.5 weeks) * 2) / 3);
     }
 
     /// @notice fuzz calculateEpochFees, when staking amounts are random
-    function testFuzzStakingCalculateEpochFees(uint256 amount, uint256 staking1, uint256 staking2) public {
+    function testFuzzStakingCalculateEpochFees(
+        uint256 amount,
+        uint256 staking1,
+        uint256 staking2
+    ) public {
         /// @dev make sure its less than this contract
         /// holds and greater than 10 so the result isn't
         /// 0 after dividing
@@ -357,12 +358,16 @@ contract TokenDistributorTest is StakingSetup {
         /// then get the proportion staked
         assertEq(
             result,
-            (((amount * .5 weeks) / timeSinceLastCheckpoint) * staking2) / (staking1 + staking2)
+            (((amount * .5 weeks) / timeSinceLastCheckpoint) * staking2) /
+                (staking1 + staking2)
         );
     }
 
     /// @notice fuzz calculateEpochFees, fuzz the time until they checkpoint
-    function testFuzzCalculateMultipleWeeksMissed(uint256 amount, uint256 time) public {
+    function testFuzzCalculateMultipleWeeksMissed(
+        uint256 amount,
+        uint256 time
+    ) public {
         /// @dev make sure its less than this contract
         /// holds and greater than 10 so the result isn't
         /// 0 after dividing
@@ -392,10 +397,7 @@ contract TokenDistributorTest is StakingSetup {
         uint256 result = tokenDistributor.calculateEpochFees(address(user2), 1);
         /// @dev calculate the proportion for this week (same as checkpoint math)
         /// then get the proportion staked (2/3)
-        assertEq(
-            result,
-            (((amount * 1 weeks) / (time + 2 weeks)) * 2) / 3
-        );
+        assertEq(result, (((amount * 1 weeks) / (time + 2 weeks)) * 2) / 3);
     }
 
     /// @notice test calculate epoch fees for returning 0
@@ -520,7 +522,11 @@ contract TokenDistributorTest is StakingSetup {
     }
 
     /// @notice fuzz claimEpochFees, fuzz staking
-    function testFuzzStakingClaim(uint256 amount, uint256 staking1, uint256 staking2) public {
+    function testFuzzStakingClaim(
+        uint256 amount,
+        uint256 staking1,
+        uint256 staking2
+    ) public {
         /// @dev make sure its less than this contract
         /// holds and greater than 10 so the result isn't
         /// 0 after dividing
@@ -534,7 +540,7 @@ contract TokenDistributorTest is StakingSetup {
         vm.assume(staking2 > 0);
 
         /// @dev this is so we dont get "Cannot claim 0 fees"
-        vm.assume(amount * staking1 / (staking1 + staking2) > 0);
+        vm.assume((amount * staking1) / (staking1 + staking2) > 0);
 
         kwenta.transfer(address(user1), staking1);
         kwenta.transfer(address(user2), staking2);
@@ -562,12 +568,22 @@ contract TokenDistributorTest is StakingSetup {
         /// @dev claim for epoch 1 at the first second of epoch 2
         vm.prank(user1);
         vm.expectEmit(true, true, false, true);
-        emit VestingEntryCreated(address(user1), amount * staking1 / (staking1 + staking2), 31449600, 1);
+        emit VestingEntryCreated(
+            address(user1),
+            (amount * staking1) / (staking1 + staking2),
+            31449600,
+            1
+        );
         tokenDistributor.claimEpoch(address(user1), 1);
     }
 
     /// @notice fuzz claimEpochFees, fuzz time
-    function testFuzzTimeClaim(uint256 amount, uint256 staking1, uint256 staking2, uint256 time) public {
+    function testFuzzTimeClaim(
+        uint256 amount,
+        uint256 staking1,
+        uint256 staking2,
+        uint256 time
+    ) public {
         /// @dev make sure its less than this contract
         /// holds and greater than 10 so the result isn't
         /// 0 after dividing
@@ -583,7 +599,7 @@ contract TokenDistributorTest is StakingSetup {
         vm.assume(time < 1 weeks * 52);
 
         /// @dev this is so we dont get "Cannot claim 0 fees"
-        vm.assume(amount * staking1 / (staking1 + staking2) > 0);
+        vm.assume((amount * staking1) / (staking1 + staking2) > 0);
 
         kwenta.transfer(address(user1), staking1);
         kwenta.transfer(address(user2), staking2);
@@ -608,7 +624,8 @@ contract TokenDistributorTest is StakingSetup {
         goForward(1);
 
         goForward(time);
-        uint proportionalFees = amount * 1 weeks / (time + 1 weeks) * staking1 / (staking1 + staking2);
+        uint proportionalFees = (((amount * 1 weeks) / (time + 1 weeks)) *
+            staking1) / (staking1 + staking2);
 
         /// @dev claim for epoch 1 at the first second of epoch 2
         vm.prank(user1);
@@ -618,8 +635,6 @@ contract TokenDistributorTest is StakingSetup {
         emit EpochClaim(address(user1), 1, proportionalFees);
         tokenDistributor.claimEpoch(address(user1), 1);
     }
-
-    //todo: go deeper with fuzzing (time)
 
     /// @notice test everything with a custom offset
     function testOffset() public {
