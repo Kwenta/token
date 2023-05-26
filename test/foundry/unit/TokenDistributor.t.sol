@@ -675,6 +675,41 @@ contract TokenDistributorTest is StakingSetup {
         tokenDistributorOffset.claimEpoch(address(user2), 1);
     }
 
+    /// @notice test fuzz fees with a custom offset
+    function testFuzzFeesOffset(uint amount) public {
+        TokenDistributor tokenDistributorOffset = new TokenDistributor(
+            address(kwenta),
+            address(stakingRewardsV2),
+            address(rewardEscrowV2),
+            2
+        );
+
+        /// @dev make sure its less than this contract
+        /// holds and greater than 10 so the result isn't
+        /// 0 after dividing
+        vm.assume(amount < 100_000 ether);
+        vm.assume(amount > 10);
+
+        kwenta.transfer(address(user1), 1);
+        vm.startPrank(address(user1));
+        kwenta.approve(address(stakingRewardsV2), 1);
+        stakingRewardsV2.stake(1);
+        vm.stopPrank();
+
+        /// @dev fees received at the start of the epoch (should be + 2 days)
+        goForward(2 days - 2);
+        tokenDistributorOffset.checkpointToken();
+        kwenta.transfer(address(tokenDistributorOffset), amount);
+
+        /// @dev claim at the start of the new epoch (should also checkpoint)
+        goForward(1 weeks);
+        vm.expectEmit(true, true, true, true);
+        emit CheckpointToken(1382400, amount);
+        vm.expectEmit(true, true, true, true);
+        emit EpochClaim(address(user1), 1, amount);
+        tokenDistributorOffset.claimEpoch(address(user1), 1);
+    }
+
     /// @notice test startOfWeek
     function testStartOfWeek() public {
         /// @dev starts after another week so the startTime is != 0
