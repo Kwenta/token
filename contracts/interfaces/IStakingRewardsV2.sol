@@ -45,7 +45,7 @@ interface IStakingRewardsV2 {
     function getRewardOnBehalf(address account) external;
     // settings
     function notifyRewardAmount(uint256 reward) external;
-    function setUnstakingCooldownPeriod(uint256 _rewardsDuration) external;
+    function setCooldownPeriod(uint256 _rewardsDuration) external;
     function setRewardsDuration(uint256 _cooldownPeriod) external;
     // pausable
     function pauseStakingRewards() external;
@@ -111,7 +111,7 @@ interface IStakingRewardsV2 {
 
     /// @notice emitted when the unstaking cooldown period is updated
     /// @param cooldownPeriod: the new unstaking cooldown period
-    event UnstakingCooldownPeriodUpdated(uint256 cooldownPeriod);
+    event CooldownPeriodUpdated(uint256 cooldownPeriod);
 
     /// @notice emitted when an operator is approved
     /// @param owner: owner of tokens

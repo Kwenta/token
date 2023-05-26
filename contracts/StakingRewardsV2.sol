@@ -628,7 +628,7 @@ contract StakingRewardsV2 is
 
     /// @notice set unstaking cooldown period
     /// @param _cooldownPeriod: denoted in seconds
-    function setUnstakingCooldownPeriod(uint256 _cooldownPeriod)
+    function setCooldownPeriod(uint256 _cooldownPeriod)
         external
         override
         onlyOwner
@@ -641,7 +641,7 @@ contract StakingRewardsV2 is
         }
 
         cooldownPeriod = _cooldownPeriod;
-        emit UnstakingCooldownPeriodUpdated(cooldownPeriod);
+        emit CooldownPeriodUpdated(cooldownPeriod);
     }
 
     /*///////////////////////////////////////////////////////////////
