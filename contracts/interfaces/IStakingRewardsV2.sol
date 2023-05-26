@@ -22,12 +22,12 @@ interface IStakingRewardsV2 {
     function balancesLength(address account) external view returns (uint256);
     function escrowedBalancesLength(address account) external view returns (uint256);
     function totalSupplyLength() external view returns (uint256);
-    function balanceAtTime(address account, uint256 block) external view returns (uint256);
-    function escrowedbalanceAtTime(address account, uint256 block)
+    function balanceAtTime(address account, uint256 _timestamp) external view returns (uint256);
+    function escrowedbalanceAtTime(address account, uint256 _timestamp)
         external
         view
         returns (uint256);
-    function totalSupplyAtTime(uint256 block) external view returns (uint256);
+    function totalSupplyAtTime(uint256 _timestamp) external view returns (uint256);
 
     /*//////////////////////////////////////////////////////////////
                                 Mutative
@@ -58,7 +58,8 @@ interface IStakingRewardsV2 {
                                 Structs
     //////////////////////////////////////////////////////////////*/
 
-    /// @notice A checkpoint for tracking values at a given block
+    // TODO: store block on here also?
+    /// @notice A checkpoint for tracking values at a given timestamp
     struct Checkpoint {
         // The timestamp when the value was generated
         uint256 ts;
