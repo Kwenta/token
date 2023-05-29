@@ -334,7 +334,6 @@ contract StakingRewardsV2 is
     }
 
     /// @inheritdoc IStakingRewardsV2
-    // TODO: check for reentrancy via unstake()
     function exit() external override {
         unstake(nonEscrowedBalanceOf(msg.sender));
         getReward();
