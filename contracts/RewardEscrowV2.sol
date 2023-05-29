@@ -12,7 +12,6 @@ import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/U
 import {IKwenta} from "./interfaces/IKwenta.sol";
 import {IStakingRewardsV2} from "./interfaces/IStakingRewardsV2.sol";
 
-// TODO: reintroduce notion of an entry - replace "token" naming convention with "entry" where appropriate
 // TODO: think about safeTransfer, safeMint etc.
 // TODO: Think about what functions could be "approved for" with lower risk - such that they can be delegated from a hardware wallet to a hot wallet
 
@@ -411,7 +410,6 @@ contract RewardEscrowV2 is
 
         // TODO: more efficient way for bulk transfer without querying each time?
         uint256 unstakedEscrow = unstakedEscrowedBalanceOf(_from);
-        // TODO: think about ways around this - can tokens be staked and transferrable? - could an entry either be staked or unstaked?
         if (unstakedEscrow < entry.escrowAmount) {
             revert InsufficientUnstakedBalance(_entryID, entry.escrowAmount, unstakedEscrow);
         }
