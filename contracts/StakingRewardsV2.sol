@@ -271,8 +271,7 @@ contract StakingRewardsV2 is
         updateReward(account)
     {
         if (amount == 0) revert AmountZero();
-        // TODO: think if there I could do calc just querying rewardEscrow.totalEscrowedAccountBalance to save gas
-        uint256 unstakedEscrow = rewardEscrow.unstakedEscrowedBalanceOf(account);
+        uint256 unstakedEscrow = unstakedEscrowedBalanceOf(account);
         if (amount > unstakedEscrow) {
             revert InsufficientUnstakedEscrow(unstakedEscrow);
         }
