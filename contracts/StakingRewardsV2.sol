@@ -357,7 +357,7 @@ contract StakingRewardsV2 is
             // transfer token from this contract to the rewardEscrow
             // and create a vesting entry for the caller
             token.safeTransfer(address(rewardEscrow), reward);
-            rewardEscrow.appendVestingEntry(_account, reward, 52 weeks);
+            rewardEscrow.appendVestingEntry(_account, reward);
 
             // emit reward claimed event and index account
             emit RewardPaid(_account, reward);

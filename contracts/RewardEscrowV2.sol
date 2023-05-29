@@ -31,8 +31,13 @@ contract RewardEscrowV2 is
     /// @notice Max escrow duration
     uint256 public constant MAX_DURATION = 4 * 52 weeks; // Default max 4 years duration
 
+    uint256 public constant DEFAULT_DURATION = 52 weeks; // Default 1 year duration
+
     /// @notice Default early vesting fee - used for new vesting entries from staking rewards
     uint8 public constant DEFAULT_EARLY_VESTING_FEE = 90; // Default 90 percent
+
+    /// @notice Maximum early vesting fee - cannot be higher than 100%
+    uint8 public constant MAXIMUM_EARLY_VESTING_FEE = 100;
 
     /// @notice Minimum early vesting fee
     uint8 public constant MINIMUM_EARLY_VESTING_FEE = 50;
@@ -358,7 +363,10 @@ contract RewardEscrowV2 is
         uint8 _earlyVestingFee
     ) external override {
         if (_beneficiary == address(0)) revert ZeroAddress();
+        if (_earlyVestingFee > MAXIMUM_EARLY_VESTING_FEE) revert EarlyVestingFeeTooHigh();
         if (_earlyVestingFee < MINIMUM_EARLY_VESTING_FEE) revert EarlyVestingFeeTooLow();
+        if (_deposit == 0) revert ZeroAmount();
+        if (_duration == 0 || _duration > MAX_DURATION) revert InvalidDuration();
 
         // TODO: test this is the case on on fork
         /// @dev this will revert if the kwenta token transfer fails
@@ -370,12 +378,12 @@ contract RewardEscrowV2 is
     }
 
     /// @inheritdoc IRewardEscrowV2
-    function appendVestingEntry(address _account, uint256 _quantity, uint256 _duration)
+    function appendVestingEntry(address _account, uint256 _quantity)
         external
         override
         onlyStakingRewards
     {
-        _mint(_account, _quantity, _duration, DEFAULT_EARLY_VESTING_FEE);
+        _mint(_account, _quantity, DEFAULT_DURATION, DEFAULT_EARLY_VESTING_FEE);
     }
 
     /// @inheritdoc IRewardEscrowV2
@@ -447,11 +455,6 @@ contract RewardEscrowV2 is
     function _mint(address _account, uint256 _quantity, uint256 _duration, uint8 _earlyVestingFee)
         internal
     {
-        // No empty or already-passed vesting entries allowed.
-        if (_quantity == 0) revert ZeroAmount();
-        if (_duration == 0 || _duration > MAX_DURATION) revert InvalidDuration();
-        if (_earlyVestingFee > 100) revert EarlyVestingFeeTooHigh();
-
         // There must be enough balance in the contract to provide for the vesting entry.
         totalEscrowedBalance += _quantity;
         if (kwenta.balanceOf(address(this)) < totalEscrowedBalance) revert InsufficientBalance();

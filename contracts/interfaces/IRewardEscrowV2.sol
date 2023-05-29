@@ -127,10 +127,10 @@ interface IRewardEscrowV2 {
     /// @dev A call to this should accompany a previous successful call to kwenta.transfer(rewardEscrow, amount),
     /// to ensure that when the funds are withdrawn, there is enough balance.
     /// This is only callable by the staking rewards contract
+    /// The duration defaults to 1 year, and the early vesting fee to 90%
     /// @param _account The account to append a new vesting entry to.
     /// @param _quantity The quantity of KWENTA that will be escrowed.
-    /// @param _duration The duration that KWENTA will be locked.
-    function appendVestingEntry(address _account, uint256 _quantity, uint256 _duration) external;
+    function appendVestingEntry(address _account, uint256 _quantity) external;
 
     /// @notice Stakes escrowed KWENTA.
     /// @dev No tokens are transfered during this process, but the StakingRewards escrowed balance is updated.
