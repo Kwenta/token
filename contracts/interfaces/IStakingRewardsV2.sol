@@ -71,6 +71,11 @@ interface IStakingRewardsV2 {
     /// @return amount of non-escrowed tokens staked
     function nonEscrowedBalanceOf(address account) external view returns (uint256);
 
+    /// @notice Getter function for the total number of escrowed tokens that are not not staked
+    /// @param _account: address to check
+    /// @return amount of tokens escrowed but not staked
+    function unstakedEscrowedBalanceOf(address _account) external view returns (uint256);
+
     // rewards
 
     /// @notice calculate the total rewards for one duration based on the current rate
@@ -171,6 +176,9 @@ interface IStakingRewardsV2 {
     function exit() external;
 
     // claim rewards
+
+    /// @notice claim rewards for an account and stake them
+    function compound() external;
 
     /// @notice caller claims any rewards generated from staking
     /// @dev rewards are escrowed in RewardEscrow

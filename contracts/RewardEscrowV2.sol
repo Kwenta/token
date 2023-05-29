@@ -135,7 +135,7 @@ contract RewardEscrowV2 is
     }
 
     /// @inheritdoc IRewardEscrowV2
-    function unstakedEscrowBalanceOf(address account) public view override returns (uint256) {
+    function unstakedEscrowedBalanceOf(address account) public view override returns (uint256) {
         return totalEscrowedAccountBalance[account] - stakingRewards.escrowedBalanceOf(account);
     }
 
@@ -309,7 +309,7 @@ contract RewardEscrowV2 is
             }
 
             // TODO: if i decide to keep deleting these at burn, this check may be unecessary
-            // Skip entry if escrowAmount == 0 already vested 
+            // Skip entry if escrowAmount == 0 already vested
             if (entry.escrowAmount != 0) {
                 (uint256 quantity, uint256 fee) = _claimableAmount(entry);
 
@@ -327,7 +327,7 @@ contract RewardEscrowV2 is
             // Withdraw staked escrowed kwenta if needed for reward
             if (_isEscrowStaked(msg.sender)) {
                 uint256 totalWithFee = total + totalFee;
-                uint256 unstakedEscrow = unstakedEscrowBalanceOf(msg.sender);
+                uint256 unstakedEscrow = unstakedEscrowedBalanceOf(msg.sender);
                 if (totalWithFee > unstakedEscrow) {
                     uint256 amountToUnstake = totalWithFee - unstakedEscrow;
                     stakingRewards.unstakeEscrowSkipCooldown(msg.sender, amountToUnstake);
@@ -410,7 +410,7 @@ contract RewardEscrowV2 is
         VestingEntries.VestingEntry memory entry = vestingSchedules[tokenId];
 
         // TODO: more efficient way for bulk transfer without querying each time?
-        uint256 unstakedEscrow = unstakedEscrowBalanceOf(from);
+        uint256 unstakedEscrow = unstakedEscrowedBalanceOf(from);
         // TODO: think about ways around this - can tokens be staked and transferrable? - could an entry either be staked or unstaked?
         if (unstakedEscrow < entry.escrowAmount) {
             revert InsufficientUnstakedBalance(tokenId, entry.escrowAmount, unstakedEscrow);

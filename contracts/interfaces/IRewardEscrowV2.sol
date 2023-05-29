@@ -50,7 +50,7 @@ interface IRewardEscrowV2 {
     function totalEscrowedBalanceOf(address account) external view returns (uint256);
 
     /// @notice Get the amount of escrowed kwenta that is not staked for a given account
-    function unstakedEscrowBalanceOf(address account) external view returns (uint256);
+    function unstakedEscrowedBalanceOf(address account) external view returns (uint256);
 
     /// @notice Get the details of a given vesting entry
     /// @param entryID The id of the vesting entry.

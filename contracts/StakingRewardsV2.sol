@@ -207,6 +207,11 @@ contract StakingRewardsV2 is
         return balanceOf(account) - escrowedBalanceOf(account);
     }
 
+    /// @inheritdoc IStakingRewardsV2
+    function unstakedEscrowedBalanceOf(address _account) public view override returns (uint256) {
+        return rewardEscrow.totalEscrowedBalanceOf(_account) - escrowedBalanceOf(_account);
+    }
+
     /*///////////////////////////////////////////////////////////////
                             STAKE/UNSTAKE
     ///////////////////////////////////////////////////////////////*/
@@ -267,7 +272,7 @@ contract StakingRewardsV2 is
     {
         if (amount == 0) revert AmountZero();
         // TODO: think if there I could do calc just querying rewardEscrow.totalEscrowedAccountBalance to save gas
-        uint256 unstakedEscrow = rewardEscrow.unstakedEscrowBalanceOf(account);
+        uint256 unstakedEscrow = rewardEscrow.unstakedEscrowedBalanceOf(account);
         if (amount > unstakedEscrow) {
             revert InsufficientUnstakedEscrow(unstakedEscrow);
         }
@@ -339,6 +344,12 @@ contract StakingRewardsV2 is
     /*///////////////////////////////////////////////////////////////
                             CLAIM REWARDS
     ///////////////////////////////////////////////////////////////*/
+
+    /// @inheritdoc IStakingRewardsV2
+    function compound() external override {
+        getReward();
+        _stakeEscrow(msg.sender, unstakedEscrowedBalanceOf(msg.sender));
+    }
 
     /// @inheritdoc IStakingRewardsV2
     function getReward() public override {
