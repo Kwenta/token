@@ -13,7 +13,6 @@ import {IKwenta} from "./interfaces/IKwenta.sol";
 import {IStakingRewardsV2} from "./interfaces/IStakingRewardsV2.sol";
 
 // TODO: think about safeTransfer, safeMint etc. - Should I use SafeERC20 link in StakingRewards?
-// TODO: Think about what functions could be "approved for" with lower risk - such that they can be delegated from a hardware wallet to a hot wallet
 
 /// @title KWENTA Reward Escrow
 /// @author SYNTHETIX, JaredBorders (jaredborders@proton.me), JChiaramonte7 (jeremy@bytecode.llc), tommyrharper (zeroknowledgeltd@gmail.com)
@@ -466,8 +465,7 @@ contract RewardEscrowV2 is
         // Increment the next entry id.
         ++nextEntryId;
 
-        // TODO: add earlyVestingFee to this event
-        emit VestingEntryCreated(_account, _quantity, _duration, entryID);
+        emit VestingEntryCreated(_account, _quantity, _duration, entryID, _earlyVestingFee);
 
         super._mint(_account, entryID);
     }

@@ -153,8 +153,13 @@ interface IRewardEscrowV2 {
     /// @param value The amount of KWENTA that was escrowed
     /// @param duration The duration in seconds of the vesting entry
     /// @param entryID The id of the vesting entry
+    /// @param earlyVestingFee The early vesting fee of the vesting entry
     event VestingEntryCreated(
-        address indexed beneficiary, uint256 value, uint256 duration, uint256 entryID
+        address indexed beneficiary,
+        uint256 value,
+        uint256 duration,
+        uint256 entryID,
+        uint8 earlyVestingFee
     );
 
     /// @notice emitted the staking rewards contract is set
