@@ -295,6 +295,16 @@ contract StakingRewardsV2OnBehalfActionsTests is DefaultStakingV2Setup {
         assertEq(stakingRewardsV2.escrowedBalanceOf(operator), 0);
     }
 
+    function test_Should_Revert_If_Staker_Has_No_Escrow() public {
+        stakingRewardsV2.approveOperator(user1, true);
+        
+        vm.prank(user1);
+        vm.expectRevert(
+            abi.encodeWithSelector(IStakingRewardsV2.InsufficientUnstakedEscrow.selector, 0)
+        );
+        stakingRewardsV2.stakeEscrowOnBehalf(address(this), 1 ether);
+    }
+
     function test_Cannot_stakeEscrowOnBehalf_Too_Much() public {
         createRewardEscrowEntryV2(address(this), TEST_VALUE, 52 weeks);
 

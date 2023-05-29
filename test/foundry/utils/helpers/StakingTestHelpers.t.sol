@@ -91,7 +91,6 @@ contract StakingTestHelpers is StakingSetup {
                             V1 Helper Functions
     //////////////////////////////////////////////////////////////*/
 
-    // UNIT HELPERS
     function addNewRewardsToStakingRewardsV1(uint256 _reward) public {
         vm.prank(treasury);
         kwenta.transfer(address(stakingRewardsV1), _reward);
@@ -134,7 +133,6 @@ contract StakingTestHelpers is StakingSetup {
         stakingRewardsV1.getReward();
     }
 
-    // INTEGRATION HELPERS
     function stakeAllUnstakedEscrowV1(address _account) public {
         uint256 amount = getNonStakedEscrowAmountV1(_account);
         vm.prank(_account);
@@ -159,7 +157,6 @@ contract StakingTestHelpers is StakingSetup {
                             V2 Helper Functions
     //////////////////////////////////////////////////////////////*/
 
-    // UNIT HELPERS
     function addNewRewardsToStakingRewardsV2(uint256 _reward) public {
         vm.prank(treasury);
         kwenta.transfer(address(stakingRewardsV2), _reward);
@@ -195,12 +192,12 @@ contract StakingTestHelpers is StakingSetup {
     function stakeEscrowedFundsV2(address _account, uint256 _amount) public {
         if (_amount != 0) createRewardEscrowEntryV2(_account, _amount, 52 weeks);
         vm.prank(_account);
-        rewardEscrowV2.stakeEscrow(_amount);
+        stakingRewardsV2.stakeEscrow(_amount);
     }
 
     function unstakeEscrowedFundsV2(address _account, uint256 _amount) public {
-        vm.prank(address(rewardEscrowV2));
-        stakingRewardsV2.unstakeEscrow(_account, _amount);
+        vm.prank(_account);
+        stakingRewardsV2.unstakeEscrow(_amount);
     }
 
     function unstakeEscrowSkipCooldownFundsV2(address _account, uint256 _amount) public {
@@ -243,20 +240,9 @@ contract StakingTestHelpers is StakingSetup {
         stakingRewardsV2.getReward();
     }
 
-    // INTEGRATION HELPERS
     function stakeAllUnstakedEscrowV2(address _account) public {
-        uint256 amount = getNonStakedEscrowAmountV2(_account);
+        uint256 amount = stakingRewardsV2.unstakedEscrowedBalanceOf(_account);
         vm.prank(_account);
-        rewardEscrowV2.stakeEscrow(amount);
-    }
-
-    function unstakeAllUnstakedEscrowV2(address _account, uint256 _amount) public {
-        vm.prank(_account);
-        rewardEscrowV2.unstakeEscrow(_amount);
-    }
-
-    function getNonStakedEscrowAmountV2(address _account) public view returns (uint256) {
-        return rewardEscrowV2.totalEscrowedBalanceOf(_account)
-            - stakingRewardsV2.escrowedBalanceOf(_account);
+        stakingRewardsV2.stakeEscrow(amount);
     }
 }

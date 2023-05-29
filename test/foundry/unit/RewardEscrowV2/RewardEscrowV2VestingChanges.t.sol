@@ -152,7 +152,7 @@ contract RewardEscrowV2VestingChangesTests is DefaultStakingV2Setup {
 
         // stake escrow
         vm.prank(user1);
-        rewardEscrowV2.stakeEscrow(escrowAmount);
+        stakingRewardsV2.stakeEscrow(escrowAmount);
 
         // vest entry
         entryIDs.push(1);
@@ -189,7 +189,7 @@ contract RewardEscrowV2VestingChangesTests is DefaultStakingV2Setup {
 
         // stake escrow
         vm.prank(user1);
-        rewardEscrowV2.stakeEscrow(escrowAmount);
+        stakingRewardsV2.stakeEscrow(escrowAmount);
 
         // vest entry
         entryIDs.push(1);

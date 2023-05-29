@@ -227,7 +227,7 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
 
         // stake the escrow
         vm.prank(user1);
-        rewardEscrowV2.stakeEscrow(escrowAmount);
+        stakingRewardsV2.stakeEscrow(escrowAmount);
 
         // transfer vesting entry from user1 to user2
         uint256 user1EntryID = rewardEscrowV2.getAccountVestingEntryIDs(user1, 0, 1)[0];
@@ -257,7 +257,7 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
 
         // stake the escrow
         vm.prank(user1);
-        rewardEscrowV2.stakeEscrow(stakedAmount);
+        stakingRewardsV2.stakeEscrow(stakedAmount);
 
         // transfer vesting entry from user1 to user2
         uint256 user1EntryID = rewardEscrowV2.getAccountVestingEntryIDs(user1, 0, 1)[0];
@@ -566,7 +566,7 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
 
         // stake half the escrow
         vm.prank(user1);
-        rewardEscrowV2.stakeEscrow(escrowAmount);
+        stakingRewardsV2.stakeEscrow(escrowAmount);
 
         // transfer vesting entry from user1 to user2
         uint256 user1EntryIDA = rewardEscrowV2.getAccountVestingEntryIDs(user1, 0, 2)[0];
@@ -623,7 +623,7 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
 
         // stake the escrow
         vm.prank(user1);
-        rewardEscrowV2.stakeEscrow(stakedAmount);
+        stakingRewardsV2.stakeEscrow(stakedAmount);
 
         // add entryIDs to list for bulk transfer
         for (uint256 i = 0; i < numberOfEntries; ++i) {

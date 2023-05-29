@@ -63,18 +63,6 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         stakingRewardsV2.recoverERC20(address(kwenta), 0);
     }
 
-    function test_Only_RewardEscrowCan_Call_stakeEscrow() public {
-        vm.expectRevert(IStakingRewardsV2.OnlyRewardEscrow.selector);
-        stakingRewardsV2.stakeEscrow(address(this), TEST_VALUE);
-    }
-
-    function test_Only_RewardEscrowCan_Call_unstakeEscrow() public {
-        stakeEscrowedFundsV2(address(this), TEST_VALUE);
-        vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod());
-        vm.expectRevert(IStakingRewardsV2.OnlyRewardEscrow.selector);
-        stakingRewardsV2.unstakeEscrow(address(this), TEST_VALUE);
-    }
-
     function test_Only_RewardEscrowCan_Call_unstakeEscrowSkipCooldown() public {
         stakeEscrowedFundsV2(address(this), TEST_VALUE);
         vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod());
@@ -320,6 +308,13 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         assertEq(kwenta.balanceOf(address(stakingRewardsV2)), initialBalance);
     }
 
+    function test_Should_Revert_If_Staker_Has_No_Escrow() public {
+        vm.expectRevert(
+            abi.encodeWithSelector(IStakingRewardsV2.InsufficientUnstakedEscrow.selector, 0)
+        );
+        stakingRewardsV2.stakeEscrow(1 ether);
+    }
+
     function test_Cannot_StakeEscrow_Too_Much() public {
         createRewardEscrowEntryV2(address(this), TEST_VALUE, 52 weeks);
         vm.expectRevert(
@@ -327,7 +322,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
                 IStakingRewardsV2.InsufficientUnstakedEscrow.selector, TEST_VALUE
             )
         );
-        rewardEscrowV2.stakeEscrow(TEST_VALUE + 1);
+        stakingRewardsV2.stakeEscrow(TEST_VALUE + 1);
     }
 
     function test_Cannot_StakeEscrow_Too_Much_Fuzz(
@@ -345,7 +340,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
                 IStakingRewardsV2.InsufficientUnstakedEscrow.selector, escrowAmount
             )
         );
-        rewardEscrowV2.stakeEscrow(amountToEscrowStake);
+        stakingRewardsV2.stakeEscrow(amountToEscrowStake);
     }
 
     function test_Escrow_Staking_Increases_Balances_Mapping() public {
@@ -356,6 +351,22 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
 
         // check balances mapping updated
         assertEq(stakingRewardsV2.balanceOf(address(this)), initialBalance + TEST_VALUE);
+    }
+
+    function test_Should_Stake_Escrow() public {
+        createRewardEscrowEntryV2(address(this), 1 ether, 52 weeks);
+        stakingRewardsV2.stakeEscrow(1 ether);
+        assertEq(rewardEscrowV2.totalEscrowedBalance(), 1 ether);
+        assertEq(stakingRewardsV2.escrowedBalanceOf(address(this)), 1 ether);
+    }
+
+    function test_Should_Stake_Escrow_Fuzz(uint32 amount) public {
+        vm.assume(amount > 0);
+
+        createRewardEscrowEntryV2(address(this), amount, 52 weeks);
+        stakingRewardsV2.stakeEscrow(amount);
+        assertEq(rewardEscrowV2.totalEscrowedBalance(), amount);
+        assertEq(stakingRewardsV2.escrowedBalanceOf(address(this)), amount);
     }
 
     function test_Escrow_Staking_Increases_Escrowed_Balances() public {

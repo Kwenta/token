@@ -686,74 +686,15 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     }
 
     /*//////////////////////////////////////////////////////////////
-                            Staking Escrow
+                    Vesting With Staked Escrow
     //////////////////////////////////////////////////////////////*/
-
-    function test_Should_Revert_If_Staker_Has_No_Escrow() public {
-        vm.expectRevert(
-            abi.encodeWithSelector(IStakingRewardsV2.InsufficientUnstakedEscrow.selector, 0)
-        );
-        rewardEscrowV2.stakeEscrow(1 ether);
-    }
-
-    function test_Should_Revert_If_Insufficient_Escrow() public {
-        createRewardEscrowEntryV2(address(this), 2 ether, 52 weeks);
-
-        // stake half the escrow
-        rewardEscrowV2.stakeEscrow(1 ether);
-
-        // attempt to stake full amount now
-        vm.expectRevert(
-            abi.encodeWithSelector(IStakingRewardsV2.InsufficientUnstakedEscrow.selector, 1 ether)
-        );
-        rewardEscrowV2.stakeEscrow(2 ether);
-    }
-
-    function test_Should_Revert_If_Insufficient_Escrow_Fuzz(
-        uint32 amount,
-        uint8 amountToStakeInitially
-    ) public {
-        vm.assume(amount > 0);
-        vm.assume(amountToStakeInitially > 0);
-        vm.assume(amountToStakeInitially < amount);
-
-        createRewardEscrowEntryV2(address(this), amount, 52 weeks);
-
-        // stake half the escrow
-        rewardEscrowV2.stakeEscrow(amountToStakeInitially);
-
-        // attempt to stake full amount now
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IStakingRewardsV2.InsufficientUnstakedEscrow.selector,
-                amount - amountToStakeInitially
-            )
-        );
-        rewardEscrowV2.stakeEscrow(amount);
-    }
-
-    function test_Should_Stake_Escrow() public {
-        createRewardEscrowEntryV2(address(this), 1 ether, 52 weeks);
-        rewardEscrowV2.stakeEscrow(1 ether);
-        assertEq(rewardEscrowV2.totalEscrowedBalance(), 1 ether);
-        assertEq(stakingRewardsV2.escrowedBalanceOf(address(this)), 1 ether);
-    }
-
-    function test_Should_Stake_Escrow_Fuzz(uint32 amount) public {
-        vm.assume(amount > 0);
-
-        createRewardEscrowEntryV2(address(this), amount, 52 weeks);
-        rewardEscrowV2.stakeEscrow(amount);
-        assertEq(rewardEscrowV2.totalEscrowedBalance(), amount);
-        assertEq(stakingRewardsV2.escrowedBalanceOf(address(this)), amount);
-    }
 
     function test_Should_Vest_Without_Unstaking_Escrow() public {
         createRewardEscrowEntryV2(address(this), 1 ether, 52 weeks);
         createRewardEscrowEntryV2(address(this), 1 ether, 52 weeks);
 
         // stake half the escrow
-        rewardEscrowV2.stakeEscrow(1 ether);
+        stakingRewardsV2.stakeEscrow(1 ether);
 
         // vest first entry
         vm.warp(block.timestamp + 52 weeks);
@@ -769,7 +710,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         createRewardEscrowEntryV2(address(this), 1 ether, 52 weeks);
 
         // stake all the escrow
-        rewardEscrowV2.stakeEscrow(1 ether);
+        stakingRewardsV2.stakeEscrow(1 ether);
 
         // move to end of vesting period
         vm.warp(block.timestamp + 52 weeks);
@@ -787,7 +728,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         createRewardEscrowEntryV2(address(this), 100 ether, 52 weeks);
 
         // stake all the escrow
-        rewardEscrowV2.stakeEscrow(100 ether);
+        stakingRewardsV2.stakeEscrow(100 ether);
 
         // move halfway to end of vesting period
         vm.warp(block.timestamp + 26 weeks);
