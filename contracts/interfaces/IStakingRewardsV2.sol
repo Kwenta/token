@@ -152,11 +152,6 @@ interface IStakingRewardsV2 {
     /// @dev updateReward() called prior to function logic
     function stakeEscrow(uint256 _amount) external;
 
-    /// @notice stake escrowed token on behalf of another account
-    /// @param _account: address of account to stake on behalf of
-    /// @param _amount: amount to stake
-    function stakeEscrowOnBehalf(address _account, uint256 _amount) external;
-
     /// @notice unstake escrowed token
     /// @param _amount: amount to unstake
     /// @dev updateReward() called prior to function logic
@@ -179,13 +174,26 @@ interface IStakingRewardsV2 {
     /// @dev updateReward() called prior to function logic
     function getReward() external;
 
+    /// @notice claim rewards for an account and stake them
+    function compound() external;
+
+    // delegation
+
+    // TODO: rename approve
+    /// @notice approve an operator to collect rewards and stake escrow on behalf of the sender
+    /// @param operator: address of operator to approve
+    /// @param approved: whether or not to approve the operator
+    function approveOperator(address operator, bool approved) external;
+
+    /// @notice stake escrowed token on behalf of another account
+    /// @param _account: address of account to stake on behalf of
+    /// @param _amount: amount to stake
+    function stakeEscrowOnBehalf(address _account, uint256 _amount) external;
+
     /// @notice caller claims any rewards generated from staking on behalf of another account
     /// The rewards will be escrowed in RewardEscrow with the account as the beneficiary
     /// @param _account: address of account to claim rewards for
     function getRewardOnBehalf(address _account) external;
-
-    /// @notice claim rewards for an account and stake them
-    function compound() external;
 
     /// @notice claim and stake rewards on behalf of another account
     /// @param _account: address of account to claim and stake rewards for
@@ -215,11 +223,6 @@ interface IStakingRewardsV2 {
     function unpauseStakingRewards() external;
 
     // misc.
-
-    /// @notice approve an operator to collect rewards and stake escrow on behalf of the sender
-    /// @param operator: address of operator to approve
-    /// @param approved: whether or not to approve the operator
-    function approveOperator(address operator, bool approved) external;
 
     /// @notice added to support recovering LP Rewards from other systems
     /// such as BAL to be distributed to holders

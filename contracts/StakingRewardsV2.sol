@@ -290,15 +290,6 @@ contract StakingRewardsV2 is
     }
 
     /// @inheritdoc IStakingRewardsV2
-    function stakeEscrowOnBehalf(address _account, uint256 _amount)
-        external
-        override
-        onlyOperator(_account)
-    {
-        _stakeEscrow(_account, _amount);
-    }
-
-    /// @inheritdoc IStakingRewardsV2
     function unstakeEscrow(uint256 _amount) external override afterCooldown(msg.sender) {
         _unstakeEscrow(msg.sender, _amount);
     }
@@ -364,11 +355,6 @@ contract StakingRewardsV2 is
     }
 
     /// @inheritdoc IStakingRewardsV2
-    function getRewardOnBehalf(address _account) external override onlyOperator(_account) {
-        _getReward(_account);
-    }
-
-    /// @inheritdoc IStakingRewardsV2
     function compound() external override {
         _compound(msg.sender);
     }
@@ -378,11 +364,6 @@ contract StakingRewardsV2 is
     function _compound(address _account) internal {
         _getReward(_account);
         _stakeEscrow(_account, unstakedEscrowedBalanceOf(_account));
-    }
-
-    /// @inheritdoc IStakingRewardsV2
-    function compoundOnBehalf(address _account) external override onlyOperator(_account) {
-        _compound(_account);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -440,6 +421,38 @@ contract StakingRewardsV2 is
 
         return ((totalBalance * (rewardPerToken() - userRewardPerTokenPaid[_account])) / 1e18)
             + rewards[_account];
+    }
+
+    /*///////////////////////////////////////////////////////////////
+                                DELEGATION
+    ///////////////////////////////////////////////////////////////*/
+
+    /// @inheritdoc IStakingRewardsV2
+    function approveOperator(address _operator, bool _approved) external override {
+        if (_operator == msg.sender) revert CannotApproveSelf();
+
+        _operatorApprovals[msg.sender][_operator] = _approved;
+
+        emit OperatorApproved(msg.sender, _operator, _approved);
+    }
+
+    /// @inheritdoc IStakingRewardsV2
+    function stakeEscrowOnBehalf(address _account, uint256 _amount)
+        external
+        override
+        onlyOperator(_account)
+    {
+        _stakeEscrow(_account, _amount);
+    }
+
+    /// @inheritdoc IStakingRewardsV2
+    function getRewardOnBehalf(address _account) external override onlyOperator(_account) {
+        _getReward(_account);
+    }
+
+    /// @inheritdoc IStakingRewardsV2
+    function compoundOnBehalf(address _account) external override onlyOperator(_account) {
+        _compound(_account);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -627,15 +640,6 @@ contract StakingRewardsV2 is
 
     /// @dev this function is used by the proxy to set the access control for upgrading the implementation contract
     function _authorizeUpgrade(address _newImplementation) internal override onlyOwner {}
-
-    /// @inheritdoc IStakingRewardsV2
-    function approveOperator(address _operator, bool _approved) external override {
-        if (_operator == msg.sender) revert CannotApproveSelf();
-
-        _operatorApprovals[msg.sender][_operator] = _approved;
-
-        emit OperatorApproved(msg.sender, _operator, _approved);
-    }
 
     /// @inheritdoc IStakingRewardsV2
     function recoverERC20(address _tokenAddress, uint256 _tokenAmount)
