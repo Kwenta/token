@@ -345,12 +345,6 @@ contract StakingRewardsV2 is
     ///////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IStakingRewardsV2
-    function compound() external override {
-        getReward();
-        _stakeEscrow(msg.sender, unstakedEscrowedBalanceOf(msg.sender));
-    }
-
-    /// @inheritdoc IStakingRewardsV2
     function getReward() public override {
         _getReward(msg.sender);
     }
@@ -375,6 +369,23 @@ contract StakingRewardsV2 is
     function getRewardOnBehalf(address account) external override onlyOperator(account) {
         _getReward(account);
     }
+
+    /// @inheritdoc IStakingRewardsV2
+    function compound() external override {
+        _compound(msg.sender);
+    }
+
+    /// @dev internal helper to compound for a given account
+    /// @param _account the account to compound for
+    function _compound(address _account) internal {
+        _getReward(_account);
+        _stakeEscrow(_account, unstakedEscrowedBalanceOf(_account));
+    }
+
+    // /// @inheritdoc IStakingRewardsV2
+    // function compoundOnBehalf(address account) external override onlyOperator(account) {
+    //     _getReward(account);
+    // }
 
     /*///////////////////////////////////////////////////////////////
                         REWARD UPDATE CALCULATIONS

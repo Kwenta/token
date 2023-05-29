@@ -177,9 +177,6 @@ interface IStakingRewardsV2 {
 
     // claim rewards
 
-    /// @notice claim rewards for an account and stake them
-    function compound() external;
-
     /// @notice caller claims any rewards generated from staking
     /// @dev rewards are escrowed in RewardEscrow
     /// @dev updateReward() called prior to function logic
@@ -189,6 +186,9 @@ interface IStakingRewardsV2 {
     /// The rewards will be escrowed in RewardEscrow with the account as the beneficiary
     /// @param account: address which owns token
     function getRewardOnBehalf(address account) external;
+
+    /// @notice claim rewards for an account and stake them
+    function compound() external;
 
     // settings
 
