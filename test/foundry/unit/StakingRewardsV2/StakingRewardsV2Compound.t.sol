@@ -74,5 +74,22 @@ contract StakingRewardsV2CompoundTests is DefaultStakingV2Setup {
                             Access Control
     //////////////////////////////////////////////////////////////*/
 
+    function test_Cannot_compound_Anothers_Rewards() public {
+        fundAndApproveAccountV2(address(this), TEST_VALUE);
+        uint256 initialEscrowBalance = rewardEscrowV2.totalEscrowedBalanceOf(address(this));
 
+        // stake
+        stakingRewardsV2.stake(TEST_VALUE);
+
+        // configure reward rate
+        addNewRewardsToStakingRewardsV2(TEST_VALUE);
+
+        // fast forward 2 weeks
+        vm.warp(2 weeks);
+
+        // compound rewards from another account
+        vm.expectRevert(IStakingRewardsV2.AmountZero.selector);
+        vm.prank(user1);
+        stakingRewardsV2.compound();
+    }
 }
