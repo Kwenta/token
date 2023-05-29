@@ -46,10 +46,11 @@ contract StakingRewardsV2OnBehalfActionsTests is DefaultStakingV2Setup {
         addNewRewardsToStakingRewardsV2(newRewards);
         vm.warp(block.timestamp + stakingRewardsV2.rewardsDuration());
 
-        // approve user1 as operator
+        // approve operator
+        vm.prank(owner);
         stakingRewardsV2.approveOperator(operator, true);
 
-        // claim rewards on behalf as user2
+        // claim rewards on behalf of owner from non-operator
         vm.prank(caller);
         vm.expectRevert(IStakingRewardsV2.NotApproved.selector);
         stakingRewardsV2.getRewardOnBehalf(address(this));
@@ -86,10 +87,11 @@ contract StakingRewardsV2OnBehalfActionsTests is DefaultStakingV2Setup {
 
         createRewardEscrowEntryV2(owner, escrowAmount, duration);
 
-        // approve user1 as operator
+        // approve operator
+        vm.prank(owner);
         stakingRewardsV2.approveOperator(operator, true);
 
-        // stake escrow on behalf as user2
+        // claim rewards on behalf of owner from non-operator
         vm.prank(caller);
         vm.expectRevert(IStakingRewardsV2.NotApproved.selector);
         stakingRewardsV2.stakeEscrowOnBehalf(owner, escrowAmount);
@@ -112,6 +114,34 @@ contract StakingRewardsV2OnBehalfActionsTests is DefaultStakingV2Setup {
         vm.expectRevert(IStakingRewardsV2.NotApproved.selector);
         stakingRewardsV2.compoundOnBehalf(address(this));
     }
+
+    // function test_Only_Approved_Can_Call_compoundOnBehalf_Fuzz(
+    //     uint32 initialStake,
+    //     uint32 newRewards,
+    //     address owner,
+    //     address operator,
+    //     address caller
+    // ) public {
+    //     vm.assume(initialStake > 0);
+    //     vm.assume(newRewards > 0);
+    //     vm.assume(owner != address(0));
+    //     vm.assume(operator != address(0));
+    //     vm.assume(caller != address(0));
+    //     vm.assume(owner != operator);
+    //     vm.assume(owner != caller);
+    //     vm.assume(operator != caller);
+    //     vm.assume(operator != stakingRewardsV2.owner());
+
+    //     fundAndApproveAccountV2(owner, TEST_VALUE);
+
+    //     // approve user1 as operator
+    //     stakingRewardsV2.approveOperator(operator, true);
+
+    //     // stake escrow on behalf as user2
+    //     vm.prank(caller);
+    //     vm.expectRevert(IStakingRewardsV2.NotApproved.selector);
+    //     stakingRewardsV2.stakeEscrowOnBehalf(owner, escrowAmount);
+    // }
 
     function test_Cannot_Approve_Self() public {
         vm.expectRevert(IStakingRewardsV2.CannotApproveSelf.selector);
