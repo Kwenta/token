@@ -415,10 +415,10 @@ contract RewardEscrowV2 is
             revert InsufficientUnstakedBalance(_entryID, entry.escrowAmount, unstakedEscrow);
         }
 
-        super._transfer(_from, _to, _entryID);
-
         totalEscrowedAccountBalance[_from] -= entry.escrowAmount;
         totalEscrowedAccountBalance[_to] += entry.escrowAmount;
+
+        super._transfer(_from, _to, _entryID);
     }
 
     function _burn(uint256 _entryID) internal override {
@@ -463,14 +463,13 @@ contract RewardEscrowV2 is
             earlyVestingFee: _earlyVestingFee
         });
 
-        // TODO: think - should safeMint? - could use nonReentrant
-        _mint(_account, entryID);
-
         // Increment the next entry id.
         ++nextEntryId;
 
         // TODO: add earlyVestingFee to this event
         emit VestingEntryCreated(_account, _quantity, _duration, entryID);
+
+        super._mint(_account, entryID);
     }
 
     function _authorizeUpgrade(address _newImplementation) internal override onlyOwner {}
