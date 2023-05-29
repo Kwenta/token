@@ -130,53 +130,53 @@ contract RewardEscrowV2 is
     }
 
     /// @inheritdoc IRewardEscrowV2
-    function totalEscrowedBalanceOf(address account) external view override returns (uint256) {
-        return totalEscrowedAccountBalance[account];
+    function totalEscrowedBalanceOf(address _account) external view override returns (uint256) {
+        return totalEscrowedAccountBalance[_account];
     }
 
     /// @inheritdoc IRewardEscrowV2
-    function unstakedEscrowedBalanceOf(address account) public view override returns (uint256) {
-        return totalEscrowedAccountBalance[account] - stakingRewards.escrowedBalanceOf(account);
+    function unstakedEscrowedBalanceOf(address _account) public view override returns (uint256) {
+        return totalEscrowedAccountBalance[_account] - stakingRewards.escrowedBalanceOf(_account);
     }
 
     /// @inheritdoc IRewardEscrowV2
-    function getVestingEntry(uint256 entryID)
+    function getVestingEntry(uint256 _entryID)
         external
         view
         override
         returns (uint64 endTime, uint256 escrowAmount, uint256 duration, uint8 earlyVestingFee)
     {
-        endTime = vestingSchedules[entryID].endTime;
-        escrowAmount = vestingSchedules[entryID].escrowAmount;
-        duration = vestingSchedules[entryID].duration;
-        earlyVestingFee = vestingSchedules[entryID].earlyVestingFee;
+        endTime = vestingSchedules[_entryID].endTime;
+        escrowAmount = vestingSchedules[_entryID].escrowAmount;
+        duration = vestingSchedules[_entryID].duration;
+        earlyVestingFee = vestingSchedules[_entryID].earlyVestingFee;
     }
 
     /// @inheritdoc IRewardEscrowV2
-    function getVestingSchedules(address account, uint256 index, uint256 pageSize)
+    function getVestingSchedules(address _account, uint256 _index, uint256 _pageSize)
         external
         view
         override
         returns (VestingEntries.VestingEntryWithID[] memory)
     {
-        uint256 endIndex = index + pageSize;
+        uint256 endIndex = _index + _pageSize;
 
         // If index starts after the endIndex return no results
-        if (endIndex <= index) {
+        if (endIndex <= _index) {
             return new VestingEntries.VestingEntryWithID[](0);
         }
 
         // If the page extends past the end of the list, truncate it.
-        uint256 numEntries = balanceOf(account);
+        uint256 numEntries = balanceOf(_account);
         if (endIndex > numEntries) {
             endIndex = numEntries;
         }
 
-        uint256 n = endIndex - index;
+        uint256 n = endIndex - _index;
         VestingEntries.VestingEntryWithID[] memory vestingEntries =
             new VestingEntries.VestingEntryWithID[](n);
         for (uint256 i; i < n;) {
-            uint256 entryID = tokenOfOwnerByIndex(account, i + index);
+            uint256 entryID = tokenOfOwnerByIndex(_account, i + _index);
 
             VestingEntries.VestingEntry memory entry = vestingSchedules[entryID];
 
@@ -194,27 +194,27 @@ contract RewardEscrowV2 is
     }
 
     /// @inheritdoc IRewardEscrowV2
-    function getAccountVestingEntryIDs(address account, uint256 index, uint256 pageSize)
+    function getAccountVestingEntryIDs(address _account, uint256 _index, uint256 _pageSize)
         external
         view
         override
         returns (uint256[] memory)
     {
-        uint256 endIndex = index + pageSize;
+        uint256 endIndex = _index + _pageSize;
 
         // If the page extends past the end of the list, truncate it.
-        uint256 numEntries = balanceOf(account);
+        uint256 numEntries = balanceOf(_account);
         if (endIndex > numEntries) {
             endIndex = numEntries;
         }
-        if (endIndex <= index) {
+        if (endIndex <= _index) {
             return new uint256[](0);
         }
 
-        uint256 n = endIndex - index;
+        uint256 n = endIndex - _index;
         uint256[] memory page = new uint256[](n);
         for (uint256 i; i < n;) {
-            page[i] = tokenOfOwnerByIndex(account, i + index);
+            page[i] = tokenOfOwnerByIndex(_account, i + _index);
 
             unchecked {
                 ++i;
@@ -224,15 +224,15 @@ contract RewardEscrowV2 is
     }
 
     /// @inheritdoc IRewardEscrowV2
-    function getVestingQuantity(uint256[] calldata entryIDs)
+    function getVestingQuantity(uint256[] calldata _entryIDs)
         external
         view
         override
         returns (uint256 total, uint256 totalFee)
     {
-        uint256 entryIDsLength = entryIDs.length;
+        uint256 entryIDsLength = _entryIDs.length;
         for (uint256 i = 0; i < entryIDsLength;) {
-            VestingEntries.VestingEntry memory entry = vestingSchedules[entryIDs[i]];
+            VestingEntries.VestingEntry memory entry = vestingSchedules[_entryIDs[i]];
 
             // Skip entry if escrowAmount == 0
             if (entry.escrowAmount != 0) {
@@ -250,13 +250,13 @@ contract RewardEscrowV2 is
     }
 
     /// @inheritdoc IRewardEscrowV2
-    function getVestingEntryClaimable(uint256 entryID)
+    function getVestingEntryClaimable(uint256 _entryID)
         external
         view
         override
         returns (uint256 quantity, uint256 fee)
     {
-        VestingEntries.VestingEntry memory entry = vestingSchedules[entryID];
+        VestingEntries.VestingEntry memory entry = vestingSchedules[_entryID];
         (quantity, fee) = _claimableAmount(entry);
     }
 
@@ -298,13 +298,13 @@ contract RewardEscrowV2 is
     ///////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IRewardEscrowV2
-    function vest(uint256[] calldata entryIDs) external override {
+    function vest(uint256[] calldata _entryIDs) external override {
         uint256 total;
         uint256 totalFee;
-        uint256 entryIDsLength = entryIDs.length;
+        uint256 entryIDsLength = _entryIDs.length;
         for (uint256 i = 0; i < entryIDsLength; ++i) {
-            VestingEntries.VestingEntry storage entry = vestingSchedules[entryIDs[i]];
-            if (_ownerOf(entryIDs[i]) != msg.sender) {
+            VestingEntries.VestingEntry storage entry = vestingSchedules[_entryIDs[i]];
+            if (_ownerOf(_entryIDs[i]) != msg.sender) {
                 continue;
             }
 
@@ -314,7 +314,7 @@ contract RewardEscrowV2 is
                 (uint256 quantity, uint256 fee) = _claimableAmount(entry);
 
                 // update entry to remove escrowAmount
-                _burn(entryIDs[i]);
+                _burn(_entryIDs[i]);
 
                 // add quantity to total
                 total += quantity;
@@ -350,30 +350,30 @@ contract RewardEscrowV2 is
 
     /// @inheritdoc IRewardEscrowV2
     function createEscrowEntry(
-        address beneficiary,
-        uint256 deposit,
-        uint256 duration,
-        uint8 earlyVestingFee
+        address _beneficiary,
+        uint256 _deposit,
+        uint256 _duration,
+        uint8 _earlyVestingFee
     ) external override {
-        if (beneficiary == address(0)) revert ZeroAddress();
-        if (earlyVestingFee == 0) revert ZeroEarlyVestingFee();
+        if (_beneficiary == address(0)) revert ZeroAddress();
+        if (_earlyVestingFee == 0) revert ZeroEarlyVestingFee();
 
         // TODO: test this is the case on on fork
         /// @dev this will revert if the kwenta token transfer fails
         /// @dev if using this with a different token, make sure to check the return value
-        kwenta.transferFrom(msg.sender, address(this), deposit);
+        kwenta.transferFrom(msg.sender, address(this), _deposit);
 
-        /* Append vesting entry for the beneficiary address */
-        _mint(beneficiary, deposit, duration, earlyVestingFee);
+        // Append vesting entry for the beneficiary address
+        _mint(_beneficiary, _deposit, _duration, _earlyVestingFee);
     }
 
     /// @inheritdoc IRewardEscrowV2
-    function appendVestingEntry(address account, uint256 quantity, uint256 duration)
+    function appendVestingEntry(address _account, uint256 _quantity, uint256 _duration)
         external
         override
         onlyStakingRewards
     {
-        _mint(account, quantity, duration, DEFAULT_EARLY_VESTING_FEE);
+        _mint(_account, _quantity, _duration, DEFAULT_EARLY_VESTING_FEE);
     }
 
     /// @inheritdoc IRewardEscrowV2
@@ -387,13 +387,13 @@ contract RewardEscrowV2 is
     }
 
     /// @inheritdoc IRewardEscrowV2
-    function bulkTransferFrom(address from, address to, uint256[] calldata entryIDs)
+    function bulkTransferFrom(address _from, address _to, uint256[] calldata _entryIDs)
         external
         override
     {
-        uint256 entryIDsLength = entryIDs.length;
+        uint256 entryIDsLength = _entryIDs.length;
         for (uint256 i = 0; i < entryIDsLength;) {
-            transferFrom(from, to, entryIDs[i]);
+            transferFrom(_from, _to, _entryIDs[i]);
             unchecked {
                 ++i;
             }
@@ -406,27 +406,27 @@ contract RewardEscrowV2 is
 
     /// @dev override the internal _transfer function to ensure vestingSchedules and account balances are updated
     /// and that there is sufficient unstaked escrow for a transfer
-    function _transfer(address from, address to, uint256 tokenId) internal override {
-        VestingEntries.VestingEntry memory entry = vestingSchedules[tokenId];
+    function _transfer(address _from, address _to, uint256 _entryID) internal override {
+        VestingEntries.VestingEntry memory entry = vestingSchedules[_entryID];
 
         // TODO: more efficient way for bulk transfer without querying each time?
-        uint256 unstakedEscrow = unstakedEscrowedBalanceOf(from);
+        uint256 unstakedEscrow = unstakedEscrowedBalanceOf(_from);
         // TODO: think about ways around this - can tokens be staked and transferrable? - could an entry either be staked or unstaked?
         if (unstakedEscrow < entry.escrowAmount) {
-            revert InsufficientUnstakedBalance(tokenId, entry.escrowAmount, unstakedEscrow);
+            revert InsufficientUnstakedBalance(_entryID, entry.escrowAmount, unstakedEscrow);
         }
 
-        super._transfer(from, to, tokenId);
+        super._transfer(_from, _to, _entryID);
 
-        totalEscrowedAccountBalance[from] -= entry.escrowAmount;
-        totalEscrowedAccountBalance[to] += entry.escrowAmount;
+        totalEscrowedAccountBalance[_from] -= entry.escrowAmount;
+        totalEscrowedAccountBalance[_to] += entry.escrowAmount;
     }
 
-    function _burn(uint256 tokenId) internal override {
+    function _burn(uint256 _entryID) internal override {
         // TODO: should delete the whole entry? or just the escrowAmount as before? gas savings?
-        // vestingSchedules[tokenId].escrowAmount = 0;
-        delete vestingSchedules[tokenId];
-        super._burn(tokenId);
+        // vestingSchedules[_entryID].escrowAmount = 0;
+        delete vestingSchedules[_entryID];
+        super._burn(_entryID);
     }
 
     /// @dev Transfer vested KWENTA to account and update totalEscrowedAccountBalance, totalVestedAccountBalance
@@ -443,41 +443,41 @@ contract RewardEscrowV2 is
         totalEscrowedAccountBalance[_account] -= _amount;
     }
 
-    function _mint(address account, uint256 quantity, uint256 duration, uint8 earlyVestingFee)
+    function _mint(address _account, uint256 _quantity, uint256 _duration, uint8 _earlyVestingFee)
         internal
     {
         // No empty or already-passed vesting entries allowed.
-        if (quantity == 0) revert ZeroAmount();
-        if (duration == 0 || duration > MAX_DURATION) revert InvalidDuration();
-        if (earlyVestingFee > 100) revert EarlyVestingFeeTooHigh();
+        if (_quantity == 0) revert ZeroAmount();
+        if (_duration == 0 || _duration > MAX_DURATION) revert InvalidDuration();
+        if (_earlyVestingFee > 100) revert EarlyVestingFeeTooHigh();
 
         // There must be enough balance in the contract to provide for the vesting entry.
-        totalEscrowedBalance += quantity;
+        totalEscrowedBalance += _quantity;
         if (kwenta.balanceOf(address(this)) < totalEscrowedBalance) revert InsufficientBalance();
 
         // Escrow the tokens for duration.
-        uint256 endTime = block.timestamp + duration;
+        uint256 endTime = block.timestamp + _duration;
 
         // Add quantity to account's escrowed balance
-        totalEscrowedAccountBalance[account] += quantity;
+        totalEscrowedAccountBalance[_account] += _quantity;
 
         uint256 entryID = nextEntryId;
         vestingSchedules[entryID] = VestingEntries.VestingEntry({
             endTime: uint64(endTime),
-            escrowAmount: quantity,
-            duration: duration,
-            earlyVestingFee: earlyVestingFee
+            escrowAmount: _quantity,
+            duration: _duration,
+            earlyVestingFee: _earlyVestingFee
         });
 
         // TODO: think - should safeMint? - could use nonReentrant
-        _mint(account, entryID);
+        _mint(_account, entryID);
 
         // Increment the next entry id.
         ++nextEntryId;
 
         // TODO: add earlyVestingFee to this event
-        emit VestingEntryCreated(account, quantity, duration, entryID);
+        emit VestingEntryCreated(_account, _quantity, _duration, entryID);
     }
 
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
+    function _authorizeUpgrade(address _newImplementation) internal override onlyOwner {}
 }

@@ -32,10 +32,12 @@ interface IRewardEscrowV2 {
     ///////////////////////////////////////////////////////////////*/
 
     /// @notice Function used to define the StakingRewardsV2 contract address to use
+    /// @param _stakingRewards The address of the StakingRewardsV2 contract
     /// @dev This function can only be called once
     function setStakingRewards(address _stakingRewards) external;
 
     /// @notice Function used to define the TreasuryDAO address to use
+    /// @param _treasuryDAO The address of the TreasuryDAO
     /// @dev This function can only be called multiple times
     function setTreasuryDAO(address _treasuryDAO) external;
 
@@ -47,88 +49,88 @@ interface IRewardEscrowV2 {
     function getKwentaAddress() external view returns (address);
 
     /// @notice A simple alias to totalEscrowedAccountBalance
-    function totalEscrowedBalanceOf(address account) external view returns (uint256);
+    function totalEscrowedBalanceOf(address _account) external view returns (uint256);
 
     /// @notice Get the amount of escrowed kwenta that is not staked for a given account
-    function unstakedEscrowedBalanceOf(address account) external view returns (uint256);
+    function unstakedEscrowedBalanceOf(address _account) external view returns (uint256);
 
     /// @notice Get the details of a given vesting entry
-    /// @param entryID The id of the vesting entry.
+    /// @param _entryID The id of the vesting entry.
     /// @return endTime the vesting entry object
     /// @return escrowAmount rate per second emission.
     /// @return duration the duration of the vesting entry.
     /// @return earlyVestingFee the early vesting fee of the vesting entry.
-    function getVestingEntry(uint256 entryID)
+    function getVestingEntry(uint256 _entryID)
         external
         view
         returns (uint64, uint256, uint256, uint8);
 
     /// @notice Get the vesting entries for a given account
-    /// @param account The account to get the vesting entries for
-    /// @param index The index of the first vesting entry to get
-    /// @param pageSize The number of vesting entries to get
+    /// @param _account The account to get the vesting entries for
+    /// @param _index The index of the first vesting entry to get
+    /// @param _pageSize The number of vesting entries to get
     /// @return vestingEntries the list of vesting entries with ids
-    function getVestingSchedules(address account, uint256 index, uint256 pageSize)
+    function getVestingSchedules(address _account, uint256 _index, uint256 _pageSize)
         external
         view
         returns (VestingEntries.VestingEntryWithID[] memory);
 
     /// @notice Get the vesting entries for a given account
-    /// @param account The account to get the vesting entries for
-    /// @param index The index of the first vesting entry to get
-    /// @param pageSize The number of vesting entries to get
+    /// @param _account The account to get the vesting entries for
+    /// @param _index The index of the first vesting entry to get
+    /// @param _pageSize The number of vesting entries to get
     /// @return vestingEntries the list of vesting entry ids
-    function getAccountVestingEntryIDs(address account, uint256 index, uint256 pageSize)
+    function getAccountVestingEntryIDs(address _account, uint256 _index, uint256 _pageSize)
         external
         view
         returns (uint256[] memory);
 
     /// @notice Get the amount that can be vested now for a set of vesting entries
-    /// @param entryIDs The ids of the vesting entries to get the quantity for
+    /// @param _entryIDs The ids of the vesting entries to get the quantity for
     /// @return total The total amount that can be vested for these entries
     /// @return totalFee The total amount of fees that will be paid for these vesting entries
-    function getVestingQuantity(uint256[] calldata entryIDs)
+    function getVestingQuantity(uint256[] calldata _entryIDs)
         external
         view
         returns (uint256, uint256);
 
     /// @notice Get the amount that can be vested now for a given vesting entry
-    /// @param entryID The id of the vesting entry to get the quantity for
+    /// @param _entryID The id of the vesting entry to get the quantity for
     /// @return quantity The total amount that can be vested for this entry
     /// @return totalFee The total amount of fees that will be paid for this vesting entry
-    function getVestingEntryClaimable(uint256 entryID) external view returns (uint256, uint256);
+    function getVestingEntryClaimable(uint256 _entryID) external view returns (uint256, uint256);
 
     /*///////////////////////////////////////////////////////////////
                             MUTATIVE FUNCTIONS
     ///////////////////////////////////////////////////////////////*/
 
     /// @notice Vest escrowed amounts that are claimable - allows users to vest their vesting entries based on msg.sender
-    /// @param entryIDs The ids of the vesting entries to vest
-    function vest(uint256[] calldata entryIDs) external;
+    /// @param _entryIDs The ids of the vesting entries to vest
+    function vest(uint256[] calldata _entryIDs) external;
 
     /// @notice Create an escrow entry to lock KWENTA for a given duration in seconds
-    /// @param beneficiary The account that will be able to withdraw the escrowed amount
-    /// @param deposit The amount of KWENTA to escrow
-    /// @param duration The duration in seconds to lock the KWENTA for
-    /// @param earlyVestingFee The fee to apply if the escrowed amount is withdrawn before the end of the vesting period
+    /// @param _beneficiary The account that will be able to withdraw the escrowed amount
+    /// @param _deposit The amount of KWENTA to escrow
+    /// @param _duration The duration in seconds to lock the KWENTA for
+    /// @param _earlyVestingFee The fee to apply if the escrowed amount is withdrawn before the end of the vesting period
     /// @dev the early vesting fee decreases linearly over the vesting period
     /// @dev This call expects that the depositor (msg.sender) has already approved the Reward escrow contract
     /// to spend the the amount being escrowed.
     function createEscrowEntry(
-        address beneficiary,
-        uint256 deposit,
-        uint256 duration,
-        uint8 earlyVestingFee
+        address _beneficiary,
+        uint256 _deposit,
+        uint256 _duration,
+        uint8 _earlyVestingFee
     ) external;
 
     /// @notice Add a new vesting entry at a given time and quantity to an account's schedule.
     /// @dev A call to this should accompany a previous successful call to kwenta.transfer(rewardEscrow, amount),
     /// to ensure that when the funds are withdrawn, there is enough balance.
     /// This is only callable by the staking rewards contract
-    /// @param account The account to append a new vesting entry to.
-    /// @param quantity The quantity of KWENTA that will be escrowed.
-    /// @param duration The duration that KWENTA will be locked.
-    function appendVestingEntry(address account, uint256 quantity, uint256 duration) external;
+    /// @param _account The account to append a new vesting entry to.
+    /// @param _quantity The quantity of KWENTA that will be escrowed.
+    /// @param _duration The duration that KWENTA will be locked.
+    function appendVestingEntry(address _account, uint256 _quantity, uint256 _duration) external;
 
     /// @notice Stakes escrowed KWENTA.
     /// @dev No tokens are transfered during this process, but the StakingRewards escrowed balance is updated.
@@ -142,10 +144,10 @@ interface IRewardEscrowV2 {
 
     /// @notice Transfer multiple tokens from one account to another
     ///  Sufficient escrowed KWENTA must be unstaked for the transfer to succeed
-    /// @param from The account to transfer the tokens from
-    /// @param to The account to transfer the tokens to
-    /// @param entryIDs a list of the ids of the entries to transfer
-    function bulkTransferFrom(address from, address to, uint256[] calldata entryIDs) external;
+    /// @param _from The account to transfer the tokens from
+    /// @param _to The account to transfer the tokens to
+    /// @param _entryIDs a list of the ids of the entries to transfer
+    function bulkTransferFrom(address _from, address _to, uint256[] calldata _entryIDs) external;
 
     /*///////////////////////////////////////////////////////////////
                                 EVENTS
