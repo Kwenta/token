@@ -179,7 +179,6 @@ interface IStakingRewardsV2 {
 
     // delegation
 
-    // TODO: rename approve
     /// @notice approve an operator to collect rewards and stake escrow on behalf of the sender
     /// @param operator: address of operator to approve
     /// @param approved: whether or not to approve the operator
