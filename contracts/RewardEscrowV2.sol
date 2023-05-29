@@ -102,7 +102,7 @@ contract RewardEscrowV2 is
     /*
     * @notice Function used to define the StakingRewards to use
     */
-    function setStakingRewardsV2(address _stakingRewards) public onlyOwner {
+    function setStakingRewards(address _stakingRewards) public onlyOwner {
         if (_stakingRewards == address(0)) revert ZeroAddress();
         if (address(stakingRewards) != address(0)) revert StakingRewardsAlreadySet();
 
