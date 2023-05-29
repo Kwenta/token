@@ -53,24 +53,24 @@ interface IStakingRewardsV2 {
 
     /// @notice Returns the total number of staked tokens for a user
     /// the sum of all escrowed and non-escrowed tokens
-    /// @param account: address of potential staker
+    /// @param _account: address of potential staker
     /// @return amount of tokens staked by account
-    function balanceOf(address account) external view returns (uint256);
+    function balanceOf(address _account) external view returns (uint256);
 
     /// @notice Getter function for the number of v1 staked tokens
-    /// @param account address to check the tokens staked
+    /// @param _account address to check the tokens staked
     /// @return amount of tokens staked
-    function v1BalanceOf(address account) external view returns (uint256);
+    function v1BalanceOf(address _account) external view returns (uint256);
 
     /// @notice Getter function for number of staked escrow tokens
-    /// @param account address to check the escrowed tokens staked
+    /// @param _account address to check the escrowed tokens staked
     /// @return amount of escrowed tokens staked
-    function escrowedBalanceOf(address account) external view returns (uint256);
+    function escrowedBalanceOf(address _account) external view returns (uint256);
 
     /// @notice Getter function for number of staked non-escrow tokens
-    /// @param account address to check the non-escrowed tokens staked
+    /// @param _account address to check the non-escrowed tokens staked
     /// @return amount of non-escrowed tokens staked
-    function nonEscrowedBalanceOf(address account) external view returns (uint256);
+    function nonEscrowedBalanceOf(address _account) external view returns (uint256);
 
     /// @notice Getter function for the total number of escrowed tokens that are not not staked
     /// @param _account: address to check
@@ -93,36 +93,36 @@ interface IStakingRewardsV2 {
     function lastTimeRewardApplicable() external view returns (uint256);
 
     /// @notice determine how much reward token an account has earned thus far
-    /// @param account: address of account earned amount is being calculated for
-    function earned(address account) external view returns (uint256);
+    /// @param _account: address of account earned amount is being calculated for
+    function earned(address _account) external view returns (uint256);
 
     // checkpointing
 
     /// @notice get the number of balances checkpoints for an account
-    /// @param account: address of account to check
+    /// @param _account: address of account to check
     /// @return number of balances checkpoints
-    function balancesLength(address account) external view returns (uint256);
+    function balancesLength(address _account) external view returns (uint256);
 
     /// @notice get the number of escrowed balance checkpoints for an account
-    /// @param account: address of account to check
+    /// @param _account: address of account to check
     /// @return number of escrowed balance checkpoints
-    function escrowedBalancesLength(address account) external view returns (uint256);
+    function escrowedBalancesLength(address _account) external view returns (uint256);
 
     /// @notice get the number of total supply checkpoints
     /// @return number of total supply checkpoints
     function totalSupplyLength() external view returns (uint256);
 
     /// @notice get a users balance at a given timestamp
-    /// @param account: address of account to check
+    /// @param _account: address of account to check
     /// @param _timestamp: timestamp to check
     /// @return balance at given timestamp
-    function balanceAtTime(address account, uint256 _timestamp) external view returns (uint256);
+    function balanceAtTime(address _account, uint256 _timestamp) external view returns (uint256);
 
     /// @notice get a users escrowed balance at a given timestamp
-    /// @param account: address of account to check
+    /// @param _account: address of account to check
     /// @param _timestamp: timestamp to check
     /// @return escrowed balance at given timestamp
-    function escrowedbalanceAtTime(address account, uint256 _timestamp)
+    function escrowedbalanceAtTime(address _account, uint256 _timestamp)
         external
         view
         returns (uint256);
@@ -138,39 +138,39 @@ interface IStakingRewardsV2 {
     // Staking/Unstaking
 
     /// @notice stake token
-    /// @param amount: amount to stake
+    /// @param _amount: amount to stake
     /// @dev updateReward() called prior to function logic
-    function stake(uint256 amount) external;
+    function stake(uint256 _amount) external;
 
     /// @notice unstake token
-    /// @param amount: amount to unstake
+    /// @param _amount: amount to unstake
     /// @dev updateReward() called prior to function logic
-    function unstake(uint256 amount) external;
+    function unstake(uint256 _amount) external;
 
     /// @notice stake escrowed token
-    /// @param account: address which owns token
-    /// @param amount: amount to stake
+    /// @param _account: address which owns token
+    /// @param _amount: amount to stake
     /// @dev updateReward() called prior to function logic
     /// @dev msg.sender NOT used (account is used)
-    function stakeEscrow(address account, uint256 amount) external;
+    function stakeEscrow(address _account, uint256 _amount) external;
 
     /// @notice stake escrowed token on behalf of another account
-    /// @param account: address of account to stake on behalf of
-    /// @param amount: amount to stake
-    function stakeEscrowOnBehalf(address account, uint256 amount) external;
+    /// @param _account: address of account to stake on behalf of
+    /// @param _amount: amount to stake
+    function stakeEscrowOnBehalf(address _account, uint256 _amount) external;
 
     /// @notice unstake escrowed token
-    /// @param account: address which owns token
-    /// @param amount: amount to unstake
+    /// @param _account: address which owns token
+    /// @param _amount: amount to unstake
     /// @dev updateReward() called prior to function logic
     /// @dev msg.sender NOT used (account is used)
-    function unstakeEscrow(address account, uint256 amount) external;
+    function unstakeEscrow(address _account, uint256 _amount) external;
 
     /// @notice unstake escrowed token skipping the cooldown wait period
-    /// @param account: address of account to unstake from
-    /// @param amount: amount to unstake
+    /// @param _account: address of account to unstake from
+    /// @param _amount: amount to unstake
     /// @dev this function is used to allow tokens to be vested at any time by RewardEscrowV2
-    function unstakeEscrowSkipCooldown(address account, uint256 amount) external;
+    function unstakeEscrowSkipCooldown(address _account, uint256 _amount) external;
 
     /// @notice unstake all available staked non-escrowed tokens and
     /// claim any rewards
@@ -185,8 +185,8 @@ interface IStakingRewardsV2 {
 
     /// @notice caller claims any rewards generated from staking on behalf of another account
     /// The rewards will be escrowed in RewardEscrow with the account as the beneficiary
-    /// @param account: address of account to claim rewards for
-    function getRewardOnBehalf(address account) external;
+    /// @param _account: address of account to claim rewards for
+    function getRewardOnBehalf(address _account) external;
 
     /// @notice claim rewards for an account and stake them
     function compound() external;
@@ -198,9 +198,9 @@ interface IStakingRewardsV2 {
     // settings
 
     /// @notice configure reward rate
-    /// @param reward: amount of token to be distributed over a period
+    /// @param _reward: amount of token to be distributed over a period
     /// @dev updateReward() called prior to function logic (with zero address)
-    function notifyRewardAmount(uint256 reward) external;
+    function notifyRewardAmount(uint256 _reward) external;
 
     /// @notice set rewards duration
     /// @param _rewardsDuration: denoted in seconds

@@ -120,8 +120,8 @@ contract StakingRewardsV2 is
     }
 
     /// @notice only allow execution after the unstaking cooldown period has elapsed
-    modifier afterCooldown(address account) {
-        uint256 canUnstakeAt = userLastStakeTime[account] + cooldownPeriod;
+    modifier afterCooldown(address _account) {
+        uint256 canUnstakeAt = userLastStakeTime[_account] + cooldownPeriod;
         if (canUnstakeAt > block.timestamp) {
             revert MustWaitForUnlock(canUnstakeAt);
         }
@@ -184,27 +184,27 @@ contract StakingRewardsV2 is
     }
 
     /// @inheritdoc IStakingRewardsV2
-    function balanceOf(address account) public view override returns (uint256) {
-        return balances[account].length == 0
+    function balanceOf(address _account) public view override returns (uint256) {
+        return balances[_account].length == 0
             ? 0
-            : balances[account][balances[account].length - 1].value;
+            : balances[_account][balances[_account].length - 1].value;
     }
 
     /// @inheritdoc IStakingRewardsV2
-    function v1BalanceOf(address account) public view override returns (uint256) {
-        return stakingRewardsV1.balanceOf(account);
+    function v1BalanceOf(address _account) public view override returns (uint256) {
+        return stakingRewardsV1.balanceOf(_account);
     }
 
     /// @inheritdoc IStakingRewardsV2
-    function escrowedBalanceOf(address account) public view override returns (uint256) {
-        return escrowedBalances[account].length == 0
+    function escrowedBalanceOf(address _account) public view override returns (uint256) {
+        return escrowedBalances[_account].length == 0
             ? 0
-            : escrowedBalances[account][escrowedBalances[account].length - 1].value;
+            : escrowedBalances[_account][escrowedBalances[_account].length - 1].value;
     }
 
     /// @inheritdoc IStakingRewardsV2
-    function nonEscrowedBalanceOf(address account) public view override returns (uint256) {
-        return balanceOf(account) - escrowedBalanceOf(account);
+    function nonEscrowedBalanceOf(address _account) public view override returns (uint256) {
+        return balanceOf(_account) - escrowedBalanceOf(_account);
     }
 
     /// @inheritdoc IStakingRewardsV2
@@ -217,120 +217,120 @@ contract StakingRewardsV2 is
     ///////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IStakingRewardsV2
-    function stake(uint256 amount)
+    function stake(uint256 _amount)
         external
         override
         nonReentrant
         whenNotPaused
         updateReward(msg.sender)
     {
-        if (amount == 0) revert AmountZero();
+        if (_amount == 0) revert AmountZero();
 
         // update state
         userLastStakeTime[msg.sender] = block.timestamp;
-        _addTotalSupplyCheckpoint(totalSupply() + amount);
-        _addBalancesCheckpoint(msg.sender, balanceOf(msg.sender) + amount);
+        _addTotalSupplyCheckpoint(totalSupply() + _amount);
+        _addBalancesCheckpoint(msg.sender, balanceOf(msg.sender) + _amount);
 
         // emit staking event and index msg.sender
-        emit Staked(msg.sender, amount);
+        emit Staked(msg.sender, _amount);
 
         // transfer token to this contract from the caller
-        token.safeTransferFrom(msg.sender, address(this), amount);
+        token.safeTransferFrom(msg.sender, address(this), _amount);
     }
 
     /// @inheritdoc IStakingRewardsV2
-    function unstake(uint256 amount)
+    function unstake(uint256 _amount)
         public
         override
         nonReentrant
         updateReward(msg.sender)
         afterCooldown(msg.sender)
     {
-        if (amount == 0) revert AmountZero();
-        if (amount > nonEscrowedBalanceOf(msg.sender)) revert InsufficientBalance();
+        if (_amount == 0) revert AmountZero();
+        if (_amount > nonEscrowedBalanceOf(msg.sender)) revert InsufficientBalance();
 
         // update state
-        _addTotalSupplyCheckpoint(totalSupply() - amount);
-        _addBalancesCheckpoint(msg.sender, balanceOf(msg.sender) - amount);
+        _addTotalSupplyCheckpoint(totalSupply() - _amount);
+        _addBalancesCheckpoint(msg.sender, balanceOf(msg.sender) - _amount);
 
         // emit unstake event and index msg.sender
-        emit Unstaked(msg.sender, amount);
+        emit Unstaked(msg.sender, _amount);
 
         // transfer token from this contract to the caller
-        token.safeTransfer(msg.sender, amount);
+        token.safeTransfer(msg.sender, _amount);
     }
 
     /// @inheritdoc IStakingRewardsV2
-    function stakeEscrow(address account, uint256 amount) external override onlyRewardEscrow {
-        _stakeEscrow(account, amount);
+    function stakeEscrow(address _account, uint256 _amount) external override onlyRewardEscrow {
+        _stakeEscrow(_account, _amount);
     }
 
-    function _stakeEscrow(address account, uint256 amount)
+    function _stakeEscrow(address _account, uint256 _amount)
         internal
         whenNotPaused
-        updateReward(account)
+        updateReward(_account)
     {
-        if (amount == 0) revert AmountZero();
-        uint256 unstakedEscrow = unstakedEscrowedBalanceOf(account);
-        if (amount > unstakedEscrow) {
+        if (_amount == 0) revert AmountZero();
+        uint256 unstakedEscrow = unstakedEscrowedBalanceOf(_account);
+        if (_amount > unstakedEscrow) {
             revert InsufficientUnstakedEscrow(unstakedEscrow);
         }
 
         // update state
-        userLastStakeTime[account] = block.timestamp;
-        _addBalancesCheckpoint(account, balanceOf(account) + amount);
-        _addEscrowedBalancesCheckpoint(account, escrowedBalanceOf(account) + amount);
+        userLastStakeTime[_account] = block.timestamp;
+        _addBalancesCheckpoint(_account, balanceOf(_account) + _amount);
+        _addEscrowedBalancesCheckpoint(_account, escrowedBalanceOf(_account) + _amount);
 
         // updates total supply despite no new staking token being transfered.
         // escrowed tokens are locked in RewardEscrow
-        _addTotalSupplyCheckpoint(totalSupply() + amount);
+        _addTotalSupplyCheckpoint(totalSupply() + _amount);
 
-        // emit escrow staking event and index _account
-        emit EscrowStaked(account, amount);
+        // emit escrow staking event and index account
+        emit EscrowStaked(_account, _amount);
     }
 
     /// @inheritdoc IStakingRewardsV2
-    function stakeEscrowOnBehalf(address account, uint256 amount)
+    function stakeEscrowOnBehalf(address _account, uint256 _amount)
         external
         override
-        onlyOperator(account)
+        onlyOperator(_account)
     {
-        _stakeEscrow(account, amount);
+        _stakeEscrow(_account, _amount);
     }
 
     /// @inheritdoc IStakingRewardsV2
-    function unstakeEscrow(address account, uint256 amount)
+    function unstakeEscrow(address _account, uint256 _amount)
         external
         override
-        afterCooldown(account)
+        afterCooldown(_account)
     {
-        _unstakeEscrow(account, amount);
+        _unstakeEscrow(_account, _amount);
     }
 
     /// @inheritdoc IStakingRewardsV2
-    function unstakeEscrowSkipCooldown(address account, uint256 amount) external override {
-        _unstakeEscrow(account, amount);
+    function unstakeEscrowSkipCooldown(address _account, uint256 _amount) external override {
+        _unstakeEscrow(_account, _amount);
     }
 
-    function _unstakeEscrow(address account, uint256 amount)
+    function _unstakeEscrow(address _account, uint256 _amount)
         internal
         nonReentrant
         onlyRewardEscrow
-        updateReward(account)
+        updateReward(_account)
     {
-        if (amount == 0) revert AmountZero();
-        if (amount > escrowedBalanceOf(account)) revert InsufficientBalance();
+        if (_amount == 0) revert AmountZero();
+        if (_amount > escrowedBalanceOf(_account)) revert InsufficientBalance();
 
         // update state
-        _addBalancesCheckpoint(account, balanceOf(account) - amount);
-        _addEscrowedBalancesCheckpoint(account, escrowedBalanceOf(account) - amount);
+        _addBalancesCheckpoint(_account, balanceOf(_account) - _amount);
+        _addEscrowedBalancesCheckpoint(_account, escrowedBalanceOf(_account) - _amount);
 
         // updates total supply despite no new staking token being transfered.
         // escrowed tokens are locked in RewardEscrow
-        _addTotalSupplyCheckpoint(totalSupply() - amount);
+        _addTotalSupplyCheckpoint(totalSupply() - _amount);
 
         // emit escrow unstaked event and index account
-        emit EscrowUnstaked(account, amount);
+        emit EscrowUnstaked(_account, _amount);
     }
 
     /// @inheritdoc IStakingRewardsV2
@@ -349,25 +349,25 @@ contract StakingRewardsV2 is
         _getReward(msg.sender);
     }
 
-    function _getReward(address account) internal nonReentrant updateReward(account) {
-        uint256 reward = rewards[account];
+    function _getReward(address _account) internal nonReentrant updateReward(_account) {
+        uint256 reward = rewards[_account];
         if (reward > 0) {
             // update state (first)
-            rewards[account] = 0;
+            rewards[_account] = 0;
 
             // transfer token from this contract to the rewardEscrow
             // and create a vesting entry for the caller
             token.safeTransfer(address(rewardEscrow), reward);
-            rewardEscrow.appendVestingEntry(account, reward, 52 weeks);
+            rewardEscrow.appendVestingEntry(_account, reward, 52 weeks);
 
             // emit reward claimed event and index account
-            emit RewardPaid(account, reward);
+            emit RewardPaid(_account, reward);
         }
     }
 
     /// @inheritdoc IStakingRewardsV2
-    function getRewardOnBehalf(address account) external override onlyOperator(account) {
-        _getReward(account);
+    function getRewardOnBehalf(address _account) external override onlyOperator(_account) {
+        _getReward(_account);
     }
 
     /// @inheritdoc IStakingRewardsV2
@@ -383,8 +383,8 @@ contract StakingRewardsV2 is
     }
 
     /// @inheritdoc IStakingRewardsV2
-    function compoundOnBehalf(address account) external override onlyOperator(account) {
-        _compound(account);
+    function compoundOnBehalf(address _account) external override onlyOperator(_account) {
+        _compound(_account);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -392,19 +392,19 @@ contract StakingRewardsV2 is
     ///////////////////////////////////////////////////////////////*/
 
     /// @notice update reward state for the account and contract
-    /// @param account: address of account which rewards are being updated for
+    /// @param _account: address of account which rewards are being updated for
     /// @dev contract state not specific to an account will be updated also
-    modifier updateReward(address account) {
+    modifier updateReward(address _account) {
         rewardPerTokenStored = rewardPerToken();
         lastUpdateTime = lastTimeRewardApplicable();
 
-        if (account != address(0)) {
+        if (_account != address(0)) {
             // update amount of rewards a user can claim
-            rewards[account] = earned(account);
+            rewards[_account] = earned(_account);
 
             // update reward per token staked AT this given time
             // (i.e. when this user is interacting with StakingRewards)
-            userRewardPerTokenPaid[account] = rewardPerTokenStored;
+            userRewardPerTokenPaid[_account] = rewardPerTokenStored;
         }
         _;
     }
@@ -435,13 +435,13 @@ contract StakingRewardsV2 is
     }
 
     /// @inheritdoc IStakingRewardsV2
-    function earned(address account) public view override returns (uint256) {
-        uint256 v1Balance = v1BalanceOf(account);
-        uint256 v2Balance = balanceOf(account);
+    function earned(address _account) public view override returns (uint256) {
+        uint256 v1Balance = v1BalanceOf(_account);
+        uint256 v2Balance = balanceOf(_account);
         uint256 totalBalance = v1Balance + v2Balance;
 
-        return ((totalBalance * (rewardPerToken() - userRewardPerTokenPaid[account])) / 1e18)
-            + rewards[account];
+        return ((totalBalance * (rewardPerToken() - userRewardPerTokenPaid[_account])) / 1e18)
+            + rewards[_account];
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -449,13 +449,13 @@ contract StakingRewardsV2 is
     ///////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IStakingRewardsV2
-    function balancesLength(address account) external view override returns (uint256) {
-        return balances[account].length;
+    function balancesLength(address _account) external view override returns (uint256) {
+        return balances[_account].length;
     }
 
     /// @inheritdoc IStakingRewardsV2
-    function escrowedBalancesLength(address account) external view override returns (uint256) {
-        return escrowedBalances[account].length;
+    function escrowedBalancesLength(address _account) external view override returns (uint256) {
+        return escrowedBalances[_account].length;
     }
 
     /// @inheritdoc IStakingRewardsV2
@@ -464,23 +464,23 @@ contract StakingRewardsV2 is
     }
 
     /// @inheritdoc IStakingRewardsV2
-    function balanceAtTime(address account, uint256 _timestamp)
+    function balanceAtTime(address _account, uint256 _timestamp)
         external
         view
         override
         returns (uint256)
     {
-        return _checkpointBinarySearch(balances[account], _timestamp);
+        return _checkpointBinarySearch(balances[_account], _timestamp);
     }
 
     /// @inheritdoc IStakingRewardsV2
-    function escrowedbalanceAtTime(address account, uint256 _timestamp)
+    function escrowedbalanceAtTime(address _account, uint256 _timestamp)
         external
         view
         override
         returns (uint256)
     {
-        return _checkpointBinarySearch(escrowedBalances[account], _timestamp);
+        return _checkpointBinarySearch(escrowedBalances[_account], _timestamp);
     }
 
     /// @inheritdoc IStakingRewardsV2
@@ -489,32 +489,32 @@ contract StakingRewardsV2 is
     }
 
     /// @notice finds the value of the checkpoint at a given timestamp
-    /// @param checkpoints: array of checkpoints to search
+    /// @param _checkpoints: array of checkpoints to search
     /// @param _timestamp: timestamp to check
     /// @dev returns 0 if no checkpoints exist, uses iterative binary search
-    function _checkpointBinarySearch(Checkpoint[] memory checkpoints, uint256 _timestamp)
+    function _checkpointBinarySearch(Checkpoint[] memory _checkpoints, uint256 _timestamp)
         internal
         pure
         returns (uint256)
     {
-        uint256 length = checkpoints.length;
+        uint256 length = _checkpoints.length;
         if (length == 0) return 0;
 
         uint256 min = 0;
         uint256 max = length - 1;
 
-        if (checkpoints[min].ts > _timestamp) return 0;
-        if (checkpoints[max].ts <= _timestamp) return checkpoints[max].value;
+        if (_checkpoints[min].ts > _timestamp) return 0;
+        if (_checkpoints[max].ts <= _timestamp) return _checkpoints[max].value;
 
         while (max > min) {
             uint256 midpoint = (max + min + 1) / 2;
-            if (checkpoints[midpoint].ts <= _timestamp) min = midpoint;
+            if (_checkpoints[midpoint].ts <= _timestamp) min = midpoint;
             else max = midpoint - 1;
         }
 
         assert(min == max);
 
-        return checkpoints[min].value;
+        return _checkpoints[min].value;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -522,44 +522,45 @@ contract StakingRewardsV2 is
     ///////////////////////////////////////////////////////////////*/
 
     /// @notice add a new balance checkpoint for an account
-    /// @param account: address of account to add checkpoint for
-    /// @param value: value of checkpoint to add
-    function _addBalancesCheckpoint(address account, uint256 value) internal {
-        uint256 lastTimestamp =
-            balances[account].length == 0 ? 0 : balances[account][balances[account].length - 1].ts;
+    /// @param _account: address of account to add checkpoint for
+    /// @param _value: value of checkpoint to add
+    function _addBalancesCheckpoint(address _account, uint256 _value) internal {
+        uint256 lastTimestamp = balances[_account].length == 0
+            ? 0
+            : balances[_account][balances[_account].length - 1].ts;
 
         if (lastTimestamp != block.timestamp) {
-            balances[account].push(Checkpoint(block.timestamp, block.number, value));
+            balances[_account].push(Checkpoint(block.timestamp, block.number, _value));
         } else {
-            balances[account][balances[account].length - 1].value = value;
+            balances[_account][balances[_account].length - 1].value = _value;
         }
     }
 
     /// @notice add a new escrowed balance checkpoint for an account
-    /// @param account: address of account to add checkpoint for
-    /// @param value: value of checkpoint to add
-    function _addEscrowedBalancesCheckpoint(address account, uint256 value) internal {
-        uint256 lastTimestamp = escrowedBalances[account].length == 0
+    /// @param _account: address of account to add checkpoint for
+    /// @param _value: value of checkpoint to add
+    function _addEscrowedBalancesCheckpoint(address _account, uint256 _value) internal {
+        uint256 lastTimestamp = escrowedBalances[_account].length == 0
             ? 0
-            : escrowedBalances[account][escrowedBalances[account].length - 1].ts;
+            : escrowedBalances[_account][escrowedBalances[_account].length - 1].ts;
 
         if (lastTimestamp != block.timestamp) {
-            escrowedBalances[account].push(Checkpoint(block.timestamp, block.number, value));
+            escrowedBalances[_account].push(Checkpoint(block.timestamp, block.number, _value));
         } else {
-            escrowedBalances[account][escrowedBalances[account].length - 1].value = value;
+            escrowedBalances[_account][escrowedBalances[_account].length - 1].value = _value;
         }
     }
 
     /// @notice add a new total supply checkpoint
-    /// @param value: value of checkpoint to add
-    function _addTotalSupplyCheckpoint(uint256 value) internal {
+    /// @param _value: value of checkpoint to add
+    function _addTotalSupplyCheckpoint(uint256 _value) internal {
         uint256 lastTimestamp =
             _totalSupply.length == 0 ? 0 : _totalSupply[_totalSupply.length - 1].ts;
 
         if (lastTimestamp != block.timestamp) {
-            _totalSupply.push(Checkpoint(block.timestamp, block.number, value));
+            _totalSupply.push(Checkpoint(block.timestamp, block.number, _value));
         } else {
-            _totalSupply[_totalSupply.length - 1].value = value;
+            _totalSupply[_totalSupply.length - 1].value = _value;
         }
     }
 
@@ -568,23 +569,23 @@ contract StakingRewardsV2 is
     ///////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IStakingRewardsV2
-    function notifyRewardAmount(uint256 reward)
+    function notifyRewardAmount(uint256 _reward)
         external
         override
         onlySupplySchedule
         updateReward(address(0))
     {
         if (block.timestamp >= periodFinish) {
-            rewardRate = reward / rewardsDuration;
+            rewardRate = _reward / rewardsDuration;
         } else {
             uint256 remaining = periodFinish - block.timestamp;
             uint256 leftover = remaining * rewardRate;
-            rewardRate = (reward + leftover) / rewardsDuration;
+            rewardRate = (_reward + leftover) / rewardsDuration;
         }
 
         lastUpdateTime = block.timestamp;
         periodFinish = block.timestamp + rewardsDuration;
-        emit RewardAdded(reward);
+        emit RewardAdded(_reward);
     }
 
     /// @inheritdoc IStakingRewardsV2
@@ -627,21 +628,25 @@ contract StakingRewardsV2 is
     ///////////////////////////////////////////////////////////////*/
 
     /// @dev this function is used by the proxy to set the access control for upgrading the implementation contract
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
+    function _authorizeUpgrade(address _newImplementation) internal override onlyOwner {}
 
     /// @inheritdoc IStakingRewardsV2
-    function approveOperator(address operator, bool approved) external override {
-        if (operator == msg.sender) revert CannotApproveSelf();
+    function approveOperator(address _operator, bool _approved) external override {
+        if (_operator == msg.sender) revert CannotApproveSelf();
 
-        _operatorApprovals[msg.sender][operator] = approved;
+        _operatorApprovals[msg.sender][_operator] = _approved;
 
-        emit OperatorApproved(msg.sender, operator, approved);
+        emit OperatorApproved(msg.sender, _operator, _approved);
     }
 
     /// @inheritdoc IStakingRewardsV2
-    function recoverERC20(address tokenAddress, uint256 tokenAmount) external override onlyOwner {
-        if (tokenAddress == address(token)) revert CannotRecoverStakingToken();
-        IERC20(tokenAddress).safeTransfer(owner(), tokenAmount);
-        emit Recovered(tokenAddress, tokenAmount);
+    function recoverERC20(address _tokenAddress, uint256 _tokenAmount)
+        external
+        override
+        onlyOwner
+    {
+        if (_tokenAddress == address(token)) revert CannotRecoverStakingToken();
+        IERC20(_tokenAddress).safeTransfer(owner(), _tokenAmount);
+        emit Recovered(_tokenAddress, _tokenAmount);
     }
 }
