@@ -95,6 +95,24 @@ contract StakingRewardsV2OnBehalfActionsTests is DefaultStakingV2Setup {
         stakingRewardsV2.stakeEscrowOnBehalf(owner, escrowAmount);
     }
 
+    function test_Only_Approved_Can_Call_compoundOnBehalf() public {
+        fundAndApproveAccountV2(address(this), TEST_VALUE);
+
+        // configure reward rate
+        addNewRewardsToStakingRewardsV2(TEST_VALUE);
+
+        // fast forward 2 weeks
+        vm.warp(2 weeks);
+
+        // approve user1 as operator
+        stakingRewardsV2.approveOperator(user1, true);
+
+        // stake escrow on behalf as user2
+        vm.prank(user2);
+        vm.expectRevert(IStakingRewardsV2.NotApproved.selector);
+        stakingRewardsV2.compoundOnBehalf(address(this));
+    }
+
     function test_Cannot_Approve_Self() public {
         vm.expectRevert(IStakingRewardsV2.CannotApproveSelf.selector);
         stakingRewardsV2.approveOperator(address(this), true);
