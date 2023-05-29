@@ -529,7 +529,7 @@ contract StakingRewardsV2 is
             balances[account].length == 0 ? 0 : balances[account][balances[account].length - 1].ts;
 
         if (lastTimestamp != block.timestamp) {
-            balances[account].push(Checkpoint(block.timestamp, value));
+            balances[account].push(Checkpoint(block.timestamp, block.number, value));
         } else {
             balances[account][balances[account].length - 1].value = value;
         }
@@ -544,7 +544,7 @@ contract StakingRewardsV2 is
             : escrowedBalances[account][escrowedBalances[account].length - 1].ts;
 
         if (lastTimestamp != block.timestamp) {
-            escrowedBalances[account].push(Checkpoint(block.timestamp, value));
+            escrowedBalances[account].push(Checkpoint(block.timestamp, block.number, value));
         } else {
             escrowedBalances[account][escrowedBalances[account].length - 1].value = value;
         }
@@ -557,7 +557,7 @@ contract StakingRewardsV2 is
             _totalSupply.length == 0 ? 0 : _totalSupply[_totalSupply.length - 1].ts;
 
         if (lastTimestamp != block.timestamp) {
-            _totalSupply.push(Checkpoint(block.timestamp, value));
+            _totalSupply.push(Checkpoint(block.timestamp, block.number, value));
         } else {
             _totalSupply[_totalSupply.length - 1].value = value;
         }
