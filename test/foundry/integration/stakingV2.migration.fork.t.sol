@@ -12,13 +12,13 @@ import "../utils/Constants.t.sol";
 
 contract StakingV2MigrationForkTests is StakingTestHelpers {
     /*//////////////////////////////////////////////////////////////
-                                 STATE
+                                STATE
     //////////////////////////////////////////////////////////////*/
 
     address public owner;
 
     /*//////////////////////////////////////////////////////////////
-                                 SETUP
+                                SETUP
     //////////////////////////////////////////////////////////////*/
 
     function setUp() public override {
@@ -50,7 +50,7 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
     }
 
     /*//////////////////////////////////////////////////////////////
-                                 TESTS
+                                TESTS
     //////////////////////////////////////////////////////////////*/
 
     function test_Migrate_Then_Move_Funds_From_V1_To_V2_And_Generate_New_Rewards() public {
@@ -129,6 +129,53 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
 
     function test_Cannot_Create_Entry_After_Migration_Without_Approval() public {
         vm.expectRevert("ERC20: transfer amount exceeds balance");
+        vm.prank(user2);
         rewardEscrowV2.createEscrowEntry(user2, TEST_VALUE, 52 weeks, 90);
+    }
+
+    function test_Can_Vest_After_Migration() public {
+        createRewardEscrowEntryV2(user2, TEST_VALUE, 52 weeks);
+        uint256 treasuryBalanceBefore = kwenta.balanceOf(treasury);
+        entryIDs.push(1);
+        vm.prank(user2);
+        rewardEscrowV2.vest(entryIDs);
+
+        // check user got some funds
+        assertGt(kwenta.balanceOf(user2), 0);
+
+        // check treasury got some funds
+        uint256 treasuryBalanceAfter = kwenta.balanceOf(treasury);
+        assertGt(treasuryBalanceAfter, treasuryBalanceBefore);
+    }
+
+    function test_Cannot_Vest_If_Treasury_Transfer_Fails() public {
+        createRewardEscrowEntryV2(user2, TEST_VALUE, 52 weeks);
+        entryIDs.push(1);
+        vm.prank(user2);
+
+        // empty the treasury to force the transfer to fail
+        uint256 rewardEscrowV2Balance = kwenta.balanceOf(address(rewardEscrowV2));
+        vm.prank(address(rewardEscrowV2));
+        kwenta.transfer(address(user1), rewardEscrowV2Balance);
+
+        vm.expectRevert("ERC20: transfer amount exceeds balance");
+        vm.prank(user2);
+        rewardEscrowV2.vest(entryIDs);
+    }
+
+    function test_Cannot_Vest_If_Vested_Tokes_Transfer_Fails() public {
+        createRewardEscrowEntryV2(user2, 2 ether, 52 weeks, 50);
+        entryIDs.push(1);
+        vm.prank(user2);
+
+        // leave only 1 ether in the treasury, so the treasury transfer passes
+        // but the user transfer fails
+        uint256 rewardEscrowV2Balance = kwenta.balanceOf(address(rewardEscrowV2));
+        vm.prank(address(rewardEscrowV2));
+        kwenta.transfer(address(user1), rewardEscrowV2Balance - 1 ether);
+
+        vm.expectRevert("ERC20: transfer amount exceeds balance");
+        vm.prank(user2);
+        rewardEscrowV2.vest(entryIDs);
     }
 }
