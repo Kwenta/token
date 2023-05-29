@@ -382,10 +382,10 @@ contract StakingRewardsV2 is
         _stakeEscrow(_account, unstakedEscrowedBalanceOf(_account));
     }
 
-    // /// @inheritdoc IStakingRewardsV2
-    // function compoundOnBehalf(address account) external override onlyOperator(account) {
-    //     _getReward(account);
-    // }
+    /// @inheritdoc IStakingRewardsV2
+    function compoundOnBehalf(address account) external override onlyOperator(account) {
+        _compound(account);
+    }
 
     /*///////////////////////////////////////////////////////////////
                         REWARD UPDATE CALCULATIONS

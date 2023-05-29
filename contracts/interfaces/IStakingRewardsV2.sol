@@ -154,7 +154,7 @@ interface IStakingRewardsV2 {
     function stakeEscrow(address account, uint256 amount) external;
 
     /// @notice stake escrowed token on behalf of another account
-    /// @param account: address which owns token
+    /// @param account: address of account to stake on behalf of
     /// @param amount: amount to stake
     function stakeEscrowOnBehalf(address account, uint256 amount) external;
 
@@ -166,7 +166,7 @@ interface IStakingRewardsV2 {
     function unstakeEscrow(address account, uint256 amount) external;
 
     /// @notice unstake escrowed token skipping the cooldown wait period
-    /// @param account: address which owns token
+    /// @param account: address of account to unstake from
     /// @param amount: amount to unstake
     /// @dev this function is used to allow tokens to be vested at any time by RewardEscrowV2
     function unstakeEscrowSkipCooldown(address account, uint256 amount) external;
@@ -184,11 +184,15 @@ interface IStakingRewardsV2 {
 
     /// @notice caller claims any rewards generated from staking on behalf of another account
     /// The rewards will be escrowed in RewardEscrow with the account as the beneficiary
-    /// @param account: address which owns token
+    /// @param account: address of account to claim rewards for
     function getRewardOnBehalf(address account) external;
 
     /// @notice claim rewards for an account and stake them
     function compound() external;
+
+    /// @notice claim and stake rewards on behalf of another account
+    /// @param _account: address of account to claim and stake rewards for
+    function compoundOnBehalf(address _account) external;
 
     // settings
 
