@@ -92,4 +92,30 @@ contract StakingRewardsV2CompoundTests is DefaultStakingV2Setup {
         vm.prank(user1);
         stakingRewardsV2.compound();
     }
+
+    /*//////////////////////////////////////////////////////////////
+                            Events
+    //////////////////////////////////////////////////////////////*/
+
+    function test_compound_Events() public {
+        fundAndApproveAccountV2(address(this), TEST_VALUE);
+
+        // stake
+        stakingRewardsV2.stake(TEST_VALUE);
+
+        // configure reward rate
+        addNewRewardsToStakingRewardsV2(1 weeks);
+
+        // fast forward 2 weeks
+        vm.warp(2 weeks);
+
+        // expect events
+        vm.expectEmit(true, true, false, true);
+        emit RewardPaid(address(this), 1 weeks);
+        vm.expectEmit(true, true, false, true);
+        emit EscrowStaked(address(this), 1 weeks);
+
+        // compound rewards
+        stakingRewardsV2.compound();
+    }
 }
