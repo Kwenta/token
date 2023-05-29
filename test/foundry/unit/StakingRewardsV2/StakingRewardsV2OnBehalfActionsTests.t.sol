@@ -386,8 +386,54 @@ contract StakingRewardsV2OnBehalfActionsTests is DefaultStakingV2Setup {
         // check all escrowed rewards were staked
         uint256 totalRewards = finalEscrowBalance - initialEscrowBalance;
         assertEq(totalRewards, stakingRewardsV2.escrowedBalanceOf(address(this)));
-        // assertEq(totalRewards + TEST_VALUE, stakingRewardsV2.balanceOf(address(this)));
-        // assertEq(rewardEscrowV2.unstakedEscrowedBalanceOf(address(this)), 0);
+        assertEq(totalRewards + TEST_VALUE, stakingRewardsV2.balanceOf(address(this)));
+        assertEq(rewardEscrowV2.unstakedEscrowedBalanceOf(address(this)), 0);
+    }
+
+    function test_compoundOnBehalf_Fuzz(
+        uint32 initialStake,
+        uint32 newRewards,
+        address owner,
+        address operator
+    ) public {
+        vm.assume(initialStake > 0);
+        // need reward to be greater than duration so that reward rate is above 0
+        vm.assume(newRewards > stakingRewardsV2.rewardsDuration());
+        vm.assume(owner != address(0));
+        vm.assume(operator != address(0));
+        vm.assume(operator != owner);
+
+        fundAndApproveAccountV2(owner, initialStake);
+
+        uint256 initialEscrowBalance = rewardEscrowV2.totalEscrowedBalanceOf(owner);
+
+        // stake
+        vm.prank(owner);
+        stakingRewardsV2.stake(initialStake);
+
+        // configure reward rate
+        addNewRewardsToStakingRewardsV2(newRewards);
+
+        // fast forward 2 weeks
+        vm.warp(2 weeks);
+
+        // approve operator
+        vm.prank(owner);
+        stakingRewardsV2.approveOperator(operator, true);
+
+        // compound rewards on behalf
+        vm.prank(operator);
+        stakingRewardsV2.compoundOnBehalf(owner);
+
+        // check reward escrow balance increased
+        uint256 finalEscrowBalance = rewardEscrowV2.totalEscrowedBalanceOf(owner);
+        assertGt(finalEscrowBalance, initialEscrowBalance);
+
+        // check all escrowed rewards were staked
+        uint256 totalRewards = finalEscrowBalance - initialEscrowBalance;
+        assertEq(totalRewards, stakingRewardsV2.escrowedBalanceOf(owner));
+        assertEq(totalRewards + initialStake, stakingRewardsV2.balanceOf(owner));
+        assertEq(rewardEscrowV2.unstakedEscrowedBalanceOf(owner), 0);
     }
 
     /*//////////////////////////////////////////////////////////////
