@@ -242,12 +242,24 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         rewardEscrowV2.createEscrowEntry(address(0), TEST_VALUE, 52 weeks, 90);
     }
 
-    function test_createEscrowEntry_Should_Revert_If_Early_Vesting_Fee_Is_0() public {
+    function test_createEscrowEntry_Should_Revert_If_Early_Vesting_Fee_Is_Too_Low() public {
+        uint8 earlyVestingFee = rewardEscrowV2.MINIMUM_EARLY_VESTING_FEE() - 1;
         vm.prank(treasury);
         kwenta.approve(address(rewardEscrowV2), TEST_VALUE);
-        vm.expectRevert(IRewardEscrowV2.ZeroEarlyVestingFee.selector);
+        vm.expectRevert(IRewardEscrowV2.EarlyVestingFeeTooLow.selector);
         vm.prank(treasury);
-        rewardEscrowV2.createEscrowEntry(address(this), TEST_VALUE, 52 weeks, 0);
+        rewardEscrowV2.createEscrowEntry(address(this), TEST_VALUE, 52 weeks, earlyVestingFee);
+    }
+
+    function test_createEscrowEntry_Should_Revert_If_Early_Vesting_Fee_Is_Too_Low_Fuzz(
+        uint8 earlyVestingFee
+    ) public {
+        vm.assume(earlyVestingFee < rewardEscrowV2.MINIMUM_EARLY_VESTING_FEE());
+        vm.prank(treasury);
+        kwenta.approve(address(rewardEscrowV2), TEST_VALUE);
+        vm.expectRevert(IRewardEscrowV2.EarlyVestingFeeTooLow.selector);
+        vm.prank(treasury);
+        rewardEscrowV2.createEscrowEntry(address(this), TEST_VALUE, 52 weeks, earlyVestingFee);
     }
 
     function test_createEscrowEntry_Should_Revert_If_Early_Vesting_Fee_Is_Over_100() public {

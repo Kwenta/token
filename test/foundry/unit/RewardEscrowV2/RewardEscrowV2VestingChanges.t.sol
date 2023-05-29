@@ -53,7 +53,7 @@ contract RewardEscrowV2VestingChangesTests is DefaultStakingV2Setup {
         vm.assume(escrowAmount > 0);
         vm.assume(duration > 0);
         vm.assume(earlyVestingFee <= 100);
-        vm.assume(earlyVestingFee > 0);
+        vm.assume(earlyVestingFee > rewardEscrowV2.MINIMUM_EARLY_VESTING_FEE());
 
         createRewardEscrowEntryV2(user1, escrowAmount, duration, earlyVestingFee);
         (,,, uint8 earlyVestingFeeAfter) = rewardEscrowV2.getVestingEntry(1);
@@ -92,7 +92,7 @@ contract RewardEscrowV2VestingChangesTests is DefaultStakingV2Setup {
     function test_Variable_Entry_Early_Vesting_Fee_Is_Applied() public {
         uint256 escrowAmount = 1 ether;
         uint256 duration = 52 weeks;
-        uint8 earlyVestingFee = 20;
+        uint8 earlyVestingFee = 50;
 
         // create entry
         createRewardEscrowEntryV2(user1, escrowAmount, duration, earlyVestingFee);
@@ -121,7 +121,7 @@ contract RewardEscrowV2VestingChangesTests is DefaultStakingV2Setup {
         vm.assume(escrowAmount > 0);
         vm.assume(duration > 0);
         vm.assume(earlyVestingFee <= 100);
-        vm.assume(earlyVestingFee > 0);
+        vm.assume(earlyVestingFee > rewardEscrowV2.MINIMUM_EARLY_VESTING_FEE());
 
         // create entry
         createRewardEscrowEntryV2(user1, escrowAmount, duration, earlyVestingFee);
@@ -145,7 +145,7 @@ contract RewardEscrowV2VestingChangesTests is DefaultStakingV2Setup {
     function test_Can_Vest_When_Escrow_Staked_Within_Cooldown() public {
         uint256 escrowAmount = 1 ether;
         uint256 duration = 52 weeks;
-        uint8 earlyVestingFee = 20;
+        uint8 earlyVestingFee = 50;
 
         // create entry
         createRewardEscrowEntryV2(user1, escrowAmount, duration, earlyVestingFee);
@@ -182,7 +182,7 @@ contract RewardEscrowV2VestingChangesTests is DefaultStakingV2Setup {
         vm.assume(stakingAmount <= escrowAmount);
         vm.assume(duration > 0);
         vm.assume(earlyVestingFee <= 100);
-        vm.assume(earlyVestingFee > 0);
+        vm.assume(earlyVestingFee > rewardEscrowV2.MINIMUM_EARLY_VESTING_FEE());
 
         // create entry
         createRewardEscrowEntryV2(user1, escrowAmount, duration, earlyVestingFee);
