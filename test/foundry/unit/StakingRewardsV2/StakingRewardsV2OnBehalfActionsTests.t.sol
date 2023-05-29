@@ -25,6 +25,20 @@ contract StakingRewardsV2OnBehalfActionsTests is DefaultStakingV2Setup {
         stakingRewardsV2.getRewardOnBehalf(address(this));
     }
 
+    function test_Cannot_Get_Reward_On_Behalf_Of_Zero_Address() public {
+        fundAccountAndStakeV2(address(this), TEST_VALUE);
+        addNewRewardsToStakingRewardsV2(1 weeks);
+        vm.warp(block.timestamp + stakingRewardsV2.rewardsDuration());
+
+        // approve user1 as operator
+        stakingRewardsV2.approveOperator(user1, true);
+
+        // claim rewards on behalf as user2
+        vm.prank(user1);
+        vm.expectRevert(IStakingRewardsV2.NotApproved.selector);
+        stakingRewardsV2.getRewardOnBehalf(address(0));
+    }
+
     function test_Only_Approved_Can_Call_getRewardOnBehalf_Fuzz(
         uint32 fundingAmount,
         uint32 newRewards,
