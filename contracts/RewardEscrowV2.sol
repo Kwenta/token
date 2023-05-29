@@ -3,7 +3,8 @@ pragma solidity ^0.8.19;
 
 // Inheritance
 import {IRewardEscrowV2, VestingEntries} from "./interfaces/IRewardEscrowV2.sol";
-import {ERC721EnumerableUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
+import {ERC721EnumerableUpgradeable} from
+    "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
@@ -28,42 +29,46 @@ contract RewardEscrowV2 is
                         CONSTANTS/IMMUTABLES
     ///////////////////////////////////////////////////////////////*/
 
-    /* Max escrow duration */
+    /// @notice Max escrow duration
     uint256 public constant MAX_DURATION = 4 * 52 weeks; // Default max 4 years duration
 
+    /// @notice Default early vesting fee - used for new vesting entries from staking rewards
     uint8 public constant DEFAULT_EARLY_VESTING_FEE = 90; // Default 90 percent
 
+    /// @notice Contract for KWENTA ERC20 token
     IKwenta private kwenta;
 
+    /// @notice Contract for StakingRewardsV2
     IStakingRewardsV2 public stakingRewards;
 
     /*///////////////////////////////////////////////////////////////
                                 STATE
     ///////////////////////////////////////////////////////////////*/
 
-    // mapping of entryIDs to vesting entries
+    ///@notice mapping of entryIDs to vesting entries
     mapping(uint256 => VestingEntries.VestingEntry) public vestingSchedules;
 
-    // Counter for new vesting entry ids
     // TODO: delete and use totalSupply() instead - maybe not with burn decrementing it?
+    /// @notice Counter for new vesting entry ids
     uint256 public nextEntryId;
 
-    // An account's total escrowed KWENTA balance to save recomputing this for fee extraction purposes
-    mapping(address => uint256) public override totalEscrowedAccountBalance;
+    /// @notice An account's total escrowed KWENTA balance to save recomputing this for fee extraction purposes
+    mapping(address => uint256) public totalEscrowedAccountBalance;
 
-    // An account's total vested reward KWENTA
-    mapping(address => uint256) public override totalVestedAccountBalance;
+    /// @notice An account's total vested reward KWENTA
+    mapping(address => uint256) public totalVestedAccountBalance;
 
-    // The total remaining escrowed balance, for verifying the actual KWENTA balance of this contract against
+    /// @notice The total remaining escrowed balance, for verifying the actual KWENTA balance of this contract against
     uint256 public totalEscrowedBalance;
 
-    // notice treasury address may change
+    /// @notice treasury address - this may change
     address public treasuryDAO;
 
     /*///////////////////////////////////////////////////////////////
                                 AUTH
     ///////////////////////////////////////////////////////////////*/
 
+    /// @notice Restrict function to only the staking rewards contract
     modifier onlyStakingRewards() {
         if (msg.sender != address(stakingRewards)) revert OnlyStakingRewards();
         _;
@@ -80,11 +85,11 @@ contract RewardEscrowV2 is
         _disableInitializers();
     }
 
-    function initialize(address _owner, address _kwenta) external initializer {
+    /// @inheritdoc IRewardEscrowV2
+    function initialize(address _owner, address _kwenta) external override initializer {
         // Initialize inherited contracts
         __Ownable_init();
         __UUPSUpgradeable_init();
-        // TODO: what should these names be?
         __ERC721_init("Kwenta Reward Escrow", "KRE");
 
         // transfer ownership
@@ -99,10 +104,8 @@ contract RewardEscrowV2 is
                                 SETTERS
     ///////////////////////////////////////////////////////////////*/
 
-    /*
-    * @notice Function used to define the StakingRewards to use
-    */
-    function setStakingRewards(address _stakingRewards) public onlyOwner {
+    /// @inheritdoc IRewardEscrowV2
+    function setStakingRewards(address _stakingRewards) external override onlyOwner {
         if (_stakingRewards == address(0)) revert ZeroAddress();
         if (address(stakingRewards) != address(0)) revert StakingRewardsAlreadySet();
 
@@ -110,9 +113,8 @@ contract RewardEscrowV2 is
         emit StakingRewardsSet(address(_stakingRewards));
     }
 
-    /// @notice set treasuryDAO address
-    /// @dev only owner may change address
-    function setTreasuryDAO(address _treasuryDAO) external onlyOwner {
+    /// @inheritdoc IRewardEscrowV2
+    function setTreasuryDAO(address _treasuryDAO) external override onlyOwner {
         if (_treasuryDAO == address(0)) revert ZeroAddress();
         treasuryDAO = _treasuryDAO;
         emit TreasuryDAOSet(treasuryDAO);
@@ -122,33 +124,22 @@ contract RewardEscrowV2 is
                                 VIEWS
     ///////////////////////////////////////////////////////////////*/
 
-    /**
-     * @notice helper function to return kwenta address
-     */
+    /// @inheritdoc IRewardEscrowV2
     function getKwentaAddress() external view override returns (address) {
         return address(kwenta);
     }
 
-    /**
-     * @notice A simple alias to totalEscrowedAccountBalance
-     */
+    /// @inheritdoc IRewardEscrowV2
     function totalEscrowedBalanceOf(address account) public view override returns (uint256) {
         return totalEscrowedAccountBalance[account];
     }
 
-    /**
-     * @notice Get the amount of escrowed kwenta that is not staked for a given account
-     */
+    /// @inheritdoc IRewardEscrowV2
     function unstakedEscrowBalanceOf(address account) public view override returns (uint256) {
         return totalEscrowedAccountBalance[account] - stakingRewards.escrowedBalanceOf(account);
     }
 
-    /**
-     * @notice Get the details of a given vesting entry
-     * @param entryID The id of the vesting entry.
-     * @return endTime the vesting entry object
-     * @return escrowAmount rate per second emission.
-     */
+    /// @inheritdoc IRewardEscrowV2
     function getVestingEntry(uint256 entryID)
         external
         view
@@ -161,6 +152,7 @@ contract RewardEscrowV2 is
         earlyVestingFee = vestingSchedules[entryID].earlyVestingFee;
     }
 
+    /// @inheritdoc IRewardEscrowV2
     function getVestingSchedules(address account, uint256 index, uint256 pageSize)
         external
         view
@@ -201,6 +193,7 @@ contract RewardEscrowV2 is
         return vestingEntries;
     }
 
+    /// @inheritdoc IRewardEscrowV2
     function getAccountVestingEntryIDs(address account, uint256 index, uint256 pageSize)
         external
         view
@@ -230,6 +223,7 @@ contract RewardEscrowV2 is
         return page;
     }
 
+    /// @inheritdoc IRewardEscrowV2
     function getVestingQuantity(uint256[] calldata entryIDs)
         external
         view
@@ -240,11 +234,11 @@ contract RewardEscrowV2 is
         for (uint256 i = 0; i < entryIDsLength;) {
             VestingEntries.VestingEntry memory entry = vestingSchedules[entryIDs[i]];
 
-            /* Skip entry if escrowAmount == 0 */
+            // Skip entry if escrowAmount == 0
             if (entry.escrowAmount != 0) {
                 (uint256 quantity, uint256 fee) = _claimableAmount(entry);
 
-                /* add quantity to total */
+                // add quantity to total
                 total += quantity;
                 totalFee += fee;
             }
@@ -255,6 +249,7 @@ contract RewardEscrowV2 is
         }
     }
 
+    /// @inheritdoc IRewardEscrowV2
     function getVestingEntryClaimable(uint256 entryID)
         external
         view
@@ -273,7 +268,7 @@ contract RewardEscrowV2 is
         uint256 escrowAmount = _entry.escrowAmount;
 
         if (escrowAmount != 0) {
-            /* Full escrow amounts claimable if block.timestamp equal to or after entry endTime */
+            // Full escrow amounts claimable if block.timestamp equal to or after entry endTime
             if (block.timestamp >= _entry.endTime) {
                 quantity = escrowAmount;
             } else {
@@ -289,7 +284,7 @@ contract RewardEscrowV2 is
         returns (uint256 earlyVestFee)
     {
         uint256 timeUntilVest = _entry.endTime - block.timestamp;
-        // Fee starts at 90% and falls linearly
+        // Fee starts by default at 90% (but could be any percentage) and falls linearly
         uint256 initialFee = _entry.escrowAmount * _entry.earlyVestingFee / 100;
         earlyVestFee = initialFee * timeUntilVest / _entry.duration;
     }
@@ -302,10 +297,7 @@ contract RewardEscrowV2 is
                             MUTATIVE FUNCTIONS
     ///////////////////////////////////////////////////////////////*/
 
-    /**
-     * Vest escrowed amounts that are claimable
-     * Allows users to vest their vesting entries based on msg.sender
-     */
+    /// @inheritdoc IRewardEscrowV2
     function vest(uint256[] calldata entryIDs) external override {
         uint256 total;
         uint256 totalFee;
@@ -316,20 +308,21 @@ contract RewardEscrowV2 is
                 continue;
             }
 
-            /* Skip entry if escrowAmount == 0 already vested */
+            // TODO: if i decide to keep deleting these at burn, this check may be unecessary
+            // Skip entry if escrowAmount == 0 already vested 
             if (entry.escrowAmount != 0) {
                 (uint256 quantity, uint256 fee) = _claimableAmount(entry);
 
-                /* update entry to remove escrowAmount */
+                // update entry to remove escrowAmount
                 _burn(entryIDs[i]);
 
-                /* add quantity to total */
+                // add quantity to total
                 total += quantity;
                 totalFee += fee;
             }
         }
 
-        /* Transfer vested tokens. Will revert if total > totalEscrowedAccountBalance */
+        // Transfer vested tokens. Will revert if total > totalEscrowedAccountBalance
         if (total != 0) {
             // Withdraw staked escrowed kwenta if needed for reward
             if (_isEscrowStaked(msg.sender)) {
@@ -355,11 +348,7 @@ contract RewardEscrowV2 is
         }
     }
 
-    /**
-     * @notice Create an escrow entry to lock KWENTA for a given duration in seconds
-     * @dev This call expects that the depositor (msg.sender) has already approved the Reward escrow contract
-     * to spend the the amount being escrowed.
-     */
+    /// @inheritdoc IRewardEscrowV2
     function createEscrowEntry(
         address beneficiary,
         uint256 deposit,
@@ -378,14 +367,7 @@ contract RewardEscrowV2 is
         _mint(beneficiary, deposit, duration, earlyVestingFee);
     }
 
-    /**
-     * @notice Add a new vesting entry at a given time and quantity to an account's schedule.
-     * @dev A call to this should accompany a previous successful call to kwenta.transfer(rewardEscrow, amount),
-     * to ensure that when the funds are withdrawn, there is enough balance.
-     * @param account The account to append a new vesting entry to.
-     * @param quantity The quantity of KWENTA that will be escrowed.
-     * @param duration The duration that KWENTA will be emitted.
-     */
+    /// @inheritdoc IRewardEscrowV2
     function appendVestingEntry(address account, uint256 quantity, uint256 duration)
         external
         override
@@ -394,31 +376,17 @@ contract RewardEscrowV2 is
         _mint(account, quantity, duration, DEFAULT_EARLY_VESTING_FEE);
     }
 
-    /**
-     * @notice Stakes escrowed KWENTA.
-     * @dev No tokens are transfered during this process, but the StakingRewards escrowed balance is updated.
-     * @param _amount The amount of escrowed KWENTA to be staked.
-     */
+    /// @inheritdoc IRewardEscrowV2
     function stakeEscrow(uint256 _amount) external override {
         stakingRewards.stakeEscrow(msg.sender, _amount);
     }
 
-    /**
-     * @notice Unstakes escrowed KWENTA.
-     * @dev No tokens are transfered during this process, but the StakingRewards escrowed balance is updated.
-     * @param _amount The amount of escrowed KWENTA to be unstaked.
-     */
+    /// @inheritdoc IRewardEscrowV2
     function unstakeEscrow(uint256 _amount) public override {
         stakingRewards.unstakeEscrow(msg.sender, _amount);
     }
 
-    /**
-     * @notice Transfer multiple tokens from one account to another
-     *  Sufficient escrowed KWENTA must be unstaked for the transfer to succeed
-     * @param from The account to transfer the tokens from
-     * @param to The account to transfer the tokens to
-     * @param entryIDs a list of the ids of the entries to transfer
-     */
+    /// @inheritdoc IRewardEscrowV2
     function bulkTransferFrom(address from, address to, uint256[] calldata entryIDs)
         external
         override
@@ -436,6 +404,8 @@ contract RewardEscrowV2 is
                                 INTERNALS
     ///////////////////////////////////////////////////////////////*/
 
+    /// @dev override the internal _transfer function to ensure vestingSchedules and account balances are updated
+    /// and that there is sufficient unstaked escrow for a transfer
     function _transfer(address from, address to, uint256 tokenId) internal override {
         VestingEntries.VestingEntry memory entry = vestingSchedules[tokenId];
 
@@ -461,7 +431,7 @@ contract RewardEscrowV2 is
 
     // TODO: rethink this function
     // TODO: rethink wording => token vs entry => what is a token in this context, make clear distinction between erc20 (kwenta) and erc721 (KRE)
-    /* Transfer vested tokens and update totalEscrowedAccountBalance, totalVestedAccountBalance */
+    /// @dev Transfer vested KWENTA to account and update totalEscrowedAccountBalance, totalVestedAccountBalance
     function _transferVestedTokens(address _account, uint256 _amount) internal {
         _reduceAccountEscrowBalances(_account, _amount);
         totalVestedAccountBalance[_account] += _amount;
@@ -469,7 +439,6 @@ contract RewardEscrowV2 is
         emit Vested(_account, _amount);
     }
 
-    // TODO: rethink this function - could go in a burn function
     function _reduceAccountEscrowBalances(address _account, uint256 _amount) internal {
         // Reverts if amount being vested is greater than the account's existing totalEscrowedAccountBalance
         totalEscrowedBalance -= _amount;
@@ -479,20 +448,19 @@ contract RewardEscrowV2 is
     function _mint(address account, uint256 quantity, uint256 duration, uint8 earlyVestingFee)
         internal
     {
-        /* No empty or already-passed vesting entries allowed. */
+        // No empty or already-passed vesting entries allowed.
         if (quantity == 0) revert ZeroAmount();
         if (duration == 0 || duration > MAX_DURATION) revert InvalidDuration();
         if (earlyVestingFee > 100) revert EarlyVestingFeeTooHigh();
 
-        /* There must be enough balance in the contract to provide for the vesting entry. */
+        // There must be enough balance in the contract to provide for the vesting entry.
         totalEscrowedBalance += quantity;
-
         if (kwenta.balanceOf(address(this)) < totalEscrowedBalance) revert InsufficientBalance();
 
-        /* Escrow the tokens for duration. */
+        // Escrow the tokens for duration.
         uint256 endTime = block.timestamp + duration;
 
-        /* Add quantity to account's escrowed balance */
+        // Add quantity to account's escrowed balance
         totalEscrowedAccountBalance[account] += quantity;
 
         uint256 entryID = nextEntryId;
@@ -506,7 +474,7 @@ contract RewardEscrowV2 is
         // TODO: think - should safeMint? - could use nonReentrant
         _mint(account, entryID);
 
-        /* Increment the next entry id. */
+        // Increment the next entry id.
         ++nextEntryId;
 
         // TODO: add earlyVestingFee to this event

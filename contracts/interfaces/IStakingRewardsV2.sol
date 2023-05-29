@@ -19,8 +19,7 @@ interface IStakingRewardsV2 {
                                 INITIALIZER
     ///////////////////////////////////////////////////////////////*/
 
-    /// @notice configure StakingRewards state
-    /// @dev owner set to address that deployed StakingRewards
+    /// @notice Initializes the contract
     /// @param _token: token used for staking and for rewards
     /// @param _rewardEscrow: escrow contract which holds (and may stake) reward tokens
     /// @param _supplySchedule: handles reward token minting logic
