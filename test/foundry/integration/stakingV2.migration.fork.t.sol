@@ -6,10 +6,8 @@ import {StakingTestHelpers} from "../utils/helpers/StakingTestHelpers.t.sol";
 import {Migrate} from "../../../scripts/Migrate.s.sol";
 import {Kwenta} from "../../../contracts/Kwenta.sol";
 import {RewardEscrow} from "../../../contracts/RewardEscrow.sol";
-import {RewardEscrowV2} from "../../../contracts/RewardEscrowV2.sol";
 import {SupplySchedule} from "../../../contracts/SupplySchedule.sol";
 import {StakingRewards} from "../../../contracts/StakingRewards.sol";
-import {StakingRewardsV2} from "../../../contracts/StakingRewardsV2.sol";
 import "../utils/Constants.t.sol";
 
 contract StakingV2MigrationForkTests is StakingTestHelpers {
