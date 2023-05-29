@@ -111,6 +111,15 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         assertEq(earlyVestingFee, 90);
     }
 
+    function test_Appends_New_Vesting_Entry_Event() public {
+        vm.prank(treasury);
+        kwenta.transfer(address(rewardEscrowV2), TEST_VALUE);
+        vm.prank(address(stakingRewardsV2));
+        vm.expectEmit(true, true, true, true);
+        emit VestingEntryCreated(address(this), TEST_VALUE, 52 weeks, 1, 90);
+        rewardEscrowV2.appendVestingEntry(address(this), TEST_VALUE);
+    }
+
     function test_Should_Increment_nextEntryId() public {
         appendRewardEscrowEntryV2(address(this), TEST_VALUE);
         assertEq(rewardEscrowV2.nextEntryId(), 2);
@@ -261,6 +270,15 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         assertEq(escrowAmount, TEST_VALUE);
         assertEq(duration, 52 weeks);
         assertEq(earlyVestingFee, 90);
+    }
+
+    function test_Creates_New_Vesting_Entry_Event() public {
+        vm.prank(treasury);
+        kwenta.approve(address(rewardEscrowV2), TEST_VALUE);
+        vm.prank(treasury);
+        vm.expectEmit(true, true, true, true);
+        emit VestingEntryCreated(address(this), TEST_VALUE, 70 weeks, 1, 75);
+        rewardEscrowV2.createEscrowEntry(address(this), TEST_VALUE, 70 weeks, 75);
     }
 
     function test_Increments_The_Next_Entry_ID() public {

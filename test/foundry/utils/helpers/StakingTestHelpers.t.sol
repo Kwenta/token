@@ -3,7 +3,6 @@ pragma solidity ^0.8.19;
 
 import {console} from "forge-std/Test.sol";
 import {StakingSetup} from "../../utils/setup/StakingSetup.t.sol";
-// import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "../../utils/Constants.t.sol";
 
 contract StakingTestHelpers is StakingSetup {
@@ -18,6 +17,13 @@ contract StakingTestHelpers is StakingSetup {
     event RewardPaid(address indexed account, uint256 reward);
     event EscrowStaked(address indexed user, uint256 amount);
     event Vested(address indexed beneficiary, uint256 value);
+    event VestingEntryCreated(
+        address indexed beneficiary,
+        uint256 value,
+        uint256 duration,
+        uint256 entryID,
+        uint8 earlyVestingFee
+    );
 
     /*//////////////////////////////////////////////////////////////
                         Reward Calculation Helpers
@@ -254,17 +260,4 @@ contract StakingTestHelpers is StakingSetup {
         vm.prank(_from);
         rewardEscrowV2.safeTransferFrom(_from, _to, _entryID);
     }
-
-    // /*//////////////////////////////////////////////////////////////
-    //                             Misc
-    // //////////////////////////////////////////////////////////////*/
-    // function onERC721Received(
-    //     address operator,
-    //     address from,
-    //     uint256 tokenId,
-    //     bytes calldata data
-    // ) external returns (bytes4) {
-    //     return IERC721Receiver.onERC721Received.selector;
-    //     // return bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"));
-    // }
 }
