@@ -135,6 +135,7 @@ contract RewardEscrowV2 is
         return address(kwenta);
     }
 
+    // TODO: 1D: Rename to escrowedBalanceOf??? I think so
     /// @inheritdoc IRewardEscrowV2
     function totalEscrowedBalanceOf(address _account) external view override returns (uint256) {
         return totalEscrowedAccountBalance[_account];
@@ -367,7 +368,6 @@ contract RewardEscrowV2 is
         if (_deposit == 0) revert ZeroAmount();
         if (_duration == 0 || _duration > MAX_DURATION) revert InvalidDuration();
 
-        // TODO: 1C: test this is the case on on fork
         /// @dev this will revert if the kwenta token transfer fails
         /// @dev if using this with a different token, make sure to check the return value
         kwenta.transferFrom(msg.sender, address(this), _deposit);

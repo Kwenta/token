@@ -34,6 +34,7 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
         owner = KWENTA_OWNER;
         treasury = TREASURY_DAO;
         user1 = RANDOM_STAKING_USER;
+        user2 = createUser();
 
         // set owners address code to trick the test into allowing onlyOwner functions to be called via script
         vm.etch(owner, address(new Migrate()).code);
@@ -118,5 +119,16 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
         assertEq(stakingRewardsV2.balanceOf(user1), user1EscrowStakedV2 + user1NonEscrowedStakeV2);
         // v2 reward escrow balance is equal to escrow staked balance
         assertEq(rewardEscrowV2.totalEscrowedBalanceOf(user1), user1EscrowStakedV2);
+    }
+
+    function test_Create_Entry_After_Migration() public {
+        createRewardEscrowEntryV2(user2, TEST_VALUE, 52 weeks);
+        assertEq(rewardEscrowV2.balanceOf(user2), 1);
+        assertEq(rewardEscrowV2.totalEscrowedBalanceOf(user2), TEST_VALUE);
+    }
+
+    function test_Cannot_Create_Entry_After_Migration_Without_Approval() public {
+        vm.expectRevert("ERC20: transfer amount exceeds balance");
+        rewardEscrowV2.createEscrowEntry(user2, TEST_VALUE, 52 weeks, 90);
     }
 }
