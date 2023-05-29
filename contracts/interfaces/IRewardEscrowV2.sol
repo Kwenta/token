@@ -175,12 +175,9 @@ interface IRewardEscrowV2 {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Insufficient unstaked escrow to facilitate transfer
-    /// @param entryID the id of the entry that couldn't be transferred
-    /// @param escrowAmount the amount of escrow in the entry
-    /// @param unstakedBalance the amount of unstaked escrow in the account
-    error InsufficientUnstakedBalance(
-        uint256 entryID, uint256 escrowAmount, uint256 unstakedBalance
-    );
+    /// @param escrowAmount the amount of escrow attempted to transfer
+    /// @param unstakedBalance the amount of unstaked escrow available
+    error InsufficientUnstakedBalance(uint256 escrowAmount, uint256 unstakedBalance);
 
     /// @notice Attempted to set entry early vesting fee beyond 100%
     error EarlyVestingFeeTooHigh();

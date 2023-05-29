@@ -241,7 +241,7 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                IRewardEscrowV2.InsufficientUnstakedBalance.selector, user1EntryID, escrowAmount, 0
+                IRewardEscrowV2.InsufficientUnstakedBalance.selector, escrowAmount, 0
             )
         );
         rewardEscrowV2.transferFrom(user1, user2, user1EntryID);
@@ -272,10 +272,7 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
         uint256 unstakedAmount = escrowAmount - stakedAmount;
         vm.expectRevert(
             abi.encodeWithSelector(
-                IRewardEscrowV2.InsufficientUnstakedBalance.selector,
-                user1EntryID,
-                escrowAmount,
-                unstakedAmount
+                IRewardEscrowV2.InsufficientUnstakedBalance.selector, escrowAmount, unstakedAmount
             )
         );
         rewardEscrowV2.transferFrom(user1, user2, user1EntryID);
@@ -382,7 +379,7 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                IRewardEscrowV2.InsufficientUnstakedBalance.selector, user1EntryID, escrowAmount, 0
+                IRewardEscrowV2.InsufficientUnstakedBalance.selector, escrowAmount, 0
             )
         );
         rewardEscrowV2.safeTransferFrom(user1, user2, user1EntryID);
@@ -413,10 +410,7 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
         uint256 unstakedAmount = escrowAmount - stakedAmount;
         vm.expectRevert(
             abi.encodeWithSelector(
-                IRewardEscrowV2.InsufficientUnstakedBalance.selector,
-                user1EntryID,
-                escrowAmount,
-                unstakedAmount
+                IRewardEscrowV2.InsufficientUnstakedBalance.selector, escrowAmount, unstakedAmount
             )
         );
         rewardEscrowV2.safeTransferFrom(user1, user2, user1EntryID);
@@ -648,7 +642,7 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
         entryIDs.push(user1EntryIDB);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IRewardEscrowV2.InsufficientUnstakedBalance.selector, user1EntryIDB, escrowAmount, 0
+                IRewardEscrowV2.InsufficientUnstakedBalance.selector, escrowAmount * 2, escrowAmount
             )
         );
         rewardEscrowV2.bulkTransferFrom(user1, user2, entryIDs);
@@ -688,10 +682,6 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
 
         assertEq(rewardEscrowV2.totalEscrowedBalance(), totalEscrowedAmount);
 
-        // calculate the unstaked balance at failure
-        uint256 escrowedBalanceAtFailure = totalEscrowedAmount - (indexAtFailure * escrowAmount);
-        uint256 unstakedBalanceAtFailure = escrowedBalanceAtFailure - stakedAmount;
-
         // stake the escrow
         vm.prank(user1);
         stakingRewardsV2.stakeEscrow(stakedAmount);
@@ -706,9 +696,8 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
         vm.expectRevert(
             abi.encodeWithSelector(
                 IRewardEscrowV2.InsufficientUnstakedBalance.selector,
-                indexAtFailure + 1,
-                escrowAmount,
-                unstakedBalanceAtFailure
+                totalEscrowedAmount,
+                unstakedAmount
             )
         );
         rewardEscrowV2.bulkTransferFrom(user1, user2, entryIDs);

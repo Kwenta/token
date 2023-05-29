@@ -12,7 +12,7 @@ import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/U
 import {IKwenta} from "./interfaces/IKwenta.sol";
 import {IStakingRewardsV2} from "./interfaces/IStakingRewardsV2.sol";
 
-// TODO: think about safeTransfer, safeMint etc. - Should I use SafeERC20 link in StakingRewards?
+// TODO: 1B: think about safeTransfer, safeMint etc. - Should I use SafeERC20 link in StakingRewards?
 
 /// @title KWENTA Reward Escrow
 /// @author SYNTHETIX, JaredBorders (jaredborders@proton.me), JChiaramonte7 (jeremy@bytecode.llc), tommyrharper (zeroknowledgeltd@gmail.com)
@@ -54,7 +54,7 @@ contract RewardEscrowV2 is
     ///@notice mapping of entryIDs to vesting entries
     mapping(uint256 => VestingEntries.VestingEntry) public vestingSchedules;
 
-    // TODO: delete and use totalSupply() instead - maybe not with burn decrementing it?
+    // TODO: 1A: delete and use totalSupply() instead - maybe not with burn decrementing it? - depends on if we delete the whole vestingSchedule or not
     /// @notice Counter for new vesting entry ids
     uint256 public nextEntryId;
 
@@ -314,7 +314,7 @@ contract RewardEscrowV2 is
                 continue;
             }
 
-            // TODO: if i decide to keep deleting these at burn, this check may be unecessary
+            // TODO: 1A: if i decide to keep deleting these at burn, this check may be unecessary
             // Skip entry if escrowAmount == 0 already vested
             if (entry.escrowAmount != 0) {
                 (uint256 quantity, uint256 fee) = _claimableAmount(entry);
@@ -367,7 +367,7 @@ contract RewardEscrowV2 is
         if (_deposit == 0) revert ZeroAmount();
         if (_duration == 0 || _duration > MAX_DURATION) revert InvalidDuration();
 
-        // TODO: test this is the case on on fork
+        // TODO: 1C: test this is the case on on fork
         /// @dev this will revert if the kwenta token transfer fails
         /// @dev if using this with a different token, make sure to check the return value
         kwenta.transferFrom(msg.sender, address(this), _deposit);
@@ -390,13 +390,21 @@ contract RewardEscrowV2 is
         external
         override
     {
+        uint256 totalEscrowTransferred;
         uint256 entryIDsLength = _entryIDs.length;
         for (uint256 i = 0; i < entryIDsLength;) {
-            transferFrom(_from, _to, _entryIDs[i]);
+            totalEscrowTransferred += vestingSchedules[_entryIDs[i]].escrowAmount;
+            require(_isApprovedOrOwner(_msgSender(), _entryIDs[i]), "ERC721: caller is not token owner or approved");
+            super._transfer(_from, _to, _entryIDs[i]);
             unchecked {
                 ++i;
             }
         }
+
+        _checkIfSufficientUnstakedBalance(_from, totalEscrowTransferred);
+
+        totalEscrowedAccountBalance[_from] -= totalEscrowTransferred;
+        totalEscrowedAccountBalance[_to] += totalEscrowTransferred;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -406,22 +414,28 @@ contract RewardEscrowV2 is
     /// @dev override the internal _transfer function to ensure vestingSchedules and account balances are updated
     /// and that there is sufficient unstaked escrow for a transfer
     function _transfer(address _from, address _to, uint256 _entryID) internal override {
-        VestingEntries.VestingEntry memory entry = vestingSchedules[_entryID];
+        uint256 escrowAmount = vestingSchedules[_entryID].escrowAmount;
 
-        // TODO: more efficient way for bulk transfer without querying each time?
-        uint256 unstakedEscrow = unstakedEscrowedBalanceOf(_from);
-        if (unstakedEscrow < entry.escrowAmount) {
-            revert InsufficientUnstakedBalance(_entryID, entry.escrowAmount, unstakedEscrow);
-        }
+        _checkIfSufficientUnstakedBalance(_from, escrowAmount);
 
-        totalEscrowedAccountBalance[_from] -= entry.escrowAmount;
-        totalEscrowedAccountBalance[_to] += entry.escrowAmount;
+        totalEscrowedAccountBalance[_from] -= escrowAmount;
+        totalEscrowedAccountBalance[_to] += escrowAmount;
 
         super._transfer(_from, _to, _entryID);
     }
 
+    function _checkIfSufficientUnstakedBalance(address _account, uint256 _amount)
+        internal
+        view
+    {
+        uint256 unstakedEscrow = unstakedEscrowedBalanceOf(_account);
+        if (unstakedEscrow < _amount) {
+            revert InsufficientUnstakedBalance(_amount, unstakedEscrow);
+        }
+    }
+
     function _burn(uint256 _entryID) internal override {
-        // TODO: should delete the whole entry? or just the escrowAmount as before? gas savings?
+        // TODO: 1A: should delete the whole entry? or just the escrowAmount as before? gas savings?
         // vestingSchedules[_entryID].escrowAmount = 0;
         delete vestingSchedules[_entryID];
         super._burn(_entryID);
