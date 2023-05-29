@@ -74,40 +74,17 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
                 Appending Vesting Schedules Error
     //////////////////////////////////////////////////////////////*/
 
-    function test_appendVestingEntry_Should_Not_Append_Entries_With_0_Amount() public {
-        vm.expectRevert(IRewardEscrowV2.ZeroAmount.selector);
-        vm.prank(address(stakingRewardsV2));
-        rewardEscrowV2.appendVestingEntry(address(this), 0, 52 weeks);
-    }
-
     function test_appendVestingEntry_Should_Not_Create_A_Vesting_Entry_Insufficient_Kwenta()
         public
     {
         vm.expectRevert(IRewardEscrowV2.InsufficientBalance.selector);
         vm.prank(address(stakingRewardsV2));
-        rewardEscrowV2.appendVestingEntry(address(this), 1 ether, 52 weeks);
+        rewardEscrowV2.appendVestingEntry(address(this), 1 ether);
     }
 
     function test_appendVestingEntry_Should_Revert_If_Not_StakingRewards() public {
         vm.expectRevert(IRewardEscrowV2.OnlyStakingRewards.selector);
-        rewardEscrowV2.appendVestingEntry(address(this), 1 ether, 52 weeks);
-    }
-
-    function test_appendVestingEntry_Should_Revert_If_Duration_Is_0() public {
-        vm.prank(treasury);
-        kwenta.transfer(address(rewardEscrowV2), 1 ether);
-        vm.prank(address(stakingRewardsV2));
-        vm.expectRevert(IRewardEscrowV2.InvalidDuration.selector);
-        rewardEscrowV2.appendVestingEntry(address(this), 1 ether, 0);
-    }
-
-    function test_appendVestingEntry_Should_Revert_If_Duration_Is_Greater_Than_Max() public {
-        uint256 maxDuration = rewardEscrowV2.MAX_DURATION();
-        vm.prank(treasury);
-        kwenta.transfer(address(rewardEscrowV2), 1 ether);
-        vm.prank(address(stakingRewardsV2));
-        vm.expectRevert(IRewardEscrowV2.InvalidDuration.selector);
-        rewardEscrowV2.appendVestingEntry(address(this), 1 ether, maxDuration + 1);
+        rewardEscrowV2.appendVestingEntry(address(this), 1 ether);
     }
 
     function test_appendVestingEntry_Should_Revert_If_Beneficiary_Address_Is_Zero() public {
@@ -115,7 +92,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         kwenta.transfer(address(rewardEscrowV2), 1 ether);
         vm.prank(address(stakingRewardsV2));
         vm.expectRevert("ERC721: mint to the zero address");
-        rewardEscrowV2.appendVestingEntry(address(0), 1 ether, 52 weeks);
+        rewardEscrowV2.appendVestingEntry(address(0), 1 ether);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -123,7 +100,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     //////////////////////////////////////////////////////////////*/
 
     function test_Should_Return_Vesting_Entry() public {
-        appendRewardEscrowEntryV2(address(this), TEST_VALUE, 52 weeks);
+        appendRewardEscrowEntryV2(address(this), TEST_VALUE);
 
         (uint64 endTime, uint256 escrowAmount, uint256 duration, uint8 earlyVestingFee) =
             rewardEscrowV2.getVestingEntry(1);
@@ -135,27 +112,27 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     }
 
     function test_Should_Increment_nextEntryId() public {
-        appendRewardEscrowEntryV2(address(this), TEST_VALUE, 52 weeks);
+        appendRewardEscrowEntryV2(address(this), TEST_VALUE);
         assertEq(rewardEscrowV2.nextEntryId(), 2);
     }
 
     function test_totalEscrowedBalanceOf_Should_Be_Incremented() public {
-        appendRewardEscrowEntryV2(address(this), TEST_VALUE, 52 weeks);
+        appendRewardEscrowEntryV2(address(this), TEST_VALUE);
         assertEq(rewardEscrowV2.totalEscrowedAccountBalance(address(this)), TEST_VALUE);
     }
 
     function test_totalVestedAccountBalance_Should_Be_Zero() public {
-        appendRewardEscrowEntryV2(address(this), TEST_VALUE, 52 weeks);
+        appendRewardEscrowEntryV2(address(this), TEST_VALUE);
         assertEq(rewardEscrowV2.totalVestedAccountBalance(address(this)), 0);
     }
 
     function test_balanceOf_Should_Be_Incremented() public {
-        appendRewardEscrowEntryV2(address(this), TEST_VALUE, 52 weeks);
+        appendRewardEscrowEntryV2(address(this), TEST_VALUE);
         assertEq(rewardEscrowV2.balanceOf(address(this)), 1);
     }
 
     function test_Correct_Amount_Claimable_After_6_Months() public {
-        appendRewardEscrowEntryV2(address(this), 10 ether, 52 weeks);
+        appendRewardEscrowEntryV2(address(this), 10 ether);
 
         vm.warp(block.timestamp + 26 weeks);
 
@@ -167,7 +144,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         uint256 amount = _amount;
         vm.assume(amount > 0);
 
-        appendRewardEscrowEntryV2(address(this), amount, 52 weeks);
+        appendRewardEscrowEntryV2(address(this), amount);
 
         vm.warp(block.timestamp + 26 weeks);
 
@@ -182,7 +159,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     }
 
     function test_Correct_Amount_Claimable_After_1_Year() public {
-        appendRewardEscrowEntryV2(address(this), TEST_VALUE, 52 weeks);
+        appendRewardEscrowEntryV2(address(this), TEST_VALUE);
 
         vm.warp(block.timestamp + 52 weeks);
 
@@ -195,7 +172,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         uint256 amount = _amount;
         vm.assume(amount > 0);
 
-        appendRewardEscrowEntryV2(address(this), amount, 52 weeks);
+        appendRewardEscrowEntryV2(address(this), amount);
 
         vm.warp(block.timestamp + 52 weeks);
 
@@ -362,7 +339,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     //////////////////////////////////////////////////////////////*/
 
     function test_Should_Vest_0_If_EntryID_Does_Not_Exist() public {
-        appendRewardEscrowEntryV2(address(this), 1000 ether, 52 weeks);
+        appendRewardEscrowEntryV2(address(this), 1000 ether);
         vm.warp(block.timestamp + 26 weeks);
 
         entryIDs.push(200);
@@ -374,7 +351,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     }
 
     function test_vest_Should_Properly_Distribute_Escrow() public {
-        appendRewardEscrowEntryV2(address(this), 1000 ether, 52 weeks);
+        appendRewardEscrowEntryV2(address(this), 1000 ether);
         vm.warp(block.timestamp + 26 weeks);
 
         // check initial values
@@ -417,7 +394,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     }
 
     function test_Should_Revert_If_Kwenta_Transfer_Fails() public {
-        appendRewardEscrowEntryV2(address(this), 1000 ether, 52 weeks);
+        appendRewardEscrowEntryV2(address(this), 1000 ether);
 
         // force kwenta out of reward escrow to cause a failure
         vm.prank(address(rewardEscrowV2));
@@ -429,7 +406,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     }
 
     function test_vest_After_Duration_Has_Ended() public {
-        appendRewardEscrowEntryV2(address(this), 1000 ether, 52 weeks);
+        appendRewardEscrowEntryV2(address(this), 1000 ether);
         vm.warp(block.timestamp + 52 weeks);
 
         entryIDs.push(1);
@@ -446,7 +423,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     }
 
     function test_vest_Event() public {
-        appendRewardEscrowEntryV2(address(this), 1000 ether, 52 weeks);
+        appendRewardEscrowEntryV2(address(this), 1000 ether);
         vm.warp(block.timestamp + 52 weeks);
         entryIDs.push(1);
 
