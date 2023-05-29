@@ -104,7 +104,7 @@ contract StakingSetup is TestHelpers {
 
         // check staking rewards cannot be set to 0
         vm.expectRevert(IRewardEscrowV2.ZeroAddress.selector);
-        rewardEscrowV2.setStakingRewardsV2(address(0));
+        rewardEscrowV2.setStakingRewards(address(0));
 
         // Setup StakingV2
         (bool setupSuccess,) = address(migrate).delegatecall(

@@ -95,7 +95,7 @@ contract Migrate {
         );
 
         // Set RewardEscrowV2 StakingRewardsV2
-        rewardEscrowV2.setStakingRewardsV2(_stakingRewardsV2);
+        rewardEscrowV2.setStakingRewards(_stakingRewardsV2);
 
         if (_printLogs) console.log(
             "Switched RewardEscrowV2 to point to StakingRewardsV2 at %s",

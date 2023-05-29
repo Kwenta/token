@@ -37,7 +37,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
 
     function test_Should_Not_Allow_StakingRewards_To_Be_Set_Twice() public {
         vm.expectRevert(IRewardEscrowV2.StakingRewardsAlreadySet.selector);
-        rewardEscrowV2.setStakingRewardsV2(address(stakingRewardsV1));
+        rewardEscrowV2.setStakingRewards(address(stakingRewardsV1));
     }
 
     function test_Should_Set_nextEntryId_To_1() public {

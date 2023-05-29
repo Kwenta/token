@@ -132,13 +132,13 @@ contract("RewardEscrowV2 KWENTA", ([owner, staker1, staker2, treasuryDAO]) => {
         SRsigner = await ethers.getSigner(stakingRewardsV2.address);
 
         await assert.revert(
-            rewardEscrowV2.setStakingRewardsV2(ZERO_ADDRESS, {
+            rewardEscrowV2.setStakingRewards(ZERO_ADDRESS, {
                 from: owner,
             }),
             "ZeroAddress"
         );
 
-        await rewardEscrowV2.setStakingRewardsV2(stakingRewardsV2.address, {
+        await rewardEscrowV2.setStakingRewards(stakingRewardsV2.address, {
             from: owner,
         });
 
@@ -161,7 +161,7 @@ contract("RewardEscrowV2 KWENTA", ([owner, staker1, staker2, treasuryDAO]) => {
     beforeEach(async () => {
         // Reset RewardsEscrow
         rewardEscrowV2 = await deployRewardEscrowV2(owner, kwentaSmock.address);
-        await rewardEscrowV2.setStakingRewardsV2(stakingRewardsV2.address, {
+        await rewardEscrowV2.setStakingRewards(stakingRewardsV2.address, {
             from: owner,
         });
         await rewardEscrowV2.setTreasuryDAO(treasuryDAO);
@@ -212,7 +212,7 @@ contract("RewardEscrowV2 KWENTA", ([owner, staker1, staker2, treasuryDAO]) => {
 
         it("Should NOT allow owner to set StakingRewards again", async () => {
             await assert.revert(
-                rewardEscrowV2.setStakingRewardsV2(stakingRewardsV2.address, {
+                rewardEscrowV2.setStakingRewards(stakingRewardsV2.address, {
                     from: owner,
                 }),
                 "StakingRewardsAlreadySet"
