@@ -12,7 +12,7 @@ import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/U
 import {IKwenta} from "./interfaces/IKwenta.sol";
 import {IStakingRewardsV2} from "./interfaces/IStakingRewardsV2.sol";
 
-// TODO: think about safeTransfer, safeMint etc.
+// TODO: think about safeTransfer, safeMint etc. - Should I use SafeERC20 link in StakingRewards?
 // TODO: Think about what functions could be "approved for" with lower risk - such that they can be delegated from a hardware wallet to a hot wallet
 
 /// @title KWENTA Reward Escrow
@@ -33,6 +33,9 @@ contract RewardEscrowV2 is
 
     /// @notice Default early vesting fee - used for new vesting entries from staking rewards
     uint8 public constant DEFAULT_EARLY_VESTING_FEE = 90; // Default 90 percent
+
+    /// @notice Minimum early vesting fee
+    uint8 public constant MINIMUM_EARLY_VESTING_FEE = 50;
 
     /// @notice Contract for KWENTA ERC20 token
     IKwenta public kwenta;
@@ -355,7 +358,7 @@ contract RewardEscrowV2 is
         uint8 _earlyVestingFee
     ) external override {
         if (_beneficiary == address(0)) revert ZeroAddress();
-        if (_earlyVestingFee == 0) revert ZeroEarlyVestingFee();
+        if (_earlyVestingFee < MINIMUM_EARLY_VESTING_FEE) revert EarlyVestingFeeTooLow();
 
         // TODO: test this is the case on on fork
         /// @dev this will revert if the kwenta token transfer fails

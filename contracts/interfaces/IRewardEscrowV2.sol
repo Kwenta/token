@@ -190,6 +190,9 @@ interface IRewardEscrowV2 {
     /// @notice Attempted to set entry early vesting fee beyond 100%
     error EarlyVestingFeeTooHigh();
 
+    /// @notice cannot mint entries with early vesting fee below the minimum
+    error EarlyVestingFeeTooLow();
+
     /// @notice error someone other than staking rewards calls an onlyStakingRewards function
     error OnlyStakingRewards();
 
@@ -201,9 +204,6 @@ interface IRewardEscrowV2 {
 
     /// @notice cannot mint entries with zero escrow
     error ZeroAmount();
-
-    /// @notice cannot mint entries with zero early vesting fee
-    error ZeroEarlyVestingFee();
 
     /// @notice Must be enough balance in the contract to provide for the vesting entry
     error InsufficientBalance();
