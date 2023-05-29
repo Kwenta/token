@@ -150,6 +150,60 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
         );
     }
 
+    function test_transferFrom_Unstaked_Approval() public {
+        uint256 escrowAmount = 1 ether;
+        (
+            uint256 user1EntryID,
+            uint64 initialEndTime,
+            uint256 initialEscrowAmount,
+            uint256 initialDuration,
+            uint8 initialEarlyVestingFee
+        ) = setupAndGetInitialValues(user1, user2, escrowAmount, 52 weeks);
+
+        vm.prank(user1);
+        rewardEscrowV2.approve(user2, user1EntryID);
+        vm.prank(user2);
+        rewardEscrowV2.transferFrom(user1, user2, user1EntryID);
+
+        checkFinalValues(
+            user1,
+            user2,
+            escrowAmount,
+            user1EntryID,
+            initialEndTime,
+            initialEscrowAmount,
+            initialDuration,
+            initialEarlyVestingFee
+        );
+    }
+
+    function test_transferFrom_Unstaked_Approval_All() public {
+        uint256 escrowAmount = 1 ether;
+        (
+            uint256 user1EntryID,
+            uint64 initialEndTime,
+            uint256 initialEscrowAmount,
+            uint256 initialDuration,
+            uint8 initialEarlyVestingFee
+        ) = setupAndGetInitialValues(user1, user2, escrowAmount, 52 weeks);
+
+        vm.prank(user1);
+        rewardEscrowV2.setApprovalForAll(user2, true);
+        vm.prank(user2);
+        rewardEscrowV2.transferFrom(user1, user2, user1EntryID);
+
+        checkFinalValues(
+            user1,
+            user2,
+            escrowAmount,
+            user1EntryID,
+            initialEndTime,
+            initialEscrowAmount,
+            initialDuration,
+            initialEarlyVestingFee
+        );
+    }
+
     function test_transferFrom_Unstaked_Fuzz(
         uint32 escrowAmount,
         uint24 duration,
