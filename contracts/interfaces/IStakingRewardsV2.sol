@@ -148,11 +148,9 @@ interface IStakingRewardsV2 {
     function unstake(uint256 _amount) external;
 
     /// @notice stake escrowed token
-    /// @param _account: address which owns token
     /// @param _amount: amount to stake
     /// @dev updateReward() called prior to function logic
-    /// @dev msg.sender NOT used (account is used)
-    function stakeEscrow(address _account, uint256 _amount) external;
+    function stakeEscrow(uint256 _amount) external;
 
     /// @notice stake escrowed token on behalf of another account
     /// @param _account: address of account to stake on behalf of
@@ -160,11 +158,9 @@ interface IStakingRewardsV2 {
     function stakeEscrowOnBehalf(address _account, uint256 _amount) external;
 
     /// @notice unstake escrowed token
-    /// @param _account: address which owns token
     /// @param _amount: amount to unstake
     /// @dev updateReward() called prior to function logic
-    /// @dev msg.sender NOT used (account is used)
-    function unstakeEscrow(address _account, uint256 _amount) external;
+    function unstakeEscrow(uint256 _amount) external;
 
     /// @notice unstake escrowed token skipping the cooldown wait period
     /// @param _account: address of account to unstake from

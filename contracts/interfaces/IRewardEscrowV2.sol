@@ -132,16 +132,6 @@ interface IRewardEscrowV2 {
     /// @param _quantity The quantity of KWENTA that will be escrowed.
     function appendVestingEntry(address _account, uint256 _quantity) external;
 
-    /// @notice Stakes escrowed KWENTA.
-    /// @dev No tokens are transfered during this process, but the StakingRewards escrowed balance is updated.
-    /// @param _amount The amount of escrowed KWENTA to be staked.
-    function stakeEscrow(uint256 _amount) external;
-
-    /// @notice Unstakes escrowed KWENTA.
-    /// @dev No tokens are transfered during this process, but the StakingRewards escrowed balance is updated.
-    /// @param _amount The amount of escrowed KWENTA to be unstaked.
-    function unstakeEscrow(uint256 _amount) external;
-
     /// @notice Transfer multiple tokens from one account to another
     ///  Sufficient escrowed KWENTA must be unstaked for the transfer to succeed
     /// @param _from The account to transfer the tokens from

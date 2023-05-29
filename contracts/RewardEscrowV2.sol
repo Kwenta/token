@@ -387,16 +387,6 @@ contract RewardEscrowV2 is
     }
 
     /// @inheritdoc IRewardEscrowV2
-    function stakeEscrow(uint256 _amount) external override {
-        stakingRewards.stakeEscrow(msg.sender, _amount);
-    }
-
-    /// @inheritdoc IRewardEscrowV2
-    function unstakeEscrow(uint256 _amount) public override {
-        stakingRewards.unstakeEscrow(msg.sender, _amount);
-    }
-
-    /// @inheritdoc IRewardEscrowV2
     function bulkTransferFrom(address _from, address _to, uint256[] calldata _entryIDs)
         external
         override

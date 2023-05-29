@@ -261,8 +261,8 @@ contract StakingRewardsV2 is
     }
 
     /// @inheritdoc IStakingRewardsV2
-    function stakeEscrow(address _account, uint256 _amount) external override onlyRewardEscrow {
-        _stakeEscrow(_account, _amount);
+    function stakeEscrow(uint256 _amount) external override {
+        _stakeEscrow(msg.sender, _amount);
     }
 
     function _stakeEscrow(address _account, uint256 _amount)
@@ -299,23 +299,22 @@ contract StakingRewardsV2 is
     }
 
     /// @inheritdoc IStakingRewardsV2
-    function unstakeEscrow(address _account, uint256 _amount)
-        external
-        override
-        afterCooldown(_account)
-    {
-        _unstakeEscrow(_account, _amount);
+    function unstakeEscrow(uint256 _amount) external override afterCooldown(msg.sender) {
+        _unstakeEscrow(msg.sender, _amount);
     }
 
     /// @inheritdoc IStakingRewardsV2
-    function unstakeEscrowSkipCooldown(address _account, uint256 _amount) external override {
+    function unstakeEscrowSkipCooldown(address _account, uint256 _amount)
+        external
+        override
+        onlyRewardEscrow
+    {
         _unstakeEscrow(_account, _amount);
     }
 
     function _unstakeEscrow(address _account, uint256 _amount)
         internal
         nonReentrant
-        onlyRewardEscrow
         updateReward(_account)
     {
         if (_amount == 0) revert AmountZero();
