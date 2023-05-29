@@ -36,7 +36,7 @@ contract RewardEscrowV2 is
     uint8 public constant DEFAULT_EARLY_VESTING_FEE = 90; // Default 90 percent
 
     /// @notice Contract for KWENTA ERC20 token
-    IKwenta private kwenta;
+    IKwenta public kwenta;
 
     /// @notice Contract for StakingRewardsV2
     IStakingRewardsV2 public stakingRewards;
@@ -130,7 +130,7 @@ contract RewardEscrowV2 is
     }
 
     /// @inheritdoc IRewardEscrowV2
-    function totalEscrowedBalanceOf(address account) public view override returns (uint256) {
+    function totalEscrowedBalanceOf(address account) external view override returns (uint256) {
         return totalEscrowedAccountBalance[account];
     }
 
@@ -429,8 +429,6 @@ contract RewardEscrowV2 is
         super._burn(tokenId);
     }
 
-    // TODO: rethink this function
-    // TODO: rethink wording => token vs entry => what is a token in this context, make clear distinction between erc20 (kwenta) and erc721 (KRE)
     /// @dev Transfer vested KWENTA to account and update totalEscrowedAccountBalance, totalVestedAccountBalance
     function _transferVestedTokens(address _account, uint256 _amount) internal {
         _reduceAccountEscrowBalances(_account, _amount);
