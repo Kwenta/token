@@ -209,7 +209,7 @@ contract StakingRewardsV2 is
 
     /// @inheritdoc IStakingRewardsV2
     function unstakedEscrowedBalanceOf(address _account) public view override returns (uint256) {
-        return rewardEscrow.totalEscrowedBalanceOf(_account) - escrowedBalanceOf(_account);
+        return rewardEscrow.escrowedBalanceOf(_account) - escrowedBalanceOf(_account);
     }
 
     /*///////////////////////////////////////////////////////////////

@@ -49,7 +49,7 @@ interface IRewardEscrowV2 {
     function getKwentaAddress() external view returns (address);
 
     /// @notice A simple alias to totalEscrowedAccountBalance
-    function totalEscrowedBalanceOf(address _account) external view returns (uint256);
+    function escrowedBalanceOf(address _account) external view returns (uint256);
 
     /// @notice Get the amount of escrowed kwenta that is not staked for a given account
     function unstakedEscrowedBalanceOf(address _account) external view returns (uint256);

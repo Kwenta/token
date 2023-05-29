@@ -135,9 +135,8 @@ contract RewardEscrowV2 is
         return address(kwenta);
     }
 
-    // TODO: 1D: Rename to escrowedBalanceOf??? I think so
     /// @inheritdoc IRewardEscrowV2
-    function totalEscrowedBalanceOf(address _account) external view override returns (uint256) {
+    function escrowedBalanceOf(address _account) external view override returns (uint256) {
         return totalEscrowedAccountBalance[_account];
     }
 

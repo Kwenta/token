@@ -183,8 +183,8 @@ contract StakingRewardsV2OnBehalfActionsTests is DefaultStakingV2Setup {
         fundAccountAndStakeV2(address(this), TEST_VALUE);
 
         // assert initial rewards are 0
-        assertEq(rewardEscrowV2.totalEscrowedBalanceOf(address(this)), 0);
-        assertEq(rewardEscrowV2.totalEscrowedBalanceOf(user1), 0);
+        assertEq(rewardEscrowV2.escrowedBalanceOf(address(this)), 0);
+        assertEq(rewardEscrowV2.escrowedBalanceOf(user1), 0);
 
         // send in 604800 (1 week) of rewards - (using 1 week for round numbers)
         addNewRewardsToStakingRewardsV2(1 weeks);
@@ -200,8 +200,8 @@ contract StakingRewardsV2OnBehalfActionsTests is DefaultStakingV2Setup {
         stakingRewardsV2.getRewardOnBehalf(address(this));
 
         // check rewards
-        assertEq(rewardEscrowV2.totalEscrowedBalanceOf(address(this)), 1 weeks);
-        assertEq(rewardEscrowV2.totalEscrowedBalanceOf(user1), 0);
+        assertEq(rewardEscrowV2.escrowedBalanceOf(address(this)), 1 weeks);
+        assertEq(rewardEscrowV2.escrowedBalanceOf(user1), 0);
     }
 
     function test_getRewardOnBehalf_Fuzz(
@@ -219,8 +219,8 @@ contract StakingRewardsV2OnBehalfActionsTests is DefaultStakingV2Setup {
         fundAccountAndStakeV2(owner, fundingAmount);
 
         // assert initial rewards are 0
-        assertEq(rewardEscrowV2.totalEscrowedBalanceOf(owner), 0);
-        assertEq(rewardEscrowV2.totalEscrowedBalanceOf(operator), 0);
+        assertEq(rewardEscrowV2.escrowedBalanceOf(owner), 0);
+        assertEq(rewardEscrowV2.escrowedBalanceOf(operator), 0);
 
         // send in rewards
         addNewRewardsToStakingRewardsV2(newRewards);
@@ -237,8 +237,8 @@ contract StakingRewardsV2OnBehalfActionsTests is DefaultStakingV2Setup {
         stakingRewardsV2.getRewardOnBehalf(owner);
 
         // check rewards
-        assertGt(rewardEscrowV2.totalEscrowedBalanceOf(owner), 0);
-        assertEq(rewardEscrowV2.totalEscrowedBalanceOf(operator), 0);
+        assertGt(rewardEscrowV2.escrowedBalanceOf(owner), 0);
+        assertEq(rewardEscrowV2.escrowedBalanceOf(operator), 0);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -359,8 +359,8 @@ contract StakingRewardsV2OnBehalfActionsTests is DefaultStakingV2Setup {
         fundAccountAndStakeV2(address(this), TEST_VALUE);
 
         // assert initial rewards are 0
-        assertEq(rewardEscrowV2.totalEscrowedBalanceOf(address(this)), 0);
-        assertEq(rewardEscrowV2.totalEscrowedBalanceOf(user1), 0);
+        assertEq(rewardEscrowV2.escrowedBalanceOf(address(this)), 0);
+        assertEq(rewardEscrowV2.escrowedBalanceOf(user1), 0);
 
         // send in 604800 (1 week) of rewards - (using 1 week for round numbers)
         addNewRewardsToStakingRewardsV2(1 weeks);
@@ -376,8 +376,8 @@ contract StakingRewardsV2OnBehalfActionsTests is DefaultStakingV2Setup {
         stakingRewardsV2.getRewardOnBehalf(address(this));
 
         // check rewards
-        assertEq(rewardEscrowV2.totalEscrowedBalanceOf(address(this)), 1 weeks);
-        assertEq(rewardEscrowV2.totalEscrowedBalanceOf(user1), 0);
+        assertEq(rewardEscrowV2.escrowedBalanceOf(address(this)), 1 weeks);
+        assertEq(rewardEscrowV2.escrowedBalanceOf(user1), 0);
 
         // stake escrow on behalf
         vm.prank(user1);
@@ -403,8 +403,8 @@ contract StakingRewardsV2OnBehalfActionsTests is DefaultStakingV2Setup {
         fundAccountAndStakeV2(owner, fundingAmount);
 
         // assert initial rewards are 0
-        assertEq(rewardEscrowV2.totalEscrowedBalanceOf(owner), 0);
-        assertEq(rewardEscrowV2.totalEscrowedBalanceOf(operator), 0);
+        assertEq(rewardEscrowV2.escrowedBalanceOf(owner), 0);
+        assertEq(rewardEscrowV2.escrowedBalanceOf(operator), 0);
 
         // send in rewards
         addNewRewardsToStakingRewardsV2(newRewards);
@@ -421,9 +421,9 @@ contract StakingRewardsV2OnBehalfActionsTests is DefaultStakingV2Setup {
         stakingRewardsV2.getRewardOnBehalf(owner);
 
         // check rewards
-        uint256 rewardEscrowBalance = rewardEscrowV2.totalEscrowedBalanceOf(owner);
+        uint256 rewardEscrowBalance = rewardEscrowV2.escrowedBalanceOf(owner);
         assertGt(rewardEscrowBalance, 0);
-        assertEq(rewardEscrowV2.totalEscrowedBalanceOf(operator), 0);
+        assertEq(rewardEscrowV2.escrowedBalanceOf(operator), 0);
 
         // stake escrow on behalf
         vm.prank(operator);
@@ -440,7 +440,7 @@ contract StakingRewardsV2OnBehalfActionsTests is DefaultStakingV2Setup {
 
     function test_compoundOnBehalf() public {
         fundAndApproveAccountV2(address(this), TEST_VALUE);
-        uint256 initialEscrowBalance = rewardEscrowV2.totalEscrowedBalanceOf(address(this));
+        uint256 initialEscrowBalance = rewardEscrowV2.escrowedBalanceOf(address(this));
 
         // stake
         stakingRewardsV2.stake(TEST_VALUE);
@@ -459,7 +459,7 @@ contract StakingRewardsV2OnBehalfActionsTests is DefaultStakingV2Setup {
         stakingRewardsV2.compoundOnBehalf(address(this));
 
         // check reward escrow balance increased
-        uint256 finalEscrowBalance = rewardEscrowV2.totalEscrowedBalanceOf(address(this));
+        uint256 finalEscrowBalance = rewardEscrowV2.escrowedBalanceOf(address(this));
         assertGt(finalEscrowBalance, initialEscrowBalance);
 
         // check all escrowed rewards were staked
@@ -484,7 +484,7 @@ contract StakingRewardsV2OnBehalfActionsTests is DefaultStakingV2Setup {
 
         fundAndApproveAccountV2(owner, initialStake);
 
-        uint256 initialEscrowBalance = rewardEscrowV2.totalEscrowedBalanceOf(owner);
+        uint256 initialEscrowBalance = rewardEscrowV2.escrowedBalanceOf(owner);
 
         // stake
         vm.prank(owner);
@@ -505,7 +505,7 @@ contract StakingRewardsV2OnBehalfActionsTests is DefaultStakingV2Setup {
         stakingRewardsV2.compoundOnBehalf(owner);
 
         // check reward escrow balance increased
-        uint256 finalEscrowBalance = rewardEscrowV2.totalEscrowedBalanceOf(owner);
+        uint256 finalEscrowBalance = rewardEscrowV2.escrowedBalanceOf(owner);
         assertGt(finalEscrowBalance, initialEscrowBalance);
 
         // check all escrowed rewards were staked

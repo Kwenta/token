@@ -13,7 +13,7 @@ contract StakingRewardsV2CompoundTests is DefaultStakingV2Setup {
 
     function test_compound() public {
         fundAndApproveAccountV2(address(this), TEST_VALUE);
-        uint256 initialEscrowBalance = rewardEscrowV2.totalEscrowedBalanceOf(address(this));
+        uint256 initialEscrowBalance = rewardEscrowV2.escrowedBalanceOf(address(this));
 
         // stake
         stakingRewardsV2.stake(TEST_VALUE);
@@ -28,7 +28,7 @@ contract StakingRewardsV2CompoundTests is DefaultStakingV2Setup {
         stakingRewardsV2.compound();
 
         // check reward escrow balance increased
-        uint256 finalEscrowBalance = rewardEscrowV2.totalEscrowedBalanceOf(address(this));
+        uint256 finalEscrowBalance = rewardEscrowV2.escrowedBalanceOf(address(this));
         assertGt(finalEscrowBalance, initialEscrowBalance);
 
         // check all escrowed rewards were staked
@@ -45,7 +45,7 @@ contract StakingRewardsV2CompoundTests is DefaultStakingV2Setup {
 
         fundAndApproveAccountV2(address(this), initialStake);
 
-        uint256 initialEscrowBalance = rewardEscrowV2.totalEscrowedBalanceOf(address(this));
+        uint256 initialEscrowBalance = rewardEscrowV2.escrowedBalanceOf(address(this));
 
         // stake
         stakingRewardsV2.stake(initialStake);
@@ -60,7 +60,7 @@ contract StakingRewardsV2CompoundTests is DefaultStakingV2Setup {
         stakingRewardsV2.compound();
 
         // check reward escrow balance increased
-        uint256 finalEscrowBalance = rewardEscrowV2.totalEscrowedBalanceOf(address(this));
+        uint256 finalEscrowBalance = rewardEscrowV2.escrowedBalanceOf(address(this));
         assertGt(finalEscrowBalance, initialEscrowBalance);
 
         // check all escrowed rewards were staked

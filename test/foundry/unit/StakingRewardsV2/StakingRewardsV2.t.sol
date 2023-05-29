@@ -527,7 +527,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
     function test_getReward_Increases_Balance_In_Escrow() public {
         fundAndApproveAccountV2(address(this), TEST_VALUE);
 
-        uint256 initialEscrowBalance = rewardEscrowV2.totalEscrowedBalanceOf(address(this));
+        uint256 initialEscrowBalance = rewardEscrowV2.escrowedBalanceOf(address(this));
 
         // stake
         stakingRewardsV2.stake(TEST_VALUE);
@@ -543,7 +543,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         stakingRewardsV2.getReward();
 
         // check reward escrow balance increased
-        assertGt(rewardEscrowV2.totalEscrowedBalanceOf(address(this)), initialEscrowBalance);
+        assertGt(rewardEscrowV2.escrowedBalanceOf(address(this)), initialEscrowBalance);
     }
 
     /*//////////////////////////////////////////////////////////////
