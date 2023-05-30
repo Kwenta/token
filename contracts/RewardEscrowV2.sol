@@ -6,6 +6,8 @@ import {IRewardEscrowV2, VestingEntries} from "./interfaces/IRewardEscrowV2.sol"
 import {ERC721EnumerableUpgradeable} from
     "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {PausableUpgradeable} from
+    "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 // Internal references
@@ -19,6 +21,7 @@ contract RewardEscrowV2 is
     IRewardEscrowV2,
     ERC721EnumerableUpgradeable,
     OwnableUpgradeable,
+    PausableUpgradeable,
     UUPSUpgradeable
 {
     /*///////////////////////////////////////////////////////////////
@@ -96,6 +99,7 @@ contract RewardEscrowV2 is
     function initialize(address _owner, address _kwenta) external override initializer {
         // Initialize inherited contracts
         __Ownable_init();
+        __UUPSUpgradeable_init();
         __UUPSUpgradeable_init();
         __ERC721_init("Kwenta Reward Escrow", "KRE");
 
@@ -305,7 +309,7 @@ contract RewardEscrowV2 is
     ///////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IRewardEscrowV2
-    function vest(uint256[] calldata _entryIDs) external override {
+    function vest(uint256[] calldata _entryIDs) external override whenNotPaused {
         uint256 total;
         uint256 totalFee;
         uint256 entryIDsLength = _entryIDs.length;
@@ -468,4 +472,18 @@ contract RewardEscrowV2 is
     }
 
     function _authorizeUpgrade(address _newImplementation) internal override onlyOwner {}
+
+    /*///////////////////////////////////////////////////////////////
+                                PAUSABLE
+    ///////////////////////////////////////////////////////////////*/
+
+    /// @inheritdoc IRewardEscrowV2
+    function pauseRewardEscrow() external override onlyOwner {
+        _pause();
+    }
+
+    /// @inheritdoc IRewardEscrowV2
+    function unpauseRewardEscrow() external override onlyOwner {
+        _unpause();
+    }
 }

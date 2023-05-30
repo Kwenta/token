@@ -139,6 +139,12 @@ interface IRewardEscrowV2 {
     /// @param _entryIDs a list of the ids of the entries to transfer
     function bulkTransferFrom(address _from, address _to, uint256[] calldata _entryIDs) external;
 
+    /// @dev Triggers stopped state
+    function pauseRewardEscrow() external;
+
+    /// @dev Returns to normal state.
+    function unpauseRewardEscrow() external;
+
     /*///////////////////////////////////////////////////////////////
                                 EVENTS
     ///////////////////////////////////////////////////////////////*/
