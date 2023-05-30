@@ -49,7 +49,7 @@ contract TokenDistributor is ITokenDistributor {
         if (_offset > 6) {
             revert OffsetTooBig();
         }
-        offset = _offset * 86400;
+        offset = _offset * 1 days;
         uint _t = _startOfWeek(block.timestamp);
         startTime = _t;
         lastCheckpoint = _t;
