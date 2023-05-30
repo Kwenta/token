@@ -367,7 +367,7 @@ contract RewardEscrowV2 is
         uint256 _deposit,
         uint256 _duration,
         uint8 _earlyVestingFee
-    ) external override {
+    ) external override whenNotPaused {
         if (_beneficiary == address(0)) revert ZeroAddress();
         if (_earlyVestingFee > MAXIMUM_EARLY_VESTING_FEE) revert EarlyVestingFeeTooHigh();
         if (_earlyVestingFee < MINIMUM_EARLY_VESTING_FEE) revert EarlyVestingFeeTooLow();
