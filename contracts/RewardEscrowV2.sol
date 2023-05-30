@@ -337,19 +337,23 @@ contract RewardEscrowV2 is
                 }
             }
 
+            // update balances
+            totalEscrowedBalance -= total + totalFee;
+            totalEscrowedAccountBalance[msg.sender] -= total + totalFee;
+            totalVestedAccountBalance[msg.sender] += total;
+
+            // trigger event
+            emit Vested(msg.sender, total);
+
             // Send any fee to Treasury
             if (totalFee != 0) {
                 /// @dev this will revert if the kwenta token transfer fails
-                /// @dev if using this with a different token, make sure to check the return value
-                // TODO: look at reentrancy - should move 'update balances' above???
                 kwenta.transfer(treasuryDAO, totalFee);
             }
 
-            // update balances
-            _reduceAccountEscrowBalances(msg.sender, total + totalFee);
-
             // Transfer kwenta
-            _transferVestedTokens(msg.sender, total);
+            /// @dev this will revert if the kwenta token transfer fails
+            kwenta.transfer(msg.sender, total);
         }
     }
 
@@ -367,7 +371,6 @@ contract RewardEscrowV2 is
         if (_duration == 0 || _duration > MAX_DURATION) revert InvalidDuration();
 
         /// @dev this will revert if the kwenta token transfer fails
-        /// @dev if using this with a different token, make sure to check the return value
         kwenta.transferFrom(msg.sender, address(this), _deposit);
 
         // Append vesting entry for the beneficiary address
@@ -425,26 +428,9 @@ contract RewardEscrowV2 is
         super._transfer(_from, _to, _entryID);
     }
 
-    function _checkIfSufficientUnstakedBalance(address _account, uint256 _amount) internal view {
-        uint256 unstakedEscrow = unstakedEscrowedBalanceOf(_account);
-        if (unstakedEscrow < _amount) revert InsufficientUnstakedBalance(_amount, unstakedEscrow);
-    }
-
     function _burn(uint256 _entryID) internal override {
         delete vestingSchedules[_entryID];
         super._burn(_entryID);
-    }
-
-    /// @dev Transfer vested KWENTA to account and update totalEscrowedAccountBalance, totalVestedAccountBalance
-    function _transferVestedTokens(address _account, uint256 _amount) internal {
-        totalVestedAccountBalance[_account] += _amount;
-        kwenta.transfer(_account, _amount);
-        emit Vested(_account, _amount);
-    }
-
-    function _reduceAccountEscrowBalances(address _account, uint256 _amount) internal {
-        totalEscrowedBalance -= _amount;
-        totalEscrowedAccountBalance[_account] -= _amount;
     }
 
     function _mint(address _account, uint256 _quantity, uint256 _duration, uint8 _earlyVestingFee)
@@ -474,6 +460,11 @@ contract RewardEscrowV2 is
         emit VestingEntryCreated(_account, _quantity, _duration, entryID, _earlyVestingFee);
 
         super._mint(_account, entryID);
+    }
+
+    function _checkIfSufficientUnstakedBalance(address _account, uint256 _amount) internal view {
+        uint256 unstakedEscrow = unstakedEscrowedBalanceOf(_account);
+        if (unstakedEscrow < _amount) revert InsufficientUnstakedBalance(_amount, unstakedEscrow);
     }
 
     function _authorizeUpgrade(address _newImplementation) internal override onlyOwner {}
