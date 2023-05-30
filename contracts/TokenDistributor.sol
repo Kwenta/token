@@ -29,8 +29,8 @@ contract TokenDistributor is ITokenDistributor {
     /// @notice starting week of deployment
     uint internal startTime;
 
-    /// @notice array for tokens allocated to each epoch
-    uint[1000000000000000] internal tokensPerEpoch;
+    /// @inheritdoc ITokenDistributor
+    uint[1000000000000000] public tokensPerEpoch;
 
     /// @notice the week offset in seconds
     uint internal offset;
