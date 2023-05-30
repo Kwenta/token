@@ -23,4 +23,8 @@ contract TokenDistributorInternals is TokenDistributor {
         _checkpointWhenReady();
     }
 
+    function isEpochReady(uint epochNumber) public {
+        _isEpochReady(epochNumber);
+    }
+
 }

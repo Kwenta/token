@@ -124,7 +124,7 @@ contract TokenDistributorTest is StakingSetup {
     function testClaimEpochNotReady() public {
         vm.startPrank(user1);
 
-        goForward(304801);
+        goForward(.5 weeks);
         vm.expectRevert(
             abi.encodeWithSelector(ITokenDistributor.CannotClaimYet.selector)
         );
@@ -1178,5 +1178,86 @@ contract TokenDistributorTest is StakingSetup {
         vm.expectEmit(true, true, true, true);
         emit EpochClaim(address(user2), 1, proportionalFees2);
         tokenDistributorOffset.claimEpoch(address(user2), 1);
+    }
+
+    // Test _isEpochActive
+
+    /// @notice current epoch is not ready to claim yet
+    function testCurrentEpochNotDoneYet() public {
+        TokenDistributorInternals tDI = new TokenDistributorInternals(
+            address(kwenta),
+            address(stakingRewardsV2),
+            address(rewardEscrowV2),
+            0
+        );
+        goForward(.5 weeks);
+        vm.expectRevert(
+            abi.encodeWithSelector(ITokenDistributor.CannotClaimYet.selector)
+        );
+        tDI.isEpochReady(0);
+    }
+
+    /// @notice epoch is not here yet (future)
+    function testNotEpochYet() public {
+        TokenDistributorInternals tDI = new TokenDistributorInternals(
+            address(kwenta),
+            address(stakingRewardsV2),
+            address(rewardEscrowV2),
+            0
+        );
+        goForward(.5 weeks);
+        vm.expectRevert(
+            abi.encodeWithSelector(ITokenDistributor.CannotClaimYet.selector)
+        );
+        tDI.isEpochReady(7);
+    }
+
+    /// @notice no epochs yet (claim right at deployment)
+    function testNoEpochsYet() public {
+        TokenDistributorInternals tDI = new TokenDistributorInternals(
+            address(kwenta),
+            address(stakingRewardsV2),
+            address(rewardEscrowV2),
+            0
+        );
+        vm.expectRevert(
+            abi.encodeWithSelector(ITokenDistributor.CannotClaimYet.selector)
+        );
+        tDI.isEpochReady(0);
+    }
+
+    /// @notice epoch is not ready to claim yet (with offset)
+    function testCurrentEpochNotDoneYetWithOffset() public {
+        TokenDistributorInternals tDI = new TokenDistributorInternals(
+            address(kwenta),
+            address(stakingRewardsV2),
+            address(rewardEscrowV2),
+            2
+        );
+        goForward(2 days - 3);
+        vm.expectRevert(
+            abi.encodeWithSelector(ITokenDistributor.CannotClaimYet.selector)
+        );
+        tDI.isEpochReady(0);
+
+        goForward(3);
+        tDI.isEpochReady(0);
+    }
+
+    /// @notice fuzz that future epochs are not active
+    function testFuzzIsEpochActive(uint8 epochNumber) public {
+        TokenDistributorInternals tDI = new TokenDistributorInternals(
+            address(kwenta),
+            address(stakingRewardsV2),
+            address(rewardEscrowV2),
+            0
+        );
+        /// @dev 15 epochs will already be claimable
+        vm.assume(epochNumber > 15);
+        goForward(15 weeks);
+        vm.expectRevert(
+            abi.encodeWithSelector(ITokenDistributor.CannotClaimYet.selector)
+        );
+        tDI.isEpochReady(epochNumber);
     }
 }
