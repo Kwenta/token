@@ -425,9 +425,7 @@ contract RewardEscrowV2 is
 
     function _checkIfSufficientUnstakedBalance(address _account, uint256 _amount) internal view {
         uint256 unstakedEscrow = unstakedEscrowedBalanceOf(_account);
-        if (unstakedEscrow < _amount) {
-            revert InsufficientUnstakedBalance(_amount, unstakedEscrow);
-        }
+        if (unstakedEscrow < _amount) revert InsufficientUnstakedBalance(_amount, unstakedEscrow);
     }
 
     function _burn(uint256 _entryID) internal override {
@@ -444,7 +442,6 @@ contract RewardEscrowV2 is
     }
 
     function _reduceAccountEscrowBalances(address _account, uint256 _amount) internal {
-        // Reverts if amount being vested is greater than the account's existing totalEscrowedAccountBalance
         totalEscrowedBalance -= _amount;
         totalEscrowedAccountBalance[_account] -= _amount;
     }

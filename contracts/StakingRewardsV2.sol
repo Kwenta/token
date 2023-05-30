@@ -284,9 +284,7 @@ contract StakingRewardsV2 is
     {
         if (_amount == 0) revert AmountZero();
         uint256 unstakedEscrow = unstakedEscrowedBalanceOf(_account);
-        if (_amount > unstakedEscrow) {
-            revert InsufficientUnstakedEscrow(unstakedEscrow);
-        }
+        if (_amount > unstakedEscrow) revert InsufficientUnstakedEscrow(unstakedEscrow);
 
         // update state
         userLastStakeTime[_account] = block.timestamp;
@@ -625,9 +623,7 @@ contract StakingRewardsV2 is
 
     /// @inheritdoc IStakingRewardsV2
     function setCooldownPeriod(uint256 _cooldownPeriod) external override onlyOwner {
-        if (_cooldownPeriod < MIN_COOLDOWN_PERIOD) {
-            revert CooldownPeriodTooLow(MIN_COOLDOWN_PERIOD);
-        }
+        if (_cooldownPeriod < MIN_COOLDOWN_PERIOD) revert CooldownPeriodTooLow(MIN_COOLDOWN_PERIOD);
         if (_cooldownPeriod > MAX_COOLDOWN_PERIOD) {
             revert CooldownPeriodTooHigh(MAX_COOLDOWN_PERIOD);
         }
