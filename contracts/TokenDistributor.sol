@@ -9,31 +9,31 @@ import {ITokenDistributor} from "./interfaces/ITokenDistributor.sol";
 contract TokenDistributor is ITokenDistributor {
     /// @notice represents the status of if a person already
     /// claimed their epoch
-    mapping(address => mapping(uint => bool)) public claimedEpochs;
+    mapping(address => mapping(uint => bool)) internal claimedEpochs;
 
     /// @notice kwenta interface
-    IKwenta public kwenta;
+    IKwenta private kwenta;
 
     /// @notice rewards staking contract
-    StakingRewardsV2 public stakingRewardsV2;
+    StakingRewardsV2 private stakingRewardsV2;
 
     /// @notice escrow contract which holds (and may stake) reward tokens
-    RewardEscrowV2 public rewardEscrowV2;
+    RewardEscrowV2 private rewardEscrowV2;
 
     /// @notice last recorded balance of KWENTA in contract
-    uint public lastTokenBalance;
+    uint internal lastTokenBalance;
 
     /// @notice last checkpoint time
-    uint public lastCheckpoint;
+    uint internal lastCheckpoint;
 
     /// @notice starting week of deployment
-    uint public startTime;
+    uint internal startTime;
 
     /// @notice array for tokens allocated to each epoch
-    uint[1000000000000000] public tokensPerEpoch;
+    uint[1000000000000000] internal tokensPerEpoch;
 
     /// @notice the week offset in seconds
-    uint public offset;
+    uint internal offset;
 
     constructor(
         address _kwenta,
