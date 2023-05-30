@@ -273,6 +273,94 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         stakingRewardsV2.getReward();
     }
 
+    function test_Cannot_Get_Rewards_On_Behalf_When_Paused() public {
+            // approve operator
+        stakingRewardsV2.approveOperator(user1, true);
+
+        // fund and stake
+        fundAndApproveAccountV2(address(this), TEST_VALUE);
+        stakingRewardsV2.stake(TEST_VALUE);
+
+        // configure reward rate
+        vm.prank(address(supplySchedule));
+        stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
+
+        // fast forward 2 weeks
+        vm.warp(block.timestamp + 2 weeks);
+
+        // pause
+        stakingRewardsV2.pauseStakingRewards();
+
+        // get reward
+        vm.expectRevert("Pausable: paused");
+        vm.prank(user1);
+        stakingRewardsV2.getRewardOnBehalf(address(this));
+
+        // unpause
+        stakingRewardsV2.unpauseStakingRewards();
+
+        // should work now
+        vm.prank(user1);
+        stakingRewardsV2.getRewardOnBehalf(address(this));
+    }
+
+    function test_Cannot_Compound_When_Paused() public {
+        // fund and stake
+        fundAndApproveAccountV2(address(this), TEST_VALUE);
+        stakingRewardsV2.stake(TEST_VALUE);
+
+        // configure reward rate
+        vm.prank(address(supplySchedule));
+        stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
+
+        // fast forward 2 weeks
+        vm.warp(block.timestamp + 2 weeks);
+
+        // pause
+        stakingRewardsV2.pauseStakingRewards();
+
+        // get reward
+        vm.expectRevert("Pausable: paused");
+        stakingRewardsV2.compound();
+
+        // unpause
+        stakingRewardsV2.unpauseStakingRewards();
+
+        // should work now
+        stakingRewardsV2.compound();
+    }
+
+    function test_Cannot_Compound_On_Behalf_When_Paused() public {
+            // approve operator
+        stakingRewardsV2.approveOperator(user1, true);
+
+        // fund and stake
+        fundAndApproveAccountV2(address(this), TEST_VALUE);
+        stakingRewardsV2.stake(TEST_VALUE);
+
+        // configure reward rate
+        vm.prank(address(supplySchedule));
+        stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
+
+        // fast forward 2 weeks
+        vm.warp(block.timestamp + 2 weeks);
+
+        // pause
+        stakingRewardsV2.pauseStakingRewards();
+
+        // get reward
+        vm.expectRevert("Pausable: paused");
+        vm.prank(user1);
+        stakingRewardsV2.compoundOnBehalf(address(this));
+
+        // unpause
+        stakingRewardsV2.unpauseStakingRewards();
+
+        // should work now
+        vm.prank(user1);
+        stakingRewardsV2.compoundOnBehalf(address(this));
+    }
+
     /*//////////////////////////////////////////////////////////////
                         External Rewards Recovery
     //////////////////////////////////////////////////////////////*/
