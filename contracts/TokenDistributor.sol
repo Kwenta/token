@@ -55,6 +55,7 @@ contract TokenDistributor is ITokenDistributor {
         lastCheckpoint = startOfThisWeek;
     }
 
+    /// @inheritdoc ITokenDistributor
     function checkpointToken() public override {
         uint tokenBalance = kwenta.balanceOf(address(this));
         uint toDistribute = tokenBalance - lastTokenBalance;
@@ -103,8 +104,7 @@ contract TokenDistributor is ITokenDistributor {
         emit CheckpointToken(block.timestamp, toDistribute);
     }
 
-    /// @notice this function will fetch StakingRewardsV2 to see what their staked balance
-    /// was at the start of the epoch then calculate proportional fees and transfer to user
+    /// @inheritdoc ITokenDistributor
     function claimEpoch(address to, uint epochNumber) public override {
         _checkpointWhenReady();
         _isEpochReady(epochNumber);
@@ -133,7 +133,7 @@ contract TokenDistributor is ITokenDistributor {
         emit EpochClaim(to, epochNumber, proportionalFees);
     }
 
-    /// @notice claim many epochs at once
+    /// @inheritdoc ITokenDistributor
     function claimMany(address to, uint[] memory epochs) public {
         for (uint i = 0; i < epochs.length; i++) {
             uint epochNumber = epochs[i];
@@ -141,7 +141,7 @@ contract TokenDistributor is ITokenDistributor {
         }
     }
 
-    /// @notice view function for calculating fees for an epoch
+    /// @inheritdoc ITokenDistributor
     function calculateEpochFees(
         address to,
         uint epochNumber

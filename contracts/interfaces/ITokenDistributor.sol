@@ -36,6 +36,7 @@ interface ITokenDistributor {
     // View Functions
 
     /// @notice view function for calculating fees for an epoch
+    /// based off staked balances from StakingRewardsV2
     function calculateEpochFees(
         address to,
         uint epochNumber
@@ -43,9 +44,12 @@ interface ITokenDistributor {
 
     // Mutative Functions
 
+    /// @notice checkpointing system for determining tokens per epoch
     function checkpointToken() external;
 
+    /// @notice claim tokens for a certain epoch
     function claimEpoch(address to, uint epochNumber) external;
 
+    /// @notice claim tokens for many epochs at once
     function claimMany(address to, uint[] memory epochs) external;
 }
