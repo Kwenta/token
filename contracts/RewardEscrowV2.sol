@@ -339,12 +339,14 @@ contract RewardEscrowV2 is
 
             // Send any fee to Treasury
             if (totalFee != 0) {
-                _reduceAccountEscrowBalances(msg.sender, totalFee);
-
                 /// @dev this will revert if the kwenta token transfer fails
                 /// @dev if using this with a different token, make sure to check the return value
+                // TODO: look at reentrancy - should move 'update balances' above???
                 kwenta.transfer(treasuryDAO, totalFee);
             }
+
+            // update balances
+            _reduceAccountEscrowBalances(msg.sender, total + totalFee);
 
             // Transfer kwenta
             _transferVestedTokens(msg.sender, total);
@@ -435,7 +437,6 @@ contract RewardEscrowV2 is
 
     /// @dev Transfer vested KWENTA to account and update totalEscrowedAccountBalance, totalVestedAccountBalance
     function _transferVestedTokens(address _account, uint256 _amount) internal {
-        _reduceAccountEscrowBalances(_account, _amount);
         totalVestedAccountBalance[_account] += _amount;
         kwenta.transfer(_account, _amount);
         emit Vested(_account, _amount);
