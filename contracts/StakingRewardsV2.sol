@@ -255,6 +255,7 @@ contract StakingRewardsV2 is
         public
         override
         nonReentrant
+        whenNotPaused
         updateReward(msg.sender)
         afterCooldown(msg.sender)
     {
