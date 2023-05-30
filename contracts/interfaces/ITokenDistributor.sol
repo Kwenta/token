@@ -5,9 +5,14 @@ interface ITokenDistributor {
     // Events
 
     /// @notice event for a new checkpoint
+    /// @param time: the timestamp of the checkpoint
+    /// @param tokens: amount of tokens checkpointed
     event CheckpointToken(uint time, uint tokens);
 
     /// @notice event for a epoch that gets claimed
+    /// @param user: who claimed the epoch
+    /// @param epoch: the epoch number that was claimed
+    /// @param tokens: the amount of tokens claimed
     event EpochClaim(address user, uint epoch, uint tokens);
 
     // Errors
@@ -37,6 +42,9 @@ interface ITokenDistributor {
 
     /// @notice view function for calculating fees for an epoch
     /// based off staked balances from StakingRewardsV2
+    /// @param to: the address the fees are being calculated for
+    /// @param epochNumber: the epoch the fees are calculated for
+    /// @return proportional amount of fees
     function calculateEpochFees(
         address to,
         uint epochNumber
@@ -48,8 +56,12 @@ interface ITokenDistributor {
     function checkpointToken() external;
 
     /// @notice claim tokens for a certain epoch
+    /// @param to: address that epoch is being claimed for
+    /// @param epochNumber: epoch that is being claimed
     function claimEpoch(address to, uint epochNumber) external;
 
     /// @notice claim tokens for many epochs at once
+    /// @param to: address that epoch is being claimed for
+    /// @param epochs: all the epochs being claimed
     function claimMany(address to, uint[] memory epochs) external;
 }
