@@ -350,7 +350,12 @@ contract StakingRewardsV2 is
         _getReward(msg.sender);
     }
 
-    function _getReward(address _account) internal nonReentrant updateReward(_account) {
+    function _getReward(address _account)
+        internal
+        nonReentrant
+        whenNotPaused
+        updateReward(_account)
+    {
         uint256 reward = rewards[_account];
         if (reward > 0) {
             // update state (first)
