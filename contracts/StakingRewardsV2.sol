@@ -101,31 +101,43 @@ contract StakingRewardsV2 is
 
     /// @notice access control modifier for rewardEscrow
     modifier onlyRewardEscrow() {
-        if (msg.sender != address(rewardEscrow)) revert OnlyRewardEscrow();
+        _onlyRewardEscrow();
         _;
+    }
+
+    function _onlyRewardEscrow() internal view {
+        if (msg.sender != address(rewardEscrow)) revert OnlyRewardEscrow();
     }
 
     /// @notice access control modifier for rewardEscrow
     modifier onlySupplySchedule() {
-        if (msg.sender != address(supplySchedule)) revert OnlySupplySchedule();
+        _onlySupplySchedule();
         _;
     }
 
+    function _onlySupplySchedule() internal view {
+        if (msg.sender != address(supplySchedule)) revert OnlySupplySchedule();
+    }
+
     /// @notice access control modifier for approved operators
-    modifier onlyOperator(address owner) {
-        if (!_operatorApprovals[owner][msg.sender]) {
-            revert NotApproved();
-        }
+    modifier onlyOperator(address _owner) {
+        _onlyOperator(_owner);
         _;
+    }
+
+    function _onlyOperator(address _owner) internal view {
+        if (!_operatorApprovals[_owner][msg.sender]) revert NotApproved();
     }
 
     /// @notice only allow execution after the unstaking cooldown period has elapsed
     modifier afterCooldown(address _account) {
-        uint256 canUnstakeAt = userLastStakeTime[_account] + cooldownPeriod;
-        if (canUnstakeAt > block.timestamp) {
-            revert MustWaitForUnlock(canUnstakeAt);
-        }
+        _afterCooldown(_account);
         _;
+    }
+
+    function _afterCooldown(address _account) internal view {
+        uint256 canUnstakeAt = userLastStakeTime[_account] + cooldownPeriod;
+        if (canUnstakeAt > block.timestamp) revert MustWaitForUnlock(canUnstakeAt);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -374,6 +386,11 @@ contract StakingRewardsV2 is
     /// @param _account: address of account which rewards are being updated for
     /// @dev contract state not specific to an account will be updated also
     modifier updateReward(address _account) {
+        _updateRewards(_account);
+        _;
+    }
+
+    function _updateRewards(address _account) internal {
         rewardPerTokenStored = rewardPerToken();
         lastUpdateTime = lastTimeRewardApplicable();
 
@@ -385,7 +402,6 @@ contract StakingRewardsV2 is
             // (i.e. when this user is interacting with StakingRewards)
             userRewardPerTokenPaid[_account] = rewardPerTokenStored;
         }
-        _;
     }
 
     /// @inheritdoc IStakingRewardsV2

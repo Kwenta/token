@@ -73,8 +73,12 @@ contract RewardEscrowV2 is
 
     /// @notice Restrict function to only the staking rewards contract
     modifier onlyStakingRewards() {
-        if (msg.sender != address(stakingRewards)) revert OnlyStakingRewards();
+        _onlyStakingRewards();
         _;
+    }
+
+    function _onlyStakingRewards() internal view {
+        if (msg.sender != address(stakingRewards)) revert OnlyStakingRewards();
     }
 
     /*///////////////////////////////////////////////////////////////
