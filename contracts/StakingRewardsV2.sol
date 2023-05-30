@@ -317,6 +317,7 @@ contract StakingRewardsV2 is
     function _unstakeEscrow(address _account, uint256 _amount)
         internal
         nonReentrant
+        whenNotPaused
         updateReward(_account)
     {
         if (_amount == 0) revert AmountZero();
