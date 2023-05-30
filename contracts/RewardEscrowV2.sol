@@ -52,7 +52,6 @@ contract RewardEscrowV2 is
     ///@notice mapping of entryIDs to vesting entries
     mapping(uint256 => VestingEntries.VestingEntry) public vestingSchedules;
 
-    // TODO: 1A: delete and use totalSupply() instead - maybe not with burn decrementing it? - depends on if we delete the whole vestingSchedule or not
     /// @notice Counter for new vesting entry ids
     uint256 public nextEntryId;
 
@@ -312,18 +311,14 @@ contract RewardEscrowV2 is
                 continue;
             }
 
-            // TODO: 1A: if i decide to keep deleting these at burn, this check may be unecessary
-            // Skip entry if escrowAmount == 0 already vested
-            if (entry.escrowAmount != 0) {
-                (uint256 quantity, uint256 fee) = _claimableAmount(entry);
+            (uint256 quantity, uint256 fee) = _claimableAmount(entry);
 
-                // update entry to remove escrowAmount
-                _burn(_entryIDs[i]);
+            // update entry to remove escrowAmount
+            _burn(_entryIDs[i]);
 
-                // add quantity to total
-                total += quantity;
-                totalFee += fee;
-            }
+            // add quantity to total
+            total += quantity;
+            totalFee += fee;
         }
 
         // Transfer vested tokens. Will revert if total > totalEscrowedAccountBalance
@@ -391,7 +386,10 @@ contract RewardEscrowV2 is
         uint256 entryIDsLength = _entryIDs.length;
         for (uint256 i = 0; i < entryIDsLength;) {
             totalEscrowTransferred += vestingSchedules[_entryIDs[i]].escrowAmount;
-            require(_isApprovedOrOwner(_msgSender(), _entryIDs[i]), "ERC721: caller is not token owner or approved");
+            require(
+                _isApprovedOrOwner(_msgSender(), _entryIDs[i]),
+                "ERC721: caller is not token owner or approved"
+            );
             super._transfer(_from, _to, _entryIDs[i]);
             unchecked {
                 ++i;
@@ -421,10 +419,7 @@ contract RewardEscrowV2 is
         super._transfer(_from, _to, _entryID);
     }
 
-    function _checkIfSufficientUnstakedBalance(address _account, uint256 _amount)
-        internal
-        view
-    {
+    function _checkIfSufficientUnstakedBalance(address _account, uint256 _amount) internal view {
         uint256 unstakedEscrow = unstakedEscrowedBalanceOf(_account);
         if (unstakedEscrow < _amount) {
             revert InsufficientUnstakedBalance(_amount, unstakedEscrow);
@@ -432,8 +427,6 @@ contract RewardEscrowV2 is
     }
 
     function _burn(uint256 _entryID) internal override {
-        // TODO: 1A: should delete the whole entry? or just the escrowAmount as before? gas savings?
-        // vestingSchedules[_entryID].escrowAmount = 0;
         delete vestingSchedules[_entryID];
         super._burn(_entryID);
     }
