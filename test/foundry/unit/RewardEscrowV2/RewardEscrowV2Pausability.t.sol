@@ -28,4 +28,16 @@ contract RewardEscrowV2PausabilityTests is DefaultStakingV2Setup {
         // unpause
         rewardEscrowV2.unpauseRewardEscrow();
     }
+
+    function test_Cannot_Vest_When_Paused() public {
+        createRewardEscrowEntryV2(address(this), TEST_VALUE, 52 weeks);
+        vm.warp(block.timestamp + 52 weeks);
+
+        // pause
+        rewardEscrowV2.pauseRewardEscrow();
+
+        entryIDs.push(1);
+        vm.expectRevert("Pausable: paused");
+        rewardEscrowV2.vest(entryIDs);
+    }
 }
