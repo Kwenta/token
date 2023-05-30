@@ -39,5 +39,11 @@ contract RewardEscrowV2PausabilityTests is DefaultStakingV2Setup {
         entryIDs.push(1);
         vm.expectRevert("Pausable: paused");
         rewardEscrowV2.vest(entryIDs);
+
+        // unpause
+        rewardEscrowV2.unpauseRewardEscrow();
+
+        // now shouldn't revert
+        rewardEscrowV2.vest(entryIDs);
     }
 }
