@@ -122,6 +122,8 @@ contract TokenDistributor is ITokenDistributor {
         if (claimedEpochs[to][epochNumber] == true) {
             revert CannotClaimTwice();
         }
+        claimedEpochs[to][epochNumber] = true;
+
         uint256 totalStaked = stakingRewardsV2.totalSupplyAtTime(
             _startOfEpoch(epochNumber)
         );
@@ -136,7 +138,6 @@ contract TokenDistributor is ITokenDistributor {
         }
 
         lastTokenBalance -= proportionalFees;
-        claimedEpochs[to][epochNumber] = true;
 
         kwenta.approve(address(rewardEscrowV2), proportionalFees);
         rewardEscrowV2.createEscrowEntry(to, proportionalFees, 52 weeks, 90);
