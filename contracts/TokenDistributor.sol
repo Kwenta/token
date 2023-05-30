@@ -35,21 +35,27 @@ contract TokenDistributor is ITokenDistributor {
     /// @notice the week offset in seconds
     uint internal offset;
 
+    /// @notice max amount of days the epoch can be offset by
+    uint internal constant MAX_OFFSET_DAYS = 6;
+
+    /// @notice weeks in a year
+    uint internal constant WEEKS_IN_YEAR = 52;
+
     constructor(
         address _kwenta,
         address _stakingRewardsV2,
         address _rewardEscrowV2,
-        uint _offset
+        uint daysToOffsetBy
     ) {
         kwenta = IKwenta(_kwenta);
         stakingRewardsV2 = StakingRewardsV2(_stakingRewardsV2);
         rewardEscrowV2 = RewardEscrowV2(_rewardEscrowV2);
 
-        /// @notice custom start day (startTime + param)
-        if (_offset > 6) {
+        /// @notice custom start day (startTime + daysToOffsetBy)
+        if (daysToOffsetBy > MAX_OFFSET_DAYS) {
             revert OffsetTooBig();
         }
-        offset = _offset * 1 days;
+        offset = daysToOffsetBy * 1 days;
         uint startOfThisWeek = _startOfWeek(block.timestamp);
         startTime = startOfThisWeek;
         lastCheckpoint = startOfThisWeek;
@@ -68,8 +74,8 @@ contract TokenDistributor is ITokenDistributor {
         uint nextWeek = 0;
 
         /// @dev Loop for potential missed weeks
-        /// iterates until caught up, unlikely to go to 52
-        for (uint i = 0; i < 52; i++) {
+        /// iterates until caught up, unlikely to go to 52 weeks
+        for (uint i = 0; i < WEEKS_IN_YEAR; i++) {
             nextWeek = thisWeek + 1 weeks;
 
             if (block.timestamp < nextWeek) {
@@ -152,7 +158,7 @@ contract TokenDistributor is ITokenDistributor {
         if (totalStaked == 0) {
             return 0;
         }
-        uint256 proportionalFees = tokensPerEpoch[epochStart] * userStaked /
+        uint256 proportionalFees = (tokensPerEpoch[epochStart] * userStaked) /
             totalStaked;
 
         return proportionalFees;
@@ -162,7 +168,7 @@ contract TokenDistributor is ITokenDistributor {
     function _startOfWeek(uint timestamp) internal view returns (uint) {
         /// @dev remove offset then truncate and then put offset back because
         /// you cannot truncate to an "offset" time - always truncates to the start
-        /// of unix time - 
+        /// of unix time -
         /// @dev this also prevents false truncation: without removing then adding
         /// offset, the end of a normal week but before the end of an offset week
         /// will get truncated to the next normal week even though the true week (offset)
