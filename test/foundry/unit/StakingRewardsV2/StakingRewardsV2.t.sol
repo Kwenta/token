@@ -165,6 +165,27 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         stakingRewardsV2.stake(TEST_VALUE);
     }
 
+    function test_Cannot_Unstake_When_Paused() public {
+        // fund so that staking would succeed if not paused
+        fundAndApproveAccountV2(address(this), TEST_VALUE);
+        stakingRewardsV2.stake(TEST_VALUE);
+
+        vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod());
+
+        // pause
+        stakingRewardsV2.pauseStakingRewards();
+
+        // attempt to unstake
+        vm.expectRevert("Pausable: paused");
+        stakingRewardsV2.unstake(TEST_VALUE);
+
+        // unpause
+        stakingRewardsV2.unpauseStakingRewards();
+
+        // should work now
+        stakingRewardsV2.unstake(TEST_VALUE);
+    }
+
     /*//////////////////////////////////////////////////////////////
                         External Rewards Recovery
     //////////////////////////////////////////////////////////////*/
