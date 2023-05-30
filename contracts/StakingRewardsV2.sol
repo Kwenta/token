@@ -361,13 +361,13 @@ contract StakingRewardsV2 is
             // update state (first)
             rewards[_account] = 0;
 
+            // emit reward claimed event and index account
+            emit RewardPaid(_account, reward);
+
             // transfer token from this contract to the rewardEscrow
             // and create a vesting entry for the caller
             token.safeTransfer(address(rewardEscrow), reward);
             rewardEscrow.appendVestingEntry(_account, reward);
-
-            // emit reward claimed event and index account
-            emit RewardPaid(_account, reward);
         }
     }
 
@@ -667,7 +667,7 @@ contract StakingRewardsV2 is
         onlyOwner
     {
         if (_tokenAddress == address(token)) revert CannotRecoverStakingToken();
-        IERC20(_tokenAddress).safeTransfer(owner(), _tokenAmount);
         emit Recovered(_tokenAddress, _tokenAmount);
+        IERC20(_tokenAddress).safeTransfer(owner(), _tokenAmount);
     }
 }
