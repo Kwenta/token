@@ -1244,8 +1244,8 @@ contract TokenDistributorTest is StakingSetup {
         tDI.isEpochReady(0);
     }
 
-    /// @notice fuzz that future epochs are not active
-    function testFuzzIsEpochActive(uint8 epochNumber) public {
+    /// @notice fuzz that future epochs are not ready
+    function testFuzzEpochsArent(uint8 epochNumber) public {
         TokenDistributorInternals tDI = new TokenDistributorInternals(
             address(kwenta),
             address(stakingRewardsV2),
@@ -1258,6 +1258,20 @@ contract TokenDistributorTest is StakingSetup {
         vm.expectRevert(
             abi.encodeWithSelector(ITokenDistributor.CannotClaimYet.selector)
         );
+        tDI.isEpochReady(epochNumber);
+    }
+
+    /// @notice fuzz that future epochs are ready
+    function testFuzzIsEpochReady(uint8 epochNumber) public {
+        TokenDistributorInternals tDI = new TokenDistributorInternals(
+            address(kwenta),
+            address(stakingRewardsV2),
+            address(rewardEscrowV2),
+            0
+        );
+        /// @dev 75 epochs will already be claimable
+        vm.assume(epochNumber < 76);
+        goForward(76 weeks);
         tDI.isEpochReady(epochNumber);
     }
 }
