@@ -152,8 +152,8 @@ contract TokenDistributor is ITokenDistributor {
         if (totalStaked == 0) {
             return 0;
         }
-        uint256 proportionalFees = ((tokensPerEpoch[epochStart] * userStaked) /
-            totalStaked);
+        uint256 proportionalFees = tokensPerEpoch[epochStart] * userStaked /
+            totalStaked;
 
         return proportionalFees;
     }
