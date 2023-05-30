@@ -160,6 +160,13 @@ contract TokenDistributor is ITokenDistributor {
 
     /// @notice function for calculating the start of a week with an offset
     function _startOfWeek(uint timestamp) internal view returns (uint) {
+        /// @dev remove offset then truncate and then put offset back because
+        /// you cannot truncate to an "offset" time - always truncates to the start
+        /// of unix time - 
+        /// @dev this also prevents false truncation: without removing then adding
+        /// offset, the end of a normal week but before the end of an offset week
+        /// will get truncated to the next normal week even though the true week (offset)
+        /// has not ended yet
         return (((timestamp - offset) / 1 weeks) * 1 weeks) + offset;
     }
 
