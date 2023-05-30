@@ -107,10 +107,7 @@ contract TokenDistributor is ITokenDistributor {
     /// was at the start of the epoch then calculate proportional fees and transfer to user
     function claimEpoch(address to, uint epochNumber) public override {
         _checkpointWhenReady();
-        /// @dev if the end of the epoch is > current time, revert
-        if (_startOfEpoch(epochNumber) + 1 weeks > block.timestamp) {
-            revert CannotClaimYet();
-        }
+        _isEpochReady(epochNumber);
         if (claimedEpochs[to][epochNumber] == true) {
             revert CannotClaimTwice();
         }
@@ -182,6 +179,15 @@ contract TokenDistributor is ITokenDistributor {
         /// gets updated before its claimed (even if < 24 hrs)
         if ((block.timestamp - _startOfWeek(lastCheckpoint)) > 1 weeks) {
             checkpointToken();
+        }
+    }
+
+    /// @notice function for determining if the epoch being claimed
+    /// is the current epoch or has not happened yet
+    function _isEpochReady(uint epochNumber) internal {
+        /// @dev if the end of the epoch is > current time, revert
+        if (_startOfEpoch(epochNumber) + 1 weeks > block.timestamp) {
+            revert CannotClaimYet();
         }
     }
 }
