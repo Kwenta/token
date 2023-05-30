@@ -50,9 +50,9 @@ contract TokenDistributor is ITokenDistributor {
             revert OffsetTooBig();
         }
         offset = _offset * 1 days;
-        uint _t = _startOfWeek(block.timestamp);
-        startTime = _t;
-        lastCheckpoint = _t;
+        uint startOfThisWeek = _startOfWeek(block.timestamp);
+        startTime = startOfThisWeek;
+        lastCheckpoint = startOfThisWeek;
     }
 
     function checkpointToken() public override {
@@ -60,10 +60,10 @@ contract TokenDistributor is ITokenDistributor {
         uint toDistribute = tokenBalance - lastTokenBalance;
         lastTokenBalance = tokenBalance;
 
-        uint t = lastCheckpoint;
-        uint sinceLast = block.timestamp - t;
+        uint previousCheckpoint = lastCheckpoint;
+        uint sinceLast = block.timestamp - previousCheckpoint;
         lastCheckpoint = block.timestamp;
-        uint thisWeek = _startOfWeek(t);
+        uint thisWeek = _startOfWeek(previousCheckpoint);
         uint nextWeek = 0;
 
         /// @dev Loop for potential missed weeks
@@ -73,7 +73,7 @@ contract TokenDistributor is ITokenDistributor {
 
             if (block.timestamp < nextWeek) {
                 /// @dev if in the current week
-                if (sinceLast == 0 && block.timestamp == t) {
+                if (sinceLast == 0 && block.timestamp == previousCheckpoint) {
                     /// @dev If no time change since last checkpoint just add new tokens
                     /// that may have been deposited (same block)
                     tokensPerEpoch[thisWeek] += toDistribute;
@@ -81,22 +81,23 @@ contract TokenDistributor is ITokenDistributor {
                     /// @dev In the event that toDistribute contains tokens
                     /// for multiple weeks we take the remaining portion
                     tokensPerEpoch[thisWeek] +=
-                        (toDistribute * (block.timestamp - t)) /
+                        (toDistribute *
+                            (block.timestamp - previousCheckpoint)) /
                         sinceLast;
                 }
                 break;
             } else {
                 /// @dev If passed weeks missed
-                if (sinceLast == 0 && nextWeek == t) {
+                if (sinceLast == 0 && nextWeek == previousCheckpoint) {
                     tokensPerEpoch[thisWeek] += toDistribute;
                 } else {
                     /// @dev Store proportion of tokens for this week in the past
                     tokensPerEpoch[thisWeek] +=
-                        (toDistribute * (nextWeek - t)) /
+                        (toDistribute * (nextWeek - previousCheckpoint)) /
                         sinceLast;
                 }
             }
-            t = nextWeek;
+            previousCheckpoint = nextWeek;
             thisWeek = nextWeek;
         }
         emit CheckpointToken(block.timestamp, toDistribute);
