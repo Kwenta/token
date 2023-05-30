@@ -41,6 +41,11 @@ contract TokenDistributor is ITokenDistributor {
     /// @notice weeks in a year
     uint internal constant WEEKS_IN_YEAR = 52;
 
+    /// @notice constructs the TokenDistributor contract
+    /// and sets startTime
+    /// @param _kwenta: address of the kwenta contract
+    /// @param _stakingRewardsV2: address of the stakingRewardsV2 contract
+    /// @param _rewardEscrowV2: address of the rewardEscrowV2 contract
     constructor(
         address _kwenta,
         address _stakingRewardsV2,
