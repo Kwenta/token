@@ -12,8 +12,6 @@ import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/U
 import {IKwenta} from "./interfaces/IKwenta.sol";
 import {IStakingRewardsV2} from "./interfaces/IStakingRewardsV2.sol";
 
-// TODO: 1B: think about safeTransfer, safeMint etc. - Should I use SafeERC20 link in StakingRewards?
-
 /// @title KWENTA Reward Escrow
 /// @author SYNTHETIX, JaredBorders (jaredborders@proton.me), JChiaramonte7 (jeremy@bytecode.llc), tommyrharper (zeroknowledgeltd@gmail.com)
 /// @notice Updated version of Synthetix's RewardEscrow with new features specific to Kwenta
