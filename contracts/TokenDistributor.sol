@@ -150,7 +150,7 @@ contract TokenDistributor is ITokenDistributor {
         uint256 userStaked = stakingRewardsV2.balanceAtTime(to, epochStart);
         uint256 totalStaked = stakingRewardsV2.totalSupplyAtTime(epochStart);
         if (totalStaked == 0) {
-            return totalStaked;
+            return 0;
         }
         uint256 proportionalFees = ((tokensPerEpoch[epochStart] * userStaked) /
             totalStaked);
