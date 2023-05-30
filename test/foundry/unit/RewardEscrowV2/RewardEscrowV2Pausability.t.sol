@@ -46,4 +46,23 @@ contract RewardEscrowV2PausabilityTests is DefaultStakingV2Setup {
         // now shouldn't revert
         rewardEscrowV2.vest(entryIDs);
     }
+
+    function test_Cannot_Create_Escrow_Entry_When_Paused() public {
+        vm.prank(treasury);
+        kwenta.approve(address(rewardEscrowV2), TEST_VALUE);
+
+        // pause
+        rewardEscrowV2.pauseRewardEscrow();
+
+        vm.prank(treasury);
+        vm.expectRevert("Pausable: paused");
+        rewardEscrowV2.createEscrowEntry(address(this), TEST_VALUE, 52 weeks, 90);
+
+        // unpause
+        rewardEscrowV2.unpauseRewardEscrow();
+
+        // now shouldn't revert
+        vm.prank(treasury);
+        rewardEscrowV2.createEscrowEntry(address(this), TEST_VALUE, 52 weeks, 90);
+    }
 }
