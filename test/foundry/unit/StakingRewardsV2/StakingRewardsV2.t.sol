@@ -204,6 +204,49 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         stakingRewardsV2.stakeEscrow(TEST_VALUE);
     }
 
+    function test_Cannot_Stake_Escrow_On_Behalf_When_Paused() public {
+        // approve operator
+        stakingRewardsV2.approveOperator(user1, true);
+
+        // fund so that staking would succeed if not paused
+        createRewardEscrowEntryV2(address(this), TEST_VALUE, 52 weeks);
+
+        // pause
+        stakingRewardsV2.pauseStakingRewards();
+
+        // attempt to stake
+        vm.expectRevert("Pausable: paused");
+        vm.prank(user1);
+        stakingRewardsV2.stakeEscrowOnBehalf(address(this), TEST_VALUE);
+
+        // unpause
+        stakingRewardsV2.unpauseStakingRewards();
+
+        // should work now
+        vm.prank(user1);
+        stakingRewardsV2.stakeEscrowOnBehalf(address(this), TEST_VALUE);
+    }
+
+    function test_Cannot_Unstake_Escrow_When_Paused() public {
+        // fund and stake escrow
+        stakeEscrowedFundsV2(address(this), TEST_VALUE);
+
+        vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod());
+
+        // pause
+        stakingRewardsV2.pauseStakingRewards();
+
+        // attempt to unstake
+        vm.expectRevert("Pausable: paused");
+        stakingRewardsV2.unstakeEscrow(TEST_VALUE);
+
+        // unpause
+        stakingRewardsV2.unpauseStakingRewards();
+
+        // should work now
+        stakingRewardsV2.unstakeEscrow(TEST_VALUE);
+    }
+
     /*//////////////////////////////////////////////////////////////
                         External Rewards Recovery
     //////////////////////////////////////////////////////////////*/
