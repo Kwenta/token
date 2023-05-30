@@ -7,12 +7,6 @@ import {IKwenta} from "./interfaces/IKwenta.sol";
 import {ITokenDistributor} from "./interfaces/ITokenDistributor.sol";
 
 contract TokenDistributor is ITokenDistributor {
-    /// @notice event for a new checkpoint
-    event CheckpointToken(uint time, uint tokens);
-
-    /// @notice event for a epoch that gets claimed
-    event EpochClaim(address user, uint epoch, uint tokens);
-
     /// @notice represents the status of if a person already
     /// claimed their epoch
     mapping(address => mapping(uint => bool)) public claimedEpochs;

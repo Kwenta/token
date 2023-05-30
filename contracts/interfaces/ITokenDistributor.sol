@@ -2,6 +2,14 @@
 pragma solidity ^0.8.19;
 
 interface ITokenDistributor {
+    // Events
+
+    /// @notice event for a new checkpoint
+    event CheckpointToken(uint time, uint tokens);
+
+    /// @notice event for a epoch that gets claimed
+    event EpochClaim(address user, uint epoch, uint tokens);
+
     // Errors
 
     /// @notice error when offset is more than 7 days
