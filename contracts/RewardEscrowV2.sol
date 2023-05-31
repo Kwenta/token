@@ -445,7 +445,7 @@ contract RewardEscrowV2 is
         totalEscrowedAccountBalance[_to] += _escrowAmount;
     }
 
-    function _checkApproved(uint256 _entryID) internal {
+    function _checkApproved(uint256 _entryID) internal view {
         /// @dev not using a custom error to keep consistency with OpenZeppelin errors
         require(
             _isApprovedOrOwner(_msgSender(), _entryID),
