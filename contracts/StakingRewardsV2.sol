@@ -120,13 +120,13 @@ contract StakingRewardsV2 is
     }
 
     /// @notice access control modifier for approved operators
-    modifier onlyOperator(address _owner) {
-        _onlyOperator(_owner);
+    modifier onlyOperator(address _accountOwner) {
+        _onlyOperator(_accountOwner);
         _;
     }
 
-    function _onlyOperator(address _owner) internal view {
-        if (!_operatorApprovals[_owner][msg.sender]) revert NotApproved();
+    function _onlyOperator(address _accountOwner) internal view {
+        if (!_operatorApprovals[_accountOwner][msg.sender]) revert NotApproved();
     }
 
     /// @notice only allow execution after the unstaking cooldown period has elapsed
