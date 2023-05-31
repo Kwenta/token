@@ -331,9 +331,10 @@ contract RewardEscrowV2 is
 
         // Transfer vested tokens. Will revert if total > totalEscrowedAccountBalance
         if (total != 0) {
+            uint256 totalWithFee = total + totalFee;
+
             // Withdraw staked escrowed kwenta if needed for reward
             if (_isEscrowStaked(msg.sender)) {
-                uint256 totalWithFee = total + totalFee;
                 uint256 unstakedEscrow = unstakedEscrowedBalanceOf(msg.sender);
                 if (totalWithFee > unstakedEscrow) {
                     uint256 amountToUnstake = totalWithFee - unstakedEscrow;
@@ -342,8 +343,8 @@ contract RewardEscrowV2 is
             }
 
             // update balances
-            totalEscrowedBalance -= total + totalFee;
-            totalEscrowedAccountBalance[msg.sender] -= total + totalFee;
+            totalEscrowedBalance -= totalWithFee;
+            totalEscrowedAccountBalance[msg.sender] -= totalWithFee;
             totalVestedAccountBalance[msg.sender] += total;
 
             // trigger event
