@@ -157,7 +157,7 @@ contract StakingRewardsV2 is
         address _rewardEscrow,
         address _supplySchedule,
         address _stakingRewardsV1,
-        address _owner
+        address _contractOwner
     ) external override initializer {
         // initialize owner
         __Ownable_init();
@@ -166,7 +166,7 @@ contract StakingRewardsV2 is
         __UUPSUpgradeable_init();
 
         // transfer ownership
-        transferOwnership(_owner);
+        transferOwnership(_contractOwner);
 
         // define reward/staking token
         token = IERC20(_token);
