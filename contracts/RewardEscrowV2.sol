@@ -300,10 +300,6 @@ contract RewardEscrowV2 is
             (100 * _entry.duration);
     }
 
-    function _isEscrowStaked(address _account) internal view returns (bool) {
-        return stakingRewards.escrowedBalanceOf(_account) > 0;
-    }
-
     /*///////////////////////////////////////////////////////////////
                             MUTATIVE FUNCTIONS
     ///////////////////////////////////////////////////////////////*/
@@ -334,8 +330,9 @@ contract RewardEscrowV2 is
             uint256 totalWithFee = total + totalFee;
 
             // Withdraw staked escrowed kwenta if needed for reward
-            if (_isEscrowStaked(msg.sender)) {
-                uint256 unstakedEscrow = unstakedEscrowedBalanceOf(msg.sender);
+            uint256 stakedEscrow = stakingRewards.escrowedBalanceOf(msg.sender);
+            if (stakedEscrow > 0) {
+                uint256 unstakedEscrow = totalEscrowedAccountBalance[msg.sender] - stakedEscrow;
                 if (totalWithFee > unstakedEscrow) {
                     uint256 amountToUnstake = totalWithFee - unstakedEscrow;
                     stakingRewards.unstakeEscrowSkipCooldown(msg.sender, amountToUnstake);
