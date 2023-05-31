@@ -296,8 +296,8 @@ contract RewardEscrowV2 is
     {
         uint256 timeUntilVest = _entry.endTime - block.timestamp;
         // Fee starts by default at 90% (but could be any percentage) and falls linearly
-        uint256 initialFee = _entry.escrowAmount * _entry.earlyVestingFee / 100;
-        earlyVestFee = initialFee * timeUntilVest / _entry.duration;
+        earlyVestFee = _entry.escrowAmount * _entry.earlyVestingFee * timeUntilVest /
+            (100 * _entry.duration);
     }
 
     function _isEscrowStaked(address _account) internal view returns (bool) {
