@@ -132,10 +132,17 @@ interface IRewardEscrowV2 {
     /// @param _quantity The quantity of KWENTA that will be escrowed.
     function appendVestingEntry(address _account, uint256 _quantity) external;
 
-    /// @notice Transfer multiple tokens from one account to another
+    /// @notice Transfer all entries from one account to another
     ///  Sufficient escrowed KWENTA must be unstaked for the transfer to succeed
-    /// @param _from The account to transfer the tokens from
-    /// @param _to The account to transfer the tokens to
+    ///  The caller must be the owner or approved as an operator for the _from account
+    /// @param _from The account to transfer the entries from
+    /// @param _to The account to transfer the entries to
+    function bulkTransferAllFrom(address _from, address _to) external;
+
+    /// @notice Transfer multiple entries from one account to another
+    ///  Sufficient escrowed KWENTA must be unstaked for the transfer to succeed
+    /// @param _from The account to transfer the entries from
+    /// @param _to The account to transfer the entries to
     /// @param _entryIDs a list of the ids of the entries to transfer
     function bulkTransferFrom(address _from, address _to, uint256[] calldata _entryIDs) external;
 
