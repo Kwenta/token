@@ -402,13 +402,17 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         assertEq(kwenta.balanceOf(address(rewardEscrowV2)), 0);
 
         // check entry has been burned
+        assertEq(rewardEscrowV2.balanceOf(address(this)), 0);
+        vm.expectRevert("ERC721: invalid token ID");
+        assertEq(rewardEscrowV2.ownerOf(1), address(0));
+
+        // old vesting entry data still exists
         (uint64 endTime, uint256 escrowAmount, uint256 duration, uint8 earlyVestingFee) =
             rewardEscrowV2.getVestingEntry(1);
-        assertEq(rewardEscrowV2.balanceOf(address(this)), 0);
-        assertEq(escrowAmount, 0);
-        assertEq(endTime, 0);
-        assertEq(duration, 0);
-        assertEq(earlyVestingFee, 0);
+        assertEq(escrowAmount, 1000 ether);
+        assertEq(endTime, block.timestamp + 26 weeks);
+        assertEq(duration, 52 weeks);
+        assertEq(earlyVestingFee, 90);
     }
 
     function test_Should_Revert_If_Kwenta_Transfer_Fails() public {

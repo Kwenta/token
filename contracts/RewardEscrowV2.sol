@@ -245,14 +245,11 @@ contract RewardEscrowV2 is
         for (uint256 i = 0; i < entryIDsLength;) {
             VestingEntries.VestingEntry memory entry = vestingSchedules[_entryIDs[i]];
 
-            // Skip entry if escrowAmount == 0
-            if (entry.escrowAmount != 0) {
-                (uint256 quantity, uint256 fee) = _claimableAmount(entry);
+            (uint256 quantity, uint256 fee) = _claimableAmount(entry);
 
-                // add quantity to total
-                total += quantity;
-                totalFee += fee;
-            }
+            // add quantity to total
+            total += quantity;
+            totalFee += fee;
 
             unchecked {
                 ++i;
@@ -278,14 +275,12 @@ contract RewardEscrowV2 is
     {
         uint256 escrowAmount = _entry.escrowAmount;
 
-        if (escrowAmount != 0) {
-            // Full escrow amounts claimable if block.timestamp equal to or after entry endTime
-            if (block.timestamp >= _entry.endTime) {
-                quantity = escrowAmount;
-            } else {
-                fee = _earlyVestFee(_entry);
-                quantity = escrowAmount - fee;
-            }
+        // Full escrow amounts claimable if block.timestamp equal to or after entry endTime
+        if (block.timestamp >= _entry.endTime) {
+            quantity = escrowAmount;
+        } else {
+            fee = _earlyVestFee(_entry);
+            quantity = escrowAmount - fee;
         }
     }
 
@@ -428,11 +423,6 @@ contract RewardEscrowV2 is
         totalEscrowedAccountBalance[_to] += escrowAmount;
 
         super._transfer(_from, _to, _entryID);
-    }
-
-    function _burn(uint256 _entryID) internal override {
-        delete vestingSchedules[_entryID];
-        super._burn(_entryID);
     }
 
     function _mint(address _account, uint256 _quantity, uint256 _duration, uint8 _earlyVestingFee)
