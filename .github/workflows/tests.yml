@@ -95,3 +95,13 @@ jobs:
             version: nightly
       - name: Run Foundry Unit Tests
         run: npm run f-test
+      - name: Run forge coverage
+        run: forge coverage --report lcov
+
+      - name: Upload Coverage Report
+        uses: codecov/codecov-action@v3
+        with:
+            files: ./lcov.info
+            name: codecov-unit
+            fail_ci_if_error: true
+            verbose: true
