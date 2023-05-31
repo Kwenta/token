@@ -338,7 +338,7 @@ contract StakingRewardsV2 is
     /// @inheritdoc IStakingRewardsV2
     function exit() external override {
         unstake(nonEscrowedBalanceOf(msg.sender));
-        getReward();
+        _getReward(msg.sender);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -346,7 +346,7 @@ contract StakingRewardsV2 is
     ///////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IStakingRewardsV2
-    function getReward() public override {
+    function getReward() external override {
         _getReward(msg.sender);
     }
 
