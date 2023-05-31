@@ -120,7 +120,7 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
         assertEq(rewardEscrowV2.balanceOf(user1), 1);
 
         // attempt to steal other users vesting entry
-        vm.expectRevert("ERC721: caller is not token owner or approved for all");
+        vm.expectRevert("ERC721: caller is not token owner or approved");
         rewardEscrowV2.bulkTransferAllFrom(user1, user2);
     }
 
@@ -138,7 +138,7 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
         assertEq(rewardEscrowV2.balanceOf(user1), 1);
 
         // attempt to steal other users vesting entry
-        vm.expectRevert("ERC721: caller is not token owner or approved for all");
+        vm.expectRevert("ERC721: caller is not token owner or approved");
         rewardEscrowV2.bulkTransferAllFrom(user1, user2);
     }
 

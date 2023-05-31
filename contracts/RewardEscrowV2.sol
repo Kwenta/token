@@ -385,28 +385,21 @@ contract RewardEscrowV2 is
 
     /// @inheritdoc IRewardEscrowV2
     function bulkTransferAllFrom(address _from, address _to) external override {
-        require(
-            msg.sender == _from || isApprovedForAll(_from, msg.sender),
-            "ERC721: caller is not token owner or approved for all"
-        );
-
         uint256 numTokens = balanceOf(_from);
         uint256 totalEscrowTransferred;
         for (uint256 i; i < numTokens;) {
-            // We always get index 0 due to the pop and swap mechanism during each transfer
+            // We always use index 0 due to the pop and swap mechanism during each transfer
             uint256 entryID = tokenOfOwnerByIndex(_from, 0);
             totalEscrowTransferred += vestingSchedules[entryID].escrowAmount;
+
+            _checkApproved(entryID);
             super._transfer(_from, _to, entryID);
             unchecked {
                 ++i;
             }
         }
 
-        // TODO: extract into helper
-        _checkIfSufficientUnstakedBalance(_from, totalEscrowTransferred);
-
-        totalEscrowedAccountBalance[_from] -= totalEscrowTransferred;
-        totalEscrowedAccountBalance[_to] += totalEscrowTransferred;
+        _applyTransferBalanceUpdates(_from, _to, totalEscrowTransferred);
     }
 
     /// @inheritdoc IRewardEscrowV2
@@ -418,20 +411,15 @@ contract RewardEscrowV2 is
         uint256 entryIDsLength = _entryIDs.length;
         for (uint256 i = 0; i < entryIDsLength;) {
             totalEscrowTransferred += vestingSchedules[_entryIDs[i]].escrowAmount;
-            require(
-                _isApprovedOrOwner(_msgSender(), _entryIDs[i]),
-                "ERC721: caller is not token owner or approved"
-            );
+
+            _checkApproved(_entryIDs[i]);
             super._transfer(_from, _to, _entryIDs[i]);
             unchecked {
                 ++i;
             }
         }
 
-        _checkIfSufficientUnstakedBalance(_from, totalEscrowTransferred);
-
-        totalEscrowedAccountBalance[_from] -= totalEscrowTransferred;
-        totalEscrowedAccountBalance[_to] += totalEscrowTransferred;
+        _applyTransferBalanceUpdates(_from, _to, totalEscrowTransferred);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -443,12 +431,26 @@ contract RewardEscrowV2 is
     function _transfer(address _from, address _to, uint256 _entryID) internal override {
         uint256 escrowAmount = vestingSchedules[_entryID].escrowAmount;
 
-        _checkIfSufficientUnstakedBalance(_from, escrowAmount);
-
-        totalEscrowedAccountBalance[_from] -= escrowAmount;
-        totalEscrowedAccountBalance[_to] += escrowAmount;
+        _applyTransferBalanceUpdates(_from, _to, escrowAmount);
 
         super._transfer(_from, _to, _entryID);
+    }
+
+    function _applyTransferBalanceUpdates(address _from, address _to, uint256 _escrowAmount)
+        internal
+    {
+        _checkIfSufficientUnstakedBalance(_from, _escrowAmount);
+
+        totalEscrowedAccountBalance[_from] -= _escrowAmount;
+        totalEscrowedAccountBalance[_to] += _escrowAmount;
+    }
+
+    function _checkApproved(uint256 _entryID) internal {
+        /// @dev not using a custom error to keep consistency with OpenZeppelin errors
+        require(
+            _isApprovedOrOwner(_msgSender(), _entryID),
+            "ERC721: caller is not token owner or approved"
+        );
     }
 
     function _mint(address _account, uint256 _quantity, uint256 _duration, uint8 _earlyVestingFee)

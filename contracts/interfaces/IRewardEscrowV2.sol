@@ -135,6 +135,8 @@ interface IRewardEscrowV2 {
     /// @notice Transfer all entries from one account to another
     ///  Sufficient escrowed KWENTA must be unstaked for the transfer to succeed
     ///  The caller must be the owner or approved as an operator for the _from account
+    /// @dev This could fail to execute due to gas limits if the list of entries to transfer is too large
+    ///  In this case use bulkTransferFrom instead with a subset list of entries
     /// @param _from The account to transfer the entries from
     /// @param _to The account to transfer the entries to
     function bulkTransferAllFrom(address _from, address _to) external;
