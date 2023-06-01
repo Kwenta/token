@@ -72,7 +72,10 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
         assertEq(value, 0);
     }
 
-    function test_Balances_Checkpoints_Are_Updated_Fuzz(uint32 maxAmountStaked, uint8 numberOfRounds) public {
+    function test_Balances_Checkpoints_Are_Updated_Fuzz(
+        uint32 maxAmountStaked,
+        uint8 numberOfRounds
+    ) public {
         vm.assume(maxAmountStaked > 0);
         // keep the number of rounds low to keep tests fast
         vm.assume(numberOfRounds < 50);

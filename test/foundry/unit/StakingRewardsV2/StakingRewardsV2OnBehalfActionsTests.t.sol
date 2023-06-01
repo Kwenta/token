@@ -297,7 +297,7 @@ contract StakingRewardsV2OnBehalfActionsTests is DefaultStakingV2Setup {
 
     function test_Should_Revert_If_Staker_Has_No_Escrow() public {
         stakingRewardsV2.approveOperator(user1, true);
-        
+
         vm.prank(user1);
         vm.expectRevert(
             abi.encodeWithSelector(IStakingRewardsV2.InsufficientUnstakedEscrow.selector, 0)

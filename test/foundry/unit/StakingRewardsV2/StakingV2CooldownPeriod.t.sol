@@ -218,9 +218,7 @@ contract StakingV2CooldownPeriodTests is DefaultStakingV2Setup {
         unstakeEscrowedFundsV2(address(this), TEST_VALUE);
     }
 
-    function test_setCooldownPeriod_Fuzz(uint128 newCooldownPeriod, uint128 timeJump)
-        public
-    {
+    function test_setCooldownPeriod_Fuzz(uint128 newCooldownPeriod, uint128 timeJump) public {
         vm.assume(newCooldownPeriod > stakingRewardsV2.MIN_COOLDOWN_PERIOD());
         vm.assume(newCooldownPeriod < stakingRewardsV2.MAX_COOLDOWN_PERIOD());
 

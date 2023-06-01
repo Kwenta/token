@@ -274,7 +274,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
     }
 
     function test_Cannot_Get_Rewards_On_Behalf_When_Paused() public {
-            // approve operator
+        // approve operator
         stakingRewardsV2.approveOperator(user1, true);
 
         // fund and stake
@@ -331,7 +331,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
     }
 
     function test_Cannot_Compound_On_Behalf_When_Paused() public {
-            // approve operator
+        // approve operator
         stakingRewardsV2.approveOperator(user1, true);
 
         // fund and stake
