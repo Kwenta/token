@@ -7,17 +7,11 @@ import {TokenDistributorInternals} from "../utils/TokenDistributorInternals.sol"
 import {Kwenta} from "../../../contracts/Kwenta.sol";
 import {StakingRewardsV2} from "../../../contracts/StakingRewardsV2.sol";
 import {RewardEscrowV2} from "../../../contracts/RewardEscrowV2.sol";
-import {StakingSetup} from "../utils/StakingSetup.t.sol";
+import {StakingSetup} from "../utils/setup/StakingSetup.t.sol";
 
 contract TokenDistributorTest is StakingSetup {
     event CheckpointToken(uint time, uint tokens);
     event EpochClaim(address user, uint epoch, uint tokens);
-    event VestingEntryCreated(
-        address indexed beneficiary,
-        uint256 value,
-        uint256 duration,
-        uint256 entryID
-    );
 
     TokenDistributor public tokenDistributor;
 
@@ -75,7 +69,7 @@ contract TokenDistributorTest is StakingSetup {
         vm.expectEmit(true, true, true, true);
         emit CheckpointToken(3 weeks + 2, 10);
         vm.expectEmit(true, true, false, true);
-        emit VestingEntryCreated(address(user1), 4, 31449600, 1);
+        emit VestingEntryCreated(address(user1), 4, 31449600, 1, 90);
         vm.expectEmit(true, true, true, true);
         emit EpochClaim(address(user1), 1, 4);
         tokenDistributor.claimEpoch(address(user1), 1);
@@ -111,7 +105,7 @@ contract TokenDistributorTest is StakingSetup {
         vm.expectEmit(true, true, true, true);
         emit CheckpointToken(1814404, 5);
         vm.expectEmit(true, true, false, true);
-        emit VestingEntryCreated(address(user1), 2, 31449600, 1);
+        emit VestingEntryCreated(address(user1), 2, 31449600, 1, 90);
         tokenDistributor.claimEpoch(address(user1), 1);
 
         /// @dev a claim < 24 hours and not the first one
@@ -220,7 +214,7 @@ contract TokenDistributorTest is StakingSetup {
         stakingRewardsV2.unstake(1);
         goForward(2 weeks);
         vm.expectEmit(true, true, false, true);
-        emit VestingEntryCreated(address(user1), 2, 31449600, 1);
+        emit VestingEntryCreated(address(user1), 2, 31449600, 1, 90);
         tokenDistributor.claimEpoch(address(user1), 1);
     }
 
@@ -437,7 +431,7 @@ contract TokenDistributorTest is StakingSetup {
         /// and TokenDistributor receives 5000 in fees
         vm.prank(user1);
         vm.expectEmit(true, true, false, true);
-        emit VestingEntryCreated(address(user1), 111, 31449600, 1);
+        emit VestingEntryCreated(address(user1), 111, 31449600, 1, 90);
         tokenDistributor.claimEpoch(address(user1), 1);
         kwenta.transfer(address(tokenDistributor), 5000);
 
@@ -447,17 +441,17 @@ contract TokenDistributorTest is StakingSetup {
         goForward(304801);
         vm.prank(user1);
         vm.expectEmit(true, true, false, true);
-        emit VestingEntryCreated(address(user1), 1640, 31449600, 2);
+        emit VestingEntryCreated(address(user1), 1640, 31449600, 2, 90);
         tokenDistributor.claimEpoch(address(user1), 2);
         goForward(1000);
         kwenta.transfer(address(tokenDistributor), 300);
         vm.prank(user2);
         vm.expectEmit(true, true, false, true);
-        emit VestingEntryCreated(address(user2), 3280, 31449600, 3);
+        emit VestingEntryCreated(address(user2), 3280, 31449600, 3, 90);
         tokenDistributor.claimEpoch(address(user2), 2);
         vm.prank(user2);
         vm.expectEmit(true, true, false, true);
-        emit VestingEntryCreated(address(user2), 223, 31449600, 4);
+        emit VestingEntryCreated(address(user2), 223, 31449600, 4, 90);
         tokenDistributor.claimEpoch(address(user2), 1);
     }
 
@@ -517,7 +511,7 @@ contract TokenDistributorTest is StakingSetup {
         /// @dev claim for epoch 1 at the first second of epoch 2
         vm.prank(user1);
         vm.expectEmit(true, true, false, true);
-        emit VestingEntryCreated(address(user1), amount / 3, 31449600, 1);
+        emit VestingEntryCreated(address(user1), amount / 3, 31449600, 1, 90);
         tokenDistributor.claimEpoch(address(user1), 1);
     }
 
@@ -572,7 +566,8 @@ contract TokenDistributorTest is StakingSetup {
             address(user1),
             (amount * staking1) / (staking1 + staking2),
             31449600,
-            1
+            1,
+            90
         );
         tokenDistributor.claimEpoch(address(user1), 1);
     }
@@ -631,7 +626,7 @@ contract TokenDistributorTest is StakingSetup {
         /// @dev claim for epoch 1 at the first second of epoch 2
         vm.prank(user1);
         vm.expectEmit(true, true, false, true);
-        emit VestingEntryCreated(address(user1), proportionalFees, 31449600, 1);
+        emit VestingEntryCreated(address(user1), proportionalFees, 31449600, 1, 90);
         vm.expectEmit(true, true, true, true);
         emit EpochClaim(address(user1), 1, proportionalFees);
         tokenDistributor.claimEpoch(address(user1), 1);
@@ -668,7 +663,7 @@ contract TokenDistributorTest is StakingSetup {
         vm.expectEmit(true, true, true, true);
         emit CheckpointToken(1382404, 5);
         vm.expectEmit(true, true, false, true);
-        emit VestingEntryCreated(address(user1), 53, 31449600, 1);
+        emit VestingEntryCreated(address(user1), 53, 31449600, 1, 90);
         tokenDistributorOffset.claimEpoch(address(user1), 1);
 
         /// @dev user2 cant claim because they didnt stake
