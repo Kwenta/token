@@ -384,25 +384,6 @@ contract RewardEscrowV2 is
     }
 
     /// @inheritdoc IRewardEscrowV2
-    function bulkTransferAllFrom(address _from, address _to) external override {
-        uint256 numTokens = balanceOf(_from);
-        uint256 totalEscrowTransferred;
-        for (uint256 i; i < numTokens;) {
-            // We always use index 0 due to the pop and swap mechanism during each transfer
-            uint256 entryID = tokenOfOwnerByIndex(_from, 0);
-            totalEscrowTransferred += vestingSchedules[entryID].escrowAmount;
-
-            _checkApproved(entryID);
-            super._transfer(_from, _to, entryID);
-            unchecked {
-                ++i;
-            }
-        }
-
-        _applyTransferBalanceUpdates(_from, _to, totalEscrowTransferred);
-    }
-
-    /// @inheritdoc IRewardEscrowV2
     function bulkTransferFrom(address _from, address _to, uint256[] calldata _entryIDs)
         external
         override
