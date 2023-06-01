@@ -14,7 +14,7 @@ import {IStakingRewards} from "./interfaces/IStakingRewards.sol";
 import {ISupplySchedule} from "./interfaces/ISupplySchedule.sol";
 import {IRewardEscrowV2} from "./interfaces/IRewardEscrowV2.sol";
 
-/// @title KWENTA Staking Rewards
+/// @title KWENTA Staking Rewards V2
 /// @author SYNTHETIX, JaredBorders (jaredborders@proton.me), JChiaramonte7 (jeremy@bytecode.llc), tommyrharper (zeroknowledgeltd@gmail.com)
 /// @notice Updated version of Synthetix's StakingRewards with new features specific to Kwenta
 contract StakingRewardsV2 is
