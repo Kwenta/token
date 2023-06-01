@@ -59,6 +59,7 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
         uint256 user1NonEscrowStakedV1 = stakingRewardsV1.nonEscrowedBalanceOf(user1);
         uint256 user1Earned = stakingRewardsV1.earned(user1);
         uint256 user1EscrowV1 = rewardEscrowV1.balanceOf(user1);
+        uint256 v1TotalSupply = stakingRewardsV1.totalSupply();
         uint256 initialBalance = kwenta.balanceOf(user1);
 
         // Check user1 has non-zero values
@@ -67,6 +68,10 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
         assertGt(user1NonEscrowStakedV1, 0);
         assertGt(user1Earned, 0);
         assertGt(user1EscrowV1, 0);
+
+        // check v2 state before unstaking
+        assertEq(user1StakedV1, stakingRewardsV2.v1BalanceOf(user1));
+        assertEq(v1TotalSupply, stakingRewardsV2.v1TotalSupply());
 
         // unstake funds from v1
         exitStakingV1(user1);
@@ -84,6 +89,8 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
         assertEq(stakingRewardsV2.nonEscrowedBalanceOf(user1), 0);
         assertEq(stakingRewardsV2.escrowedBalanceOf(user1), 0);
         assertEq(stakingRewardsV2.totalSupply(), 0);
+        assertEq(stakingRewardsV2.v1BalanceOf(user1), user1EscrowStakedV1);
+        assertEq(stakingRewardsV2.v1TotalSupply(), v1TotalSupply - user1NonEscrowStakedV1);
         assertEq(rewardEscrowV2.escrowedBalanceOf(user1), 0);
 
         user1EscrowV1 = rewardEscrowV1.balanceOf(user1);
