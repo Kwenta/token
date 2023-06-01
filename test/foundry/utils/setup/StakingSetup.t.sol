@@ -17,6 +17,27 @@ import "../../utils/Constants.t.sol";
 
 contract StakingSetup is TestHelpers {
     /*//////////////////////////////////////////////////////////////
+                                Events
+    //////////////////////////////////////////////////////////////*/
+
+    event RewardsDurationUpdated(uint256 newDuration);
+    event CooldownPeriodUpdated(uint256 cooldownPeriod);
+    event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
+    event OperatorApproved(address owner, address operator, bool approved);
+    event RewardPaid(address indexed account, uint256 reward);
+    event EscrowStaked(address indexed user, uint256 amount);
+    event Vested(address indexed beneficiary, uint256 value);
+    event VestingEntryCreated(
+        address indexed beneficiary,
+        uint256 value,
+        uint256 duration,
+        uint256 entryID,
+        uint8 earlyVestingFee
+    );
+    event TreasuryDAOSet(address treasuryDAO);
+    event StakingRewardsSet(address stakingRewards);
+
+    /*//////////////////////////////////////////////////////////////
                                 State
     //////////////////////////////////////////////////////////////*/
 
@@ -107,6 +128,8 @@ contract StakingSetup is TestHelpers {
         rewardEscrowV2.setStakingRewards(address(0));
 
         // Setup StakingV2
+        vm.expectEmit(true, true, true, true);
+        emit StakingRewardsSet(address(stakingRewardsV2));
         (bool setupSuccess,) = address(migrate).delegatecall(
             abi.encodeWithSelector(
                 migrate.setupSystem.selector,
