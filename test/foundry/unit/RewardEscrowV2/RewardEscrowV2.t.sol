@@ -346,6 +346,15 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         assertEq(entries[2].escrowAmount, 500 ether);
     }
 
+    function test_getVestingSchedules_0_Page_Size() public {
+        create3Entries(user1);
+
+        VestingEntries.VestingEntryWithID[] memory entries =
+            rewardEscrowV2.getVestingSchedules(user1, 0, 0);
+
+        assertEq(entries.length, 0);
+    }
+
     function test_getAccountVestingEntryIDs() public {
         create3Entries(address(this));
 
