@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {RewardEscrowV2} from "../../../contracts/RewardEscrowV2.sol";
+import {RewardEscrowV2} from "../../../../contracts/RewardEscrowV2.sol";
 
 contract MockRewardEscrowV3 is RewardEscrowV2 {
     uint256 public newNum;

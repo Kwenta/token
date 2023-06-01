@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.19;
 
-import "forge-std/Test.sol";
-import {DefaultStakingV2Setup} from "../utils/DefaultStakingV2Setup.t.sol";
-import "../utils/Constants.t.sol";
+import {console} from "forge-std/Test.sol";
+import {DefaultStakingV2Setup} from "../../utils/setup/DefaultStakingV2Setup.t.sol";
+import "../../utils/Constants.t.sol";
 
 contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
     /*//////////////////////////////////////////////////////////////
@@ -15,26 +15,29 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
         fundAccountAndStakeV2(address(this), TEST_VALUE);
 
         // get last checkpoint
-        (uint256 blockTimestamp, uint256 value) = stakingRewardsV2.balances(address(this), 0);
+        (uint256 ts, uint256 blk, uint256 value) = stakingRewardsV2.balances(address(this), 0);
 
         // check values
-        assertEq(blockTimestamp, block.timestamp);
+        assertEq(ts, block.timestamp);
+        assertEq(blk, block.number);
         assertEq(value, TEST_VALUE);
 
         // move beyond cold period
-        vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+        vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod());
 
-        // update block number
+        // update block timestamp
         vm.warp(block.timestamp + 1);
+        vm.roll(block.number + 1);
 
         // unstake
         stakingRewardsV2.unstake(TEST_VALUE);
 
         // get last checkpoint
-        (blockTimestamp, value) = stakingRewardsV2.balances(address(this), 1);
+        (ts, blk, value) = stakingRewardsV2.balances(address(this), 1);
 
         // check values
-        assertEq(blockTimestamp, block.timestamp);
+        assertEq(ts, block.timestamp);
+        assertEq(blk, block.number);
         assertEq(value, 0);
     }
 
@@ -43,34 +46,36 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
         stakeEscrowedFundsV2(address(this), TEST_VALUE);
 
         // get last checkpoint
-        (uint256 blockTimestamp, uint256 value) = stakingRewardsV2.balances(address(this), 0);
+        (uint256 ts, uint256 blk, uint256 value) = stakingRewardsV2.balances(address(this), 0);
 
         // check values
-        assertEq(blockTimestamp, block.timestamp);
+        assertEq(ts, block.timestamp);
+        assertEq(blk, block.number);
         assertEq(value, TEST_VALUE);
 
         // move beyond cold period
-        vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+        vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod());
 
-        // update block number
+        // update block timestamp
         vm.warp(block.timestamp + 1);
+        vm.roll(block.number + 1);
 
         // unstake
         unstakeEscrowedFundsV2(address(this), TEST_VALUE);
 
         // get last checkpoint
-        (blockTimestamp, value) = stakingRewardsV2.balances(address(this), 1);
+        (ts, blk, value) = stakingRewardsV2.balances(address(this), 1);
 
         // check values
-        assertEq(blockTimestamp, block.timestamp);
+        assertEq(ts, block.timestamp);
+        assertEq(blk, block.number);
         assertEq(value, 0);
     }
 
-    // function test_Balances_Checkpoints_Are_Updated_Fuzz(uint32 maxAmountStaked, uint8 numberOfRounds) public {
-    function test_Balances_Checkpoints_Are_Updated_Fuzz() public {
-        uint32 maxAmountStaked = 2;
-        uint8 numberOfRounds = 2;
-
+    function test_Balances_Checkpoints_Are_Updated_Fuzz(
+        uint32 maxAmountStaked,
+        uint8 numberOfRounds
+    ) public {
         vm.assume(maxAmountStaked > 0);
         // keep the number of rounds low to keep tests fast
         vm.assume(numberOfRounds < 50);
@@ -91,35 +96,42 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
             // get last checkpoint
             uint256 length = stakingRewardsV2.balancesLength(address(this));
             uint256 finalIndex = length == 0 ? 0 : length - 1;
-            (uint256 blockTimestamp, uint256 value) = stakingRewardsV2.balances(address(this), finalIndex);
+            (uint256 ts, uint256 blk, uint256 value) =
+                stakingRewardsV2.balances(address(this), finalIndex);
 
             // check checkpoint values
-            assertEq(blockTimestamp, block.timestamp);
+            assertEq(ts, block.timestamp);
+            assertEq(blk, block.number);
             assertEq(value, previousTotal + amountToStake);
 
             // move beyond cold period
-            vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+            vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod());
 
-            // update block number
+            // update block timestamp
             vm.warp(block.timestamp + timestampAdvance);
+            vm.roll(block.number + 1);
 
             // unstake
             stakingRewardsV2.unstake(amountToUnstake);
 
             // get last checkpoint
             uint256 newIndex = finalIndex + 1;
-            (blockTimestamp, value) = stakingRewardsV2.balances(address(this), newIndex);
+            (ts, blk, value) = stakingRewardsV2.balances(address(this), newIndex);
 
             // check checkpoint values
-            assertEq(blockTimestamp, block.timestamp);
+            assertEq(ts, block.timestamp);
+            assertEq(blk, block.number);
             assertEq(value, previousTotal + amountToStake - amountToUnstake);
 
-            // update block number
+            // update block timestamp
             vm.warp(block.timestamp + timestampAdvance);
         }
     }
 
-    function test_Balances_Checkpoints_Are_Updated_Escrow_Staked_Fuzz(uint32 maxAmountStaked, uint8 numberOfRounds) public {
+    function test_Balances_Checkpoints_Are_Updated_Escrow_Staked_Fuzz(
+        uint32 maxAmountStaked,
+        uint8 numberOfRounds
+    ) public {
         vm.assume(maxAmountStaked > 0);
         // keep the number of rounds low to keep tests fast
         vm.assume(numberOfRounds < 50);
@@ -140,30 +152,34 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
             // get last checkpoint
             uint256 length = stakingRewardsV2.balancesLength(address(this));
             uint256 finalIndex = length == 0 ? 0 : length - 1;
-            (uint256 blockTimestamp, uint256 value) = stakingRewardsV2.balances(address(this), finalIndex);
+            (uint256 ts, uint256 blk, uint256 value) =
+                stakingRewardsV2.balances(address(this), finalIndex);
 
             // check checkpoint values
-            assertEq(blockTimestamp, block.timestamp);
+            assertEq(ts, block.timestamp);
+            assertEq(blk, block.number);
             assertEq(value, previousTotal + amountToStake);
 
             // move beyond cold period
-            vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+            vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod());
 
-            // update block number
+            // update block timestamp
             vm.warp(block.timestamp + timestampAdvance);
+            vm.roll(block.number + 1);
 
             // unstake
             unstakeEscrowedFundsV2(address(this), amountToUnstake);
 
             // get last checkpoint
-            uint256 newIndex = finalIndex  + 1;
-            (blockTimestamp, value) = stakingRewardsV2.balances(address(this), newIndex);
+            uint256 newIndex = finalIndex + 1;
+            (ts, blk, value) = stakingRewardsV2.balances(address(this), newIndex);
 
             // check checkpoint values
-            assertEq(blockTimestamp, block.timestamp);
+            assertEq(ts, block.timestamp);
+            assertEq(blk, block.number);
             assertEq(value, previousTotal + amountToStake - amountToUnstake);
 
-            // update block number
+            // update block timestamp
             vm.warp(block.timestamp + timestampAdvance);
         }
     }
@@ -179,30 +195,37 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
         stakeEscrowedFundsV2(address(this), TEST_VALUE);
 
         // get last checkpoint
-        (uint256 blockTimestamp, uint256 value) = stakingRewardsV2.escrowedBalances(address(this), 0);
+        (uint256 ts, uint256 blk, uint256 value) =
+            stakingRewardsV2.escrowedBalances(address(this), 0);
 
         // check values
-        assertEq(blockTimestamp, block.timestamp);
+        assertEq(ts, block.timestamp);
+        assertEq(blk, block.number);
         assertEq(value, TEST_VALUE);
 
         // move beyond cold period
-        vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+        vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod());
 
-        // update block number
+        // update block timestamp
         vm.warp(block.timestamp + 1);
+        vm.roll(block.number + 1);
 
         // unstake
         unstakeEscrowedFundsV2(address(this), TEST_VALUE);
 
         // get last checkpoint
-        (blockTimestamp, value) = stakingRewardsV2.escrowedBalances(address(this), 1);
+        (ts, blk, value) = stakingRewardsV2.escrowedBalances(address(this), 1);
 
         // check values
-        assertEq(blockTimestamp, block.timestamp);
+        assertEq(ts, block.timestamp);
+        assertEq(blk, block.number);
         assertEq(value, 0);
     }
 
-    function test_Escrowed_Balances_Checkpoints_Are_Updated_Fuzz(uint32 maxAmountStaked, uint8 numberOfRounds) public {
+    function test_Escrowed_Balances_Checkpoints_Are_Updated_Fuzz(
+        uint32 maxAmountStaked,
+        uint8 numberOfRounds
+    ) public {
         vm.assume(maxAmountStaked > 0);
         // keep the number of rounds low to keep tests fast
         vm.assume(numberOfRounds < 50);
@@ -223,30 +246,34 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
             // get last checkpoint
             uint256 length = stakingRewardsV2.escrowedBalancesLength(address(this));
             uint256 finalIndex = length == 0 ? 0 : length - 1;
-            (uint256 blockTimestamp, uint256 value) = stakingRewardsV2.escrowedBalances(address(this), finalIndex);
+            (uint256 ts, uint256 blk, uint256 value) =
+                stakingRewardsV2.escrowedBalances(address(this), finalIndex);
 
             // check checkpoint values
-            assertEq(blockTimestamp, block.timestamp);
+            assertEq(ts, block.timestamp);
+            assertEq(blk, block.number);
             assertEq(value, previousTotal + amountToStake);
 
             // move beyond cold period
-            vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+            vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod());
 
-            // update block number
+            // update block timestamp
             vm.warp(block.timestamp + timestampAdvance);
+            vm.roll(block.number + 1);
 
             // // unstake
             unstakeEscrowedFundsV2(address(this), amountToUnstake);
 
             // get last checkpoint
             uint256 newIndex = finalIndex + 1;
-            (blockTimestamp, value) = stakingRewardsV2.escrowedBalances(address(this), newIndex);
+            (ts, blk, value) = stakingRewardsV2.escrowedBalances(address(this), newIndex);
 
             // check checkpoint values
-            assertEq(blockTimestamp, block.timestamp);
+            assertEq(ts, block.timestamp);
+            assertEq(blk, block.number);
             assertEq(value, previousTotal + amountToStake - amountToUnstake);
 
-            // update block number
+            // update block timestamp
             vm.warp(block.timestamp + timestampAdvance);
         }
     }
@@ -260,26 +287,29 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
         fundAccountAndStakeV2(address(this), TEST_VALUE);
 
         // get last checkpoint
-        (uint256 blockTimestamp, uint256 value) = stakingRewardsV2._totalSupply(0);
+        (uint256 ts, uint256 blk, uint256 value) = stakingRewardsV2._totalSupply(0);
 
         // check values
-        assertEq(blockTimestamp, block.timestamp);
+        assertEq(ts, block.timestamp);
+        assertEq(blk, block.number);
         assertEq(value, TEST_VALUE);
 
         // move beyond cold period
-        vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+        vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod());
 
-        // update block number
+        // update block timestamp
         vm.warp(block.timestamp + 1);
+        vm.roll(block.number + 1);
 
         // unstake
         stakingRewardsV2.unstake(TEST_VALUE);
 
         // get last checkpoint
-        (blockTimestamp, value) = stakingRewardsV2._totalSupply(1);
+        (ts, blk, value) = stakingRewardsV2._totalSupply(1);
 
         // check values
-        assertEq(blockTimestamp, block.timestamp);
+        assertEq(ts, block.timestamp);
+        assertEq(blk, block.number);
         assertEq(value, 0);
     }
 
@@ -288,30 +318,36 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
         stakeEscrowedFundsV2(address(this), TEST_VALUE);
 
         // get last checkpoint
-        (uint256 blockTimestamp, uint256 value) = stakingRewardsV2._totalSupply(0);
+        (uint256 ts, uint256 blk, uint256 value) = stakingRewardsV2._totalSupply(0);
 
         // check values
-        assertEq(blockTimestamp, block.timestamp);
+        assertEq(ts, block.timestamp);
+        assertEq(blk, block.number);
         assertEq(value, TEST_VALUE);
 
         // move beyond cold period
-        vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+        vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod());
 
-        // update block number
+        // update block timestamp
         vm.warp(block.timestamp + 1);
+        vm.roll(block.number + 1);
 
         // unstake
         unstakeEscrowedFundsV2(address(this), TEST_VALUE);
 
         // get last checkpoint
-        (blockTimestamp, value) = stakingRewardsV2._totalSupply(1);
+        (ts, blk, value) = stakingRewardsV2._totalSupply(1);
 
         // check values
-        assertEq(blockTimestamp, block.timestamp);
+        assertEq(ts, block.timestamp);
+        assertEq(blk, block.number);
         assertEq(value, 0);
     }
 
-    function test_Total_Supply_Checkpoints_Are_Updated_Fuzz(uint32 maxAmountStaked, uint8 numberOfRounds) public {
+    function test_Total_Supply_Checkpoints_Are_Updated_Fuzz(
+        uint32 maxAmountStaked,
+        uint8 numberOfRounds
+    ) public {
         vm.assume(maxAmountStaked > 0);
         // keep the number of rounds low to keep tests fast
         vm.assume(numberOfRounds < 50);
@@ -337,17 +373,19 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
             // get last checkpoint
             uint256 length = stakingRewardsV2.totalSupplyLength();
             uint256 finalIndex = length == 0 ? 0 : length - 1;
-            (uint256 blockTimestamp, uint256 value) = stakingRewardsV2._totalSupply(finalIndex);
+            (uint256 ts, uint256 blk, uint256 value) = stakingRewardsV2._totalSupply(finalIndex);
 
             // check checkpoint values
-            assertEq(blockTimestamp, block.timestamp);
+            assertEq(ts, block.timestamp);
+            assertEq(blk, block.number);
             assertEq(value, previousTotal + amountToStake);
 
             // move beyond cold period
-            vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+            vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod());
 
-            // update block number
+            // update block timestamp
             vm.warp(block.timestamp + timestampAdvance);
+            vm.roll(block.number + 1);
 
             // unstake
             if (escrowStake) {
@@ -358,13 +396,14 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
 
             // get last checkpoint
             uint256 newIndex = finalIndex + 1;
-            (blockTimestamp, value) = stakingRewardsV2._totalSupply(newIndex);
+            (ts, blk, value) = stakingRewardsV2._totalSupply(newIndex);
 
             // check checkpoint values
-            assertEq(blockTimestamp, block.timestamp);
+            assertEq(ts, block.timestamp);
+            assertEq(blk, block.number);
             assertEq(value, previousTotal + amountToStake - amountToUnstake);
 
-            // update block number
+            // update block timestamp
             vm.warp(block.timestamp + timestampAdvance);
         }
     }
@@ -409,7 +448,7 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
                 expectedValue = totalStaked;
             }
             fundAccountAndStakeV2(address(this), amount);
-            vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+            vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod());
         }
 
         uint256 value = stakingRewardsV2.balanceAtTime(address(this), timestampToFind);
@@ -433,7 +472,7 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
                 expectedValue = totalStaked;
             }
             fundAccountAndStakeV2(address(this), amount);
-            vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+            vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod());
         }
 
         uint256 value = stakingRewardsV2.balanceAtTime(address(this), timestampToFind);
@@ -451,14 +490,14 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
             totalStaked += amount;
             fundAccountAndStakeV2(address(this), amount);
             if (block.timestamp == xCooldownPeriods(2)) {
-                vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+                vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod());
                 stakingRewardsV2.unstake(amount);
                 stakingRewardsV2.unstake(amount);
                 totalStaked -= amount;
                 totalStaked -= amount;
             }
             if (block.timestamp == xCooldownPeriods(5)) {
-                vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+                vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod());
                 stakingRewardsV2.unstake(amount);
                 stakingRewardsV2.unstake(amount);
                 stakingRewardsV2.unstake(amount);
@@ -469,7 +508,7 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
             if (timestampToFind == block.timestamp) {
                 expectedValue = totalStaked;
             }
-            vm.warp(block.timestamp + stakingRewardsV2.unstakingCooldownPeriod());
+            vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod());
         }
 
         uint256 value = stakingRewardsV2.balanceAtTime(address(this), timestampToFind);
@@ -540,7 +579,9 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
             totalStaked += amount;
 
             // don't advance the block if we are on the last round
-            if (i != numberOfRounds - 1) vm.warp(block.timestamp + timestampAdvance);
+            if (i != numberOfRounds - 1) {
+                vm.warp(block.timestamp + timestampAdvance);
+            }
         }
 
         uint256 value = stakingRewardsV2.balanceAtTime(address(this), timestampToFind);
@@ -641,7 +682,9 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
             totalStaked += amount;
 
             // don't advance the block if we are on the last round
-            if (i != numberOfRounds - 1) vm.warp(block.timestamp + timestampAdvance);
+            if (i != numberOfRounds - 1) {
+                vm.warp(block.timestamp + timestampAdvance);
+            }
         }
 
         uint256 value = stakingRewardsV2.escrowedbalanceAtTime(address(this), timestampToFind);
@@ -747,7 +790,9 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
             totalStaked += amount;
 
             // don't advance the block if we are on the last round
-            if (i != numberOfRounds - 1) vm.warp(block.timestamp + timestampAdvance);
+            if (i != numberOfRounds - 1) {
+                vm.warp(block.timestamp + timestampAdvance);
+            }
         }
 
         uint256 value = stakingRewardsV2.totalSupplyAtTime(timestampToFind);
@@ -765,7 +810,6 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
     //////////////////////////////////////////////////////////////*/
 
     function xCooldownPeriods(uint256 numCooldowns) public view returns (uint256) {
-        return 1 + (numCooldowns * stakingRewardsV2.unstakingCooldownPeriod());
+        return 1 + (numCooldowns * stakingRewardsV2.cooldownPeriod());
     }
-
 }

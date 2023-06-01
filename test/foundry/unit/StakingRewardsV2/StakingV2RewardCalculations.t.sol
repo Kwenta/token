@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.19;
 
-import "forge-std/Test.sol";
-import {DefaultStakingV2Setup} from "../utils/DefaultStakingV2Setup.t.sol";
-import "../utils/Constants.t.sol";
+import {console} from "forge-std/Test.sol";
+import {DefaultStakingV2Setup} from "../../utils/setup/DefaultStakingV2Setup.t.sol";
+import "../../utils/Constants.t.sol";
 
 contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
     /*//////////////////////////////////////////////////////////////
@@ -20,7 +20,7 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         fundAccountAndStakeV2(user1, initialStake);
 
         // get initial rewards
-        uint256 rewards = rewardEscrowV2.balanceOf(user1);
+        uint256 rewards = rewardEscrowV2.escrowedBalanceOf(user1);
         // assert initial rewards are 0
         assertEq(rewards, 0);
 
@@ -47,7 +47,7 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         uint256 expectedRewards = 1 weeks;
 
         // check rewards
-        rewards = rewardEscrowV2.balanceOf(user1);
+        rewards = rewardEscrowV2.escrowedBalanceOf(user1);
         assertEq(rewards, expectedRewards);
 
         // send in another 604800 (1 week) of rewards
@@ -60,15 +60,17 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.balanceOf(user1);
+        rewards = rewardEscrowV2.escrowedBalanceOf(user1);
         // we exect the same amount of rewards again as this week was exactly the same as the previous one
         uint256 numberOfPeriods = 2;
         assertEq(rewards, expectedRewards * numberOfPeriods);
     }
 
-    function test_Staking_Rewards_One_Staker_In_Single_Reward_Period_Fuzz(uint64 _initialStake, uint64 _reward, uint24 _waitTime)
-        public
-    {
+    function test_Staking_Rewards_One_Staker_In_Single_Reward_Period_Fuzz(
+        uint64 _initialStake,
+        uint64 _reward,
+        uint24 _waitTime
+    ) public {
         uint256 initialStake = uint256(_initialStake);
         uint256 reward = uint256(_reward);
         uint256 waitTime = uint256(_waitTime);
@@ -82,7 +84,7 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         fundAccountAndStakeV2(user1, initialStake);
 
         // get initial rewards
-        uint256 rewards = rewardEscrowV2.balanceOf(user1);
+        uint256 rewards = rewardEscrowV2.escrowedBalanceOf(user1);
         // assert initial rewards are 0
         assertEq(rewards, 0);
 
@@ -99,7 +101,7 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.balanceOf(user1);
+        rewards = rewardEscrowV2.escrowedBalanceOf(user1);
         assertEq(rewards, expectedRewards);
 
         // move forward to the end of the rewards period
@@ -113,7 +115,7 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.balanceOf(user1);
+        rewards = rewardEscrowV2.escrowedBalanceOf(user1);
         assertEq(rewards, expectedRewards);
     }
 
@@ -141,7 +143,7 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         fundAccountAndStakeV2(user1, initialStake);
 
         // get initial rewards
-        uint256 rewards = rewardEscrowV2.balanceOf(user1);
+        uint256 rewards = rewardEscrowV2.escrowedBalanceOf(user1);
         // assert initial rewards are 0
         assertEq(rewards, 0);
 
@@ -158,7 +160,7 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.balanceOf(user1);
+        rewards = rewardEscrowV2.escrowedBalanceOf(user1);
         assertEq(rewards, expectedRewards);
 
         // move forward to the end of the rewards period
@@ -172,13 +174,15 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.balanceOf(user1);
+        rewards = rewardEscrowV2.escrowedBalanceOf(user1);
         assertEq(rewards, expectedRewards);
     }
 
-    function test_Staking_Rewards_One_Staker_Two_Reward_Periods_Fuzz(uint64 _initialStake, uint64 _reward, uint24 _waitTime)
-        public
-    {
+    function test_Staking_Rewards_One_Staker_Two_Reward_Periods_Fuzz(
+        uint64 _initialStake,
+        uint64 _reward,
+        uint24 _waitTime
+    ) public {
         uint256 initialStake = uint256(_initialStake);
         uint256 reward = uint256(_reward);
         uint256 waitTime = uint256(_waitTime);
@@ -189,7 +193,7 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         fundAccountAndStakeV2(user1, initialStake);
 
         // get initial rewards
-        uint256 rewards = rewardEscrowV2.balanceOf(user1);
+        uint256 rewards = rewardEscrowV2.escrowedBalanceOf(user1);
         // assert initial rewards are 0
         assertEq(rewards, 0);
 
@@ -206,7 +210,7 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.balanceOf(user1);
+        rewards = rewardEscrowV2.escrowedBalanceOf(user1);
         assertEq(rewards, expectedRewards);
 
         // move forward to the end of the rewards period
@@ -226,11 +230,15 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.balanceOf(user1);
+        rewards = rewardEscrowV2.escrowedBalanceOf(user1);
         assertEq(rewards, expectedRewards);
     }
 
-    function test_Staking_Rewards_Three_Rounds_Fuzz(uint64 _initialStake, uint64 _reward, uint24 _waitTime) public {
+    function test_Staking_Rewards_Three_Rounds_Fuzz(
+        uint64 _initialStake,
+        uint64 _reward,
+        uint24 _waitTime
+    ) public {
         uint256 initialStake = uint256(_initialStake);
         uint256 reward = uint256(_reward);
         uint256 waitTime = uint256(_waitTime);
@@ -241,7 +249,7 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         fundAccountAndStakeV2(user1, initialStake);
 
         // get initial rewards
-        uint256 rewards = rewardEscrowV2.balanceOf(user1);
+        uint256 rewards = rewardEscrowV2.escrowedBalanceOf(user1);
         // assert initial rewards are 0
         assertEq(rewards, 0);
 
@@ -258,7 +266,7 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.balanceOf(user1);
+        rewards = rewardEscrowV2.escrowedBalanceOf(user1);
         assertEq(rewards, expectedRewards);
 
         // move forward to the end of the rewards period
@@ -278,7 +286,7 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.balanceOf(user1);
+        rewards = rewardEscrowV2.escrowedBalanceOf(user1);
         assertEq(rewards, expectedRewards);
 
         // move forward to the end of the rewards period
@@ -298,7 +306,7 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.balanceOf(user1);
+        rewards = rewardEscrowV2.escrowedBalanceOf(user1);
         assertEq(rewards, expectedRewards);
     }
 
@@ -319,7 +327,7 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         fundAccountAndStakeV2(user1, initialStake);
 
         // get initial rewards
-        uint256 rewards = rewardEscrowV2.balanceOf(user1);
+        uint256 rewards = rewardEscrowV2.escrowedBalanceOf(user1);
         // assert initial rewards are 0
         assertEq(rewards, 0);
 
@@ -336,7 +344,7 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.balanceOf(user1);
+        rewards = rewardEscrowV2.escrowedBalanceOf(user1);
         assertEq(rewards, expectedRewards);
 
         for (uint256 i = 0; i < numberOfRounds; i++) {
@@ -357,7 +365,7 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
             getStakingRewardsV2(user1);
 
             // check rewards
-            rewards = rewardEscrowV2.balanceOf(user1);
+            rewards = rewardEscrowV2.escrowedBalanceOf(user1);
             assertEq(rewards, expectedRewards);
         }
     }
@@ -387,7 +395,7 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         fundAccountAndStakeV2(user1, initialStake);
 
         // get initial rewards
-        uint256 rewards = rewardEscrowV2.balanceOf(user1);
+        uint256 rewards = rewardEscrowV2.escrowedBalanceOf(user1);
         // assert initial rewards are 0
         assertEq(rewards, 0);
 
@@ -404,7 +412,7 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.balanceOf(user1);
+        rewards = rewardEscrowV2.escrowedBalanceOf(user1);
         assertEq(rewards, expectedRewards);
 
         for (uint256 i = 0; i < numberOfRounds; i++) {
@@ -429,7 +437,7 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
             getStakingRewardsV2(user1);
 
             // check rewards
-            rewards = rewardEscrowV2.balanceOf(user1);
+            rewards = rewardEscrowV2.escrowedBalanceOf(user1);
             assertEq(rewards, expectedRewards);
         }
     }
@@ -444,7 +452,7 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         fundAccountAndStakeV2(user1, initialStake);
 
         // get initial rewards
-        uint256 rewards = rewardEscrowV2.balanceOf(user1);
+        uint256 rewards = rewardEscrowV2.escrowedBalanceOf(user1);
         // assert initial rewards are 0
         assertEq(rewards, 0);
 
@@ -471,7 +479,7 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         uint256 expectedRewards = 1 weeks / 2;
 
         // check rewards
-        rewards = rewardEscrowV2.balanceOf(user1);
+        rewards = rewardEscrowV2.escrowedBalanceOf(user1);
         assertEq(rewards, expectedRewards);
 
         // fast forward 0.5 weeks - to the end of this period
@@ -481,7 +489,7 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.balanceOf(user1);
+        rewards = rewardEscrowV2.escrowedBalanceOf(user1);
         // we exect to claim the other half of this weeks rewards
         assertEq(rewards, expectedRewards * 2);
     }

@@ -1,21 +1,42 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import "forge-std/Test.sol";
-import {Migrate} from "../../../scripts/Migrate.s.sol";
-import {TestHelpers} from "../utils/TestHelpers.t.sol";
-import {Kwenta} from "../../../contracts/Kwenta.sol";
-import {RewardEscrow} from "../../../contracts/RewardEscrow.sol";
-import {RewardEscrowV2} from "../../../contracts/RewardEscrowV2.sol";
-import {SupplySchedule} from "../../../contracts/SupplySchedule.sol";
-import {StakingRewards} from "../../../contracts/StakingRewards.sol";
-import {StakingRewardsV2} from "../../../contracts/StakingRewardsV2.sol";
-import {MultipleMerkleDistributor} from
-    "../../../contracts/MultipleMerkleDistributor.sol";
-import {IERC20} from "../../../contracts/interfaces/IERC20.sol";
-import "../utils/Constants.t.sol";
+import {console} from "forge-std/Test.sol";
+import {Migrate} from "../../../../scripts/Migrate.s.sol";
+import {TestHelpers} from "../../utils/helpers/TestHelpers.t.sol";
+import {Kwenta} from "../../../../contracts/Kwenta.sol";
+import {RewardEscrow} from "../../../../contracts/RewardEscrow.sol";
+import {RewardEscrowV2} from "../../../../contracts/RewardEscrowV2.sol";
+import {SupplySchedule} from "../../../../contracts/SupplySchedule.sol";
+import {StakingRewards} from "../../../../contracts/StakingRewards.sol";
+import {StakingRewardsV2} from "../../../../contracts/StakingRewardsV2.sol";
+import {MultipleMerkleDistributor} from "../../../../contracts/MultipleMerkleDistributor.sol";
+import {IRewardEscrowV2} from "../../../../contracts/interfaces/IRewardEscrowV2.sol";
+import {IERC20} from "../../../../contracts/interfaces/IERC20.sol";
+import "../../utils/Constants.t.sol";
 
 contract StakingSetup is TestHelpers {
+    /*//////////////////////////////////////////////////////////////
+                                Events
+    //////////////////////////////////////////////////////////////*/
+
+    event RewardsDurationUpdated(uint256 newDuration);
+    event CooldownPeriodUpdated(uint256 cooldownPeriod);
+    event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
+    event OperatorApproved(address owner, address operator, bool approved);
+    event RewardPaid(address indexed account, uint256 reward);
+    event EscrowStaked(address indexed user, uint256 amount);
+    event Vested(address indexed beneficiary, uint256 value);
+    event VestingEntryCreated(
+        address indexed beneficiary,
+        uint256 value,
+        uint256 duration,
+        uint256 entryID,
+        uint8 earlyVestingFee
+    );
+    event TreasuryDAOSet(address treasuryDAO);
+    event StakingRewardsSet(address stakingRewards);
+
     /*//////////////////////////////////////////////////////////////
                                 State
     //////////////////////////////////////////////////////////////*/
@@ -26,6 +47,7 @@ contract StakingSetup is TestHelpers {
     address public user3;
     address public user4;
     address public user5;
+
     IERC20 public mockToken;
     Kwenta public kwenta;
     RewardEscrow public rewardEscrowV1;
@@ -35,6 +57,11 @@ contract StakingSetup is TestHelpers {
     StakingRewardsV2 public stakingRewardsV2;
     MultipleMerkleDistributor public tradingRewards;
     Migrate public migrate;
+
+    address rewardEscrowV2Implementation;
+    address stakingRewardsV2Implementation;
+
+    uint256[] public entryIDs;
 
     /*//////////////////////////////////////////////////////////////
                                 Setup
@@ -71,16 +98,14 @@ contract StakingSetup is TestHelpers {
             address(rewardEscrowV1),
             address(supplySchedule)
         );
-        tradingRewards =
-            new MultipleMerkleDistributor(address(this), address(kwenta));
+        tradingRewards = new MultipleMerkleDistributor(address(this), address(kwenta));
         supplySchedule.setStakingRewards(address(stakingRewardsV1));
         supplySchedule.setTradingRewards(address(tradingRewards));
         rewardEscrowV1.setStakingRewards(address(stakingRewardsV1));
 
         // Deploy StakingV2
         migrate = new Migrate();
-        (bool deploymentSuccess, bytes memory deploymentData) = address(migrate)
-            .delegatecall(
+        (bool deploymentSuccess, bytes memory deploymentData) = address(migrate).delegatecall(
             abi.encodeWithSelector(
                 migrate.deploySystem.selector,
                 address(this),
@@ -91,10 +116,20 @@ contract StakingSetup is TestHelpers {
             )
         );
         require(deploymentSuccess, "Migrate.deploySystem failed");
-        (rewardEscrowV2, stakingRewardsV2,,) =
-            abi.decode(deploymentData, (RewardEscrowV2, StakingRewardsV2, address, address));
+        (
+            rewardEscrowV2,
+            stakingRewardsV2,
+            rewardEscrowV2Implementation,
+            stakingRewardsV2Implementation
+        ) = abi.decode(deploymentData, (RewardEscrowV2, StakingRewardsV2, address, address));
+
+        // check staking rewards cannot be set to 0
+        vm.expectRevert(IRewardEscrowV2.ZeroAddress.selector);
+        rewardEscrowV2.setStakingRewards(address(0));
 
         // Setup StakingV2
+        vm.expectEmit(true, true, true, true);
+        emit StakingRewardsSet(address(stakingRewardsV2));
         (bool setupSuccess,) = address(migrate).delegatecall(
             abi.encodeWithSelector(
                 migrate.setupSystem.selector,
@@ -123,5 +158,4 @@ contract StakingSetup is TestHelpers {
         );
         require(migrationSuccess, "Migrate.migrateSystem failed");
     }
-
 }

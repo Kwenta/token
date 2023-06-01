@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.19;
 
-import "forge-std/Script.sol";
+import {Script, console} from "forge-std/Script.sol";
 import {Kwenta} from "../contracts/Kwenta.sol";
 import {StakingRewards} from "../contracts/StakingRewards.sol";
 import {SupplySchedule} from "../contracts/SupplySchedule.sol";
@@ -95,7 +95,7 @@ contract Migrate {
         );
 
         // Set RewardEscrowV2 StakingRewardsV2
-        rewardEscrowV2.setStakingRewardsV2(_stakingRewardsV2);
+        rewardEscrowV2.setStakingRewards(_stakingRewardsV2);
 
         if (_printLogs) console.log(
             "Switched RewardEscrowV2 to point to StakingRewardsV2 at %s",
