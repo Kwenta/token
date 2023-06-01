@@ -109,7 +109,7 @@ contract StakingRewardsV2 is
         if (msg.sender != address(rewardEscrow)) revert OnlyRewardEscrow();
     }
 
-    /// @notice access control modifier for rewardEscrow
+    /// @notice access control modifier for supplySchedule
     modifier onlySupplySchedule() {
         _onlySupplySchedule();
         _;
