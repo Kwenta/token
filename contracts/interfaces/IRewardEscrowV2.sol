@@ -169,8 +169,8 @@ interface IRewardEscrowV2 {
     );
 
     /// @notice emitted the staking rewards contract is set
-    /// @param stakingRewardsV2 The address of the staking rewards contract
-    event StakingRewardsSet(address stakingRewardsV2);
+    /// @param stakingRewards The address of the staking rewards contract
+    event StakingRewardsSet(address stakingRewards);
 
     /// @notice emitted when the treasury DAO is set
     /// @param treasuryDAO The address of the treasury DAO
