@@ -593,8 +593,9 @@ contract TokenDistributorTest is StakingSetup {
 
         /// @dev this is so we dont get "Cannot claim 0 fees"
         vm.assume(time < 52 weeks);
-        vm.assume((amount * staking1) / (staking1 + staking2) > 0);
-        vm.assume((amount * staking2) / (staking1 + staking2) > 0);
+        uint proportionalFees = (((amount * 1 weeks) / (time + 1 weeks)) *
+            staking1) / (staking1 + staking2);
+        vm.assume(proportionalFees > 0);
 
         kwenta.transfer(address(user1), staking1);
         kwenta.transfer(address(user2), staking2);
@@ -617,11 +618,7 @@ contract TokenDistributorTest is StakingSetup {
         goForward(1 weeks - 1);
         kwenta.transfer(address(tokenDistributor), amount);
         goForward(1);
-
         goForward(time);
-        uint proportionalFees = (((amount * 1 weeks) / (time + 1 weeks)) *
-            staking1) / (staking1 + staking2);
-        vm.assume(proportionalFees > 0);
 
         /// @dev claim for epoch 1 at the first second of epoch 2
         vm.prank(user1);
@@ -735,7 +732,15 @@ contract TokenDistributorTest is StakingSetup {
         vm.assume(staking3 < 25_000 ether);
         vm.assume(staking3 > 0);
 
-        vm.assume(amount > staking1 + staking2 + staking3);
+        uint proportionalFees1 = (amount * staking1) /
+            (staking1 + staking2 + staking3);
+        uint proportionalFees2 = (amount * staking2) /
+            (staking1 + staking2 + staking3);
+        uint proportionalFees3 = (amount * staking3) /
+            (staking1 + staking2 + staking3);
+        vm.assume(proportionalFees1 > 0);
+        vm.assume(proportionalFees2 > 0);
+        vm.assume(proportionalFees3 > 0);
 
         kwenta.transfer(address(user1), staking1);
         vm.startPrank(address(user1));
@@ -762,22 +767,16 @@ contract TokenDistributorTest is StakingSetup {
 
         /// @dev claim at the start of the new epoch (should also checkpoint)
         goForward(1 weeks);
-        uint proportionalFees1 = (amount * staking1) /
-            (staking1 + staking2 + staking3);
         vm.expectEmit(true, true, true, true);
         emit CheckpointToken(1382400, amount);
         vm.expectEmit(true, true, true, true);
         emit EpochClaim(address(user1), 1, proportionalFees1);
         tokenDistributorOffset.claimEpoch(address(user1), 1);
 
-        uint proportionalFees2 = (amount * staking2) /
-            (staking1 + staking2 + staking3);
         vm.expectEmit(true, true, true, true);
         emit EpochClaim(address(user2), 1, proportionalFees2);
         tokenDistributorOffset.claimEpoch(address(user2), 1);
 
-        uint proportionalFees3 = (amount * staking3) /
-            (staking1 + staking2 + staking3);
         vm.expectEmit(true, true, true, true);
         emit EpochClaim(address(user3), 1, proportionalFees3);
         tokenDistributorOffset.claimEpoch(address(user3), 1);
@@ -815,10 +814,15 @@ contract TokenDistributorTest is StakingSetup {
 
         /// @dev this is so we dont get "Cannot claim 0 fees"
         vm.assume(time < 52 weeks);
-        vm.assume(amount > staking1 + staking2 + staking3);
-        vm.assume((amount * staking1) / (staking1 + staking2 + staking3) > 0);
-        vm.assume((amount * staking2) / (staking1 + staking2 + staking3) > 0);
-        vm.assume((amount * staking3) / (staking1 + staking2 + staking3) > 0);
+        uint proportionalFees1 = ((((amount * 1 weeks) / (time + 1 weeks)) *
+            staking1) / (staking1 + staking2 + staking3));
+        uint proportionalFees2 = ((((amount * 1 weeks) / (time + 1 weeks)) *
+            staking2) / (staking1 + staking2 + staking3));
+        uint proportionalFees3 = ((((amount * 1 weeks) / (time + 1 weeks)) *
+            staking3) / (staking1 + staking2 + staking3));
+        vm.assume(proportionalFees1 > 0);
+        vm.assume(proportionalFees2 > 0);
+        vm.assume(proportionalFees3 > 0);
 
         kwenta.transfer(address(user1), staking1);
         vm.startPrank(address(user1));
@@ -846,22 +850,16 @@ contract TokenDistributorTest is StakingSetup {
         /// @dev claim at the start of the new epoch (should also checkpoint)
         goForward(1 weeks);
         goForward(time);
-        uint proportionalFees1 = ((((amount * 1 weeks) / (time + 1 weeks)) *
-            staking1) / (staking1 + staking2 + staking3));
         vm.expectEmit(true, true, true, true);
         emit CheckpointToken(1382400 + time, amount);
         vm.expectEmit(true, true, true, true);
         emit EpochClaim(address(user1), 1, proportionalFees1);
         tokenDistributorOffset.claimEpoch(address(user1), 1);
 
-        uint proportionalFees2 = ((((amount * 1 weeks) / (time + 1 weeks)) *
-            staking2) / (staking1 + staking2 + staking3));
         vm.expectEmit(true, true, true, true);
         emit EpochClaim(address(user2), 1, proportionalFees2);
         tokenDistributorOffset.claimEpoch(address(user2), 1);
 
-        uint proportionalFees3 = ((((amount * 1 weeks) / (time + 1 weeks)) *
-            staking3) / (staking1 + staking2 + staking3));
         vm.expectEmit(true, true, true, true);
         emit EpochClaim(address(user3), 1, proportionalFees3);
         tokenDistributorOffset.claimEpoch(address(user3), 1);
@@ -1044,10 +1042,15 @@ contract TokenDistributorTest is StakingSetup {
 
         /// @dev this is so we dont get "Cannot claim 0 fees"
         vm.assume(time < 52 weeks);
-        vm.assume(amount > staking1 + staking2 + staking3);
-        vm.assume((amount * staking1) / (staking1 + staking2 + staking3) > 0);
-        vm.assume((amount * staking2) / (staking1 + staking2 + staking3) > 0);
-        vm.assume((amount * staking3) / (staking1 + staking2 + staking3) > 0);
+        uint proportionalFees1 = ((((amount * 1 weeks) / (time + 1 weeks)) *
+            staking1) / (staking1 + staking2 + staking3));
+        uint proportionalFees2 = ((((amount * 1 weeks) / (time + 1 weeks)) *
+            staking2) / (staking1 + staking2 + staking3));
+        uint proportionalFees3 = ((((amount * 1 weeks) / (time + 1 weeks)) *
+            staking3) / (staking1 + staking2 + staking3));
+        vm.assume(proportionalFees1 > 0);
+        vm.assume(proportionalFees2 > 0);
+        vm.assume(proportionalFees3 > 0);
 
         kwenta.transfer(address(user1), staking1);
         vm.startPrank(address(user1));
@@ -1084,22 +1087,16 @@ contract TokenDistributorTest is StakingSetup {
         /// @dev claim at the start of the new epoch (should also checkpoint)
         goForward(1 weeks);
         goForward(time);
-        uint proportionalFees1 = ((((amount * 1 weeks) / (time + 1 weeks)) *
-            staking1) / (staking1 + staking2 + staking3));
         vm.expectEmit(true, true, true, true);
         emit CheckpointToken(5 weeks + 2 days + time, amount);
         vm.expectEmit(true, true, true, true);
         emit EpochClaim(address(user1), 1, proportionalFees1);
         tokenDistributorOffset.claimEpoch(address(user1), 1);
 
-        uint proportionalFees2 = ((((amount * 1 weeks) / (time + 1 weeks)) *
-            staking2) / (staking1 + staking2 + staking3));
         vm.expectEmit(true, true, true, true);
         emit EpochClaim(address(user2), 1, proportionalFees2);
         tokenDistributorOffset.claimEpoch(address(user2), 1);
 
-        uint proportionalFees3 = ((((amount * 1 weeks) / (time + 1 weeks)) *
-            staking3) / (staking1 + staking2 + staking3));
         vm.expectEmit(true, true, true, true);
         emit EpochClaim(address(user3), 1, proportionalFees3);
         tokenDistributorOffset.claimEpoch(address(user3), 1);
@@ -1126,8 +1123,12 @@ contract TokenDistributorTest is StakingSetup {
 
         /// @dev this is so we dont get "Cannot claim 0 fees"
         vm.assume(amount > staking1 + staking2);
-        vm.assume((amount * staking1) / (staking1 + staking2) > 0);
-        vm.assume((amount * staking2) / (staking1 + staking2) > 0);
+        uint proportionalFees1 = ((((amount * 1 weeks) / (1 weeks)) *
+            staking1) / (staking1 + staking2));
+        uint proportionalFees2 = ((((amount * 1 weeks) / (1 weeks)) *
+            staking2) / (staking1 + staking2));
+        vm.assume(proportionalFees1 > 0);
+        vm.assume(proportionalFees2 > 0);
 
         vm.assume(offset < 7);
         vm.assume(offset > 0);
@@ -1160,16 +1161,12 @@ contract TokenDistributorTest is StakingSetup {
 
         /// @dev claim at the start of the new epoch (should also checkpoint)
         goForward(1 weeks);
-        uint proportionalFees1 = ((((amount * 1 weeks) / (1 weeks)) *
-            staking1) / (staking1 + staking2));
         vm.expectEmit(true, true, true, true);
         emit CheckpointToken(5 weeks + (offset * 1 days), amount);
         vm.expectEmit(true, true, true, true);
         emit EpochClaim(address(user1), 1, proportionalFees1);
         tokenDistributorOffset.claimEpoch(address(user1), 1);
 
-        uint proportionalFees2 = ((((amount * 1 weeks) / (1 weeks)) *
-            staking2) / (staking1 + staking2));
         vm.expectEmit(true, true, true, true);
         emit EpochClaim(address(user2), 1, proportionalFees2);
         tokenDistributorOffset.claimEpoch(address(user2), 1);
