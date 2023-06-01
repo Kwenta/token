@@ -24,6 +24,7 @@ contract StakingTestHelpers is StakingSetup {
         uint256 entryID,
         uint8 earlyVestingFee
     );
+    event TreasuryDAOSet(address treasuryDAO);
 
     /*//////////////////////////////////////////////////////////////
                         Reward Calculation Helpers
