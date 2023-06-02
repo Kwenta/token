@@ -203,7 +203,7 @@ contract TokenDistributor is ITokenDistributor {
 
     /// @notice function for determining if the epoch being claimed
     /// is the current epoch or has not happened yet
-    function _isEpochReady(uint epochNumber) internal {
+    function _isEpochReady(uint epochNumber) internal view {
         /// @dev if the end of the epoch is > current time, revert
         if (_startOfEpoch(epochNumber) + 1 weeks > block.timestamp) {
             revert CannotClaimYet();
