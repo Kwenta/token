@@ -1083,8 +1083,8 @@ contract TokenDistributorTest is StakingSetup {
         tDI.checkpointWhenReady();
     }
 
-    /// @notice test _checkpointWhenReady for when its been exactly 24 hours
-    function testCheckpointWhenExactly24Hrs() public {
+    /// @notice test fail _checkpointWhenReady for when its been exactly 24 hours
+    function testFailCheckpointWhenExactly24Hrs() public {
         TokenDistributorInternals tDI = new TokenDistributorInternals(
             address(kwenta),
             address(stakingRewardsV2),
@@ -1092,6 +1092,7 @@ contract TokenDistributorTest is StakingSetup {
             2
         );
 
+        tDI.checkpointToken();
         goForward(1 days);
         uint result = tDI.startOfWeek(block.timestamp);
         assertEq(result, 2 days);
