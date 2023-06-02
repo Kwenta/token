@@ -118,15 +118,15 @@ contract TokenDistributorTest is StakingSetup {
             2
         );
 
+        tokenDistributorOffset.checkpointToken();
         kwenta.transfer(address(tokenDistributorOffset), 10);
-        goForward(1 weeks);
+        /// @dev forward to the exact end of epoch 0 and start of 1
+        goForward(2 days - 2);
 
-        vm.expectEmit(true, true, true, true);
-        emit CheckpointToken(3 weeks + 2, 10);
         vm.expectEmit(true, true, false, true);
-        emit VestingEntryCreated(address(user1), 5, 31449600, 1, 90);
+        emit VestingEntryCreated(address(user1), 10, 31449600, 1, 90);
         vm.expectEmit(true, true, true, true);
-        emit EpochClaim(address(user1), 0, 5);
+        emit EpochClaim(address(user1), 0, 10);
         tokenDistributorOffset.claimEpoch(address(user1), 0);
     }
 
