@@ -1168,7 +1168,7 @@ contract TokenDistributorTest is StakingSetup {
         tokenDistributorOffset.checkpointToken();
         kwenta.transfer(address(tokenDistributorOffset), amount);
 
-        /// @dev claim at the start of the new epoch (should also checkpoint)
+        /// @dev claim at the start of the new epoch + fuzzed time (should also checkpoint)
         goForward(1 weeks);
         goForward(time);
         vm.expectEmit(true, true, true, true);
