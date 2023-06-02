@@ -140,9 +140,13 @@ contract TokenDistributor is ITokenDistributor {
 
     /// @inheritdoc ITokenDistributor
     function claimMany(address to, uint[] memory epochs) public {
-        for (uint i = 0; i < epochs.length; i++) {
+        uint256 length = epochs.length;
+        for (uint i = 0; i < length;) {
             uint epochNumber = epochs[i];
             claimEpoch(to, epochNumber);
+            unchecked {
+                ++i;
+            }
         }
     }
 
