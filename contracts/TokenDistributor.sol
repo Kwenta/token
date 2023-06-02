@@ -85,7 +85,7 @@ contract TokenDistributor is ITokenDistributor {
 
             if (block.timestamp < nextWeek) {
                 /// @dev if in the current week
-                if (sinceLast == 0 && block.timestamp == previousCheckpoint) {
+                if (sinceLast == 0) {
                     /// @dev If no time change since last checkpoint just add new tokens
                     /// that may have been deposited (same block)
                     tokensPerEpoch[thisWeek] += toDistribute;
