@@ -53,6 +53,23 @@ contract TokenDistributorTest is StakingSetup {
         tokenDistributor.checkpointToken();
     }
 
+    /// @notice checkpointToken for sinceLast == 0
+    function testManyCheckpointTokenAtOnce() public {
+        kwenta.transfer(address(tokenDistributor), 10);
+        kwenta.transfer(address(user1), 1);
+        vm.startPrank(address(user1));
+        kwenta.approve(address(stakingRewardsV2), 1);
+        stakingRewardsV2.stake(1);
+        goForward(1 weeks);
+
+        vm.expectEmit(true, true, true, true);
+        emit CheckpointToken(2 weeks + 2, 10);
+        tokenDistributor.checkpointToken();
+        vm.expectEmit(true, true, true, true);
+        emit CheckpointToken(2 weeks + 2, 0);
+        tokenDistributor.checkpointToken();
+    }
+
     /// @notice claimEpoch happy case
     function testClaimEpoch() public {
         //setup
