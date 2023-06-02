@@ -37,7 +37,7 @@ interface ITokenDistributor {
 
     // View Functions
 
-    /// @notice array for tokens allocated to each epoch
+    /// @notice mapping for tokens allocated to each epoch
     /// @param epochNumber: the epoch number
     /// @return tokens for that epoch
     function tokensPerEpoch(uint epochNumber) external view returns (uint);

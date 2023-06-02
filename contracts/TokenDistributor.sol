@@ -30,7 +30,7 @@ contract TokenDistributor is ITokenDistributor {
     uint internal startTime;
 
     /// @inheritdoc ITokenDistributor
-    uint[1000000000000000] public tokensPerEpoch;
+    mapping (uint => uint) public tokensPerEpoch;
 
     /// @notice the week offset in seconds
     uint internal offset;
@@ -75,24 +75,31 @@ contract TokenDistributor is ITokenDistributor {
         uint previousCheckpoint = lastCheckpoint;
         uint sinceLast = block.timestamp - previousCheckpoint;
         lastCheckpoint = block.timestamp;
+        /// @dev this/nextWeek is for iterating through time
         uint thisWeek = _startOfWeek(previousCheckpoint);
         uint nextWeek = 0;
+
+        /// @dev this/nextEpoch is for mapping tokens to a certain
+        /// epoch in tokensPerEpoch
+        uint thisEpoch = (_startOfWeek(previousCheckpoint) - startTime) / 1 weeks;
+        uint nextEpoch = 0;
 
         /// @dev Loop for potential missed weeks
         /// iterates until caught up, unlikely to go to 52 weeks
         for (uint i = 0; i < WEEKS_IN_YEAR; i++) {
             nextWeek = thisWeek + 1 weeks;
+            nextEpoch = thisEpoch + 1;
 
             if (block.timestamp < nextWeek) {
                 /// @dev if in the current week
                 if (sinceLast == 0) {
                     /// @dev If no time change since last checkpoint just add new tokens
                     /// that may have been deposited (same block)
-                    tokensPerEpoch[thisWeek] += toDistribute;
+                    tokensPerEpoch[thisEpoch] += toDistribute;
                 } else {
                     /// @dev In the event that toDistribute contains tokens
                     /// for multiple weeks we take the remaining portion
-                    tokensPerEpoch[thisWeek] +=
+                    tokensPerEpoch[thisEpoch] +=
                         (toDistribute *
                             (block.timestamp - previousCheckpoint)) /
                         sinceLast;
@@ -101,16 +108,17 @@ contract TokenDistributor is ITokenDistributor {
             } else {
                 /// @dev If passed weeks missed
                 if (sinceLast == 0 && nextWeek == previousCheckpoint) {
-                    tokensPerEpoch[thisWeek] += toDistribute;
+                    tokensPerEpoch[thisEpoch] += toDistribute;
                 } else {
                     /// @dev Store proportion of tokens for this week in the past
-                    tokensPerEpoch[thisWeek] +=
+                    tokensPerEpoch[thisEpoch] +=
                         (toDistribute * (nextWeek - previousCheckpoint)) /
                         sinceLast;
                 }
             }
             previousCheckpoint = nextWeek;
             thisWeek = nextWeek;
+            thisEpoch = nextEpoch;
         }
         emit CheckpointToken(block.timestamp, toDistribute);
     }
@@ -161,7 +169,7 @@ contract TokenDistributor is ITokenDistributor {
         if (totalStaked == 0) {
             return 0;
         }
-        uint256 proportionalFees = (tokensPerEpoch[epochStart] * userStaked) /
+        uint256 proportionalFees = (tokensPerEpoch[epochNumber] * userStaked) /
             totalStaked;
 
         return proportionalFees;
