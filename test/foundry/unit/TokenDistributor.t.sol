@@ -945,6 +945,28 @@ contract TokenDistributorTest is StakingSetup {
         assertEq(result4, 3 weeks + 2 days);
     }
 
+    /// @notice test startOfWeek exactly at the turn of the week
+    function testExactlyStartOfWeek() public {
+        TokenDistributorInternals tDI = new TokenDistributorInternals(
+            address(kwenta),
+            address(stakingRewardsV2),
+            address(rewardEscrowV2),
+            0
+        );
+        uint result1 = tDI.startOfWeek(block.timestamp);
+        assertEq(result1, 1 weeks);
+
+        /// @dev this is 1 second before the turn of the week
+        goForward(1 weeks - 3);
+        uint result2 = tDI.startOfWeek(block.timestamp);
+        assertEq(result2, 1 weeks);
+
+        /// @dev this is the first second of week 2
+        goForward(1);
+        uint result3 = tDI.startOfWeek(block.timestamp);
+        assertEq(result3, 2 weeks);
+    }
+
     /// @notice test claiming an unready epoch with an offset
     function testCannotClaimYetOffset() public {
         TokenDistributorInternals tokenDistributorOffset = new TokenDistributorInternals(
