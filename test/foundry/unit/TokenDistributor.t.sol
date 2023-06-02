@@ -1061,6 +1061,23 @@ contract TokenDistributorTest is StakingSetup {
         tDI.checkpointWhenReady();
     }
 
+    /// @notice test _checkpointWhenReady for when its been exactly 24 hours
+    function testCheckpointWhenExactly24Hrs() public {
+        TokenDistributorInternals tDI = new TokenDistributorInternals(
+            address(kwenta),
+            address(stakingRewardsV2),
+            address(rewardEscrowV2),
+            2
+        );
+
+        goForward(1 days);
+        uint result = tDI.startOfWeek(block.timestamp);
+        assertEq(result, 2 days);
+        vm.expectEmit(false, false, false, true);
+        emit CheckpointToken(1 weeks + 1 days + 2, 0);
+        tDI.checkpointWhenReady();
+    }
+
     /// @notice complete test for when deployed after V2
     function testFuzzDeployedAfterV2(
         uint amount,
