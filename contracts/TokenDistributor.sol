@@ -107,14 +107,10 @@ contract TokenDistributor is ITokenDistributor {
                 break;
             } else {
                 /// @dev If passed weeks missed
-                if (sinceLast == 0 && nextWeek == previousCheckpoint) {
-                    tokensPerEpoch[thisEpoch] += toDistribute;
-                } else {
-                    /// @dev Store proportion of tokens for this week in the past
-                    tokensPerEpoch[thisEpoch] +=
-                        (toDistribute * (nextWeek - previousCheckpoint)) /
-                        sinceLast;
-                }
+                /// @dev Store proportion of tokens for this week in the past
+                tokensPerEpoch[thisEpoch] +=
+                    (toDistribute * (nextWeek - previousCheckpoint)) /
+                    sinceLast;
             }
             previousCheckpoint = nextWeek;
             thisWeek = nextWeek;
