@@ -32,9 +32,6 @@ interface ITokenDistributor {
     /// @notice error when user tries to claim for same epoch twice
     error CannotClaimTwice();
 
-    /// @notice error when user tries to claim for epoch with 0 staking
-    error NothingStakedThatEpoch();
-
     /// @notice error when user tries to claim 0 fees
     error CannotClaim0Fees();
 

@@ -170,7 +170,7 @@ contract TokenDistributorTest is StakingSetup {
         goForward(1 weeks);
         vm.expectRevert(
             abi.encodeWithSelector(
-                ITokenDistributor.NothingStakedThatEpoch.selector
+                ITokenDistributor.CannotClaim0Fees.selector
             )
         );
         tokenDistributor.claimEpoch(address(user1), 0);

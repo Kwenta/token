@@ -124,13 +124,6 @@ contract TokenDistributor is ITokenDistributor {
         }
         claimedEpochs[to][epochNumber] = true;
 
-        uint256 totalStaked = stakingRewardsV2.totalSupplyAtTime(
-            _startOfEpoch(epochNumber)
-        );
-        if (totalStaked == 0) {
-            revert NothingStakedThatEpoch();
-        }
-
         uint256 proportionalFees = calculateEpochFees(to, epochNumber);
 
         if (proportionalFees == 0) {
