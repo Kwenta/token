@@ -169,9 +169,7 @@ contract TokenDistributorTest is StakingSetup {
         vm.startPrank(user1);
         goForward(1 weeks);
         vm.expectRevert(
-            abi.encodeWithSelector(
-                ITokenDistributor.CannotClaim0Fees.selector
-            )
+            abi.encodeWithSelector(ITokenDistributor.CannotClaim0Fees.selector)
         );
         tokenDistributor.claimEpoch(address(user1), 0);
     }
@@ -623,7 +621,13 @@ contract TokenDistributorTest is StakingSetup {
         /// @dev claim for epoch 1 at the first second of epoch 2
         vm.prank(user1);
         vm.expectEmit(true, true, false, true);
-        emit VestingEntryCreated(address(user1), proportionalFees, 31449600, 1, 90);
+        emit VestingEntryCreated(
+            address(user1),
+            proportionalFees,
+            31449600,
+            1,
+            90
+        );
         vm.expectEmit(true, true, true, true);
         emit EpochClaim(address(user1), 1, proportionalFees);
         tokenDistributor.claimEpoch(address(user1), 1);

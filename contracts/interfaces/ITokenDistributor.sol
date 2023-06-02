@@ -40,7 +40,7 @@ interface ITokenDistributor {
     /// @notice array for tokens allocated to each epoch
     /// @param epochNumber: the epoch number
     /// @return tokens for that epoch
-    function tokensPerEpoch(uint epochNumber) external view returns(uint);
+    function tokensPerEpoch(uint epochNumber) external view returns (uint);
 
     /// @notice view function for calculating fees for an epoch
     /// based off staked balances from StakingRewardsV2
