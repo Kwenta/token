@@ -70,6 +70,15 @@ contract TokenDistributorTest is StakingSetup {
         tokenDistributor.checkpointToken();
     }
 
+    /// @notice checkpoint at the start and < 1 week
+    /// make sure theres no error dividing by 0
+    /// because thisEpoch should be 0
+    function testCheckpointTokenFirstWeek() public {
+        tokenDistributor.checkpointToken();
+        goForward(1 days);
+        tokenDistributor.checkpointToken();
+    }
+
     /// @notice claimEpoch happy case
     function testClaimEpoch() public {
         //setup
