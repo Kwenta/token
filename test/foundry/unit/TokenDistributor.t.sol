@@ -101,6 +101,35 @@ contract TokenDistributorTest is StakingSetup {
         tokenDistributor.claimEpoch(address(user1), 1);
     }
 
+    /// @notice claimEpoch happy case for epoch 0
+    function testClaimEpoch0() public {
+        //setup
+        kwenta.transfer(address(user1), 1);
+        vm.startPrank(address(user1));
+        kwenta.approve(address(stakingRewardsV2), 1);
+        stakingRewardsV2.stake(1);
+        vm.stopPrank();
+        goForward(1 weeks);
+
+        TokenDistributor tokenDistributorOffset = new TokenDistributor(
+            address(kwenta),
+            address(stakingRewardsV2),
+            address(rewardEscrowV2),
+            2
+        );
+
+        kwenta.transfer(address(tokenDistributorOffset), 10);
+        goForward(1 weeks);
+
+        vm.expectEmit(true, true, true, true);
+        emit CheckpointToken(3 weeks + 2, 10);
+        vm.expectEmit(true, true, false, true);
+        emit VestingEntryCreated(address(user1), 5, 31449600, 1, 90);
+        vm.expectEmit(true, true, true, true);
+        emit EpochClaim(address(user1), 0, 5);
+        tokenDistributorOffset.claimEpoch(address(user1), 0);
+    }
+
     /// @notice make sure a checkpoint is created even if < 24 if it
     /// is a new week
     function testClaimEpochCheckpoint() public {
