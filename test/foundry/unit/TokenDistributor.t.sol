@@ -1388,4 +1388,59 @@ contract TokenDistributorTest is StakingSetup {
         goForward(76 weeks);
         tDI.isEpochReady(epochNumber);
     }
+
+    /// @notice epochFromTimestamp
+    function testEpochFromTimestamp() public {
+
+        TokenDistributorInternals tDI = new TokenDistributorInternals(
+            address(kwenta),
+            address(stakingRewardsV2),
+            address(rewardEscrowV2),
+            0
+        );
+
+        uint result1 = tDI.epochFromTimestamp(block.timestamp);
+        assertEq(result1, 0);
+
+        goForward(.5 weeks);
+        uint result2 = tDI.epochFromTimestamp(block.timestamp);
+        assertEq(result2, 0);
+
+        goForward(.5 weeks);
+        uint result3 = tDI.epochFromTimestamp(block.timestamp);
+        assertEq(result3, 1);
+
+        goForward(10 weeks);
+        uint result4 = tDI.epochFromTimestamp(block.timestamp);
+        assertEq(result4, 11);
+    }
+
+    /// @notice epochFromTimestamp with offset
+    function testEpochFromTimestampOffset() public {
+
+        TokenDistributorInternals tDI = new TokenDistributorInternals(
+            address(kwenta),
+            address(stakingRewardsV2),
+            address(rewardEscrowV2),
+            2
+        );
+
+        uint result1 = tDI.epochFromTimestamp(block.timestamp);
+        assertEq(result1, 0);
+
+        /// @dev right at the start of epoch 1
+        goForward(2 days - 2);
+        uint result2 = tDI.epochFromTimestamp(block.timestamp);
+        assertEq(result2, 1);
+
+        /// @dev end of a normal week but offset week hasnt ended yet
+        goForward(6 days);
+        uint result3 = tDI.epochFromTimestamp(block.timestamp);
+        assertEq(result3, 1);
+
+        goForward(10 weeks);
+        uint result4 = tDI.epochFromTimestamp(block.timestamp);
+        assertEq(result4, 11);
+    }
+
 }
