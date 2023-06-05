@@ -117,16 +117,6 @@ contract StakingRewardsV2 is
         if (msg.sender != address(supplySchedule)) revert OnlySupplySchedule();
     }
 
-    /// @notice access control modifier for approved operators
-    modifier onlyOperator(address _accountOwner) {
-        _onlyOperator(_accountOwner);
-        _;
-    }
-
-    function _onlyOperator(address _accountOwner) internal view {
-        if (!_operatorApprovals[_accountOwner][msg.sender]) revert NotApproved();
-    }
-
     /// @notice only allow execution after the unstaking cooldown period has elapsed
     modifier afterCooldown(address _account) {
         _afterCooldown(_account);
@@ -445,6 +435,16 @@ contract StakingRewardsV2 is
     /*///////////////////////////////////////////////////////////////
                                 DELEGATION
     ///////////////////////////////////////////////////////////////*/
+
+    /// @notice access control modifier for approved operators
+    modifier onlyOperator(address _accountOwner) {
+        _onlyOperator(_accountOwner);
+        _;
+    }
+
+    function _onlyOperator(address _accountOwner) internal view {
+        if (!_operatorApprovals[_accountOwner][msg.sender]) revert NotApproved();
+    }
 
     /// @inheritdoc IStakingRewardsV2
     function approveOperator(address _operator, bool _approved) external override {
