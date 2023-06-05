@@ -101,6 +101,60 @@ contract TokenDistributorTest is StakingSetup {
         tokenDistributor.claimEpoch(address(user1), 1);
     }
 
+    /// @notice claimEpoch happy case for > 1 person
+    function testClaimEpoch3People() public {
+        //setup
+        kwenta.transfer(address(user1), 1);
+        vm.startPrank(address(user1));
+        kwenta.approve(address(stakingRewardsV2), 1);
+        stakingRewardsV2.stake(1);
+        vm.stopPrank();
+
+        kwenta.transfer(address(user2), 1);
+        vm.startPrank(address(user2));
+        kwenta.approve(address(stakingRewardsV2), 1);
+        stakingRewardsV2.stake(1);
+        vm.stopPrank();
+
+        kwenta.transfer(address(user3), 3);
+        vm.startPrank(address(user3));
+        kwenta.approve(address(stakingRewardsV2), 3);
+        stakingRewardsV2.stake(3);
+        vm.stopPrank();
+
+        goForward(1 weeks);
+
+        TokenDistributor tokenDistributorOffset = new TokenDistributor(
+            address(kwenta),
+            address(stakingRewardsV2),
+            address(rewardEscrowV2),
+            2
+        );
+
+        tokenDistributorOffset.checkpointToken();
+        kwenta.transfer(address(tokenDistributorOffset), 10);
+        /// @dev forward to the exact end of epoch 0 and start of 1
+        goForward(2 days - 2);
+
+        vm.expectEmit(true, true, false, true);
+        emit VestingEntryCreated(address(user1), 2, 31449600, 1, 90);
+        vm.expectEmit(true, true, true, true);
+        emit EpochClaim(address(user1), 0, 2);
+        tokenDistributorOffset.claimEpoch(address(user1), 0);
+
+        vm.expectEmit(true, true, false, true);
+        emit VestingEntryCreated(address(user2), 2, 31449600, 2, 90);
+        vm.expectEmit(true, true, true, true);
+        emit EpochClaim(address(user2), 0, 2);
+        tokenDistributorOffset.claimEpoch(address(user2), 0);
+
+        vm.expectEmit(true, true, false, true);
+        emit VestingEntryCreated(address(user3), 6, 31449600, 3, 90);
+        vm.expectEmit(true, true, true, true);
+        emit EpochClaim(address(user3), 0, 6);
+        tokenDistributorOffset.claimEpoch(address(user3), 0);
+    }
+
     /// @notice claimEpoch happy case for epoch 0
     function testClaimEpoch0() public {
         //setup
