@@ -1421,7 +1421,8 @@ contract TokenDistributorTest is StakingSetup {
             0
         );
         vm.assume(epochNumber < 1000);
-        /// @dev this will forward exactly 1 week ahead of what is claimable
+        /// @dev this will forward to the exact week of the epoch
+        /// which isn't claimable yet (ongoing)
         goForward(epochNumber * 1 weeks);
         vm.expectRevert(
             abi.encodeWithSelector(ITokenDistributor.CannotClaimYet.selector)
