@@ -1413,16 +1413,16 @@ contract TokenDistributorTest is StakingSetup {
     }
 
     /// @notice fuzz that future epochs are not ready
-    function testFuzzEpochsArent(uint8 epochNumber) public {
+    function testFuzzEpochsArentReady(uint epochNumber) public {
         TokenDistributorInternals tDI = new TokenDistributorInternals(
             address(kwenta),
             address(stakingRewardsV2),
             address(rewardEscrowV2),
             0
         );
-        /// @dev 15 epochs will already be claimable
-        vm.assume(epochNumber > 15);
-        goForward(15 weeks);
+        vm.assume(epochNumber < 1000);
+        /// @dev this will forward exactly 1 week ahead of what is claimable
+        goForward(epochNumber * 1 weeks);
         vm.expectRevert(
             abi.encodeWithSelector(ITokenDistributor.CannotClaimYet.selector)
         );
