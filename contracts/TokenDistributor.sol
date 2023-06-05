@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.19;
 
-import {StakingRewardsV2} from "./StakingRewardsV2.sol";
-import {RewardEscrowV2} from "./RewardEscrowV2.sol";
 import {IKwenta} from "./interfaces/IKwenta.sol";
 import {ITokenDistributor} from "./interfaces/ITokenDistributor.sol";
+import {RewardEscrowV2} from "./RewardEscrowV2.sol";
+import {StakingRewardsV2} from "./StakingRewardsV2.sol";
 
 contract TokenDistributor is ITokenDistributor {
     /// @notice represents the status of if a person already
