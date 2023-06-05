@@ -12,13 +12,13 @@ contract TokenDistributor is ITokenDistributor {
     mapping(address => mapping(uint => bool)) internal claimedEpochs;
 
     /// @notice kwenta interface
-    IKwenta private kwenta;
+    IKwenta internal kwenta;
 
     /// @notice rewards staking contract
-    StakingRewardsV2 private stakingRewardsV2;
+    StakingRewardsV2 internal stakingRewardsV2;
 
     /// @notice escrow contract which holds (and may stake) reward tokens
-    RewardEscrowV2 private rewardEscrowV2;
+    RewardEscrowV2 internal rewardEscrowV2;
 
     /// @notice last recorded balance of KWENTA in contract
     uint internal lastTokenBalance;
