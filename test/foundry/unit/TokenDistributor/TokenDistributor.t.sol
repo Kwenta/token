@@ -1391,7 +1391,6 @@ contract TokenDistributorTest is StakingSetup {
 
     /// @notice epochFromTimestamp
     function testEpochFromTimestamp() public {
-
         TokenDistributorInternals tDI = new TokenDistributorInternals(
             address(kwenta),
             address(stakingRewardsV2),
@@ -1417,7 +1416,6 @@ contract TokenDistributorTest is StakingSetup {
 
     /// @notice epochFromTimestamp with offset
     function testEpochFromTimestampOffset() public {
-
         TokenDistributorInternals tDI = new TokenDistributorInternals(
             address(kwenta),
             address(stakingRewardsV2),
@@ -1442,5 +1440,4 @@ contract TokenDistributorTest is StakingSetup {
         uint result4 = tDI.epochFromTimestamp(block.timestamp);
         assertEq(result4, 11);
     }
-
 }

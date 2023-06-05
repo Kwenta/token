@@ -27,8 +27,7 @@ contract TokenDistributorInternals is TokenDistributor {
         _isEpochReady(epochNumber);
     }
 
-    function epochFromTimestamp(uint timestamp) external view returns(uint) {
+    function epochFromTimestamp(uint timestamp) external view returns (uint) {
         return _epochFromTimestamp(timestamp);
     }
-
 }

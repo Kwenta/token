@@ -8,7 +8,7 @@ import {StakingRewardsV2} from "./StakingRewardsV2.sol";
 
 contract TokenDistributor is ITokenDistributor {
     /// @inheritdoc ITokenDistributor
-    mapping (uint => uint) public tokensPerEpoch;
+    mapping(uint => uint) public tokensPerEpoch;
 
     /// @notice represents the status of if a person already
     /// claimed their epoch
@@ -141,7 +141,7 @@ contract TokenDistributor is ITokenDistributor {
     /// @inheritdoc ITokenDistributor
     function claimMany(address to, uint[] memory epochs) public {
         uint256 length = epochs.length;
-        for (uint i = 0; i < length;) {
+        for (uint i = 0; i < length; ) {
             uint epochNumber = epochs[i];
             claimEpoch(to, epochNumber);
             unchecked {
@@ -209,7 +209,7 @@ contract TokenDistributor is ITokenDistributor {
 
     /// @notice function for getting the timestamp start of a week
     /// from the epoch number
-    function _epochFromTimestamp(uint timestamp) internal view returns (uint){
+    function _epochFromTimestamp(uint timestamp) internal view returns (uint) {
         return (_startOfWeek(timestamp) - startTime) / 1 weeks;
     }
 }
