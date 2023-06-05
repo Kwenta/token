@@ -7,6 +7,9 @@ import {RewardEscrowV2} from "./RewardEscrowV2.sol";
 import {StakingRewardsV2} from "./StakingRewardsV2.sol";
 
 contract TokenDistributor is ITokenDistributor {
+    /// @inheritdoc ITokenDistributor
+    mapping (uint => uint) public tokensPerEpoch;
+
     /// @notice represents the status of if a person already
     /// claimed their epoch
     mapping(address => mapping(uint => bool)) internal claimedEpochs;
@@ -28,9 +31,6 @@ contract TokenDistributor is ITokenDistributor {
 
     /// @notice starting week of deployment
     uint internal startTime;
-
-    /// @inheritdoc ITokenDistributor
-    mapping (uint => uint) public tokensPerEpoch;
 
     /// @notice the week offset in seconds
     uint internal offset;
