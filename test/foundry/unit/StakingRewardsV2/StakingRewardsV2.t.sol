@@ -23,7 +23,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
     //////////////////////////////////////////////////////////////*/
 
     function test_Token_Set() public {
-        address token = address(stakingRewardsV2.token());
+        address token = address(stakingRewardsV2.kwenta());
         assertEq(token, address(kwenta));
     }
 

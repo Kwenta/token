@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import {SafeERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {ReentrancyGuardUpgradeable} from
-    "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {PausableUpgradeable} from
     "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {IKwenta} from "./interfaces/IKwenta.sol";
 import {IStakingRewardsV2} from "./interfaces/IStakingRewardsV2.sol";
 import {IStakingRewards} from "./interfaces/IStakingRewards.sol";
 import {ISupplySchedule} from "./interfaces/ISupplySchedule.sol";
@@ -19,12 +18,9 @@ import {IRewardEscrowV2} from "./interfaces/IRewardEscrowV2.sol";
 contract StakingRewardsV2 is
     IStakingRewardsV2,
     OwnableUpgradeable,
-    ReentrancyGuardUpgradeable,
     PausableUpgradeable,
     UUPSUpgradeable
 {
-    using SafeERC20 for IERC20;
-
     /*///////////////////////////////////////////////////////////////
                         CONSTANTS/IMMUTABLES
     ///////////////////////////////////////////////////////////////*/
@@ -35,8 +31,8 @@ contract StakingRewardsV2 is
     /// @notice maximum time length of the unstaking cooldown period
     uint256 public constant MAX_COOLDOWN_PERIOD = 52 weeks;
 
-    /// @notice token used for BOTH staking and rewards
-    IERC20 public token;
+    /// @notice Contract for KWENTA ERC20 token - used for BOTH staking and rewards
+    IKwenta public kwenta;
 
     /// @notice escrow contract which holds (and may stake) reward tokens
     IRewardEscrowV2 public rewardEscrow;
@@ -141,7 +137,7 @@ contract StakingRewardsV2 is
 
     /// @inheritdoc IStakingRewardsV2
     function initialize(
-        address _token,
+        address _kwenta,
         address _rewardEscrow,
         address _supplySchedule,
         address _stakingRewardsV1,
@@ -149,7 +145,6 @@ contract StakingRewardsV2 is
     ) external override initializer {
         // initialize owner
         __Ownable_init();
-        __ReentrancyGuard_init();
         __Pausable_init();
         __UUPSUpgradeable_init();
 
@@ -157,7 +152,7 @@ contract StakingRewardsV2 is
         transferOwnership(_contractOwner);
 
         // define reward/staking token
-        token = IERC20(_token);
+        kwenta = IKwenta(_kwenta);
 
         // define contracts which will interact with StakingRewards
         rewardEscrow = IRewardEscrowV2(_rewardEscrow);
@@ -217,13 +212,7 @@ contract StakingRewardsV2 is
     ///////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IStakingRewardsV2
-    function stake(uint256 _amount)
-        external
-        override
-        nonReentrant
-        whenNotPaused
-        updateReward(msg.sender)
-    {
+    function stake(uint256 _amount) external override whenNotPaused updateReward(msg.sender) {
         if (_amount == 0) revert AmountZero();
 
         // update state
@@ -235,14 +224,13 @@ contract StakingRewardsV2 is
         emit Staked(msg.sender, _amount);
 
         // transfer token to this contract from the caller
-        token.safeTransferFrom(msg.sender, address(this), _amount);
+        kwenta.transferFrom(msg.sender, address(this), _amount);
     }
 
     /// @inheritdoc IStakingRewardsV2
     function unstake(uint256 _amount)
         public
         override
-        nonReentrant
         whenNotPaused
         updateReward(msg.sender)
         afterCooldown(msg.sender)
@@ -258,7 +246,7 @@ contract StakingRewardsV2 is
         emit Unstaked(msg.sender, _amount);
 
         // transfer token from this contract to the caller
-        token.safeTransfer(msg.sender, _amount);
+        kwenta.transfer(msg.sender, _amount);
     }
 
     /// @inheritdoc IStakingRewardsV2
@@ -304,7 +292,6 @@ contract StakingRewardsV2 is
 
     function _unstakeEscrow(address _account, uint256 _amount)
         internal
-        nonReentrant
         whenNotPaused
         updateReward(_account)
     {
@@ -338,12 +325,7 @@ contract StakingRewardsV2 is
         _getReward(msg.sender);
     }
 
-    function _getReward(address _account)
-        internal
-        nonReentrant
-        whenNotPaused
-        updateReward(_account)
-    {
+    function _getReward(address _account) internal whenNotPaused updateReward(_account) {
         uint256 reward = rewards[_account];
         if (reward > 0) {
             // update state (first)
@@ -354,7 +336,7 @@ contract StakingRewardsV2 is
 
             // transfer token from this contract to the rewardEscrow
             // and create a vesting entry for the caller
-            token.safeTransfer(address(rewardEscrow), reward);
+            kwenta.transfer(address(rewardEscrow), reward);
             rewardEscrow.appendVestingEntry(_account, reward);
         }
     }
@@ -666,8 +648,8 @@ contract StakingRewardsV2 is
         override
         onlyOwner
     {
-        if (_tokenAddress == address(token)) revert CannotRecoverStakingToken();
+        if (_tokenAddress == address(kwenta)) revert CannotRecoverStakingToken();
         emit Recovered(_tokenAddress, _tokenAmount);
-        IERC20(_tokenAddress).safeTransfer(owner(), _tokenAmount);
+        IERC20(_tokenAddress).transfer(owner(), _tokenAmount);
     }
 }
