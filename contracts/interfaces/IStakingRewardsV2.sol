@@ -307,6 +307,9 @@ interface IStakingRewardsV2 {
     /// @param canUnstakeAt timestamp when user can unstake
     error MustWaitForUnlock(uint256 canUnstakeAt);
 
+    /// @notice error when trying to set a rewards duration that is too short
+    error RewardsDurationCannotBeZero();
+
     /// @notice error when trying to set a cooldown period below the minimum
     /// @param minCooldownPeriod minimum cooldown period
     error CooldownPeriodTooLow(uint256 minCooldownPeriod);

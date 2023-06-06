@@ -621,6 +621,7 @@ contract StakingRewardsV2 is
     /// @inheritdoc IStakingRewardsV2
     function setRewardsDuration(uint256 _rewardsDuration) external override onlyOwner {
         if (block.timestamp <= periodFinish) revert RewardsPeriodNotComplete();
+        if (_rewardsDuration == 0) revert RewardsDurationCannotBeZero();
 
         rewardsDuration = _rewardsDuration;
         emit RewardsDurationUpdated(rewardsDuration);
