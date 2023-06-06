@@ -52,7 +52,7 @@ contract StakingRewardsV2 is
     ///////////////////////////////////////////////////////////////*/
 
     /// @notice number of tokens staked by address
-    /// @dev this includes escrowed tokens stake
+    /// @dev this includes staked escrowed tokens
     mapping(address => Checkpoint[]) public balances;
 
     /// @notice number of staked escrow tokens by address
@@ -80,7 +80,7 @@ contract StakingRewardsV2 is
     uint256 public cooldownPeriod;
 
     /// @notice represents the rewardPerToken
-    /// value the last time the stake calculated earned() rewards
+    /// value the last time the staker calculated earned() rewards
     mapping(address => uint256) public userRewardPerTokenPaid;
 
     /// @notice track rewards for a given user which changes when
