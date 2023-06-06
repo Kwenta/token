@@ -766,6 +766,11 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
                             setRewardsDuration
     //////////////////////////////////////////////////////////////*/
 
+    function test_RewardsDuration_Cannot_Be_Set_To_Zero() public {
+        vm.expectRevert(IStakingRewardsV2.RewardsDurationCannotBeZero.selector);
+        stakingRewardsV2.setRewardsDuration(0);
+    }
+
     function test_setRewardsDuration_Before_Distribution() public {
         uint256 defaultDuration = stakingRewardsV2.rewardsDuration();
         assertEq(defaultDuration, 1 weeks);
