@@ -555,14 +555,14 @@ contract StakingRewardsV2 is
     /// @param _account: address of account to add checkpoint for
     /// @param _value: value of checkpoint to add
     function _addBalancesCheckpoint(address _account, uint256 _value) internal {
-        uint256 lastTimestamp = balances[_account].length == 0
-            ? 0
-            : balances[_account][balances[_account].length - 1].ts;
+        Checkpoint[] memory checkpoints = balances[_account];
+        uint256 length = checkpoints.length;
+        uint256 lastTimestamp = length == 0 ? 0 : checkpoints[length - 1].ts;
 
         if (lastTimestamp != block.timestamp) {
             balances[_account].push(Checkpoint(block.timestamp, block.number, _value));
         } else {
-            balances[_account][balances[_account].length - 1].value = _value;
+            balances[_account][length - 1].value = _value;
         }
     }
 
@@ -570,27 +570,28 @@ contract StakingRewardsV2 is
     /// @param _account: address of account to add checkpoint for
     /// @param _value: value of checkpoint to add
     function _addEscrowedBalancesCheckpoint(address _account, uint256 _value) internal {
-        uint256 lastTimestamp = escrowedBalances[_account].length == 0
-            ? 0
-            : escrowedBalances[_account][escrowedBalances[_account].length - 1].ts;
+        Checkpoint[] memory checkpoints = escrowedBalances[_account];
+        uint256 length = checkpoints.length;
+        uint256 lastTimestamp = length == 0 ? 0 : checkpoints[length - 1].ts;
 
         if (lastTimestamp != block.timestamp) {
             escrowedBalances[_account].push(Checkpoint(block.timestamp, block.number, _value));
         } else {
-            escrowedBalances[_account][escrowedBalances[_account].length - 1].value = _value;
+            escrowedBalances[_account][length - 1].value = _value;
         }
     }
 
     /// @notice add a new total supply checkpoint
     /// @param _value: value of checkpoint to add
     function _addTotalSupplyCheckpoint(uint256 _value) internal {
-        uint256 lastTimestamp =
-            _totalSupply.length == 0 ? 0 : _totalSupply[_totalSupply.length - 1].ts;
+        Checkpoint[] memory checkpoints = _totalSupply;
+        uint256 length = checkpoints.length;
+        uint256 lastTimestamp = length == 0 ? 0 : checkpoints[length - 1].ts;
 
         if (lastTimestamp != block.timestamp) {
             _totalSupply.push(Checkpoint(block.timestamp, block.number, _value));
         } else {
-            _totalSupply[_totalSupply.length - 1].value = _value;
+            _totalSupply[length - 1].value = _value;
         }
     }
 
