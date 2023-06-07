@@ -19,7 +19,6 @@ contract TokenDistributorTest is StakingSetup {
         /// @dev starts after a week so the startTime is != 0
         goForward(1 weeks + 1);
         super.setUp();
-        switchToStakingV2();
         tokenDistributor = new TokenDistributor(
             address(kwenta),
             address(stakingRewardsV2),
