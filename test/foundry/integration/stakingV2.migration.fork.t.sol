@@ -22,18 +22,18 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
     //////////////////////////////////////////////////////////////*/
 
     function setUp() public override {
-        vm.rollFork(BLOCK_NUMBER);
+        vm.rollFork(OPTIMISM_BLOCK_NUMBER);
 
         // define main contracts
-        kwenta = Kwenta(KWENTA);
-        rewardEscrowV1 = RewardEscrow(REWARD_ESCROW_V1);
-        supplySchedule = SupplySchedule(SUPPLY_SCHEDULE);
-        stakingRewardsV1 = StakingRewards(STAKING_REWARDS_V1);
+        kwenta = Kwenta(OPTIMISM_KWENTA_TOKEN);
+        rewardEscrowV1 = RewardEscrow(OPTIMISM_REWARD_ESCROW_V1);
+        supplySchedule = SupplySchedule(OPTIMISM_SUPPLY_SCHEDULE);
+        stakingRewardsV1 = StakingRewards(OPTIMISM_STAKING_REWARDS_V1);
 
         // define main addresses
-        owner = KWENTA_OWNER;
-        treasury = TREASURY_DAO;
-        user1 = RANDOM_STAKING_USER;
+        owner = OPTIMISM_KWENTA_OWNER;
+        treasury = OPTIMISM_TREASURY_DAO;
+        user1 = OPTIMISM_RANDOM_STAKING_USER;
         user2 = createUser();
 
         // set owners address code to trick the test into allowing onlyOwner functions to be called via script

@@ -182,9 +182,9 @@ contract Migrate {
     }
 }
 
-/// @dev steps to deploy and verify on Optimism:
+/// @dev steps to deploy, setup and verify on Optimism:
 /// (1) load the variables in the .env file via `source .env`
-/// (2) run `forge script script/Deploy.s.sol:DeployOptimism --rpc-url $ARCHIVE_NODE_URL_L2 --broadcast --verify -vvvv`
+/// (2) run `forge script script/Migrate.s.sol:DeployAndSetupOptimism --rpc-url $ARCHIVE_NODE_URL_L2 --broadcast --verify -vvvv`
 contract DeployAndSetupOptimism is Script, Migrate {
     function run() public {
         uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
@@ -192,24 +192,24 @@ contract DeployAndSetupOptimism is Script, Migrate {
         address deployer = vm.addr(deployerPrivateKey);
 
         (RewardEscrowV2 rewardEscrowV2, StakingRewardsV2 stakingRewardsV2,,) = Migrate.deploySystem(
-            KWENTA_OWNER,
-            KWENTA,
-            SUPPLY_SCHEDULE,
-            STAKING_REWARDS_V1,
+            OPTIMISM_KWENTA_OWNER,
+            OPTIMISM_KWENTA_TOKEN,
+            OPTIMISM_SUPPLY_SCHEDULE,
+            OPTIMISM_STAKING_REWARDS_V1,
             true
         );
 
         Migrate.setupSystem(
-            address(rewardEscrowV2), address(stakingRewardsV2), TREASURY_DAO, true
+            address(rewardEscrowV2), address(stakingRewardsV2), OPTIMISM_TREASURY_DAO, true
         );
 
         vm.stopBroadcast();
     }
 }
 
-/// @dev steps to deploy and verify on Optimism Goerli:
+/// @dev steps to deploy, setup and verify on Optimism Goerli:
 /// (1) load the variables in the .env file via `source .env`
-/// (2) run `forge script script/Deploy.s.sol:DeployOptimismGoerli --rpc-url $ARCHIVE_NODE_URL_GOERLI_L2 --broadcast --verify -vvvv`
+/// (2) run `forge script script/Migrate.s.sol:DeployAndSetupOptimismGoerli --rpc-url $ARCHIVE_NODE_URL_GOERLI_L2 --broadcast --verify -vvvv`
 contract DeployAndSetupOptimismGoerli is Script, Migrate {
     function run() public {
         uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
