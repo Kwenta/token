@@ -391,15 +391,18 @@ contract RewardEscrowV2 is
         uint256 totalEscrowTransferred;
         uint256 entryIDsLength = _entryIDs.length;
         for (uint256 i = 0; i < entryIDsLength;) {
+            // sum totalEscrowTransferred so that _applyTransferBalanceUpdates can be applied only once to save gas
             totalEscrowTransferred += vestingSchedules[_entryIDs[i]].escrowAmount;
 
             _checkApproved(_entryIDs[i]);
+            // use super._transfer to avoid double updating of balances
             super._transfer(_from, _to, _entryIDs[i]);
             unchecked {
                 ++i;
             }
         }
 
+        // update balances all at once
         _applyTransferBalanceUpdates(_from, _to, totalEscrowTransferred);
     }
 
@@ -408,7 +411,7 @@ contract RewardEscrowV2 is
     ///////////////////////////////////////////////////////////////*/
 
     /// @dev override the internal _transfer function to ensure vestingSchedules and account balances are updated
-    /// and that there is sufficient unstaked escrow for a transfer
+    /// and that there is sufficient unstaked escrow for a transfer when transferFrom and safeTransferFrom are called
     function _transfer(address _from, address _to, uint256 _entryID) internal override {
         uint256 escrowAmount = vestingSchedules[_entryID].escrowAmount;
 
