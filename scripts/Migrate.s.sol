@@ -12,6 +12,10 @@ import "../test/foundry/utils/Constants.t.sol";
 // Upgradeability imports
 import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
+/*//////////////////////////////////////////////////////////////
+                        MIGRATION CONTRACT
+//////////////////////////////////////////////////////////////*/
+
 /// @title Script for migration from StakingV1 to StakingV2
 /// @author tommyrharper (zeroknowledgeltd@gmail.com)
 /// @dev This uses the UUPS upgrade pattern (see eip-1822)
@@ -182,6 +186,10 @@ contract Migrate {
     }
 }
 
+/*//////////////////////////////////////////////////////////////
+                        OPTIMISM SCRIPT
+//////////////////////////////////////////////////////////////*/
+
 /// @dev steps to deploy, setup and verify on Optimism:
 /// (1) load the variables in the .env file via `source .env`
 /// (2) run `forge script script/Migrate.s.sol:DeployAndSetupOptimism --rpc-url $ARCHIVE_NODE_URL_L2 --broadcast --verify -vvvv`
@@ -192,7 +200,7 @@ contract DeployAndSetupOptimism is Script, Migrate {
         address deployer = vm.addr(deployerPrivateKey);
 
         (RewardEscrowV2 rewardEscrowV2, StakingRewardsV2 stakingRewardsV2,,) = Migrate.deploySystem(
-            OPTIMISM_KWENTA_OWNER,
+            deployer,
             OPTIMISM_KWENTA_TOKEN,
             OPTIMISM_SUPPLY_SCHEDULE,
             OPTIMISM_STAKING_REWARDS_V1,
@@ -203,9 +211,16 @@ contract DeployAndSetupOptimism is Script, Migrate {
             address(rewardEscrowV2), address(stakingRewardsV2), OPTIMISM_TREASURY_DAO, true
         );
 
+        rewardEscrowV2.transferOwnership(OPTIMISM_KWENTA_OWNER);
+        stakingRewardsV2.transferOwnership(OPTIMISM_KWENTA_OWNER);
+
         vm.stopBroadcast();
     }
 }
+
+/*//////////////////////////////////////////////////////////////
+                    OPTIMISM GOERLI SCRIPTS
+//////////////////////////////////////////////////////////////*/
 
 /// @dev steps to deploy, setup and verify on Optimism Goerli:
 /// (1) load the variables in the .env file via `source .env`
