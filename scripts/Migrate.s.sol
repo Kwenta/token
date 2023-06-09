@@ -231,3 +231,25 @@ contract DeployAndSetupOptimismGoerli is Script, Migrate {
         vm.stopBroadcast();
     }
 }
+
+/// @dev steps to deploy, setup and verify on Optimism Goerli:
+/// (1) load the variables in the .env file via `source .env`
+/// (2) run `forge script script/Migrate.s.sol:DeploySetupAndMigrateOptimismGoerli --rpc-url $ARCHIVE_NODE_URL_GOERLI_L2 --broadcast --verify -vvvv`
+contract DeploySetupAndMigrateOptimismGoerli is Script, Migrate {
+    function run() public {
+        uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
+        vm.startBroadcast(deployerPrivateKey);
+        address deployer = vm.addr(deployerPrivateKey);
+
+        Migrate.runCompleteMigrationProcess(
+            deployer,
+            OPTIMISM_GOERLI_KWENTA_TOKEN,
+            OPTIMISM_GOERLI_SUPPLY_SCHEDULE,
+            OPTIMISM_GOERLI_STAKING_REWARDS_V1,
+            OPTIMISM_GOERLI_TREASURY_DAO,
+            true
+        );
+
+        vm.stopBroadcast();
+    }
+}
