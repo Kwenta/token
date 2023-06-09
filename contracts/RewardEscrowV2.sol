@@ -420,7 +420,8 @@ contract RewardEscrowV2 is
     function _applyTransferBalanceUpdates(address _from, address _to, uint256 _escrowAmount)
         internal
     {
-        _checkIfSufficientUnstakedBalance(_from, _escrowAmount);
+        uint256 unstakedEscrow = unstakedEscrowedBalanceOf(_from);
+        if (unstakedEscrow < _escrowAmount) revert InsufficientUnstakedBalance(_escrowAmount, unstakedEscrow);
 
         totalEscrowedAccountBalance[_from] -= _escrowAmount;
         totalEscrowedAccountBalance[_to] += _escrowAmount;
@@ -461,11 +462,6 @@ contract RewardEscrowV2 is
         emit VestingEntryCreated(_account, _quantity, _duration, entryID, _earlyVestingFee);
 
         super._mint(_account, entryID);
-    }
-
-    function _checkIfSufficientUnstakedBalance(address _account, uint256 _amount) internal view {
-        uint256 unstakedEscrow = unstakedEscrowedBalanceOf(_account);
-        if (unstakedEscrow < _amount) revert InsufficientUnstakedBalance(_amount, unstakedEscrow);
     }
 
     function _authorizeUpgrade(address _newImplementation) internal override onlyOwner {}
