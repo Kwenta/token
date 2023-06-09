@@ -7,6 +7,7 @@ import {StakingRewards} from "../contracts/StakingRewards.sol";
 import {SupplySchedule} from "../contracts/SupplySchedule.sol";
 import {RewardEscrowV2} from "../contracts/RewardEscrowV2.sol";
 import {StakingRewardsV2} from "../contracts/StakingRewardsV2.sol";
+import "../test/foundry/utils/Constants.t.sol";
 
 // Upgradeability imports
 import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
@@ -38,36 +39,52 @@ contract Migrate {
 
         // Deploy RewardEscrowV2
         rewardEscrowV2Implementation = address(new RewardEscrowV2());
-        rewardEscrowV2 = RewardEscrowV2(address(new ERC1967Proxy(
-            rewardEscrowV2Implementation,
-            abi.encodeWithSignature(
+        rewardEscrowV2 = RewardEscrowV2(
+            address(
+                new ERC1967Proxy(
+                rewardEscrowV2Implementation,
+                abi.encodeWithSignature(
                 "initialize(address,address)",
                 _owner,
                 _kwenta
+                )
+                )
             )
-        )));
+        );
 
-        if (_printLogs) console.log("Deployed RewardEscrowV2 Implementation at %s", rewardEscrowV2Implementation);
+        if (_printLogs) {
+            console.log(
+                "Deployed RewardEscrowV2 Implementation at %s", rewardEscrowV2Implementation
+            );
+        }
         if (_printLogs) console.log("Deployed RewardEscrowV2 Proxy at %s", address(rewardEscrowV2));
 
         // Deploy StakingRewardsV2
         stakingRewardsV2Implementation = address(new StakingRewardsV2());
-        stakingRewardsV2 = StakingRewardsV2(address(new ERC1967Proxy(
-            stakingRewardsV2Implementation,
-            abi.encodeWithSignature(
+        stakingRewardsV2 = StakingRewardsV2(
+            address(
+                new ERC1967Proxy(
+                stakingRewardsV2Implementation,
+                abi.encodeWithSignature(
                 "initialize(address,address,address,address,address)",
                 _kwenta,
                 address(rewardEscrowV2),
                 _supplySchedule,
                 address(_stakingRewardsV1),
                 _owner
+                )
+                )
             )
-        )));
-
-        if (_printLogs) console.log("Deployed StakingRewardsV2 Implementation at %s", stakingRewardsV2Implementation);
-        if (_printLogs) console.log(
-            "Deployed StakingRewardsV2 Proxy at %s", address(stakingRewardsV2)
         );
+
+        if (_printLogs) {
+            console.log(
+                "Deployed StakingRewardsV2 Implementation at %s", stakingRewardsV2Implementation
+            );
+        }
+        if (_printLogs) {
+            console.log("Deployed StakingRewardsV2 Proxy at %s", address(stakingRewardsV2));
+        }
         if (_printLogs) console.log(unicode"--------- 🚀 DEPLOYMENT COMPLETE 🚀 ---------");
     }
 
@@ -89,18 +106,18 @@ contract Migrate {
         // Set RewardEscrowV2 TreasuryDAO
         rewardEscrowV2.setTreasuryDAO(_treasuryDAO);
 
-        if (_printLogs) console.log(
-            "Switched RewardEscrowV2 to point to TreasuryDAO at %s",
-            _treasuryDAO
-        );
+        if (_printLogs) {
+            console.log("Switched RewardEscrowV2 to point to TreasuryDAO at %s", _treasuryDAO);
+        }
 
         // Set RewardEscrowV2 StakingRewardsV2
         rewardEscrowV2.setStakingRewards(_stakingRewardsV2);
 
-        if (_printLogs) console.log(
-            "Switched RewardEscrowV2 to point to StakingRewardsV2 at %s",
-            _stakingRewardsV2
-        );
+        if (_printLogs) {
+            console.log(
+                "Switched RewardEscrowV2 to point to StakingRewardsV2 at %s", _stakingRewardsV2
+            );
+        }
         if (_printLogs) console.log(unicode"--------- 🔧 SETUP COMPLETE 🔧 ---------");
     }
 
@@ -119,10 +136,11 @@ contract Migrate {
         // Update SupplySchedule to point to StakingV2
         supplySchedule.setStakingRewards(_stakingRewardsV2);
 
-        if (_printLogs) console.log(
-            "Switched SupplySchedule to point to StakingRewardsV2 at %s",
-            _stakingRewardsV2
-        );
+        if (_printLogs) {
+            console.log(
+                "Switched SupplySchedule to point to StakingRewardsV2 at %s", _stakingRewardsV2
+            );
+        }
         if (_printLogs) console.log(unicode"--------- 🎉 MIGRATION COMPLETE 🎉 ---------");
     }
 
@@ -148,16 +166,68 @@ contract Migrate {
         )
     {
         // Step 1: Deploy StakingV2 contracts
-        (rewardEscrowV2, stakingRewardsV2, rewardEscrowV2Implementation, stakingRewardsV2Implementation) =
-            deploySystem(_owner, _kwenta, _supplySchedule, _stakingRewardsV1, _printLogs);
+        (
+            rewardEscrowV2,
+            stakingRewardsV2,
+            rewardEscrowV2Implementation,
+            stakingRewardsV2Implementation
+        ) = deploySystem(_owner, _kwenta, _supplySchedule, _stakingRewardsV1, _printLogs);
 
         // Step 2: Setup StakingV2 contracts
-        setupSystem(
-            address(rewardEscrowV2), address(stakingRewardsV2), _treasuryDAO, _printLogs
-        );
+        setupSystem(address(rewardEscrowV2), address(stakingRewardsV2), _treasuryDAO, _printLogs);
 
         // Step 3: Migrate SupplySchedule to point at StakingV2
         // After this, all new rewards will be distributed via StakingV2
         migrateSystem(_supplySchedule, address(stakingRewardsV2), _printLogs);
+    }
+}
+
+/// @dev steps to deploy and verify on Optimism:
+/// (1) load the variables in the .env file via `source .env`
+/// (2) run `forge script script/Deploy.s.sol:DeployOptimism --rpc-url $ARCHIVE_NODE_URL_L2 --broadcast --verify -vvvv`
+contract DeployAndSetupOptimism is Script, Migrate {
+    function run() public {
+        uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
+        vm.startBroadcast(deployerPrivateKey);
+        address deployer = vm.addr(deployerPrivateKey);
+
+        (RewardEscrowV2 rewardEscrowV2, StakingRewardsV2 stakingRewardsV2,,) = Migrate.deploySystem(
+            KWENTA_OWNER,
+            KWENTA,
+            SUPPLY_SCHEDULE,
+            STAKING_REWARDS_V1,
+            true
+        );
+
+        Migrate.setupSystem(
+            address(rewardEscrowV2), address(stakingRewardsV2), TREASURY_DAO, true
+        );
+
+        vm.stopBroadcast();
+    }
+}
+
+/// @dev steps to deploy and verify on Optimism Goerli:
+/// (1) load the variables in the .env file via `source .env`
+/// (2) run `forge script script/Deploy.s.sol:DeployOptimismGoerli --rpc-url $ARCHIVE_NODE_URL_GOERLI_L2 --broadcast --verify -vvvv`
+contract DeployAndSetupOptimismGoerli is Script, Migrate {
+    function run() public {
+        uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
+        vm.startBroadcast(deployerPrivateKey);
+        address deployer = vm.addr(deployerPrivateKey);
+
+        (RewardEscrowV2 rewardEscrowV2, StakingRewardsV2 stakingRewardsV2,,) = Migrate.deploySystem(
+            deployer,
+            OPTIMISM_GOERLI_KWENTA_TOKEN,
+            OPTIMISM_GOERLI_SUPPLY_SCHEDULE,
+            OPTIMISM_GOERLI_STAKING_REWARDS_V1,
+            true
+        );
+
+        Migrate.setupSystem(
+            address(rewardEscrowV2), address(stakingRewardsV2), OPTIMISM_GOERLI_TREASURY_DAO, true
+        );
+
+        vm.stopBroadcast();
     }
 }
