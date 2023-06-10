@@ -191,8 +191,12 @@ contract Migrate {
 //////////////////////////////////////////////////////////////*/
 
 /// @dev steps to deploy, setup and verify on Optimism:
-/// (1) load the variables in the .env file via `source .env`
-/// (2) run `forge script script/Migrate.s.sol:DeployAndSetupOptimism --rpc-url $ARCHIVE_NODE_URL_L2 --broadcast --verify -vvvv`
+/// (1) ensure the .env file contains the following variables:
+///     - DEPLOYER_PRIVATE_KEY - the private key of the deployer
+///     - ETHERSCAN_API_KEY - the API key of the Optimism Etherscan account (a normal etherscan API key will not work)
+///     - ARCHIVE_NODE_URL_L2 - the archive node URL of the Optimism network
+/// (2) load the variables in the .env file via `source .env`
+/// (3) run `forge script scripts/Migrate.s.sol:DeployAndSetupOptimism --rpc-url $ARCHIVE_NODE_URL_L2 --broadcast --verify -vvvv`
 contract DeployAndSetupOptimism is Script, Migrate {
     function run() public {
         uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
@@ -223,8 +227,12 @@ contract DeployAndSetupOptimism is Script, Migrate {
 //////////////////////////////////////////////////////////////*/
 
 /// @dev steps to deploy, setup and verify on Optimism Goerli:
-/// (1) load the variables in the .env file via `source .env`
-/// (2) run `forge script script/Migrate.s.sol:DeployAndSetupOptimismGoerli --rpc-url $ARCHIVE_NODE_URL_GOERLI_L2 --broadcast --verify -vvvv`
+/// (1) ensure the .env file contains the following variables:
+///     - DEPLOYER_PRIVATE_KEY - the private key of the deployer
+///     - ETHERSCAN_API_KEY - the API key of the Optimism Etherscan account (a normal etherscan API key will not work)
+///     - ARCHIVE_NODE_URL_GOERLI_L2 - the archive node URL of the Optimism Goerli network
+/// (2) load the variables in the .env file via `source .env`
+/// (3) run `forge script scripts/Migrate.s.sol:DeployAndSetupOptimismGoerli --rpc-url $ARCHIVE_NODE_URL_GOERLI_L2 --broadcast --verify -vvvv`
 contract DeployAndSetupOptimismGoerli is Script, Migrate {
     function run() public {
         uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
@@ -248,8 +256,12 @@ contract DeployAndSetupOptimismGoerli is Script, Migrate {
 }
 
 /// @dev steps to deploy, setup and verify on Optimism Goerli:
-/// (1) load the variables in the .env file via `source .env`
-/// (2) run `forge script script/Migrate.s.sol:DeploySetupAndMigrateOptimismGoerli --rpc-url $ARCHIVE_NODE_URL_GOERLI_L2 --broadcast --verify -vvvv`
+/// (1) ensure the .env file contains the following variables:
+///     - DEPLOYER_PRIVATE_KEY - the private key of the deployer
+///     - ETHERSCAN_API_KEY - the API key of the Optimism Etherscan account (a normal etherscan API key will not work)
+///     - ARCHIVE_NODE_URL_GOERLI_L2 - the archive node URL of the Optimism Goerli network
+/// (2) load the variables in the .env file via `source .env`
+/// (3) run `forge script scripts/Migrate.s.sol:DeploySetupAndMigrateOptimismGoerli --rpc-url $ARCHIVE_NODE_URL_GOERLI_L2 --broadcast --verify -vvvv`
 contract DeploySetupAndMigrateOptimismGoerli is Script, Migrate {
     function run() public {
         uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
