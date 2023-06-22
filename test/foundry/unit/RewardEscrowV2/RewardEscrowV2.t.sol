@@ -315,6 +315,17 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
                         Read Vesting Schedules
     //////////////////////////////////////////////////////////////*/
 
+    function test_getVestingSchedules_InvalidIndex() public {
+        createRewardEscrowEntryV2(user1, 200 ether, 52 weeks);
+        createRewardEscrowEntryV2(user1, 200 ether, 52 weeks);
+        createRewardEscrowEntryV2(user1, 200 ether, 52 weeks);
+        createRewardEscrowEntryV2(user1, 200 ether, 52 weeks);
+        createRewardEscrowEntryV2(user1, 200 ether, 52 weeks);
+
+        vm.expectRevert(IRewardEscrowV2.InvalidIndex.selector);
+        rewardEscrowV2.getVestingSchedules(user1, 6, 10);
+    }
+
     function test_getVestingSchedules() public {
         uint256 startTime = block.timestamp;
 
