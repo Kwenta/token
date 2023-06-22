@@ -172,12 +172,11 @@ contract RewardEscrowV2 is
         override
         returns (VestingEntryWithID[] memory)
     {
-        uint256 endIndex = _index + _pageSize;
-
-        // If index starts after the endIndex return no results
-        if (endIndex <= _index) {
+        if (_pageSize == 0) {
             return new VestingEntryWithID[](0);
         }
+
+        uint256 endIndex = _index + _pageSize;
 
         // If the page extends past the end of the list, truncate it.
         uint256 numEntries = balanceOf(_account);
