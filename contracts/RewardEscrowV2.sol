@@ -185,6 +185,8 @@ contract RewardEscrowV2 is
             endIndex = numEntries;
         }
 
+        if (endIndex < _index) revert InvalidIndex();
+
         uint256 n;
         unchecked {
             n = endIndex - _index;
