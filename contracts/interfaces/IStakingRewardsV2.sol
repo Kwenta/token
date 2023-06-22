@@ -291,6 +291,9 @@ interface IStakingRewardsV2 {
     /// @notice error someone other than the supply schedule calls an onlySupplySchedule function
     error OnlySupplySchedule();
 
+    /// @notice cannot set this value to the zero address
+    error ZeroAddress();
+
     /// @notice error when user tries to stake/unstake 0 tokens
     error AmountZero();
 

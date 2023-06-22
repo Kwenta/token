@@ -143,6 +143,8 @@ contract StakingRewardsV2 is
         address _stakingRewardsV1,
         address _contractOwner
     ) external override initializer {
+        if (_kwenta == address(0)) revert ZeroAddress();
+
         // initialize owner
         __Ownable_init();
         __Pausable_init();
