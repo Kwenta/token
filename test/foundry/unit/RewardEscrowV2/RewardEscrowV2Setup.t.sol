@@ -30,14 +30,30 @@ contract RewardEscrowV2SetupTests is StakingV1Setup {
                        REWARDESCROWV2 SETUP TESTS
     //////////////////////////////////////////////////////////////*/
 
-    function test_Cannot_Setup_With_Owner_Zero_Address() public {
+    function test_Cannot_Setup_RewardEscrowV2_With_Owner_Zero_Address() public {
         vm.expectRevert("Ownable: new owner is the zero address");
         deployRewardEscrowV2(address(0), address(kwenta));
     }
 
-    function test_Cannot_Setup_With_Kwenta_Zero_Address() public {
+    function test_Cannot_Setup_RewardEscrowV2_With_Kwenta_Zero_Address() public {
         vm.expectRevert(IRewardEscrowV2.ZeroAddress.selector);
         deployRewardEscrowV2(address(this), address(0));
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                      STAKINGREWARDSV2 SETUP TESTS
+    //////////////////////////////////////////////////////////////*/
+
+    function test_Cannot_Setup_StakingRewardsV2_With_Owner_Zero_Address() public {
+        address rewardEscrowV2 = deployRewardEscrowV2(address(this), address(kwenta));
+        vm.expectRevert("Ownable: new owner is the zero address");
+        deployStakingRewardsV2(
+            address(kwenta),
+            rewardEscrowV2,
+            address(supplySchedule),
+            address(stakingRewardsV1),
+            address(0)
+        );
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -52,6 +68,28 @@ contract RewardEscrowV2SetupTests is StakingV1Setup {
                 "initialize(address,address)",
                 _owner,
                 _kwenta
+                )
+                )
+        );
+    }
+
+    function deployStakingRewardsV2(
+        address _kwenta,
+        address _rewardEscrowV2,
+        address _supplySchedule,
+        address _stakingRewardsV1,
+        address _owner
+    ) internal returns (address) {
+        return address(
+            new ERC1967Proxy(
+                stakingRewardsV2Implementation,
+                abi.encodeWithSignature(
+                "initialize(address,address,address,address,address)",
+                _kwenta,
+                _rewardEscrowV2,
+                _supplySchedule,
+                _stakingRewardsV1,
+                _owner
                 )
                 )
         );
