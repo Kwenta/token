@@ -391,15 +391,18 @@ contract RewardEscrowV2 is
         uint256 totalEscrowTransferred;
         uint256 entryIDsLength = _entryIDs.length;
         for (uint256 i = 0; i < entryIDsLength;) {
+            // sum totalEscrowTransferred so that _applyTransferBalanceUpdates can be applied only once to save gas
             totalEscrowTransferred += vestingSchedules[_entryIDs[i]].escrowAmount;
 
             _checkApproved(_entryIDs[i]);
+            // use super._transfer to avoid double updating of balances
             super._transfer(_from, _to, _entryIDs[i]);
             unchecked {
                 ++i;
             }
         }
 
+        // update balances all at once
         _applyTransferBalanceUpdates(_from, _to, totalEscrowTransferred);
     }
 
@@ -408,7 +411,7 @@ contract RewardEscrowV2 is
     ///////////////////////////////////////////////////////////////*/
 
     /// @dev override the internal _transfer function to ensure vestingSchedules and account balances are updated
-    /// and that there is sufficient unstaked escrow for a transfer
+    /// and that there is sufficient unstaked escrow for a transfer when transferFrom and safeTransferFrom are called
     function _transfer(address _from, address _to, uint256 _entryID) internal override {
         uint256 escrowAmount = vestingSchedules[_entryID].escrowAmount;
 
@@ -420,7 +423,8 @@ contract RewardEscrowV2 is
     function _applyTransferBalanceUpdates(address _from, address _to, uint256 _escrowAmount)
         internal
     {
-        _checkIfSufficientUnstakedBalance(_from, _escrowAmount);
+        uint256 unstakedEscrow = unstakedEscrowedBalanceOf(_from);
+        if (unstakedEscrow < _escrowAmount) revert InsufficientUnstakedBalance(_escrowAmount, unstakedEscrow);
 
         totalEscrowedAccountBalance[_from] -= _escrowAmount;
         totalEscrowedAccountBalance[_to] += _escrowAmount;
@@ -461,11 +465,6 @@ contract RewardEscrowV2 is
         emit VestingEntryCreated(_account, _quantity, _duration, entryID, _earlyVestingFee);
 
         super._mint(_account, entryID);
-    }
-
-    function _checkIfSufficientUnstakedBalance(address _account, uint256 _amount) internal view {
-        uint256 unstakedEscrow = unstakedEscrowedBalanceOf(_account);
-        if (unstakedEscrow < _amount) revert InsufficientUnstakedBalance(_amount, unstakedEscrow);
     }
 
     function _authorizeUpgrade(address _newImplementation) internal override onlyOwner {}
