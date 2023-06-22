@@ -97,7 +97,7 @@ contract RewardEscrowV2 is
 
     /// @inheritdoc IRewardEscrowV2
     function initialize(address _contractOwner, address _kwenta) external override initializer {
-        if (_kwenta == address(0)) revert ZeroAddress();
+        if (_contractOwner == address(0) || _kwenta == address(0)) revert ZeroAddress();
 
         // Initialize inherited contracts
         __ERC721_init("Kwenta Reward Escrow", "KRE");
@@ -106,7 +106,7 @@ contract RewardEscrowV2 is
         __UUPSUpgradeable_init();
 
         // transfer ownership
-        transferOwnership(_contractOwner);
+        _transferOwnership(_contractOwner);
 
         // define variables
         nextEntryId = 1;

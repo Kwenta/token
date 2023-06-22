@@ -32,7 +32,7 @@ contract RewardEscrowV2SetupTests is StakingV1Setup {
     //////////////////////////////////////////////////////////////*/
 
     function test_Cannot_Setup_RewardEscrowV2_With_Owner_Zero_Address() public {
-        vm.expectRevert("Ownable: new owner is the zero address");
+        vm.expectRevert(IRewardEscrowV2.ZeroAddress.selector);
         deployRewardEscrowV2(address(0), address(kwenta));
     }
 
@@ -94,7 +94,7 @@ contract RewardEscrowV2SetupTests is StakingV1Setup {
 
     function test_Cannot_Setup_StakingRewardsV2_With_Owner_Zero_Address() public {
         address rewardEscrowV2 = deployRewardEscrowV2(address(this), address(kwenta));
-        vm.expectRevert("Ownable: new owner is the zero address");
+        vm.expectRevert(IStakingRewardsV2.ZeroAddress.selector);
         deployStakingRewardsV2(
             address(kwenta),
             rewardEscrowV2,

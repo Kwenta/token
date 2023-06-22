@@ -145,7 +145,7 @@ contract StakingRewardsV2 is
     ) external override initializer {
         if (
             _kwenta == address(0) || _rewardEscrow == address(0) || _supplySchedule == address(0)
-                || _stakingRewardsV1 == address(0)
+                || _stakingRewardsV1 == address(0) || _contractOwner == address(0)
         ) revert ZeroAddress();
 
         // initialize owner
@@ -154,7 +154,7 @@ contract StakingRewardsV2 is
         __UUPSUpgradeable_init();
 
         // transfer ownership
-        transferOwnership(_contractOwner);
+        _transferOwnership(_contractOwner);
 
         // define reward/staking token
         kwenta = IKwenta(_kwenta);
