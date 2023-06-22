@@ -197,10 +197,10 @@ contract RewardEscrowV2 is
                 entryID = tokenOfOwnerByIndex(_account, i + _index);
             }
 
-            VestingEntry memory entry = vestingSchedules[entryID];
+            VestingEntry storage entry = vestingSchedules[entryID];
 
             vestingEntries[i] = VestingEntryWithID({
-                endTime: uint64(entry.endTime),
+                endTime: entry.endTime,
                 escrowAmount: entry.escrowAmount,
                 entryID: entryID
             });
