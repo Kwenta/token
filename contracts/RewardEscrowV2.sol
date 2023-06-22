@@ -387,6 +387,8 @@ contract RewardEscrowV2 is
         external
         override
     {
+        if (_from == _to) revert CannotTransferToSelf();
+
         uint256 totalEscrowTransferred;
         uint256 entryIDsLength = _entryIDs.length;
         for (uint256 i = 0; i < entryIDsLength;) {

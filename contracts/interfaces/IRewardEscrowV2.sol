@@ -192,6 +192,9 @@ interface IRewardEscrowV2 {
                                 ERRORS
     //////////////////////////////////////////////////////////////*/
 
+    /// @notice Thrown when attempting to bulk transfer from and to the same address
+    error CannotTransferToSelf();
+
     /// @notice Insufficient unstaked escrow to facilitate transfer
     /// @param escrowAmount the amount of escrow attempted to transfer
     /// @param unstakedBalance the amount of unstaked escrow available
