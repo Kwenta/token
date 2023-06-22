@@ -47,7 +47,7 @@ contract RewardEscrowV2 is
     ///////////////////////////////////////////////////////////////*/
 
     /// @notice Contract for KWENTA ERC20 token
-    IKwenta public kwenta;
+    IKwenta internal kwenta;
 
     /// @notice Contract for StakingRewardsV2
     IStakingRewardsV2 public stakingRewards;
