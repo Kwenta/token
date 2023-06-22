@@ -123,7 +123,7 @@ contract RewardEscrowV2 is
         if (address(stakingRewards) != address(0)) revert StakingRewardsAlreadySet();
 
         stakingRewards = IStakingRewardsV2(_stakingRewards);
-        emit StakingRewardsSet(address(_stakingRewards));
+        emit StakingRewardsSet(_stakingRewards);
     }
 
     /// @inheritdoc IRewardEscrowV2
