@@ -3,9 +3,7 @@ pragma solidity ^0.8.19;
 
 import {console} from "forge-std/Test.sol";
 import {DefaultStakingV2Setup} from "../../utils/setup/DefaultStakingV2Setup.t.sol";
-import {
-    IRewardEscrowV2, VestingEntries
-} from "../../../../contracts/interfaces/IRewardEscrowV2.sol";
+import {IRewardEscrowV2} from "../../../../contracts/interfaces/IRewardEscrowV2.sol";
 import {IStakingRewardsV2} from "../../../../contracts/interfaces/IStakingRewardsV2.sol";
 import "../../utils/Constants.t.sol";
 
@@ -325,7 +323,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         vm.warp(block.timestamp + 1 weeks);
         createRewardEscrowEntryV2(user1, 500 ether, 52 weeks, 90);
 
-        VestingEntries.VestingEntryWithID[] memory entries =
+        IRewardEscrowV2.VestingEntryWithID[] memory entries =
             rewardEscrowV2.getVestingSchedules(user1, 0, 3);
 
         assertEq(entries.length, 3);
@@ -349,7 +347,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     function test_getVestingSchedules_0_Page_Size() public {
         create3Entries(user1);
 
-        VestingEntries.VestingEntryWithID[] memory entries =
+        IRewardEscrowV2.VestingEntryWithID[] memory entries =
             rewardEscrowV2.getVestingSchedules(user1, 0, 0);
 
         assertEq(entries.length, 0);
@@ -715,7 +713,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     function test_Should_Return_Schedules() public {
         createXEntries(260);
 
-        VestingEntries.VestingEntryWithID[] memory entries =
+        IRewardEscrowV2.VestingEntryWithID[] memory entries =
             rewardEscrowV2.getVestingSchedules(address(this), 0, 300);
 
         assertEq(entries.length, 260);

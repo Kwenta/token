@@ -1,22 +1,34 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-library VestingEntries {
+interface IRewardEscrowV2 {
+    /*//////////////////////////////////////////////////////////////
+                                STRUCTS
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice A vesting entry contains the data for each escrow NFT
     struct VestingEntry {
+        // The amount of KWENTA stored in this vesting entry
         uint256 escrowAmount;
+        // The length of time until the entry is fully matured
         uint256 duration;
+        // The time at which the entry will be fully matured
         uint64 endTime;
+        // The percentage fee for vesting immediately
+        // The actual penalty decreases linearly with time until it reaches 0 at block.timestamp=endTime
         uint8 earlyVestingFee;
     }
 
+    /// @notice Helper struct for getVestingSchedules view
     struct VestingEntryWithID {
+        // The amount of KWENTA stored in this vesting entry
         uint256 escrowAmount;
+        // The unique ID of this escrow entry NFT
         uint256 entryID;
+        // The time at which the entry will be fully matured
         uint64 endTime;
     }
-}
 
-interface IRewardEscrowV2 {
     /*///////////////////////////////////////////////////////////////
                                 INITIALIZER
     ///////////////////////////////////////////////////////////////*/
@@ -73,7 +85,7 @@ interface IRewardEscrowV2 {
     function getVestingSchedules(address _account, uint256 _index, uint256 _pageSize)
         external
         view
-        returns (VestingEntries.VestingEntryWithID[] memory);
+        returns (VestingEntryWithID[] memory);
 
     /// @notice Get the vesting entries for a given account
     /// @param _account The account to get the vesting entries for

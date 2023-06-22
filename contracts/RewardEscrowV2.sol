@@ -2,7 +2,7 @@
 pragma solidity ^0.8.19;
 
 // Inheritance
-import {IRewardEscrowV2, VestingEntries} from "./interfaces/IRewardEscrowV2.sol";
+import {IRewardEscrowV2} from "./interfaces/IRewardEscrowV2.sol";
 import {ERC721EnumerableUpgradeable} from
     "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
@@ -53,7 +53,7 @@ contract RewardEscrowV2 is
     ///////////////////////////////////////////////////////////////*/
 
     ///@notice mapping of entryIDs to vesting entries
-    mapping(uint256 => VestingEntries.VestingEntry) public vestingSchedules;
+    mapping(uint256 => VestingEntry) public vestingSchedules;
 
     /// @notice Counter for new vesting entry ids
     uint256 public nextEntryId;
@@ -168,13 +168,13 @@ contract RewardEscrowV2 is
         external
         view
         override
-        returns (VestingEntries.VestingEntryWithID[] memory)
+        returns (VestingEntryWithID[] memory)
     {
         uint256 endIndex = _index + _pageSize;
 
         // If index starts after the endIndex return no results
         if (endIndex <= _index) {
-            return new VestingEntries.VestingEntryWithID[](0);
+            return new VestingEntryWithID[](0);
         }
 
         // If the page extends past the end of the list, truncate it.
@@ -184,14 +184,14 @@ contract RewardEscrowV2 is
         }
 
         uint256 n = endIndex - _index;
-        VestingEntries.VestingEntryWithID[] memory vestingEntries =
-            new VestingEntries.VestingEntryWithID[](n);
+        VestingEntryWithID[] memory vestingEntries =
+            new VestingEntryWithID[](n);
         for (uint256 i; i < n;) {
             uint256 entryID = tokenOfOwnerByIndex(_account, i + _index);
 
-            VestingEntries.VestingEntry memory entry = vestingSchedules[entryID];
+            VestingEntry memory entry = vestingSchedules[entryID];
 
-            vestingEntries[i] = VestingEntries.VestingEntryWithID({
+            vestingEntries[i] = VestingEntryWithID({
                 endTime: uint64(entry.endTime),
                 escrowAmount: entry.escrowAmount,
                 entryID: entryID
@@ -243,7 +243,7 @@ contract RewardEscrowV2 is
     {
         uint256 entryIDsLength = _entryIDs.length;
         for (uint256 i = 0; i < entryIDsLength;) {
-            VestingEntries.VestingEntry memory entry = vestingSchedules[_entryIDs[i]];
+            VestingEntry memory entry = vestingSchedules[_entryIDs[i]];
 
             (uint256 quantity, uint256 fee) = _claimableAmount(entry);
 
@@ -264,11 +264,11 @@ contract RewardEscrowV2 is
         override
         returns (uint256 quantity, uint256 fee)
     {
-        VestingEntries.VestingEntry memory entry = vestingSchedules[_entryID];
+        VestingEntry memory entry = vestingSchedules[_entryID];
         (quantity, fee) = _claimableAmount(entry);
     }
 
-    function _claimableAmount(VestingEntries.VestingEntry memory _entry)
+    function _claimableAmount(VestingEntry memory _entry)
         internal
         view
         returns (uint256 quantity, uint256 fee)
@@ -284,7 +284,7 @@ contract RewardEscrowV2 is
         }
     }
 
-    function _earlyVestFee(VestingEntries.VestingEntry memory _entry)
+    function _earlyVestFee(VestingEntry memory _entry)
         internal
         view
         returns (uint256 earlyVestFee)
@@ -305,7 +305,7 @@ contract RewardEscrowV2 is
         uint256 totalFee;
         uint256 entryIDsLength = _entryIDs.length;
         for (uint256 i = 0; i < entryIDsLength; ++i) {
-            VestingEntries.VestingEntry storage entry = vestingSchedules[_entryIDs[i]];
+            VestingEntry storage entry = vestingSchedules[_entryIDs[i]];
             if (_ownerOf(_entryIDs[i]) != msg.sender) {
                 continue;
             }
@@ -449,7 +449,7 @@ contract RewardEscrowV2 is
         totalEscrowedAccountBalance[_account] += _quantity;
 
         uint256 entryID = nextEntryId;
-        vestingSchedules[entryID] = VestingEntries.VestingEntry({
+        vestingSchedules[entryID] = VestingEntry({
             endTime: uint64(endTime),
             escrowAmount: _quantity,
             duration: _duration,

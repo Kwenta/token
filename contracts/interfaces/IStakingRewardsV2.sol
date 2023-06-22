@@ -3,7 +3,7 @@ pragma solidity ^0.8.19;
 
 interface IStakingRewardsV2 {
     /*//////////////////////////////////////////////////////////////
-                                Structs
+                                STRUCTS
     //////////////////////////////////////////////////////////////*/
 
     /// @notice A checkpoint for tracking values at a given timestamp
