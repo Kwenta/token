@@ -4,6 +4,8 @@ pragma solidity ^0.8.19;
 import {console} from "forge-std/Test.sol";
 import {DefaultStakingV2Setup} from "../../utils/setup/DefaultStakingV2Setup.t.sol";
 import {IStakingRewardsV2} from "../../../../contracts/interfaces/IStakingRewardsV2.sol";
+import {Kwenta} from "../../../../contracts/Kwenta.sol";
+import {IERC20} from "../../../../contracts/interfaces/IERC20.sol";
 import "../../utils/Constants.t.sol";
 
 contract StakingRewardsV2Test is DefaultStakingV2Setup {
@@ -391,6 +393,15 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
     }
 
     function test_Can_Recover_Non_Staking_Token() public {
+        // create mockToken
+        IERC20 mockToken = new Kwenta(
+            "Mock",
+            "MOCK",
+            INITIAL_SUPPLY,
+            address(this),
+            treasury
+        );
+
         // transfer in non staking tokens
         vm.prank(treasury);
         mockToken.transfer(address(stakingRewardsV2), TEST_VALUE);

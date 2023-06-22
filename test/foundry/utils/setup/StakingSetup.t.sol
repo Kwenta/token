@@ -12,7 +12,6 @@ import {StakingRewards} from "../../../../contracts/StakingRewards.sol";
 import {StakingRewardsV2} from "../../../../contracts/StakingRewardsV2.sol";
 import {MultipleMerkleDistributor} from "../../../../contracts/MultipleMerkleDistributor.sol";
 import {IRewardEscrowV2} from "../../../../contracts/interfaces/IRewardEscrowV2.sol";
-import {IERC20} from "../../../../contracts/interfaces/IERC20.sol";
 import "../../utils/Constants.t.sol";
 
 contract StakingSetup is TestHelpers {
@@ -48,7 +47,6 @@ contract StakingSetup is TestHelpers {
     address public user4;
     address public user5;
 
-    IERC20 public mockToken;
     Kwenta public kwenta;
     RewardEscrow public rewardEscrowV1;
     RewardEscrowV2 public rewardEscrowV2;
@@ -75,13 +73,6 @@ contract StakingSetup is TestHelpers {
         user3 = createUser();
         user4 = createUser();
         user5 = createUser();
-        mockToken = new Kwenta(
-            "Mock",
-            "MOCK",
-            INITIAL_SUPPLY,
-            address(this),
-            treasury
-        );
         kwenta = new Kwenta(
             "Kwenta",
             "KWENTA",
