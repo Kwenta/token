@@ -324,14 +324,11 @@ contract RewardEscrowV2 is
         if (total != 0) {
             uint256 totalWithFee = total + totalFee;
 
-            // Withdraw staked escrowed kwenta if needed for reward
-            uint256 stakedEscrow = stakingRewards.escrowedBalanceOf(msg.sender);
-            if (stakedEscrow > 0) {
-                uint256 unstakedEscrow = totalEscrowedAccountBalance[msg.sender] - stakedEscrow;
-                if (totalWithFee > unstakedEscrow) {
-                    uint256 amountToUnstake = totalWithFee - unstakedEscrow;
-                    stakingRewards.unstakeEscrowSkipCooldown(msg.sender, amountToUnstake);
-                }
+            // Unstake staked escrowed kwenta if needed for reward/fee
+            uint256 unstakedEscrow = unstakedEscrowedBalanceOf(msg.sender);
+            if (totalWithFee > unstakedEscrow) {
+                uint256 amountToUnstake = totalWithFee - unstakedEscrow;
+                stakingRewards.unstakeEscrowSkipCooldown(msg.sender, amountToUnstake);
             }
 
             // update balances
