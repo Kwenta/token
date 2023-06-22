@@ -2,17 +2,17 @@
 pragma solidity ^0.8.13;
 
 import {console} from "forge-std/Test.sol";
-import {StakingV1Setup} from "../../utils/setup/StakingV1Setup.t.sol";
-import {RewardEscrowV2} from "../../../../contracts/RewardEscrowV2.sol";
-import {StakingRewardsV2} from "../../../../contracts/StakingRewardsV2.sol";
-import {IStakingRewardsV2} from "../../../../contracts/interfaces/IStakingRewardsV2.sol";
-import {IRewardEscrowV2} from "../../../../contracts/interfaces/IRewardEscrowV2.sol";
-import "../../utils/Constants.t.sol";
+import {StakingV1Setup} from "../utils/setup/StakingV1Setup.t.sol";
+import {RewardEscrowV2} from "../../../contracts/RewardEscrowV2.sol";
+import {StakingRewardsV2} from "../../../contracts/StakingRewardsV2.sol";
+import {IStakingRewardsV2} from "../../../contracts/interfaces/IStakingRewardsV2.sol";
+import {IRewardEscrowV2} from "../../../contracts/interfaces/IRewardEscrowV2.sol";
+import "../utils/Constants.t.sol";
 
 // Upgradeability imports
 import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
-contract RewardEscrowV2SetupTests is StakingV1Setup {
+contract StakingV2SetupTests is StakingV1Setup {
     /*//////////////////////////////////////////////////////////////
                                  STATE
     //////////////////////////////////////////////////////////////*/
