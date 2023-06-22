@@ -57,6 +57,41 @@ contract RewardEscrowV2SetupTests is StakingV1Setup {
         );
     }
 
+    function test_Cannot_Setup_StakingRewardsV2_With_RewardEscrowV2_Zero_Address() public {
+        vm.expectRevert(IStakingRewardsV2.ZeroAddress.selector);
+        deployStakingRewardsV2(
+            address(kwenta),
+            address(0),
+            address(supplySchedule),
+            address(stakingRewardsV1),
+            address(this)
+        );
+    }
+
+    function test_Cannot_Setup_StakingRewardsV2_With_SupplySchedule_Zero_Address() public {
+        address rewardEscrowV2 = deployRewardEscrowV2(address(this), address(kwenta));
+        vm.expectRevert(IStakingRewardsV2.ZeroAddress.selector);
+        deployStakingRewardsV2(
+            address(kwenta),
+            rewardEscrowV2,
+            address(0),
+            address(stakingRewardsV1),
+            address(this)
+        );
+    }
+
+    function test_Cannot_Setup_StakingRewardsV2_With_StakingRewardsV1_Zero_Address() public {
+        address rewardEscrowV2 = deployRewardEscrowV2(address(this), address(kwenta));
+        vm.expectRevert(IStakingRewardsV2.ZeroAddress.selector);
+        deployStakingRewardsV2(
+            address(kwenta),
+            rewardEscrowV2,
+            address(supplySchedule),
+            address(0),
+            address(this)
+        );
+    }
+
     function test_Cannot_Setup_StakingRewardsV2_With_Owner_Zero_Address() public {
         address rewardEscrowV2 = deployRewardEscrowV2(address(this), address(kwenta));
         vm.expectRevert("Ownable: new owner is the zero address");
