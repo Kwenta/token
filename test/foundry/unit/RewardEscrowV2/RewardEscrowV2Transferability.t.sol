@@ -680,38 +680,15 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
         createRewardEscrowEntryV2(user1, escrowAmount, 52 weeks);
         assertEq(rewardEscrowV2.totalEscrowedBalance(), escrowAmount);
 
-        // check starting escrow balances
-        assertEq(rewardEscrowV2.totalEscrowedAccountBalance(user1), escrowAmount);
-
         // assert correct number of entries for user
         uint256 user1EntryID = rewardEscrowV2.getAccountVestingEntryIDs(user1, 0, 1)[0];
         assertEq(rewardEscrowV2.balanceOf(user1), 1);
 
-        // get initial values
-        (
-            uint64 initialEndTime,
-            uint256 initialEscrowAmount,
-            uint256 initialDuration,
-            uint8 initialEarlyVestingFee
-        ) = rewardEscrowV2.getVestingEntry(user1EntryID);
-
         // bulk transfer vesting entries to self
         entryIDs.push(user1EntryID);
+        vm.expectRevert(IRewardEscrowV2.CannotTransferToSelf.selector);
         vm.prank(user1);
         rewardEscrowV2.bulkTransferFrom(user1, user1, entryIDs);
-
-        // assert that the entry is still owned by user1
-        assertEq(rewardEscrowV2.balanceOf(user1), 1);
-
-        checkFinalValuesToSelf(
-            user1,
-            escrowAmount,
-            user1EntryID,
-            initialEndTime,
-            initialEscrowAmount,
-            initialDuration,
-            initialEarlyVestingFee
-        );
     }
 
     /*//////////////////////////////////////////////////////////////
