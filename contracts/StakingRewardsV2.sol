@@ -31,6 +31,10 @@ contract StakingRewardsV2 is
     /// @notice maximum time length of the unstaking cooldown period
     uint256 public constant MAX_COOLDOWN_PERIOD = 52 weeks;
 
+    /*///////////////////////////////////////////////////////////////
+                                STATE
+    ///////////////////////////////////////////////////////////////*/
+
     /// @notice Contract for KWENTA ERC20 token - used for BOTH staking and rewards
     IKwenta public kwenta;
 
@@ -42,10 +46,6 @@ contract StakingRewardsV2 is
 
     /// @notice previous version of staking rewards contract - used for migration
     IStakingRewards public stakingRewardsV1;
-
-    /*///////////////////////////////////////////////////////////////
-                                STATE
-    ///////////////////////////////////////////////////////////////*/
 
     /// @notice number of tokens staked by address
     /// @dev this includes staked escrowed tokens
