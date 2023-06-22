@@ -323,8 +323,8 @@ contract RewardEscrowV2 is
         }
 
         // Transfer vested tokens. Will revert if total > totalEscrowedAccountBalance
-        if (total != 0) {
-            uint256 totalWithFee = total + totalFee;
+        uint256 totalWithFee = total + totalFee;
+        if (totalWithFee != 0) {
 
             // Unstake staked escrowed kwenta if needed for reward/fee
             uint256 unstakedEscrow = unstakedEscrowedBalanceOf(msg.sender);
@@ -347,9 +347,11 @@ contract RewardEscrowV2 is
                 kwenta.transfer(treasuryDAO, totalFee);
             }
 
-            // Transfer kwenta
-            /// @dev this will revert if the kwenta token transfer fails
-            kwenta.transfer(msg.sender, total);
+            if (total != 0) {
+                // Transfer kwenta
+                /// @dev this will revert if the kwenta token transfer fails
+                kwenta.transfer(msg.sender, total);
+            }
         }
     }
 
