@@ -2,10 +2,10 @@
 pragma solidity ^0.8.19;
 
 import {console} from "forge-std/Test.sol";
-import {StakingSetup} from "../../utils/setup/StakingSetup.t.sol";
+import {StakingV2Setup} from "../../utils/setup/StakingV2Setup.t.sol";
 import "../../utils/Constants.t.sol";
 
-contract StakingTestHelpers is StakingSetup {
+contract StakingTestHelpers is StakingV2Setup {
     /*//////////////////////////////////////////////////////////////
                         Reward Calculation Helpers
     //////////////////////////////////////////////////////////////*/

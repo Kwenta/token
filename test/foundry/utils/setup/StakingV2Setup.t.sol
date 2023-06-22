@@ -3,18 +3,13 @@ pragma solidity ^0.8.13;
 
 import {console} from "forge-std/Test.sol";
 import {Migrate} from "../../../../scripts/Migrate.s.sol";
-import {TestHelpers} from "../../utils/helpers/TestHelpers.t.sol";
-import {Kwenta} from "../../../../contracts/Kwenta.sol";
-import {RewardEscrow} from "../../../../contracts/RewardEscrow.sol";
+import {StakingV1Setup} from "../../utils/setup/StakingV1Setup.t.sol";
 import {RewardEscrowV2} from "../../../../contracts/RewardEscrowV2.sol";
-import {SupplySchedule} from "../../../../contracts/SupplySchedule.sol";
-import {StakingRewards} from "../../../../contracts/StakingRewards.sol";
 import {StakingRewardsV2} from "../../../../contracts/StakingRewardsV2.sol";
-import {MultipleMerkleDistributor} from "../../../../contracts/MultipleMerkleDistributor.sol";
 import {IRewardEscrowV2} from "../../../../contracts/interfaces/IRewardEscrowV2.sol";
 import "../../utils/Constants.t.sol";
 
-contract StakingSetup is TestHelpers {
+contract StakingV2Setup is StakingV1Setup {
     /*//////////////////////////////////////////////////////////////
                                 Events
     //////////////////////////////////////////////////////////////*/
@@ -40,59 +35,20 @@ contract StakingSetup is TestHelpers {
                                 State
     //////////////////////////////////////////////////////////////*/
 
-    address public treasury;
-    address public user1;
-    address public user2;
-    address public user3;
-    address public user4;
-    address public user5;
-
-    Kwenta public kwenta;
-    RewardEscrow public rewardEscrowV1;
     RewardEscrowV2 public rewardEscrowV2;
-    SupplySchedule public supplySchedule;
-    StakingRewards public stakingRewardsV1;
     StakingRewardsV2 public stakingRewardsV2;
-    MultipleMerkleDistributor public tradingRewards;
     Migrate public migrate;
 
     address rewardEscrowV2Implementation;
     address stakingRewardsV2Implementation;
 
-    uint256[] public entryIDs;
-
     /*//////////////////////////////////////////////////////////////
                                 Setup
     //////////////////////////////////////////////////////////////*/
 
-    function setUp() public virtual {
+    function setUp() public virtual override {
         // Setup StakingV1
-        treasury = createUser();
-        user1 = createUser();
-        user2 = createUser();
-        user3 = createUser();
-        user4 = createUser();
-        user5 = createUser();
-        kwenta = new Kwenta(
-            "Kwenta",
-            "KWENTA",
-            INITIAL_SUPPLY,
-            address(this),
-            treasury
-        );
-        rewardEscrowV1 = new RewardEscrow(address(this), address(kwenta));
-        supplySchedule = new SupplySchedule(address(this), treasury);
-        supplySchedule.setKwenta(kwenta);
-        kwenta.setSupplySchedule(address(supplySchedule));
-        stakingRewardsV1 = new StakingRewards(
-            address(kwenta),
-            address(rewardEscrowV1),
-            address(supplySchedule)
-        );
-        tradingRewards = new MultipleMerkleDistributor(address(this), address(kwenta));
-        supplySchedule.setStakingRewards(address(stakingRewardsV1));
-        supplySchedule.setTradingRewards(address(tradingRewards));
-        rewardEscrowV1.setStakingRewards(address(stakingRewardsV1));
+        super.setUp();
 
         // Deploy StakingV2
         migrate = new Migrate();
