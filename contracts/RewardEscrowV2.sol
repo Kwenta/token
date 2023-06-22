@@ -457,7 +457,9 @@ contract RewardEscrowV2 is
         });
 
         // Increment the next entry id.
-        ++nextEntryId;
+        unchecked {
+            ++nextEntryId;
+        }
 
         emit VestingEntryCreated(_account, _quantity, _duration, entryID, _earlyVestingFee);
 
