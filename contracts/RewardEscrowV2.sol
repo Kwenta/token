@@ -159,10 +159,11 @@ contract RewardEscrowV2 is
         override
         returns (uint64 endTime, uint256 escrowAmount, uint256 duration, uint8 earlyVestingFee)
     {
-        endTime = vestingSchedules[_entryID].endTime;
-        escrowAmount = vestingSchedules[_entryID].escrowAmount;
-        duration = vestingSchedules[_entryID].duration;
-        earlyVestingFee = vestingSchedules[_entryID].earlyVestingFee;
+        VestingEntry storage entry = vestingSchedules[_entryID];
+        endTime = entry.endTime;
+        escrowAmount = entry.escrowAmount;
+        duration = entry.duration;
+        earlyVestingFee = entry.earlyVestingFee;
     }
 
     /// @inheritdoc IRewardEscrowV2
