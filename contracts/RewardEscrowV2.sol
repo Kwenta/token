@@ -42,15 +42,18 @@ contract RewardEscrowV2 is
     /// @notice Minimum early vesting fee
     uint8 public constant MINIMUM_EARLY_VESTING_FEE = 50;
 
+    /*///////////////////////////////////////////////////////////////
+                                STATE
+    ///////////////////////////////////////////////////////////////*/
+
     /// @notice Contract for KWENTA ERC20 token
     IKwenta public kwenta;
 
     /// @notice Contract for StakingRewardsV2
     IStakingRewardsV2 public stakingRewards;
 
-    /*///////////////////////////////////////////////////////////////
-                                STATE
-    ///////////////////////////////////////////////////////////////*/
+    /// @notice treasury address - this may change
+    address public treasuryDAO;
 
     ///@notice mapping of entryIDs to vesting entries
     mapping(uint256 => VestingEntry) public vestingSchedules;
@@ -66,9 +69,6 @@ contract RewardEscrowV2 is
 
     /// @notice The total remaining escrowed balance, for verifying the actual KWENTA balance of this contract against
     uint256 public totalEscrowedBalance;
-
-    /// @notice treasury address - this may change
-    address public treasuryDAO;
 
     /*///////////////////////////////////////////////////////////////
                                 AUTH
