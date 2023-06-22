@@ -184,11 +184,18 @@ contract RewardEscrowV2 is
             endIndex = numEntries;
         }
 
-        uint256 n = endIndex - _index;
-        VestingEntryWithID[] memory vestingEntries =
-            new VestingEntryWithID[](n);
+        uint256 n;
+        unchecked {
+            n = endIndex - _index;
+        }
+
+        VestingEntryWithID[] memory vestingEntries = new VestingEntryWithID[](n);
         for (uint256 i; i < n;) {
-            uint256 entryID = tokenOfOwnerByIndex(_account, i + _index);
+            uint256 entryID;
+
+            unchecked {
+                entryID = tokenOfOwnerByIndex(_account, i + _index);
+            }
 
             VestingEntry memory entry = vestingSchedules[entryID];
 
@@ -324,7 +331,6 @@ contract RewardEscrowV2 is
         // Transfer vested tokens
         uint256 totalWithFee = total + totalFee;
         if (totalWithFee != 0) {
-
             // Unstake staked escrowed kwenta if needed for reward/fee
             uint256 unstakedEscrow = unstakedEscrowedBalanceOf(msg.sender);
             if (totalWithFee > unstakedEscrow) {
@@ -426,7 +432,9 @@ contract RewardEscrowV2 is
         internal
     {
         uint256 unstakedEscrow = unstakedEscrowedBalanceOf(_from);
-        if (unstakedEscrow < _escrowAmount) revert InsufficientUnstakedBalance(_escrowAmount, unstakedEscrow);
+        if (unstakedEscrow < _escrowAmount) {
+            revert InsufficientUnstakedBalance(_escrowAmount, unstakedEscrow);
+        }
 
         totalEscrowedAccountBalance[_from] -= _escrowAmount;
         totalEscrowedAccountBalance[_to] += _escrowAmount;
