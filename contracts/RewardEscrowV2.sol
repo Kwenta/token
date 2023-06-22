@@ -322,7 +322,7 @@ contract RewardEscrowV2 is
             totalFee += fee;
         }
 
-        // Transfer vested tokens. Will revert if total > totalEscrowedAccountBalance
+        // Transfer vested tokens
         uint256 totalWithFee = total + totalFee;
         if (totalWithFee != 0) {
 
