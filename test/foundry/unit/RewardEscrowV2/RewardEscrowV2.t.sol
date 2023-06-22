@@ -81,7 +81,8 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     function test_appendVestingEntry_Should_Not_Create_A_Vesting_Entry_Insufficient_Kwenta()
         public
     {
-        vm.expectRevert(IRewardEscrowV2.InsufficientBalance.selector);
+        // assertion is violated
+        vm.expectRevert();
         vm.prank(address(stakingRewardsV2));
         rewardEscrowV2.appendVestingEntry(address(this), 1 ether);
     }

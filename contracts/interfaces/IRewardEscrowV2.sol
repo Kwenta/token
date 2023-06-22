@@ -215,9 +215,6 @@ interface IRewardEscrowV2 {
     /// @notice cannot mint entries with zero escrow
     error ZeroAmount();
 
-    /// @notice Must be enough balance in the contract to provide for the vesting entry
-    error InsufficientBalance();
-
     /// @notice Cannot escrow with 0 duration OR above max_duration
     error InvalidDuration();
 }
