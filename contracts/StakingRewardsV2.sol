@@ -409,7 +409,7 @@ contract StakingRewardsV2 is
         return rewardPerTokenStored
             + (
                 ((lastTimeRewardApplicable() - lastUpdateTime) * rewardRate * 1e18)
-                    / (sumOfAllStakedTokens)
+                    / sumOfAllStakedTokens
             );
     }
 
