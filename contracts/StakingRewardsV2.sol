@@ -559,7 +559,7 @@ contract StakingRewardsV2 is
         }
 
         if (lastTimestamp != block.timestamp) {
-            checkpoints.push(Checkpoint(block.timestamp, block.number, _value));
+            checkpoints.push(Checkpoint({ts: block.timestamp, blk: block.number, value: _value}));
         } else {
             unchecked {
                 checkpoints[length - 1].value = _value;
@@ -579,7 +579,7 @@ contract StakingRewardsV2 is
         }
 
         if (lastTimestamp != block.timestamp) {
-            checkpoints.push(Checkpoint(block.timestamp, block.number, _value));
+            checkpoints.push(Checkpoint({ts: block.timestamp, blk: block.number, value: _value}));
         } else {
             unchecked {
                 checkpoints[length - 1].value = _value;
@@ -597,7 +597,7 @@ contract StakingRewardsV2 is
         }
 
         if (lastTimestamp != block.timestamp) {
-            _totalSupply.push(Checkpoint(block.timestamp, block.number, _value));
+            _totalSupply.push(Checkpoint({ts: block.timestamp, blk: block.number, value: _value}));
         } else {
             unchecked {
                 _totalSupply[length - 1].value = _value;
