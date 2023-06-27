@@ -175,8 +175,9 @@ contract StakingRewardsV2 is
 
     /// @inheritdoc IStakingRewardsV2
     function totalSupply() public view override returns (uint256) {
+        uint256 length = _totalSupply.length;
         unchecked {
-            return _totalSupply.length == 0 ? 0 : _totalSupply[_totalSupply.length - 1].value;
+            return length == 0 ? 0 : _totalSupply[length - 1].value;
         }
     }
 
@@ -187,10 +188,10 @@ contract StakingRewardsV2 is
 
     /// @inheritdoc IStakingRewardsV2
     function balanceOf(address _account) public view override returns (uint256) {
+        Checkpoint[] storage checkpoints = balances[_account];
+        uint256 length = checkpoints.length;
         unchecked {
-            return balances[_account].length == 0
-                ? 0
-                : balances[_account][balances[_account].length - 1].value;
+            return length == 0 ? 0 : checkpoints[length - 1].value;
         }
     }
 
@@ -201,10 +202,10 @@ contract StakingRewardsV2 is
 
     /// @inheritdoc IStakingRewardsV2
     function escrowedBalanceOf(address _account) public view override returns (uint256) {
+        Checkpoint[] storage checkpoints = escrowedBalances[_account];
+        uint256 length = checkpoints.length;
         unchecked {
-            return escrowedBalances[_account].length == 0
-                ? 0
-                : escrowedBalances[_account][escrowedBalances[_account].length - 1].value;
+            return length == 0 ? 0 : checkpoints[length - 1].value;
         }
     }
 
@@ -548,7 +549,7 @@ contract StakingRewardsV2 is
     /// @param _account: address of account to add checkpoint for
     /// @param _value: value of checkpoint to add
     function _addBalancesCheckpoint(address _account, uint256 _value) internal {
-        Checkpoint[] memory checkpoints = balances[_account];
+        Checkpoint[] storage checkpoints = balances[_account];
         uint256 length = checkpoints.length;
         uint256 lastTimestamp;
         unchecked {
@@ -556,10 +557,10 @@ contract StakingRewardsV2 is
         }
 
         if (lastTimestamp != block.timestamp) {
-            balances[_account].push(Checkpoint(block.timestamp, block.number, _value));
+            checkpoints.push(Checkpoint(block.timestamp, block.number, _value));
         } else {
             unchecked {
-                balances[_account][length - 1].value = _value;
+                checkpoints[length - 1].value = _value;
             }
         }
     }
@@ -568,7 +569,7 @@ contract StakingRewardsV2 is
     /// @param _account: address of account to add checkpoint for
     /// @param _value: value of checkpoint to add
     function _addEscrowedBalancesCheckpoint(address _account, uint256 _value) internal {
-        Checkpoint[] memory checkpoints = escrowedBalances[_account];
+        Checkpoint[] storage checkpoints = escrowedBalances[_account];
         uint256 length = checkpoints.length;
         uint256 lastTimestamp;
         unchecked {
@@ -576,10 +577,10 @@ contract StakingRewardsV2 is
         }
 
         if (lastTimestamp != block.timestamp) {
-            escrowedBalances[_account].push(Checkpoint(block.timestamp, block.number, _value));
+            checkpoints.push(Checkpoint(block.timestamp, block.number, _value));
         } else {
             unchecked {
-                escrowedBalances[_account][length - 1].value = _value;
+                checkpoints[length - 1].value = _value;
             }
         }
     }
@@ -587,11 +588,10 @@ contract StakingRewardsV2 is
     /// @notice add a new total supply checkpoint
     /// @param _value: value of checkpoint to add
     function _addTotalSupplyCheckpoint(uint256 _value) internal {
-        Checkpoint[] memory checkpoints = _totalSupply;
-        uint256 length = checkpoints.length;
+        uint256 length = _totalSupply.length;
         uint256 lastTimestamp;
         unchecked {
-            lastTimestamp = length == 0 ? 0 : checkpoints[length - 1].ts;
+            lastTimestamp = length == 0 ? 0 : _totalSupply[length - 1].ts;
         }
 
         if (lastTimestamp != block.timestamp) {
