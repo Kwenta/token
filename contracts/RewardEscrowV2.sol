@@ -236,7 +236,9 @@ contract RewardEscrowV2 is
         uint256 n = endIndex - _index;
         uint256[] memory page = new uint256[](n);
         for (uint256 i; i < n;) {
-            page[i] = tokenOfOwnerByIndex(_account, i + _index);
+            unchecked {
+                page[i] = tokenOfOwnerByIndex(_account, i + _index);
+            }
 
             unchecked {
                 ++i;
@@ -337,7 +339,10 @@ contract RewardEscrowV2 is
             // Unstake staked escrowed kwenta if needed for reward/fee
             uint256 unstakedEscrow = unstakedEscrowedBalanceOf(msg.sender);
             if (totalWithFee > unstakedEscrow) {
-                uint256 amountToUnstake = totalWithFee - unstakedEscrow;
+                uint256 amountToUnstake;
+                unchecked {
+                    amountToUnstake = totalWithFee - unstakedEscrow;
+                }
                 stakingRewards.unstakeEscrowSkipCooldown(msg.sender, amountToUnstake);
             }
 
@@ -439,7 +444,9 @@ contract RewardEscrowV2 is
             revert InsufficientUnstakedBalance(_escrowAmount, unstakedEscrow);
         }
 
-        totalEscrowedAccountBalance[_from] -= _escrowAmount;
+        unchecked {
+            totalEscrowedAccountBalance[_from] -= _escrowAmount;
+        }
         totalEscrowedAccountBalance[_to] += _escrowAmount;
     }
 
