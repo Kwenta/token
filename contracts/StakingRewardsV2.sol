@@ -87,7 +87,7 @@ contract StakingRewardsV2 is
     mapping(address => uint256) public userLastStakeTime;
 
     /// @notice tracks all addresses approved to take actions on behalf of a given account
-    mapping(address => mapping(address => bool)) public _operatorApprovals;
+    mapping(address => mapping(address => bool)) public operatorApprovals;
 
     /*///////////////////////////////////////////////////////////////
                                 AUTH
@@ -439,14 +439,14 @@ contract StakingRewardsV2 is
     }
 
     function _onlyOperator(address _accountOwner) internal view {
-        if (!_operatorApprovals[_accountOwner][msg.sender]) revert NotApproved();
+        if (!operatorApprovals[_accountOwner][msg.sender]) revert NotApproved();
     }
 
     /// @inheritdoc IStakingRewardsV2
     function approveOperator(address _operator, bool _approved) external override {
         if (_operator == msg.sender) revert CannotApproveSelf();
 
-        _operatorApprovals[msg.sender][_operator] = _approved;
+        operatorApprovals[msg.sender][_operator] = _approved;
 
         emit OperatorApproved(msg.sender, _operator, _approved);
     }
