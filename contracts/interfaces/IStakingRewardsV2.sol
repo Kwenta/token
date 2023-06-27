@@ -101,16 +101,16 @@ interface IStakingRewardsV2 {
     /// @notice get the number of balances checkpoints for an account
     /// @param _account: address of account to check
     /// @return number of balances checkpoints
-    function balancesLength(address _account) external view returns (uint256);
+    function balancesCheckpointsLength(address _account) external view returns (uint256);
 
     /// @notice get the number of escrowed balance checkpoints for an account
     /// @param _account: address of account to check
     /// @return number of escrowed balance checkpoints
-    function escrowedBalancesLength(address _account) external view returns (uint256);
+    function escrowedBalancesCheckpointsLength(address _account) external view returns (uint256);
 
     /// @notice get the number of total supply checkpoints
     /// @return number of total supply checkpoints
-    function totalSupplyLength() external view returns (uint256);
+    function totalSupplyCheckpointsLength() external view returns (uint256);
 
     /// @notice get a users balance at a given timestamp
     /// @param _account: address of account to check
