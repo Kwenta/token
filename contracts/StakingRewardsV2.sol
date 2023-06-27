@@ -248,7 +248,8 @@ contract StakingRewardsV2 is
         afterCooldown(msg.sender)
     {
         if (_amount == 0) revert AmountZero();
-        if (_amount > nonEscrowedBalanceOf(msg.sender)) revert InsufficientBalance();
+        uint256 nonEscrowedBalance = nonEscrowedBalanceOf(msg.sender);
+        if (_amount > nonEscrowedBalance) revert InsufficientBalance(nonEscrowedBalance);
 
         // update state
         _addTotalSupplyCheckpoint(totalSupply() - _amount);
@@ -308,7 +309,8 @@ contract StakingRewardsV2 is
         updateReward(_account)
     {
         if (_amount == 0) revert AmountZero();
-        if (_amount > escrowedBalanceOf(_account)) revert InsufficientBalance();
+        uint256 escrowedBalance = escrowedBalanceOf(_account);
+        if (_amount > escrowedBalance) revert InsufficientBalance(escrowedBalance);
 
         // update state
         _addBalancesCheckpoint(_account, balanceOf(_account) - _amount);

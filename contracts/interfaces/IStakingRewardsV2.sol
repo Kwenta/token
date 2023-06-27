@@ -298,7 +298,12 @@ interface IStakingRewardsV2 {
     error AmountZero();
 
     /// @notice the user does not have enough tokens to unstake that amount
-    error InsufficientBalance();
+    /// @param availableBalance: amount of tokens available to withdraw
+    error InsufficientBalance(uint256 availableBalance);
+
+    /// @notice error when trying to stakeEscrow more than the unstakedEscrow available
+    /// @param unstakedEscrow amount of unstaked escrow
+    error InsufficientUnstakedEscrow(uint256 unstakedEscrow);
 
     /// @notice previous rewards period must be complete before changing the duration for the new period
     error RewardsPeriodNotComplete();
@@ -320,10 +325,6 @@ interface IStakingRewardsV2 {
     /// @notice error when trying to set a cooldown period above the maximum
     /// @param maxCooldownPeriod maximum cooldown period
     error CooldownPeriodTooHigh(uint256 maxCooldownPeriod);
-
-    /// @notice error when trying to stakeEscrow more than the unstakedEscrow available
-    /// @param unstakedEscrow amount of unstaked escrow
-    error InsufficientUnstakedEscrow(uint256 unstakedEscrow);
 
     /// @notice the caller is not approved to take this action
     error NotApproved();
