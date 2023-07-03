@@ -125,6 +125,11 @@ contract TokenDistributor is ITokenDistributor {
     /// @inheritdoc ITokenDistributor
     function claimEpoch(address to, uint epochNumber) public override {
         _checkpointWhenReady();
+        _claimEpoch(to, epochNumber);
+    }
+
+    /// @notice internal claimEpoch function
+    function _claimEpoch(address to, uint epochNumber) public {
         _isEpochReady(epochNumber);
         if (claimedEpochs[to][epochNumber]) {
             revert CannotClaimTwice();
@@ -147,10 +152,11 @@ contract TokenDistributor is ITokenDistributor {
 
     /// @inheritdoc ITokenDistributor
     function claimMany(address to, uint[] calldata epochs) public {
+        _checkpointWhenReady();
         uint256 length = epochs.length;
         for (uint i = 0; i < length; ) {
             uint epochNumber = epochs[i];
-            claimEpoch(to, epochNumber);
+            _claimEpoch(to, epochNumber);
             unchecked {
                 ++i;
             }
