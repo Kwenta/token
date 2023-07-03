@@ -15,13 +15,13 @@ contract TokenDistributor is ITokenDistributor {
     mapping(address => mapping(uint => bool)) internal claimedEpochs;
 
     /// @notice kwenta interface
-    IKwenta internal kwenta;
+    IKwenta internal immutable kwenta;
 
     /// @notice rewards staking contract
-    IStakingRewardsV2 internal stakingRewardsV2;
+    IStakingRewardsV2 internal immutable stakingRewardsV2;
 
     /// @notice escrow contract which holds (and may stake) reward tokens
-    IRewardEscrowV2 internal rewardEscrowV2;
+    IRewardEscrowV2 internal immutable rewardEscrowV2;
 
     /// @notice last recorded balance of KWENTA in contract
     uint internal lastTokenBalance;
@@ -30,10 +30,10 @@ contract TokenDistributor is ITokenDistributor {
     uint internal lastCheckpoint;
 
     /// @notice starting week of deployment
-    uint internal startTime;
+    uint internal immutable startTime;
 
     /// @notice the week offset in seconds
-    uint internal offset;
+    uint internal immutable offset;
 
     /// @notice max amount of days the epoch can be offset by
     uint internal constant MAX_OFFSET_DAYS = 6;
