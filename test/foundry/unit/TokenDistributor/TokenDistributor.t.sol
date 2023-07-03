@@ -1525,4 +1525,17 @@ contract TokenDistributorTest is StakingSetup {
         uint result4 = tDI.epochFromTimestamp(block.timestamp);
         assertEq(result4, 11);
     }
+
+    /// @notice make sure _startOfWeek and _startOfEpoch are always aligned
+    function testFuzzStartOfTimeEpoch(uint time) public {
+        TokenDistributorInternals tDI = new TokenDistributorInternals(
+            address(kwenta),
+            address(stakingRewardsV2),
+            address(rewardEscrowV2),
+            2
+        );
+        vm.assume(time < 1000 weeks);
+        goForward(time);
+        assertEq(tDI.startOfWeek(block.timestamp), tDI.startOfEpoch(tDI.epochFromTimestamp(block.timestamp)));
+    }
 }
