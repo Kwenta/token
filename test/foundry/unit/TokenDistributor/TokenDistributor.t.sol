@@ -29,6 +29,37 @@ contract TokenDistributorTest is StakingSetup {
         kwenta.transfer(address(this), 100_000 ether);
     }
 
+    /// @notice constructor fail when input address == 0
+    function testInputAddress0() public {
+        vm.expectRevert(
+            abi.encodeWithSelector(ITokenDistributor.InputAddress0.selector)
+        );
+        tokenDistributor = new TokenDistributor(
+            address(0),
+            address(stakingRewardsV2),
+            address(rewardEscrowV2),
+            0
+        );
+        vm.expectRevert(
+            abi.encodeWithSelector(ITokenDistributor.InputAddress0.selector)
+        );
+        tokenDistributor = new TokenDistributor(
+            address(kwenta),
+            address(0),
+            address(rewardEscrowV2),
+            0
+        );
+        vm.expectRevert(
+            abi.encodeWithSelector(ITokenDistributor.InputAddress0.selector)
+        );
+        tokenDistributor = new TokenDistributor(
+            address(kwenta),
+            address(stakingRewardsV2),
+            address(0),
+            0
+        );
+    }
+
     /// @notice checkpointToken happy case after 1 week
     function testCheckpointToken() public {
         kwenta.transfer(address(tokenDistributor), 10);

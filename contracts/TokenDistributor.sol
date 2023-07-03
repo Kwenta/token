@@ -52,6 +52,13 @@ contract TokenDistributor is ITokenDistributor {
         address _rewardEscrowV2,
         uint daysToOffsetBy
     ) {
+        if (
+            _kwenta == address(0) ||
+            _stakingRewardsV2 == address(0) ||
+            _rewardEscrowV2 == address(0)
+        ) {
+            revert InputAddress0();
+        }
         kwenta = IKwenta(_kwenta);
         stakingRewardsV2 = StakingRewardsV2(_stakingRewardsV2);
         rewardEscrowV2 = RewardEscrowV2(_rewardEscrowV2);
