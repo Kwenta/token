@@ -3,8 +3,8 @@ pragma solidity ^0.8.19;
 
 import {IKwenta} from "./interfaces/IKwenta.sol";
 import {ITokenDistributor} from "./interfaces/ITokenDistributor.sol";
-import {RewardEscrowV2} from "./RewardEscrowV2.sol";
-import {StakingRewardsV2} from "./StakingRewardsV2.sol";
+import {IRewardEscrowV2} from "./interfaces/IRewardEscrowV2.sol";
+import {IStakingRewardsV2} from "./interfaces/IStakingRewardsV2.sol";
 
 contract TokenDistributor is ITokenDistributor {
     /// @inheritdoc ITokenDistributor
@@ -18,10 +18,10 @@ contract TokenDistributor is ITokenDistributor {
     IKwenta internal kwenta;
 
     /// @notice rewards staking contract
-    StakingRewardsV2 internal stakingRewardsV2;
+    IStakingRewardsV2 internal stakingRewardsV2;
 
     /// @notice escrow contract which holds (and may stake) reward tokens
-    RewardEscrowV2 internal rewardEscrowV2;
+    IRewardEscrowV2 internal rewardEscrowV2;
 
     /// @notice last recorded balance of KWENTA in contract
     uint internal lastTokenBalance;
@@ -60,8 +60,8 @@ contract TokenDistributor is ITokenDistributor {
             revert InputAddress0();
         }
         kwenta = IKwenta(_kwenta);
-        stakingRewardsV2 = StakingRewardsV2(_stakingRewardsV2);
-        rewardEscrowV2 = RewardEscrowV2(_rewardEscrowV2);
+        stakingRewardsV2 = IStakingRewardsV2(_stakingRewardsV2);
+        rewardEscrowV2 = IRewardEscrowV2(_rewardEscrowV2);
 
         /// @notice custom start day (startTime + daysToOffsetBy)
         if (daysToOffsetBy > MAX_OFFSET_DAYS) {
