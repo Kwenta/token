@@ -214,8 +214,8 @@ contract TokenDistributor is ITokenDistributor {
         }
     }
 
-    /// @notice function for getting the timestamp start of a week
-    /// from the epoch number
+    /// @notice function for getting the epoch number
+    /// from the timestamp start of a week
     function _epochFromTimestamp(uint timestamp) internal view returns (uint) {
         return (_startOfWeek(timestamp) - startTime) / 1 weeks;
     }
