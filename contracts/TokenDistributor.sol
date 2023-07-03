@@ -90,18 +90,16 @@ contract TokenDistributor is ITokenDistributor {
         /// iterates until caught up, unlikely to go to 52 weeks
         for (uint i = 0; i < WEEKS_IN_YEAR; ) {
             nextWeek = thisWeek + 1 weeks;
-
+            uint thisEpoch = _epochFromTimestamp(thisWeek);
             if (block.timestamp < nextWeek) {
                 /// @dev if in the current week
                 if (sinceLast == 0) {
                     /// @dev If no time change since last checkpoint just add new tokens
                     /// that may have been deposited (same block)
-                    uint thisEpoch = _epochFromTimestamp(thisWeek);
                     tokensPerEpoch[thisEpoch] += toDistribute;
                 } else {
                     /// @dev In the event that toDistribute contains tokens
                     /// for multiple weeks we take the remaining portion
-                    uint thisEpoch = _epochFromTimestamp(thisWeek);
                     tokensPerEpoch[thisEpoch] +=
                         (toDistribute *
                             (block.timestamp - previousCheckpoint)) /
@@ -111,7 +109,6 @@ contract TokenDistributor is ITokenDistributor {
             } else {
                 /// @dev If passed weeks missed
                 /// @dev Store proportion of tokens for this week in the past
-                uint thisEpoch = _epochFromTimestamp(thisWeek);
                 tokensPerEpoch[thisEpoch] +=
                     (toDistribute * (nextWeek - previousCheckpoint)) /
                     sinceLast;
