@@ -200,13 +200,13 @@ contract TokenDistributor is ITokenDistributor {
     /// @notice function for determining if a checkpoint is necessary
     function _checkpointWhenReady() internal {
         /// @dev if more than 24 hours from last checkpoint
-        if ((block.timestamp - lastCheckpoint > 1 days)) {
-            checkpointToken();
-        }
-        /// @dev if it is the first claim of the week then checkpoint.
+        /// @dev OR if it is the first claim of the week then checkpoint.
         /// this condition is so that the end of a week always
         /// gets updated before its claimed (even if < 24 hrs)
-        if ((block.timestamp - _startOfWeek(lastCheckpoint)) > 1 weeks) {
+        if (
+            block.timestamp - lastCheckpoint > 1 days ||
+            block.timestamp - _startOfWeek(lastCheckpoint) > 1 weeks
+        ) {
             checkpointToken();
         }
     }
