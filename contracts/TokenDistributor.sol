@@ -119,7 +119,7 @@ contract TokenDistributor is ITokenDistributor {
     function claimEpoch(address to, uint epochNumber) public override {
         _checkpointWhenReady();
         _isEpochReady(epochNumber);
-        if (claimedEpochs[to][epochNumber] == true) {
+        if (claimedEpochs[to][epochNumber]) {
             revert CannotClaimTwice();
         }
         claimedEpochs[to][epochNumber] = true;
