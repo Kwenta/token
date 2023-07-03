@@ -88,7 +88,7 @@ contract TokenDistributor is ITokenDistributor {
 
         /// @dev Loop for potential missed weeks
         /// iterates until caught up, unlikely to go to 52 weeks
-        for (uint i = 0; i < WEEKS_IN_YEAR; i++) {
+        for (uint i = 0; i < WEEKS_IN_YEAR; ) {
             nextWeek = thisWeek + 1 weeks;
 
             if (block.timestamp < nextWeek) {
@@ -118,6 +118,9 @@ contract TokenDistributor is ITokenDistributor {
             }
             previousCheckpoint = nextWeek;
             thisWeek = nextWeek;
+            unchecked {
+                ++i;
+            }
         }
         emit CheckpointToken(block.timestamp, toDistribute);
     }
