@@ -642,7 +642,7 @@ contract TokenDistributorTest is StakingSetup {
         /// @dev make sure its less than this contract
         /// holds and greater than 10 so the result isn't
         /// 0 after dividing
-        vm.assume(amount < 100_000 ether);
+        vm.assume(amount < 99_999 ether);
         vm.assume(amount > 10);
 
         kwenta.transfer(address(user1), 1);
