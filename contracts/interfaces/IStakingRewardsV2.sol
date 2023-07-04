@@ -174,6 +174,11 @@ interface IStakingRewardsV2 {
     /// @dev updateReward() called prior to function logic
     function getReward() external;
 
+    /// @notice claim rewards for an account and stake them
+    function compound() external;
+
+    // claim integrator rewards
+
     /// @notice claim rewards for an integrator contract
     /// Note: the funds will be sent to the msg.sender
     /// @param _integrator: address of integrator contract to claim rewards for
@@ -184,8 +189,10 @@ interface IStakingRewardsV2 {
     /// @param _integrator: address of integrator contract to claim rewards for
     function getIntegratorAndSenderReward(address _integrator) external;
 
-    /// @notice claim rewards for an account and stake them
-    function compound() external;
+    /// @notice claim rewards for an integrator contract and compound them
+    /// Note: the funds will be sent to the msg.sender
+    /// @param _integrator: address of integrator contract to claim rewards for
+    function getIntegratorRewardAndCompound(address _integrator) external;
 
     // delegation
 
