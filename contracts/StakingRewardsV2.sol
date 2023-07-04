@@ -388,6 +388,15 @@ contract StakingRewardsV2 is
         _getReward(_integrator, beneficiary);
     }
 
+    function getIntegratorAndSenderReward(address _integrator) public override {
+        address beneficiary = IStakingRewardsV2Integrator(_integrator).beneficiary();
+
+        if (beneficiary != msg.sender) revert NotApproved();
+
+        _getReward(_integrator, beneficiary);
+        _getReward(beneficiary);
+    }
+
     /*///////////////////////////////////////////////////////////////
                         REWARD UPDATE CALCULATIONS
     ///////////////////////////////////////////////////////////////*/
