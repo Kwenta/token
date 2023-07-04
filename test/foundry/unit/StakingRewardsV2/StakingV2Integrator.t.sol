@@ -42,7 +42,7 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
         // try to get rewards
         addNewRewards();
         vm.expectRevert(IStakingRewardsV2.NotApproved.selector);
-        stakingRewardsV2.getRewardOnBehalfOfIntegrator(address(badIntegrator), address(this));
+        stakingRewardsV2.getRewardOnBehalfOfIntegrator(address(badIntegrator));
     }
 
     function test_Beneficiary_Cannot_Steal_Funds() public {
@@ -50,7 +50,7 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
         addNewRewards();
         vm.prank(user1);
         vm.expectRevert(IStakingRewardsV2.NotApproved.selector);
-        stakingRewardsV2.getRewardOnBehalfOfIntegrator(address(integrator), user1);
+        stakingRewardsV2.getRewardOnBehalfOfIntegrator(address(integrator));
     }
 
     function test_getRewardOnBehalfOfIntegrator_Can_Turn_Off_Operator() public {
@@ -63,7 +63,7 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
         // get the rewards
         vm.prank(user1);
         vm.expectRevert(IStakingRewardsV2.NotApproved.selector);
-        stakingRewardsV2.getRewardOnBehalfOfIntegrator(address(integrator), address(this));
+        stakingRewardsV2.getRewardOnBehalfOfIntegrator(address(integrator));
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -79,7 +79,7 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
         addNewRewards();
 
         // get the rewards
-        stakingRewardsV2.getRewardOnBehalfOfIntegrator(address(integrator), address(this));
+        stakingRewardsV2.getRewardOnBehalfOfIntegrator(address(integrator));
 
         // get ending balances
         uint256 entriesAfter = rewardEscrowV2.balanceOf(address(this));
@@ -96,27 +96,6 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
         // get starting balances
         uint256 entriesBefore = rewardEscrowV2.balanceOf(address(this));
         uint256 balanceBefore = rewardEscrowV2.escrowedBalanceOf(address(this));
-
-        // add new rewards
-        addNewRewards();
-
-        // get the rewards
-        vm.prank(user1);
-        stakingRewardsV2.getRewardOnBehalfOfIntegrator(address(integrator), address(this));
-
-        // get ending balances
-        uint256 entriesAfter = rewardEscrowV2.balanceOf(address(this));
-        uint256 balanceAfter = rewardEscrowV2.escrowedBalanceOf(address(this));
-
-        // check balances updated correctly
-        assertEq(entriesBefore + 1, entriesAfter);
-        assertEq(balanceBefore + 1 weeks, balanceAfter);
-    }
-
-    function test_getRewardOnBehalfOfIntegrator_Can_Send_Funds_Elsewhere() public {
-        // get starting balances
-        uint256 entriesBefore = rewardEscrowV2.balanceOf(address(this));
-        uint256 balanceBefore = rewardEscrowV2.escrowedBalanceOf(address(this));
         uint256 user1EntriesBefore = rewardEscrowV2.balanceOf(user1);
         uint256 user1BalanceBefore = rewardEscrowV2.escrowedBalanceOf(user1);
 
@@ -124,7 +103,8 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
         addNewRewards();
 
         // get the rewards
-        stakingRewardsV2.getRewardOnBehalfOfIntegrator(address(integrator), user1);
+        vm.prank(user1);
+        stakingRewardsV2.getRewardOnBehalfOfIntegrator(address(integrator));
 
         // get ending balances
         uint256 entriesAfter = rewardEscrowV2.balanceOf(address(this));
@@ -139,22 +119,13 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
         assertEq(user1BalanceBefore + 1 weeks, user1BalanceAfter);
     }
 
-    function test_Cannot_Send_Funds_To_Zero_Address() public {
-        // add new rewards
-        addNewRewards();
-
-        // get the rewards
-        vm.expectRevert("ERC721: mint to the zero address");
-        stakingRewardsV2.getRewardOnBehalfOfIntegrator(address(integrator), address(0));
-    }
-
     function test_Cannot_Use_Invalid_Integrator_Address() public {
         // add new rewards
         addNewRewards();
 
         // get the rewards
         vm.expectRevert();
-        stakingRewardsV2.getRewardOnBehalfOfIntegrator(createUser(), address(this));
+        stakingRewardsV2.getRewardOnBehalfOfIntegrator(createUser());
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -172,4 +143,5 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
     // TODO: test getReward for contract and sender
     // TODO: think can getReward for contract and sender be merged into one escrow entry
     // TODO: test compound for contract and sender
+    // TODO: possible get rid of _to and use msg.sender
 }

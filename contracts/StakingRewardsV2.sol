@@ -478,12 +478,12 @@ contract StakingRewardsV2 is
         _getReward(_account);
     }
 
-    function getRewardOnBehalfOfIntegrator(address _integrator, address _to) public override {
+    function getRewardOnBehalfOfIntegrator(address _integrator) public override {
         address beneficiary = IStakingRewardsV2Integrator(_integrator).beneficiary();
 
         if (beneficiary != msg.sender) _onlyOperator(beneficiary);
 
-        _getReward(_integrator, _to);
+        _getReward(_integrator, msg.sender);
     }
 
     /// @inheritdoc IStakingRewardsV2
