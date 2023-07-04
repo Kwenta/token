@@ -34,7 +34,9 @@ subtask(TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS).setAction(
       const paths: string[] = await runSuper();
 
       // Apply a filter function to exclude paths that contain the string ".t.sol"
-      return paths.filter((p: string) => !p.endsWith(".t.sol"));
+      return paths.filter(
+          (p: string) => !p.endsWith(".t.sol") && !p.endsWith(".s.sol")
+      );
   }
 );
 
@@ -67,6 +69,15 @@ export default {
       },
       {
         version: "0.8.7",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 1000,
+          },
+        },
+      },
+      {
+        version: "0.8.19",
         settings: {
           optimizer: {
             enabled: true,
