@@ -341,14 +341,10 @@ contract StakingRewardsV2 is
     }
 
     function _getReward(address _account) internal {
-        __getReward(_account, _account);
+        _getReward(_account, _account);
     }
 
-    function _getReward(address _account, address _to) internal {
-        __getReward(_account, _to);
-    }
-
-    function __getReward(address _account, address _to)
+    function _getReward(address _account, address _to)
         internal
         whenNotPaused
         updateReward(_account)
