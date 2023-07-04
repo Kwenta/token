@@ -152,6 +152,44 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
         assertEq(balanceBefore + 1 weeks, balanceAfter);
     }
 
+    function test_getIntegratorAndSenderReward_When_No_Rewards() public {
+        // get starting balances
+        uint256 entriesBefore = rewardEscrowV2.balanceOf(address(this));
+        uint256 balanceBefore = rewardEscrowV2.escrowedBalanceOf(address(this));
+
+        // get the rewards
+        stakingRewardsV2.getIntegratorAndSenderReward(address(integrator));
+
+        // get ending balances
+        uint256 entriesAfter = rewardEscrowV2.balanceOf(address(this));
+        uint256 balanceAfter = rewardEscrowV2.escrowedBalanceOf(address(this));
+
+        // check balances updated correctly
+        assertEq(entriesBefore, entriesAfter);
+        assertEq(balanceBefore, balanceAfter);
+    }
+
+    function test_Cannot_Use_Invalid_Integrator_Address_getIntegratorAndSenderReward() public {
+        // add new rewards
+        addNewRewards();
+
+        // get the rewards
+        vm.expectRevert();
+        stakingRewardsV2.getIntegratorAndSenderReward(createUser());
+    }
+
+    function test_Cannot_Use_getIntegratorAndSenderReward_When_Paused() public {
+        // add new rewards
+        addNewRewards();
+
+        // pause the contract
+        stakingRewardsV2.pauseStakingRewards();
+
+        // get the rewards
+        vm.expectRevert("Pausable: paused");
+        stakingRewardsV2.getIntegratorAndSenderReward(address(integrator));
+    }
+
     /*//////////////////////////////////////////////////////////////
                                 HELPERS
     //////////////////////////////////////////////////////////////*/
