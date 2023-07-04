@@ -380,11 +380,11 @@ contract StakingRewardsV2 is
     /// @param _account: address of account which rewards are being updated for
     /// @dev contract state not specific to an account will be updated also
     modifier updateReward(address _account) {
-        _updateRewards(_account);
+        _updateReward(_account);
         _;
     }
 
-    function _updateRewards(address _account) internal {
+    function _updateReward(address _account) internal {
         rewardPerTokenStored = rewardPerToken();
         lastUpdateTime = lastTimeRewardApplicable();
 
