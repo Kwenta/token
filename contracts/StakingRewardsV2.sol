@@ -90,6 +90,9 @@ contract StakingRewardsV2 is
     /// @notice tracks all addresses approved to take actions on behalf of a given account
     mapping(address => mapping(address => bool)) public operatorApprovals;
 
+    /// @notice tracks all addresses approved to receive integrator rewards on behalf of a given account
+    mapping(address => mapping(address => bool)) public receiverApprovals;
+
     /*///////////////////////////////////////////////////////////////
                                 AUTH
     ///////////////////////////////////////////////////////////////*/
@@ -364,14 +367,6 @@ contract StakingRewardsV2 is
         }
     }
 
-    function getIntegratorReward(address _integrator) public override {
-        address beneficiary = IStakingRewardsV2Integrator(_integrator).beneficiary();
-
-        if (beneficiary != msg.sender) _onlyOperator(beneficiary);
-
-        _getReward(_integrator, msg.sender);
-    }
-
     /// @inheritdoc IStakingRewardsV2
     function compound() external override {
         _compound(msg.sender);
@@ -382,6 +377,30 @@ contract StakingRewardsV2 is
     function _compound(address _account) internal {
         _getReward(_account);
         _stakeEscrow(_account, unstakedEscrowedBalanceOf(_account));
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                           INTEGRATOR REWARDS
+    //////////////////////////////////////////////////////////////*/
+
+    function getIntegratorReward(address _integrator) public override {
+        address beneficiary = IStakingRewardsV2Integrator(_integrator).beneficiary();
+
+        if (beneficiary != msg.sender) _onlyReceiver(beneficiary);
+
+        _getReward(_integrator, msg.sender);
+    }
+
+    function _onlyReceiver(address _accountOwner) internal view {
+        if (!receiverApprovals[_accountOwner][msg.sender]) revert NotApproved();
+    }
+
+    function approveReceiver(address _receiver, bool _approved) external {
+        if (_receiver == msg.sender) revert CannotApproveSelf();
+
+        receiverApprovals[msg.sender][_receiver] = _approved;
+
+        emit ReceiverApproved(msg.sender, _receiver, _approved);
     }
 
     /*///////////////////////////////////////////////////////////////

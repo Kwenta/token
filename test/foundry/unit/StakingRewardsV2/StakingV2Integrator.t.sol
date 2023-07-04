@@ -53,9 +53,9 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
         stakingRewardsV2.getIntegratorReward(address(integrator));
     }
 
-    function test_getIntegratorReward_Can_Turn_Off_Operator() public {
-        stakingRewardsV2.approveOperator(user1, true);
-        stakingRewardsV2.approveOperator(user1, false);
+    function test_getIntegratorReward_Can_Turn_Off_Receiver() public {
+        stakingRewardsV2.approveReceiver(user1, true);
+        stakingRewardsV2.approveReceiver(user1, false);
 
         // add new rewards
         addNewRewards();
@@ -90,8 +90,8 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
         assertEq(balanceBefore + 1 weeks, balanceAfter);
     }
 
-    function test_getIntegratorReward_Via_Operator() public {
-        stakingRewardsV2.approveOperator(user1, true);
+    function test_getIntegratorReward_Via_Receiver() public {
+        stakingRewardsV2.approveReceiver(user1, true);
 
         // get starting balances
         uint256 entriesBefore = rewardEscrowV2.balanceOf(address(this));
