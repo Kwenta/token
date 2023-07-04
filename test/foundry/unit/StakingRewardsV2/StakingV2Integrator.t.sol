@@ -62,7 +62,7 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
         uint256 entriesBefore = rewardEscrowV2.balanceOf(address(this));
         uint256 balanceBefore = rewardEscrowV2.escrowedBalanceOf(address(this));
 
-        // add new rewards        
+        // add new rewards
         addNewRewards();
 
         // get the rewards
@@ -75,6 +75,32 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
         // check balances updated correctly
         assertEq(entriesBefore + 1, entriesAfter);
         assertEq(balanceBefore + 1 weeks, balanceAfter);
+    }
+
+    function test_getRewardOnBehalfOfIntegrator_Can_Send_Funds_Elsewhere() public {
+        // get starting balances
+        uint256 entriesBefore = rewardEscrowV2.balanceOf(address(this));
+        uint256 balanceBefore = rewardEscrowV2.escrowedBalanceOf(address(this));
+        uint256 user1EntriesBefore = rewardEscrowV2.balanceOf(user1);
+        uint256 user1BalanceBefore = rewardEscrowV2.escrowedBalanceOf(user1);
+
+        // add new rewards
+        addNewRewards();
+
+        // get the rewards
+        stakingRewardsV2.getRewardOnBehalfOfIntegrator(address(integrator), user1);
+
+        // get ending balances
+        uint256 entriesAfter = rewardEscrowV2.balanceOf(address(this));
+        uint256 balanceAfter = rewardEscrowV2.escrowedBalanceOf(address(this));
+        uint256 user1EntriesAfter = rewardEscrowV2.balanceOf(user1);
+        uint256 user1BalanceAfter = rewardEscrowV2.escrowedBalanceOf(user1);
+
+        // check balances updated correctly
+        assertEq(entriesBefore, entriesAfter);
+        assertEq(balanceBefore, balanceAfter);
+        assertEq(user1EntriesBefore + 1, user1EntriesAfter);
+        assertEq(user1BalanceBefore + 1 weeks, user1BalanceAfter);
     }
 
     /*//////////////////////////////////////////////////////////////
