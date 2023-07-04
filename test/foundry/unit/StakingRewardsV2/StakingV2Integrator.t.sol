@@ -42,7 +42,7 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
         // try to get rewards
         addNewRewards();
         vm.expectRevert(IStakingRewardsV2.NotApproved.selector);
-        stakingRewardsV2.getRewardOnBehalfOfIntegrator(address(badIntegrator));
+        stakingRewardsV2.getIntegratorReward(address(badIntegrator));
     }
 
     function test_Beneficiary_Cannot_Steal_Funds() public {
@@ -50,10 +50,10 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
         addNewRewards();
         vm.prank(user1);
         vm.expectRevert(IStakingRewardsV2.NotApproved.selector);
-        stakingRewardsV2.getRewardOnBehalfOfIntegrator(address(integrator));
+        stakingRewardsV2.getIntegratorReward(address(integrator));
     }
 
-    function test_getRewardOnBehalfOfIntegrator_Can_Turn_Off_Operator() public {
+    function test_getIntegratorReward_Can_Turn_Off_Operator() public {
         stakingRewardsV2.approveOperator(user1, true);
         stakingRewardsV2.approveOperator(user1, false);
 
@@ -63,14 +63,14 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
         // get the rewards
         vm.prank(user1);
         vm.expectRevert(IStakingRewardsV2.NotApproved.selector);
-        stakingRewardsV2.getRewardOnBehalfOfIntegrator(address(integrator));
+        stakingRewardsV2.getIntegratorReward(address(integrator));
     }
 
     /*//////////////////////////////////////////////////////////////
                         CLAIM VIA CONTRACT TESTS
     //////////////////////////////////////////////////////////////*/
 
-    function test_getRewardOnBehalfOfIntegrator() public {
+    function test_getIntegratorReward() public {
         // get starting balances
         uint256 entriesBefore = rewardEscrowV2.balanceOf(address(this));
         uint256 balanceBefore = rewardEscrowV2.escrowedBalanceOf(address(this));
@@ -79,7 +79,7 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
         addNewRewards();
 
         // get the rewards
-        stakingRewardsV2.getRewardOnBehalfOfIntegrator(address(integrator));
+        stakingRewardsV2.getIntegratorReward(address(integrator));
 
         // get ending balances
         uint256 entriesAfter = rewardEscrowV2.balanceOf(address(this));
@@ -90,7 +90,7 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
         assertEq(balanceBefore + 1 weeks, balanceAfter);
     }
 
-    function test_getRewardOnBehalfOfIntegrator_Via_Operator() public {
+    function test_getIntegratorReward_Via_Operator() public {
         stakingRewardsV2.approveOperator(user1, true);
 
         // get starting balances
@@ -104,7 +104,7 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
 
         // get the rewards
         vm.prank(user1);
-        stakingRewardsV2.getRewardOnBehalfOfIntegrator(address(integrator));
+        stakingRewardsV2.getIntegratorReward(address(integrator));
 
         // get ending balances
         uint256 entriesAfter = rewardEscrowV2.balanceOf(address(this));
@@ -125,7 +125,7 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
 
         // get the rewards
         vm.expectRevert();
-        stakingRewardsV2.getRewardOnBehalfOfIntegrator(createUser());
+        stakingRewardsV2.getIntegratorReward(createUser());
     }
 
     /*//////////////////////////////////////////////////////////////

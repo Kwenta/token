@@ -368,6 +368,14 @@ contract StakingRewardsV2 is
         }
     }
 
+    function getIntegratorReward(address _integrator) public override {
+        address beneficiary = IStakingRewardsV2Integrator(_integrator).beneficiary();
+
+        if (beneficiary != msg.sender) _onlyOperator(beneficiary);
+
+        _getReward(_integrator, msg.sender);
+    }
+
     /// @inheritdoc IStakingRewardsV2
     function compound() external override {
         _compound(msg.sender);
@@ -476,14 +484,6 @@ contract StakingRewardsV2 is
     /// @inheritdoc IStakingRewardsV2
     function getRewardOnBehalf(address _account) external override onlyOperator(_account) {
         _getReward(_account);
-    }
-
-    function getRewardOnBehalfOfIntegrator(address _integrator) public override {
-        address beneficiary = IStakingRewardsV2Integrator(_integrator).beneficiary();
-
-        if (beneficiary != msg.sender) _onlyOperator(beneficiary);
-
-        _getReward(_integrator, msg.sender);
     }
 
     /// @inheritdoc IStakingRewardsV2
