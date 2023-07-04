@@ -139,6 +139,15 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
         assertEq(user1BalanceBefore + 1 weeks, user1BalanceAfter);
     }
 
+    function test_Cannot_Send_Funds_To_Zero_Address() public {
+        // add new rewards
+        addNewRewards();
+
+        // get the rewards
+        vm.expectRevert("ERC721: mint to the zero address");
+        stakingRewardsV2.getRewardOnBehalfOfIntegrator(address(integrator), address(0));
+    }
+
     /*//////////////////////////////////////////////////////////////
                                 HELPERS
     //////////////////////////////////////////////////////////////*/
@@ -151,11 +160,7 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
         vm.warp(block.timestamp + stakingRewardsV2.rewardsDuration());
     }
 
-    // TODO: test InvalidBeneficiary
-    // TODO: test via operator
-    // TODO: test invalid operator
     // TODO: test invalid contract
-    // TODO: test different _to addresses
     // TODO: test getReward for contract and sender
     // TODO: think can getReward for contract and sender be merged into one escrow entry
     // TODO: test compound for contract and sender
