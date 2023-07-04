@@ -40,9 +40,17 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
         assertEq(address(0), badIntegrator.beneficiary());
 
         // try to get rewards
-        addNewRewardsToStakingRewardsV2(1 weeks);
+        addNewRewards();
         vm.expectRevert(IStakingRewardsV2.NotApproved.selector);
         stakingRewardsV2.getRewardOnBehalfOfIntegrator(address(badIntegrator), address(this));
+    }
+
+    function test_Beneficiary_Cannot_Steal_Funds() public {
+        // try to get rewards
+        addNewRewards();
+        vm.expectRevert(IStakingRewardsV2.NotApproved.selector);
+        vm.prank(user1);
+        stakingRewardsV2.getRewardOnBehalfOfIntegrator(address(integrator), user1);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -50,15 +58,12 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
     //////////////////////////////////////////////////////////////*/
 
     function test_getRewardOnBehalfOfIntegrator() public {
-        // send in 604800 (1 week) of rewards - (using 1 week for round numbers)
-        addNewRewardsToStakingRewardsV2(1 weeks);
-
-        // fast forward 1 week - one complete period
-        vm.warp(block.timestamp + stakingRewardsV2.rewardsDuration());
-
         // get starting balances
         uint256 entriesBefore = rewardEscrowV2.balanceOf(address(this));
         uint256 balanceBefore = rewardEscrowV2.escrowedBalanceOf(address(this));
+
+        // add new rewards        
+        addNewRewards();
 
         // get the rewards
         stakingRewardsV2.getRewardOnBehalfOfIntegrator(address(integrator), address(this));
@@ -70,6 +75,18 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
         // check balances updated correctly
         assertEq(entriesBefore + 1, entriesAfter);
         assertEq(balanceBefore + 1 weeks, balanceAfter);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                                HELPERS
+    //////////////////////////////////////////////////////////////*/
+
+    function addNewRewards() internal {
+        // send in 604800 (1 week) of rewards - (using 1 week for round numbers)
+        addNewRewardsToStakingRewardsV2(1 weeks);
+
+        // fast forward 1 week - one complete period
+        vm.warp(block.timestamp + stakingRewardsV2.rewardsDuration());
     }
 
     // TODO: test InvalidBeneficiary
