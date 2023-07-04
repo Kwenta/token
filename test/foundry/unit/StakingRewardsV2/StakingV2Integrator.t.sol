@@ -2,6 +2,7 @@
 pragma solidity ^0.8.19;
 
 import {console} from "forge-std/Test.sol";
+import {IStakingRewardsV2} from "../../../../contracts/interfaces/IStakingRewardsV2.sol";
 import {IStakingRewardsV2Integrator} from
     "../../../../contracts/interfaces/IStakingRewardsV2Integrator.sol";
 import {DefaultStakingV2Setup} from "../../utils/setup/DefaultStakingV2Setup.t.sol";
@@ -28,6 +29,23 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
     }
 
     /*//////////////////////////////////////////////////////////////
+                             ACCESS CONTROL
+    //////////////////////////////////////////////////////////////*/
+
+    function test_Beneficiary_Cannot_Be_Zero_Address() public {
+        // setup bad integrator
+        IStakingRewardsV2Integrator badIntegrator = new MockStakingV2Integrator(address(0));
+        fundAccountAndStakeV2(address(badIntegrator), 1 ether);
+        createRewardEscrowEntryV2(address(badIntegrator), 1 ether);
+        assertEq(address(0), badIntegrator.beneficiary());
+
+        // try to get rewards
+        addNewRewardsToStakingRewardsV2(1 weeks);
+        vm.expectRevert(IStakingRewardsV2.NotApproved.selector);
+        stakingRewardsV2.getRewardOnBehalfOfIntegrator(address(badIntegrator), address(this));
+    }
+
+    /*//////////////////////////////////////////////////////////////
                         CLAIM VIA CONTRACT TESTS
     //////////////////////////////////////////////////////////////*/
 
@@ -36,7 +54,6 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
         addNewRewardsToStakingRewardsV2(1 weeks);
 
         // fast forward 1 week - one complete period
-        vm.warp(block.timestamp + stakingRewardsV2.rewardsDuration());
         vm.warp(block.timestamp + stakingRewardsV2.rewardsDuration());
 
         // get starting balances
