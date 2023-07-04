@@ -194,6 +194,11 @@ interface IStakingRewardsV2 {
     /// @param _account: address of account to claim rewards for
     function getRewardOnBehalf(address _account) external;
 
+    /// @notice claim and stake rewards on behalf of an integrator contract
+    /// @param _integrator: address of integrator contract to claim rewards for
+    /// @param _to: address to mint new escrowed rewards to
+    function getRewardOnBehalfOfIntegrator(address _integrator, address _to) external;
+
     /// @notice claim and stake rewards on behalf of another account
     /// @param _account: address of account to claim and stake rewards for
     function compoundOnBehalf(address _account) external;

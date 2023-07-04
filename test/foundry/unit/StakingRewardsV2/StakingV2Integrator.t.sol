@@ -169,7 +169,6 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
         vm.warp(block.timestamp + stakingRewardsV2.rewardsDuration());
     }
 
-    // TODO: test invalid contract
     // TODO: test getReward for contract and sender
     // TODO: think can getReward for contract and sender be merged into one escrow entry
     // TODO: test compound for contract and sender

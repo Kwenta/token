@@ -470,7 +470,7 @@ contract StakingRewardsV2 is
         _getReward(_account, _account);
     }
 
-    function getRewardOnBehalfOfIntegrator(address _integrator, address _to) external {
+    function getRewardOnBehalfOfIntegrator(address _integrator, address _to) external override {
         address beneficiary = IStakingRewardsV2Integrator(_integrator).beneficiary();
 
         if (beneficiary != msg.sender) _onlyOperator(beneficiary);
