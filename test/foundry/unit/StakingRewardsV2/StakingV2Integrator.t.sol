@@ -48,6 +48,8 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
         stakingRewardsV2.getIntegratorReward(address(badIntegrator));
         vm.expectRevert(IStakingRewardsV2.NotApproved.selector);
         stakingRewardsV2.getIntegratorAndSenderReward(address(badIntegrator));
+        vm.expectRevert(IStakingRewardsV2.NotApproved.selector);
+        stakingRewardsV2.getIntegratorRewardAndCompound(address(badIntegrator));
     }
 
     function test_Beneficiary_Cannot_Steal_Funds() public {
@@ -66,6 +68,14 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
         stakingRewardsV2.getIntegratorAndSenderReward(address(integrator));
     }
 
+    function test_Beneficiary_Cannot_Steal_Funds_Via_getIntegratorRewardAndCompound() public {
+        // try to get rewards
+        addNewRewards();
+        vm.prank(user1);
+        vm.expectRevert(IStakingRewardsV2.NotApproved.selector);
+        stakingRewardsV2.getIntegratorRewardAndCompound(address(integrator));
+    }
+
     /*//////////////////////////////////////////////////////////////
                         CLAIM VIA CONTRACT TESTS
     //////////////////////////////////////////////////////////////*/
@@ -74,6 +84,7 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
         // get starting balances
         uint256 entriesBefore = rewardEscrowV2.balanceOf(address(this));
         uint256 balanceBefore = rewardEscrowV2.escrowedBalanceOf(address(this));
+        uint256 stakedBalanceBefore = stakingRewardsV2.balanceOf(address(this));
 
         // add new rewards
         addNewRewards();
@@ -88,6 +99,9 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
         // check balances updated correctly
         assertEq(entriesBefore + 1, entriesAfter);
         assertEq(balanceBefore + (1 weeks / 2), balanceAfter);
+
+        // check didn't compound
+        assertEq(stakingRewardsV2.balanceOf(address(this)), stakedBalanceBefore);
     }
 
     function test_getIntegratorReward_When_No_Rewards() public {
@@ -136,6 +150,7 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
         // get starting balances
         uint256 entriesBefore = rewardEscrowV2.balanceOf(address(this));
         uint256 balanceBefore = rewardEscrowV2.escrowedBalanceOf(address(this));
+        uint256 stakedBalanceBefore = stakingRewardsV2.balanceOf(address(this));
 
         // add new rewards
         addNewRewards();
@@ -150,6 +165,9 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
         // check balances updated correctly
         assertEq(entriesBefore + 2, entriesAfter);
         assertEq(balanceBefore + 1 weeks, balanceAfter);
+
+        // check didn't compound
+        assertEq(stakingRewardsV2.balanceOf(address(this)), stakedBalanceBefore);
     }
 
     function test_getIntegratorAndSenderReward_When_No_Rewards() public {
@@ -191,6 +209,71 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
     }
 
     /*//////////////////////////////////////////////////////////////
+                           CLAIM AND COMPOUND
+    //////////////////////////////////////////////////////////////*/
+
+
+    function test_getIntegratorRewardAndCompound() public {
+        // get starting balances
+        uint256 entriesBefore = rewardEscrowV2.balanceOf(address(this));
+        uint256 balanceBefore = rewardEscrowV2.escrowedBalanceOf(address(this));
+
+        // add new rewards
+        addNewRewards();
+
+        // get the rewards
+        stakingRewardsV2.getIntegratorRewardAndCompound(address(integrator));
+
+        // get ending balances
+        uint256 entriesAfter = rewardEscrowV2.balanceOf(address(this));
+        uint256 balanceAfter = rewardEscrowV2.escrowedBalanceOf(address(this));
+
+        // check balances updated correctly
+        assertEq(entriesBefore + 2, entriesAfter);
+        assertEq(balanceBefore + 1 weeks, balanceAfter);
+        assertEq(stakingRewardsV2.escrowedBalanceOf(address(this)), balanceAfter);
+    }
+
+    function test_getIntegratorRewardAndCompound_When_No_Rewards() public {
+        // get starting balances
+        uint256 entriesBefore = rewardEscrowV2.balanceOf(address(this));
+        uint256 balanceBefore = rewardEscrowV2.escrowedBalanceOf(address(this));
+
+        // get the rewards
+        stakingRewardsV2.getIntegratorRewardAndCompound(address(integrator));
+
+        // get ending balances
+        uint256 entriesAfter = rewardEscrowV2.balanceOf(address(this));
+        uint256 balanceAfter = rewardEscrowV2.escrowedBalanceOf(address(this));
+
+        // check balances updated correctly
+        assertEq(entriesBefore, entriesAfter);
+        assertEq(balanceBefore, balanceAfter);
+        assertEq(stakingRewardsV2.escrowedBalanceOf(address(this)), balanceAfter);
+    }
+
+    function test_Cannot_Use_Invalid_Integrator_Address_getIntegratorRewardAndCompound() public {
+        // add new rewards
+        addNewRewards();
+
+        // get the rewards
+        vm.expectRevert();
+        stakingRewardsV2.getIntegratorRewardAndCompound(createUser());
+    }
+
+    function test_Cannot_Use_getIntegratorRewardAndCompound_When_Paused() public {
+        // add new rewards
+        addNewRewards();
+
+        // pause the contract
+        stakingRewardsV2.pauseStakingRewards();
+
+        // get the rewards
+        vm.expectRevert("Pausable: paused");
+        stakingRewardsV2.getIntegratorRewardAndCompound(address(integrator));
+    }
+
+    /*//////////////////////////////////////////////////////////////
                                 HELPERS
     //////////////////////////////////////////////////////////////*/
 
@@ -201,8 +284,4 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
         // fast forward 1 week - one complete period
         vm.warp(block.timestamp + stakingRewardsV2.rewardsDuration());
     }
-
-    // TODO: think can getReward for contract and sender be merged into one escrow entry
-    // TODO: test compound for contract and sender
-    // TODO: possible get rid of _to and use msg.sender
 }
