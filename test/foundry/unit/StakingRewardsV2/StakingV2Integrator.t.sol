@@ -77,6 +77,29 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
         assertEq(balanceBefore + 1 weeks, balanceAfter);
     }
 
+    function test_getRewardOnBehalfOfIntegrator_Via_Operator() public {
+        stakingRewardsV2.approveOperator(user1, true);
+
+        // get starting balances
+        uint256 entriesBefore = rewardEscrowV2.balanceOf(address(this));
+        uint256 balanceBefore = rewardEscrowV2.escrowedBalanceOf(address(this));
+
+        // add new rewards
+        addNewRewards();
+
+        // get the rewards
+        vm.prank(user1);
+        stakingRewardsV2.getRewardOnBehalfOfIntegrator(address(integrator), address(this));
+
+        // get ending balances
+        uint256 entriesAfter = rewardEscrowV2.balanceOf(address(this));
+        uint256 balanceAfter = rewardEscrowV2.escrowedBalanceOf(address(this));
+
+        // check balances updated correctly
+        assertEq(entriesBefore + 1, entriesAfter);
+        assertEq(balanceBefore + 1 weeks, balanceAfter);
+    }
+
     function test_getRewardOnBehalfOfIntegrator_Can_Send_Funds_Elsewhere() public {
         // get starting balances
         uint256 entriesBefore = rewardEscrowV2.balanceOf(address(this));
