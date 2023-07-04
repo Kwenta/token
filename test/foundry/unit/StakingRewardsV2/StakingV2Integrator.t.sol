@@ -26,6 +26,9 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
         integrator = new MockStakingV2Integrator(address(this));
         fundAccountAndStakeV2(address(integrator), 1 ether);
         createRewardEscrowEntryV2(address(integrator), 1 ether);
+
+        fundAccountAndStakeV2(address(this), 1 ether);
+        createRewardEscrowEntryV2(address(this), 1 ether);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -74,7 +77,7 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
 
         // check balances updated correctly
         assertEq(entriesBefore + 1, entriesAfter);
-        assertEq(balanceBefore + 1 weeks, balanceAfter);
+        assertEq(balanceBefore + (1 weeks / 2), balanceAfter);
     }
 
     function test_getIntegratorReward_When_No_Rewards() public {
@@ -116,6 +119,30 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
     }
 
     /*//////////////////////////////////////////////////////////////
+                  CLAIM INTEGRATOR AND SENDER REWARDS
+    //////////////////////////////////////////////////////////////*/
+
+    function test_getIntegratorAndSenderReward() public {
+        // get starting balances
+        uint256 entriesBefore = rewardEscrowV2.balanceOf(address(this));
+        uint256 balanceBefore = rewardEscrowV2.escrowedBalanceOf(address(this));
+
+        // add new rewards
+        addNewRewards();
+
+        // get the rewards
+        stakingRewardsV2.getIntegratorAndSenderReward(address(integrator));
+
+        // get ending balances
+        uint256 entriesAfter = rewardEscrowV2.balanceOf(address(this));
+        uint256 balanceAfter = rewardEscrowV2.escrowedBalanceOf(address(this));
+
+        // check balances updated correctly
+        assertEq(entriesBefore + 2, entriesAfter);
+        assertEq(balanceBefore + 1 weeks, balanceAfter);
+    }
+
+    /*//////////////////////////////////////////////////////////////
                                 HELPERS
     //////////////////////////////////////////////////////////////*/
 
@@ -127,7 +154,6 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
         vm.warp(block.timestamp + stakingRewardsV2.rewardsDuration());
     }
 
-    // TODO: test getReward for contract and sender
     // TODO: think can getReward for contract and sender be merged into one escrow entry
     // TODO: test compound for contract and sender
     // TODO: possible get rid of _to and use msg.sender
