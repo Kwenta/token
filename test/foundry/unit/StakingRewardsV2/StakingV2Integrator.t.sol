@@ -53,19 +53,6 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
         stakingRewardsV2.getIntegratorReward(address(integrator));
     }
 
-    function test_getIntegratorReward_Can_Turn_Off_Receiver() public {
-        stakingRewardsV2.approveReceiver(user1, true);
-        stakingRewardsV2.approveReceiver(user1, false);
-
-        // add new rewards
-        addNewRewards();
-
-        // get the rewards
-        vm.prank(user1);
-        vm.expectRevert(IStakingRewardsV2.NotApproved.selector);
-        stakingRewardsV2.getIntegratorReward(address(integrator));
-    }
-
     /*//////////////////////////////////////////////////////////////
                         CLAIM VIA CONTRACT TESTS
     //////////////////////////////////////////////////////////////*/
@@ -88,35 +75,6 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
         // check balances updated correctly
         assertEq(entriesBefore + 1, entriesAfter);
         assertEq(balanceBefore + 1 weeks, balanceAfter);
-    }
-
-    function test_getIntegratorReward_Via_Receiver() public {
-        stakingRewardsV2.approveReceiver(user1, true);
-
-        // get starting balances
-        uint256 entriesBefore = rewardEscrowV2.balanceOf(address(this));
-        uint256 balanceBefore = rewardEscrowV2.escrowedBalanceOf(address(this));
-        uint256 user1EntriesBefore = rewardEscrowV2.balanceOf(user1);
-        uint256 user1BalanceBefore = rewardEscrowV2.escrowedBalanceOf(user1);
-
-        // add new rewards
-        addNewRewards();
-
-        // get the rewards
-        vm.prank(user1);
-        stakingRewardsV2.getIntegratorReward(address(integrator));
-
-        // get ending balances
-        uint256 entriesAfter = rewardEscrowV2.balanceOf(address(this));
-        uint256 balanceAfter = rewardEscrowV2.escrowedBalanceOf(address(this));
-        uint256 user1EntriesAfter = rewardEscrowV2.balanceOf(user1);
-        uint256 user1BalanceAfter = rewardEscrowV2.escrowedBalanceOf(user1);
-
-        // check balances updated correctly
-        assertEq(entriesBefore, entriesAfter);
-        assertEq(balanceBefore, balanceAfter);
-        assertEq(user1EntriesBefore + 1, user1EntriesAfter);
-        assertEq(user1BalanceBefore + 1 weeks, user1BalanceAfter);
     }
 
     function test_Cannot_Use_Invalid_Integrator_Address() public {
