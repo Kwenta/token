@@ -328,7 +328,7 @@ contract StakingRewardsV2 is
     /// @inheritdoc IStakingRewardsV2
     function exit() external override {
         unstake(nonEscrowedBalanceOf(msg.sender));
-        _getReward(msg.sender, msg.sender);
+        _getReward(msg.sender);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -337,10 +337,18 @@ contract StakingRewardsV2 is
 
     /// @inheritdoc IStakingRewardsV2
     function getReward() external override {
-        _getReward(msg.sender, msg.sender);
+        _getReward(msg.sender);
     }
 
-    function _getReward(address _account, address _to)
+    function _getReward(address _account) internal {
+        __getReward(_account, _account);
+    }
+
+    function _getReward(address _account, address _to) internal {
+        __getReward(_account, _to);
+    }
+
+    function __getReward(address _account, address _to)
         internal
         whenNotPaused
         updateReward(_account)
@@ -368,7 +376,7 @@ contract StakingRewardsV2 is
     /// @dev internal helper to compound for a given account
     /// @param _account the account to compound for
     function _compound(address _account) internal {
-        _getReward(_account, _account);
+        _getReward(_account);
         _stakeEscrow(_account, unstakedEscrowedBalanceOf(_account));
     }
 
@@ -467,10 +475,10 @@ contract StakingRewardsV2 is
 
     /// @inheritdoc IStakingRewardsV2
     function getRewardOnBehalf(address _account) external override onlyOperator(_account) {
-        _getReward(_account, _account);
+        _getReward(_account);
     }
 
-    function getRewardOnBehalfOfIntegrator(address _integrator, address _to) external override {
+    function getRewardOnBehalfOfIntegrator(address _integrator, address _to) public override {
         address beneficiary = IStakingRewardsV2Integrator(_integrator).beneficiary();
 
         if (beneficiary != msg.sender) _onlyOperator(beneficiary);
