@@ -148,6 +148,15 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
         stakingRewardsV2.getRewardOnBehalfOfIntegrator(address(integrator), address(0));
     }
 
+    function test_Cannot_Use_Invalid_Integrator_Address() public {
+        // add new rewards
+        addNewRewards();
+
+        // get the rewards
+        vm.expectRevert();
+        stakingRewardsV2.getRewardOnBehalfOfIntegrator(createUser(), address(this));
+    }
+
     /*//////////////////////////////////////////////////////////////
                                 HELPERS
     //////////////////////////////////////////////////////////////*/
