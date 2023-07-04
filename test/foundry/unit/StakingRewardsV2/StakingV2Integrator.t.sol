@@ -48,9 +48,22 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
     function test_Beneficiary_Cannot_Steal_Funds() public {
         // try to get rewards
         addNewRewards();
-        vm.expectRevert(IStakingRewardsV2.NotApproved.selector);
         vm.prank(user1);
+        vm.expectRevert(IStakingRewardsV2.NotApproved.selector);
         stakingRewardsV2.getRewardOnBehalfOfIntegrator(address(integrator), user1);
+    }
+
+    function test_getRewardOnBehalfOfIntegrator_Can_Turn_Off_Operator() public {
+        stakingRewardsV2.approveOperator(user1, true);
+        stakingRewardsV2.approveOperator(user1, false);
+
+        // add new rewards
+        addNewRewards();
+
+        // get the rewards
+        vm.prank(user1);
+        vm.expectRevert(IStakingRewardsV2.NotApproved.selector);
+        stakingRewardsV2.getRewardOnBehalfOfIntegrator(address(integrator), address(this));
     }
 
     /*//////////////////////////////////////////////////////////////
