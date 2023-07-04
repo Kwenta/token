@@ -473,9 +473,7 @@ contract StakingRewardsV2 is
     function getRewardOnBehalfOfIntegrator(address _integrator, address _to) external {
         address beneficiary = IStakingRewardsV2Integrator(_integrator).beneficiary();
 
-        if (beneficiary != msg.sender) {
-            _onlyOperator(beneficiary);
-        }
+        if (beneficiary != msg.sender) _onlyOperator(beneficiary);
 
         _getReward(_integrator, _to);
     }
