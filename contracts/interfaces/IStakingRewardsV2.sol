@@ -286,12 +286,6 @@ interface IStakingRewardsV2 {
     /// @param approved: whether or not operator is approved
     event OperatorApproved(address owner, address operator, bool approved);
 
-    /// @notice emitted when a receiver is approved
-    /// @param beneficiary: beneficiary of integrator tokens
-    /// @param receiver: address of receiver
-    /// @param approved: whether or not receiver is approved
-    event ReceiverApproved(address beneficiary, address receiver, bool approved);
-
     /*//////////////////////////////////////////////////////////////
                                 ERRORS
     //////////////////////////////////////////////////////////////*/
