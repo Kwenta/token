@@ -31,7 +31,7 @@ contract StakingV2UpgradeTests is DefaultStakingV2Setup {
     }
 
     function test_Only_Owner_Can_Upgrade_RewardEscrowV2() public {
-        address rewardEscrowV3Implementation = address(new MockRewardEscrowV3());
+        address rewardEscrowV3Implementation = address(new MockRewardEscrowV3(address(kwenta)));
 
         vm.expectRevert("Ownable: caller is not the owner");
         vm.prank(user1);
@@ -39,7 +39,7 @@ contract StakingV2UpgradeTests is DefaultStakingV2Setup {
     }
 
     function test_Only_Owner_Can_Upgrade_And_Call_RewardEscrowV2() public {
-        address rewardEscrowV3Implementation = address(new MockRewardEscrowV3());
+        address rewardEscrowV3Implementation = address(new MockRewardEscrowV3(address(kwenta)));
 
         vm.expectRevert("Ownable: caller is not the owner");
         vm.prank(user1);
@@ -54,7 +54,7 @@ contract StakingV2UpgradeTests is DefaultStakingV2Setup {
 
     function test_RewardEscrowV2_Implementation_Cannot_Be_Initialized() public {
         vm.expectRevert("Initializable: contract is already initialized");
-        rewardEscrowV2.initialize(address(0), address(0));
+        rewardEscrowV2.initialize(address(0));
     }
 
     function test_StakingRewardsV2_Implementation_Cannot_Be_Initialized() public {
@@ -99,7 +99,7 @@ contract StakingV2UpgradeTests is DefaultStakingV2Setup {
     //////////////////////////////////////////////////////////////*/
 
     function test_Upgrade_RewardEscrowV2_To_V3() public {
-        address rewardEscrowV3Implementation = address(new MockRewardEscrowV3());
+        address rewardEscrowV3Implementation = address(new MockRewardEscrowV3(address(kwenta)));
 
         rewardEscrowV2.upgradeTo(rewardEscrowV3Implementation);
 
@@ -112,7 +112,7 @@ contract StakingV2UpgradeTests is DefaultStakingV2Setup {
     }
 
     function test_Upgrade_And_Call_RewardEscrowV2_To_V3() public {
-        address rewardEscrowV3Implementation = address(new MockRewardEscrowV3());
+        address rewardEscrowV3Implementation = address(new MockRewardEscrowV3(address(kwenta)));
 
         rewardEscrowV2.upgradeToAndCall(
             rewardEscrowV3Implementation, abi.encodeWithSignature("setNewNum(uint256)", 5)

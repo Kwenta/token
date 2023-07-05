@@ -59,8 +59,12 @@ const deployRewardEscrowV2 = async (owner, kwenta) => {
     );
     const rewardEscrowV2 = await upgrades.deployProxy(
         RewardEscrowV2Factory,
-        [owner, kwenta],
-        { kind: "uups" }
+        [owner],
+        {
+            kind: "uups",
+            constructorArgs: [kwenta],
+            unsafeAllow: ["state-variable-immutable"],
+        }
     );
     await rewardEscrowV2.deployed();
     // convert from hardhat to truffle contract
