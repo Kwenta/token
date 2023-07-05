@@ -42,15 +42,14 @@ contract Migrate {
         if (_printLogs) console.log("********* 1. DEPLOYMENT STARTING... *********");
 
         // Deploy RewardEscrowV2
-        rewardEscrowV2Implementation = address(new RewardEscrowV2());
+        rewardEscrowV2Implementation = address(new RewardEscrowV2(_kwenta));
         rewardEscrowV2 = RewardEscrowV2(
             address(
                 new ERC1967Proxy(
                     rewardEscrowV2Implementation,
                     abi.encodeWithSignature(
-                        "initialize(address,address)",
-                        _owner,
-                        _kwenta
+                        "initialize(address)",
+                        _owner
                     )
                 )
             )
