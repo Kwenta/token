@@ -75,6 +75,8 @@ contract StakingV2UpgradeTests is DefaultStakingV2Setup {
 
         assertEq(stakingRewardsV3.newFunctionality(), 42);
         assertEq(stakingRewardsV3.newNum(), 0);
+
+        testStakingV2StillWorking();
     }
 
     function test_Upgrade_And_Call_StakingRewardsV2_To_V3() public {
@@ -88,6 +90,8 @@ contract StakingV2UpgradeTests is DefaultStakingV2Setup {
 
         assertEq(stakingRewardsV3.newFunctionality(), 42);
         assertEq(stakingRewardsV3.newNum(), 5);
+
+        testStakingV2StillWorking();
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -103,6 +107,8 @@ contract StakingV2UpgradeTests is DefaultStakingV2Setup {
 
         assertEq(rewardEscrowV3.newFunctionality(), 42);
         assertEq(rewardEscrowV3.newNum(), 0);
+
+        testStakingV2StillWorking();
     }
 
     function test_Upgrade_And_Call_RewardEscrowV2_To_V3() public {
@@ -116,6 +122,8 @@ contract StakingV2UpgradeTests is DefaultStakingV2Setup {
 
         assertEq(rewardEscrowV3.newFunctionality(), 42);
         assertEq(rewardEscrowV3.newNum(), 5);
+
+        testStakingV2StillWorking();
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -134,5 +142,36 @@ contract StakingV2UpgradeTests is DefaultStakingV2Setup {
                 address(stakingRewardsV1)
             )
         );
+    }
+
+    function testStakingV2StillWorking() internal {
+        // stake liquid kwenta
+        assertEq(0, stakingRewardsV2.balanceOf(user1));
+        fundAccountAndStakeV2(user1, 1 ether);
+        assertEq(1 ether, stakingRewardsV2.balanceOf(user1));
+
+        // escrow some kwenta
+        assertEq(0, rewardEscrowV2.balanceOf(user1));
+        assertEq(0, rewardEscrowV2.escrowedBalanceOf(user1));
+        createRewardEscrowEntryV2(user1, 1 ether, 52 weeks);
+        assertEq(1, rewardEscrowV2.balanceOf(user1));
+        assertEq(1 ether, rewardEscrowV2.escrowedBalanceOf(user1));
+
+        // add new rewards
+        addNewRewardsToStakingRewardsV2(1 weeks);
+        vm.warp(block.timestamp + stakingRewardsV2.rewardsDuration());
+
+        // claim the rewards
+        getStakingRewardsV2(user1);
+        assertEq(1 ether, stakingRewardsV2.balanceOf(user1));
+        assertEq(2, rewardEscrowV2.balanceOf(user1));
+        assertEq(1 ether + 1 weeks, rewardEscrowV2.escrowedBalanceOf(user1));
+        assertEq(1 ether + 1 weeks, rewardEscrowV2.unstakedEscrowedBalanceOf(user1));
+
+        // stake the rewards
+        stakeAllUnstakedEscrowV2(user1);
+        assertEq(2 ether + 1 weeks, stakingRewardsV2.balanceOf(user1));
+        assertEq(1 ether + 1 weeks, stakingRewardsV2.escrowedBalanceOf(user1));
+        assertEq(0, rewardEscrowV2.unstakedEscrowedBalanceOf(user1));
     }
 }
