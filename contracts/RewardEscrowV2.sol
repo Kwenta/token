@@ -43,6 +43,7 @@ contract RewardEscrowV2 is
     uint8 public constant MINIMUM_EARLY_VESTING_FEE = 50;
 
     /// @notice Contract for KWENTA ERC20 token
+    /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
     IKwenta internal immutable kwenta;
 
     /*///////////////////////////////////////////////////////////////

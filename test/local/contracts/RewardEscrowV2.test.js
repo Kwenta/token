@@ -63,7 +63,6 @@ const deployRewardEscrowV2 = async (owner, kwenta) => {
         {
             kind: "uups",
             constructorArgs: [kwenta],
-            unsafeAllow: ["state-variable-immutable"],
         }
     );
     await rewardEscrowV2.deployed();
@@ -92,7 +91,6 @@ const deployStakingRewardsV2 = async (
                 supplySchedule,
                 stakingRewardsV1,
             ],
-            unsafeAllow: ["state-variable-immutable"],
         }
     );
     await stakingRewardsV2.deployed();

@@ -32,15 +32,19 @@ contract StakingRewardsV2 is
     uint256 public constant MAX_COOLDOWN_PERIOD = 52 weeks;
 
     /// @notice Contract for KWENTA ERC20 token - used for BOTH staking and rewards
+    /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
     IKwenta public immutable kwenta;
 
     /// @notice escrow contract which holds (and may stake) reward tokens
+    /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
     IRewardEscrowV2 public immutable rewardEscrow;
 
     /// @notice handles reward token minting logic
+    /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
     ISupplySchedule public immutable supplySchedule;
 
     /// @notice previous version of staking rewards contract - used for migration
+    /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
     IStakingRewards public immutable stakingRewardsV1;
 
     /*///////////////////////////////////////////////////////////////
