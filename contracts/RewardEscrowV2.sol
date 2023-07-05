@@ -354,10 +354,12 @@ contract RewardEscrowV2 is
             // trigger event
             emit Vested(msg.sender, total);
 
-            // Send any fee to Treasury
+            // Send 50% any fee to Treasury and
+            // 50% to TokenDistributor
             if (totalFee != 0) {
                 /// @dev this will revert if the kwenta token transfer fails
-                kwenta.transfer(treasuryDAO, totalFee);
+                kwenta.transfer(treasuryDAO, totalFee * 50 / 100);
+                kwenta.transfer(tokenDistributor, totalFee * 50 / 100);
             }
 
             if (total != 0) {
