@@ -129,7 +129,7 @@ contract TokenDistributor is ITokenDistributor {
     }
 
     /// @notice internal claimEpoch function
-    function _claimEpoch(address to, uint epochNumber) public {
+    function _claimEpoch(address to, uint epochNumber) internal {
         _isEpochReady(epochNumber);
         if (claimedEpochs[to][epochNumber]) {
             revert CannotClaimTwice();
