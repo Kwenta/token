@@ -55,6 +55,9 @@ contract RewardEscrowV2 is
     /// @notice treasury address - this may change
     address public treasuryDAO;
 
+    /// @notice TokenDistributor address
+    address public tokenDistributor;
+
     ///@notice mapping of entryIDs to vesting entries
     mapping(uint256 => VestingEntry) public vestingSchedules;
 
@@ -131,6 +134,13 @@ contract RewardEscrowV2 is
         if (_treasuryDAO == address(0)) revert ZeroAddress();
         treasuryDAO = _treasuryDAO;
         emit TreasuryDAOSet(treasuryDAO);
+    }
+
+    /// @inheritdoc IRewardEscrowV2
+    function setTokenDistributor(address _tokenDistributor) external override onlyOwner {
+        if (_tokenDistributor == address(0)) revert ZeroAddress();
+        tokenDistributor = _tokenDistributor;
+        emit TokenDistributorSet(tokenDistributor);
     }
 
     /*///////////////////////////////////////////////////////////////

@@ -53,6 +53,11 @@ interface IRewardEscrowV2 {
     /// @dev This function can only be called multiple times
     function setTreasuryDAO(address _treasuryDAO) external;
 
+    /// @notice Function used to define the TokenDistributor address to use
+    /// @param _tokenDistributor The address of the TokenDistributor
+    /// @dev This function can only be called multiple times
+    function setTokenDistributor(address _tokenDistributor) external;
+
     /*///////////////////////////////////////////////////////////////
                                 VIEWS
     ///////////////////////////////////////////////////////////////*/
@@ -187,6 +192,10 @@ interface IRewardEscrowV2 {
     /// @notice emitted when the treasury DAO is set
     /// @param treasuryDAO The address of the treasury DAO
     event TreasuryDAOSet(address treasuryDAO);
+
+    /// @notice emitted when the TokenDistributor is set
+    /// @param tokenDistributor The address of the token distributor
+    event TokenDistributorSet(address tokenDistributor);
 
     /*//////////////////////////////////////////////////////////////
                                 ERRORS
