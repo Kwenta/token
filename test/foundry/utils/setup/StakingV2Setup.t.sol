@@ -88,6 +88,8 @@ contract StakingV2Setup is StakingV1Setup {
             )
         );
         require(setupSuccess, "Migrate.setupSystem failed");
+
+        rewardEscrowV2.setTokenDistributor(mockEarlyVestFeeDistributor);
     }
 
     /*//////////////////////////////////////////////////////////////

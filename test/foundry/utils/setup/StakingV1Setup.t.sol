@@ -15,6 +15,7 @@ contract StakingV1Setup is TestHelpers {
                                 State
     //////////////////////////////////////////////////////////////*/
 
+    address public mockEarlyVestFeeDistributor; 
     address public treasury;
     address public user1;
     address public user2;
@@ -36,6 +37,7 @@ contract StakingV1Setup is TestHelpers {
 
     function setUp() public virtual {
         // Setup StakingV1
+        mockEarlyVestFeeDistributor = createUser();
         treasury = createUser();
         user1 = createUser();
         user2 = createUser();

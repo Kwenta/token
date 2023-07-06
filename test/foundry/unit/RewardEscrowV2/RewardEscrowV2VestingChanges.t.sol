@@ -154,7 +154,9 @@ contract RewardEscrowV2VestingChangesTests is DefaultStakingV2Setup {
         uint256 balanceAfter = kwenta.balanceOf(user1);
         assertEq(balanceAfter, userBalanceBefore);
         uint256 treasuryBalanceAfter = kwenta.balanceOf(treasury);
-        assertEq(treasuryBalanceAfter, treasuryBalanceBefore + escrowAmount);
+        assertEq(treasuryBalanceAfter, treasuryBalanceBefore + escrowAmount * 50 / 100);
+        uint256 earlyVestFeeDistributorBalanceAfter = kwenta.balanceOf(mockEarlyVestFeeDistributor);
+        assertEq(earlyVestFeeDistributorBalanceAfter, escrowAmount * 50 / 100);
     }
 
     /*//////////////////////////////////////////////////////////////

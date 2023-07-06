@@ -444,8 +444,11 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         uint256 treasuryBalanceAfter = kwenta.balanceOf(treasury);
         uint256 treasuryReceived = treasuryBalanceAfter - treasuryBalanceBefore;
 
-        // 45% should go to the treasury
-        assertEq(treasuryReceived, 450 ether);
+        // 22.5% should go to the treasury
+        assertEq(treasuryReceived, 225 ether);
+
+        // 22.5% should go to EarlyVestFeeDistributor
+        assertEq(kwenta.balanceOf(mockEarlyVestFeeDistributor), 225 ether);
 
         // 55% should go to the staker
         assertEq(rewardEscrowV2.totalVestedAccountBalance(address(this)), 550 ether);
