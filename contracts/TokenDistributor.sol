@@ -131,10 +131,11 @@ contract TokenDistributor is ITokenDistributor {
     /// @notice internal claimEpoch function
     function _claimEpoch(address to, uint epochNumber) internal {
         _isEpochReady(epochNumber);
-        if (claimedEpochs[to][epochNumber]) {
+        mapping(uint256 => bool) storage claimedEpochsTo = claimedEpochs[to];
+        if (claimedEpochsTo[epochNumber]) {
             revert CannotClaimTwice();
         }
-        claimedEpochs[to][epochNumber] = true;
+        claimedEpochsTo[epochNumber] = true;
 
         uint256 proportionalFees = calculateEpochFees(to, epochNumber);
 
