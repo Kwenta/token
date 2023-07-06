@@ -39,6 +39,12 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         rewardEscrowV2.setTreasuryDAO(address(this));
     }
 
+    function test_Should_Not_Allow_Non_Owner_To_Set_Treasury_DAO() public {
+        vm.prank(user1);
+        vm.expectRevert("Ownable: caller is not the owner");
+        rewardEscrowV2.setTreasuryDAO(address(user1));
+    }
+
     function test_Should_Set_Token_Distributor() public {
         rewardEscrowV2.setTokenDistributor(address(this));
         assertEq(address(rewardEscrowV2.tokenDistributor()), address(this));
@@ -53,6 +59,12 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         vm.expectEmit(true, true, true, true);
         emit TokenDistributorSet(address(this));
         rewardEscrowV2.setTokenDistributor(address(this));
+    }
+
+    function test_Should_Not_Allow_Non_Owner_To_Set_Early_Vest_Fee_Distributor() public {
+        vm.prank(user1);
+        vm.expectRevert("Ownable: caller is not the owner");
+        rewardEscrowV2.setTokenDistributor(address(user1));
     }
 
     function test_Should_Not_Allow_StakingRewards_To_Be_Set_Twice() public {
