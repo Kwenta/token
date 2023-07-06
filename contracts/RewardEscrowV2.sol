@@ -55,8 +55,8 @@ contract RewardEscrowV2 is
     /// @notice treasury address - this may change
     address public treasuryDAO;
 
-    /// @notice TokenDistributor address
-    address public tokenDistributor;
+    /// @notice EarlyVestFeeDistributor address
+    address public earlyVestFeeDistributor;
 
     ///@notice mapping of entryIDs to vesting entries
     mapping(uint256 => VestingEntry) public vestingSchedules;
@@ -137,10 +137,10 @@ contract RewardEscrowV2 is
     }
 
     /// @inheritdoc IRewardEscrowV2
-    function setTokenDistributor(address _tokenDistributor) external override onlyOwner {
-        if (_tokenDistributor == address(0)) revert ZeroAddress();
-        tokenDistributor = _tokenDistributor;
-        emit TokenDistributorSet(tokenDistributor);
+    function setEarlyVestFeeDistributor(address _earlyVestFeeDistributor) external override onlyOwner {
+        if (_earlyVestFeeDistributor == address(0)) revert ZeroAddress();
+        earlyVestFeeDistributor = _earlyVestFeeDistributor;
+        emit EarlyVestFeeDistributorSet(earlyVestFeeDistributor);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -365,11 +365,11 @@ contract RewardEscrowV2 is
             emit Vested(msg.sender, total);
 
             // Send 50% any fee to Treasury and
-            // 50% to TokenDistributor
+            // 50% to EarlyVestFeeDistributor
             if (totalFee != 0) {
                 /// @dev this will revert if the kwenta token transfer fails
                 kwenta.transfer(treasuryDAO, totalFee * 50 / 100);
-                kwenta.transfer(tokenDistributor, totalFee * 50 / 100);
+                kwenta.transfer(earlyVestFeeDistributor, totalFee * 50 / 100);
             }
 
             if (total != 0) {
