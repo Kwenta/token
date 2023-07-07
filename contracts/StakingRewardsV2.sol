@@ -8,6 +8,7 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {IKwenta} from "./interfaces/IKwenta.sol";
 import {IStakingRewardsV2} from "./interfaces/IStakingRewardsV2.sol";
+import {IStakingRewardsV2Integrator} from "./interfaces/IStakingRewardsV2Integrator.sol";
 import {IStakingRewards} from "./interfaces/IStakingRewards.sol";
 import {ISupplySchedule} from "./interfaces/ISupplySchedule.sol";
 import {IRewardEscrowV2} from "./interfaces/IRewardEscrowV2.sol";
@@ -344,7 +345,15 @@ contract StakingRewardsV2 is
         _getReward(msg.sender);
     }
 
-    function _getReward(address _account) internal whenNotPaused updateReward(_account) {
+    function _getReward(address _account) internal {
+        _getReward(_account, _account);
+    }
+
+    function _getReward(address _account, address _to)
+        internal
+        whenNotPaused
+        updateReward(_account)
+    {
         uint256 reward = rewards[_account];
         if (reward > 0) {
             // update state (first)
@@ -354,9 +363,9 @@ contract StakingRewardsV2 is
             emit RewardPaid(_account, reward);
 
             // transfer token from this contract to the rewardEscrow
-            // and create a vesting entry for the caller
+            // and create a vesting entry at the _to address
             kwenta.transfer(address(rewardEscrow), reward);
-            rewardEscrow.appendVestingEntry(_account, reward);
+            rewardEscrow.appendVestingEntry(_to, reward);
         }
     }
 
@@ -372,6 +381,26 @@ contract StakingRewardsV2 is
         _stakeEscrow(_account, unstakedEscrowedBalanceOf(_account));
     }
 
+    /*//////////////////////////////////////////////////////////////
+                           INTEGRATOR REWARDS
+    //////////////////////////////////////////////////////////////*/
+
+    function getIntegratorReward(address _integrator) public override {
+        address beneficiary = IStakingRewardsV2Integrator(_integrator).beneficiary();
+        if (beneficiary != msg.sender) revert NotApproved();
+        _getReward(_integrator, beneficiary);
+    }
+
+    function getIntegratorAndSenderReward(address _integrator) external override {
+        getIntegratorReward(_integrator);
+        _getReward(msg.sender);
+    }
+
+    function getIntegratorRewardAndCompound(address _integrator) external override {
+        getIntegratorReward(_integrator);
+        _compound(msg.sender);
+    }
+
     /*///////////////////////////////////////////////////////////////
                         REWARD UPDATE CALCULATIONS
     ///////////////////////////////////////////////////////////////*/
@@ -380,11 +409,11 @@ contract StakingRewardsV2 is
     /// @param _account: address of account which rewards are being updated for
     /// @dev contract state not specific to an account will be updated also
     modifier updateReward(address _account) {
-        _updateRewards(_account);
+        _updateReward(_account);
         _;
     }
 
-    function _updateRewards(address _account) internal {
+    function _updateReward(address _account) internal {
         rewardPerTokenStored = rewardPerToken();
         lastUpdateTime = lastTimeRewardApplicable();
 

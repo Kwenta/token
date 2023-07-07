@@ -167,6 +167,23 @@ interface IStakingRewardsV2 {
     /// @notice claim rewards for an account and stake them
     function compound() external;
 
+    // claim integrator rewards
+
+    /// @notice claim rewards for an integrator contract
+    /// Note: the funds will be sent to the msg.sender
+    /// @param _integrator: address of integrator contract to claim rewards for
+    function getIntegratorReward(address _integrator) external;
+
+    /// @notice claim rewards for an integrator contract and msg.sender
+    /// Note: the funds will be sent to the msg.sender
+    /// @param _integrator: address of integrator contract to claim rewards for
+    function getIntegratorAndSenderReward(address _integrator) external;
+
+    /// @notice claim rewards for an integrator contract and compound them
+    /// Note: the funds will be sent to the msg.sender
+    /// @param _integrator: address of integrator contract to claim rewards for
+    function getIntegratorRewardAndCompound(address _integrator) external;
+
     // delegation
 
     /// @notice approve an operator to collect rewards and stake escrow on behalf of the sender
