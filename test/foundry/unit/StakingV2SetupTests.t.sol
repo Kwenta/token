@@ -23,8 +23,7 @@ contract StakingV2SetupTests is StakingV1Setup {
     function setUp() public virtual override {
         super.setUp();
 
-        rewardEscrowV2Implementation = address(new RewardEscrowV2());
-        stakingRewardsV2Implementation = address(new StakingRewardsV2());
+        rewardEscrowV2Implementation = address(new RewardEscrowV2(address(kwenta)));
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -33,12 +32,12 @@ contract StakingV2SetupTests is StakingV1Setup {
 
     function test_Cannot_Setup_RewardEscrowV2_With_Owner_Zero_Address() public {
         vm.expectRevert(IRewardEscrowV2.ZeroAddress.selector);
-        deployRewardEscrowV2(address(0), address(kwenta));
+        deployRewardEscrowV2(address(0));
     }
 
     function test_Cannot_Setup_RewardEscrowV2_With_Kwenta_Zero_Address() public {
         vm.expectRevert(IRewardEscrowV2.ZeroAddress.selector);
-        deployRewardEscrowV2(address(this), address(0));
+        rewardEscrowV2Implementation = address(new RewardEscrowV2(address(0)));
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -46,99 +45,94 @@ contract StakingV2SetupTests is StakingV1Setup {
     //////////////////////////////////////////////////////////////*/
 
     function test_Cannot_Setup_StakingRewardsV2_With_Kwenta_Zero_Address() public {
-        address rewardEscrowV2 = deployRewardEscrowV2(address(this), address(kwenta));
+        address rewardEscrowV2 = deployRewardEscrowV2(address(this));
         vm.expectRevert(IStakingRewardsV2.ZeroAddress.selector);
-        deployStakingRewardsV2(
-            address(0),
-            rewardEscrowV2,
-            address(supplySchedule),
-            address(stakingRewardsV1),
-            address(this)
+        stakingRewardsV2Implementation = address(
+            new StakingRewardsV2(
+                address(0),
+                rewardEscrowV2,
+                address(supplySchedule),
+                address(stakingRewardsV1)
+            )
         );
     }
 
     function test_Cannot_Setup_StakingRewardsV2_With_RewardEscrowV2_Zero_Address() public {
         vm.expectRevert(IStakingRewardsV2.ZeroAddress.selector);
-        deployStakingRewardsV2(
-            address(kwenta),
-            address(0),
-            address(supplySchedule),
-            address(stakingRewardsV1),
-            address(this)
+        stakingRewardsV2Implementation = address(
+            new StakingRewardsV2(
+                address(kwenta),
+                address(0),
+                address(supplySchedule),
+                address(stakingRewardsV1)
+            )
         );
     }
 
     function test_Cannot_Setup_StakingRewardsV2_With_SupplySchedule_Zero_Address() public {
-        address rewardEscrowV2 = deployRewardEscrowV2(address(this), address(kwenta));
+        address rewardEscrowV2 = deployRewardEscrowV2(address(this));
         vm.expectRevert(IStakingRewardsV2.ZeroAddress.selector);
-        deployStakingRewardsV2(
-            address(kwenta),
-            rewardEscrowV2,
-            address(0),
-            address(stakingRewardsV1),
-            address(this)
+        stakingRewardsV2Implementation = address(
+            new StakingRewardsV2(
+                address(kwenta),
+                rewardEscrowV2,
+                address(0),
+                address(stakingRewardsV1)
+            )
         );
     }
 
     function test_Cannot_Setup_StakingRewardsV2_With_StakingRewardsV1_Zero_Address() public {
-        address rewardEscrowV2 = deployRewardEscrowV2(address(this), address(kwenta));
+        address rewardEscrowV2 = deployRewardEscrowV2(address(this));
         vm.expectRevert(IStakingRewardsV2.ZeroAddress.selector);
-        deployStakingRewardsV2(
-            address(kwenta),
-            rewardEscrowV2,
-            address(supplySchedule),
-            address(0),
-            address(this)
+        stakingRewardsV2Implementation = address(
+            new StakingRewardsV2(
+                address(kwenta),
+                rewardEscrowV2,
+                address(supplySchedule),
+                address(0)
+            )
         );
     }
 
     function test_Cannot_Setup_StakingRewardsV2_With_Owner_Zero_Address() public {
-        address rewardEscrowV2 = deployRewardEscrowV2(address(this), address(kwenta));
-        vm.expectRevert(IStakingRewardsV2.ZeroAddress.selector);
-        deployStakingRewardsV2(
-            address(kwenta),
-            rewardEscrowV2,
-            address(supplySchedule),
-            address(stakingRewardsV1),
-            address(0)
+        address rewardEscrowV2 = deployRewardEscrowV2(address(this));
+        stakingRewardsV2Implementation = address(
+            new StakingRewardsV2(
+                address(kwenta),
+                rewardEscrowV2,
+                address(supplySchedule),
+                address(stakingRewardsV1)
+            )
         );
+        vm.expectRevert(IStakingRewardsV2.ZeroAddress.selector);
+        deployStakingRewardsV2(address(0));
     }
 
     /*//////////////////////////////////////////////////////////////
                                 HELPERS
     //////////////////////////////////////////////////////////////*/
 
-    function deployRewardEscrowV2(address _owner, address _kwenta) internal returns (address) {
+    function deployRewardEscrowV2(address _owner) internal returns (address) {
         return address(
             new ERC1967Proxy(
-                rewardEscrowV2Implementation,
-                abi.encodeWithSignature(
-                "initialize(address,address)",
-                _owner,
-                _kwenta
-                )
+                    rewardEscrowV2Implementation,
+                    abi.encodeWithSignature(
+                        "initialize(address)",
+                        _owner
+                    )
                 )
         );
     }
 
-    function deployStakingRewardsV2(
-        address _kwenta,
-        address _rewardEscrowV2,
-        address _supplySchedule,
-        address _stakingRewardsV1,
-        address _owner
-    ) internal returns (address) {
+    function deployStakingRewardsV2(address _owner) internal returns (address) {
         return address(
             new ERC1967Proxy(
-                stakingRewardsV2Implementation,
-                abi.encodeWithSignature(
-                "initialize(address,address,address,address,address)",
-                _kwenta,
-                _rewardEscrowV2,
-                _supplySchedule,
-                _stakingRewardsV1,
-                _owner
-                )
+                    stakingRewardsV2Implementation,
+                    abi.encodeWithSignature(
+                        "initialize(address)",
+                        _owner
+                    )
                 )
         );
     }

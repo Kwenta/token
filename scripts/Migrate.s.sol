@@ -42,16 +42,15 @@ contract Migrate {
         if (_printLogs) console.log("********* 1. DEPLOYMENT STARTING... *********");
 
         // Deploy RewardEscrowV2
-        rewardEscrowV2Implementation = address(new RewardEscrowV2());
+        rewardEscrowV2Implementation = address(new RewardEscrowV2(_kwenta));
         rewardEscrowV2 = RewardEscrowV2(
             address(
                 new ERC1967Proxy(
-                rewardEscrowV2Implementation,
-                abi.encodeWithSignature(
-                "initialize(address,address)",
-                _owner,
-                _kwenta
-                )
+                    rewardEscrowV2Implementation,
+                    abi.encodeWithSignature(
+                        "initialize(address)",
+                        _owner
+                    )
                 )
             )
         );
@@ -64,19 +63,20 @@ contract Migrate {
         if (_printLogs) console.log("Deployed RewardEscrowV2 Proxy at %s", address(rewardEscrowV2));
 
         // Deploy StakingRewardsV2
-        stakingRewardsV2Implementation = address(new StakingRewardsV2());
-        stakingRewardsV2 = StakingRewardsV2(
-            address(
-                new ERC1967Proxy(
-                stakingRewardsV2Implementation,
-                abi.encodeWithSignature(
-                "initialize(address,address,address,address,address)",
+        stakingRewardsV2Implementation = address(
+            new StakingRewardsV2(
                 _kwenta,
                 address(rewardEscrowV2),
                 _supplySchedule,
-                address(_stakingRewardsV1),
-                _owner
-                )
+                address(_stakingRewardsV1)
+            )
+        );
+
+        stakingRewardsV2 = StakingRewardsV2(
+            address(
+                new ERC1967Proxy(
+                    stakingRewardsV2Implementation,
+                    abi.encodeWithSignature("initialize(address)", _owner)
                 )
             )
         );
