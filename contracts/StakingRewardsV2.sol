@@ -32,21 +32,25 @@ contract StakingRewardsV2 is
     /// @notice maximum time length of the unstaking cooldown period
     uint256 public constant MAX_COOLDOWN_PERIOD = 52 weeks;
 
+    /// @notice Contract for KWENTA ERC20 token - used for BOTH staking and rewards
+    /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
+    IKwenta public immutable kwenta;
+
+    /// @notice escrow contract which holds (and may stake) reward tokens
+    /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
+    IRewardEscrowV2 public immutable rewardEscrow;
+
+    /// @notice handles reward token minting logic
+    /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
+    ISupplySchedule public immutable supplySchedule;
+
+    /// @notice previous version of staking rewards contract - used for migration
+    /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
+    IStakingRewards public immutable stakingRewardsV1;
+
     /*///////////////////////////////////////////////////////////////
                                 STATE
     ///////////////////////////////////////////////////////////////*/
-
-    /// @notice Contract for KWENTA ERC20 token - used for BOTH staking and rewards
-    IKwenta public kwenta;
-
-    /// @notice escrow contract which holds (and may stake) reward tokens
-    IRewardEscrowV2 public rewardEscrow;
-
-    /// @notice handles reward token minting logic
-    ISupplySchedule public supplySchedule;
-
-    /// @notice previous version of staking rewards contract - used for migration
-    IStakingRewards public stakingRewardsV1;
 
     /// @notice list of checkpoints with the number of tokens staked by address
     /// @dev this includes staked escrowed tokens
@@ -129,33 +133,21 @@ contract StakingRewardsV2 is
                         CONSTRUCTOR / INITIALIZER
     ///////////////////////////////////////////////////////////////*/
 
-    /// @dev disable default constructor for disable implementation contract
+    /// @dev disable default constructor to disable the implementation contract
     /// Actual contract construction will take place in the initialize function via proxy
     /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor() {
-        _disableInitializers();
-    }
-
-    /// @inheritdoc IStakingRewardsV2
-    function initialize(
+    constructor(
         address _kwenta,
         address _rewardEscrow,
         address _supplySchedule,
-        address _stakingRewardsV1,
-        address _contractOwner
-    ) external override initializer {
+        address _stakingRewardsV1
+    ) {
         if (
             _kwenta == address(0) || _rewardEscrow == address(0) || _supplySchedule == address(0)
-                || _stakingRewardsV1 == address(0) || _contractOwner == address(0)
+                || _stakingRewardsV1 == address(0)
         ) revert ZeroAddress();
 
-        // initialize owner
-        __Ownable_init();
-        __Pausable_init();
-        __UUPSUpgradeable_init();
-
-        // transfer ownership
-        _transferOwnership(_contractOwner);
+        _disableInitializers();
 
         // define reward/staking token
         kwenta = IKwenta(_kwenta);
@@ -164,6 +156,19 @@ contract StakingRewardsV2 is
         rewardEscrow = IRewardEscrowV2(_rewardEscrow);
         supplySchedule = ISupplySchedule(_supplySchedule);
         stakingRewardsV1 = IStakingRewards(_stakingRewardsV1);
+    }
+
+    /// @inheritdoc IStakingRewardsV2
+    function initialize(address _contractOwner) external override initializer {
+        if (_contractOwner == address(0)) revert ZeroAddress();
+
+        // initialize owner
+        __Ownable_init();
+        __Pausable_init();
+        __UUPSUpgradeable_init();
+
+        // transfer ownership
+        _transferOwnership(_contractOwner);
 
         // define values
         rewardsDuration = 1 weeks;
