@@ -48,7 +48,7 @@ contract DeployEarlyVestFeeDistributor is Script {
                 _stakingRewardsV2: TESTNET_STAKING_REWARDS_V2_PROXY,
                 _rewardEscrowV2: TESTNET_REWARD_ESCROW_V2_PROXY,
                 _kwenta: TESTNET_KWENTA,
-                daysToOffsetBy: 0 //todo: update before deployment
+                daysToOffsetBy: 0
             });
         }
 
@@ -63,5 +63,5 @@ contract DeployEarlyVestFeeDistributor is Script {
  * > source .env
  *
  * To deploy and verify our contract
- * > forge script script/DeployEarlyVestFeeDistributor.s.sol:DeployEarlyVestFeeDistributor --rpc-url $OPTIMISM_RPC_URL/$OPTIMISM_GOERLI_RPC_URL --broadcast -vvvv
+ * > forge script scripts/DeployEarlyVestFeeDistributor.s.sol:DeployEarlyVestFeeDistributor --rpc-url $OPTIMISM_RPC_URL/$OPTIMISM_GOERLI_RPC_URL --broadcast -vvvv
  */
