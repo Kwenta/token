@@ -124,6 +124,10 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         // transfer ownership
         stakingRewardsV2.transferOwnership(user1);
 
+        // accept ownership
+        vm.prank(user1);
+        stakingRewardsV2.acceptOwnership();
+
         // check ownership
         assertEq(stakingRewardsV2.owner(), address(user1));
         vm.expectRevert("Ownable: caller is not the owner");
@@ -132,6 +136,9 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         // transfer ownership
         vm.prank(user1);
         stakingRewardsV2.transferOwnership(address(this));
+
+        // accept ownership
+        stakingRewardsV2.acceptOwnership();
 
         // check ownership
         assertEq(stakingRewardsV2.owner(), address(this));
