@@ -29,7 +29,7 @@ contract StakingV2Setup is StakingV1Setup {
         uint8 earlyVestingFee
     );
     event TreasuryDAOSet(address treasuryDAO);
-    event TokenDistributorSet(address tokenDistributor);
+    event EarlyVestFeeDistributorSet(address earlyVestFeeDistributor);
     event StakingRewardsSet(address stakingRewards);
 
     /*//////////////////////////////////////////////////////////////
