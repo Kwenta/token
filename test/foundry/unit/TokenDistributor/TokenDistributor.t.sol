@@ -29,6 +29,37 @@ contract TokenDistributorTest is StakingSetup {
         kwenta.transfer(address(this), 100_000 ether);
     }
 
+    /// @notice constructor fail when input address == 0
+    function testInputAddress0() public {
+        vm.expectRevert(
+            abi.encodeWithSelector(ITokenDistributor.InputAddress0.selector)
+        );
+        tokenDistributor = new TokenDistributor(
+            address(0),
+            address(stakingRewardsV2),
+            address(rewardEscrowV2),
+            0
+        );
+        vm.expectRevert(
+            abi.encodeWithSelector(ITokenDistributor.InputAddress0.selector)
+        );
+        tokenDistributor = new TokenDistributor(
+            address(kwenta),
+            address(0),
+            address(rewardEscrowV2),
+            0
+        );
+        vm.expectRevert(
+            abi.encodeWithSelector(ITokenDistributor.InputAddress0.selector)
+        );
+        tokenDistributor = new TokenDistributor(
+            address(kwenta),
+            address(stakingRewardsV2),
+            address(0),
+            0
+        );
+    }
+
     /// @notice checkpointToken happy case after 1 week
     function testCheckpointToken() public {
         kwenta.transfer(address(tokenDistributor), 10);
@@ -611,7 +642,7 @@ contract TokenDistributorTest is StakingSetup {
         /// @dev make sure its less than this contract
         /// holds and greater than 10 so the result isn't
         /// 0 after dividing
-        vm.assume(amount < 100_000 ether);
+        vm.assume(amount < 99_999 ether);
         vm.assume(amount > 10);
 
         kwenta.transfer(address(user1), 1);
@@ -1493,5 +1524,18 @@ contract TokenDistributorTest is StakingSetup {
         goForward(10 weeks);
         uint result4 = tDI.epochFromTimestamp(block.timestamp);
         assertEq(result4, 11);
+    }
+
+    /// @notice make sure _startOfWeek and _startOfEpoch are always aligned
+    function testFuzzStartOfTimeEpoch(uint time) public {
+        TokenDistributorInternals tDI = new TokenDistributorInternals(
+            address(kwenta),
+            address(stakingRewardsV2),
+            address(rewardEscrowV2),
+            2
+        );
+        vm.assume(time < 1000 weeks);
+        goForward(time);
+        assertEq(tDI.startOfWeek(block.timestamp), tDI.startOfEpoch(tDI.epochFromTimestamp(block.timestamp)));
     }
 }
