@@ -1,25 +1,25 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.19;
 
-import {ITokenDistributor} from "../../../../contracts/interfaces/ITokenDistributor.sol";
+import {IEarlyVestFeeDistributor} from "../../../../contracts/interfaces/IEarlyVestFeeDistributor.sol";
 import {Kwenta} from "../../../../contracts/Kwenta.sol";
 import {RewardEscrowV2} from "../../../../contracts/RewardEscrowV2.sol";
 import {StakingRewardsV2} from "../../../../contracts/StakingRewardsV2.sol";
 import {StakingSetup} from "../../utils/setup/StakingSetup.t.sol";
-import {TokenDistributorInternals} from "../../utils/TokenDistributorInternals.sol";
-import {TokenDistributor} from "../../../../contracts/TokenDistributor.sol";
+import {EarlyVestFeeDistributorInternals} from "../../utils/EarlyVestFeeDistributorInternals.sol";
+import {EarlyVestFeeDistributor} from "../../../../contracts/EarlyVestFeeDistributor.sol";
 
-contract TokenDistributorTest is StakingSetup {
+contract EarlyVestFeeDistributorTest is StakingSetup {
     event CheckpointToken(uint time, uint tokens);
     event EpochClaim(address user, uint epoch, uint tokens);
 
-    TokenDistributor public tokenDistributor;
+    EarlyVestFeeDistributor public earlyVestFeeDistributor;
 
     function setUp() public override {
         /// @dev starts after a week so the startTime is != 0
         goForward(1 weeks + 1);
         super.setUp();
-        tokenDistributor = new TokenDistributor(
+        earlyVestFeeDistributor = new EarlyVestFeeDistributor(
             address(kwenta),
             address(stakingRewardsV2),
             address(rewardEscrowV2),
@@ -32,27 +32,27 @@ contract TokenDistributorTest is StakingSetup {
     /// @notice constructor fail when input address == 0
     function testInputAddress0() public {
         vm.expectRevert(
-            abi.encodeWithSelector(ITokenDistributor.InputAddress0.selector)
+            abi.encodeWithSelector(IEarlyVestFeeDistributor.InputAddress0.selector)
         );
-        tokenDistributor = new TokenDistributor(
+        earlyVestFeeDistributor = new EarlyVestFeeDistributor(
             address(0),
             address(stakingRewardsV2),
             address(rewardEscrowV2),
             0
         );
         vm.expectRevert(
-            abi.encodeWithSelector(ITokenDistributor.InputAddress0.selector)
+            abi.encodeWithSelector(IEarlyVestFeeDistributor.InputAddress0.selector)
         );
-        tokenDistributor = new TokenDistributor(
+        earlyVestFeeDistributor = new EarlyVestFeeDistributor(
             address(kwenta),
             address(0),
             address(rewardEscrowV2),
             0
         );
         vm.expectRevert(
-            abi.encodeWithSelector(ITokenDistributor.InputAddress0.selector)
+            abi.encodeWithSelector(IEarlyVestFeeDistributor.InputAddress0.selector)
         );
-        tokenDistributor = new TokenDistributor(
+        earlyVestFeeDistributor = new EarlyVestFeeDistributor(
             address(kwenta),
             address(stakingRewardsV2),
             address(0),
@@ -62,7 +62,7 @@ contract TokenDistributorTest is StakingSetup {
 
     /// @notice checkpointToken happy case after 1 week
     function testCheckpointToken() public {
-        kwenta.transfer(address(tokenDistributor), 10);
+        kwenta.transfer(address(earlyVestFeeDistributor), 10);
         kwenta.transfer(address(user1), 1);
         vm.startPrank(address(user1));
         kwenta.approve(address(stakingRewardsV2), 1);
@@ -71,21 +71,21 @@ contract TokenDistributorTest is StakingSetup {
 
         vm.expectEmit(true, true, true, true);
         emit CheckpointToken(2 weeks + 2, 10);
-        tokenDistributor.checkpointToken();
+        earlyVestFeeDistributor.checkpointToken();
     }
 
     /// @notice checkpointToken for missed weeks
     function testCheckpointTokenManyMissed() public {
-        kwenta.transfer(address(tokenDistributor), 10);
+        kwenta.transfer(address(earlyVestFeeDistributor), 10);
         goForward(5 weeks);
         vm.expectEmit(true, true, true, true);
         emit CheckpointToken(6 weeks + 2, 10);
-        tokenDistributor.checkpointToken();
+        earlyVestFeeDistributor.checkpointToken();
     }
 
     /// @notice checkpointToken for sinceLast == 0
     function testManyCheckpointTokenAtOnce() public {
-        kwenta.transfer(address(tokenDistributor), 10);
+        kwenta.transfer(address(earlyVestFeeDistributor), 10);
         kwenta.transfer(address(user1), 1);
         vm.startPrank(address(user1));
         kwenta.approve(address(stakingRewardsV2), 1);
@@ -94,19 +94,19 @@ contract TokenDistributorTest is StakingSetup {
 
         vm.expectEmit(true, true, true, true);
         emit CheckpointToken(2 weeks + 2, 10);
-        tokenDistributor.checkpointToken();
+        earlyVestFeeDistributor.checkpointToken();
         vm.expectEmit(true, true, true, true);
         emit CheckpointToken(2 weeks + 2, 0);
-        tokenDistributor.checkpointToken();
+        earlyVestFeeDistributor.checkpointToken();
     }
 
     /// @notice checkpoint at the start and < 1 week
     /// make sure theres no error dividing by 0
     /// because thisEpoch should be 0
     function testCheckpointTokenFirstWeek() public {
-        tokenDistributor.checkpointToken();
+        earlyVestFeeDistributor.checkpointToken();
         goForward(1 days);
-        tokenDistributor.checkpointToken();
+        earlyVestFeeDistributor.checkpointToken();
     }
 
     /// @notice claimEpoch happy case
@@ -119,7 +119,7 @@ contract TokenDistributorTest is StakingSetup {
         vm.stopPrank();
         goForward(1 weeks);
 
-        kwenta.transfer(address(tokenDistributor), 10);
+        kwenta.transfer(address(earlyVestFeeDistributor), 10);
         goForward(1 weeks);
 
         vm.expectEmit(true, true, true, true);
@@ -128,7 +128,7 @@ contract TokenDistributorTest is StakingSetup {
         emit VestingEntryCreated(address(user1), 4, 52 weeks, 1, 90);
         vm.expectEmit(true, true, true, true);
         emit EpochClaim(address(user1), 1, 4);
-        tokenDistributor.claimEpoch(address(user1), 1);
+        earlyVestFeeDistributor.claimEpoch(address(user1), 1);
     }
 
     /// @notice claimEpoch happy case for > 1 person
@@ -154,15 +154,15 @@ contract TokenDistributorTest is StakingSetup {
 
         goForward(1 weeks);
 
-        TokenDistributor tokenDistributorOffset = new TokenDistributor(
+        EarlyVestFeeDistributor earlyVestFeeDistributorOffset = new EarlyVestFeeDistributor(
             address(kwenta),
             address(stakingRewardsV2),
             address(rewardEscrowV2),
             2
         );
 
-        tokenDistributorOffset.checkpointToken();
-        kwenta.transfer(address(tokenDistributorOffset), 10);
+        earlyVestFeeDistributorOffset.checkpointToken();
+        kwenta.transfer(address(earlyVestFeeDistributorOffset), 10);
         /// @dev forward to the exact end of epoch 0 and start of 1
         goForward(2 days - 2);
 
@@ -170,19 +170,19 @@ contract TokenDistributorTest is StakingSetup {
         emit VestingEntryCreated(address(user1), 2, 52 weeks, 1, 90);
         vm.expectEmit(true, true, true, true);
         emit EpochClaim(address(user1), 0, 2);
-        tokenDistributorOffset.claimEpoch(address(user1), 0);
+        earlyVestFeeDistributorOffset.claimEpoch(address(user1), 0);
 
         vm.expectEmit(true, true, false, true);
         emit VestingEntryCreated(address(user2), 2, 52 weeks, 2, 90);
         vm.expectEmit(true, true, true, true);
         emit EpochClaim(address(user2), 0, 2);
-        tokenDistributorOffset.claimEpoch(address(user2), 0);
+        earlyVestFeeDistributorOffset.claimEpoch(address(user2), 0);
 
         vm.expectEmit(true, true, false, true);
         emit VestingEntryCreated(address(user3), 6, 52 weeks, 3, 90);
         vm.expectEmit(true, true, true, true);
         emit EpochClaim(address(user3), 0, 6);
-        tokenDistributorOffset.claimEpoch(address(user3), 0);
+        earlyVestFeeDistributorOffset.claimEpoch(address(user3), 0);
     }
 
     /// @notice claimEpoch happy case for epoch 0
@@ -195,15 +195,15 @@ contract TokenDistributorTest is StakingSetup {
         vm.stopPrank();
         goForward(1 weeks);
 
-        TokenDistributor tokenDistributorOffset = new TokenDistributor(
+        EarlyVestFeeDistributor earlyVestFeeDistributorOffset = new EarlyVestFeeDistributor(
             address(kwenta),
             address(stakingRewardsV2),
             address(rewardEscrowV2),
             2
         );
 
-        tokenDistributorOffset.checkpointToken();
-        kwenta.transfer(address(tokenDistributorOffset), 10);
+        earlyVestFeeDistributorOffset.checkpointToken();
+        kwenta.transfer(address(earlyVestFeeDistributorOffset), 10);
         /// @dev forward to the exact end of epoch 0 and start of 1
         goForward(2 days - 2);
 
@@ -211,7 +211,7 @@ contract TokenDistributorTest is StakingSetup {
         emit VestingEntryCreated(address(user1), 10, 52 weeks, 1, 90);
         vm.expectEmit(true, true, true, true);
         emit EpochClaim(address(user1), 0, 10);
-        tokenDistributorOffset.claimEpoch(address(user1), 0);
+        earlyVestFeeDistributorOffset.claimEpoch(address(user1), 0);
     }
 
     /// @notice make sure a checkpoint is created even if < 24 if it
@@ -231,12 +231,12 @@ contract TokenDistributorTest is StakingSetup {
         goForward(1 weeks + 1);
 
         /// @dev checkpoint just before the week ends
-        kwenta.transfer(address(tokenDistributor), 10);
+        kwenta.transfer(address(earlyVestFeeDistributor), 10);
         goForward(1 weeks - 4800);
         vm.expectEmit(true, true, true, true);
         emit CheckpointToken(1809603, 10);
-        tokenDistributor.checkpointToken();
-        kwenta.transfer(address(tokenDistributor), 5);
+        earlyVestFeeDistributor.checkpointToken();
+        kwenta.transfer(address(earlyVestFeeDistributor), 5);
         goForward(4801);
 
         /// @dev make sure a claim at the turn of the week
@@ -245,12 +245,12 @@ contract TokenDistributorTest is StakingSetup {
         emit CheckpointToken(1814404, 5);
         vm.expectEmit(true, true, false, true);
         emit VestingEntryCreated(address(user1), 2, 52 weeks, 1, 90);
-        tokenDistributor.claimEpoch(address(user1), 1);
+        earlyVestFeeDistributor.claimEpoch(address(user1), 1);
 
         /// @dev a claim < 24 hours and not the first one
         /// of the week will not checkpoint which is correct
         goForward(1000);
-        tokenDistributor.claimEpoch(address(user2), 1);
+        earlyVestFeeDistributor.claimEpoch(address(user2), 1);
     }
 
     /// @notice claimEpoch fail - epoch is not ready to claim
@@ -259,27 +259,27 @@ contract TokenDistributorTest is StakingSetup {
 
         goForward(.5 weeks);
         vm.expectRevert(
-            abi.encodeWithSelector(ITokenDistributor.CannotClaimYet.selector)
+            abi.encodeWithSelector(IEarlyVestFeeDistributor.CannotClaimYet.selector)
         );
-        tokenDistributor.claimEpoch(address(user1), 0);
+        earlyVestFeeDistributor.claimEpoch(address(user1), 0);
     }
 
     /// @notice claimEpoch fail - epoch is not ready to claim, not an epoch yet
     function testClaimEpochAhead() public {
         vm.startPrank(user1);
         vm.expectRevert(
-            abi.encodeWithSelector(ITokenDistributor.CannotClaimYet.selector)
+            abi.encodeWithSelector(IEarlyVestFeeDistributor.CannotClaimYet.selector)
         );
-        tokenDistributor.claimEpoch(address(user1), 7);
+        earlyVestFeeDistributor.claimEpoch(address(user1), 7);
     }
 
     /// @notice claimEpoch fail - no epoch to claim yet
     function testClaimNoEpochYet() public {
         vm.startPrank(user1);
         vm.expectRevert(
-            abi.encodeWithSelector(ITokenDistributor.CannotClaimYet.selector)
+            abi.encodeWithSelector(IEarlyVestFeeDistributor.CannotClaimYet.selector)
         );
-        tokenDistributor.claimEpoch(address(user1), 0);
+        earlyVestFeeDistributor.claimEpoch(address(user1), 0);
     }
 
     /// @notice claimEpoch fail - already claimed
@@ -291,26 +291,26 @@ contract TokenDistributorTest is StakingSetup {
         stakingRewardsV2.stake(1);
         vm.stopPrank();
         goForward(1 weeks);
-        kwenta.transfer(address(tokenDistributor), 10);
+        kwenta.transfer(address(earlyVestFeeDistributor), 10);
         goForward(1 weeks);
-        tokenDistributor.claimEpoch(address(user1), 1);
+        earlyVestFeeDistributor.claimEpoch(address(user1), 1);
 
         vm.expectRevert(
-            abi.encodeWithSelector(ITokenDistributor.CannotClaimTwice.selector)
+            abi.encodeWithSelector(IEarlyVestFeeDistributor.CannotClaimTwice.selector)
         );
-        tokenDistributor.claimEpoch(address(user1), 1);
+        earlyVestFeeDistributor.claimEpoch(address(user1), 1);
     }
 
     /// @notice claimEpoch fail - claim an epoch that had no staking
     function testClaimNoStaking() public {
-        kwenta.transfer(address(tokenDistributor), 10);
+        kwenta.transfer(address(earlyVestFeeDistributor), 10);
         kwenta.transfer(address(user1), 1);
         vm.startPrank(user1);
         goForward(1 weeks);
         vm.expectRevert(
-            abi.encodeWithSelector(ITokenDistributor.CannotClaim0Fees.selector)
+            abi.encodeWithSelector(IEarlyVestFeeDistributor.CannotClaim0Fees.selector)
         );
-        tokenDistributor.claimEpoch(address(user1), 0);
+        earlyVestFeeDistributor.claimEpoch(address(user1), 0);
     }
 
     /// @notice claimEpoch fail - nonstaker tries to claim
@@ -323,14 +323,14 @@ contract TokenDistributorTest is StakingSetup {
         stakingRewardsV2.stake(1);
         vm.stopPrank();
         goForward(1 weeks);
-        kwenta.transfer(address(tokenDistributor), 10);
+        kwenta.transfer(address(earlyVestFeeDistributor), 10);
         goForward(1 weeks);
 
-        tokenDistributor.claimEpoch(address(user1), 1);
+        earlyVestFeeDistributor.claimEpoch(address(user1), 1);
         vm.expectRevert(
-            abi.encodeWithSelector(ITokenDistributor.CannotClaim0Fees.selector)
+            abi.encodeWithSelector(IEarlyVestFeeDistributor.CannotClaim0Fees.selector)
         );
-        tokenDistributor.claimEpoch(address(user2), 1);
+        earlyVestFeeDistributor.claimEpoch(address(user2), 1);
     }
 
     /// @notice claimEpoch happy case with a person who
@@ -344,7 +344,7 @@ contract TokenDistributorTest is StakingSetup {
         stakingRewardsV2.stake(1);
         vm.stopPrank();
         goForward(1 weeks);
-        kwenta.transfer(address(tokenDistributor), 10);
+        kwenta.transfer(address(earlyVestFeeDistributor), 10);
         goForward(1 weeks);
 
         vm.prank(address(user1));
@@ -352,7 +352,7 @@ contract TokenDistributorTest is StakingSetup {
         goForward(2 weeks);
         vm.expectEmit(true, true, false, true);
         emit VestingEntryCreated(address(user1), 2, 52 weeks, 1, 90);
-        tokenDistributor.claimEpoch(address(user1), 1);
+        earlyVestFeeDistributor.claimEpoch(address(user1), 1);
     }
 
     /// @notice testCalculateEpochFees happy case
@@ -371,11 +371,11 @@ contract TokenDistributorTest is StakingSetup {
         goForward(1 weeks);
         /// @dev forward half a week so it puts fees in epoch 1
         goForward(304801);
-        kwenta.transfer(address(tokenDistributor), 1000);
-        tokenDistributor.checkpointToken();
+        kwenta.transfer(address(earlyVestFeeDistributor), 1000);
+        earlyVestFeeDistributor.checkpointToken();
         goForward(1 weeks);
 
-        uint256 sum = tokenDistributor.calculateEpochFees(user1, 1);
+        uint256 sum = earlyVestFeeDistributor.calculateEpochFees(user1, 1);
         assertEq(sum, 111);
     }
 
@@ -399,14 +399,14 @@ contract TokenDistributorTest is StakingSetup {
         vm.stopPrank();
         goForward(1 weeks - 2);
 
-        /// @dev send fees to TokenDistributor midway through epoch 1
+        /// @dev send fees to EarlyVestFeeDistributor midway through epoch 1
         /// this will be split between all of epoch 0 and half of 1
         goForward(.5 weeks);
-        kwenta.transfer(address(tokenDistributor), amount);
+        kwenta.transfer(address(earlyVestFeeDistributor), amount);
         uint256 timeSinceLastCheckpoint = block.timestamp - 1 weeks;
-        tokenDistributor.checkpointToken();
+        earlyVestFeeDistributor.checkpointToken();
 
-        uint256 result = tokenDistributor.calculateEpochFees(address(user2), 1);
+        uint256 result = earlyVestFeeDistributor.calculateEpochFees(address(user2), 1);
         /// @dev calculate the proportion for this week (same as checkpoint math)
         /// then get the proportion staked (2/3)
         assertEq(
@@ -435,13 +435,13 @@ contract TokenDistributorTest is StakingSetup {
         vm.stopPrank();
         goForward(1 weeks - 2);
 
-        /// @dev send fees to TokenDistributor midway through epoch 3
+        /// @dev send fees to EarlyVestFeeDistributor midway through epoch 3
         /// this will be split between epochs 0 - 3.5
         goForward(2.5 weeks);
-        kwenta.transfer(address(tokenDistributor), amount);
-        tokenDistributor.checkpointToken();
+        kwenta.transfer(address(earlyVestFeeDistributor), amount);
+        earlyVestFeeDistributor.checkpointToken();
 
-        uint256 result = tokenDistributor.calculateEpochFees(address(user2), 1);
+        uint256 result = earlyVestFeeDistributor.calculateEpochFees(address(user2), 1);
         /// @dev calculate the proportion for this week (same as checkpoint math)
         /// then get the proportion staked (2/3)
         assertEq(result, (((amount * 1 weeks) / 3.5 weeks) * 2) / 3);
@@ -477,14 +477,14 @@ contract TokenDistributorTest is StakingSetup {
         vm.stopPrank();
         goForward(1 weeks - 2);
 
-        /// @dev send fees to TokenDistributor midway through epoch 1
+        /// @dev send fees to EarlyVestFeeDistributor midway through epoch 1
         /// this will be split between all of epoch 0 and half of 1
         goForward(.5 weeks);
-        kwenta.transfer(address(tokenDistributor), amount);
+        kwenta.transfer(address(earlyVestFeeDistributor), amount);
         uint256 timeSinceLastCheckpoint = block.timestamp - 1 weeks;
-        tokenDistributor.checkpointToken();
+        earlyVestFeeDistributor.checkpointToken();
 
-        uint256 result = tokenDistributor.calculateEpochFees(address(user2), 1);
+        uint256 result = earlyVestFeeDistributor.calculateEpochFees(address(user2), 1);
         /// @dev calculate the proportion for this week (same as checkpoint math)
         /// then get the proportion staked
         assertEq(
@@ -519,13 +519,13 @@ contract TokenDistributorTest is StakingSetup {
         vm.stopPrank();
         goForward(1 weeks - 2);
 
-        /// @dev send fees to TokenDistributor
+        /// @dev send fees to EarlyVestFeeDistributor
         goForward(1 weeks);
         goForward(time);
-        kwenta.transfer(address(tokenDistributor), amount);
-        tokenDistributor.checkpointToken();
+        kwenta.transfer(address(earlyVestFeeDistributor), amount);
+        earlyVestFeeDistributor.checkpointToken();
 
-        uint256 result = tokenDistributor.calculateEpochFees(address(user2), 1);
+        uint256 result = earlyVestFeeDistributor.calculateEpochFees(address(user2), 1);
         /// @dev calculate the proportion for this week (same as checkpoint math)
         /// then get the proportion staked (2/3)
         assertEq(result, (((amount * 1 weeks) / (time + 2 weeks)) * 2) / 3);
@@ -534,7 +534,7 @@ contract TokenDistributorTest is StakingSetup {
     /// @notice test calculate epoch fees for returning 0
     /// when total staked == 0
     function testCalculateEpochFees0() public {
-        uint256 result = tokenDistributor.calculateEpochFees(address(user1), 1);
+        uint256 result = earlyVestFeeDistributor.calculateEpochFees(address(user1), 1);
         assertEq(result, 0);
     }
 
@@ -556,40 +556,40 @@ contract TokenDistributorTest is StakingSetup {
         goForward(1 weeks + 1);
 
         /// @notice start of epoch 1
-        /// midway through epoch #1 TokenDistributor
+        /// midway through epoch #1 EarlyVestFeeDistributor
         /// receives 1000 in fees and checkpoints
         /// (this is split up between epoch 0 and 1)
         goForward(304801);
-        kwenta.transfer(address(tokenDistributor), 1000);
-        tokenDistributor.checkpointToken();
+        kwenta.transfer(address(earlyVestFeeDistributor), 1000);
+        earlyVestFeeDistributor.checkpointToken();
         goForward(1 weeks + 1);
 
         /// @dev during epoch #2, user1 claims their fees from #1
-        /// and TokenDistributor receives 5000 in fees
+        /// and EarlyVestFeeDistributor receives 5000 in fees
         vm.prank(user1);
         vm.expectEmit(true, true, false, true);
         emit VestingEntryCreated(address(user1), 111, 52 weeks, 1, 90);
-        tokenDistributor.claimEpoch(address(user1), 1);
-        kwenta.transfer(address(tokenDistributor), 5000);
+        earlyVestFeeDistributor.claimEpoch(address(user1), 1);
+        kwenta.transfer(address(earlyVestFeeDistributor), 5000);
 
         /// @dev At the start of epoch #3 user1 claims for epoch #2
         /// user2 also claims for #2 and #1
-        /// and TokenDistributor receives 300 in fees
+        /// and EarlyVestFeeDistributor receives 300 in fees
         goForward(304801);
         vm.prank(user1);
         vm.expectEmit(true, true, false, true);
         emit VestingEntryCreated(address(user1), 1640, 52 weeks, 2, 90);
-        tokenDistributor.claimEpoch(address(user1), 2);
+        earlyVestFeeDistributor.claimEpoch(address(user1), 2);
         goForward(1000);
-        kwenta.transfer(address(tokenDistributor), 300);
+        kwenta.transfer(address(earlyVestFeeDistributor), 300);
         vm.prank(user2);
         vm.expectEmit(true, true, false, true);
         emit VestingEntryCreated(address(user2), 3280, 52 weeks, 3, 90);
-        tokenDistributor.claimEpoch(address(user2), 2);
+        earlyVestFeeDistributor.claimEpoch(address(user2), 2);
         vm.prank(user2);
         vm.expectEmit(true, true, false, true);
         emit VestingEntryCreated(address(user2), 223, 52 weeks, 4, 90);
-        tokenDistributor.claimEpoch(address(user2), 1);
+        earlyVestFeeDistributor.claimEpoch(address(user2), 1);
     }
 
     /// @notice test claimMany
@@ -601,17 +601,17 @@ contract TokenDistributorTest is StakingSetup {
         vm.stopPrank();
 
         goForward(1.5 weeks);
-        kwenta.transfer(address(tokenDistributor), 1000);
-        tokenDistributor.checkpointToken();
+        kwenta.transfer(address(earlyVestFeeDistributor), 1000);
+        earlyVestFeeDistributor.checkpointToken();
         goForward(1 weeks);
 
-        kwenta.transfer(address(tokenDistributor), 5000);
+        kwenta.transfer(address(earlyVestFeeDistributor), 5000);
         goForward(1 weeks);
 
         uint[] memory epochs = new uint[](2);
         epochs[0] = 1;
         epochs[1] = 2;
-        tokenDistributor.claimMany(address(user1), epochs);
+        earlyVestFeeDistributor.claimMany(address(user1), epochs);
     }
 
     /// @notice test claimMany fail (one epoch cant be claimed)
@@ -623,18 +623,18 @@ contract TokenDistributorTest is StakingSetup {
         vm.stopPrank();
 
         goForward(1.5 weeks);
-        kwenta.transfer(address(tokenDistributor), 1000);
-        tokenDistributor.checkpointToken();
+        kwenta.transfer(address(earlyVestFeeDistributor), 1000);
+        earlyVestFeeDistributor.checkpointToken();
         goForward(1 weeks);
 
-        kwenta.transfer(address(tokenDistributor), 5000);
+        kwenta.transfer(address(earlyVestFeeDistributor), 5000);
         goForward(1 weeks);
 
         uint[] memory epochs = new uint[](2);
         epochs[0] = 1;
         epochs[1] = 2;
         epochs[2] = 3;
-        tokenDistributor.claimMany(address(user1), epochs);
+        earlyVestFeeDistributor.claimMany(address(user1), epochs);
     }
 
     /// @notice fuzz claimEpochFees
@@ -659,20 +659,20 @@ contract TokenDistributorTest is StakingSetup {
         /// to remove cross epoch distribution
         /// -2 because setup takes 2 seconds
         goForward(1 weeks - 2);
-        tokenDistributor.checkpointToken();
+        earlyVestFeeDistributor.checkpointToken();
 
-        /// @dev send fees to TokenDistributor 1 second before
+        /// @dev send fees to EarlyVestFeeDistributor 1 second before
         /// epoch 1 ends
         goForward(1 weeks - 1);
-        kwenta.transfer(address(tokenDistributor), amount);
-        tokenDistributor.checkpointToken();
+        kwenta.transfer(address(earlyVestFeeDistributor), amount);
+        earlyVestFeeDistributor.checkpointToken();
         goForward(1);
 
         /// @dev claim for epoch 1 at the first second of epoch 2
         vm.prank(user1);
         vm.expectEmit(true, true, false, true);
         emit VestingEntryCreated(address(user1), amount / 3, 52 weeks, 1, 90);
-        tokenDistributor.claimEpoch(address(user1), 1);
+        earlyVestFeeDistributor.claimEpoch(address(user1), 1);
     }
 
     /// @notice fuzz claimEpochFees, fuzz staking
@@ -710,13 +710,13 @@ contract TokenDistributorTest is StakingSetup {
         /// to remove cross epoch distribution
         /// -2 because setup takes 2 seconds
         goForward(1 weeks - 2);
-        tokenDistributor.checkpointToken();
+        earlyVestFeeDistributor.checkpointToken();
 
-        /// @dev send fees to TokenDistributor 1 second before
+        /// @dev send fees to EarlyVestFeeDistributor 1 second before
         /// epoch 1 ends
         goForward(1 weeks - 1);
-        kwenta.transfer(address(tokenDistributor), amount);
-        tokenDistributor.checkpointToken();
+        kwenta.transfer(address(earlyVestFeeDistributor), amount);
+        earlyVestFeeDistributor.checkpointToken();
         goForward(1);
 
         /// @dev claim for epoch 1 at the first second of epoch 2
@@ -729,7 +729,7 @@ contract TokenDistributorTest is StakingSetup {
             1,
             90
         );
-        tokenDistributor.claimEpoch(address(user1), 1);
+        earlyVestFeeDistributor.claimEpoch(address(user1), 1);
     }
 
     /// @notice fuzz claimEpochFees, fuzz time
@@ -771,12 +771,12 @@ contract TokenDistributorTest is StakingSetup {
         /// to remove cross epoch distribution
         /// -2 because setup takes 2 seconds
         goForward(1 weeks - 2);
-        tokenDistributor.checkpointToken();
+        earlyVestFeeDistributor.checkpointToken();
 
-        /// @dev send fees to TokenDistributor 1 second before
+        /// @dev send fees to EarlyVestFeeDistributor 1 second before
         /// epoch 1 ends
         goForward(1 weeks - 1);
-        kwenta.transfer(address(tokenDistributor), amount);
+        kwenta.transfer(address(earlyVestFeeDistributor), amount);
         goForward(1);
         goForward(time);
 
@@ -792,12 +792,12 @@ contract TokenDistributorTest is StakingSetup {
         );
         vm.expectEmit(true, true, true, true);
         emit EpochClaim(address(user1), 1, proportionalFees);
-        tokenDistributor.claimEpoch(address(user1), 1);
+        earlyVestFeeDistributor.claimEpoch(address(user1), 1);
     }
 
     /// @notice test everything with a custom offset
     function testOffset() public {
-        TokenDistributor tokenDistributorOffset = new TokenDistributor(
+        EarlyVestFeeDistributor earlyVestFeeDistributorOffset = new EarlyVestFeeDistributor(
             address(kwenta),
             address(stakingRewardsV2),
             address(rewardEscrowV2),
@@ -812,14 +812,14 @@ contract TokenDistributorTest is StakingSetup {
 
         /// @dev fees received at the start of the epoch (should be + 2 days)
         goForward(2 days + 1);
-        kwenta.transfer(address(tokenDistributorOffset), 100);
+        kwenta.transfer(address(earlyVestFeeDistributorOffset), 100);
 
         /// @dev checkpoint token < 24 hours before epoch end
         goForward(1 weeks - 4800);
         vm.expectEmit(true, true, true, true);
         emit CheckpointToken(1377603, 100);
-        tokenDistributorOffset.checkpointToken();
-        kwenta.transfer(address(tokenDistributorOffset), 5);
+        earlyVestFeeDistributorOffset.checkpointToken();
+        kwenta.transfer(address(earlyVestFeeDistributorOffset), 5);
         goForward(4801);
 
         /// @dev claim at the start of the new epoch (should also checkpoint)
@@ -827,16 +827,16 @@ contract TokenDistributorTest is StakingSetup {
         emit CheckpointToken(1382404, 5);
         vm.expectEmit(true, true, false, true);
         emit VestingEntryCreated(address(user1), 53, 52 weeks, 1, 90);
-        tokenDistributorOffset.claimEpoch(address(user1), 1);
+        earlyVestFeeDistributorOffset.claimEpoch(address(user1), 1);
 
         /// @dev user2 cant claim because they didnt stake
         vm.expectRevert();
-        tokenDistributorOffset.claimEpoch(address(user2), 1);
+        earlyVestFeeDistributorOffset.claimEpoch(address(user2), 1);
     }
 
     /// @notice test fuzz fees with a custom offset
     function testFuzzFeesOffset(uint amount) public {
-        TokenDistributor tokenDistributorOffset = new TokenDistributor(
+        EarlyVestFeeDistributor earlyVestFeeDistributorOffset = new EarlyVestFeeDistributor(
             address(kwenta),
             address(stakingRewardsV2),
             address(rewardEscrowV2),
@@ -857,8 +857,8 @@ contract TokenDistributorTest is StakingSetup {
 
         /// @dev fees received at the start of the epoch (should be + 2 days)
         goForward(2 days - 2);
-        tokenDistributorOffset.checkpointToken();
-        kwenta.transfer(address(tokenDistributorOffset), amount);
+        earlyVestFeeDistributorOffset.checkpointToken();
+        kwenta.transfer(address(earlyVestFeeDistributorOffset), amount);
 
         /// @dev claim at the start of the new epoch (should also checkpoint)
         goForward(1 weeks);
@@ -866,7 +866,7 @@ contract TokenDistributorTest is StakingSetup {
         emit CheckpointToken(1382400, amount);
         vm.expectEmit(true, true, true, true);
         emit EpochClaim(address(user1), 1, amount);
-        tokenDistributorOffset.claimEpoch(address(user1), 1);
+        earlyVestFeeDistributorOffset.claimEpoch(address(user1), 1);
     }
 
     /// @notice test fuzz staking with a custom offset
@@ -876,7 +876,7 @@ contract TokenDistributorTest is StakingSetup {
         uint staking2,
         uint staking3
     ) public {
-        TokenDistributor tokenDistributorOffset = new TokenDistributor(
+        EarlyVestFeeDistributor earlyVestFeeDistributorOffset = new EarlyVestFeeDistributor(
             address(kwenta),
             address(stakingRewardsV2),
             address(rewardEscrowV2),
@@ -928,8 +928,8 @@ contract TokenDistributorTest is StakingSetup {
 
         /// @dev fees received at the start of the epoch (should be + 2 days)
         goForward(2 days - 2);
-        tokenDistributorOffset.checkpointToken();
-        kwenta.transfer(address(tokenDistributorOffset), amount);
+        earlyVestFeeDistributorOffset.checkpointToken();
+        kwenta.transfer(address(earlyVestFeeDistributorOffset), amount);
 
         /// @dev claim at the start of the new epoch (should also checkpoint)
         goForward(1 weeks);
@@ -937,15 +937,15 @@ contract TokenDistributorTest is StakingSetup {
         emit CheckpointToken(1382400, amount);
         vm.expectEmit(true, true, true, true);
         emit EpochClaim(address(user1), 1, proportionalFees1);
-        tokenDistributorOffset.claimEpoch(address(user1), 1);
+        earlyVestFeeDistributorOffset.claimEpoch(address(user1), 1);
 
         vm.expectEmit(true, true, true, true);
         emit EpochClaim(address(user2), 1, proportionalFees2);
-        tokenDistributorOffset.claimEpoch(address(user2), 1);
+        earlyVestFeeDistributorOffset.claimEpoch(address(user2), 1);
 
         vm.expectEmit(true, true, true, true);
         emit EpochClaim(address(user3), 1, proportionalFees3);
-        tokenDistributorOffset.claimEpoch(address(user3), 1);
+        earlyVestFeeDistributorOffset.claimEpoch(address(user3), 1);
     }
 
     /// @notice test fuzz time with a custom offset
@@ -956,7 +956,7 @@ contract TokenDistributorTest is StakingSetup {
         uint staking3,
         uint time
     ) public {
-        TokenDistributor tokenDistributorOffset = new TokenDistributor(
+        EarlyVestFeeDistributor earlyVestFeeDistributorOffset = new EarlyVestFeeDistributor(
             address(kwenta),
             address(stakingRewardsV2),
             address(rewardEscrowV2),
@@ -1010,8 +1010,8 @@ contract TokenDistributorTest is StakingSetup {
 
         /// @dev fees received at the start of the epoch (should be + 2 days)
         goForward(2 days - 2);
-        tokenDistributorOffset.checkpointToken();
-        kwenta.transfer(address(tokenDistributorOffset), amount);
+        earlyVestFeeDistributorOffset.checkpointToken();
+        kwenta.transfer(address(earlyVestFeeDistributorOffset), amount);
 
         /// @dev claim at the start of the new epoch (should also checkpoint)
         goForward(1 weeks);
@@ -1020,15 +1020,15 @@ contract TokenDistributorTest is StakingSetup {
         emit CheckpointToken(1382400 + time, amount);
         vm.expectEmit(true, true, true, true);
         emit EpochClaim(address(user1), 1, proportionalFees1);
-        tokenDistributorOffset.claimEpoch(address(user1), 1);
+        earlyVestFeeDistributorOffset.claimEpoch(address(user1), 1);
 
         vm.expectEmit(true, true, true, true);
         emit EpochClaim(address(user2), 1, proportionalFees2);
-        tokenDistributorOffset.claimEpoch(address(user2), 1);
+        earlyVestFeeDistributorOffset.claimEpoch(address(user2), 1);
 
         vm.expectEmit(true, true, true, true);
         emit EpochClaim(address(user3), 1, proportionalFees3);
-        tokenDistributorOffset.claimEpoch(address(user3), 1);
+        earlyVestFeeDistributorOffset.claimEpoch(address(user3), 1);
     }
 
     /// @notice test startOfWeek
@@ -1036,7 +1036,7 @@ contract TokenDistributorTest is StakingSetup {
         /// @dev starts after another week so the startTime is != 0
         goForward(1 weeks);
 
-        TokenDistributorInternals tokenDistributorOffset = new TokenDistributorInternals(
+        EarlyVestFeeDistributorInternals earlyVestFeeDistributorOffset = new EarlyVestFeeDistributorInternals(
                 address(kwenta),
                 address(stakingRewardsV2),
                 address(rewardEscrowV2),
@@ -1047,51 +1047,51 @@ contract TokenDistributorTest is StakingSetup {
         /// makes it it 777600 (608400 + 86400 * 2)
         /// @note the current timestamp is 608402 but the start of the OFFSET week
         /// is not for another 2 days
-        uint result = tokenDistributorOffset.startOfWeek(block.timestamp);
+        uint result = earlyVestFeeDistributorOffset.startOfWeek(block.timestamp);
         assertEq(result, 1 weeks + 2 days);
 
         goForward(2 days);
-        uint result2 = tokenDistributorOffset.startOfWeek(block.timestamp);
+        uint result2 = earlyVestFeeDistributorOffset.startOfWeek(block.timestamp);
         assertEq(result2, 2 weeks + 2 days);
 
         /// @dev this should be passed a normal week but just before the offset
         /// week so nothing should change
         goForward(604000);
-        uint result3 = tokenDistributorOffset.startOfWeek(block.timestamp);
+        uint result3 = earlyVestFeeDistributorOffset.startOfWeek(block.timestamp);
         assertEq(result3, 2 weeks + 2 days);
 
         /// @dev this is a few hundred seconds into a new offset week so should
         /// be a different start time
         goForward(1000);
-        uint result4 = tokenDistributorOffset.startOfWeek(block.timestamp);
+        uint result4 = earlyVestFeeDistributorOffset.startOfWeek(block.timestamp);
         assertEq(result4, 3 weeks + 2 days);
     }
 
     /// @notice test startOfWeek exactly at the turn of the week
     function testExactlyStartOfWeek() public {
-        TokenDistributorInternals tDI = new TokenDistributorInternals(
+        EarlyVestFeeDistributorInternals eVFDI = new EarlyVestFeeDistributorInternals(
             address(kwenta),
             address(stakingRewardsV2),
             address(rewardEscrowV2),
             0
         );
-        uint result1 = tDI.startOfWeek(block.timestamp);
+        uint result1 = eVFDI.startOfWeek(block.timestamp);
         assertEq(result1, 1 weeks);
 
         /// @dev this is 1 second before the turn of the week
         goForward(1 weeks - 3);
-        uint result2 = tDI.startOfWeek(block.timestamp);
+        uint result2 = eVFDI.startOfWeek(block.timestamp);
         assertEq(result2, 1 weeks);
 
         /// @dev this is the first second of week 2
         goForward(1);
-        uint result3 = tDI.startOfWeek(block.timestamp);
+        uint result3 = eVFDI.startOfWeek(block.timestamp);
         assertEq(result3, 2 weeks);
     }
 
     /// @notice test claiming an unready epoch with an offset
     function testCannotClaimYetOffset() public {
-        TokenDistributorInternals tokenDistributorOffset = new TokenDistributorInternals(
+        EarlyVestFeeDistributorInternals earlyVestFeeDistributorOffset = new EarlyVestFeeDistributorInternals(
                 address(kwenta),
                 address(stakingRewardsV2),
                 address(rewardEscrowV2),
@@ -1104,51 +1104,51 @@ contract TokenDistributorTest is StakingSetup {
         /// but a regular week has already changed. claim should revert because
         /// it is offset and still not ready to claim
         goForward(2 days - 3);
-        uint result = tokenDistributorOffset.startOfWeek(block.timestamp);
+        uint result = earlyVestFeeDistributorOffset.startOfWeek(block.timestamp);
         assertEq(result, 2 days);
         vm.expectRevert(
-            abi.encodeWithSelector(ITokenDistributor.CannotClaimYet.selector)
+            abi.encodeWithSelector(IEarlyVestFeeDistributor.CannotClaimYet.selector)
         );
-        tokenDistributorOffset.claimEpoch(address(user1), 0);
+        earlyVestFeeDistributorOffset.claimEpoch(address(user1), 0);
     }
 
     /// @notice test _startOfEpoch so that it follows an offset like _startOfWeek
     function testStartOfEpoch() public {
-        TokenDistributorInternals tDI = new TokenDistributorInternals(
+        EarlyVestFeeDistributorInternals eVFDI = new EarlyVestFeeDistributorInternals(
             address(kwenta),
             address(stakingRewardsV2),
             address(rewardEscrowV2),
             2
         );
 
-        assertEq(tDI.startOfWeek(block.timestamp), tDI.startOfEpoch(0));
+        assertEq(eVFDI.startOfWeek(block.timestamp), eVFDI.startOfEpoch(0));
 
         goForward(2 days);
 
-        assertEq(tDI.startOfWeek(block.timestamp), tDI.startOfEpoch(1));
+        assertEq(eVFDI.startOfWeek(block.timestamp), eVFDI.startOfEpoch(1));
     }
 
     // Test _checkpointWhenReady
 
     /// @notice test _checkpointWhenReady for when its < 24 hrs and not a new week
     function testFailCheckpointWhenNotReady() public {
-        TokenDistributorInternals tDI = new TokenDistributorInternals(
+        EarlyVestFeeDistributorInternals eVFDI = new EarlyVestFeeDistributorInternals(
             address(kwenta),
             address(stakingRewardsV2),
             address(rewardEscrowV2),
             2
         );
 
-        tDI.checkpointToken();
+        eVFDI.checkpointToken();
         vm.expectEmit(false, false, false, true);
         emit CheckpointToken(1 weeks + 2, 0);
         /// @dev this does not checkpoint and fails
-        tDI.checkpointWhenReady();
+        eVFDI.checkpointWhenReady();
     }
 
     /// @notice test _checkpointWhenReady for when its > 24 hrs and not new week
     function testCheckpointWhenReady24Hrs() public {
-        TokenDistributorInternals tDI = new TokenDistributorInternals(
+        EarlyVestFeeDistributorInternals eVFDI = new EarlyVestFeeDistributorInternals(
             address(kwenta),
             address(stakingRewardsV2),
             address(rewardEscrowV2),
@@ -1156,36 +1156,36 @@ contract TokenDistributorTest is StakingSetup {
         );
 
         goForward(1 days + 1);
-        uint result = tDI.startOfWeek(block.timestamp);
+        uint result = eVFDI.startOfWeek(block.timestamp);
         assertEq(result, 2 days);
         vm.expectEmit(false, false, false, true);
         emit CheckpointToken(1 weeks + 1 days + 3, 0);
-        tDI.checkpointWhenReady();
+        eVFDI.checkpointWhenReady();
     }
 
     /// @notice test _checkpointWhenReady for when its > 24 hrs and is new week
     function testCheckpointWhen24hrsAndNewWeek() public {
-        TokenDistributorInternals tDI = new TokenDistributorInternals(
+        EarlyVestFeeDistributorInternals eVFDI = new EarlyVestFeeDistributorInternals(
             address(kwenta),
             address(stakingRewardsV2),
             address(rewardEscrowV2),
             2
         );
 
-        uint result = tDI.startOfWeek(block.timestamp);
+        uint result = eVFDI.startOfWeek(block.timestamp);
         assertEq(result, 2 days);
 
         goForward(3 days);
-        uint result2 = tDI.startOfWeek(block.timestamp);
+        uint result2 = eVFDI.startOfWeek(block.timestamp);
         assertEq(result2, 1 weeks + 2 days);
         vm.expectEmit(false, false, false, true);
         emit CheckpointToken(1 weeks + 3 days + 2, 0);
-        tDI.checkpointWhenReady();
+        eVFDI.checkpointWhenReady();
     }
 
     /// @notice test _checkpointWhenReady for when its < 24 hrs and is new week
     function testCheckpointWhenReadyNewWeek() public {
-        TokenDistributorInternals tDI = new TokenDistributorInternals(
+        EarlyVestFeeDistributorInternals eVFDI = new EarlyVestFeeDistributorInternals(
             address(kwenta),
             address(stakingRewardsV2),
             address(rewardEscrowV2),
@@ -1193,34 +1193,34 @@ contract TokenDistributorTest is StakingSetup {
         );
 
         goForward(1.5 days);
-        uint result = tDI.startOfWeek(block.timestamp);
+        uint result = eVFDI.startOfWeek(block.timestamp);
         assertEq(result, 2 days);
-        tDI.checkpointToken();
+        eVFDI.checkpointToken();
 
         goForward(1 days);
-        uint result2 = tDI.startOfWeek(block.timestamp);
+        uint result2 = eVFDI.startOfWeek(block.timestamp);
         assertEq(result2, 1 weeks + 2 days);
         vm.expectEmit(false, false, false, true);
         emit CheckpointToken(1 weeks + 2.5 days + 2, 0);
-        tDI.checkpointWhenReady();
+        eVFDI.checkpointWhenReady();
     }
 
     /// @notice test fail _checkpointWhenReady for when its been exactly 24 hours
     function testFailCheckpointWhenExactly24Hrs() public {
-        TokenDistributorInternals tDI = new TokenDistributorInternals(
+        EarlyVestFeeDistributorInternals eVFDI = new EarlyVestFeeDistributorInternals(
             address(kwenta),
             address(stakingRewardsV2),
             address(rewardEscrowV2),
             2
         );
 
-        tDI.checkpointToken();
+        eVFDI.checkpointToken();
         goForward(1 days);
-        uint result = tDI.startOfWeek(block.timestamp);
+        uint result = eVFDI.startOfWeek(block.timestamp);
         assertEq(result, 2 days);
         vm.expectEmit(false, false, false, true);
         emit CheckpointToken(1 weeks + 1 days + 2, 0);
-        tDI.checkpointWhenReady();
+        eVFDI.checkpointWhenReady();
     }
 
     /// @notice complete test for when deployed after V2
@@ -1278,7 +1278,7 @@ contract TokenDistributorTest is StakingSetup {
 
         goForward(3 weeks);
 
-        TokenDistributor tokenDistributorOffset = new TokenDistributor(
+        EarlyVestFeeDistributor earlyVestFeeDistributorOffset = new EarlyVestFeeDistributor(
             address(kwenta),
             address(stakingRewardsV2),
             address(rewardEscrowV2),
@@ -1287,8 +1287,8 @@ contract TokenDistributorTest is StakingSetup {
 
         /// @dev fees received at the start of the epoch (should be + 2 days)
         goForward(2 days - 2);
-        tokenDistributorOffset.checkpointToken();
-        kwenta.transfer(address(tokenDistributorOffset), amount);
+        earlyVestFeeDistributorOffset.checkpointToken();
+        kwenta.transfer(address(earlyVestFeeDistributorOffset), amount);
 
         /// @dev claim at the start of the new epoch + fuzzed time (should also checkpoint)
         goForward(1 weeks);
@@ -1297,15 +1297,15 @@ contract TokenDistributorTest is StakingSetup {
         emit CheckpointToken(5 weeks + 2 days + time, amount);
         vm.expectEmit(true, true, true, true);
         emit EpochClaim(address(user1), 1, proportionalFees1);
-        tokenDistributorOffset.claimEpoch(address(user1), 1);
+        earlyVestFeeDistributorOffset.claimEpoch(address(user1), 1);
 
         vm.expectEmit(true, true, true, true);
         emit EpochClaim(address(user2), 1, proportionalFees2);
-        tokenDistributorOffset.claimEpoch(address(user2), 1);
+        earlyVestFeeDistributorOffset.claimEpoch(address(user2), 1);
 
         vm.expectEmit(true, true, true, true);
         emit EpochClaim(address(user3), 1, proportionalFees3);
-        tokenDistributorOffset.claimEpoch(address(user3), 1);
+        earlyVestFeeDistributorOffset.claimEpoch(address(user3), 1);
     }
 
     /// @notice fuzz offset
@@ -1353,7 +1353,7 @@ contract TokenDistributorTest is StakingSetup {
 
         goForward(3 weeks);
 
-        TokenDistributor tokenDistributorOffset = new TokenDistributor(
+        EarlyVestFeeDistributor earlyVestFeeDistributorOffset = new EarlyVestFeeDistributor(
             address(kwenta),
             address(stakingRewardsV2),
             address(rewardEscrowV2),
@@ -1362,8 +1362,8 @@ contract TokenDistributorTest is StakingSetup {
 
         /// @dev fees received at the start of the epoch
         goForward((offset * 1 days) - 2);
-        tokenDistributorOffset.checkpointToken();
-        kwenta.transfer(address(tokenDistributorOffset), amount);
+        earlyVestFeeDistributorOffset.checkpointToken();
+        kwenta.transfer(address(earlyVestFeeDistributorOffset), amount);
 
         /// @dev claim at the start of the new epoch (should also checkpoint)
         goForward(1 weeks);
@@ -1371,18 +1371,18 @@ contract TokenDistributorTest is StakingSetup {
         emit CheckpointToken(5 weeks + (offset * 1 days), amount);
         vm.expectEmit(true, true, true, true);
         emit EpochClaim(address(user1), 1, proportionalFees1);
-        tokenDistributorOffset.claimEpoch(address(user1), 1);
+        earlyVestFeeDistributorOffset.claimEpoch(address(user1), 1);
 
         vm.expectEmit(true, true, true, true);
         emit EpochClaim(address(user2), 1, proportionalFees2);
-        tokenDistributorOffset.claimEpoch(address(user2), 1);
+        earlyVestFeeDistributorOffset.claimEpoch(address(user2), 1);
     }
 
     // Test _isEpochActive
 
     /// @notice current epoch is not ready to claim yet
     function testCurrentEpochNotDoneYet() public {
-        TokenDistributorInternals tDI = new TokenDistributorInternals(
+        EarlyVestFeeDistributorInternals eVFDI = new EarlyVestFeeDistributorInternals(
             address(kwenta),
             address(stakingRewardsV2),
             address(rewardEscrowV2),
@@ -1390,14 +1390,14 @@ contract TokenDistributorTest is StakingSetup {
         );
         goForward(.5 weeks);
         vm.expectRevert(
-            abi.encodeWithSelector(ITokenDistributor.CannotClaimYet.selector)
+            abi.encodeWithSelector(IEarlyVestFeeDistributor.CannotClaimYet.selector)
         );
-        tDI.isEpochReady(0);
+        eVFDI.isEpochReady(0);
     }
 
     /// @notice epoch is not here yet (future)
     function testNotEpochYet() public {
-        TokenDistributorInternals tDI = new TokenDistributorInternals(
+        EarlyVestFeeDistributorInternals eVFDI = new EarlyVestFeeDistributorInternals(
             address(kwenta),
             address(stakingRewardsV2),
             address(rewardEscrowV2),
@@ -1405,28 +1405,28 @@ contract TokenDistributorTest is StakingSetup {
         );
         goForward(.5 weeks);
         vm.expectRevert(
-            abi.encodeWithSelector(ITokenDistributor.CannotClaimYet.selector)
+            abi.encodeWithSelector(IEarlyVestFeeDistributor.CannotClaimYet.selector)
         );
-        tDI.isEpochReady(7);
+        eVFDI.isEpochReady(7);
     }
 
     /// @notice no epochs yet (claim right at deployment)
     function testNoEpochsYet() public {
-        TokenDistributorInternals tDI = new TokenDistributorInternals(
+        EarlyVestFeeDistributorInternals eVFDI = new EarlyVestFeeDistributorInternals(
             address(kwenta),
             address(stakingRewardsV2),
             address(rewardEscrowV2),
             0
         );
         vm.expectRevert(
-            abi.encodeWithSelector(ITokenDistributor.CannotClaimYet.selector)
+            abi.encodeWithSelector(IEarlyVestFeeDistributor.CannotClaimYet.selector)
         );
-        tDI.isEpochReady(0);
+        eVFDI.isEpochReady(0);
     }
 
     /// @notice epoch is not ready to claim yet (with offset)
     function testCurrentEpochNotDoneYetWithOffset() public {
-        TokenDistributorInternals tDI = new TokenDistributorInternals(
+        EarlyVestFeeDistributorInternals eVFDI = new EarlyVestFeeDistributorInternals(
             address(kwenta),
             address(stakingRewardsV2),
             address(rewardEscrowV2),
@@ -1434,17 +1434,17 @@ contract TokenDistributorTest is StakingSetup {
         );
         goForward(2 days - 3);
         vm.expectRevert(
-            abi.encodeWithSelector(ITokenDistributor.CannotClaimYet.selector)
+            abi.encodeWithSelector(IEarlyVestFeeDistributor.CannotClaimYet.selector)
         );
-        tDI.isEpochReady(0);
+        eVFDI.isEpochReady(0);
 
         goForward(3);
-        tDI.isEpochReady(0);
+        eVFDI.isEpochReady(0);
     }
 
     /// @notice fuzz that future epochs are not ready
     function testFuzzEpochsArentReady(uint epochNumber) public {
-        TokenDistributorInternals tDI = new TokenDistributorInternals(
+        EarlyVestFeeDistributorInternals eVFDI = new EarlyVestFeeDistributorInternals(
             address(kwenta),
             address(stakingRewardsV2),
             address(rewardEscrowV2),
@@ -1455,14 +1455,14 @@ contract TokenDistributorTest is StakingSetup {
         /// which isn't claimable yet (ongoing)
         goForward(epochNumber * 1 weeks);
         vm.expectRevert(
-            abi.encodeWithSelector(ITokenDistributor.CannotClaimYet.selector)
+            abi.encodeWithSelector(IEarlyVestFeeDistributor.CannotClaimYet.selector)
         );
-        tDI.isEpochReady(epochNumber);
+        eVFDI.isEpochReady(epochNumber);
     }
 
     /// @notice fuzz that future epochs are ready
     function testFuzzIsEpochReady(uint8 epochNumber) public {
-        TokenDistributorInternals tDI = new TokenDistributorInternals(
+        EarlyVestFeeDistributorInternals eVFDI = new EarlyVestFeeDistributorInternals(
             address(kwenta),
             address(stakingRewardsV2),
             address(rewardEscrowV2),
@@ -1471,64 +1471,64 @@ contract TokenDistributorTest is StakingSetup {
         /// @dev 75 epochs will already be claimable
         vm.assume(epochNumber < 76);
         goForward(76 weeks);
-        tDI.isEpochReady(epochNumber);
+        eVFDI.isEpochReady(epochNumber);
     }
 
     /// @notice epochFromTimestamp
     function testEpochFromTimestamp() public {
-        TokenDistributorInternals tDI = new TokenDistributorInternals(
+        EarlyVestFeeDistributorInternals eVFDI = new EarlyVestFeeDistributorInternals(
             address(kwenta),
             address(stakingRewardsV2),
             address(rewardEscrowV2),
             0
         );
 
-        uint result1 = tDI.epochFromTimestamp(block.timestamp);
+        uint result1 = eVFDI.epochFromTimestamp(block.timestamp);
         assertEq(result1, 0);
 
         goForward(.5 weeks);
-        uint result2 = tDI.epochFromTimestamp(block.timestamp);
+        uint result2 = eVFDI.epochFromTimestamp(block.timestamp);
         assertEq(result2, 0);
 
         goForward(.5 weeks);
-        uint result3 = tDI.epochFromTimestamp(block.timestamp);
+        uint result3 = eVFDI.epochFromTimestamp(block.timestamp);
         assertEq(result3, 1);
 
         goForward(10 weeks);
-        uint result4 = tDI.epochFromTimestamp(block.timestamp);
+        uint result4 = eVFDI.epochFromTimestamp(block.timestamp);
         assertEq(result4, 11);
     }
 
     /// @notice epochFromTimestamp with offset
     function testEpochFromTimestampOffset() public {
-        TokenDistributorInternals tDI = new TokenDistributorInternals(
+        EarlyVestFeeDistributorInternals eVFDI = new EarlyVestFeeDistributorInternals(
             address(kwenta),
             address(stakingRewardsV2),
             address(rewardEscrowV2),
             2
         );
 
-        uint result1 = tDI.epochFromTimestamp(block.timestamp);
+        uint result1 = eVFDI.epochFromTimestamp(block.timestamp);
         assertEq(result1, 0);
 
         /// @dev right at the start of epoch 1
         goForward(2 days - 2);
-        uint result2 = tDI.epochFromTimestamp(block.timestamp);
+        uint result2 = eVFDI.epochFromTimestamp(block.timestamp);
         assertEq(result2, 1);
 
         /// @dev end of a normal week but offset week hasnt ended yet
         goForward(6 days);
-        uint result3 = tDI.epochFromTimestamp(block.timestamp);
+        uint result3 = eVFDI.epochFromTimestamp(block.timestamp);
         assertEq(result3, 1);
 
         goForward(10 weeks);
-        uint result4 = tDI.epochFromTimestamp(block.timestamp);
+        uint result4 = eVFDI.epochFromTimestamp(block.timestamp);
         assertEq(result4, 11);
     }
 
     /// @notice make sure _startOfWeek and _startOfEpoch are always aligned
     function testFuzzStartOfTimeEpoch(uint time) public {
-        TokenDistributorInternals tDI = new TokenDistributorInternals(
+        EarlyVestFeeDistributorInternals eVFDI = new EarlyVestFeeDistributorInternals(
             address(kwenta),
             address(stakingRewardsV2),
             address(rewardEscrowV2),
@@ -1536,6 +1536,6 @@ contract TokenDistributorTest is StakingSetup {
         );
         vm.assume(time < 1000 weeks);
         goForward(time);
-        assertEq(tDI.startOfWeek(block.timestamp), tDI.startOfEpoch(tDI.epochFromTimestamp(block.timestamp)));
+        assertEq(eVFDI.startOfWeek(block.timestamp), eVFDI.startOfEpoch(eVFDI.epochFromTimestamp(block.timestamp)));
     }
 }

@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.19;
 
-import {TokenDistributor} from "../../../contracts/TokenDistributor.sol";
+import {EarlyVestFeeDistributor} from "../../../contracts/EarlyVestFeeDistributor.sol";
 
-contract TokenDistributorInternals is TokenDistributor {
+contract EarlyVestFeeDistributorInternals is EarlyVestFeeDistributor {
     constructor(
         address _kwenta,
         address _stakingRewardsV2,
         address _rewardEscrowV2,
         uint _offset
-    ) TokenDistributor(_kwenta, _stakingRewardsV2, _rewardEscrowV2, _offset) {}
+    ) EarlyVestFeeDistributor(_kwenta, _stakingRewardsV2, _rewardEscrowV2, _offset) {}
 
     function startOfWeek(uint timestamp) public view returns (uint) {
         return _startOfWeek(timestamp);

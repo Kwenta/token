@@ -2,7 +2,7 @@
 pragma solidity ^0.8.19;
 
 import {Script} from "../lib/forge-std/src/Script.sol";
-import {TokenDistributor} from "../contracts/TokenDistributor.sol";
+import {EarlyVestFeeDistributor} from "../contracts/EarlyVestFeeDistributor.sol";
 
 /**
  *
@@ -10,9 +10,9 @@ import {TokenDistributor} from "../contracts/TokenDistributor.sol";
  *
  */
 
-contract DeployTokenDistributor is Script {
+contract DeployEarlyVestFeeDistributor is Script {
     // contract(s) being deployed
-    TokenDistributor distributor;
+    EarlyVestFeeDistributor distributor;
 
     // constructor arguments
     address constant MAINNET_KWENTA =
@@ -35,7 +35,7 @@ contract DeployTokenDistributor is Script {
 
         /// @dev if rpc url == Optimism mainnet then deploy there
         if (block.chainid == 10) {
-            distributor = new TokenDistributor({
+            distributor = new EarlyVestFeeDistributor({
                 _stakingRewardsV2: MAINNET_STAKING_REWARDS_V2_PROXY,
                 _rewardEscrowV2: MAINNET_REWARD_ESCROW_V2_PROXY,
                 _kwenta: MAINNET_KWENTA,
@@ -44,7 +44,7 @@ contract DeployTokenDistributor is Script {
         }
         /// @dev else if rpc url == Optimism Goerli testnet then deploy there
         else if (block.chainid == 420) {
-            distributor = new TokenDistributor({
+            distributor = new EarlyVestFeeDistributor({
                 _stakingRewardsV2: TESTNET_STAKING_REWARDS_V2_PROXY,
                 _rewardEscrowV2: TESTNET_REWARD_ESCROW_V2_PROXY,
                 _kwenta: TESTNET_KWENTA,
@@ -63,5 +63,5 @@ contract DeployTokenDistributor is Script {
  * > source .env
  *
  * To deploy and verify our contract
- * > forge script script/DeployTokenDistributor.s.sol:DeployTokenDistributor --rpc-url $OPTIMISM_RPC_URL/$OPTIMISM_GOERLI_RPC_URL --broadcast -vvvv
+ * > forge script script/DeployEarlyVestFeeDistributor.s.sol:DeployEarlyVestFeeDistributor --rpc-url $OPTIMISM_RPC_URL/$OPTIMISM_GOERLI_RPC_URL --broadcast -vvvv
  */
