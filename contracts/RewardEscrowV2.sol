@@ -106,7 +106,7 @@ contract RewardEscrowV2 is
 
         // Initialize inherited contracts
         __ERC721_init("Kwenta Reward Escrow", "KRE");
-        __Ownable_init();
+        __Ownable2Step_init();
         __Pausable_init();
         __UUPSUpgradeable_init();
 

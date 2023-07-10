@@ -163,7 +163,7 @@ contract StakingRewardsV2 is
         if (_contractOwner == address(0)) revert ZeroAddress();
 
         // initialize owner
-        __Ownable_init();
+        __Ownable2Step_init();
         __Pausable_init();
         __UUPSUpgradeable_init();
 
