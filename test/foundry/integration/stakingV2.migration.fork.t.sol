@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity ^0.8.19;
+pragma solidity 0.8.19;
 
 import {console} from "forge-std/Test.sol";
 import {StakingTestHelpers} from "../utils/helpers/StakingTestHelpers.t.sol";
