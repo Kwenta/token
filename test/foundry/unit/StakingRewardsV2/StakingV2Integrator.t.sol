@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.19;
+pragma solidity 0.8.19;
 
 import {console} from "forge-std/Test.sol";
 import {IStakingRewardsV2} from "../../../../contracts/interfaces/IStakingRewardsV2.sol";
@@ -7,6 +7,7 @@ import {IStakingRewardsV2Integrator} from
     "../../../../contracts/interfaces/IStakingRewardsV2Integrator.sol";
 import {DefaultStakingV2Setup} from "../../utils/setup/DefaultStakingV2Setup.t.sol";
 import {MockStakingV2Integrator} from "../../utils/mocks/MockStakingV2Integrator.t.sol";
+import {MaliciousStakingV2Integrator} from "../../utils/mocks/MaliciousStakingV2Integrator.t.sol";
 import "../../utils/Constants.t.sol";
 
 contract StakingV2IntegratorTests is DefaultStakingV2Setup {
@@ -15,6 +16,7 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
     //////////////////////////////////////////////////////////////*/
 
     IStakingRewardsV2Integrator public integrator;
+    IStakingRewardsV2Integrator public maliciousIntegrator;
 
     /*//////////////////////////////////////////////////////////////
                                  SETUP
@@ -22,6 +24,10 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
 
     function setUp() public override {
         super.setUp();
+
+        maliciousIntegrator = IStakingRewardsV2Integrator(
+            address(new MaliciousStakingV2Integrator(address(this), address(stakingRewardsV2)))
+        );
 
         integrator = new MockStakingV2Integrator(address(this));
         fundAccountAndStakeV2(address(integrator), 1 ether);
@@ -212,7 +218,6 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
                            CLAIM AND COMPOUND
     //////////////////////////////////////////////////////////////*/
 
-
     function test_getIntegratorRewardAndCompound() public {
         // get starting balances
         uint256 entriesBefore = rewardEscrowV2.balanceOf(address(this));
@@ -271,6 +276,23 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
         // get the rewards
         vm.expectRevert("Pausable: paused");
         stakingRewardsV2.getIntegratorRewardAndCompound(address(integrator));
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                           REENTRANCY CHECKS
+    //////////////////////////////////////////////////////////////*/
+
+    function test_Cannot_Reenter_getIntegratorReward() public {
+        fundAccountAndStakeV2(address(maliciousIntegrator), 1 ether);
+        createRewardEscrowEntryV2(address(maliciousIntegrator), 1 ether);
+
+        // add new rewards
+        addNewRewards();
+
+        // get the rewards
+        // should fail due to "EvmError: StateChangeDuringStaticCall" but the error isn't bubbled back
+        vm.expectRevert();
+        stakingRewardsV2.getIntegratorReward(address(maliciousIntegrator));
     }
 
     /*//////////////////////////////////////////////////////////////

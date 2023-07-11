@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity ^0.8.19;
+pragma solidity 0.8.19;
 
 import {Script, console} from "forge-std/Script.sol";
 import {Kwenta} from "../contracts/Kwenta.sol";
@@ -215,8 +215,8 @@ contract DeployAndSetupOptimism is Script, Migrate {
             address(rewardEscrowV2), address(stakingRewardsV2), OPTIMISM_TREASURY_DAO, true
         );
 
-        rewardEscrowV2.transferOwnership(OPTIMISM_KWENTA_OWNER);
-        stakingRewardsV2.transferOwnership(OPTIMISM_KWENTA_OWNER);
+        rewardEscrowV2.transferOwnership(OPTIMISM_PDAO);
+        stakingRewardsV2.transferOwnership(OPTIMISM_PDAO);
 
         vm.stopBroadcast();
     }
