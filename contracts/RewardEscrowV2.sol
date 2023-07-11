@@ -368,8 +368,9 @@ contract RewardEscrowV2 is
             // 50% to EarlyVestFeeDistributor
             if (totalFee != 0) {
                 /// @dev this will revert if the kwenta token transfer fails
-                kwenta.transfer(treasuryDAO, totalFee * 50 / 100);
-                kwenta.transfer(earlyVestFeeDistributor, totalFee * 50 / 100);
+                uint256 proportionalFee = totalFee * 50 / 100;
+                kwenta.transfer(treasuryDAO, proportionalFee);
+                kwenta.transfer(earlyVestFeeDistributor, proportionalFee);
             }
 
             if (total != 0) {
