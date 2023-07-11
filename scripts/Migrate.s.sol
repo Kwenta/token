@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-pragma solidity ^0.8.19;
+pragma solidity 0.8.19;
 
 import {Script, console} from "forge-std/Script.sol";
 import {Kwenta} from "../contracts/Kwenta.sol";
