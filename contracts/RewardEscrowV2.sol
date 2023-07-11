@@ -55,9 +55,6 @@ contract RewardEscrowV2 is
     /// @notice treasury address - this may change
     address public treasuryDAO;
 
-    /// @notice EarlyVestFeeDistributor address
-    address public earlyVestFeeDistributor;
-
     ///@notice mapping of entryIDs to vesting entries
     mapping(uint256 => VestingEntry) public vestingSchedules;
 
@@ -72,6 +69,9 @@ contract RewardEscrowV2 is
 
     /// @notice The total remaining escrowed balance, for verifying the actual KWENTA balance of this contract against
     uint256 public totalEscrowedBalance;
+
+    /// @notice EarlyVestFeeDistributor address
+    address public earlyVestFeeDistributor;
 
     /*///////////////////////////////////////////////////////////////
                                 AUTH
