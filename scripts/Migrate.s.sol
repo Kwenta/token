@@ -215,8 +215,8 @@ contract DeployAndSetupOptimism is Script, Migrate {
             address(rewardEscrowV2), address(stakingRewardsV2), OPTIMISM_TREASURY_DAO, true
         );
 
-        rewardEscrowV2.transferOwnership(OPTIMISM_KWENTA_OWNER);
-        stakingRewardsV2.transferOwnership(OPTIMISM_KWENTA_OWNER);
+        rewardEscrowV2.transferOwnership(OPTIMISM_PDAO);
+        stakingRewardsV2.transferOwnership(OPTIMISM_PDAO);
 
         vm.stopBroadcast();
     }
