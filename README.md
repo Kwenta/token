@@ -45,6 +45,24 @@ A companion contract deployed to Ethereum Mainnet to enable multisigs on L1 to c
 
 Modified MerkleDistributor that supports rewards over multiple epochs. This will be used in conjunction with a trading rewards calculation script to pay out incentives. A portion of inflation is routed towards this contract every mint.
 
+## Staking V2
+
+Staking was upgraded to V2 on the 11th of July 2023. This introduces changes described by the following KIPS:
+- [KIP-42: delegation of claiming ability](https://github.com/Kwenta/kwenta-state-log/blob/master/kips/kip-042.md)
+- [KIP-58: checkpointing system and migration to V2](https://github.com/Kwenta/kwenta-state-log/blob/master/kips/kip-058.md)
+- [KIP-62: transferable escrow entries](https://github.com/Kwenta/kwenta-state-log/blob/master/kips/kip-062.md)
+- [KIP-77: upgradeable staking contracts](https://github.com/Kwenta/kwenta-state-log/blob/master/kips/kip-077.md)
+- [KIP-86: support for staking integrators](https://github.com/Kwenta/kwenta-state-log/blob/master/kips/kip-086.md)
+
+Intended to be added in future upgrades:
+- [KIP-75: 50% of early vest fees distributed to stakers](https://github.com/Kwenta/kwenta-state-log/blob/master/kips/kip-075.md)
+
+Two main new contracts were deployed:
+- `RewardEscrowV2.sol`
+- `StakingRewardsV2.sol`
+
+Both of these contracts are upgradeable following the UUPS standard.
+
 ## Testing
 
 ```
