@@ -4,7 +4,7 @@ pragma solidity 0.8.19;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {PausableUpgradeable} from
     "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {IKwenta} from "./interfaces/IKwenta.sol";
 import {IStakingRewardsV2} from "./interfaces/IStakingRewardsV2.sol";
@@ -18,7 +18,7 @@ import {IRewardEscrowV2} from "./interfaces/IRewardEscrowV2.sol";
 /// @notice Updated version of Synthetix's StakingRewards with new features specific to Kwenta
 contract StakingRewardsV2 is
     IStakingRewardsV2,
-    OwnableUpgradeable,
+    Ownable2StepUpgradeable,
     PausableUpgradeable,
     UUPSUpgradeable
 {
@@ -163,7 +163,7 @@ contract StakingRewardsV2 is
         if (_contractOwner == address(0)) revert ZeroAddress();
 
         // initialize owner
-        __Ownable_init();
+        __Ownable2Step_init();
         __Pausable_init();
         __UUPSUpgradeable_init();
 

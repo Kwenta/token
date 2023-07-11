@@ -5,7 +5,7 @@ pragma solidity 0.8.19;
 import {IRewardEscrowV2} from "./interfaces/IRewardEscrowV2.sol";
 import {ERC721EnumerableUpgradeable} from
     "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {PausableUpgradeable} from
     "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
@@ -20,7 +20,7 @@ import {IStakingRewardsV2} from "./interfaces/IStakingRewardsV2.sol";
 contract RewardEscrowV2 is
     IRewardEscrowV2,
     ERC721EnumerableUpgradeable,
-    OwnableUpgradeable,
+    Ownable2StepUpgradeable,
     PausableUpgradeable,
     UUPSUpgradeable
 {
@@ -106,7 +106,7 @@ contract RewardEscrowV2 is
 
         // Initialize inherited contracts
         __ERC721_init("Kwenta Reward Escrow", "KRE");
-        __Ownable_init();
+        __Ownable2Step_init();
         __Pausable_init();
         __UUPSUpgradeable_init();
 
