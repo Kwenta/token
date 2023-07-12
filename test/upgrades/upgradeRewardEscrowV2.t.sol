@@ -21,7 +21,7 @@ uint256 constant ONE_YEAR = 52 weeks;
 // BLOCK_NUMBER corresponds to Jul-12-2023 02:16:54 PM +UTC
 uint256 constant BLOCK_NUMBER = 11_871_673;
 
-contract VestingUpgradeTest is Test {
+contract UpgradeRewardEscrowV2Test is Test {
     // contracts
     RewardEscrowV2 public rewardEscrowV3;
 
