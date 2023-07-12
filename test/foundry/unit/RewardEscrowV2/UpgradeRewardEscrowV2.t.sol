@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.18;
 
-import {RewardEscrowV2} from "../../contracts/RewardEscrowV2.sol";
-import {StakingRewardsV2} from "../../contracts/StakingRewardsV2.sol";
-import {SupplySchedule} from "../../contracts/SupplySchedule.sol";
-import {Kwenta} from "../../contracts/Kwenta.sol";
-import {Test} from "../../lib/forge-std/src/Test.sol";
+import {RewardEscrowV2} from "../../../../contracts/RewardEscrowV2.sol";
+import {StakingRewardsV2} from "../../../../contracts/StakingRewardsV2.sol";
+import {SupplySchedule} from "../../../../contracts/SupplySchedule.sol";
+import {Kwenta} from "../../../../contracts/Kwenta.sol";
+import {Test} from "../../../../lib/forge-std/src/Test.sol";
 
 address constant KWENTA = 0xDA0C33402Fc1e10d18c532F0Ed9c1A6c5C9e386C;
 address constant STAKING_REWARDS_V2_IMPLEMENTATION = 0xE0aD43191312D6220DE64aFA54dbdD6982991A87;
