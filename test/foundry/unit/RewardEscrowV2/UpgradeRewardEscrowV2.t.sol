@@ -24,6 +24,7 @@ uint256 constant BLOCK_NUMBER = 11_871_673;
 contract UpgradeRewardEscrowV2Test is Test {
     // contracts
     RewardEscrowV2 public rewardEscrowV3;
+    RewardEscrowV2 public rewardEscrowProxy;
 
     struct VestingEntry {
         // The amount of KWENTA stored in this vesting entry
@@ -42,6 +43,7 @@ contract UpgradeRewardEscrowV2Test is Test {
     //////////////////////////////////////////////////////////////*/
 
     function setUp() public {
+        rewardEscrowProxy = rewardEscrowProxy;
         vm.rollFork(BLOCK_NUMBER);
         // deploy V3 implementation
         rewardEscrowV3 = new RewardEscrowV2();
@@ -55,9 +57,9 @@ contract UpgradeRewardEscrowV2Test is Test {
     function testUpgradedImplementationAddress() public {
         // upgrade
         vm.prank(DAO);
-        REWARD_ESCROW_V2_PROXY.upgradeTo(address(rewardEscrowV3));
+        RewardEscrowV2(rewardEscrowProxy).upgradeTo(address(rewardEscrowV3));
         assertEq(
-            REWARD_ESCROW_V2_PROXY.implementation(),
+            rewardEscrowProxy.implementation(),
             address(rewardEscrowV3)
         );
         assertTrue(address(rewardEscrowV3) != REWARD_ESCROW_V2_IMPLEMENTATION);
@@ -66,77 +68,77 @@ contract UpgradeRewardEscrowV2Test is Test {
     /// @notice make sure the state did not change from the upgrade
     function testUpgrade() public {
         // record state prior to upgrade
-        uint maxDuration = REWARD_ESCROW_V2_PROXY.MAX_DURATION();
-        uint defaultDuration = REWARD_ESCROW_V2_PROXY.DEFAULT_DURATION();
-        uint defaultEarlyVestingFee = REWARD_ESCROW_V2_PROXY
+        uint maxDuration = rewardEscrowProxy.MAX_DURATION();
+        uint defaultDuration = rewardEscrowProxy.DEFAULT_DURATION();
+        uint defaultEarlyVestingFee = rewardEscrowProxy
             .DEFAULT_EARLY_VESTING_FEE();
-        uint maximumEarlyVestingFee = REWARD_ESCROW_V2_PROXY
+        uint maximumEarlyVestingFee = rewardEscrowProxy
             .MAXIMUM_EARLY_VESTING_FEE();
-        uint minimumEarlyVestingFee = REWARD_ESCROW_V2_PROXY
+        uint minimumEarlyVestingFee = rewardEscrowProxy
             .MINIMUM_EARLY_VESTING_FEE();
-        StakingRewardsV2 stakingRewards = REWARD_ESCROW_V2_PROXY
+        StakingRewardsV2 stakingRewards = rewardEscrowProxy
             .stakingRewards();
-        address treasuryDAO = REWARD_ESCROW_V2_PROXY.treasuryDAO();
-        VestingEntry memory entry = REWARD_ESCROW_V2_PROXY.vestingSchedules(0);
-        uint nextEntryId = REWARD_ESCROW_V2_PROXY.nextEntryId();
-        uint totalEscrowedAccountBalance = REWARD_ESCROW_V2_PROXY
+        address treasuryDAO = rewardEscrowProxy.treasuryDAO();
+        VestingEntry memory entry = rewardEscrowProxy.vestingSchedules(0);
+        uint nextEntryId = rewardEscrowProxy.nextEntryId();
+        uint totalEscrowedAccountBalance = rewardEscrowProxy
             .totalEscrowedAccountBalance(EOA);
-        uint totalVestedAccountBalance = REWARD_ESCROW_V2_PROXY
+        uint totalVestedAccountBalance = rewardEscrowProxy
             .totalVestedAccountBalance(EOA);
-        uint totalEscrowedBalance = REWARD_ESCROW_V2_PROXY
+        uint totalEscrowedBalance = rewardEscrowProxy
             .totalEscrowedBalance();
-        address earlyVestFeeDistributor = REWARD_ESCROW_V2_PROXY
+        address earlyVestFeeDistributor = rewardEscrowProxy
             .earlyVestFeeDistributor();
 
         // upgrade
         vm.prank(DAO);
-        REWARD_ESCROW_V2_PROXY.upgradeTo(address(rewardEscrowV3));
+        rewardEscrowProxy.upgradeTo(address(rewardEscrowV3));
         assertEq(
-            REWARD_ESCROW_V2_PROXY.implementation(),
+            rewardEscrowProxy.implementation(),
             address(rewardEscrowV3)
         );
         assertTrue(address(rewardEscrowV3) != REWARD_ESCROW_V2_IMPLEMENTATION);
 
         // check state did not change
-        assertEq(maxDuration, REWARD_ESCROW_V2_PROXY.MAX_DURATION());
-        assertEq(defaultDuration, REWARD_ESCROW_V2_PROXY.DEFAULT_DURATION());
+        assertEq(maxDuration, rewardEscrowProxy.MAX_DURATION());
+        assertEq(defaultDuration, rewardEscrowProxy.DEFAULT_DURATION());
         assertEq(
             defaultEarlyVestingFee,
-            REWARD_ESCROW_V2_PROXY.DEFAULT_EARLY_VESTING_FEE()
+            rewardEscrowProxy.DEFAULT_EARLY_VESTING_FEE()
         );
         assertEq(
             maximumEarlyVestingFee,
-            REWARD_ESCROW_V2_PROXY.MAXIMUM_EARLY_VESTING_FEE()
+            rewardEscrowProxy.MAXIMUM_EARLY_VESTING_FEE()
         );
         assertEq(
             minimumEarlyVestingFee,
-            REWARD_ESCROW_V2_PROXY.MINIMUM_EARLY_VESTING_FEE()
+            rewardEscrowProxy.MINIMUM_EARLY_VESTING_FEE()
         );
         assertEq(
             address(stakingRewards),
-            REWARD_ESCROW_V2_PROXY.stakingRewards()
+            rewardEscrowProxy.stakingRewards()
         );
-        assertEq(treasuryDAO, REWARD_ESCROW_V2_PROXY.treasuryDAO());
+        assertEq(treasuryDAO, rewardEscrowProxy.treasuryDAO());
         assertEq(
             entry.amount,
-            REWARD_ESCROW_V2_PROXY.vestingSchedules(0).amount
+            rewardEscrowProxy.vestingSchedules(0).amount
         );
-        assertEq(nextEntryId, REWARD_ESCROW_V2_PROXY.nextEntryId());
+        assertEq(nextEntryId, rewardEscrowProxy.nextEntryId());
         assertEq(
             totalEscrowedAccountBalance,
-            REWARD_ESCROW_V2_PROXY.totalEscrowedAccountBalance(EOA)
+            rewardEscrowProxy.totalEscrowedAccountBalance(EOA)
         );
         assertEq(
             totalVestedAccountBalance,
-            REWARD_ESCROW_V2_PROXY.totalVestedAccountBalance(EOA)
+            rewardEscrowProxy.totalVestedAccountBalance(EOA)
         );
         assertEq(
             totalEscrowedBalance,
-            REWARD_ESCROW_V2_PROXY.totalEscrowedBalance()
+            rewardEscrowProxy.totalEscrowedBalance()
         );
         assertEq(
             earlyVestFeeDistributor,
-            REWARD_ESCROW_V2_PROXY.earlyVestFeeDistributor()
+            rewardEscrowProxy.earlyVestFeeDistributor()
         );
     }
 }
