@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.19;
+pragma solidity 0.8.19;
 
 interface IStakingRewardsV2 {
     /*//////////////////////////////////////////////////////////////
@@ -21,19 +21,9 @@ interface IStakingRewardsV2 {
     ///////////////////////////////////////////////////////////////*/
 
     /// @notice Initializes the contract
-    /// @param _token: token used for staking and for rewards
-    /// @param _rewardEscrow: escrow contract which holds (and may stake) reward tokens
-    /// @param _supplySchedule: handles reward token minting logic
-    /// @param _stakingRewardsV1: previous version of staking rewards contract - used for reward calculations
     /// @param _owner: owner of this contract
     /// @dev this function should be called via proxy, not via direct contract interaction
-    function initialize(
-        address _token,
-        address _rewardEscrow,
-        address _supplySchedule,
-        address _stakingRewardsV1,
-        address _owner
-    ) external;
+    function initialize(address _owner) external;
 
     /*//////////////////////////////////////////////////////////////
                                 Views
@@ -176,6 +166,23 @@ interface IStakingRewardsV2 {
 
     /// @notice claim rewards for an account and stake them
     function compound() external;
+
+    // claim integrator rewards
+
+    /// @notice claim rewards for an integrator contract
+    /// Note: the funds will be sent to the msg.sender
+    /// @param _integrator: address of integrator contract to claim rewards for
+    function getIntegratorReward(address _integrator) external;
+
+    /// @notice claim rewards for an integrator contract and msg.sender
+    /// Note: the funds will be sent to the msg.sender
+    /// @param _integrator: address of integrator contract to claim rewards for
+    function getIntegratorAndSenderReward(address _integrator) external;
+
+    /// @notice claim rewards for an integrator contract and compound them
+    /// Note: the funds will be sent to the msg.sender
+    /// @param _integrator: address of integrator contract to claim rewards for
+    function getIntegratorRewardAndCompound(address _integrator) external;
 
     // delegation
 

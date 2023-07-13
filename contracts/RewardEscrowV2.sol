@@ -5,7 +5,7 @@ pragma solidity 0.8.19;
 import {IRewardEscrowV2} from "./interfaces/IRewardEscrowV2.sol";
 import {ERC721EnumerableUpgradeable} from
     "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {PausableUpgradeable} from
     "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
@@ -20,7 +20,7 @@ import {IStakingRewardsV2} from "./interfaces/IStakingRewardsV2.sol";
 contract RewardEscrowV2 is
     IRewardEscrowV2,
     ERC721EnumerableUpgradeable,
-    OwnableUpgradeable,
+    Ownable2StepUpgradeable,
     PausableUpgradeable,
     UUPSUpgradeable
 {
@@ -42,12 +42,13 @@ contract RewardEscrowV2 is
     /// @notice Minimum early vesting fee
     uint8 public constant MINIMUM_EARLY_VESTING_FEE = 50;
 
+    /// @notice Contract for KWENTA ERC20 token
+    /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
+    IKwenta internal immutable kwenta;
+
     /*///////////////////////////////////////////////////////////////
                                 STATE
     ///////////////////////////////////////////////////////////////*/
-
-    /// @notice Contract for KWENTA ERC20 token
-    IKwenta internal kwenta;
 
     /// @notice Contract for StakingRewardsV2
     IStakingRewardsV2 public stakingRewards;
@@ -94,17 +95,21 @@ contract RewardEscrowV2 is
     /// @dev disable default constructor for disable implementation contract
     /// Actual contract construction will take place in the initialize function via proxy
     /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor() {
+    constructor(address _kwenta) {
+        if (_kwenta == address(0)) revert ZeroAddress();
+
+        kwenta = IKwenta(_kwenta);
+
         _disableInitializers();
     }
 
     /// @inheritdoc IRewardEscrowV2
-    function initialize(address _contractOwner, address _kwenta) external override initializer {
-        if (_contractOwner == address(0) || _kwenta == address(0)) revert ZeroAddress();
+    function initialize(address _contractOwner) external override initializer {
+        if (_contractOwner == address(0)) revert ZeroAddress();
 
         // Initialize inherited contracts
         __ERC721_init("Kwenta Reward Escrow", "KRE");
-        __Ownable_init();
+        __Ownable2Step_init();
         __Pausable_init();
         __UUPSUpgradeable_init();
 
@@ -113,7 +118,6 @@ contract RewardEscrowV2 is
 
         // define variables
         nextEntryId = 1;
-        kwenta = IKwenta(_kwenta);
     }
 
     /*///////////////////////////////////////////////////////////////

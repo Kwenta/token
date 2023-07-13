@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.19;
+pragma solidity 0.8.19;
 
 interface IRewardEscrowV2 {
     /*//////////////////////////////////////////////////////////////
@@ -35,9 +35,8 @@ interface IRewardEscrowV2 {
 
     /// @notice Initializes the contract
     /// @param _owner The address of the owner of this contract
-    /// @param _kwenta The address of the Kwenta contract
     /// @dev this function should be called via proxy, not via direct contract interaction
-    function initialize(address _owner, address _kwenta) external;
+    function initialize(address _owner) external;
 
     /*///////////////////////////////////////////////////////////////
                                 SETTERS

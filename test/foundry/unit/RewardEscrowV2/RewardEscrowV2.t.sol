@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.19;
+pragma solidity 0.8.19;
 
 import {console} from "forge-std/Test.sol";
 import {DefaultStakingV2Setup} from "../../utils/setup/DefaultStakingV2Setup.t.sol";
@@ -74,6 +74,60 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
 
     function test_Should_Set_nextEntryId_To_1() public {
         assertEq(rewardEscrowV2.nextEntryId(), 1);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                            OWNERSHIP TESTS
+    //////////////////////////////////////////////////////////////*/
+
+    function test_Only_Owner_Can_Set_Staking_TreasuryDAO() public {
+        vm.prank(user1);
+        vm.expectRevert("Ownable: caller is not the owner");
+        rewardEscrowV2.setTreasuryDAO(user1);
+    }
+
+    function test_Only_Owner_Can_Renounce_Ownership() public {
+        vm.prank(user1);
+        vm.expectRevert("Ownable: caller is not the owner");
+        stakingRewardsV2.renounceOwnership();
+    }
+
+    function test_Only_Owner_Can_Transfer_Ownership() public {
+        vm.prank(user1);
+        vm.expectRevert("Ownable: caller is not the owner");
+        stakingRewardsV2.transferOwnership(user2);
+    }
+
+    function test_Renounce_Ownership() public {
+        stakingRewardsV2.renounceOwnership();
+        assertEq(stakingRewardsV2.owner(), address(0));
+    }
+
+    function test_Transfer_Ownership() public {
+        // check ownership
+        assertEq(rewardEscrowV2.owner(), address(this));
+
+        // transfer ownership
+        rewardEscrowV2.transferOwnership(user1);
+
+        // accept ownership
+        vm.prank(user1);
+        rewardEscrowV2.acceptOwnership();
+
+        // check ownership
+        assertEq(rewardEscrowV2.owner(), address(user1));
+        vm.expectRevert("Ownable: caller is not the owner");
+        rewardEscrowV2.transferOwnership(address(this));
+
+        // transfer ownership
+        vm.prank(user1);
+        rewardEscrowV2.transferOwnership(address(this));
+
+        // accept ownership
+        rewardEscrowV2.acceptOwnership();
+
+        // check ownership
+        assertEq(rewardEscrowV2.owner(), address(this));
     }
 
     /*//////////////////////////////////////////////////////////////

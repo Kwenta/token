@@ -4,10 +4,11 @@ pragma solidity 0.8.19;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {PausableUpgradeable} from
     "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {IKwenta} from "./interfaces/IKwenta.sol";
 import {IStakingRewardsV2} from "./interfaces/IStakingRewardsV2.sol";
+import {IStakingRewardsV2Integrator} from "./interfaces/IStakingRewardsV2Integrator.sol";
 import {IStakingRewards} from "./interfaces/IStakingRewards.sol";
 import {ISupplySchedule} from "./interfaces/ISupplySchedule.sol";
 import {IRewardEscrowV2} from "./interfaces/IRewardEscrowV2.sol";
@@ -17,7 +18,7 @@ import {IRewardEscrowV2} from "./interfaces/IRewardEscrowV2.sol";
 /// @notice Updated version of Synthetix's StakingRewards with new features specific to Kwenta
 contract StakingRewardsV2 is
     IStakingRewardsV2,
-    OwnableUpgradeable,
+    Ownable2StepUpgradeable,
     PausableUpgradeable,
     UUPSUpgradeable
 {
@@ -31,21 +32,25 @@ contract StakingRewardsV2 is
     /// @notice maximum time length of the unstaking cooldown period
     uint256 public constant MAX_COOLDOWN_PERIOD = 52 weeks;
 
+    /// @notice Contract for KWENTA ERC20 token - used for BOTH staking and rewards
+    /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
+    IKwenta public immutable kwenta;
+
+    /// @notice escrow contract which holds (and may stake) reward tokens
+    /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
+    IRewardEscrowV2 public immutable rewardEscrow;
+
+    /// @notice handles reward token minting logic
+    /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
+    ISupplySchedule public immutable supplySchedule;
+
+    /// @notice previous version of staking rewards contract - used for migration
+    /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
+    IStakingRewards public immutable stakingRewardsV1;
+
     /*///////////////////////////////////////////////////////////////
                                 STATE
     ///////////////////////////////////////////////////////////////*/
-
-    /// @notice Contract for KWENTA ERC20 token - used for BOTH staking and rewards
-    IKwenta public kwenta;
-
-    /// @notice escrow contract which holds (and may stake) reward tokens
-    IRewardEscrowV2 public rewardEscrow;
-
-    /// @notice handles reward token minting logic
-    ISupplySchedule public supplySchedule;
-
-    /// @notice previous version of staking rewards contract - used for migration
-    IStakingRewards public stakingRewardsV1;
 
     /// @notice list of checkpoints with the number of tokens staked by address
     /// @dev this includes staked escrowed tokens
@@ -128,33 +133,21 @@ contract StakingRewardsV2 is
                         CONSTRUCTOR / INITIALIZER
     ///////////////////////////////////////////////////////////////*/
 
-    /// @dev disable default constructor for disable implementation contract
+    /// @dev disable default constructor to disable the implementation contract
     /// Actual contract construction will take place in the initialize function via proxy
     /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor() {
-        _disableInitializers();
-    }
-
-    /// @inheritdoc IStakingRewardsV2
-    function initialize(
+    constructor(
         address _kwenta,
         address _rewardEscrow,
         address _supplySchedule,
-        address _stakingRewardsV1,
-        address _contractOwner
-    ) external override initializer {
+        address _stakingRewardsV1
+    ) {
         if (
             _kwenta == address(0) || _rewardEscrow == address(0) || _supplySchedule == address(0)
-                || _stakingRewardsV1 == address(0) || _contractOwner == address(0)
+                || _stakingRewardsV1 == address(0)
         ) revert ZeroAddress();
 
-        // initialize owner
-        __Ownable_init();
-        __Pausable_init();
-        __UUPSUpgradeable_init();
-
-        // transfer ownership
-        _transferOwnership(_contractOwner);
+        _disableInitializers();
 
         // define reward/staking token
         kwenta = IKwenta(_kwenta);
@@ -163,6 +156,19 @@ contract StakingRewardsV2 is
         rewardEscrow = IRewardEscrowV2(_rewardEscrow);
         supplySchedule = ISupplySchedule(_supplySchedule);
         stakingRewardsV1 = IStakingRewards(_stakingRewardsV1);
+    }
+
+    /// @inheritdoc IStakingRewardsV2
+    function initialize(address _contractOwner) external override initializer {
+        if (_contractOwner == address(0)) revert ZeroAddress();
+
+        // initialize owner
+        __Ownable2Step_init();
+        __Pausable_init();
+        __UUPSUpgradeable_init();
+
+        // transfer ownership
+        _transferOwnership(_contractOwner);
 
         // define values
         rewardsDuration = 1 weeks;
@@ -339,7 +345,15 @@ contract StakingRewardsV2 is
         _getReward(msg.sender);
     }
 
-    function _getReward(address _account) internal whenNotPaused updateReward(_account) {
+    function _getReward(address _account) internal {
+        _getReward(_account, _account);
+    }
+
+    function _getReward(address _account, address _to)
+        internal
+        whenNotPaused
+        updateReward(_account)
+    {
         uint256 reward = rewards[_account];
         if (reward > 0) {
             // update state (first)
@@ -349,9 +363,9 @@ contract StakingRewardsV2 is
             emit RewardPaid(_account, reward);
 
             // transfer token from this contract to the rewardEscrow
-            // and create a vesting entry for the caller
+            // and create a vesting entry at the _to address
             kwenta.transfer(address(rewardEscrow), reward);
-            rewardEscrow.appendVestingEntry(_account, reward);
+            rewardEscrow.appendVestingEntry(_to, reward);
         }
     }
 
@@ -367,6 +381,26 @@ contract StakingRewardsV2 is
         _stakeEscrow(_account, unstakedEscrowedBalanceOf(_account));
     }
 
+    /*//////////////////////////////////////////////////////////////
+                           INTEGRATOR REWARDS
+    //////////////////////////////////////////////////////////////*/
+
+    function getIntegratorReward(address _integrator) public override {
+        address beneficiary = IStakingRewardsV2Integrator(_integrator).beneficiary();
+        if (beneficiary != msg.sender) revert NotApproved();
+        _getReward(_integrator, beneficiary);
+    }
+
+    function getIntegratorAndSenderReward(address _integrator) external override {
+        getIntegratorReward(_integrator);
+        _getReward(msg.sender);
+    }
+
+    function getIntegratorRewardAndCompound(address _integrator) external override {
+        getIntegratorReward(_integrator);
+        _compound(msg.sender);
+    }
+
     /*///////////////////////////////////////////////////////////////
                         REWARD UPDATE CALCULATIONS
     ///////////////////////////////////////////////////////////////*/
@@ -375,11 +409,11 @@ contract StakingRewardsV2 is
     /// @param _account: address of account which rewards are being updated for
     /// @dev contract state not specific to an account will be updated also
     modifier updateReward(address _account) {
-        _updateRewards(_account);
+        _updateReward(_account);
         _;
     }
 
-    function _updateRewards(address _account) internal {
+    function _updateReward(address _account) internal {
         rewardPerTokenStored = rewardPerToken();
         lastUpdateTime = lastTimeRewardApplicable();
 

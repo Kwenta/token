@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.19;
+pragma solidity 0.8.19;
 
 import {console} from "forge-std/Test.sol";
 import {StakingV2Setup} from "../../utils/setup/StakingV2Setup.t.sol";
@@ -191,6 +191,15 @@ contract StakingTestHelpers is StakingV2Setup {
     function unstakeEscrowSkipCooldownFundsV2(address _account, uint256 _amount) public {
         vm.prank(address(rewardEscrowV2));
         stakingRewardsV2.unstakeEscrowSkipCooldown(_account, _amount);
+    }
+
+    function createRewardEscrowEntryV2(address _account, uint256 _amount)
+        public
+    {
+        vm.prank(treasury);
+        kwenta.approve(address(rewardEscrowV2), _amount);
+        vm.prank(treasury);
+        rewardEscrowV2.createEscrowEntry(_account, _amount, 52 weeks, 90);
     }
 
     function createRewardEscrowEntryV2(address _account, uint256 _amount, uint256 _duration)

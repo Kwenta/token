@@ -75,6 +75,11 @@ contract StakingV2Setup is StakingV1Setup {
         vm.expectRevert(IRewardEscrowV2.ZeroAddress.selector);
         rewardEscrowV2.setStakingRewards(address(0));
 
+        // check staking rewards can only be set by owner
+        vm.prank(user1);
+        vm.expectRevert("Ownable: caller is not the owner");
+        rewardEscrowV2.setStakingRewards(address(stakingRewardsV2));
+
         // Setup StakingV2
         vm.expectEmit(true, true, true, true);
         emit StakingRewardsSet(address(stakingRewardsV2));
