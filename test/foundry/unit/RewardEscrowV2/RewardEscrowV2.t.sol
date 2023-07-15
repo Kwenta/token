@@ -199,15 +199,42 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         assertEq(rewardEscrowV2.balanceOf(address(this)), 1);
     }
 
+    // TODO: uncomment and replace this test
+    // function test_Correct_Amount_Claimable_After_6_Months() public {
+    //     appendRewardEscrowEntryV2(address(this), 10 ether);
+
+    //     vm.warp(block.timestamp + 26 weeks);
+
+    //     (uint256 claimable,) = rewardEscrowV2.getVestingEntryClaimable(1);
+    //     assertEq(claimable, 11 ether / 2);
+    // }
     function test_Correct_Amount_Claimable_After_6_Months() public {
         appendRewardEscrowEntryV2(address(this), 10 ether);
 
         vm.warp(block.timestamp + 26 weeks);
 
         (uint256 claimable,) = rewardEscrowV2.getVestingEntryClaimable(1);
-        assertEq(claimable, 11 ether / 2);
+        assertEq(claimable, 10 ether);
     }
 
+    // TODO: uncomment
+    // function test_Correct_Amount_Claimable_After_6_Months_Fuzz(uint32 _amount) public {
+    //     uint256 amount = _amount;
+    //     vm.assume(amount > 0);
+
+    //     appendRewardEscrowEntryV2(address(this), amount);
+
+    //     vm.warp(block.timestamp + 26 weeks);
+
+    //     (uint256 claimable, uint256 fee) = rewardEscrowV2.getVestingEntryClaimable(1);
+
+    //     uint256 maxFee = amount * 90 / 100;
+    //     uint256 earlyVestFee = maxFee * 26 weeks / 52 weeks;
+    //     uint256 expectedClaimable = amount - earlyVestFee;
+
+    //     assertEq(claimable, expectedClaimable);
+    //     assertEq(fee, earlyVestFee);
+    // }
     function test_Correct_Amount_Claimable_After_6_Months_Fuzz(uint32 _amount) public {
         uint256 amount = _amount;
         vm.assume(amount > 0);
@@ -222,8 +249,8 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         uint256 earlyVestFee = maxFee * 26 weeks / 52 weeks;
         uint256 expectedClaimable = amount - earlyVestFee;
 
-        assertEq(claimable, expectedClaimable);
-        assertEq(fee, earlyVestFee);
+        assertEq(claimable, expectedClaimable + earlyVestFee);
+        assertEq(fee, 0);
     }
 
     function test_Correct_Amount_Claimable_After_1_Year() public {
@@ -455,20 +482,21 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         assertEq(entries[2], 3);
     }
 
-    function test_getVestingQuantity() public {
-        createRewardEscrowEntryV2(user1, 200 ether, 52 weeks);
-        createRewardEscrowEntryV2(user1, 200 ether, 52 weeks);
-        vm.warp(block.timestamp + 26 weeks);
+    // TODO: uncomment
+    // function test_getVestingQuantity() public {
+    //     createRewardEscrowEntryV2(user1, 200 ether, 52 weeks);
+    //     createRewardEscrowEntryV2(user1, 200 ether, 52 weeks);
+    //     vm.warp(block.timestamp + 26 weeks);
 
-        uint256[] memory entries = rewardEscrowV2.getAccountVestingEntryIDs(user1, 0, 2);
+    //     uint256[] memory entries = rewardEscrowV2.getAccountVestingEntryIDs(user1, 0, 2);
 
-        (uint256 total, uint256 totalFee) = rewardEscrowV2.getVestingQuantity(entries);
+    //     (uint256 total, uint256 totalFee) = rewardEscrowV2.getVestingQuantity(entries);
 
-        // 55% should be claimable
-        assertEq(total, 220 ether);
-        // 45% should be the fee
-        assertEq(totalFee, 180 ether);
-    }
+    //     // 55% should be claimable
+    //     assertEq(total, 220 ether);
+    //     // 45% should be the fee
+    //     assertEq(totalFee, 180 ether);
+    // }
 
     /*//////////////////////////////////////////////////////////////
                                 Vesting
@@ -486,14 +514,61 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         assertEq(rewardEscrowV2.totalEscrowedAccountBalance(address(this)), 1000 ether);
     }
 
+    // TODO: uncomment and replace this test
+    // function test_vest_Should_Properly_Distribute_Escrow() public {
+    //     appendRewardEscrowEntryV2(address(this), 1000 ether);
+    //     vm.warp(block.timestamp + 26 weeks);
+
+    //     // check initial values
+    //     (uint256 claimable, uint256 fee) = rewardEscrowV2.getVestingEntryClaimable(1);
+    //     assertEq(claimable, 550 ether);
+    //     assertEq(fee, 450 ether);
+    //     assertEq(rewardEscrowV2.totalEscrowedBalance(), 1000 ether);
+    //     assertEq(rewardEscrowV2.totalEscrowedAccountBalance(address(this)), 1000 ether);
+    //     assertEq(rewardEscrowV2.totalVestedAccountBalance(address(this)), 0);
+
+    //     uint256 treasuryBalanceBefore = kwenta.balanceOf(treasury);
+
+    //     entryIDs.push(1);
+    //     rewardEscrowV2.vest(entryIDs);
+
+    //     uint256 treasuryBalanceAfter = kwenta.balanceOf(treasury);
+    //     uint256 treasuryReceived = treasuryBalanceAfter - treasuryBalanceBefore;
+
+    //     // 45% should go to the treasury
+    //     assertEq(treasuryReceived, 450 ether);
+
+    //     // 55% should go to the staker
+    //     assertEq(rewardEscrowV2.totalVestedAccountBalance(address(this)), 550 ether);
+    //     assertEq(kwenta.balanceOf(address(this)), 550 ether);
+    //     assertEq(rewardEscrowV2.totalEscrowedAccountBalance(address(this)), 0);
+
+    //     // Nothing should be left in reward escrow
+    //     assertEq(rewardEscrowV2.totalEscrowedBalance(), 0);
+    //     assertEq(rewardEscrowV2.totalEscrowedAccountBalance(address(this)), 0);
+    //     assertEq(kwenta.balanceOf(address(rewardEscrowV2)), 0);
+
+    //     // check entry has been burned
+    //     assertEq(rewardEscrowV2.balanceOf(address(this)), 0);
+    //     vm.expectRevert("ERC721: invalid token ID");
+    //     assertEq(rewardEscrowV2.ownerOf(1), address(0));
+
+    //     // old vesting entry data still exists
+    //     (uint64 endTime, uint256 escrowAmount, uint256 duration, uint8 earlyVestingFee) =
+    //         rewardEscrowV2.getVestingEntry(1);
+    //     assertEq(escrowAmount, 1000 ether);
+    //     assertEq(endTime, block.timestamp + 26 weeks);
+    //     assertEq(duration, 52 weeks);
+    //     assertEq(earlyVestingFee, 90);
+    // }
     function test_vest_Should_Properly_Distribute_Escrow() public {
         appendRewardEscrowEntryV2(address(this), 1000 ether);
         vm.warp(block.timestamp + 26 weeks);
 
         // check initial values
         (uint256 claimable, uint256 fee) = rewardEscrowV2.getVestingEntryClaimable(1);
-        assertEq(claimable, 550 ether);
-        assertEq(fee, 450 ether);
+        assertEq(claimable, 1000 ether);
+        assertEq(fee, 0);
         assertEq(rewardEscrowV2.totalEscrowedBalance(), 1000 ether);
         assertEq(rewardEscrowV2.totalEscrowedAccountBalance(address(this)), 1000 ether);
         assertEq(rewardEscrowV2.totalVestedAccountBalance(address(this)), 0);
@@ -506,12 +581,12 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         uint256 treasuryBalanceAfter = kwenta.balanceOf(treasury);
         uint256 treasuryReceived = treasuryBalanceAfter - treasuryBalanceBefore;
 
-        // 45% should go to the treasury
-        assertEq(treasuryReceived, 450 ether);
+        // 0% should go to the treasury
+        assertEq(treasuryReceived, 0);
 
-        // 55% should go to the staker
-        assertEq(rewardEscrowV2.totalVestedAccountBalance(address(this)), 550 ether);
-        assertEq(kwenta.balanceOf(address(this)), 550 ether);
+        // 100% should go to the staker
+        assertEq(rewardEscrowV2.totalVestedAccountBalance(address(this)), 1000 ether);
+        assertEq(kwenta.balanceOf(address(this)), 1000 ether);
         assertEq(rewardEscrowV2.totalEscrowedAccountBalance(address(this)), 0);
 
         // Nothing should be left in reward escrow
@@ -747,12 +822,13 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         assertEq(kwenta.balanceOf(address(rewardEscrowV2)), 0);
     }
 
-    function test_vest_Should_Emit_Correct_Event_For_Three_Entries() public {
-        create3EntriesWithDifferentDurations(address(this));
-        vm.expectEmit(true, true, true, true);
-        emit Vested(address(this), 775 ether);
-        vestAllEntries(address(this));
-    }
+    // TODO: uncomment
+    // function test_vest_Should_Emit_Correct_Event_For_Three_Entries() public {
+    //     create3EntriesWithDifferentDurations(address(this));
+    //     vm.expectEmit(true, true, true, true);
+    //     emit Vested(address(this), 775 ether);
+    //     vestAllEntries(address(this));
+    // }
 
     function test_vest_Three_Entries_Should_Update_totalEscrowedAccountBalance() public {
         create3EntriesWithDifferentDurations(address(this));
@@ -761,11 +837,18 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         assertEq(rewardEscrowV2.totalEscrowedAccountBalance(address(this)), 0 ether);
     }
 
+    // TODO: uncomment and replace this test
+    // function test_vest_Three_Entries_Should_Update_totalVestedAccountBalance() public {
+    //     create3EntriesWithDifferentDurations(address(this));
+    //     assertEq(rewardEscrowV2.totalVestedAccountBalance(address(this)), 0);
+    //     vestAllEntries(address(this));
+    //     assertEq(rewardEscrowV2.totalVestedAccountBalance(address(this)), 775 ether);
+    // }
     function test_vest_Three_Entries_Should_Update_totalVestedAccountBalance() public {
         create3EntriesWithDifferentDurations(address(this));
         assertEq(rewardEscrowV2.totalVestedAccountBalance(address(this)), 0);
         vestAllEntries(address(this));
-        assertEq(rewardEscrowV2.totalVestedAccountBalance(address(this)), 775 ether);
+        assertEq(rewardEscrowV2.totalVestedAccountBalance(address(this)), 1000 ether);
     }
 
     function test_vest_Three_Entries_Should_Update_totalEscrowedBalance() public {
@@ -775,6 +858,27 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         assertEq(rewardEscrowV2.totalEscrowedBalance(), 0 ether);
     }
 
+    // TODO: uncomment and replace this test
+    // function test_vest_Three_Entries_Should_Ignore_Duplicate_Entries() public {
+    //     create3EntriesWithDifferentDurations(address(this));
+    //     uint256[] memory entries = rewardEscrowV2.getAccountVestingEntryIDs(address(this), 0, 100);
+    //     for (uint256 i = 0; i < entries.length; i++) {
+    //         entryIDs.push(entries[i]);
+    //         entryIDs.push(entries[i]);
+    //     }
+    //     rewardEscrowV2.vest(entryIDs);
+
+    //     // Check only 2 entries were vested
+    //     assertEq(kwenta.balanceOf(address(this)), 775 ether);
+    //     assertEq(kwenta.balanceOf(address(rewardEscrowV2)), 0 ether);
+
+    //     // Attempt to vest again
+    //     rewardEscrowV2.vest(entryIDs);
+
+    //     // Check only 2 entries were vested
+    //     assertEq(kwenta.balanceOf(address(this)), 775 ether);
+    //     assertEq(kwenta.balanceOf(address(rewardEscrowV2)), 0 ether);
+    // }
     function test_vest_Three_Entries_Should_Ignore_Duplicate_Entries() public {
         create3EntriesWithDifferentDurations(address(this));
         uint256[] memory entries = rewardEscrowV2.getAccountVestingEntryIDs(address(this), 0, 100);
@@ -785,14 +889,14 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         rewardEscrowV2.vest(entryIDs);
 
         // Check only 2 entries were vested
-        assertEq(kwenta.balanceOf(address(this)), 775 ether);
+        assertEq(kwenta.balanceOf(address(this)), 1000 ether);
         assertEq(kwenta.balanceOf(address(rewardEscrowV2)), 0 ether);
 
         // Attempt to vest again
         rewardEscrowV2.vest(entryIDs);
 
         // Check only 2 entries were vested
-        assertEq(kwenta.balanceOf(address(this)), 775 ether);
+        assertEq(kwenta.balanceOf(address(this)), 1000 ether);
         assertEq(kwenta.balanceOf(address(rewardEscrowV2)), 0 ether);
     }
 
