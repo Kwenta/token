@@ -51,7 +51,8 @@ contract StakingV2SetupTests is StakingV1Setup {
             new StakingRewardsV2(
                 address(0),
                 rewardEscrowV2,
-                address(supplySchedule)
+                address(supplySchedule),
+                address(stakingRewardsV1)
             )
         );
     }
@@ -62,7 +63,8 @@ contract StakingV2SetupTests is StakingV1Setup {
             new StakingRewardsV2(
                 address(kwenta),
                 address(0),
-                address(supplySchedule)
+                address(supplySchedule),
+                address(stakingRewardsV1)
             )
         );
     }
@@ -74,6 +76,20 @@ contract StakingV2SetupTests is StakingV1Setup {
             new StakingRewardsV2(
                 address(kwenta),
                 rewardEscrowV2,
+                address(0),
+                address(stakingRewardsV1)
+            )
+        );
+    }
+
+    function test_Cannot_Setup_StakingRewardsV2_With_StakingRewardsV1_Zero_Address() public {
+        address rewardEscrowV2 = deployRewardEscrowV2(address(this));
+        vm.expectRevert(IStakingRewardsV2.ZeroAddress.selector);
+        stakingRewardsV2Implementation = address(
+            new StakingRewardsV2(
+                address(kwenta),
+                rewardEscrowV2,
+                address(supplySchedule),
                 address(0)
             )
         );
@@ -85,7 +101,8 @@ contract StakingV2SetupTests is StakingV1Setup {
             new StakingRewardsV2(
                 address(kwenta),
                 rewardEscrowV2,
-                address(supplySchedule)
+                address(supplySchedule),
+                address(stakingRewardsV1)
             )
         );
         vm.expectRevert(IStakingRewardsV2.ZeroAddress.selector);

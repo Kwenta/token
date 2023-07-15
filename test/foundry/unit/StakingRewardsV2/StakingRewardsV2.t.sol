@@ -367,6 +367,26 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
     }
 
     /*//////////////////////////////////////////////////////////////
+                            V1 View Functions
+    //////////////////////////////////////////////////////////////*/
+
+    function test_v1BalanceOf() public {
+        assertEq(stakingRewardsV2.v1BalanceOf(address(this)), 0);
+
+        fundAccountAndStakeV1(address(this), TEST_VALUE);
+
+        assertEq(stakingRewardsV2.v1BalanceOf(address(this)), TEST_VALUE);
+    }
+
+    function test_v1TotalSupply() public {
+        assertEq(stakingRewardsV2.v1TotalSupply(), 0);
+
+        fundAccountAndStakeV1(address(this), TEST_VALUE);
+
+        assertEq(stakingRewardsV2.v1TotalSupply(), TEST_VALUE);
+    }
+
+    /*//////////////////////////////////////////////////////////////
                         External Rewards Recovery
     //////////////////////////////////////////////////////////////*/
 
