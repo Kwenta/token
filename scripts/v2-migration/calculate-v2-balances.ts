@@ -11,7 +11,7 @@ const liquidStakedKwenta = 3518714080081080305506 // 3518 KWENTA
 async function main() {
     console.log("💻 Running calculations on local data...");
     const addressesWhoGotRewards: string[] = printInitialData();
-    console.log("🛜 Running calculations against remote data...");
+    console.log("🛜  Running calculations against remote data...");
 
     const [account] = await ethers.getSigners();
     console.log("Using the account:", account.address);
@@ -34,6 +34,8 @@ async function main() {
     }
 
     console.log("Total V2 Staked Escrow: ", totalStakedEscrow);
+
+    console.log("📝 Manually collected/curated data:");
     console.log("Total KWENTA in StakingRewardsV2: 7_808 KWENTA");
     console.log("Total KWENTA liquid staked in  StakingRewardsV2: 3_518 KWENTA");
     console.log("Total KWENTA minted to StakingRewardsV2: 4_290 KWENTA");
