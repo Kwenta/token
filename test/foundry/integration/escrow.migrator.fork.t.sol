@@ -6,6 +6,7 @@ import {StakingTestHelpers} from "../utils/helpers/StakingTestHelpers.t.sol";
 import {Migrate} from "../../../scripts/Migrate.s.sol";
 import {Kwenta} from "../../../contracts/Kwenta.sol";
 import {RewardEscrow} from "../../../contracts/RewardEscrow.sol";
+import {VestingEntries} from "../../../contracts/interfaces/IRewardEscrow.sol";
 import {SupplySchedule} from "../../../contracts/SupplySchedule.sol";
 import {StakingRewards} from "../../../contracts/StakingRewards.sol";
 import {EscrowMigrator} from "../../../contracts/EscrowMigrator.sol";
@@ -19,14 +20,14 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
     //////////////////////////////////////////////////////////////*/
 
     address public owner;
-    EscrowMigrator public migrator;
+    EscrowMigrator public escrowMigrator;
 
     /*//////////////////////////////////////////////////////////////
                                 SETUP
     //////////////////////////////////////////////////////////////*/
 
     function setUp() public override {
-        vm.rollFork(106878447);
+        vm.rollFork(106_878_447);
 
         // define main contracts
         kwenta = Kwenta(OPTIMISM_KWENTA_TOKEN);
@@ -61,7 +62,7 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
             )
         );
 
-        migrator = EscrowMigrator(
+        escrowMigrator = EscrowMigrator(
             address(
                 new ERC1967Proxy(
                     migratorImpl,
@@ -71,7 +72,7 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
         );
 
         vm.prank(owner);
-        rewardEscrowV1.setTreasuryDAO(address(migrator));
+        rewardEscrowV1.setTreasuryDAO(address(escrowMigrator));
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -79,6 +80,24 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
     //////////////////////////////////////////////////////////////*/
 
     function test_Migrator() public {
+        uint256 escrowBalance = rewardEscrowV1.balanceOf(user1);
+        assertEq(escrowBalance, 16.324711673459301166 ether);
+
+        uint256 numVestingEntries = rewardEscrowV1.numVestingEntries(user1);
+        assertEq(numVestingEntries, 16);
+
+        entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, numVestingEntries);
+        assertEq(entryIDs.length, 16);
+
+        (uint total, uint totalFee) = rewardEscrowV1.getVestingQuantity(user1, entryIDs);
+
+        assertEq(total, 3479506953460982524);
+        assertEq(totalFee, 12845204719998318642);
+
+        // step 1
+        vm.prank(user1);
+        escrowMigrator.initiateMigration();
+
 
     }
 }
