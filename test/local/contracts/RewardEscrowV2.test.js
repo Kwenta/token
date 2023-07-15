@@ -74,7 +74,6 @@ const deployStakingRewardsV2 = async (
     token,
     rewardEscrow,
     supplySchedule,
-    stakingRewardsV1,
     owner
 ) => {
     const StakingRewardsV2Factory = await ethers.getContractFactory(
@@ -88,8 +87,7 @@ const deployStakingRewardsV2 = async (
             constructorArgs: [
                 token,
                 rewardEscrow,
-                supplySchedule,
-                stakingRewardsV1,
+                supplySchedule
             ],
         }
     );
@@ -131,7 +129,6 @@ contract("RewardEscrowV2 KWENTA", ([owner, staker1, staker2, treasuryDAO]) => {
             kwentaSmock.address,
             rewardEscrowV2.address,
             supplySchedule.address,
-            stakingRewards.address,
             owner
         );
 
