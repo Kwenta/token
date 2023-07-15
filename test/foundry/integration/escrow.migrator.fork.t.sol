@@ -129,10 +129,24 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
         vm.prank(user1);
         escrowMigrator.migrateRegisteredEntries(user1, entryIDs);
 
-        // confirm it went as expected
+        // check escrow sent to v2
         uint256 v2BalanceAfter = rewardEscrowV2.escrowedBalanceOf(user1);
         uint256 v1BalanceAfter = rewardEscrowV1.balanceOf(user1);
         assertEq(v2BalanceAfter, v2BalanceBefore + total + totalFee);
         assertEq(v1BalanceAfter, v1BalanceBefore - total - totalFee);
+
+        // confirm entries have right composition
+        entryIDs = rewardEscrowV2.getAccountVestingEntryIDs(user1, 0, numVestingEntries);
+        (uint256 newTotal, uint256 newTotalFee) = rewardEscrowV2.getVestingQuantity(entryIDs);
+
+        // check within 6% of target
+        assertCloseTo(newTotal, total, total / 15);
+        assertCloseTo(newTotalFee, totalFee, totalFee / 15);
     }
 }
+//   total 3479506953460982524
+//   newTotal 3655115733412381239
+//     diff 175608779951398715
+//   totalFee 12845204719998318642
+//   newTotalFee 12669595940046919927
+//     diff 175608779951398715
