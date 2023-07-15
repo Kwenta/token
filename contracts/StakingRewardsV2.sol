@@ -690,4 +690,12 @@ contract StakingRewardsV2 is
         emit Recovered(_tokenAddress, _tokenAmount);
         IERC20(_tokenAddress).transfer(owner(), _tokenAmount);
     }
+
+    function recoverFundsForRollback(address to) external onlyOwner {
+        uint256 stakedEscrow = 0.455395557014486600 ether;
+        uint256 totalLiquidStaked = totalSupply() - stakedEscrow;
+        uint256 balance = kwenta.balanceOf(address(this));
+        uint256 kwentaThatCanBeClaimed = balance - totalLiquidStaked;
+        kwenta.transfer(to, kwentaThatCanBeClaimed);
+    }
 }
