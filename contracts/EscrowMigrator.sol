@@ -234,7 +234,7 @@ contract EscrowMigrator is
             // skip if entry is not already vested
             if (escrowAmount != 0) continue;
 
-            bool isFullyMature = endTime < block.timestamp;
+            bool isFullyMature = endTime <= block.timestamp;
             uint256 earlyVestingFee;
             uint256 newDuration;
             if (isFullyMature) {
