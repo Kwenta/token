@@ -225,12 +225,7 @@ contract StakingRewardsV2 is
     }
 
     /// @inheritdoc IStakingRewardsV2
-    function unstake(uint256 _amount)
-        public
-        override
-        updateReward(msg.sender)
-        afterCooldown(msg.sender)
-    {
+    function unstake(uint256 _amount) public override updateReward(msg.sender) {
         if (_amount == 0) revert AmountZero();
         uint256 nonEscrowedBalance = nonEscrowedBalanceOf(msg.sender);
         if (_amount > nonEscrowedBalance) revert InsufficientBalance(nonEscrowedBalance);
@@ -274,7 +269,7 @@ contract StakingRewardsV2 is
     }
 
     /// @inheritdoc IStakingRewardsV2
-    function unstakeEscrow(uint256 _amount) external override afterCooldown(msg.sender) {
+    function unstakeEscrow(uint256 _amount) external override {
         _unstakeEscrow(msg.sender, _amount);
     }
 
@@ -692,7 +687,7 @@ contract StakingRewardsV2 is
     }
 
     function recoverFundsForRollback(address to) external onlyOwner {
-        uint256 stakedEscrow = 0.455395557014486600 ether;
+        uint256 stakedEscrow = 0.4553955570144866 ether;
         uint256 totalLiquidStaked = totalSupply() - stakedEscrow;
         uint256 balance = kwenta.balanceOf(address(this));
         uint256 kwentaThatCanBeClaimed = balance - totalLiquidStaked;
