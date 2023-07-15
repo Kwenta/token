@@ -8,7 +8,10 @@ interface IEscrowMigrator {
 
     enum MigrationStatus {
         NOT_STARTED,
-        IN_PROGRESS,
+        INITIATED,
+        REGISTERED,
+        VESTED,
+        PAID,
         COMPLETED
     }
 
@@ -40,4 +43,16 @@ interface IEscrowMigrator {
 
     /// @notice cannot set this value to the zero address
     error ZeroAddress();
+
+    error MigrationAlreadyStarted();
+
+    error NoEscrowBalanceToMigrate();
+
+    error MustBeInitiatedOrRegistered();
+
+    error MustBeInRegisteredState();
+
+    error MustBeInVestedState();
+
+    error MustBeInPaidState();
 }
