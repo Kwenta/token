@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.19;
 
+// TODO: see if I can add a way to restart the process for a user
+
 // Inheritance
 import {IEscrowMigrator} from "./interfaces/IEscrowMigrator.sol";
 import {Ownable2StepUpgradeable} from
@@ -13,7 +15,7 @@ import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/U
 import {IKwenta} from "./interfaces/IKwenta.sol";
 import {IRewardEscrowV2} from "./interfaces/IRewardEscrowV2.sol";
 import {IStakingRewardsV2} from "./interfaces/IStakingRewardsV2.sol";
-import {IRewardEscrow, VestingEntries} from "./interfaces/IRewardEscrow.sol";
+import {IRewardEscrow} from "./interfaces/IRewardEscrow.sol";
 import {IStakingRewardsV2Integrator} from "./interfaces/IStakingRewardsV2Integrator.sol";
 
 contract EscrowMigrator is
@@ -46,8 +48,7 @@ contract EscrowMigrator is
                                  STATE
     //////////////////////////////////////////////////////////////*/
 
-    mapping(address => mapping(uint256 => VestingEntries.VestingEntry)) public
-        registeredVestingSchedules;
+    mapping(address => mapping(uint256 => VestingEntry)) public registeredVestingSchedules;
 
     mapping(address => uint256) public totalVestedAccountBalanceAtRegistrationTime;
 
@@ -56,6 +57,10 @@ contract EscrowMigrator is
     mapping(address => MigrationStatus) public migrationStatus;
 
     mapping(address => uint256[]) public registeredEntryIDs;
+
+    mapping(address => uint256) public numberOfConfirmedEntries;
+
+    mapping(address => mapping(uint256 => bool)) public isEntryConfirmed;
 
     /*///////////////////////////////////////////////////////////////
                         CONSTRUCTOR / INITIALIZER
@@ -149,10 +154,11 @@ contract EscrowMigrator is
             // skip if entry is already fully mature (hence no need to migrate)
             if (endTime <= block.timestamp) continue;
 
-            registeredVestingSchedules[account][entryID] = VestingEntries.VestingEntry({
+            registeredVestingSchedules[account][entryID] = VestingEntry({
                 endTime: endTime,
                 escrowAmount: escrowAmount,
-                duration: duration
+                duration: duration,
+                confirmed: false
             });
 
             registeredEntryIDs[account].push(entryID);
@@ -162,25 +168,31 @@ contract EscrowMigrator is
     }
 
     // step 3: vest all entries and confirm
-    function confirmEntriesAreVested() external {
-        _confirmEntriesAreVested(msg.sender);
+    // WARNING: After this step no more entries can be registered
+    function confirmEntriesAreVested(uint256[] calldata _entryIDs) external {
+        _confirmEntriesAreVested(msg.sender, _entryIDs);
     }
 
-    function _confirmEntriesAreVested(address account) internal {
+    function _confirmEntriesAreVested(address account, uint256[] calldata _entryIDs) internal {
         if (migrationStatus[account] != MigrationStatus.REGISTERED) {
             revert MustBeInRegisteredState();
         }
 
-        uint256[] storage entryIDs = registeredEntryIDs[account];
-        for (uint256 i = 0; i < entryIDs.length; i++) {
-            uint256 entryID = entryIDs[i];
+        uint256 entriesToCheck = registeredEntryIDs[account].length;
+
+        for (uint256 i = 0; i < _entryIDs.length; i++) {
+            uint256 entryID = _entryIDs[i];
             (, uint256 escrowAmount,) = rewardEscrowV1.getVestingEntry(account, entryID);
 
             // if it is not zero, it hasn't been vested
-            assert(escrowAmount == 0);
+            if (escrowAmount != 0) continue;
+
+            numberOfConfirmedEntries[account]++;
         }
 
-        migrationStatus[account] = MigrationStatus.VESTED;
+        if (numberOfConfirmedEntries[account] == entriesToCheck) {
+            migrationStatus[account] = MigrationStatus.VESTED;
+        }
     }
 
     // step 4: pay liquid kwenta for migration
@@ -216,8 +228,7 @@ contract EscrowMigrator is
         for (uint256 i = 0; i < _entryIDs.length; i++) {
             uint256 entryID = _entryIDs[i];
 
-            VestingEntries.VestingEntry storage registeredEntry =
-                registeredVestingSchedules[account][entryID];
+            VestingEntry storage registeredEntry = registeredVestingSchedules[account][entryID];
 
             // skip if not registered
             if (registeredEntry.endTime == 0) continue;
@@ -277,10 +288,10 @@ contract EscrowMigrator is
     }
 
     // step 3: vest all entries and confirm
-    function confirmIntegratorEntriesAreVested(address _integrator) external {
+    function confirmIntegratorEntriesAreVested(address _integrator, uint256[] calldata _entryIDs) external {
         address beneficiary = IStakingRewardsV2Integrator(_integrator).beneficiary();
         if (beneficiary != msg.sender) revert NotApproved();
-        _confirmEntriesAreVested(_integrator);
+        _confirmEntriesAreVested(_integrator, _entryIDs);
     }
 
     // step 4: pay liquid kwenta for migration

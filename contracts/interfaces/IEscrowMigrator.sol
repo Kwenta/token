@@ -3,8 +3,19 @@ pragma solidity 0.8.19;
 
 interface IEscrowMigrator {
     /*//////////////////////////////////////////////////////////////
-                                 ENUMS
+                           STRUCTS AND ENUMS
     //////////////////////////////////////////////////////////////*/
+
+    /// @notice A vesting entry contains the data for each escrow NFT
+    struct VestingEntry {
+        // The amount of KWENTA stored in this vesting entry
+        uint256 escrowAmount;
+        // The length of time until the entry is fully matured
+        uint256 duration;
+        // The time at which the entry will be fully matured
+        uint64 endTime;
+        bool confirmed;
+    }
 
     enum MigrationStatus {
         NOT_STARTED,
