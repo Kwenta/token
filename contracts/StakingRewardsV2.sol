@@ -249,7 +249,6 @@ contract StakingRewardsV2 is
     function unstake(uint256 _amount)
         public
         override
-        whenNotPaused
         updateReward(msg.sender)
         afterCooldown(msg.sender)
     {
@@ -311,7 +310,6 @@ contract StakingRewardsV2 is
 
     function _unstakeEscrow(address _account, uint256 _amount)
         internal
-        whenNotPaused
         updateReward(_account)
     {
         if (_amount == 0) revert AmountZero();
