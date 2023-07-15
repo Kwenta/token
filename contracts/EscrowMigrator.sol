@@ -66,11 +66,7 @@ contract EscrowMigrator is
     /// @dev disable default constructor for disable implementation contract
     /// Actual contract construction will take place in the initialize function via proxy
     /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor(
-        address _kwenta,
-        address _rewardEscrowV1,
-        address _rewardEscrowV2
-    ) {
+    constructor(address _kwenta, address _rewardEscrowV1, address _rewardEscrowV2) {
         if (_kwenta == address(0)) revert ZeroAddress();
         if (_rewardEscrowV1 == address(0)) revert ZeroAddress();
         if (_rewardEscrowV2 == address(0)) revert ZeroAddress();
@@ -99,6 +95,7 @@ contract EscrowMigrator is
                           EOA MIGRATION STEPS
     //////////////////////////////////////////////////////////////*/
 
+    // TODO: attempt to make atomic with step 2 a "initialized" check pattern
     // step 1: initiate migration
     function initiateMigration() external {
         _initiateMigration(msg.sender);
@@ -115,15 +112,15 @@ contract EscrowMigrator is
             rewardEscrowV1.totalVestedAccountBalance(account);
     }
 
+    // TODO: how to prevent user footgun of vesting before registering?
     // step 2: register entries for migration
-    function registerEntriesForEarlyVestingAndMigration(uint256[] calldata _entryIDs) external {
-        _registerEntriesForEarlyVestingAndMigration(msg.sender, _entryIDs);
+    function registerEntriesForVestingAndMigration(uint256[] calldata _entryIDs) external {
+        _registerEntriesForVestingAndMigration(msg.sender, _entryIDs);
     }
 
-    function _registerEntriesForEarlyVestingAndMigration(
-        address account,
-        uint256[] calldata _entryIDs
-    ) internal {
+    function _registerEntriesForVestingAndMigration(address account, uint256[] calldata _entryIDs)
+        internal
+    {
         if (
             migrationStatus[account] != MigrationStatus.INITIATED
             // allow the state to be REGISTERED so that users can register entries in batches
@@ -189,6 +186,9 @@ contract EscrowMigrator is
         }
     }
 
+    // TODO: how to prevent user footgun of vesting after confirming?
+    // - could store totalVested at confirmation stage - if it has increased
+    // we require them to register further entries?
     // step 4: pay liquid kwenta for migration
     function payForMigration() external {
         _payForMigration(msg.sender, msg.sender);
@@ -253,7 +253,9 @@ contract EscrowMigrator is
             }
 
             kwenta.approve(address(rewardEscrowV2), escrowAmount);
-            rewardEscrowV2.createEscrowEntry(to, escrowAmount, newDuration, uint8(earlyVestingFee));
+            rewardEscrowV2.createEscrowEntry(
+                to, registeredEntry.escrowAmount, newDuration, uint8(earlyVestingFee)
+            );
 
             numberOfMigratedEntries[account]++;
 
@@ -284,7 +286,7 @@ contract EscrowMigrator is
     ) external {
         address beneficiary = IStakingRewardsV2Integrator(_integrator).beneficiary();
         if (beneficiary != msg.sender) revert NotApproved();
-        _registerEntriesForEarlyVestingAndMigration(_integrator, _entryIDs);
+        _registerEntriesForVestingAndMigration(_integrator, _entryIDs);
     }
 
     // step 3: vest all entries and confirm
