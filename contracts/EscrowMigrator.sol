@@ -14,6 +14,7 @@ import {IKwenta} from "./interfaces/IKwenta.sol";
 import {IRewardEscrowV2} from "./interfaces/IRewardEscrowV2.sol";
 import {IStakingRewardsV2} from "./interfaces/IStakingRewardsV2.sol";
 import {IRewardEscrow, VestingEntries} from "./interfaces/IRewardEscrow.sol";
+import {IStakingRewardsV2Integrator} from "./interfaces/IStakingRewardsV2Integrator.sol";
 
 contract EscrowMigrator is
     IEscrowMigrator,
@@ -184,10 +185,10 @@ contract EscrowMigrator is
 
     // step 4: pay liquid kwenta for migration
     function payForMigration() external {
-        _payForMigration(msg.sender);
+        _payForMigration(msg.sender, msg.sender);
     }
 
-    function _payForMigration(address account) internal {
+    function _payForMigration(address account, address from) internal {
         if (migrationStatus[account] != MigrationStatus.VESTED) {
             revert MustBeInVestedState();
         }
@@ -195,17 +196,19 @@ contract EscrowMigrator is
         uint256 vestedAtRegistration = totalVestedAccountBalanceAtRegistrationTime[account];
         uint256 vestedNow = rewardEscrowV1.totalVestedAccountBalance(account);
         uint256 userDebt = vestedNow - vestedAtRegistration;
-        kwenta.transferFrom(account, address(this), userDebt);
+        kwenta.transferFrom(from, address(this), userDebt);
 
         migrationStatus[account] = MigrationStatus.PAID;
     }
 
     // step 5: migrate all registered entries
-    function migrateRegisteredEntries(uint256[] calldata _entryIDs) external {
-        _migrateRegisteredEntries(msg.sender, _entryIDs);
+    function migrateRegisteredEntries(address to, uint256[] calldata _entryIDs) external {
+        _migrateRegisteredEntries(msg.sender, to, _entryIDs);
     }
 
-    function _migrateRegisteredEntries(address account, uint256[] calldata _entryIDs) internal {
+    function _migrateRegisteredEntries(address account, address to, uint256[] calldata _entryIDs)
+        internal
+    {
         if (migrationStatus[account] != MigrationStatus.PAID) {
             revert MustBeInPaidState();
         }
@@ -245,9 +248,7 @@ contract EscrowMigrator is
             }
 
             kwenta.approve(address(rewardEscrowV2), escrowAmount);
-            rewardEscrowV2.createEscrowEntry(
-                account, escrowAmount, newDuration, uint8(earlyVestingFee)
-            );
+            rewardEscrowV2.createEscrowEntry(to, escrowAmount, newDuration, uint8(earlyVestingFee));
 
             // update this to zero so it cannot be migrated again
             registeredEntry.endTime = 0;
@@ -257,6 +258,48 @@ contract EscrowMigrator is
     /*//////////////////////////////////////////////////////////////
                        INTEGRATOR MIGRATION STEPS
     //////////////////////////////////////////////////////////////*/
+
+    // step 1: initiate migration
+    function initiateIntegratorMigration(address _integrator) external {
+        address beneficiary = IStakingRewardsV2Integrator(_integrator).beneficiary();
+        if (beneficiary != msg.sender) revert NotApproved();
+        _initiateMigration(_integrator);
+    }
+
+    // step 2: register entries for migration
+    function registerEntriesForIntegratorMigration(
+        address _integrator,
+        uint256[] calldata _entryIDs
+    ) external {
+        address beneficiary = IStakingRewardsV2Integrator(_integrator).beneficiary();
+        if (beneficiary != msg.sender) revert NotApproved();
+        _registerEntriesForEarlyVestingAndMigration(_integrator, _entryIDs);
+    }
+
+    // step 3: vest all entries and confirm
+    function confirmIntegratorEntriesAreVested(address _integrator) external {
+        address beneficiary = IStakingRewardsV2Integrator(_integrator).beneficiary();
+        if (beneficiary != msg.sender) revert NotApproved();
+        _confirmEntriesAreVested(_integrator);
+    }
+
+    // step 4: pay liquid kwenta for migration
+    function payForIntegratorMigration(address _integrator) external {
+        address beneficiary = IStakingRewardsV2Integrator(_integrator).beneficiary();
+        if (beneficiary != msg.sender) revert NotApproved();
+        _payForMigration(_integrator, beneficiary);
+    }
+
+    // step 5: migrate all registered entries
+    function migrateRegisteredIntegratorEntries(
+        address _integrator,
+        address to,
+        uint256[] calldata _entryIDs
+    ) external {
+        address beneficiary = IStakingRewardsV2Integrator(_integrator).beneficiary();
+        if (beneficiary != msg.sender) revert NotApproved();
+        _migrateRegisteredEntries(to, _integrator, _entryIDs);
+    }
 
     /*//////////////////////////////////////////////////////////////
                              UPGRADEABILITY
