@@ -4,12 +4,12 @@ pragma solidity 0.8.19;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {PausableUpgradeable} from
     "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
-import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
+import {Ownable2StepUpgradeable} from
+    "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {IKwenta} from "./interfaces/IKwenta.sol";
 import {IStakingRewardsV2} from "./interfaces/IStakingRewardsV2.sol";
 import {IStakingRewardsV2Integrator} from "./interfaces/IStakingRewardsV2Integrator.sol";
-import {IStakingRewards} from "./interfaces/IStakingRewards.sol";
 import {ISupplySchedule} from "./interfaces/ISupplySchedule.sol";
 import {IRewardEscrowV2} from "./interfaces/IRewardEscrowV2.sol";
 
@@ -43,10 +43,6 @@ contract StakingRewardsV2 is
     /// @notice handles reward token minting logic
     /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
     ISupplySchedule public immutable supplySchedule;
-
-    /// @notice previous version of staking rewards contract - used for migration
-    /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
-    IStakingRewards public immutable stakingRewardsV1;
 
     /*///////////////////////////////////////////////////////////////
                                 STATE
@@ -136,16 +132,10 @@ contract StakingRewardsV2 is
     /// @dev disable default constructor to disable the implementation contract
     /// Actual contract construction will take place in the initialize function via proxy
     /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor(
-        address _kwenta,
-        address _rewardEscrow,
-        address _supplySchedule,
-        address _stakingRewardsV1
-    ) {
-        if (
-            _kwenta == address(0) || _rewardEscrow == address(0) || _supplySchedule == address(0)
-                || _stakingRewardsV1 == address(0)
-        ) revert ZeroAddress();
+    constructor(address _kwenta, address _rewardEscrow, address _supplySchedule) {
+        if (_kwenta == address(0) || _rewardEscrow == address(0) || _supplySchedule == address(0)) {
+            revert ZeroAddress();
+        }
 
         _disableInitializers();
 
@@ -155,7 +145,6 @@ contract StakingRewardsV2 is
         // define contracts which will interact with StakingRewards
         rewardEscrow = IRewardEscrowV2(_rewardEscrow);
         supplySchedule = ISupplySchedule(_supplySchedule);
-        stakingRewardsV1 = IStakingRewards(_stakingRewardsV1);
     }
 
     /// @inheritdoc IStakingRewardsV2
@@ -188,22 +177,12 @@ contract StakingRewardsV2 is
     }
 
     /// @inheritdoc IStakingRewardsV2
-    function v1TotalSupply() public view override returns (uint256) {
-        return stakingRewardsV1.totalSupply();
-    }
-
-    /// @inheritdoc IStakingRewardsV2
     function balanceOf(address _account) public view override returns (uint256) {
         Checkpoint[] storage checkpoints = balancesCheckpoints[_account];
         uint256 length = checkpoints.length;
         unchecked {
             return length == 0 ? 0 : checkpoints[length - 1].value;
         }
-    }
-
-    /// @inheritdoc IStakingRewardsV2
-    function v1BalanceOf(address _account) public view override returns (uint256) {
-        return stakingRewardsV1.balanceOf(_account);
     }
 
     /// @inheritdoc IStakingRewardsV2
@@ -308,10 +287,7 @@ contract StakingRewardsV2 is
         _unstakeEscrow(_account, _amount);
     }
 
-    function _unstakeEscrow(address _account, uint256 _amount)
-        internal
-        updateReward(_account)
-    {
+    function _unstakeEscrow(address _account, uint256 _amount) internal updateReward(_account) {
         if (_amount == 0) revert AmountZero();
         uint256 escrowedBalance = escrowedBalanceOf(_account);
         if (_amount > escrowedBalance) revert InsufficientBalance(escrowedBalance);
@@ -432,17 +408,14 @@ contract StakingRewardsV2 is
 
     /// @inheritdoc IStakingRewardsV2
     function rewardPerToken() public view override returns (uint256) {
-        uint256 sumOfAllStakedTokens = totalSupply() + v1TotalSupply();
+        uint256 allTokensStaked = totalSupply();
 
-        if (sumOfAllStakedTokens == 0) {
+        if (allTokensStaked == 0) {
             return rewardPerTokenStored;
         }
 
         return rewardPerTokenStored
-            + (
-                ((lastTimeRewardApplicable() - lastUpdateTime) * rewardRate * 1e18)
-                    / sumOfAllStakedTokens
-            );
+            + (((lastTimeRewardApplicable() - lastUpdateTime) * rewardRate * 1e18) / allTokensStaked);
     }
 
     /// @inheritdoc IStakingRewardsV2
@@ -452,9 +425,7 @@ contract StakingRewardsV2 is
 
     /// @inheritdoc IStakingRewardsV2
     function earned(address _account) public view override returns (uint256) {
-        uint256 v1Balance = v1BalanceOf(_account);
-        uint256 v2Balance = balanceOf(_account);
-        uint256 totalBalance = v1Balance + v2Balance;
+        uint256 totalBalance = balanceOf(_account);
 
         return ((totalBalance * (rewardPerToken() - userRewardPerTokenPaid[_account])) / 1e18)
             + rewards[_account];
