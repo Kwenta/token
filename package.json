@@ -19,7 +19,8 @@
     "deploy:mainnet": "npx hardhat run --network optimistic-mainnet scripts/deploy.ts",
     "deploy:escrow-distributor:testnet": "npx hardhat run --network optimistic-goerli scripts/deploy-escrow-distributor.ts",
     "interact:local": "npx hardhat interact --network localhost",
-    "gas-snapshot": "forge snapshot"
+    "gas-snapshot": "forge snapshot",
+    "calculate-v2-balances": "npx hardhat run --network optimistic-mainnet scripts/v2-migration/calculate-v2-balances.ts"
   },
   "devDependencies": {
     "@defi-wonderland/smock": "^2.3.4",
