@@ -250,7 +250,7 @@ contract EscrowMigrator is
                 // reduce based on the percentage of time remaining
                 earlyVestingFee = percentageLeft * 90 / 100;
                 assert(earlyVestingFee <= 90);
-                newDuration = timeRemaining;
+                earlyVestingFee = max(earlyVestingFee, 50);
             }
 
             kwenta.approve(address(rewardEscrowV2), originalEscrowAmount);
@@ -267,6 +267,10 @@ contract EscrowMigrator is
         if (numberOfMigratedEntries[account] == registeredEntryIDs[account].length) {
             migrationStatus[account] = MigrationStatus.COMPLETED;
         }
+    }
+
+    function max(uint256 a, uint256 b) internal pure returns (uint256) {
+        return a > b ? a : b;
     }
 
     /*//////////////////////////////////////////////////////////////
