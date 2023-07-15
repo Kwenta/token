@@ -89,15 +89,48 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
         entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, numVestingEntries);
         assertEq(entryIDs.length, 16);
 
-        (uint total, uint totalFee) = rewardEscrowV1.getVestingQuantity(user1, entryIDs);
+        (uint256 total, uint256 totalFee) = rewardEscrowV1.getVestingQuantity(user1, entryIDs);
 
-        assertEq(total, 3479506953460982524);
-        assertEq(totalFee, 12845204719998318642);
+        assertEq(total, 3_479_506_953_460_982_524);
+        assertEq(totalFee, 12_845_204_719_998_318_642);
 
         // step 1
         vm.prank(user1);
         escrowMigrator.initiateMigration();
 
+        // step 2
+        vm.prank(user1);
+        escrowMigrator.registerEntriesForVestingAndMigration(entryIDs);
 
+        uint256 step2UserBalance = kwenta.balanceOf(user1);
+        uint256 step2MigratorBalance = kwenta.balanceOf(address(escrowMigrator));
+
+        // step 3.1 - vest
+        vm.prank(user1);
+        rewardEscrowV1.vest(entryIDs);
+
+        uint256 step2UserBalanceAfterVest = kwenta.balanceOf(user1);
+        uint256 step2MigratorBalanceAfterVest = kwenta.balanceOf(address(escrowMigrator));
+        assertEq(step2UserBalanceAfterVest, step2UserBalance + total);
+        assertEq(step2MigratorBalanceAfterVest, step2MigratorBalance + totalFee);
+
+        // step 3.2 - confirm vest
+        vm.prank(user1);
+        escrowMigrator.confirmEntriesAreVested(entryIDs);
+
+        // step 4 - pay for migration
+        vm.prank(user1);
+        kwenta.approve(address(escrowMigrator), total);
+        vm.prank(user1);
+        escrowMigrator.payForMigration();
+
+        // step 5 - migrate entries
+        // vm.prank(user1);
+        // escrowMigrator.migrateRegisteredEntries(user1, entryIDs);
+
+
+
+
+        // assertEq(rewardEscrowV1.balanceOf(user1), step2UserBalance + total);
     }
 }
