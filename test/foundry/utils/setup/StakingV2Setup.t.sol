@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 import {console} from "forge-std/Test.sol";
-import {Migrate} from "../../../../scripts/Migrate.s.sol";
+import {Migrate2} from "../../../../scripts/Migrate2.s.sol";
 import {StakingV1Setup} from "../../utils/setup/StakingV1Setup.t.sol";
 import {RewardEscrowV2} from "../../../../contracts/RewardEscrowV2.sol";
 import {StakingRewardsV2} from "../../../../contracts/StakingRewardsV2.sol";
@@ -37,7 +37,7 @@ contract StakingV2Setup is StakingV1Setup {
 
     RewardEscrowV2 public rewardEscrowV2;
     StakingRewardsV2 public stakingRewardsV2;
-    Migrate public migrate;
+    Migrate2 public migrate;
 
     address rewardEscrowV2Implementation;
     address stakingRewardsV2Implementation;
@@ -51,7 +51,7 @@ contract StakingV2Setup is StakingV1Setup {
         super.setUp();
 
         // Deploy StakingV2
-        migrate = new Migrate();
+        migrate = new Migrate2();
         (bool deploymentSuccess, bytes memory deploymentData) = address(migrate).delegatecall(
             abi.encodeWithSelector(
                 migrate.deploySystem.selector,

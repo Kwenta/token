@@ -3,7 +3,7 @@ pragma solidity 0.8.19;
 
 import {console} from "forge-std/Test.sol";
 import {StakingTestHelpers} from "../utils/helpers/StakingTestHelpers.t.sol";
-import {Migrate} from "../../../scripts/Migrate.s.sol";
+import {Migrate2} from "../../../scripts/Migrate2.s.sol";
 import {Kwenta} from "../../../contracts/Kwenta.sol";
 import {RewardEscrow} from "../../../contracts/RewardEscrow.sol";
 import {SupplySchedule} from "../../../contracts/SupplySchedule.sol";
@@ -37,9 +37,9 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
         user2 = createUser();
 
         // set owners address code to trick the test into allowing onlyOwner functions to be called via script
-        vm.etch(owner, address(new Migrate()).code);
+        vm.etch(owner, address(new Migrate2()).code);
 
-        (rewardEscrowV2, stakingRewardsV2,,) = Migrate(owner).runCompleteMigrationProcess({
+        (rewardEscrowV2, stakingRewardsV2,,) = Migrate2(owner).runCompleteMigrationProcess({
             _owner: owner,
             _kwenta: address(kwenta),
             _supplySchedule: address(supplySchedule),

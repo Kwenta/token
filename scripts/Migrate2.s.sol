@@ -19,7 +19,7 @@ import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 /// @title Script for migration from StakingV1 to StakingV2
 /// @author tommyrharper (zeroknowledgeltd@gmail.com)
 /// @dev This uses the UUPS upgrade pattern (see eip-1822)
-contract Migrate {
+contract Migrate2 {
     /**
      * @dev Step 1: deploy the new contracts
      *   - This deploys the new stakingv2 contracts but stakingv1 will remain operational
@@ -28,7 +28,6 @@ contract Migrate {
         address _owner,
         address _kwenta,
         address _supplySchedule,
-        address _stakingRewardsV1,
         bool _printLogs
     )
         public
@@ -67,8 +66,7 @@ contract Migrate {
             new StakingRewardsV2(
                 _kwenta,
                 address(rewardEscrowV2),
-                _supplySchedule,
-                address(_stakingRewardsV1)
+                _supplySchedule
             )
         );
 
@@ -157,7 +155,6 @@ contract Migrate {
         address _owner,
         address _kwenta,
         address _supplySchedule,
-        address _stakingRewardsV1,
         address _treasuryDAO,
         bool _printLogs
     )
@@ -175,7 +172,7 @@ contract Migrate {
             stakingRewardsV2,
             rewardEscrowV2Implementation,
             stakingRewardsV2Implementation
-        ) = deploySystem(_owner, _kwenta, _supplySchedule, _stakingRewardsV1, _printLogs);
+        ) = deploySystem(_owner, _kwenta, _supplySchedule, _printLogs);
 
         // Step 2: Setup StakingV2 contracts
         setupSystem(address(rewardEscrowV2), address(stakingRewardsV2), _treasuryDAO, _printLogs);
@@ -197,21 +194,20 @@ contract Migrate {
 ///     - ARCHIVE_NODE_URL_L2 - the archive node URL of the Optimism network
 /// (2) load the variables in the .env file via `source .env`
 /// (3) run `forge script scripts/Migrate.s.sol:DeployAndSetupOptimism --rpc-url $ARCHIVE_NODE_URL_L2 --broadcast --verify -vvvv`
-contract DeployAndSetupOptimism is Script, Migrate {
+contract DeployAndSetupOptimism is Script, Migrate2 {
     function run() public {
         uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
         address deployer = vm.addr(deployerPrivateKey);
 
-        (RewardEscrowV2 rewardEscrowV2, StakingRewardsV2 stakingRewardsV2,,) = Migrate.deploySystem(
+        (RewardEscrowV2 rewardEscrowV2, StakingRewardsV2 stakingRewardsV2,,) = Migrate2.deploySystem(
             deployer,
             OPTIMISM_KWENTA_TOKEN,
             OPTIMISM_SUPPLY_SCHEDULE,
-            OPTIMISM_STAKING_REWARDS_V1,
             true
         );
 
-        Migrate.setupSystem(
+        Migrate2.setupSystem(
             address(rewardEscrowV2), address(stakingRewardsV2), OPTIMISM_TREASURY_DAO, true
         );
 
@@ -233,21 +229,20 @@ contract DeployAndSetupOptimism is Script, Migrate {
 ///     - ARCHIVE_NODE_URL_GOERLI_L2 - the archive node URL of the Optimism Goerli network
 /// (2) load the variables in the .env file via `source .env`
 /// (3) run `forge script scripts/Migrate.s.sol:DeployAndSetupOptimismGoerli --rpc-url $ARCHIVE_NODE_URL_GOERLI_L2 --broadcast --verify -vvvv`
-contract DeployAndSetupOptimismGoerli is Script, Migrate {
+contract DeployAndSetupOptimismGoerli is Script, Migrate2 {
     function run() public {
         uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
         address deployer = vm.addr(deployerPrivateKey);
 
-        (RewardEscrowV2 rewardEscrowV2, StakingRewardsV2 stakingRewardsV2,,) = Migrate.deploySystem(
+        (RewardEscrowV2 rewardEscrowV2, StakingRewardsV2 stakingRewardsV2,,) = Migrate2.deploySystem(
             deployer,
             OPTIMISM_GOERLI_KWENTA_TOKEN,
             OPTIMISM_GOERLI_SUPPLY_SCHEDULE,
-            OPTIMISM_GOERLI_STAKING_REWARDS_V1,
             true
         );
 
-        Migrate.setupSystem(
+        Migrate2.setupSystem(
             address(rewardEscrowV2), address(stakingRewardsV2), OPTIMISM_GOERLI_TREASURY_DAO, true
         );
 
@@ -262,17 +257,16 @@ contract DeployAndSetupOptimismGoerli is Script, Migrate {
 ///     - ARCHIVE_NODE_URL_GOERLI_L2 - the archive node URL of the Optimism Goerli network
 /// (2) load the variables in the .env file via `source .env`
 /// (3) run `forge script scripts/Migrate.s.sol:DeploySetupAndMigrateOptimismGoerli --rpc-url $ARCHIVE_NODE_URL_GOERLI_L2 --broadcast --verify -vvvv`
-contract DeploySetupAndMigrateOptimismGoerli is Script, Migrate {
+contract DeploySetupAndMigrateOptimismGoerli is Script, Migrate2 {
     function run() public {
         uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
         address deployer = vm.addr(deployerPrivateKey);
 
-        Migrate.runCompleteMigrationProcess(
+        Migrate2.runCompleteMigrationProcess(
             deployer,
             OPTIMISM_GOERLI_KWENTA_TOKEN,
             OPTIMISM_GOERLI_SUPPLY_SCHEDULE,
-            OPTIMISM_GOERLI_STAKING_REWARDS_V1,
             OPTIMISM_GOERLI_TREASURY_DAO,
             true
         );
