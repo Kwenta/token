@@ -174,7 +174,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         stakingRewardsV2.stake(TEST_VALUE);
     }
 
-    function test_Cannot_Unstake_When_Paused() public {
+    function test_Can_Unstake_When_Paused() public {
         // fund so that staking would succeed if not paused
         fundAndApproveAccountV2(address(this), TEST_VALUE);
         stakingRewardsV2.stake(TEST_VALUE);
@@ -184,15 +184,13 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         // pause
         stakingRewardsV2.pauseStakingRewards();
 
-        // attempt to unstake
-        vm.expectRevert("Pausable: paused");
-        stakingRewardsV2.unstake(TEST_VALUE);
-
-        // unpause
-        stakingRewardsV2.unpauseStakingRewards();
+        uint256 balanceBefore = kwenta.balanceOf(address(this));
 
         // should work now
         stakingRewardsV2.unstake(TEST_VALUE);
+
+        uint256 balanceAfter = kwenta.balanceOf(address(this));
+        assertEq(balanceAfter - balanceBefore, TEST_VALUE);
     }
 
     function test_Cannot_Stake_Escrow_When_Paused() public {
@@ -236,7 +234,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         stakingRewardsV2.stakeEscrowOnBehalf(address(this), TEST_VALUE);
     }
 
-    function test_Cannot_Unstake_Escrow_When_Paused() public {
+    function test_Can_Unstake_Escrow_When_Paused() public {
         // fund and stake escrow
         stakeEscrowedFundsV2(address(this), TEST_VALUE);
 
@@ -245,15 +243,13 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         // pause
         stakingRewardsV2.pauseStakingRewards();
 
-        // attempt to unstake
-        vm.expectRevert("Pausable: paused");
-        stakingRewardsV2.unstakeEscrow(TEST_VALUE);
-
-        // unpause
-        stakingRewardsV2.unpauseStakingRewards();
+        uint256 unstakedEscrowBefore = rewardEscrowV2.unstakedEscrowedBalanceOf(address(this));
 
         // should work now
         stakingRewardsV2.unstakeEscrow(TEST_VALUE);
+
+        uint256 unstakedEscrowAfter = rewardEscrowV2.unstakedEscrowedBalanceOf(address(this));
+        assertEq(unstakedEscrowAfter - unstakedEscrowBefore, TEST_VALUE);
     }
 
     function test_Cannot_Get_Rewards_When_Paused() public {
