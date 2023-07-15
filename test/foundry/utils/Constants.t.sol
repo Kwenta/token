@@ -22,12 +22,6 @@ address constant OPTIMISM_TREASURY_DAO = 0x82d2242257115351899894eF384f779b5ba8c
 address constant OPTIMISM_RANDOM_STAKING_USER = 0x049569adb8a1e8A9349E9F1111C7b7993A4612eB;
 
 /*//////////////////////////////////////////////////////////////
-                        ROLLBACK NUMBERS
-//////////////////////////////////////////////////////////////*/
-
-uint256 constant MINTED_TO_STAKING_REWARDS_V2 = 4290530229572642102152;
-
-/*//////////////////////////////////////////////////////////////
                         GOERLI ADDRESSES
 //////////////////////////////////////////////////////////////*/
 
@@ -38,3 +32,10 @@ address constant OPTIMISM_GOERLI_SUPPLY_SCHEDULE = 0x671423b2e8a99882FD14BbD07e9
 address constant OPTIMISM_GOERLI_TREASURY_DAO = 0xC2ecD777d06FFDF8B3179286BEabF52B67E9d991;
 // This actually the MultipleMerkleDistributor contract
 address constant OPTIMISM_GOERLI_TRADING_REWARDS = 0x74c0A3bD10634759DC8B4CA7078C8Bf85bFE1271;
+
+/*//////////////////////////////////////////////////////////////
+                            ROLLBACK DATA
+//////////////////////////////////////////////////////////////*/
+
+uint256 constant MINTED_TO_STAKING_REWARDS_V2 = 4_290_530_229_572_642_102_152; // 4290 KWENTA
+uint256 constant TOTAL_STAKED_ESCROW_V2 = 455_395_557_014_486_600; // 0.4553 KWENTA
