@@ -28,7 +28,6 @@ contract Migrate {
         address _owner,
         address _kwenta,
         address _supplySchedule,
-        address _stakingRewardsV1,
         bool _printLogs
     )
         public
@@ -67,8 +66,7 @@ contract Migrate {
             new StakingRewardsV2(
                 _kwenta,
                 address(rewardEscrowV2),
-                _supplySchedule,
-                address(_stakingRewardsV1)
+                _supplySchedule
             )
         );
 
@@ -157,7 +155,6 @@ contract Migrate {
         address _owner,
         address _kwenta,
         address _supplySchedule,
-        address _stakingRewardsV1,
         address _treasuryDAO,
         bool _printLogs
     )
@@ -175,7 +172,7 @@ contract Migrate {
             stakingRewardsV2,
             rewardEscrowV2Implementation,
             stakingRewardsV2Implementation
-        ) = deploySystem(_owner, _kwenta, _supplySchedule, _stakingRewardsV1, _printLogs);
+        ) = deploySystem(_owner, _kwenta, _supplySchedule, _printLogs);
 
         // Step 2: Setup StakingV2 contracts
         setupSystem(address(rewardEscrowV2), address(stakingRewardsV2), _treasuryDAO, _printLogs);
@@ -207,7 +204,6 @@ contract DeployAndSetupOptimism is Script, Migrate {
             deployer,
             OPTIMISM_KWENTA_TOKEN,
             OPTIMISM_SUPPLY_SCHEDULE,
-            OPTIMISM_STAKING_REWARDS_V1,
             true
         );
 
@@ -243,7 +239,6 @@ contract DeployAndSetupOptimismGoerli is Script, Migrate {
             deployer,
             OPTIMISM_GOERLI_KWENTA_TOKEN,
             OPTIMISM_GOERLI_SUPPLY_SCHEDULE,
-            OPTIMISM_GOERLI_STAKING_REWARDS_V1,
             true
         );
 
@@ -272,7 +267,6 @@ contract DeploySetupAndMigrateOptimismGoerli is Script, Migrate {
             deployer,
             OPTIMISM_GOERLI_KWENTA_TOKEN,
             OPTIMISM_GOERLI_SUPPLY_SCHEDULE,
-            OPTIMISM_GOERLI_STAKING_REWARDS_V1,
             OPTIMISM_GOERLI_TREASURY_DAO,
             true
         );
