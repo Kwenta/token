@@ -44,6 +44,9 @@ interface IEscrowMigrator {
     /// @notice cannot set this value to the zero address
     error ZeroAddress();
 
+    /// @notice the caller is not approved to take this action
+    error NotApproved();
+
     error MigrationAlreadyStarted();
 
     error NoEscrowBalanceToMigrate();
