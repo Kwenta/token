@@ -41,7 +41,7 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
 
     function test_Cannot_Steal_Other_Users_Entries_Fuzz(uint32 amount, uint24 duration) public {
         vm.assume(amount > 0);
-        vm.assume(duration > 0);
+        vm.assume(duration >= stakingRewardsV2.cooldownPeriod());
 
         // create the escrow entry
         createRewardEscrowEntryV2(user1, amount, duration);
@@ -61,7 +61,7 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
         uint24 duration
     ) public {
         vm.assume(amount > 0);
-        vm.assume(duration > 0);
+        vm.assume(duration >= stakingRewardsV2.cooldownPeriod());
 
         // create the escrow entry
         createRewardEscrowEntryV2(user1, amount, duration);
@@ -95,7 +95,7 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
         public
     {
         vm.assume(amount > 0);
-        vm.assume(duration > 0);
+        vm.assume(duration >= stakingRewardsV2.cooldownPeriod());
 
         // create the escrow entry
         createRewardEscrowEntryV2(user1, amount, duration);
@@ -210,7 +210,7 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
         uint8 numberOfEntries
     ) public {
         vm.assume(escrowAmount > 0);
-        vm.assume(duration > 0);
+        vm.assume(duration >= stakingRewardsV2.cooldownPeriod());
         vm.assume(numberOfEntries > 0);
 
         (uint256 totalEscrowedAmount, uint256 user1EntryID) =
@@ -254,7 +254,7 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
     ) public {
         vm.assume(escrowAmount > 0);
         vm.assume(stakedAmount > 0);
-        vm.assume(duration > 0);
+        vm.assume(duration >= stakingRewardsV2.cooldownPeriod());
         vm.assume(escrowAmount >= stakedAmount);
 
         // create the escrow entry
@@ -348,7 +348,7 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
         uint8 numberOfEntries
     ) public {
         vm.assume(escrowAmount > 0);
-        vm.assume(duration > 0);
+        vm.assume(duration >= stakingRewardsV2.cooldownPeriod());
         vm.assume(numberOfEntries > 0);
 
         (uint256 totalEscrowedAmount, uint256 user1EntryID) =
@@ -392,7 +392,7 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
     ) public {
         vm.assume(escrowAmount > 0);
         vm.assume(stakedAmount > 0);
-        vm.assume(duration > 0);
+        vm.assume(duration >= stakingRewardsV2.cooldownPeriod());
         vm.assume(escrowAmount >= stakedAmount);
 
         // create the escrow entry
@@ -489,7 +489,7 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
         uint8 numberOfEntries
     ) public {
         vm.assume(escrowAmount > 0);
-        vm.assume(duration > 0);
+        vm.assume(duration >= stakingRewardsV2.cooldownPeriod());
         vm.assume(numberOfEntries > 0);
 
         uint256 startingEntryToTransferIndex =
@@ -551,7 +551,7 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
         uint8 numberOfEntries
     ) public {
         vm.assume(escrowAmount > 0);
-        vm.assume(duration > 0);
+        vm.assume(duration >= stakingRewardsV2.cooldownPeriod());
         vm.assume(numberOfEntries > 0);
 
         // create the escrow entry
@@ -642,7 +642,7 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
 
         vm.assume(escrowAmount > 0);
         vm.assume(stakedAmount > 0);
-        vm.assume(duration > 0);
+        vm.assume(duration >= stakingRewardsV2.cooldownPeriod());
         vm.assume(numberOfEntries > 0);
         vm.assume(escrowAmount * numberOfEntries >= stakedAmount);
 
@@ -715,7 +715,7 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
         uint8 numberOfEntries
     ) public {
         vm.assume(escrowAmount > 0);
-        vm.assume(duration > 0);
+        vm.assume(duration >= stakingRewardsV2.cooldownPeriod());
         vm.assume(numberOfEntries > 0);
 
         // create the escrow entries
@@ -752,7 +752,7 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
         uint8 numberOfEntries
     ) public {
         vm.assume(escrowAmount > 0);
-        vm.assume(duration > 0);
+        vm.assume(duration >= stakingRewardsV2.cooldownPeriod());
         vm.assume(numberOfEntries > 0);
 
         // create the escrow entries

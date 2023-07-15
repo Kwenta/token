@@ -90,7 +90,7 @@ contract StakingRewardsV2OnBehalfActionsTests is DefaultStakingV2Setup {
         address caller
     ) public {
         vm.assume(escrowAmount > 0);
-        vm.assume(duration > 0);
+        vm.assume(duration >= stakingRewardsV2.cooldownPeriod());
         vm.assume(owner != address(0));
         vm.assume(operator != address(0));
         vm.assume(caller != address(0));
@@ -271,7 +271,7 @@ contract StakingRewardsV2OnBehalfActionsTests is DefaultStakingV2Setup {
         uint24 duration
     ) public {
         vm.assume(escrowAmount > 0);
-        vm.assume(duration > 0);
+        vm.assume(duration >= stakingRewardsV2.cooldownPeriod());
         vm.assume(owner != address(0));
         vm.assume(operator != address(0));
         vm.assume(owner != operator);
@@ -330,7 +330,7 @@ contract StakingRewardsV2OnBehalfActionsTests is DefaultStakingV2Setup {
     ) public {
         vm.assume(escrowAmount > 0);
         vm.assume(amountToEscrowStake > escrowAmount);
-        vm.assume(duration > 0);
+        vm.assume(duration >= stakingRewardsV2.cooldownPeriod());
         vm.assume(owner != address(0));
         vm.assume(operator != address(0));
         vm.assume(owner != operator);

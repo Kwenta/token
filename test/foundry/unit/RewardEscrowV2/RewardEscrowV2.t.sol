@@ -257,6 +257,30 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         rewardEscrowV2.createEscrowEntry(address(this), 0, 52 weeks, 90);
     }
 
+    function test_createEscrowEntry_Should_Not_Append_Entries_With_Short_Duration() public {
+        uint256 duration = stakingRewardsV2.cooldownPeriod();
+
+        vm.prank(treasury);
+        kwenta.approve(address(rewardEscrowV2), TEST_VALUE);
+        vm.prank(treasury);
+        vm.expectRevert(IRewardEscrowV2.InvalidDuration.selector);
+        rewardEscrowV2.createEscrowEntry(address(this), TEST_VALUE, duration - 1, 90);
+    }
+
+    function test_createEscrowEntry_Should_Not_Append_Entries_With_Bad_Duration_Fuzz(
+        uint256 duration
+    ) public {
+        uint256 cooldownPeriod = stakingRewardsV2.cooldownPeriod();
+
+        vm.prank(treasury);
+        kwenta.approve(address(rewardEscrowV2), TEST_VALUE);
+        if (duration < cooldownPeriod || duration > rewardEscrowV2.MAX_DURATION()) {
+            vm.expectRevert(IRewardEscrowV2.InvalidDuration.selector);
+        }
+        vm.prank(treasury);
+        rewardEscrowV2.createEscrowEntry(address(this), TEST_VALUE, duration, 90);
+    }
+
     function test_createEscrowEntry_Should_Not_Create_A_Vesting_Entry_Without_Allowance() public {
         vm.expectRevert("ERC20: transfer amount exceeds balance");
         rewardEscrowV2.createEscrowEntry(address(this), TEST_VALUE, 52 weeks, 90);
