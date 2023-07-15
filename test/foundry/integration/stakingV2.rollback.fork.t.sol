@@ -91,7 +91,8 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
             new StakingRewardsV2(
                 address(kwenta),
                 address(rewardEscrowV2),
-                address(supplySchedule)
+                address(supplySchedule),
+                address(stakingRewardsV1)
             )
         );
     }
