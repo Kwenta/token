@@ -8,6 +8,9 @@ const totalStakedEscrow = 455395557014486600 // 0.4553 KWENTA
 const mintedToStakingRewardsV2 = 4290530229572642102152 // 4290 KWENTA
 const liquidStakedKwenta = 3518714080081080305506 // 3518 KWENTA
 
+const kwentaThatCanBeClaimed = 4289708333392864233633;
+const rewardsLost = mintedToStakingRewardsV2 - kwentaThatCanBeClaimed; // 821896179777868519 // 0.8218 KWENTA
+
 async function main() {
     console.log("💻 Running calculations on local data...");
     const addressesWhoGotRewards: string[] = printInitialData();
@@ -69,6 +72,8 @@ function printInitialData(): string[] {
             addressesWhoGotRewards[element.From] = true;
         }
     }
+
+    console.log(Object.keys(addressesWhoStaked));
 
     let addressesWhoGotRewardsButDidNotStake = 0;
 
