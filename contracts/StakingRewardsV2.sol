@@ -714,6 +714,12 @@ contract StakingRewardsV2 is
     }
 
     function recoverFundsForRollback(address to) external onlyOwner {
+        /// @dev the number for stakedEscrow was calculated off-chain (this is the only way)
+        /// @dev in order to know the exact amount of liquid kwenta staked in the contract we have to use this off-chain data
+        /// @dev in the test file stakingV2.rollback.fork.t there is a test `test_Roll_Back`
+        /// @dev this test iterates through all 81 staked users and unstakes their kwenta after recoverFundsForRollback is called
+        /// @dev the test is doing using vm.rollFork on optimism mainnet to just after this contract was paused
+        /// @dev this shows that there will still be enough KWENTA in the contract for all users to unstake after this function is called
         uint256 stakedEscrow = 0.4553955570144866 ether;
         uint256 totalLiquidStaked = totalSupply() - stakedEscrow;
         uint256 balance = kwenta.balanceOf(address(this));
