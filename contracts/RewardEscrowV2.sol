@@ -12,7 +12,7 @@ import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/U
 
 // Internal references
 import {IKwenta} from "./interfaces/IKwenta.sol";
-import {IStakingRewardsV2} from "./interfaces/IStakingRewardsV2.sol";
+import {StakingRewardsV2} from "./StakingRewardsV2.sol";
 
 /// @title KWENTA Reward Escrow V2
 /// @author SYNTHETIX, JaredBorders (jaredborders@proton.me), JChiaramonte7 (jeremy@bytecode.llc), tommyrharper (zeroknowledgeltd@gmail.com)
@@ -31,6 +31,7 @@ contract RewardEscrowV2 is
     /// @notice Max escrow duration
     uint256 public constant MAX_DURATION = 4 * 52 weeks; // Default max 4 years duration
 
+    /// @notice Min escrow duration
     uint256 public constant DEFAULT_DURATION = 52 weeks; // Default 1 year duration
 
     /// @notice Default early vesting fee - used for new vesting entries from staking rewards
@@ -51,7 +52,7 @@ contract RewardEscrowV2 is
     ///////////////////////////////////////////////////////////////*/
 
     /// @notice Contract for StakingRewardsV2
-    IStakingRewardsV2 public stakingRewards;
+    StakingRewardsV2 public stakingRewards;
 
     /// @notice treasury address - this may change
     address public treasuryDAO;
@@ -126,7 +127,7 @@ contract RewardEscrowV2 is
         if (_stakingRewards == address(0)) revert ZeroAddress();
         if (address(stakingRewards) != address(0)) revert StakingRewardsAlreadySet();
 
-        stakingRewards = IStakingRewardsV2(_stakingRewards);
+        stakingRewards = StakingRewardsV2(_stakingRewards);
         emit StakingRewardsSet(_stakingRewards);
     }
 
@@ -383,7 +384,8 @@ contract RewardEscrowV2 is
         if (_earlyVestingFee > MAXIMUM_EARLY_VESTING_FEE) revert EarlyVestingFeeTooHigh();
         if (_earlyVestingFee < MINIMUM_EARLY_VESTING_FEE) revert EarlyVestingFeeTooLow();
         if (_deposit == 0) revert ZeroAmount();
-        if (_duration == 0 || _duration > MAX_DURATION) revert InvalidDuration();
+        uint256 minimumDuration = stakingRewards.cooldownPeriod();
+        if (_duration < minimumDuration || _duration > MAX_DURATION) revert InvalidDuration();
 
         /// @dev this will revert if the kwenta token transfer fails
         kwenta.transferFrom(msg.sender, address(this), _deposit);
