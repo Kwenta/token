@@ -307,10 +307,7 @@ contract RewardEscrowV2 is
         view
         returns (uint256 earlyVestFee)
     {
-        uint256 timeUntilVest = _entry.endTime - block.timestamp;
-        // Fee starts by default at 90% (but could be any percentage) and falls linearly
-        earlyVestFee =
-            _entry.escrowAmount * _entry.earlyVestingFee * timeUntilVest / (100 * _entry.duration);
+        return 0;
     }
 
     /*///////////////////////////////////////////////////////////////
