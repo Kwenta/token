@@ -14,7 +14,6 @@ import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/U
 // Internal references
 import {IKwenta} from "./interfaces/IKwenta.sol";
 import {IRewardEscrowV2} from "./interfaces/IRewardEscrowV2.sol";
-import {IStakingRewardsV2} from "./interfaces/IStakingRewardsV2.sol";
 import {IRewardEscrow} from "./interfaces/IRewardEscrow.sol";
 import {IStakingRewardsV2Integrator} from "./interfaces/IStakingRewardsV2Integrator.sol";
 
@@ -39,10 +38,6 @@ contract EscrowMigrator is
     /// @notice Contract for RewardEscrowV1
     /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
     IRewardEscrowV2 public immutable rewardEscrowV2;
-
-    /// @notice Contract for RewardEscrowV1
-    /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
-    IStakingRewardsV2 public immutable stakingRewardsV2;
 
     /*//////////////////////////////////////////////////////////////
                                  STATE
@@ -74,18 +69,15 @@ contract EscrowMigrator is
     constructor(
         address _kwenta,
         address _rewardEscrowV1,
-        address _rewardEscrowV2,
-        address _stakingRewardsV2
+        address _rewardEscrowV2
     ) {
         if (_kwenta == address(0)) revert ZeroAddress();
         if (_rewardEscrowV1 == address(0)) revert ZeroAddress();
         if (_rewardEscrowV2 == address(0)) revert ZeroAddress();
-        if (_stakingRewardsV2 == address(0)) revert ZeroAddress();
 
         kwenta = IKwenta(_kwenta);
         rewardEscrowV1 = IRewardEscrow(_rewardEscrowV1);
         rewardEscrowV2 = IRewardEscrowV2(_rewardEscrowV2);
-        stakingRewardsV2 = IStakingRewardsV2(_stakingRewardsV2);
 
         _disableInitializers();
     }
