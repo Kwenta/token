@@ -48,7 +48,7 @@ contract RewardEscrowV2VestingChangesTests is DefaultStakingV2Setup {
         uint8 earlyVestingFee
     ) public {
         vm.assume(escrowAmount > 0);
-        vm.assume(duration > 0);
+        vm.assume(duration >= stakingRewardsV2.cooldownPeriod());
         vm.assume(earlyVestingFee <= 100);
         vm.assume(earlyVestingFee > rewardEscrowV2.MINIMUM_EARLY_VESTING_FEE());
 
@@ -116,7 +116,7 @@ contract RewardEscrowV2VestingChangesTests is DefaultStakingV2Setup {
         uint8 earlyVestingFee = _earlyVestingFee;
 
         vm.assume(escrowAmount > 0);
-        vm.assume(duration > 0);
+        vm.assume(duration >= stakingRewardsV2.cooldownPeriod());
         vm.assume(earlyVestingFee <= 100);
         vm.assume(earlyVestingFee > rewardEscrowV2.MINIMUM_EARLY_VESTING_FEE());
 
@@ -199,7 +199,7 @@ contract RewardEscrowV2VestingChangesTests is DefaultStakingV2Setup {
         vm.assume(escrowAmount > 0);
         vm.assume(stakingAmount > 0);
         vm.assume(stakingAmount <= escrowAmount);
-        vm.assume(duration > 0);
+        vm.assume(duration >= stakingRewardsV2.cooldownPeriod());
         vm.assume(earlyVestingFee <= 100);
         vm.assume(earlyVestingFee > rewardEscrowV2.MINIMUM_EARLY_VESTING_FEE());
 

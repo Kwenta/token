@@ -566,7 +566,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
     ) public {
         vm.assume(escrowAmount > 0);
         vm.assume(amountToEscrowStake > escrowAmount);
-        vm.assume(duration > 0);
+        vm.assume(duration >= stakingRewardsV2.cooldownPeriod());
 
         createRewardEscrowEntryV2(address(this), escrowAmount, duration);
         vm.expectRevert(
