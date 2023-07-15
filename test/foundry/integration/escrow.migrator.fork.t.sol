@@ -80,8 +80,9 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
     //////////////////////////////////////////////////////////////*/
 
     function test_Migrator() public {
-        uint256 escrowBalance = rewardEscrowV1.balanceOf(user1);
-        assertEq(escrowBalance, 16.324711673459301166 ether);
+        uint256 v2BalanceBefore = rewardEscrowV2.escrowedBalanceOf(user1);
+        uint256 v1BalanceBefore = rewardEscrowV1.balanceOf(user1);
+        assertEq(v1BalanceBefore, 16.324711673459301166 ether);
 
         uint256 numVestingEntries = rewardEscrowV1.numVestingEntries(user1);
         assertEq(numVestingEntries, 16);
@@ -125,12 +126,13 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
         escrowMigrator.payForMigration();
 
         // step 5 - migrate entries
-        // vm.prank(user1);
-        // escrowMigrator.migrateRegisteredEntries(user1, entryIDs);
+        vm.prank(user1);
+        escrowMigrator.migrateRegisteredEntries(user1, entryIDs);
 
-
-
-
-        // assertEq(rewardEscrowV1.balanceOf(user1), step2UserBalance + total);
+        // confirm it went as expected
+        uint256 v2BalanceAfter = rewardEscrowV2.escrowedBalanceOf(user1);
+        uint256 v1BalanceAfter = rewardEscrowV1.balanceOf(user1);
+        assertEq(v2BalanceAfter, v2BalanceBefore + total + totalFee);
+        assertEq(v1BalanceAfter, v1BalanceBefore - total - totalFee);
     }
 }

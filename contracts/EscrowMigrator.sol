@@ -223,6 +223,7 @@ contract EscrowMigrator is
             uint256 entryID = _entryIDs[i];
 
             VestingEntry storage registeredEntry = registeredVestingSchedules[account][entryID];
+            uint256 originalEscrowAmount = registeredEntry.escrowAmount;
 
             // skip if not registered
             if (registeredEntry.endTime == 0) continue;
@@ -252,9 +253,9 @@ contract EscrowMigrator is
                 newDuration = timeRemaining;
             }
 
-            kwenta.approve(address(rewardEscrowV2), escrowAmount);
+            kwenta.approve(address(rewardEscrowV2), originalEscrowAmount);
             rewardEscrowV2.createEscrowEntry(
-                to, registeredEntry.escrowAmount, newDuration, uint8(earlyVestingFee)
+                to, originalEscrowAmount, newDuration, uint8(earlyVestingFee)
             );
 
             numberOfMigratedEntries[account]++;
