@@ -58,6 +58,8 @@ contract EscrowMigrator is
 
     mapping(address => uint256[]) public registeredEntryIDs;
 
+    mapping(address => uint256) public numberOfMigratedEntries;
+
     mapping(address => uint256) public numberOfConfirmedEntries;
 
     mapping(address => mapping(uint256 => bool)) public isEntryConfirmed;
@@ -261,8 +263,14 @@ contract EscrowMigrator is
             kwenta.approve(address(rewardEscrowV2), escrowAmount);
             rewardEscrowV2.createEscrowEntry(to, escrowAmount, newDuration, uint8(earlyVestingFee));
 
+            numberOfMigratedEntries[account]++;
+
             // update this to zero so it cannot be migrated again
             registeredEntry.endTime = 0;
+        }
+
+        if (numberOfMigratedEntries[account] == registeredEntryIDs[account].length) {
+            migrationStatus[account] = MigrationStatus.COMPLETED;
         }
     }
 
@@ -288,7 +296,9 @@ contract EscrowMigrator is
     }
 
     // step 3: vest all entries and confirm
-    function confirmIntegratorEntriesAreVested(address _integrator, uint256[] calldata _entryIDs) external {
+    function confirmIntegratorEntriesAreVested(address _integrator, uint256[] calldata _entryIDs)
+        external
+    {
         address beneficiary = IStakingRewardsV2Integrator(_integrator).beneficiary();
         if (beneficiary != msg.sender) revert NotApproved();
         _confirmEntriesAreVested(_integrator, _entryIDs);
