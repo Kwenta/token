@@ -713,7 +713,7 @@ contract StakingRewardsV2 is
         IERC20(_tokenAddress).transfer(owner(), _tokenAmount);
     }
 
-    function recoverFundsForRollback(address to) external onlyOwner {
+    function recoverFundsForRollback(address to, uint256 amount) external onlyOwner {
         /// @dev the number for stakedEscrow was calculated off-chain (this is the only way)
         /// @dev in order to know the exact amount of liquid kwenta staked in the contract we have to use this off-chain data
         /// @dev in the test file stakingV2.rollback.fork.t there is a test `test_Roll_Back`
@@ -722,8 +722,8 @@ contract StakingRewardsV2 is
         /// @dev this shows that there will still be enough KWENTA in the contract for all users to unstake after this function is called
         uint256 stakedEscrow = 0.4553955570144866 ether;
         uint256 totalLiquidStaked = totalSupply() - stakedEscrow;
-        uint256 balance = kwenta.balanceOf(address(this));
-        uint256 kwentaThatCanBeClaimed = balance - totalLiquidStaked;
-        kwenta.transfer(to, kwentaThatCanBeClaimed);
+        kwenta.transfer(to, amount);
+        uint256 balanceAfterTransfer = kwenta.balanceOf(address(this));
+        assert(balanceAfterTransfer >= totalLiquidStaked);
     }
 }

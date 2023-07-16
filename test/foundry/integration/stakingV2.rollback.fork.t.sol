@@ -43,6 +43,25 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
     }
 
     /*//////////////////////////////////////////////////////////////
+                   CALCULATION OF AMOUNT TO WITHDRAW
+    //////////////////////////////////////////////////////////////*/
+
+    function howMuchWeShouldWithdraw() public returns (uint256) {
+        /// @dev the number for stakedEscrow was calculated off-chain (this is the only way)
+        /// @dev in order to know the exact amount of liquid kwenta staked in the contract we have to use this off-chain data
+        /// @dev in the test file stakingV2.rollback.fork.t there is a test `test_Roll_Back`
+        /// @dev this test iterates through all 81 staked users and unstakes their kwenta after recoverFundsForRollback is called
+        /// @dev the test is doing using vm.rollFork on optimism mainnet to just after this contract was paused
+        /// @dev this shows that there will still be enough KWENTA in the contract for all users to unstake after this function is called
+        uint256 stakedEscrow = 0.4553955570144866 ether;
+        uint256 totalLiquidStaked = stakingRewardsV2.totalSupply() - stakedEscrow;
+        uint256 balance = kwenta.balanceOf(address(stakingRewardsV2));
+        uint256 kwentaThatCanBeClaimed = balance - totalLiquidStaked;
+        console.log("can be transferred:" , kwentaThatCanBeClaimed);
+        return kwentaThatCanBeClaimed;
+    }
+
+    /*//////////////////////////////////////////////////////////////
                                 TESTS
     //////////////////////////////////////////////////////////////*/
 
@@ -51,13 +70,14 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
         upgradeStakingRewardsV2ToRollbackImpl();
 
         // try to recover funds as non-owner
+        uint256 amountWeShouldWithdraw = howMuchWeShouldWithdraw();
         vm.prank(user1);
         vm.expectRevert("Ownable: caller is not the owner");
-        stakingRewardsV2.recoverFundsForRollback(user1);
+        stakingRewardsV2.recoverFundsForRollback(user1, amountWeShouldWithdraw);
 
         // try to recover funds as owner
         vm.prank(owner);
-        stakingRewardsV2.recoverFundsForRollback(owner);
+        stakingRewardsV2.recoverFundsForRollback(owner, amountWeShouldWithdraw);
     }
 
     function test_Roll_Back() public {
@@ -76,8 +96,9 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
         uint256 balanceBefore = kwenta.balanceOf(owner);
 
         // recover funds
+        uint256 amountWeShouldWithdraw = howMuchWeShouldWithdraw();
         vm.prank(owner);
-        stakingRewardsV2.recoverFundsForRollback(owner);
+        stakingRewardsV2.recoverFundsForRollback(owner, amountWeShouldWithdraw);
 
         uint256 balanceAfter = kwenta.balanceOf(owner);
         uint256 balanceRecovered = balanceAfter - balanceBefore;
