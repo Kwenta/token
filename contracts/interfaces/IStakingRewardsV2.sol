@@ -67,6 +67,9 @@ interface IStakingRewardsV2 {
     /// @return amount of tokens escrowed but not staked
     function unstakedEscrowedBalanceOf(address _account) external view returns (uint256);
 
+    /// @notice the period of time a user has to wait after staking to unstake
+    function cooldownPeriod() external view returns (uint256);
+
     // rewards
 
     /// @notice calculate the total rewards for one duration based on the current rate

@@ -12,7 +12,7 @@ import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/U
 
 // Internal references
 import {IKwenta} from "./interfaces/IKwenta.sol";
-import {StakingRewardsV2} from "./StakingRewardsV2.sol";
+import {IStakingRewardsV2} from "./interfaces/IStakingRewardsV2.sol";
 
 /// @title KWENTA Reward Escrow V2
 /// @author SYNTHETIX, JaredBorders (jaredborders@proton.me), JChiaramonte7 (jeremy@bytecode.llc), tommyrharper (zeroknowledgeltd@gmail.com)
@@ -52,7 +52,7 @@ contract RewardEscrowV2 is
     ///////////////////////////////////////////////////////////////*/
 
     /// @notice Contract for StakingRewardsV2
-    StakingRewardsV2 public stakingRewards;
+    IStakingRewardsV2 public stakingRewards;
 
     /// @notice treasury address - this may change
     address public treasuryDAO;
@@ -127,7 +127,7 @@ contract RewardEscrowV2 is
         if (_stakingRewards == address(0)) revert ZeroAddress();
         if (address(stakingRewards) != address(0)) revert StakingRewardsAlreadySet();
 
-        stakingRewards = StakingRewardsV2(_stakingRewards);
+        stakingRewards = IStakingRewardsV2(_stakingRewards);
         emit StakingRewardsSet(_stakingRewards);
     }
 

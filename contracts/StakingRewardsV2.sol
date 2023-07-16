@@ -78,7 +78,7 @@ contract StakingRewardsV2 is
     /// @notice summation of rewardRate divided by total staked tokens
     uint256 public rewardPerTokenStored;
 
-    /// @notice the period of time a user has to wait after staking to unstake
+    /// @inheritdoc IStakingRewardsV2
     uint256 public cooldownPeriod;
 
     /// @notice represents the rewardPerToken
