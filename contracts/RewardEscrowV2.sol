@@ -297,14 +297,14 @@ contract RewardEscrowV2 is
         if (block.timestamp >= _entry.endTime) {
             quantity = escrowAmount;
         } else {
-            fee = _earlyVestFee(_entry);
+            fee = _earlyVestFee();
             quantity = escrowAmount - fee;
         }
     }
 
-    function _earlyVestFee(VestingEntry memory _entry)
+    function _earlyVestFee()
         internal
-        view
+        pure
         returns (uint256 earlyVestFee)
     {
         return 0;
