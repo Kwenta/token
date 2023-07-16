@@ -21,7 +21,8 @@
     "deploy:escrow-distributor:testnet": "npx hardhat run --network optimistic-goerli scripts/deploy-escrow-distributor.ts",
     "interact:local": "npx hardhat interact --network localhost",
     "gas-snapshot": "forge snapshot",
-    "calculate-v2-balances": "npx hardhat run --network optimistic-mainnet scripts/v2-migration/calculate-v2-balances.ts"
+    "calculate-v2-balances": "npx hardhat run --network optimistic-mainnet scripts/v2-migration/calculate-v2-balances.ts",
+    "calculate-eoas": "npx hardhat run --network optimistic-mainnet scripts/v2-migration/check-for-non-eoas.ts"
   },
   "devDependencies": {
     "@defi-wonderland/smock": "^2.3.4",
