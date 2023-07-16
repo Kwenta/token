@@ -407,6 +407,7 @@ contract RewardEscrowV2 is
     function bulkTransferFrom(address _from, address _to, uint256[] calldata _entryIDs)
         external
         override
+        whenNotPaused
     {
         if (_from == _to) revert CannotTransferToSelf();
 
@@ -434,7 +435,7 @@ contract RewardEscrowV2 is
 
     /// @dev override the internal _transfer function to ensure vestingSchedules and account balances are updated
     /// and that there is sufficient unstaked escrow for a transfer when transferFrom and safeTransferFrom are called
-    function _transfer(address _from, address _to, uint256 _entryID) internal override {
+    function _transfer(address _from, address _to, uint256 _entryID) internal override whenNotPaused {
         uint256 escrowAmount = vestingSchedules[_entryID].escrowAmount;
 
         _applyTransferBalanceUpdates(_from, _to, escrowAmount);
