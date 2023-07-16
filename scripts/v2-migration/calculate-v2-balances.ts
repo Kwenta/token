@@ -73,8 +73,6 @@ function printInitialData(): string[] {
         }
     }
 
-    console.log(Object.keys(addressesWhoStaked));
-
     let addressesWhoGotRewardsButDidNotStake = 0;
 
     for (const rewarded of Object.keys(addressesWhoGotRewards)) {

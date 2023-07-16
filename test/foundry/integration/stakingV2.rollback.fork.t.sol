@@ -18,7 +18,6 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
     //////////////////////////////////////////////////////////////*/
 
     address public owner;
-    // address[][82] public liquidV2Stakers;
 
     /*//////////////////////////////////////////////////////////////
                                 SETUP
@@ -47,17 +46,32 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
                                 TESTS
     //////////////////////////////////////////////////////////////*/
 
+    function test_recoverFundsForRollback_Only_Owner() public {
+        // upgrade staking v2 contract
+        upgradeStakingRewardsV2ToRollbackImpl();
+
+        // try to recover funds as non-owner
+        vm.prank(user1);
+        vm.expectRevert("Ownable: caller is not the owner");
+        stakingRewardsV2.recoverFundsForRollback(user1);
+
+        // try to recover funds as owner
+        vm.prank(owner);
+        stakingRewardsV2.recoverFundsForRollback(owner);
+    }
+
     function test_Roll_Back() public {
         // check contract is paused
         assertEq(stakingRewardsV2.paused(), true);
 
         // check correct owner is set
         assertEq(owner, stakingRewardsV2.owner());
+        assertEq(owner, rewardEscrowV2.owner());
 
         // upgrade staking v2 contract
-        address stakingRewardsV2RollbackImpl = deployStakingRewardsV2RollbackImpl();
-        vm.prank(owner);
-        stakingRewardsV2.upgradeTo(stakingRewardsV2RollbackImpl);
+        upgradeStakingRewardsV2ToRollbackImpl();
+        // upgrade reward escrow v2 contract
+        upgradeRewardEscrowV2ToRollbackImpl();
 
         uint256 balanceBefore = kwenta.balanceOf(owner);
 
@@ -76,12 +90,22 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
         uint256 amountUsersNeedToUnstake = stakingRewardsV2.totalSupply() - TOTAL_STAKED_ESCROW_V2;
         assertGe(kwenta.balanceOf(address(stakingRewardsV2)), amountUsersNeedToUnstake);
 
+        /// all users unstake
         attemptToUnstakeOnBehalfOfAllStakedUsers();
+
+        // all users unstake escrow
+        attemptToVestOnBehalfOfAllEscrowedUsers();
     }
 
     /*//////////////////////////////////////////////////////////////
-                                HELPERS
+                            UPGRADE HELPERS
     //////////////////////////////////////////////////////////////*/
+
+    function upgradeStakingRewardsV2ToRollbackImpl() public {
+        address stakingRewardsV2RollbackImpl = deployStakingRewardsV2RollbackImpl();
+        vm.prank(owner);
+        stakingRewardsV2.upgradeTo(stakingRewardsV2RollbackImpl);
+    }
 
     function deployStakingRewardsV2RollbackImpl()
         internal
@@ -97,12 +121,37 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
         );
     }
 
+    function upgradeRewardEscrowV2ToRollbackImpl() public {
+        address rewardEscrowV2RollbackImpl = deployRewardEscrowV2RollbackImpl();
+        vm.prank(owner);
+        rewardEscrowV2.upgradeTo(rewardEscrowV2RollbackImpl);
+    }
+
+    function deployRewardEscrowV2RollbackImpl()
+        internal
+        returns (address rewardEscrowV2RollbackImpl)
+    {
+        rewardEscrowV2RollbackImpl = address(
+            new RewardEscrowV2(
+                address(kwenta)
+            )
+        );
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                            UNSTAKE HELPERS
+    //////////////////////////////////////////////////////////////*/
+
     function attemptToUnstakeOnBehalfOfAllStakedUsers() internal {
         address[] memory liquidV2Stakers = getAllLiquidV2Stakers();
         for (uint256 i = 0; i < liquidV2Stakers.length; i++) {
             address staker = liquidV2Stakers[i];
             uint256 liquidBalance = stakingRewardsV2.nonEscrowedBalanceOf(staker);
+            assert(liquidBalance > 0);
+            uint256 userKwentaBalanceBefore = kwenta.balanceOf(staker);
             unstakeFundsV2(staker, liquidBalance);
+            uint256 userKwentaBalanceAfter = kwenta.balanceOf(staker);
+            assertEq(userKwentaBalanceAfter, userKwentaBalanceBefore + liquidBalance);
         }
     }
 
@@ -191,5 +240,70 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
         liquidV2Stakers[80] = 0xa65Ba816f1f01ef234b8480b81A2ED5B3544c61a;
         liquidV2Stakers[81] = 0x8cAaf4cB80Ba7cbBbB324066BD03eAE3Fc98f813;
         return liquidV2Stakers;
+    }
+
+    function attemptToVestOnBehalfOfAllEscrowedUsers() internal {
+        address[] memory usersWithV2Escrow = getAllUsersWithV2Escrow();
+        for (uint256 i = 0; i < usersWithV2Escrow.length; i++) {
+            address escrowedUser = usersWithV2Escrow[i];
+            uint256 escrowedBalance = rewardEscrowV2.escrowedBalanceOf(escrowedUser);
+            assert(escrowedBalance > 0);
+            uint256 numberOfVestingEntries = rewardEscrowV2.balanceOf(escrowedUser);
+            uint256[] memory _entryIDs = rewardEscrowV2.getAccountVestingEntryIDs(
+                escrowedUser,
+                0,
+                numberOfVestingEntries
+            );
+            uint256 userKwentaBalanceBefore = kwenta.balanceOf(escrowedUser);
+            (uint256 total, uint256 totalFee) = rewardEscrowV2.getVestingQuantity(_entryIDs);
+            assertEq(totalFee, 0);
+            assertEq(total, escrowedBalance);
+            vm.prank(escrowedUser);
+            rewardEscrowV2.vest(_entryIDs);
+            uint256 userKwentaBalanceAfter = kwenta.balanceOf(escrowedUser);
+            assertEq(userKwentaBalanceAfter, userKwentaBalanceBefore + escrowedBalance);
+        }
+    }
+
+    function getAllUsersWithV2Escrow() internal pure returns (address[] memory) {
+        address[] memory usersWithV2Escrow = new address[](37);
+        usersWithV2Escrow[0] = 0x2Efe51893ea74043a4feAe2900c1b8f2FcE39b11;
+        usersWithV2Escrow[1] = 0xB69e74324bc030F1B5409236EFA461496D439116;
+        usersWithV2Escrow[2] = 0xC1C79C6378e5A72895C8eA15fc6Dd59fFddc8dee;
+        usersWithV2Escrow[3] = 0x17335ACa967138083B04dC70cEF828C83f5B6160;
+        usersWithV2Escrow[4] = 0x2f31e5e4e0EDfE3f42B910aC7cD5ab25dd130114;
+        usersWithV2Escrow[5] = 0xC2a16805C137FA13FE9c02a86d83Ec4cc2BcC897;
+        usersWithV2Escrow[6] = 0x8a30Fd92823D5ACF7C74d8c6fC54143934caD3d6;
+        usersWithV2Escrow[7] = 0xA178c15dd95553da5b79c1BA0bDE1659Fa2e76c8;
+        usersWithV2Escrow[8] = 0x976FdC5DfA145E3cbc690E9fef4a408642732952;
+        usersWithV2Escrow[9] = 0x05e09d942505764bca4475ABf8efdBc21D1c535B;
+        usersWithV2Escrow[10] = 0xC814d2ef6D893568c74cD969Eb6F72a62fc261f7;
+        usersWithV2Escrow[11] = 0x579EC43e42F86d041ef810b85817db202192b288;
+        usersWithV2Escrow[12] = 0x4CE405C7A6db483bCb0537146c20697E8d20F63b;
+        usersWithV2Escrow[13] = 0x529656620D914443405A55ec42Ad0eAEaF0b4A2c;
+        usersWithV2Escrow[14] = 0x1140321cCE279B4a2158571eb377669Def562Ac4;
+        usersWithV2Escrow[15] = 0x89808C49F858b86E80B892506CF11606Fb25fCDC;
+        usersWithV2Escrow[16] = 0xD120Cf3e0408DD794f856e8CA2A23E3396A9B687;
+        usersWithV2Escrow[17] = 0x2db6F5e838eD2BaD993E9FF2D3d7A5c1Cc35704C;
+        usersWithV2Escrow[18] = 0x6DE6E901Bbefd26a9888798a25E4A49309D04CA9;
+        usersWithV2Escrow[19] = 0xb8b0CC3793BBbfdb997FeC45828F172e5423D3E2;
+        usersWithV2Escrow[20] = 0xc97E11fcFF2e2a370c6AF376ABCdaa0045E31391;
+        usersWithV2Escrow[21] = 0x11eBeE2bF244325B5559f0F583722d35659DDcE8;
+        usersWithV2Escrow[22] = 0xd58f5434C7317E052B70BB6BcBF50B8F3c2a5Efd;
+        usersWithV2Escrow[23] = 0xFee6be6B5cc8Cb4EE8189850A69973E774e7614e;
+        usersWithV2Escrow[24] = 0x5C2C3764A4Ba0a4ea4B81532aa48e3A72AD0655B;
+        usersWithV2Escrow[25] = 0xFe1a00487DD9EB84a7363a1c827a6f045fB121E4;
+        usersWithV2Escrow[26] = 0x51b47cdC53A6A0df80711a3AdFD549B055141Fa5;
+        usersWithV2Escrow[27] = 0xFaCEc1c32AE56097866A6c1dDA1124f2C6844F40;
+        usersWithV2Escrow[28] = 0x667d58D5e1EAe29b384665686C5AD082b013FF95;
+        usersWithV2Escrow[29] = 0xDBB056eb9C451cFE75AD06C7925562A48b65A625;
+        usersWithV2Escrow[30] = 0xB74B4347DffdB17E70e0dd3EB192f498844F56F7;
+        usersWithV2Escrow[31] = 0x99343B21B33243cE44acfad0a5620B758Ef8817a;
+        usersWithV2Escrow[32] = 0xE91cBC483A8fDA6bc377Ad8b8c717f386A93d349;
+        usersWithV2Escrow[33] = 0xa65Ba816f1f01ef234b8480b81A2ED5B3544c61a;
+        usersWithV2Escrow[34] = 0xC83F75C7ee4E4F931Dc3C689d2E68D840765e62C;
+        usersWithV2Escrow[35] = 0x71535AAe1B6C0c51Db317B54d5eEe72d1ab843c1;
+        usersWithV2Escrow[36] = 0x630f36ebd807f042a2477D50492Da8Cc7d86926a;
+        return usersWithV2Escrow;
     }
 }
