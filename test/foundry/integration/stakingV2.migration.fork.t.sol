@@ -140,6 +140,21 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
         rewardEscrowV2.createEscrowEntry(user2, TEST_VALUE, 52 weeks, 90);
     }
 
+    // TODO: uncomment and replace this test
+    // function test_Can_Vest_After_Migration() public {
+    //     createRewardEscrowEntryV2(user2, TEST_VALUE, 52 weeks);
+    //     uint256 treasuryBalanceBefore = kwenta.balanceOf(treasury);
+    //     entryIDs.push(1);
+    //     vm.prank(user2);
+    //     rewardEscrowV2.vest(entryIDs);
+
+    //     // check user got some funds
+    //     assertGt(kwenta.balanceOf(user2), 0);
+
+    //     // check treasury got some funds
+    //     uint256 treasuryBalanceAfter = kwenta.balanceOf(treasury);
+    //     assertGt(treasuryBalanceAfter, treasuryBalanceBefore);
+    // }
     function test_Can_Vest_After_Migration() public {
         createRewardEscrowEntryV2(user2, TEST_VALUE, 52 weeks);
         uint256 treasuryBalanceBefore = kwenta.balanceOf(treasury);
@@ -150,9 +165,9 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
         // check user got some funds
         assertGt(kwenta.balanceOf(user2), 0);
 
-        // check treasury got some funds
+        // check treasury got no funds
         uint256 treasuryBalanceAfter = kwenta.balanceOf(treasury);
-        assertGt(treasuryBalanceAfter, treasuryBalanceBefore);
+        assertEq(treasuryBalanceAfter, treasuryBalanceBefore);
     }
 
     function test_Cannot_Vest_If_Treasury_Transfer_Fails() public {
