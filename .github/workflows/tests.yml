@@ -90,7 +90,7 @@ jobs:
       - name: Compile contracts
         run: npm run compile
       - name: Execute fork tests
-        run: npm run test:rollback
+        run: npm run f-test:rollback
   Foundry_Unit_Tests:
     runs-on: ubuntu-latest
     env:
