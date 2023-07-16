@@ -112,6 +112,36 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
     }
 
     /*//////////////////////////////////////////////////////////////
+                              PAUSABILLITY
+    //////////////////////////////////////////////////////////////*/
+
+    function test_Cannot_Transfer_When_Pausd() public {
+        // create the escrow entry
+        createRewardEscrowEntryV2(user1, 1 ether);
+
+        rewardEscrowV2.pauseRewardEscrow();
+
+        vm.prank(user1);
+        vm.expectRevert("Pausable: paused");
+        rewardEscrowV2.transferFrom(user1, user2, 1);
+        vm.expectRevert("Pausable: paused");
+        rewardEscrowV2.safeTransferFrom(user1, user2, 1);
+    }
+
+    function test_Cannot_Bulk_Transfer_When_Paused() public {
+        // create the escrow entry
+        createRewardEscrowEntryV2(user1, 1 ether);
+
+        rewardEscrowV2.pauseRewardEscrow();
+
+        entryIDs.push(1);
+
+        vm.prank(user1);
+        vm.expectRevert("Pausable: paused");
+        rewardEscrowV2.bulkTransferFrom(user1, user2, entryIDs);
+    }
+
+    /*//////////////////////////////////////////////////////////////
                         Transfer Vesting Entries
     //////////////////////////////////////////////////////////////*/
 
