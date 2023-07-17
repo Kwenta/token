@@ -26,14 +26,6 @@ async function main() {
         const code = await ethers.provider.getCode(address);
         console.log("code :", code);
     }
-
-
-
-    // data.forEach(async (transaction: any) => {
-    //     const address: string = transaction.From;
-    //     const code = await ethers.provider.getCode(address);
-    //     console.log("code :", code);
-    // })
 }
 
 // We recommend this pattern to be able to use async/await everywhere
