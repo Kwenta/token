@@ -720,7 +720,7 @@ contract StakingRewardsV2 is
         /// @dev this test iterates through all 81 staked users and unstakes their kwenta after recoverFundsForRollback is called
         /// @dev the test is doing using vm.rollFork on optimism mainnet to just after this contract was paused
         /// @dev this shows that there will still be enough KWENTA in the contract for all users to unstake after this function is called
-        uint256 stakedEscrow = 0.4553955570144866 ether;
+        uint256 stakedEscrow = 0.480164868251968188 ether;
         uint256 totalLiquidStaked = totalSupply() - stakedEscrow;
         kwenta.transfer(to, amount);
         uint256 balanceAfterTransfer = kwenta.balanceOf(address(this));

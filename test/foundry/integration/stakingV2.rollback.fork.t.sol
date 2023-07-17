@@ -46,18 +46,16 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
                    CALCULATION OF AMOUNT TO WITHDRAW
     //////////////////////////////////////////////////////////////*/
 
-    function howMuchWeShouldWithdraw() public returns (uint256) {
-        /// @dev the number for stakedEscrow was calculated off-chain (this is the only way)
+    function howMuchWeShouldWithdraw() public view returns (uint256) {
+        /// @dev the number for TOTAL_STAKED_ESCROW_V2 was calculated off-chain (this is the only way)
         /// @dev in order to know the exact amount of liquid kwenta staked in the contract we have to use this off-chain data
         /// @dev in the test file stakingV2.rollback.fork.t there is a test `test_Roll_Back`
         /// @dev this test iterates through all 81 staked users and unstakes their kwenta after recoverFundsForRollback is called
         /// @dev the test is doing using vm.rollFork on optimism mainnet to just after this contract was paused
         /// @dev this shows that there will still be enough KWENTA in the contract for all users to unstake after this function is called
-        uint256 stakedEscrow = 0.4553955570144866 ether;
-        uint256 totalLiquidStaked = stakingRewardsV2.totalSupply() - stakedEscrow;
+        uint256 totalLiquidStaked = stakingRewardsV2.totalSupply() - TOTAL_STAKED_ESCROW_V2;
         uint256 balance = kwenta.balanceOf(address(stakingRewardsV2));
         uint256 kwentaThatCanBeClaimed = balance - totalLiquidStaked;
-        console.log("can be transferred:" , kwentaThatCanBeClaimed);
         return kwentaThatCanBeClaimed;
     }
 
@@ -97,6 +95,7 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
 
         // recover funds
         uint256 amountWeShouldWithdraw = howMuchWeShouldWithdraw();
+        console.log("can be transferred:" , amountWeShouldWithdraw);
         vm.prank(owner);
         stakingRewardsV2.recoverFundsForRollback(owner, amountWeShouldWithdraw);
 
@@ -116,6 +115,12 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
 
         // all users unstake escrow
         attemptToVestOnBehalfOfAllEscrowedUsers();
+
+        // check all funds safely removed
+        assertEq(stakingRewardsV2.totalSupply(), 0);
+        assertEq(rewardEscrowV2.totalEscrowedBalance(), 0);
+        assertEq(kwenta.balanceOf(address(rewardEscrowV2)), 0);
+        assertCloseTo(kwenta.balanceOf(address(stakingRewardsV2)), 0, 10);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -287,7 +292,7 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
     }
 
     function getAllUsersWithV2Escrow() internal pure returns (address[] memory) {
-        address[] memory usersWithV2Escrow = new address[](37);
+        address[] memory usersWithV2Escrow = new address[](38);
         usersWithV2Escrow[0] = 0x2Efe51893ea74043a4feAe2900c1b8f2FcE39b11;
         usersWithV2Escrow[1] = 0xB69e74324bc030F1B5409236EFA461496D439116;
         usersWithV2Escrow[2] = 0xC1C79C6378e5A72895C8eA15fc6Dd59fFddc8dee;
@@ -325,6 +330,7 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
         usersWithV2Escrow[34] = 0xC83F75C7ee4E4F931Dc3C689d2E68D840765e62C;
         usersWithV2Escrow[35] = 0x71535AAe1B6C0c51Db317B54d5eEe72d1ab843c1;
         usersWithV2Escrow[36] = 0x630f36ebd807f042a2477D50492Da8Cc7d86926a;
+        usersWithV2Escrow[37] = 0xbF49B454818783D12Bf4f3375ff17C59015e66Cb;
         return usersWithV2Escrow;
     }
 }
