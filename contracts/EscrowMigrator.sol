@@ -47,17 +47,13 @@ contract EscrowMigrator is
 
     mapping(address => uint256) public totalVestedAccountBalanceAtRegistrationTime;
 
-    mapping(address => uint256) public totalUserEscrowToMigrate;
-
     mapping(address => MigrationStatus) public migrationStatus;
 
     mapping(address => uint256[]) public registeredEntryIDs;
 
-    mapping(address => uint256) public numberOfMigratedEntries;
-
     mapping(address => uint256) public numberOfConfirmedEntries;
 
-    mapping(address => mapping(uint256 => bool)) public isEntryConfirmed;
+    mapping(address => uint256) public numberOfMigratedEntries;
 
     /*///////////////////////////////////////////////////////////////
                         CONSTRUCTOR / INITIALIZER
@@ -89,6 +85,13 @@ contract EscrowMigrator is
 
         // transfer ownership
         _transferOwnership(_contractOwner);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                                 VIEWS
+    //////////////////////////////////////////////////////////////*/
+    function numberOfRegisteredEntries(address account) external view returns (uint256) {
+        return registeredEntryIDs[account].length;
     }
 
     /*//////////////////////////////////////////////////////////////
