@@ -10,6 +10,7 @@ import {RewardEscrowV2} from "../../../contracts/RewardEscrowV2.sol";
 import {StakingRewardsV2} from "../../../contracts/StakingRewardsV2.sol";
 import {SupplySchedule} from "../../../contracts/SupplySchedule.sol";
 import {StakingRewards} from "../../../contracts/StakingRewards.sol";
+import {Rollback} from "../../../scripts/v2-migration/Rollback.s.sol";
 import "../utils/Constants.t.sol";
 
 contract StakingV2MigrationForkTests is StakingTestHelpers {
@@ -17,7 +18,10 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
                                 STATE
     //////////////////////////////////////////////////////////////*/
 
-    address public owner;
+    address internal owner;
+    address internal rewardEscrowV2RollbackImpl;
+    address internal stakingRewardsV2RollbackImpl;
+    Rollback internal rollback;
 
     /*//////////////////////////////////////////////////////////////
                                 SETUP
@@ -40,6 +44,15 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
 
         rewardEscrowV2 = RewardEscrowV2(OPTIMISM_REWARD_ESCROW_V2);
         stakingRewardsV2 = StakingRewardsV2(OPTIMISM_STAKING_REWARDS_V2);
+
+        rollback = new Rollback();
+        (rewardEscrowV2RollbackImpl, stakingRewardsV2RollbackImpl) = rollback.deploySystem(
+            address(kwenta),
+            address(rewardEscrowV2),
+            address(supplySchedule),
+            address(stakingRewardsV1),
+            false
+        );
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -65,7 +78,8 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
 
     function test_recoverFundsForRollback_Only_Owner() public {
         // upgrade staking v2 contract
-        upgradeStakingRewardsV2ToRollbackImpl();
+        vm.prank(owner);
+        stakingRewardsV2.upgradeTo(stakingRewardsV2RollbackImpl);
 
         // try to recover funds as non-owner
         uint256 amountWeShouldWithdraw = howMuchWeShouldWithdraw();
@@ -87,15 +101,17 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
         assertEq(owner, rewardEscrowV2.owner());
 
         // upgrade staking v2 contract
-        upgradeStakingRewardsV2ToRollbackImpl();
+        vm.prank(owner);
+        stakingRewardsV2.upgradeTo(stakingRewardsV2RollbackImpl);
         // upgrade reward escrow v2 contract
-        upgradeRewardEscrowV2ToRollbackImpl();
+        vm.prank(owner);
+        rewardEscrowV2.upgradeTo(rewardEscrowV2RollbackImpl);
 
         uint256 balanceBefore = kwenta.balanceOf(owner);
 
         // recover funds
         uint256 amountWeShouldWithdraw = howMuchWeShouldWithdraw();
-        console.log("can be transferred:" , amountWeShouldWithdraw);
+        console.log("can be transferred:", amountWeShouldWithdraw);
         vm.prank(owner);
         stakingRewardsV2.recoverFundsForRollback(owner, amountWeShouldWithdraw);
 
@@ -121,47 +137,6 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
         assertEq(rewardEscrowV2.totalEscrowedBalance(), 0);
         assertEq(kwenta.balanceOf(address(rewardEscrowV2)), 0);
         assertCloseTo(kwenta.balanceOf(address(stakingRewardsV2)), 0, 10);
-    }
-
-    /*//////////////////////////////////////////////////////////////
-                            UPGRADE HELPERS
-    //////////////////////////////////////////////////////////////*/
-
-    function upgradeStakingRewardsV2ToRollbackImpl() public {
-        address stakingRewardsV2RollbackImpl = deployStakingRewardsV2RollbackImpl();
-        vm.prank(owner);
-        stakingRewardsV2.upgradeTo(stakingRewardsV2RollbackImpl);
-    }
-
-    function deployStakingRewardsV2RollbackImpl()
-        internal
-        returns (address stakingRewardsV2RollbackImpl)
-    {
-        stakingRewardsV2RollbackImpl = address(
-            new StakingRewardsV2(
-                address(kwenta),
-                address(rewardEscrowV2),
-                address(supplySchedule),
-                address(stakingRewardsV1)
-            )
-        );
-    }
-
-    function upgradeRewardEscrowV2ToRollbackImpl() public {
-        address rewardEscrowV2RollbackImpl = deployRewardEscrowV2RollbackImpl();
-        vm.prank(owner);
-        rewardEscrowV2.upgradeTo(rewardEscrowV2RollbackImpl);
-    }
-
-    function deployRewardEscrowV2RollbackImpl()
-        internal
-        returns (address rewardEscrowV2RollbackImpl)
-    {
-        rewardEscrowV2RollbackImpl = address(
-            new RewardEscrowV2(
-                address(kwenta)
-            )
-        );
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -275,11 +250,8 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
             uint256 escrowedBalance = rewardEscrowV2.escrowedBalanceOf(escrowedUser);
             assert(escrowedBalance > 0);
             uint256 numberOfVestingEntries = rewardEscrowV2.balanceOf(escrowedUser);
-            uint256[] memory _entryIDs = rewardEscrowV2.getAccountVestingEntryIDs(
-                escrowedUser,
-                0,
-                numberOfVestingEntries
-            );
+            uint256[] memory _entryIDs =
+                rewardEscrowV2.getAccountVestingEntryIDs(escrowedUser, 0, numberOfVestingEntries);
             uint256 userKwentaBalanceBefore = kwenta.balanceOf(escrowedUser);
             (uint256 total, uint256 totalFee) = rewardEscrowV2.getVestingQuantity(_entryIDs);
             assertEq(totalFee, 0);
