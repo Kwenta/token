@@ -127,6 +127,109 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
         assertCloseTo(kwenta.balanceOf(address(stakingRewardsV2)), 0, 10);
     }
 
+    function test_Redistrubte_Rewards_2_Weeks() public {
+        uint256 SUPPLY_MINTED = 6_316_072_210_012_118_228_158;
+
+        upgradeToRollbackContracts();
+        uint256 amountWeShouldWithdraw = howMuchWeShouldWithdraw();
+        console.log("to return to users:", amountWeShouldWithdraw);
+        vm.prank(owner);
+        stakingRewardsV2.recoverFundsForRollback(owner, amountWeShouldWithdraw);
+
+        console.log("supplySchedule.treasuryDiversion()", supplySchedule.treasuryDiversion());
+        (
+            uint256 stakingRewardsNormallyWeek1,
+            uint256 stakingRewardsWithExtraWeek1,
+            uint256 supplyMintedWeek1
+        ) = getNextWeeksDiff(SUPPLY_MINTED, 0);
+        uint256 diffWeek1 = stakingRewardsWithExtraWeek1 - stakingRewardsNormallyWeek1;
+        (
+            uint256 stakingRewardsNormallyWeek2,
+            uint256 stakingRewardsWithExtraWeek2,
+            uint256 supplyMintedWeek2
+        ) = getNextWeeksDiff(supplyMintedWeek1, 0);
+        uint256 diffWeek2 = stakingRewardsWithExtraWeek2 - stakingRewardsNormallyWeek2;
+
+        console.log("diffWeek1", diffWeek1);
+        console.log("diffWeek2", diffWeek2);
+        uint256 totalDiff = diffWeek1 + diffWeek2;
+        assertLt(totalDiff, amountWeShouldWithdraw);
+        assertCloseTo(totalDiff, amountWeShouldWithdraw, 1 ether);
+        console.log("totalDiff", totalDiff);
+
+        uint256 extraStolen = amountWeShouldWithdraw - totalDiff;
+        console.log("extraStolen", extraStolen); // 0.2 KWENTA
+    }
+
+    function test_Redistrubte_Rewards_3_Weeks() public {
+        uint256 SUPPLY_MINTED = 6_316_072_210_012_118_228_158;
+
+        upgradeToRollbackContracts();
+        uint256 amountWeShouldWithdraw = howMuchWeShouldWithdraw();
+        console.log("to return to users:", amountWeShouldWithdraw);
+        vm.prank(owner);
+        stakingRewardsV2.recoverFundsForRollback(owner, amountWeShouldWithdraw);
+
+        console.log("supplySchedule.treasuryDiversion()", supplySchedule.treasuryDiversion());
+        (
+            uint256 stakingRewardsNormallyWeek1,
+            uint256 stakingRewardsWithExtraWeek1,
+            uint256 supplyMintedWeek1
+        ) = getNextWeeksDiff(SUPPLY_MINTED, 1140);
+        uint256 diffWeek1 = stakingRewardsWithExtraWeek1 - stakingRewardsNormallyWeek1;
+        (
+            uint256 stakingRewardsNormallyWeek2,
+            uint256 stakingRewardsWithExtraWeek2,
+            uint256 supplyMintedWeek2
+        ) = getNextWeeksDiff(supplyMintedWeek1, 1140);
+        uint256 diffWeek2 = stakingRewardsWithExtraWeek2 - stakingRewardsNormallyWeek2;
+        (
+            uint256 stakingRewardsNormallyWeek3,
+            uint256 stakingRewardsWithExtraWeek3,
+            uint256 supplyMintedWeek3
+        ) = getNextWeeksDiff(supplyMintedWeek2, 1140);
+        uint256 diffWeek3 = stakingRewardsWithExtraWeek3 - stakingRewardsNormallyWeek3;
+        // assertGt(diff, amountWeShouldWithdraw);
+        console.log("diffWeek1", diffWeek1);
+        console.log("diffWeek2", diffWeek2);
+        console.log("diffWeek3", diffWeek3);
+        uint256 totalDiff = diffWeek1 + diffWeek2 + diffWeek3;
+        assertGt(totalDiff, amountWeShouldWithdraw);
+        assertCloseTo(totalDiff, amountWeShouldWithdraw, 6 ether);
+        console.log("totalDiff", totalDiff);
+
+        uint256 extraGivenAway = totalDiff - amountWeShouldWithdraw;
+        console.log("extraGivenAway", extraGivenAway); // 0.2 KWENTA
+    }
+
+    function getNextWeeksDiff(uint256 lastWeeksRewards, uint256 newTreasuryDiversion)
+        internal
+        view
+        returns (
+            uint256 stakingRewardsNormally,
+            uint256 stakingRewardsWithExtra,
+            uint256 supplyMinted
+        )
+    {
+        uint256 amountToDistribute = getExpectedSupplyMintedNextWeek(lastWeeksRewards);
+        uint256 amountToTreasuryReduced = amountToDistribute * newTreasuryDiversion / 10_000;
+        uint256 amountToTreasury = amountToDistribute * supplySchedule.treasuryDiversion() / 10_000;
+        uint256 amountToTradingRewards =
+            amountToDistribute * supplySchedule.tradingRewardsDiversion() / 10_000;
+        stakingRewardsWithExtra =
+            amountToDistribute - amountToTreasuryReduced - amountToTradingRewards;
+        stakingRewardsNormally = amountToDistribute - amountToTreasury - amountToTradingRewards;
+        supplyMinted = amountToDistribute;
+    }
+
+    function getExpectedSupplyMintedNextWeek(uint256 mintedLastWeek)
+        internal
+        pure
+        returns (uint256)
+    {
+        return mintedLastWeek * 98 / 100;
+    }
+
     /*//////////////////////////////////////////////////////////////
                             UPGRADE HELPERS
     //////////////////////////////////////////////////////////////*/
