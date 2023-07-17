@@ -75,7 +75,7 @@ contract Rollback {
 ///     - ETHERSCAN_API_KEY - the API key of the Optimism Etherscan account (a normal etherscan API key will not work)
 ///     - ARCHIVE_NODE_URL_L2 - the archive node URL of the Optimism network
 /// (2) load the variables in the .env file via `source .env`
-/// (3) run `forge script scripts/Migrate.s.sol:DeployRollbackOptimism --rpc-url $ARCHIVE_NODE_URL_L2 --broadcast --verify -vvvv`
+/// (3) run `forge script scripts/Rollback.s.sol:DeployRollbackOptimism --rpc-url $ARCHIVE_NODE_URL_L2 --broadcast --verify -vvvv`
 contract DeployRollbackOptimism is Script, Rollback {
     function run() public {
         uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
@@ -103,7 +103,7 @@ contract DeployRollbackOptimism is Script, Rollback {
 ///     - ETHERSCAN_API_KEY - the API key of the Optimism Etherscan account (a normal etherscan API key will not work)
 ///     - ARCHIVE_NODE_URL_GOERLI_L2 - the archive node URL of the Optimism Goerli network
 /// (2) load the variables in the .env file via `source .env`
-/// (3) run `forge script scripts/Migrate.s.sol:DeployRollbackOptimismGoerli --rpc-url $ARCHIVE_NODE_URL_GOERLI_L2 --broadcast --verify -vvvv`
+/// (3) run `forge script scripts/Rollback.s.sol:DeployRollbackOptimismGoerli --rpc-url $ARCHIVE_NODE_URL_GOERLI_L2 --broadcast --verify -vvvv`
 contract DeployRollbackOptimismGoerli is Script, Rollback {
     function run() public {
         uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
