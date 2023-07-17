@@ -79,10 +79,51 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
                                 TESTS
     //////////////////////////////////////////////////////////////*/
 
+    /*//////////////////////////////////////////////////////////////
+                                 STEP 1
+    //////////////////////////////////////////////////////////////*/
+
+    function test_Step_1_Normal() public {
+        uint256 v2BalanceBefore = rewardEscrowV2.escrowedBalanceOf(user1);
+        uint256 v1BalanceBefore = rewardEscrowV1.balanceOf(user1);
+        assertEq(v1BalanceBefore, 16.324711673459301166 ether);
+        assertEq(v2BalanceBefore, 0);
+
+        uint256 numVestingEntries = rewardEscrowV1.numVestingEntries(user1);
+        assertEq(numVestingEntries, 16);
+
+        entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, numVestingEntries);
+        assertEq(entryIDs.length, 16);
+
+        assertEq(uint256(escrowMigrator.migrationStatus(user1)), 0);
+
+        // step 1
+        vm.prank(user1);
+        escrowMigrator.registerEntriesForVestingAndMigration(entryIDs);
+
+        assertEq(uint256(escrowMigrator.migrationStatus(user1)), 2);
+        assertEq(
+            escrowMigrator.totalVestedAccountBalanceAtRegistrationTime(user1),
+            rewardEscrowV2.totalVestedAccountBalance(user1)
+        );
+        assertEq(escrowMigrator.numberOfRegisteredEntries(user1), numVestingEntries);
+        assertEq(escrowMigrator.numberOfMigratedEntries(user1), 0);
+        assertEq(escrowMigrator.numberOfConfirmedEntries(user1), 0);
+
+        for (uint256 i = 0; i < entryIDs.length; i++) {
+            assertEq(escrowMigrator.registeredEntryIDs(user1, i), entryIDs[i]);
+        }
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                               FULL FLOW
+    //////////////////////////////////////////////////////////////*/
+
     function test_Migrator() public {
         uint256 v2BalanceBefore = rewardEscrowV2.escrowedBalanceOf(user1);
         uint256 v1BalanceBefore = rewardEscrowV1.balanceOf(user1);
         assertEq(v1BalanceBefore, 16.324711673459301166 ether);
+        assertEq(v2BalanceBefore, 0);
 
         uint256 numVestingEntries = rewardEscrowV1.numVestingEntries(user1);
         assertEq(numVestingEntries, 16);
