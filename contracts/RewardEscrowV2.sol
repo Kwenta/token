@@ -315,7 +315,7 @@ contract RewardEscrowV2 is
     ///////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IRewardEscrowV2
-    function vest(uint256[] calldata _entryIDs) external override whenNotPaused {
+    function vest(uint256[] calldata _entryIDs) external override {
         uint256 total;
         uint256 totalFee;
         uint256 entryIDsLength = _entryIDs.length;
