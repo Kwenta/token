@@ -95,25 +95,7 @@ contract EscrowMigrator is
                           EOA MIGRATION STEPS
     //////////////////////////////////////////////////////////////*/
 
-    // TODO: attempt to make atomic with step 2 a "initialized" check pattern
-    // step 1: initiate migration
-    function initiateMigration() external {
-        _initiateMigration(msg.sender);
-    }
-
-    function _initiateMigration(address account) internal {
-        if (migrationStatus[account] != MigrationStatus.NOT_STARTED) {
-            revert MigrationAlreadyStarted();
-        }
-        if (rewardEscrowV1.balanceOf(account) == 0) revert NoEscrowBalanceToMigrate();
-
-        migrationStatus[account] = MigrationStatus.INITIATED;
-        totalVestedAccountBalanceAtRegistrationTime[account] =
-            rewardEscrowV1.totalVestedAccountBalance(account);
-    }
-
-    // TODO: how to prevent user footgun of vesting before registering?
-    // step 2: register entries for migration
+    // step 1: initiate & register entries for migration
     function registerEntriesForVestingAndMigration(uint256[] calldata _entryIDs) external {
         _registerEntriesForVestingAndMigration(msg.sender, _entryIDs);
     }
@@ -121,6 +103,14 @@ contract EscrowMigrator is
     function _registerEntriesForVestingAndMigration(address account, uint256[] calldata _entryIDs)
         internal
     {
+        if (migrationStatus[account] == MigrationStatus.NOT_STARTED) {
+            if (rewardEscrowV1.balanceOf(account) == 0) revert NoEscrowBalanceToMigrate();
+
+            migrationStatus[account] = MigrationStatus.INITIATED;
+            totalVestedAccountBalanceAtRegistrationTime[account] =
+                rewardEscrowV1.totalVestedAccountBalance(account);
+        }
+
         if (
             migrationStatus[account] != MigrationStatus.INITIATED
             // allow the state to be REGISTERED so that users can register entries in batches
@@ -158,7 +148,7 @@ contract EscrowMigrator is
         migrationStatus[account] = MigrationStatus.REGISTERED;
     }
 
-    // step 3: vest all entries and confirm
+    // step 2: vest all entries and confirm
     // WARNING: After this step no more entries can be registered
     function confirmEntriesAreVested(uint256[] calldata _entryIDs) external {
         _confirmEntriesAreVested(msg.sender, _entryIDs);
@@ -189,16 +179,7 @@ contract EscrowMigrator is
     // TODO: how to prevent user footgun of vesting after confirming?
     // - could store totalVested at confirmation stage - if it has increased
     // we require them to register further entries?
-    // step 4: pay liquid kwenta for migration
-    function payForMigration() external {
-        _payForMigration(msg.sender, msg.sender);
-    }
-
     function _payForMigration(address account, address from) internal {
-        if (migrationStatus[account] != MigrationStatus.VESTED) {
-            revert MustBeInVestedState();
-        }
-
         uint256 vestedAtRegistration = totalVestedAccountBalanceAtRegistrationTime[account];
         uint256 vestedNow = rewardEscrowV1.totalVestedAccountBalance(account);
         uint256 userDebt = vestedNow - vestedAtRegistration;
@@ -207,14 +188,21 @@ contract EscrowMigrator is
         migrationStatus[account] = MigrationStatus.PAID;
     }
 
-    // step 5: migrate all registered entries
+    // step 3: pay liquid kwenta for migration & migrate all registered entries
     function migrateRegisteredEntries(address to, uint256[] calldata _entryIDs) external {
-        _migrateRegisteredEntries(msg.sender, to, _entryIDs);
+        _migrateRegisteredEntries(msg.sender, msg.sender, to, _entryIDs);
     }
 
-    function _migrateRegisteredEntries(address account, address to, uint256[] calldata _entryIDs)
-        internal
-    {
+    function _migrateRegisteredEntries(
+        address account,
+        address from,
+        address to,
+        uint256[] calldata _entryIDs
+    ) internal {
+        if (migrationStatus[account] == MigrationStatus.VESTED) {
+            _payForMigration(account, from);
+        }
+
         if (migrationStatus[account] != MigrationStatus.PAID) {
             revert MustBeInPaidState();
         }
@@ -234,16 +222,15 @@ contract EscrowMigrator is
             // skip if entry is not already vested
             if (escrowAmount != 0) continue;
 
-            bool isFullyMature = endTime <= block.timestamp;
             uint256 earlyVestingFee;
             uint256 newDuration;
-            if (isFullyMature) {
-                // set duration to 1 as 0 is not allowed
-                newDuration = 1;
+            if (endTime <= block.timestamp) {
+                newDuration = 0;
                 // 50% is the minimum allowed earlyVestingFee
                 earlyVestingFee = 50;
             } else {
                 uint256 timeRemaining = endTime - block.timestamp;
+                newDuration = timeRemaining;
                 // max percentageLeft is 100 as timeRemaining cannot be larger than duration
                 uint256 percentageLeft = timeRemaining * 100 / duration;
                 // 90% is the fixed early vesting fee for V1 entries
@@ -254,8 +241,9 @@ contract EscrowMigrator is
             }
 
             kwenta.approve(address(rewardEscrowV2), originalEscrowAmount);
+            // TODO: updated 2 weeks to stakingRewardsV2.cooldownPeriod()
             rewardEscrowV2.createEscrowEntry(
-                to, originalEscrowAmount, newDuration, uint8(earlyVestingFee)
+                to, originalEscrowAmount, max(newDuration, 2 weeks), uint8(earlyVestingFee)
             );
 
             numberOfMigratedEntries[account]++;
@@ -277,14 +265,7 @@ contract EscrowMigrator is
                        INTEGRATOR MIGRATION STEPS
     //////////////////////////////////////////////////////////////*/
 
-    // step 1: initiate migration
-    function initiateIntegratorMigration(address _integrator) external {
-        address beneficiary = IStakingRewardsV2Integrator(_integrator).beneficiary();
-        if (beneficiary != msg.sender) revert NotApproved();
-        _initiateMigration(_integrator);
-    }
-
-    // step 2: register entries for migration
+    // step 1: initiate & register entries for migration
     function registerEntriesForIntegratorMigration(
         address _integrator,
         uint256[] calldata _entryIDs
@@ -294,7 +275,7 @@ contract EscrowMigrator is
         _registerEntriesForVestingAndMigration(_integrator, _entryIDs);
     }
 
-    // step 3: vest all entries and confirm
+    // step 2: vest all entries and confirm
     function confirmIntegratorEntriesAreVested(address _integrator, uint256[] calldata _entryIDs)
         external
     {
@@ -303,14 +284,7 @@ contract EscrowMigrator is
         _confirmEntriesAreVested(_integrator, _entryIDs);
     }
 
-    // step 4: pay liquid kwenta for migration
-    function payForIntegratorMigration(address _integrator) external {
-        address beneficiary = IStakingRewardsV2Integrator(_integrator).beneficiary();
-        if (beneficiary != msg.sender) revert NotApproved();
-        _payForMigration(_integrator, beneficiary);
-    }
-
-    // step 5: migrate all registered entries
+    // step 3: pay liquid kwenta for migration & migrate all registered entries
     function migrateRegisteredIntegratorEntries(
         address _integrator,
         address to,
@@ -318,7 +292,7 @@ contract EscrowMigrator is
     ) external {
         address beneficiary = IStakingRewardsV2Integrator(_integrator).beneficiary();
         if (beneficiary != msg.sender) revert NotApproved();
-        _migrateRegisteredEntries(to, _integrator, _entryIDs);
+        _migrateRegisteredEntries(_integrator, beneficiary, to, _entryIDs);
     }
 
     /*//////////////////////////////////////////////////////////////
