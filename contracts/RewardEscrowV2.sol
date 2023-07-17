@@ -381,8 +381,7 @@ contract RewardEscrowV2 is
         if (_earlyVestingFee > MAXIMUM_EARLY_VESTING_FEE) revert EarlyVestingFeeTooHigh();
         if (_earlyVestingFee < MINIMUM_EARLY_VESTING_FEE) revert EarlyVestingFeeTooLow();
         if (_deposit == 0) revert ZeroAmount();
-        uint256 minimumDuration = stakingRewards.cooldownPeriod();
-        if (_duration < minimumDuration || _duration > MAX_DURATION) revert InvalidDuration();
+        if (_duration == 0 || _duration > MAX_DURATION) revert InvalidDuration();
 
         /// @dev this will revert if the kwenta token transfer fails
         kwenta.transferFrom(msg.sender, address(this), _deposit);
