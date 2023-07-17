@@ -28,7 +28,7 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
     //////////////////////////////////////////////////////////////*/
 
     function setUp() public override {
-        vm.rollFork(OPTIMISM_BLOCK_NUMBER_JUST_AFTER_PAUSE);
+        vm.rollFork(OPTIMISM_BLOCK_NUMBER_JUST_BEFORE_ROLLBACK);
 
         // define main contracts
         kwenta = Kwenta(OPTIMISM_KWENTA_TOKEN);
@@ -93,19 +93,7 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
     }
 
     function test_Roll_Back() public {
-        // check contract is paused
-        assertEq(stakingRewardsV2.paused(), true);
-
-        // check correct owner is set
-        assertEq(owner, stakingRewardsV2.owner());
-        assertEq(owner, rewardEscrowV2.owner());
-
-        // upgrade staking v2 contract
-        vm.prank(owner);
-        stakingRewardsV2.upgradeTo(stakingRewardsV2RollbackImpl);
-        // upgrade reward escrow v2 contract
-        vm.prank(owner);
-        rewardEscrowV2.upgradeTo(rewardEscrowV2RollbackImpl);
+        upgradeToRollbackContracts();
 
         uint256 balanceBefore = kwenta.balanceOf(owner);
 
@@ -137,6 +125,26 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
         assertEq(rewardEscrowV2.totalEscrowedBalance(), 0);
         assertEq(kwenta.balanceOf(address(rewardEscrowV2)), 0);
         assertCloseTo(kwenta.balanceOf(address(stakingRewardsV2)), 0, 10);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                            UPGRADE HELPERS
+    //////////////////////////////////////////////////////////////*/
+
+    function upgradeToRollbackContracts() public {
+        // check contract is paused
+        assertEq(stakingRewardsV2.paused(), true);
+
+        // check correct owner is set
+        assertEq(owner, stakingRewardsV2.owner());
+        assertEq(owner, rewardEscrowV2.owner());
+
+        // upgrade staking v2 contract
+        vm.prank(owner);
+        stakingRewardsV2.upgradeTo(stakingRewardsV2RollbackImpl);
+        // upgrade reward escrow v2 contract
+        vm.prank(owner);
+        rewardEscrowV2.upgradeTo(rewardEscrowV2RollbackImpl);
     }
 
     /*//////////////////////////////////////////////////////////////
