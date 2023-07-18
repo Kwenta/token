@@ -72,7 +72,8 @@ contract UpgradeRewardEscrowV2Test is Test {
         rewardEscrowProxy.setEarlyVestFeeDistributor(KWENTA);
 
         // check state did not change
-        assertTrue(stakingRewards == rewardEscrowProxy.stakingRewards());        
+        assertTrue(stakingRewards == rewardEscrowProxy.stakingRewards());
+        assertEq(treasuryDAO, rewardEscrowProxy.treasuryDAO());        
         assertEq(nextEntryId, rewardEscrowProxy.nextEntryId());
         assertEq(
             totalEscrowedAccountBalance,
