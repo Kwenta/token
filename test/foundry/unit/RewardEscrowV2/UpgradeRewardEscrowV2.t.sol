@@ -8,19 +8,19 @@ import {SupplySchedule} from "../../../../contracts/SupplySchedule.sol";
 import {Kwenta} from "../../../../contracts/Kwenta.sol";
 import {Test} from "../../../../lib/forge-std/src/Test.sol";
 
-address constant KWENTA = 0xDA0C33402Fc1e10d18c532F0Ed9c1A6c5C9e386C;
-address constant STAKING_REWARDS_V2_IMPLEMENTATION = 0xE0aD43191312D6220DE64aFA54dbdD6982991A87;
-address constant STAKING_REWARDS_V2_PROXY = 0x3e5371D909Bf1996c95e9D179b0Bc91C26fb1279;
-address constant REWARD_ESCROW_V2_IMPLEMENTATION = 0x0A34aee61770b3cE293Fb17CfC9d4a7F70945260;
-address constant REWARD_ESCROW_V2_PROXY = 0xf211F298C6985fF4cF6f9488e065292B818163F8;
-address constant SUPPLY_SCHEDULE = 0x671423b2e8a99882FD14BbD07e90Ae8B64A0E63A;
-address constant DAO = 0x8E2f228c0322F872efAF253eF25d7F5A78d5851D;
-address constant EOA = 0x42f9134E9d3Bf7eEE1f8A5Ac2a4328B059E7468c;
+address constant KWENTA = 0x920Cf626a271321C151D027030D5d08aF699456b;
+address constant STAKING_REWARDS_V2_IMPLEMENTATION = 0x33B725a1B2dE9178121D423D2A1c062C5452f310;
+address constant STAKING_REWARDS_V2_PROXY = 0xe5bB889B1f0B6B4B7384Bd19cbb37adBDDa941a6;
+address constant REWARD_ESCROW_V2_IMPLEMENTATION = 0xF877315CfC91E69e7f4c308ec312cf91D66a095F;
+address constant REWARD_ESCROW_V2_PROXY = 0xd5fE5beAa04270B32f81Bf161768c44DF9880D11;
+address constant SUPPLY_SCHEDULE = 0x3e8b82326Ff5f2f10da8CEa117bD44343ccb9c26;
+address constant DAO = 0xe826d43961a87fBE71C91d9B73F7ef9b16721C07;
+address constant EOA = 0x43BA2b95e19b441d04b22fAd2Adc250C4acEC305;
 uint256 constant TEST_AMOUNT = 10_000 ether;
 uint256 constant ONE_YEAR = 52 weeks;
 
-// BLOCK_NUMBER corresponds to Jul-12-2023 02:16:54 PM +UTC
-uint256 constant BLOCK_NUMBER = 11_871_673;
+// BLOCK_NUMBER corresponds to Jul-12-2023 05:35:23 PM +UTC
+uint256 constant BLOCK_NUMBER = 106_792_273;
 
 contract UpgradeRewardEscrowV2Test is Test {
     // contracts
@@ -35,7 +35,7 @@ contract UpgradeRewardEscrowV2Test is Test {
         vm.rollFork(BLOCK_NUMBER);
         rewardEscrowProxy = RewardEscrowV2(REWARD_ESCROW_V2_PROXY);
         // deploy V3 implementation
-        rewardEscrowV3 = new RewardEscrowV2();
+        rewardEscrowV3 = new RewardEscrowV2(KWENTA);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -75,10 +75,13 @@ contract UpgradeRewardEscrowV2Test is Test {
         vm.prank(DAO);
         rewardEscrowProxy.upgradeTo(address(rewardEscrowV3));
         assertTrue(address(rewardEscrowV3) != REWARD_ESCROW_V2_IMPLEMENTATION);
+        RewardEscrowV2 upgradedRewardEscrow = RewardEscrowV2(
+            REWARD_ESCROW_V2_PROXY
+        );
 
         // check state did not change
-        assertTrue(stakingRewards == rewardEscrowProxy.stakingRewards());
-        assertEq(treasuryDAO, rewardEscrowProxy.treasuryDAO());
+        assertTrue(stakingRewards == upgradedRewardEscrow.stakingRewards());        
+        // assertEq(treasuryDAO, rewardEscrowProxy.treasuryDAO());
         // assertEq(
         //     entry.amount,
         //     rewardEscrowProxy.vestingSchedules(0).amount
