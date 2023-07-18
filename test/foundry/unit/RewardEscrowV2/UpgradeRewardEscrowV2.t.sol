@@ -55,37 +55,24 @@ contract UpgradeRewardEscrowV2Test is Test {
         // record state prior to upgrade
         IStakingRewardsV2 stakingRewards = rewardEscrowProxy.stakingRewards();
         address treasuryDAO = rewardEscrowProxy.treasuryDAO();
-        // VestingEntry memory entry = VestingEntry({
-        //     escrowAmount: rewardEscrowProxy.vestingSchedules(0).escrowAmount,
-        //     duration: rewardEscrowProxy.vestingSchedules(0).duration,
-        //     endTime: rewardEscrowProxy.vestingSchedules(0).endTime,
-        //     earlyVestingFee: rewardEscrowProxy.vestingSchedules(0)
-        //         .earlyVestingFee
-        // });
         uint nextEntryId = rewardEscrowProxy.nextEntryId();
         uint totalEscrowedAccountBalance = rewardEscrowProxy
             .totalEscrowedAccountBalance(EOA);
         uint totalVestedAccountBalance = rewardEscrowProxy
             .totalVestedAccountBalance(EOA);
         uint totalEscrowedBalance = rewardEscrowProxy.totalEscrowedBalance();
-        // address earlyVestFeeDistributor = rewardEscrowProxy
-        //     .earlyVestFeeDistributor();
 
         // upgrade
         vm.prank(DAO);
         rewardEscrowProxy.upgradeTo(address(rewardEscrowV3));
         assertTrue(address(rewardEscrowV3) != REWARD_ESCROW_V2_IMPLEMENTATION);
-        RewardEscrowV2 upgradedRewardEscrow = RewardEscrowV2(
-            REWARD_ESCROW_V2_PROXY
-        );
+        vm.prank(DAO);
+        /// @dev set early vest fee distributor to dummy address (KWENTA)
+        /// because this repo does not have the early vest fee distributor
+        rewardEscrowProxy.setEarlyVestFeeDistributor(KWENTA);
 
         // check state did not change
-        assertTrue(stakingRewards == upgradedRewardEscrow.stakingRewards());        
-        // assertEq(treasuryDAO, rewardEscrowProxy.treasuryDAO());
-        // assertEq(
-        //     entry.amount,
-        //     rewardEscrowProxy.vestingSchedules(0).amount
-        // );
+        assertTrue(stakingRewards == rewardEscrowProxy.stakingRewards());        
         assertEq(nextEntryId, rewardEscrowProxy.nextEntryId());
         assertEq(
             totalEscrowedAccountBalance,
@@ -99,9 +86,9 @@ contract UpgradeRewardEscrowV2Test is Test {
             totalEscrowedBalance,
             rewardEscrowProxy.totalEscrowedBalance()
         );
-        // assertEq(
-        //     earlyVestFeeDistributor,
-        //     rewardEscrowProxy.earlyVestFeeDistributor()
-        // );
+        assertEq(
+            KWENTA,
+            rewardEscrowProxy.earlyVestFeeDistributor()
+        );
     }
 }
