@@ -130,7 +130,7 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
 
         assertEq(
             escrowMigrator.totalVestedAccountBalanceAtRegistrationTime(account),
-            rewardEscrowV2.totalVestedAccountBalance(account)
+            rewardEscrowV1.totalVestedAccountBalance(account)
         );
         assertEq(escrowMigrator.numberOfRegisteredEntries(account), _entryIDs.length);
         assertEq(escrowMigrator.numberOfConfirmedEntries(account), 0);

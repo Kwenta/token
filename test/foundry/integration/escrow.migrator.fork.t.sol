@@ -109,7 +109,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
                            STEP 1 EDGE CASES
     //////////////////////////////////////////////////////////////*/
 
-    function test_Register_Someone_Elses_Entry() public {
+    function test_Cannot_Register_Someone_Elses_Entry() public {
         // check initial state
         (uint256[] memory _entryIDs,) =
             checkStateBeforeStepOne(user1, 16.324711673459301166 ether, 16);
@@ -122,6 +122,25 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 0);
         checkStateAfterStepOne(user1, _entryIDs, false);
         checkStateAfterStepOne(user2, _entryIDs, true);
+    }
+
+    function test_Cannot_Register_Vested_Entries() public {
+        // check initial state
+        (uint256[] memory _entryIDs,) =
+            checkStateBeforeStepOne(user1, 16.324711673459301166 ether, 16);
+
+        // vest 15 entries
+        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 10);
+        vm.prank(user1);
+        rewardEscrowV1.vest(_entryIDs);
+
+        // step 1
+        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 10, 6);
+        vm.prank(user1);
+        escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
+
+        // check final state
+        checkStateAfterStepOne(user1, _entryIDs, true);
     }
 
     /*//////////////////////////////////////////////////////////////
