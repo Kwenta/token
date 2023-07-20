@@ -182,28 +182,27 @@ contract EscrowMigrator is
     // TODO: how to prevent user footgun of vesting after confirming?
     // - could store totalVested at confirmation stage - if it has increased
     // we require them to register further entries?
-    function _payForMigration(address account, address from) internal {
+    function _payForMigration(address account) internal {
         uint256 vestedAtRegistration = totalVestedAccountBalanceAtRegistrationTime[account];
         uint256 vestedNow = rewardEscrowV1.totalVestedAccountBalance(account);
         uint256 userDebt = vestedNow - vestedAtRegistration;
-        kwenta.transferFrom(from, address(this), userDebt);
+        kwenta.transferFrom(msg.sender, address(this), userDebt);
 
         migrationStatus[account] = MigrationStatus.PAID;
     }
 
     // step 3: pay liquid kwenta for migration & migrate all registered entries
     function migrateRegisteredEntries(address to, uint256[] calldata _entryIDs) external {
-        _migrateRegisteredEntries(msg.sender, msg.sender, to, _entryIDs);
+        _migrateRegisteredEntries(msg.sender, to, _entryIDs);
     }
 
     function _migrateRegisteredEntries(
         address account,
-        address from,
         address to,
         uint256[] calldata _entryIDs
     ) internal {
         if (migrationStatus[account] == MigrationStatus.VESTED) {
-            _payForMigration(account, from);
+            _payForMigration(account);
         }
 
         if (migrationStatus[account] != MigrationStatus.PAID) {
@@ -295,7 +294,7 @@ contract EscrowMigrator is
     ) external {
         address beneficiary = IStakingRewardsV2Integrator(_integrator).beneficiary();
         if (beneficiary != msg.sender) revert NotApproved();
-        _migrateRegisteredEntries(_integrator, beneficiary, to, _entryIDs);
+        _migrateRegisteredEntries(_integrator, to, _entryIDs);
     }
 
     /*//////////////////////////////////////////////////////////////
