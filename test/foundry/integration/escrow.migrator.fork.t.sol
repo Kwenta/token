@@ -143,6 +143,40 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         checkStateAfterStepOne(user1, _entryIDs, true);
     }
 
+    function test_Cannot_Register_Mature_Entries() public {
+        // check initial state
+        (uint256[] memory _entryIDs,) =
+            checkStateBeforeStepOne(user1, 16.324711673459301166 ether, 16);
+
+        // fast forward until all entries are mature
+        vm.warp(block.timestamp + 52 weeks);
+
+        // step 1
+        vm.prank(user1);
+        escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
+
+        // check final state
+        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 0);
+        checkStateAfterStepOne(user1, _entryIDs, true);
+    }
+
+    function test_Cannot_Register_Entries_That_Do_Not_Exist() public {
+        // check initial state
+        checkStateBeforeStepOne(user1, 16.324711673459301166 ether, 16);
+
+        // step 1
+        entryIDs.push(rewardEscrowV1.nextEntryId());
+        entryIDs.push(rewardEscrowV1.nextEntryId() + 1);
+        entryIDs.push(rewardEscrowV1.nextEntryId() + 2);
+        entryIDs.push(rewardEscrowV1.nextEntryId() + 3);
+        vm.prank(user1);
+        escrowMigrator.registerEntriesForVestingAndMigration(entryIDs);
+
+        // check final state
+        uint256[] memory _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 0);
+        checkStateAfterStepOne(user1, _entryIDs, true);
+    }
+
     /*//////////////////////////////////////////////////////////////
                                FULL FLOW
     //////////////////////////////////////////////////////////////*/
