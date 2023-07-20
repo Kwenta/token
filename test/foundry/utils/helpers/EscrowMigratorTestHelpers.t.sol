@@ -80,20 +80,21 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
                              STEP 1 HELPERS
     //////////////////////////////////////////////////////////////*/
 
-    function checkStateBeforeStepOne(address account, uint256 expectedV1BalanceBefore)
-        internal
-        returns (uint256[] memory _entryIDs, uint256 numVestingEntries)
-    {
+    function checkStateBeforeStepOne(
+        address account,
+        uint256 expectedV1BalanceBefore,
+        uint256 expectedNumVestingEntries
+    ) internal returns (uint256[] memory _entryIDs, uint256 numVestingEntries) {
         uint256 v2BalanceBefore = rewardEscrowV2.escrowedBalanceOf(account);
         uint256 v1BalanceBefore = rewardEscrowV1.balanceOf(account);
         assertEq(v1BalanceBefore, expectedV1BalanceBefore);
         assertEq(v2BalanceBefore, 0);
 
         numVestingEntries = rewardEscrowV1.numVestingEntries(account);
-        assertEq(numVestingEntries, 16);
+        assertEq(numVestingEntries, expectedNumVestingEntries);
 
         _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(account, 0, numVestingEntries);
-        assertEq(_entryIDs.length, 16);
+        assertEq(_entryIDs.length, numVestingEntries);
 
         assertEq(uint256(escrowMigrator.migrationStatus(account)), 0);
         assertEq(escrowMigrator.totalVestedAccountBalanceAtRegistrationTime(account), 0);
@@ -112,8 +113,20 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         }
     }
 
-    function checkStateAfterStepOne(address account, uint256[] memory _entryIDs) internal {
-        assertEq(uint256(escrowMigrator.migrationStatus(account)), 2);
+    function checkStateAfterStepOne(address account, uint256[] memory _entryIDs, bool didRegister)
+        internal
+    {
+        if (!didRegister && _entryIDs.length == 0) {
+            // didn't register
+            assertEq(uint256(escrowMigrator.migrationStatus(account)), 0);
+        } else if (_entryIDs.length == 0) {
+            // initiated but didn't register any entries
+            assertEq(uint256(escrowMigrator.migrationStatus(account)), 1);
+        } else {
+            // initiated and registerd entries
+            assertEq(uint256(escrowMigrator.migrationStatus(account)), 2);
+        }
+
         assertEq(
             escrowMigrator.totalVestedAccountBalanceAtRegistrationTime(account),
             rewardEscrowV2.totalVestedAccountBalance(account)

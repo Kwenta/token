@@ -23,21 +23,21 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 
     function test_Step_1_Normal() public {
         // check initial state
-        (uint256[] memory _entryIDs, uint256 numVestingEntries) =
-            checkStateBeforeStepOne(user1, 16.324711673459301166 ether);
+        (uint256[] memory _entryIDs,) =
+            checkStateBeforeStepOne(user1, 16.324711673459301166 ether, 16);
 
         // step 1
         vm.prank(user1);
         escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
 
         // check final state
-        checkStateAfterStepOne(user1, _entryIDs);
+        checkStateAfterStepOne(user1, _entryIDs, true);
     }
 
     function test_Step_1_Two_Rounds() public {
         // check initial state
         (uint256[] memory _entryIDs, uint256 numVestingEntries) =
-            checkStateBeforeStepOne(user1, 16.324711673459301166 ether);
+            checkStateBeforeStepOne(user1, 16.324711673459301166 ether, 16);
 
         // step 1.1 - transfer some entries
         _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 10);
@@ -51,13 +51,13 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 
         // check final state
         _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, numVestingEntries);
-        checkStateAfterStepOne(user1, _entryIDs);
+        checkStateAfterStepOne(user1, _entryIDs, true);
     }
 
     function test_Step_1_Three_Rounds() public {
         // check initial state
         (uint256[] memory _entryIDs, uint256 numVestingEntries) =
-            checkStateBeforeStepOne(user1, 16.324711673459301166 ether);
+            checkStateBeforeStepOne(user1, 16.324711673459301166 ether, 16);
 
         // step 1.1 - transfer some entries
         _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 5);
@@ -76,7 +76,33 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 
         // check final state
         _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, numVestingEntries);
-        checkStateAfterStepOne(user1, _entryIDs);
+        checkStateAfterStepOne(user1, _entryIDs, true);
+    }
+
+    function test_Step_1_N_Rounds_Fuzz(uint8 _numRounds, uint8 _numPerRound) public {
+        uint256 numRounds = _numRounds;
+        uint256 numPerRound = _numPerRound;
+
+        vm.assume(numRounds < 20);
+        vm.assume(numPerRound < 20);
+
+        // check initial state
+        (uint256[] memory _entryIDs,) =
+            checkStateBeforeStepOne(user1, 16.324711673459301166 ether, 16);
+
+        uint256 numTransferredSoFar;
+        for (uint256 i = 0; i < numRounds; i++) {
+            // step 1.i - transfer some entries
+            _entryIDs =
+                rewardEscrowV1.getAccountVestingEntryIDs(user1, numTransferredSoFar, numPerRound);
+            vm.prank(user1);
+            escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
+            numTransferredSoFar += numPerRound;
+        }
+
+        // check final state
+        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, numTransferredSoFar);
+        checkStateAfterStepOne(user1, _entryIDs, numRounds > 0);
     }
 
     /*//////////////////////////////////////////////////////////////
