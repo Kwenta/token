@@ -22,6 +22,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
     //////////////////////////////////////////////////////////////*/
 
     function test_Step_1_Normal() public {
+        // check initial state
         (uint256[] memory _entryIDs, uint256 numVestingEntries) =
             checkStateBeforeStepOne(user1, 16.324711673459301166 ether);
 
@@ -29,44 +30,28 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         vm.prank(user1);
         escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
 
+        // check final state
         checkStateAfterStepOne(user1, _entryIDs);
     }
 
     function test_Step_1_Two_Rounds() public {
+        // check initial state
         (uint256[] memory _entryIDs, uint256 numVestingEntries) =
             checkStateBeforeStepOne(user1, 16.324711673459301166 ether);
 
-        // step 1.1
+        // step 1.1 - transfer some entries
         _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 10);
         vm.prank(user1);
         escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
 
-        // step 1.2
+        // step 1.2 - transfer some more entries
         _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 10, 6);
         vm.prank(user1);
         escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
 
-        assertEq(uint256(escrowMigrator.migrationStatus(user1)), 2);
-        assertEq(
-            escrowMigrator.totalVestedAccountBalanceAtRegistrationTime(user1),
-            rewardEscrowV2.totalVestedAccountBalance(user1)
-        );
-        assertEq(escrowMigrator.numberOfRegisteredEntries(user1), numVestingEntries);
-        assertEq(escrowMigrator.numberOfConfirmedEntries(user1), 0);
-        assertEq(escrowMigrator.numberOfMigratedEntries(user1), 0);
-
-        // for (uint256 i = 0; i < entryIDs.length; i++) {
-        //     uint256 entryID = entryIDs[i];
-        //     assertEq(escrowMigrator.registeredEntryIDs(user1, i), entryID);
-        //     (uint256 escrowAmount, uint256 duration, uint64 endTime, bool confirmed) =
-        //         escrowMigrator.registeredVestingSchedules(user1, entryID);
-        //     (uint64 endTimeOriginal, uint256 escrowAmountOriginal, uint256 durationOriginal) =
-        //         rewardEscrowV1.getVestingEntry(user1, entryID);
-        //     assertEq(escrowAmount, escrowAmountOriginal);
-        //     assertEq(duration, durationOriginal);
-        //     assertEq(endTime, endTimeOriginal);
-        //     assertEq(confirmed, false);
-        // }
+        // check final state
+        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, numVestingEntries);
+        checkStateAfterStepOne(user1, _entryIDs);
     }
 
     /*//////////////////////////////////////////////////////////////
