@@ -148,7 +148,9 @@ contract EscrowMigrator is
             registeredEntryIDs[account].push(entryID);
         }
 
-        migrationStatus[account] = MigrationStatus.REGISTERED;
+        if (registeredEntryIDs[account].length > 0) {
+            migrationStatus[account] = MigrationStatus.REGISTERED;
+        }
     }
 
     // step 2: vest all entries and confirm
