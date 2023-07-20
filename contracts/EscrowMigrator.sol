@@ -167,10 +167,17 @@ contract EscrowMigrator is
         for (uint256 i = 0; i < _entryIDs.length; i++) {
             uint256 entryID = _entryIDs[i];
             (, uint256 escrowAmount,) = rewardEscrowV1.getVestingEntry(account, entryID);
+            VestingEntry storage registeredEntry = registeredVestingSchedules[account][entryID];
+
+            // entry must have been registered
+            if (registeredEntry.endTime == 0) continue;
+            // cannot confirm twice
+            if (registeredEntry.confirmed) continue;
 
             // if it is not zero, it hasn't been vested
             if (escrowAmount != 0) continue;
 
+            registeredEntry.confirmed = true;
             numberOfConfirmedEntries[account]++;
         }
 
@@ -217,6 +224,8 @@ contract EscrowMigrator is
 
             // skip if not registered
             if (registeredEntry.endTime == 0) continue;
+            // entry must have been confirmed before migrating
+            if (!registeredEntry.confirmed) continue;
 
             (uint64 endTime, uint256 escrowAmount, uint256 duration) =
                 rewardEscrowV1.getVestingEntry(account, entryID);
