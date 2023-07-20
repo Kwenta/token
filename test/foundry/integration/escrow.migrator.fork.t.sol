@@ -7,6 +7,7 @@ import {Migrate} from "../../../scripts/Migrate.s.sol";
 import {Kwenta} from "../../../contracts/Kwenta.sol";
 import {RewardEscrow} from "../../../contracts/RewardEscrow.sol";
 import {VestingEntries} from "../../../contracts/interfaces/IRewardEscrow.sol";
+import {IEscrowMigrator} from "../../../contracts/interfaces/IEscrowMigrator.sol";
 import {SupplySchedule} from "../../../contracts/SupplySchedule.sol";
 import {StakingRewards} from "../../../contracts/StakingRewards.sol";
 import {EscrowMigrator} from "../../../contracts/EscrowMigrator.sol";
@@ -96,6 +97,20 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
         assertEq(entryIDs.length, 16);
 
         assertEq(uint256(escrowMigrator.migrationStatus(user1)), 0);
+        assertEq(escrowMigrator.totalVestedAccountBalanceAtRegistrationTime(user1), 0);
+        assertEq(escrowMigrator.numberOfConfirmedEntries(user1), 0);
+        assertEq(escrowMigrator.numberOfMigratedEntries(user1), 0);
+        assertEq(escrowMigrator.numberOfRegisteredEntries(user1), 0);
+
+        for (uint256 i = 0; i < entryIDs.length; i++) {
+            uint256 entryID = entryIDs[i];
+            (uint256 escrowAmount, uint256 duration, uint64 endTime, bool confirmed) =
+                escrowMigrator.registeredVestingSchedules(user1, entryID);
+            assertEq(escrowAmount, 0);
+            assertEq(duration, 0);
+            assertEq(endTime, 0);
+            assertEq(confirmed, false);
+        }
 
         // step 1
         vm.prank(user1);
@@ -107,11 +122,20 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
             rewardEscrowV2.totalVestedAccountBalance(user1)
         );
         assertEq(escrowMigrator.numberOfRegisteredEntries(user1), numVestingEntries);
-        assertEq(escrowMigrator.numberOfMigratedEntries(user1), 0);
         assertEq(escrowMigrator.numberOfConfirmedEntries(user1), 0);
+        assertEq(escrowMigrator.numberOfMigratedEntries(user1), 0);
 
         for (uint256 i = 0; i < entryIDs.length; i++) {
-            assertEq(escrowMigrator.registeredEntryIDs(user1, i), entryIDs[i]);
+            uint256 entryID = entryIDs[i];
+            assertEq(escrowMigrator.registeredEntryIDs(user1, i), entryID);
+            (uint256 escrowAmount, uint256 duration, uint64 endTime, bool confirmed) =
+                escrowMigrator.registeredVestingSchedules(user1, entryID);
+            (uint64 endTimeOriginal, uint256 escrowAmountOriginal, uint256 durationOriginal) =
+                rewardEscrowV1.getVestingEntry(user1, entryID);
+            assertEq(escrowAmount, escrowAmountOriginal);
+            assertEq(duration, durationOriginal);
+            assertEq(endTime, endTimeOriginal);
+            assertEq(confirmed, false);
         }
     }
 
