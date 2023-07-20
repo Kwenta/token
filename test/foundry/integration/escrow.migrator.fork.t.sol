@@ -12,109 +12,39 @@ import {SupplySchedule} from "../../../contracts/SupplySchedule.sol";
 import {StakingRewards} from "../../../contracts/StakingRewards.sol";
 import {EscrowMigrator} from "../../../contracts/EscrowMigrator.sol";
 import "../utils/Constants.t.sol";
+import {EscrowMigratorTestHelpers} from "../utils/helpers/EscrowMigratorTestHelpers.t.sol";
 
 import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
-contract StakingV2MigrationForkTests is StakingTestHelpers {
+contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
     /*//////////////////////////////////////////////////////////////
-                                STATE
-    //////////////////////////////////////////////////////////////*/
-
-    address public owner;
-    EscrowMigrator public escrowMigrator;
-
-    /*//////////////////////////////////////////////////////////////
-                                SETUP
-    //////////////////////////////////////////////////////////////*/
-
-    function setUp() public override {
-        vm.rollFork(106_878_447);
-
-        // define main contracts
-        kwenta = Kwenta(OPTIMISM_KWENTA_TOKEN);
-        rewardEscrowV1 = RewardEscrow(OPTIMISM_REWARD_ESCROW_V1);
-        supplySchedule = SupplySchedule(OPTIMISM_SUPPLY_SCHEDULE);
-        stakingRewardsV1 = StakingRewards(OPTIMISM_STAKING_REWARDS_V1);
-
-        // define main addresses
-        owner = OPTIMISM_PDAO;
-        treasury = OPTIMISM_TREASURY_DAO;
-        user1 = OPTIMISM_RANDOM_STAKING_USER;
-        user2 = createUser();
-
-        // set owners address code to trick the test into allowing onlyOwner functions to be called via script
-        vm.etch(owner, address(new Migrate()).code);
-
-        (rewardEscrowV2, stakingRewardsV2,,) = Migrate(owner).runCompleteMigrationProcess({
-            _owner: owner,
-            _kwenta: address(kwenta),
-            _supplySchedule: address(supplySchedule),
-            _stakingRewardsV1: address(stakingRewardsV1),
-            _treasuryDAO: treasury,
-            _printLogs: false
-        });
-
-        // deploy migrator
-        address migratorImpl = address(
-            new EscrowMigrator(
-            address(kwenta),
-            address(rewardEscrowV1),
-            address(rewardEscrowV2)
-            )
-        );
-
-        escrowMigrator = EscrowMigrator(
-            address(
-                new ERC1967Proxy(
-                    migratorImpl,
-                    abi.encodeWithSignature("initialize(address)", owner)
-                )
-            )
-        );
-
-        vm.prank(owner);
-        rewardEscrowV1.setTreasuryDAO(address(escrowMigrator));
-    }
-
-    /*//////////////////////////////////////////////////////////////
-                                TESTS
-    //////////////////////////////////////////////////////////////*/
-
-    /*//////////////////////////////////////////////////////////////
-                                 STEP 1
+                              STEP 1 TESTS
     //////////////////////////////////////////////////////////////*/
 
     function test_Step_1_Normal() public {
-        uint256 v2BalanceBefore = rewardEscrowV2.escrowedBalanceOf(user1);
-        uint256 v1BalanceBefore = rewardEscrowV1.balanceOf(user1);
-        assertEq(v1BalanceBefore, 16.324711673459301166 ether);
-        assertEq(v2BalanceBefore, 0);
-
-        uint256 numVestingEntries = rewardEscrowV1.numVestingEntries(user1);
-        assertEq(numVestingEntries, 16);
-
-        entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, numVestingEntries);
-        assertEq(entryIDs.length, 16);
-
-        assertEq(uint256(escrowMigrator.migrationStatus(user1)), 0);
-        assertEq(escrowMigrator.totalVestedAccountBalanceAtRegistrationTime(user1), 0);
-        assertEq(escrowMigrator.numberOfConfirmedEntries(user1), 0);
-        assertEq(escrowMigrator.numberOfMigratedEntries(user1), 0);
-        assertEq(escrowMigrator.numberOfRegisteredEntries(user1), 0);
-
-        for (uint256 i = 0; i < entryIDs.length; i++) {
-            uint256 entryID = entryIDs[i];
-            (uint256 escrowAmount, uint256 duration, uint64 endTime, bool confirmed) =
-                escrowMigrator.registeredVestingSchedules(user1, entryID);
-            assertEq(escrowAmount, 0);
-            assertEq(duration, 0);
-            assertEq(endTime, 0);
-            assertEq(confirmed, false);
-        }
+        (uint256[] memory _entryIDs, uint256 numVestingEntries) =
+            checkStateBeforeStepOne(user1, 16.324711673459301166 ether);
 
         // step 1
         vm.prank(user1);
-        escrowMigrator.registerEntriesForVestingAndMigration(entryIDs);
+        escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
+
+        checkStateAfterStepOne(user1, _entryIDs);
+    }
+
+    function test_Step_1_Two_Rounds() public {
+        (uint256[] memory _entryIDs, uint256 numVestingEntries) =
+            checkStateBeforeStepOne(user1, 16.324711673459301166 ether);
+
+        // step 1.1
+        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 10);
+        vm.prank(user1);
+        escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
+
+        // step 1.2
+        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 10, 6);
+        vm.prank(user1);
+        escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
 
         assertEq(uint256(escrowMigrator.migrationStatus(user1)), 2);
         assertEq(
@@ -125,18 +55,18 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
         assertEq(escrowMigrator.numberOfConfirmedEntries(user1), 0);
         assertEq(escrowMigrator.numberOfMigratedEntries(user1), 0);
 
-        for (uint256 i = 0; i < entryIDs.length; i++) {
-            uint256 entryID = entryIDs[i];
-            assertEq(escrowMigrator.registeredEntryIDs(user1, i), entryID);
-            (uint256 escrowAmount, uint256 duration, uint64 endTime, bool confirmed) =
-                escrowMigrator.registeredVestingSchedules(user1, entryID);
-            (uint64 endTimeOriginal, uint256 escrowAmountOriginal, uint256 durationOriginal) =
-                rewardEscrowV1.getVestingEntry(user1, entryID);
-            assertEq(escrowAmount, escrowAmountOriginal);
-            assertEq(duration, durationOriginal);
-            assertEq(endTime, endTimeOriginal);
-            assertEq(confirmed, false);
-        }
+        // for (uint256 i = 0; i < entryIDs.length; i++) {
+        //     uint256 entryID = entryIDs[i];
+        //     assertEq(escrowMigrator.registeredEntryIDs(user1, i), entryID);
+        //     (uint256 escrowAmount, uint256 duration, uint64 endTime, bool confirmed) =
+        //         escrowMigrator.registeredVestingSchedules(user1, entryID);
+        //     (uint64 endTimeOriginal, uint256 escrowAmountOriginal, uint256 durationOriginal) =
+        //         rewardEscrowV1.getVestingEntry(user1, entryID);
+        //     assertEq(escrowAmount, escrowAmountOriginal);
+        //     assertEq(duration, durationOriginal);
+        //     assertEq(endTime, endTimeOriginal);
+        //     assertEq(confirmed, false);
+        // }
     }
 
     /*//////////////////////////////////////////////////////////////
