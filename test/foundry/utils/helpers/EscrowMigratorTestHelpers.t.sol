@@ -39,8 +39,9 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         // define main addresses
         owner = OPTIMISM_PDAO;
         treasury = OPTIMISM_TREASURY_DAO;
-        user1 = OPTIMISM_RANDOM_STAKING_USER;
-        user2 = createUser();
+        user1 = OPTIMISM_RANDOM_STAKING_USER_1;
+        user2 = OPTIMISM_RANDOM_STAKING_USER_2;
+        user3 = createUser();
 
         // set owners address code to trick the test into allowing onlyOwner functions to be called via script
         vm.etch(owner, address(new Migrate()).code);

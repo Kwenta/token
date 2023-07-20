@@ -33,7 +33,7 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
         // define main addresses
         owner = OPTIMISM_KWENTA_OWNER;
         treasury = OPTIMISM_TREASURY_DAO;
-        user1 = OPTIMISM_RANDOM_STAKING_USER;
+        user1 = OPTIMISM_RANDOM_STAKING_USER_1;
         user2 = createUser();
 
         // set owners address code to trick the test into allowing onlyOwner functions to be called via script
