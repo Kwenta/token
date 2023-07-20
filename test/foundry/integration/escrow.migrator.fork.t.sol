@@ -54,6 +54,31 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         checkStateAfterStepOne(user1, _entryIDs);
     }
 
+    function test_Step_1_Three_Rounds() public {
+        // check initial state
+        (uint256[] memory _entryIDs, uint256 numVestingEntries) =
+            checkStateBeforeStepOne(user1, 16.324711673459301166 ether);
+
+        // step 1.1 - transfer some entries
+        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 5);
+        vm.prank(user1);
+        escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
+
+        // step 1.2 - transfer some more entries
+        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 5, 5);
+        vm.prank(user1);
+        escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
+
+        // step 1.3 - transfer some more entries
+        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 10, 6);
+        vm.prank(user1);
+        escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
+
+        // check final state
+        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, numVestingEntries);
+        checkStateAfterStepOne(user1, _entryIDs);
+    }
+
     /*//////////////////////////////////////////////////////////////
                                FULL FLOW
     //////////////////////////////////////////////////////////////*/
