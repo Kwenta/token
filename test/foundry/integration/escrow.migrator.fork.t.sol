@@ -304,3 +304,4 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 // TODO: 4. Update checkState helpers to account for expected changes in totalRegisteredEscrow and similar added new variables
 
 // QUESTION: 1. Should they be forced to migrate all entries?
+// QUESTION: 2. Option to simplify to O(1) time, using just balanceOf & totalVestedAccountBalance
