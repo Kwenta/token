@@ -302,3 +302,5 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 // TODO: 2. check rewardEscrowV1.balanceOf changes by correct amount between registration and confirmation
 // TODO: 3. Update checkState helpers to account for expected changes in rewardEscrowV1.balanceOf
 // TODO: 4. Update checkState helpers to account for expected changes in totalRegisteredEscrow and similar added new variables
+
+// QUESTION: 1. Should they be forced to migrate all entries?
