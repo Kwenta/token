@@ -43,9 +43,18 @@ contract EscrowMigrator is
                                  STATE
     //////////////////////////////////////////////////////////////*/
 
+    // TODO: add these and think about global accounting
+    // uint256 public totalRegistered;
+    // uint256 public totalConfirmed;
+    // uint256 public totalMigrated;
+
     mapping(address => mapping(uint256 => VestingEntry)) public registeredVestingSchedules;
 
     mapping(address => uint256) public totalVestedAccountBalanceAtRegistrationTime;
+
+    mapping(address => uint256) public totalEscrowBalanceAtRegistrationTime;
+
+    mapping(address => uint256) public totalRegisteredEscrow;
 
     mapping(address => MigrationStatus) public migrationStatus;
 
@@ -90,7 +99,7 @@ contract EscrowMigrator is
     /*//////////////////////////////////////////////////////////////
                                  VIEWS
     //////////////////////////////////////////////////////////////*/
-    function numberOfRegisteredEntries(address account) external view returns (uint256) {
+    function numberOfRegisteredEntries(address account) public view returns (uint256) {
         return registeredEntryIDs[account].length;
     }
 
@@ -112,6 +121,8 @@ contract EscrowMigrator is
             migrationStatus[account] = MigrationStatus.INITIATED;
             totalVestedAccountBalanceAtRegistrationTime[account] =
                 rewardEscrowV1.totalVestedAccountBalance(account);
+
+            totalEscrowBalanceAtRegistrationTime[account] = rewardEscrowV1.balanceOf(account);
         }
 
         if (
@@ -121,6 +132,8 @@ contract EscrowMigrator is
         ) {
             revert MustBeInitiatedOrRegistered();
         }
+
+        uint256 registeredEscrow;
 
         for (uint256 i = 0; i < _entryIDs.length; i++) {
             uint256 entryID = _entryIDs[i];
@@ -146,7 +159,10 @@ contract EscrowMigrator is
             });
 
             registeredEntryIDs[account].push(entryID);
+            registeredEscrow += escrowAmount;
         }
+
+        totalRegisteredEscrow[account] += registeredEscrow;
 
         if (registeredEntryIDs[account].length > 0) {
             migrationStatus[account] = MigrationStatus.REGISTERED;
@@ -164,7 +180,12 @@ contract EscrowMigrator is
             revert MustBeInRegisteredState();
         }
 
-        uint256 entriesToCheck = registeredEntryIDs[account].length;
+        uint256 expectedEscrowBalanceNow =
+            totalEscrowBalanceAtRegistrationTime[account] - totalRegisteredEscrow[account];
+        uint256 actualEscrowBalanceNow = rewardEscrowV1.balanceOf(account);
+
+        if (actualEscrowBalanceNow > expectedEscrowBalanceNow) revert InsufficientEscrowVested();
+        if (actualEscrowBalanceNow < expectedEscrowBalanceNow) revert TooMuchEscrowVested();
 
         for (uint256 i = 0; i < _entryIDs.length; i++) {
             uint256 entryID = _entryIDs[i];
@@ -183,7 +204,7 @@ contract EscrowMigrator is
             numberOfConfirmedEntries[account]++;
         }
 
-        if (numberOfConfirmedEntries[account] == entriesToCheck) {
+        if (numberOfConfirmedEntries[account] == numberOfRegisteredEntries(account)) {
             migrationStatus[account] = MigrationStatus.VESTED;
         }
     }
@@ -205,11 +226,9 @@ contract EscrowMigrator is
         _migrateRegisteredEntries(msg.sender, to, _entryIDs);
     }
 
-    function _migrateRegisteredEntries(
-        address account,
-        address to,
-        uint256[] calldata _entryIDs
-    ) internal {
+    function _migrateRegisteredEntries(address account, address to, uint256[] calldata _entryIDs)
+        internal
+    {
         if (migrationStatus[account] == MigrationStatus.VESTED) {
             _payForMigration(account);
         }
@@ -265,7 +284,7 @@ contract EscrowMigrator is
             registeredEntry.endTime = 0;
         }
 
-        if (numberOfMigratedEntries[account] == registeredEntryIDs[account].length) {
+        if (numberOfMigratedEntries[account] == numberOfRegisteredEntries(account)) {
             migrationStatus[account] = MigrationStatus.COMPLETED;
         }
     }
