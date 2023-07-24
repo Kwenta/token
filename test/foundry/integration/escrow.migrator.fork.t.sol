@@ -209,6 +209,31 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
     }
 
     /*//////////////////////////////////////////////////////////////
+                              STEP 2 TESTS
+    //////////////////////////////////////////////////////////////*/
+
+    function test_Step_2_Normal() public {
+        // check initial state
+        (uint256[] memory _entryIDs,) =
+            checkStateBeforeStepOne(user1, 16.324711673459301166 ether, 16);
+
+        // step 1
+        vm.prank(user1);
+        escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
+
+        // step 2.1 - vest
+        vm.prank(user1);
+        rewardEscrowV1.vest(_entryIDs);
+
+        // step 2.2 - confirm vest
+        vm.prank(user1);
+        escrowMigrator.confirmEntriesAreVested(_entryIDs);
+
+        // check final state
+        checkStateAfterStepTwo(user1, _entryIDs);
+    }
+
+    /*//////////////////////////////////////////////////////////////
                                FULL FLOW
     //////////////////////////////////////////////////////////////*/
 
@@ -272,9 +297,8 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         assertCloseTo(newTotalFee, totalFee, totalFee / 15);
     }
 }
-//   total 3479506953460982524
-//   newTotal 3655115733412381239
-//     diff 175608779951398715
-//   totalFee 12845204719998318642
-//   newTotalFee 12669595940046919927
-//     diff 175608779951398715
+
+// TODO: 1. check no earning on stakingv1 before initiating
+// TODO: 2. check rewardEscrowV1.balanceOf changes by correct amount between registration and confirmation
+// TODO: 3. Update checkState helpers to account for expected changes in rewardEscrowV1.balanceOf
+// TODO: 4. Update checkState helpers to account for expected changes in totalRegisteredEscrow and similar added new variables
