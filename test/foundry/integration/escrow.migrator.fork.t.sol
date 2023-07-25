@@ -258,6 +258,33 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         checkStateAfterStepTwo(user1, _entryIDs);
     }
 
+    function test_Step_2_Two_Step() public {
+        // check initial state
+        (uint256[] memory _entryIDs, uint256 numVestingEntries) = claimAndCheckInitialState(user1);
+
+        // step 1
+        vm.prank(user1);
+        escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
+
+        // step 2.1 - vest
+        vm.prank(user1);
+        rewardEscrowV1.vest(_entryIDs);
+
+        // step 2.2A - confirm vest some entries
+        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 10);
+        vm.prank(user1);
+        escrowMigrator.confirmEntriesAreVested(_entryIDs);
+
+        // step 2.2B - confirm vest more entries
+        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 10, 7);
+        vm.prank(user1);
+        escrowMigrator.confirmEntriesAreVested(_entryIDs);
+
+        // check final state
+        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, numVestingEntries);
+        checkStateAfterStepTwo(user1, _entryIDs);
+    }
+
     /*//////////////////////////////////////////////////////////////
                                FULL FLOW
     //////////////////////////////////////////////////////////////*/
@@ -329,6 +356,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 // TODO: 4. Update checkState helpers to account for expected changes in totalRegisteredEscrow and similar added new variables
 // TODO: test confirming and then registering again
 // TODO: test register, vest, register, vest etc.
+// TODO: test not migrating all entries from end-to-end
 
 // QUESTION: 1. Should they be forced to migrate all entries?
 // QUESTION: 2. Option to simplify to O(1) time, using just balanceOf & totalVestedAccountBalance
