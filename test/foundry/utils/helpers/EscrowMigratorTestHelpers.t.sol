@@ -41,7 +41,8 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         treasury = OPTIMISM_TREASURY_DAO;
         user1 = OPTIMISM_RANDOM_STAKING_USER_1;
         user2 = OPTIMISM_RANDOM_STAKING_USER_2;
-        user3 = createUser();
+        user3 = OPTIMISM_RANDOM_STAKING_USER_3;
+        user4 = createUser();
 
         // set owners address code to trick the test into allowing onlyOwner functions to be called via script
         vm.etch(owner, address(new Migrate()).code);
@@ -177,7 +178,7 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         registerEntries(account, _entryIDs);
 
         // step 2.1 - vest
-        vm.prank(user1);
+        vm.prank(account);
         rewardEscrowV1.vest(_entryIDs);
     }
 
@@ -200,7 +201,7 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         (_entryIDs, numVestingEntries) = registerAllEntries(account);
 
         // step 2.1 - vest
-        vm.prank(user1);
+        vm.prank(account);
         rewardEscrowV1.vest(_entryIDs);
     }
 
@@ -213,7 +214,6 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
             assertEq(uint256(escrowMigrator.migrationStatus(account)), 2);
         }
 
-        uint256 totalEscrowConfirmed;
         for (uint256 i = 0; i < _entryIDs.length; i++) {
             uint256 entryID = _entryIDs[i];
             assertEq(escrowMigrator.registeredEntryIDs(account, i), entryID);
@@ -221,12 +221,11 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
                 escrowMigrator.registeredVestingSchedules(account, entryID);
             (uint64 endTimeOriginal, uint256 escrowAmountOriginal, uint256 durationOriginal) =
                 rewardEscrowV1.getVestingEntry(account, entryID);
+            assertGt(escrowAmount, 0);
             assertEq(escrowAmountOriginal, 0);
             assertEq(duration, durationOriginal);
             assertEq(endTime, endTimeOriginal);
             assertEq(confirmed, true);
-
-            totalEscrowConfirmed += escrowAmount;
         }
 
         assertLe(_entryIDs.length, escrowMigrator.numberOfRegisteredEntries(account));

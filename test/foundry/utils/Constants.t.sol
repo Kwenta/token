@@ -18,6 +18,8 @@ address constant OPTIMISM_PDAO = 0xe826d43961a87fBE71C91d9B73F7ef9b16721C07;
 address constant OPTIMISM_TREASURY_DAO = 0x82d2242257115351899894eF384f779b5ba8c695;
 address constant OPTIMISM_RANDOM_STAKING_USER_1 = 0x049569adb8a1e8A9349E9F1111C7b7993A4612eB;
 address constant OPTIMISM_RANDOM_STAKING_USER_2 = 0xE8788a8926dac3d25C591CAa64d5296044c1446D;
+/// @dev this user has vested rewards
+address constant OPTIMISM_RANDOM_STAKING_USER_3 = 0x7CD30F32a8baC32252b753a4441218bb23e46d68;
 
 /*//////////////////////////////////////////////////////////////
                         GOERLI ADDRESSES

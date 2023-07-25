@@ -122,17 +122,17 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 
     function test_Cannot_Register_If_No_Escrow_Balance() public {
         // check initial state
-        uint256 numVestingEntries = rewardEscrowV1.numVestingEntries(user3);
+        uint256 numVestingEntries = rewardEscrowV1.numVestingEntries(user4);
         uint256[] memory _entryIDs =
-            rewardEscrowV1.getAccountVestingEntryIDs(user3, 0, numVestingEntries);
-        uint256 v2BalanceBefore = rewardEscrowV2.escrowedBalanceOf(user3);
-        uint256 v1BalanceBefore = rewardEscrowV1.balanceOf(user3);
+            rewardEscrowV1.getAccountVestingEntryIDs(user4, 0, numVestingEntries);
+        uint256 v2BalanceBefore = rewardEscrowV2.escrowedBalanceOf(user4);
+        uint256 v1BalanceBefore = rewardEscrowV1.balanceOf(user4);
         assertEq(numVestingEntries, 0);
         assertEq(v1BalanceBefore, 0);
         assertEq(v2BalanceBefore, 0);
 
         // step 1
-        vm.prank(user3);
+        vm.prank(user4);
         vm.expectRevert(IEscrowMigrator.NoEscrowBalanceToMigrate.selector);
         escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
     }
@@ -294,6 +294,23 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         // check final state
         _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, numConfirmedSoFar);
         checkStateAfterStepTwo(user1, _entryIDs, numConfirmedSoFar == numVestingEntries);
+    }
+
+    function test_Confirm_Step_Takes_Account_Of_Escrow_Vested_At_Start() public {
+        uint256 vestedBalance = rewardEscrowV1.totalVestedAccountBalance(user3);
+        assertGt(vestedBalance, 0);
+
+        // complete step 1 and vest
+        (uint256[] memory _entryIDs,) = registerAndVestAllEntries(user3);
+
+        // step 2.2 - confirm vest
+        vm.prank(user3);
+        escrowMigrator.confirmEntriesAreVested(_entryIDs);
+
+        // check final state
+        /// @dev skip first entry as it was vested before migration, so couldn't be migrated
+        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user3, 1, _entryIDs.length);
+        checkStateAfterStepTwo(user3, _entryIDs, true);
     }
 
     /*//////////////////////////////////////////////////////////////
