@@ -300,25 +300,21 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
                            STEP 2 EDGE CASES
     //////////////////////////////////////////////////////////////*/
 
-    // function test_Cannot_Confirm_On_Behalf_Of_Someone_Else() public {
-    //     // check initial state
-    //     (uint256[] memory _entryIDs,) = claimAndCheckInitialState(user1);
+    function test_Cannot_Confirm_On_Behalf_Of_Someone_Else() public {
+        // complete step 1 and vest
+        (uint256[] memory _entryIDs,) = registerAndVestAllEntries(user1);
 
-    //     // step 1
-    //     vm.prank(user1);
-    //     escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
+        // register user2 so he can call confirm vest
+        registerAllEntries(user2);
 
-    //     // step 2.1 - vest
-    //     vm.prank(user1);
-    //     rewardEscrowV1.vest(_entryIDs);
+        // step 2.2 - confirm vest
+        vm.prank(user2);
+        escrowMigrator.confirmEntriesAreVested(_entryIDs);
 
-    //     // step 2.2 - confirm vest
-    //     vm.prank(user1);
-    //     escrowMigrator.confirmEntriesAreVested(_entryIDs);
-
-    //     // check final state
-    //     checkStateAfterStepTwo(user1, _entryIDs, true);
-    // }
+        // check final state
+        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 0);
+        checkStateAfterStepTwo(user1, _entryIDs, false);
+    }
 
     // function test_Cannot_Confirm_Someone_Elses_Registered_Entry() public {
 
