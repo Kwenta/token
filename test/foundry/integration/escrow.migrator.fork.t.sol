@@ -182,6 +182,20 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         checkStateAfterStepOne(user1, _entryIDs, true);
     }
 
+    function test_Cannot_Duplicate_Register_Entries() public {
+        // check initial state
+        (uint256[] memory _entryIDs,) = claimAndCheckInitialState(user1);
+
+        // step 1
+        vm.prank(user1);
+        escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
+        vm.prank(user1);
+        escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
+
+        // check final state
+        checkStateAfterStepOne(user1, _entryIDs, true);
+    }
+
     function test_Cannot_Register_Entries_That_Do_Not_Exist() public {
         // check initial state
         claimAndCheckInitialState(user1);
@@ -313,6 +327,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 // TODO: 3. Update checkState helpers to account for expected changes in rewardEscrowV1.balanceOf
 // TODO: 4. Update checkState helpers to account for expected changes in totalRegisteredEscrow and similar added new variables
 // TODO: test confirming and then registering again
+// TODO: test register, vest, register, vest etc.
 
 // QUESTION: 1. Should they be forced to migrate all entries?
 // QUESTION: 2. Option to simplify to O(1) time, using just balanceOf & totalVestedAccountBalance
