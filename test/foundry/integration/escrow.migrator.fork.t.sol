@@ -297,40 +297,8 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
     }
 
     /*//////////////////////////////////////////////////////////////
-                           STEP 2 EDGE CASES
+                          STEP 2 STATE LIMITS
     //////////////////////////////////////////////////////////////*/
-
-    function test_Cannot_Confirm_On_Behalf_Of_Someone_Else() public {
-        // complete step 1 and vest
-        (uint256[] memory _entryIDs,) = registerAndVestAllEntries(user1);
-
-        // register user2 so he can call confirm vest
-        registerAllEntries(user2);
-
-        // step 2.2 - confirm vest
-        vm.prank(user2);
-        escrowMigrator.confirmEntriesAreVested(_entryIDs);
-
-        // check final state
-        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 0);
-        checkStateAfterStepTwo(user1, _entryIDs, false);
-    }
-
-    function test_Cannot_Confirm_Someone_Elses_Registered_Entry() public {
-        // complete step 1 and vest
-        (uint256[] memory _entryIDs,) = registerAndVestAllEntries(user1);
-
-        // register user2 so he can call confirm vest
-        registerAndVestAllEntries(user2);
-
-        // step 2.2 - confirm vest
-        vm.prank(user2);
-        escrowMigrator.confirmEntriesAreVested(_entryIDs);
-
-        // check final state
-        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user2, 0, 0);
-        checkStateAfterStepTwo(user2, _entryIDs, false);
-    }
 
     function test_Cannot_Confirm_In_Not_Started_State() public {
         (uint256[] memory _entryIDs,) = claimAndCheckInitialState(user1);
@@ -399,6 +367,42 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         vm.prank(user1);
         vm.expectRevert(IEscrowMigrator.MustBeInRegisteredState.selector);
         escrowMigrator.confirmEntriesAreVested(_entryIDs);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                           STEP 2 EDGE CASES
+    //////////////////////////////////////////////////////////////*/
+
+    function test_Cannot_Confirm_On_Behalf_Of_Someone_Else() public {
+        // complete step 1 and vest
+        (uint256[] memory _entryIDs,) = registerAndVestAllEntries(user1);
+
+        // register user2 so he can call confirm vest
+        registerAllEntries(user2);
+
+        // step 2.2 - confirm vest
+        vm.prank(user2);
+        escrowMigrator.confirmEntriesAreVested(_entryIDs);
+
+        // check final state
+        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 0);
+        checkStateAfterStepTwo(user1, _entryIDs, false);
+    }
+
+    function test_Cannot_Confirm_Someone_Elses_Registered_Entry() public {
+        // complete step 1 and vest
+        (uint256[] memory _entryIDs,) = registerAndVestAllEntries(user1);
+
+        // register user2 so he can call confirm vest
+        registerAndVestAllEntries(user2);
+
+        // step 2.2 - confirm vest
+        vm.prank(user2);
+        escrowMigrator.confirmEntriesAreVested(_entryIDs);
+
+        // check final state
+        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user2, 0, 0);
+        checkStateAfterStepTwo(user2, _entryIDs, false);
     }
 
     function test_Cannot_Confirm_Non_Registered_Entry() public {
