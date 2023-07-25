@@ -245,4 +245,36 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         vm.prank(account);
         escrowMigrator.confirmEntriesAreVested(_entryIDs);
     }
+
+    function moveToPaidState(address account)
+        internal
+        returns (uint256[] memory _entryIDs, uint256 numVestingEntries)
+    {
+        // register, vest and confirm
+        (_entryIDs, numVestingEntries) = registerVestAndConfirmAllEntries(account);
+
+        // migrate with 0 entries
+        vm.prank(account);
+        kwenta.approve(address(escrowMigrator), type(uint256).max);
+        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(account, 0, 0);
+        vm.prank(account);
+        escrowMigrator.migrateRegisteredEntries(account, _entryIDs);
+
+        // restore entryIDs
+        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(account, 0, numVestingEntries);
+    }
+
+    function moveToCompletedState(address account)
+        internal
+        returns (uint256[] memory _entryIDs, uint256 numVestingEntries)
+    {
+        // register, vest and confirm
+        (_entryIDs, numVestingEntries) = registerVestAndConfirmAllEntries(account);
+
+        // migrate with all entries
+        vm.prank(account);
+        kwenta.approve(address(escrowMigrator), type(uint256).max);
+        vm.prank(account);
+        escrowMigrator.migrateRegisteredEntries(account, _entryIDs);
+    }
 }

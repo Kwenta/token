@@ -376,15 +376,9 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
     }
 
     function test_Cannot_Confirm_In_Paid_State() public {
-        // complete step 1 and vest
-        (uint256[] memory _entryIDs,) = registerVestAndConfirmAllEntries(user1);
+        // move to paid state
+        (uint256[] memory _entryIDs,) = moveToPaidState(user1);
 
-        // attempt in PAID state
-        vm.prank(user1);
-        kwenta.approve(address(escrowMigrator), type(uint256).max);
-        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 0);
-        vm.prank(user1);
-        escrowMigrator.migrateRegisteredEntries(user1, _entryIDs);
         assertEq(
             uint256(escrowMigrator.migrationStatus(user1)),
             uint256(IEscrowMigrator.MigrationStatus.PAID)
@@ -395,14 +389,9 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
     }
 
     function test_Cannot_Confirm_In_Completed_State() public {
-        // complete step 1 and vest
-        (uint256[] memory _entryIDs,) = registerVestAndConfirmAllEntries(user1);
+        // move to completed state
+        (uint256[] memory _entryIDs,) = moveToCompletedState(user1);
 
-        // attempt in COMPLETED state
-        vm.prank(user1);
-        kwenta.approve(address(escrowMigrator), type(uint256).max);
-        vm.prank(user1);
-        escrowMigrator.migrateRegisteredEntries(user1, _entryIDs);
         assertEq(
             uint256(escrowMigrator.migrationStatus(user1)),
             uint256(IEscrowMigrator.MigrationStatus.COMPLETED)
@@ -485,6 +474,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 // TODO: test vest, confirm, vest, confirm
 // TODO: test register, vest, register, vest etc.
 // TODO: test not migrating all entries from end-to-end
+// TODO: add tests to ensure each function can only be executed in the correct state for step 1 & 3
 
 // QUESTION: 1. Should they be forced to migrate all entries?
 // QUESTION: 2. Option to simplify to O(1) time, using just balanceOf & totalVestedAccountBalance
