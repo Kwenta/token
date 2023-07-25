@@ -74,6 +74,9 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         );
 
         vm.prank(owner);
+        rewardEscrowV2.setEscrowMigrator(address(escrowMigrator));
+
+        vm.prank(owner);
         rewardEscrowV1.setTreasuryDAO(address(escrowMigrator));
     }
 

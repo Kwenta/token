@@ -237,6 +237,9 @@ contract EscrowMigrator is
             revert MustBeInPaidState();
         }
 
+        // TODO: update to query this value
+        uint256 cooldownTime = 2 weeks;
+
         for (uint256 i = 0; i < _entryIDs.length; i++) {
             uint256 entryID = _entryIDs[i];
 
@@ -248,35 +251,15 @@ contract EscrowMigrator is
             // entry must have been confirmed before migrating
             if (!registeredEntry.confirmed) continue;
 
-            (uint64 endTime, uint256 escrowAmount, uint256 duration) =
-                rewardEscrowV1.getVestingEntry(account, entryID);
+            IRewardEscrowV2.VestingEntry memory entry = IRewardEscrowV2.VestingEntry({
+                escrowAmount: originalEscrowAmount,
+                duration: max(registeredEntry.duration, cooldownTime),
+                endTime: uint64(max(registeredEntry.endTime, block.timestamp + cooldownTime)),
+                earlyVestingFee: 90
+            });
 
-            // skip if entry is not already vested
-            if (escrowAmount != 0) continue;
-
-            uint256 earlyVestingFee;
-            uint256 newDuration;
-            if (endTime <= block.timestamp) {
-                newDuration = 0;
-                // 50% is the minimum allowed earlyVestingFee
-                earlyVestingFee = 50;
-            } else {
-                uint256 timeRemaining = endTime - block.timestamp;
-                newDuration = timeRemaining;
-                // max percentageLeft is 100 as timeRemaining cannot be larger than duration
-                uint256 percentageLeft = timeRemaining * 100 / duration;
-                // 90% is the fixed early vesting fee for V1 entries
-                // reduce based on the percentage of time remaining
-                earlyVestingFee = percentageLeft * 90 / 100;
-                assert(earlyVestingFee <= 90);
-                earlyVestingFee = max(earlyVestingFee, 50);
-            }
-
-            kwenta.approve(address(rewardEscrowV2), originalEscrowAmount);
-            // TODO: updated 2 weeks to stakingRewardsV2.cooldownPeriod()
-            rewardEscrowV2.createEscrowEntry(
-                to, originalEscrowAmount, max(newDuration, 2 weeks), uint8(earlyVestingFee)
-            );
+            kwenta.transfer(address(rewardEscrowV2), originalEscrowAmount);
+            rewardEscrowV2.importEscrowEntry(to, entry);
 
             numberOfMigratedEntries[account]++;
 

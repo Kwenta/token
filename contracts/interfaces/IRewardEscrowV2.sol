@@ -47,6 +47,10 @@ interface IRewardEscrowV2 {
     /// @dev This function can only be called once
     function setStakingRewards(address _stakingRewards) external;
 
+    /// @notice Function used to define the EscrowMigrator contract address to use
+    /// @param _escrowMigrator The address of the EscrowMigrator contract
+    function setEscrowMigrator(address _escrowMigrator) external;
+
     /// @notice Function used to define the TreasuryDAO address to use
     /// @param _treasuryDAO The address of the TreasuryDAO
     /// @dev This function can only be called multiple times
@@ -119,6 +123,11 @@ interface IRewardEscrowV2 {
     /// @param _entryIDs The ids of the vesting entries to vest
     function vest(uint256[] calldata _entryIDs) external;
 
+    /// @notice Utilized by the escrow migrator contract to transfer V1 escrow
+    /// @param _account The account to import the escrow entry to
+    /// @param entryToImport The vesting entry to import
+    function importEscrowEntry(address _account, VestingEntry memory entryToImport) external;
+
     /// @notice Create an escrow entry to lock KWENTA for a given duration in seconds
     /// @param _beneficiary The account that will be able to withdraw the escrowed amount
     /// @param _deposit The amount of KWENTA to escrow
@@ -179,9 +188,13 @@ interface IRewardEscrowV2 {
         uint8 earlyVestingFee
     );
 
-    /// @notice emitted the staking rewards contract is set
+    /// @notice emitted when the staking rewards contract is set
     /// @param stakingRewards The address of the staking rewards contract
     event StakingRewardsSet(address stakingRewards);
+
+    /// @notice emitted when the escrow migrator contract is set
+    /// @param escrowMigrator The address of the escrow migrator contract
+    event EscrowMigratorSet(address escrowMigrator);
 
     /// @notice emitted when the treasury DAO is set
     /// @param treasuryDAO The address of the treasury DAO
@@ -210,6 +223,9 @@ interface IRewardEscrowV2 {
 
     /// @notice error someone other than staking rewards calls an onlyStakingRewards function
     error OnlyStakingRewards();
+
+    /// @notice error someone other than escrow migrator calls an onlyEscrowMigrator function
+    error OnlyEscrowMigrator();
 
     /// @notice staking rewards is only allowed to be set once
     error StakingRewardsAlreadySet();

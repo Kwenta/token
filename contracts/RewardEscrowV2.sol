@@ -13,6 +13,7 @@ import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/U
 // Internal references
 import {IKwenta} from "./interfaces/IKwenta.sol";
 import {IStakingRewardsV2} from "./interfaces/IStakingRewardsV2.sol";
+import {IEscrowMigrator} from "./interfaces/IEscrowMigrator.sol";
 
 /// @title KWENTA Reward Escrow V2
 /// @author SYNTHETIX, JaredBorders (jaredborders@proton.me), JChiaramonte7 (jeremy@bytecode.llc), tommyrharper (zeroknowledgeltd@gmail.com)
@@ -53,6 +54,9 @@ contract RewardEscrowV2 is
     /// @notice Contract for StakingRewardsV2
     IStakingRewardsV2 public stakingRewards;
 
+    /// @notice Contract for StakingRewardsV2
+    IEscrowMigrator public escrowMigrator;
+
     /// @notice treasury address - this may change
     address public treasuryDAO;
 
@@ -83,6 +87,12 @@ contract RewardEscrowV2 is
 
     function _onlyStakingRewards() internal view {
         if (msg.sender != address(stakingRewards)) revert OnlyStakingRewards();
+    }
+
+    /// @notice Restrict function to only the escrow migrator contract
+    modifier onlyEscrowMigrator() {
+        if (msg.sender != address(escrowMigrator)) revert OnlyEscrowMigrator();
+        _;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -128,6 +138,13 @@ contract RewardEscrowV2 is
 
         stakingRewards = IStakingRewardsV2(_stakingRewards);
         emit StakingRewardsSet(_stakingRewards);
+    }
+
+    function setEscrowMigrator(address _escrowMigrator) external override onlyOwner {
+        if (_escrowMigrator == address(0)) revert ZeroAddress();
+
+        escrowMigrator = IEscrowMigrator(_escrowMigrator);
+        emit EscrowMigratorSet(_escrowMigrator);
     }
 
     /// @inheritdoc IRewardEscrowV2
@@ -372,6 +389,10 @@ contract RewardEscrowV2 is
         }
     }
 
+    function importEscrowEntry(address _account, VestingEntry memory _entry) external onlyEscrowMigrator {
+        _mint(_account, _entry.endTime, _entry.escrowAmount, _entry.duration, _entry.earlyVestingFee);
+    }
+
     /// @inheritdoc IRewardEscrowV2
     function createEscrowEntry(
         address _beneficiary,
@@ -388,8 +409,11 @@ contract RewardEscrowV2 is
         /// @dev this will revert if the kwenta token transfer fails
         kwenta.transferFrom(msg.sender, address(this), _deposit);
 
+        // Escrow the tokens for duration.
+        uint256 endTime = block.timestamp + _duration;
+
         // Append vesting entry for the beneficiary address
-        _mint(_beneficiary, _deposit, _duration, _earlyVestingFee);
+        _mint(_beneficiary, uint64(endTime), _deposit, _duration, _earlyVestingFee);
     }
 
     /// @inheritdoc IRewardEscrowV2
@@ -398,7 +422,10 @@ contract RewardEscrowV2 is
         override
         onlyStakingRewards
     {
-        _mint(_account, _quantity, DEFAULT_DURATION, DEFAULT_EARLY_VESTING_FEE);
+        // Escrow the tokens for duration.
+        uint256 endTime = block.timestamp + DEFAULT_DURATION;
+
+        _mint(_account, uint64(endTime), _quantity, DEFAULT_DURATION, DEFAULT_EARLY_VESTING_FEE);
     }
 
     /// @inheritdoc IRewardEscrowV2
@@ -462,22 +489,19 @@ contract RewardEscrowV2 is
         );
     }
 
-    function _mint(address _account, uint256 _quantity, uint256 _duration, uint8 _earlyVestingFee)
+    function _mint(address _account, uint64 endTime, uint256 _quantity, uint256 _duration, uint8 _earlyVestingFee)
         internal
     {
         // There must be enough balance in the contract to provide for the vesting entry.
         totalEscrowedBalance += _quantity;
         assert(kwenta.balanceOf(address(this)) >= totalEscrowedBalance);
 
-        // Escrow the tokens for duration.
-        uint256 endTime = block.timestamp + _duration;
-
         // Add quantity to account's escrowed balance
         totalEscrowedAccountBalance[_account] += _quantity;
 
         uint256 entryID = nextEntryId;
         vestingSchedules[entryID] = VestingEntry({
-            endTime: uint64(endTime),
+            endTime: endTime,
             escrowAmount: _quantity,
             duration: _duration,
             earlyVestingFee: _earlyVestingFee
