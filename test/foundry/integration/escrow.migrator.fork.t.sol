@@ -52,7 +52,6 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         checkStateAfterStepOne(user1, _entryIDs, true);
     }
 
-    // TODO: test registering entries that are already registered
     function test_Step_1_Three_Rounds() public {
         // check initial state
         (uint256[] memory _entryIDs, uint256 numVestingEntries) = claimAndCheckInitialState(user1);
@@ -77,6 +76,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         checkStateAfterStepOne(user1, _entryIDs, true);
     }
 
+    // TODO: handle numPerRound = 0 => should mean `numRounds > 0` is false, except numPerRound is not legit?
     function test_Step_1_N_Rounds_Fuzz(uint8 _numRounds, uint8 _numPerRound) public {
         uint256 numRounds = _numRounds;
         uint256 numPerRound = _numPerRound;
@@ -255,7 +255,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         escrowMigrator.confirmEntriesAreVested(_entryIDs);
 
         // check final state
-        checkStateAfterStepTwo(user1, _entryIDs);
+        checkStateAfterStepTwo(user1, _entryIDs, true);
     }
 
     function test_Step_2_Two_Step() public {
@@ -282,7 +282,44 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 
         // check final state
         _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, numVestingEntries);
-        checkStateAfterStepTwo(user1, _entryIDs);
+        checkStateAfterStepTwo(user1, _entryIDs, true);
+    }
+
+    function test_Step_2_N_Rounds_Fuzz(uint8 _numRounds, uint8 _numPerRound) public {
+        uint256 numRounds = _numRounds;
+        uint256 numPerRound = _numPerRound;
+
+        vm.assume(numRounds < 20);
+        vm.assume(numPerRound < 20);
+
+        // check initial state
+        (uint256[] memory _entryIDs, uint256 numVestingEntries) = claimAndCheckInitialState(user1);
+
+        // step 1
+        vm.prank(user1);
+        escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
+
+        // step 2.1 - vest
+        vm.prank(user1);
+        rewardEscrowV1.vest(_entryIDs);
+
+        uint256 numConfirmedSoFar;
+        for (uint256 i = 0; i < numRounds; i++) {
+            // step 1.i - confirm some entries
+            if (numConfirmedSoFar == numVestingEntries) {
+                break;
+            }
+            _entryIDs =
+                rewardEscrowV1.getAccountVestingEntryIDs(user1, numConfirmedSoFar, numPerRound);
+            vm.prank(user1);
+            escrowMigrator.confirmEntriesAreVested(_entryIDs);
+            numConfirmedSoFar += _entryIDs.length;
+        }
+
+        // check final state
+        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, numConfirmedSoFar);
+        assert(numConfirmedSoFar <= numVestingEntries);
+        checkStateAfterStepTwo(user1, _entryIDs, numConfirmedSoFar == numVestingEntries);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -355,6 +392,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 // TODO: 3. Update checkState helpers to account for expected changes in rewardEscrowV1.balanceOf
 // TODO: 4. Update checkState helpers to account for expected changes in totalRegisteredEscrow and similar added new variables
 // TODO: test confirming and then registering again
+// TODO: test vest, confirm, vest, confirm
 // TODO: test register, vest, register, vest etc.
 // TODO: test not migrating all entries from end-to-end
 

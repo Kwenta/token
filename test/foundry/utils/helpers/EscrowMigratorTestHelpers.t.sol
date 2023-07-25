@@ -164,12 +164,11 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
                              STEP 2 HELPERS
     //////////////////////////////////////////////////////////////*/
 
-    function checkStateAfterStepTwo(address account, uint256[] memory _entryIDs) internal {
-        if (_entryIDs.length == 0) {
-            // didn't register
-            assertEq(uint256(escrowMigrator.migrationStatus(account)), 2);
-        } else {
+    function checkStateAfterStepTwo(address account, uint256[] memory _entryIDs, bool confirmedAll) internal {
+        if (confirmedAll) {
             assertEq(uint256(escrowMigrator.migrationStatus(account)), 3);
+        } else {
+            assertEq(uint256(escrowMigrator.migrationStatus(account)), 2);
         }
 
         uint256 totalEscrowConfirmed;
@@ -192,7 +191,9 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
             escrowMigrator.escrowVestedAtStart(account),
             rewardEscrowV1.totalVestedAccountBalance(account)
         );
-        assertEq(escrowMigrator.numberOfRegisteredEntries(account), _entryIDs.length);
+        if (confirmedAll) {
+            assertEq(escrowMigrator.numberOfRegisteredEntries(account), _entryIDs.length);
+        }
         assertEq(escrowMigrator.numberOfConfirmedEntries(account), _entryIDs.length);
         assertEq(escrowMigrator.numberOfMigratedEntries(account), 0);
     }
