@@ -76,7 +76,6 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         checkStateAfterStepOne(user1, _entryIDs, true);
     }
 
-    // TODO: handle numPerRound = 0 => should mean `numRounds > 0` is false, except numPerRound is not legit?
     function test_Step_1_N_Rounds_Fuzz(uint8 _numRounds, uint8 _numPerRound) public {
         uint256 numRounds = _numRounds;
         uint256 numPerRound = _numPerRound;
@@ -94,7 +93,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
                 rewardEscrowV1.getAccountVestingEntryIDs(user1, numTransferredSoFar, numPerRound);
             vm.prank(user1);
             escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
-            numTransferredSoFar += numPerRound;
+            numTransferredSoFar += _entryIDs.length;
         }
 
         // check final state
@@ -258,7 +257,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         checkStateAfterStepTwo(user1, _entryIDs, true);
     }
 
-    function test_Step_2_Two_Step() public {
+    function test_Step_2_Two_Rounds() public {
         // check initial state
         (uint256[] memory _entryIDs, uint256 numVestingEntries) = claimAndCheckInitialState(user1);
 
