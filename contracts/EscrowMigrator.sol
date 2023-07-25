@@ -179,10 +179,12 @@ contract EscrowMigrator is
                 confirmed: false
             });
 
+            /// @dev A counter of numberOfRegisteredEntries would do, but this allows easier inspection
             registeredEntryIDs[account].push(entryID);
             registeredEscrow += escrowAmount;
         }
 
+        /// @dev Simlarly this value is not needed, but just added for easier on-chain inspection
         totalRegistered += registeredEscrow;
 
         if (
