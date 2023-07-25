@@ -61,9 +61,11 @@ contract EscrowMigrator is
 
     mapping(address => mapping(uint256 => VestingEntry)) public registeredVestingSchedules;
 
+    mapping(address => MigrationStatus) public migrationStatus;
+
     mapping(address => uint256) public escrowVestedAtStart;
 
-    mapping(address => MigrationStatus) public migrationStatus;
+    mapping(address => uint256) public toPayForMigration;
 
     // TODO: consider just storing numberOfRegisterdEntries intead of the array
     mapping(address => uint256[]) public registeredEntryIDs;
@@ -124,6 +126,12 @@ contract EscrowMigrator is
     //////////////////////////////////////////////////////////////*/
 
     // step 1: initiate & register entries for migration
+    /// @dev WARNING: If the user vests non-registerd entries after this step (and before reaching the VESTING_CONFIRMED state)
+    /// they will have to pay extra to migrate. The user should register all entries they want to migrate BEFORE vesting, otherwise it will not be
+    /// possible to migrate them.
+    /// @dev WARNING: To reiterate, if the user vests any entries that are not registered before reaching the VESTING_CONFIRMED state, they will have
+    /// to pay extra for the migration. This is because the user will have to pay for the migration based on the total vested balance at the time of
+    /// migration - but only registered entries will be created for them on V2
     function registerEntriesForVestingAndMigration(uint256[] calldata _entryIDs) external {
         _registerEntriesForVestingAndMigration(msg.sender, _entryIDs);
     }
@@ -188,7 +196,7 @@ contract EscrowMigrator is
     }
 
     // step 2: vest all entries and confirm
-    // WARNING: After this step no more entries can be registered
+    /// @dev WARNING: After reaching the VESTING_CONFIRMED state, no further entries can be registered
     function confirmEntriesAreVested(uint256[] calldata _entryIDs) external {
         _confirmEntriesAreVested(msg.sender, _entryIDs);
     }
@@ -215,7 +223,11 @@ contract EscrowMigrator is
         }
 
         if (numberOfConfirmedEntries[account] == numberOfRegisteredEntries(account)) {
-            migrationStatus[account] = MigrationStatus.VESTED;
+            migrationStatus[account] = MigrationStatus.VESTING_CONFIRMED;
+            /// @dev We do this calculation now and store it (rather than at the migrate step) to remove further possibility of the
+            /// user doing the foot-gun of vesting unregistered entries after confirming - and hence having to pay extra to migrate
+            toPayForMigration[account] =
+                rewardEscrowV1.totalVestedAccountBalance(account) - escrowVestedAtStart[account];
         }
     }
 
@@ -223,11 +235,7 @@ contract EscrowMigrator is
     // - could store totalVested at confirmation stage - if it has increased
     // we require them to register further entries?
     function _payForMigration(address account) internal {
-        uint256 vestedAtRegistration = escrowVestedAtStart[account];
-        uint256 vestedNow = rewardEscrowV1.totalVestedAccountBalance(account);
-        uint256 userDebt = vestedNow - vestedAtRegistration;
-        kwenta.transferFrom(msg.sender, address(this), userDebt);
-
+        kwenta.transferFrom(msg.sender, address(this), toPayForMigration[account]);
         migrationStatus[account] = MigrationStatus.PAID;
     }
 
@@ -239,7 +247,7 @@ contract EscrowMigrator is
     function _migrateRegisteredEntries(address account, address to, uint256[] calldata _entryIDs)
         internal
     {
-        if (migrationStatus[account] == MigrationStatus.VESTED) {
+        if (migrationStatus[account] == MigrationStatus.VESTING_CONFIRMED) {
             _payForMigration(account);
         }
 

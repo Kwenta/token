@@ -21,7 +21,7 @@ interface IEscrowMigrator {
         NOT_STARTED,
         INITIATED,
         REGISTERED,
-        VESTED,
+        VESTING_CONFIRMED,
         PAID,
         COMPLETED
     }
