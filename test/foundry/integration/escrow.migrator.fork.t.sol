@@ -375,6 +375,25 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         escrowMigrator.confirmEntriesAreVested(_entryIDs);
     }
 
+    function test_Cannot_Confirm_In_Paid_State() public {
+        // complete step 1 and vest
+        (uint256[] memory _entryIDs,) = registerVestAndConfirmAllEntries(user1);
+
+        // attempt in PAID state
+        vm.prank(user1);
+        kwenta.approve(address(escrowMigrator), type(uint256).max);
+        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 0);
+        vm.prank(user1);
+        escrowMigrator.migrateRegisteredEntries(user1, _entryIDs);
+        assertEq(
+            uint256(escrowMigrator.migrationStatus(user1)),
+            uint256(IEscrowMigrator.MigrationStatus.PAID)
+        );
+        vm.prank(user1);
+        vm.expectRevert(IEscrowMigrator.MustBeInRegisteredState.selector);
+        escrowMigrator.confirmEntriesAreVested(_entryIDs);
+    }
+
     /*//////////////////////////////////////////////////////////////
                                FULL FLOW
     //////////////////////////////////////////////////////////////*/
