@@ -161,7 +161,7 @@ contract EscrowMigrator is
         for (uint256 i = 0; i < _entryIDs.length; i++) {
             uint256 entryID = _entryIDs[i];
 
-            // skip if already registered
+            // skip if not registered
             if (registeredVestingSchedules[account][entryID].endTime != 0) continue;
 
             (uint64 endTime, uint256 escrowAmount, uint256 duration) =

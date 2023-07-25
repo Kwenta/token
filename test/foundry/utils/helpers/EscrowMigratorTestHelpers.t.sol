@@ -164,6 +164,27 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
                              STEP 2 HELPERS
     //////////////////////////////////////////////////////////////*/
 
+    function registerEntries(address account, uint256[] memory _entryIDs)
+        internal
+    {
+        // check initial state
+        claimAndCheckInitialState(account);
+
+        // step 1
+        vm.prank(account);
+        escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
+    }
+
+    function registerAndVestEntries(address account, uint256[] memory _entryIDs)
+        internal
+    {
+        registerEntries(account, _entryIDs);
+
+        // step 2.1 - vest
+        vm.prank(user1);
+        rewardEscrowV1.vest(_entryIDs);
+    }
+
     function registerAllEntries(address account)
         internal
         returns (uint256[] memory _entryIDs, uint256 numVestingEntries)
