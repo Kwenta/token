@@ -60,7 +60,9 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
             new EscrowMigrator(
             address(kwenta),
             address(rewardEscrowV1),
-            address(rewardEscrowV2)
+            address(rewardEscrowV2),
+            address(stakingRewardsV1),
+            address(stakingRewardsV2)
             )
         );
 

@@ -14,7 +14,9 @@ import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/U
 // Internal references
 import {IKwenta} from "./interfaces/IKwenta.sol";
 import {IRewardEscrowV2} from "./interfaces/IRewardEscrowV2.sol";
+import {IStakingRewardsV2} from "./interfaces/IStakingRewardsV2.sol";
 import {IRewardEscrow} from "./interfaces/IRewardEscrow.sol";
+import {IStakingRewards} from "./interfaces/IStakingRewards.sol";
 import {IStakingRewardsV2Integrator} from "./interfaces/IStakingRewardsV2Integrator.sol";
 
 contract EscrowMigrator is
@@ -38,6 +40,14 @@ contract EscrowMigrator is
     /// @notice Contract for RewardEscrowV1
     /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
     IRewardEscrowV2 public immutable rewardEscrowV2;
+
+    /// @notice Contract for StakingRewardsV1
+    /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
+    IStakingRewards public immutable stakingRewardsV1;
+
+    /// @notice Contract for StakingRewardsV2
+    /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
+    IStakingRewardsV2 public immutable stakingRewardsV2;
 
     /*//////////////////////////////////////////////////////////////
                                  STATE
@@ -71,7 +81,13 @@ contract EscrowMigrator is
     /// @dev disable default constructor for disable implementation contract
     /// Actual contract construction will take place in the initialize function via proxy
     /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor(address _kwenta, address _rewardEscrowV1, address _rewardEscrowV2) {
+    constructor(
+        address _kwenta,
+        address _rewardEscrowV1,
+        address _rewardEscrowV2,
+        address _stakingRewardsV1,
+        address _stakingRewardsV2
+    ) {
         if (_kwenta == address(0)) revert ZeroAddress();
         if (_rewardEscrowV1 == address(0)) revert ZeroAddress();
         if (_rewardEscrowV2 == address(0)) revert ZeroAddress();
@@ -79,6 +95,8 @@ contract EscrowMigrator is
         kwenta = IKwenta(_kwenta);
         rewardEscrowV1 = IRewardEscrow(_rewardEscrowV1);
         rewardEscrowV2 = IRewardEscrowV2(_rewardEscrowV2);
+        stakingRewardsV1 = IStakingRewards(_stakingRewardsV1);
+        stakingRewardsV2 = IStakingRewardsV2(_stakingRewardsV2);
 
         _disableInitializers();
     }
