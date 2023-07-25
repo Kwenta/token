@@ -133,6 +133,8 @@ contract EscrowMigrator is
     function _registerEntriesForVestingAndMigration(address account, uint256[] calldata _entryIDs)
         internal
     {
+        if (stakingRewardsV1.earned(account) != 0) revert MustClaimStakingRewards();
+
         if (migrationStatus[account] == MigrationStatus.NOT_STARTED) {
             if (rewardEscrowV1.balanceOf(account) == 0) revert NoEscrowBalanceToMigrate();
 

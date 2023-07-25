@@ -83,18 +83,26 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
                              STEP 1 HELPERS
     //////////////////////////////////////////////////////////////*/
 
-    function checkStateBeforeStepOne(
-        address account,
-        uint256 expectedV1BalanceBefore,
-        uint256 expectedNumVestingEntries
-    ) internal returns (uint256[] memory _entryIDs, uint256 numVestingEntries) {
+    function claimAndCheckInitialState(address account)
+        internal
+        returns (uint256[] memory _entryIDs, uint256 numVestingEntries)
+    {
+        // claim rewards
+        getStakingRewardsV1(account);
+        return checkStateBeforeStepOne(account);
+    }
+
+    function checkStateBeforeStepOne(address account)
+        internal
+        returns (uint256[] memory _entryIDs, uint256 numVestingEntries)
+    {
         uint256 v2BalanceBefore = rewardEscrowV2.escrowedBalanceOf(account);
         uint256 v1BalanceBefore = rewardEscrowV1.balanceOf(account);
-        assertEq(v1BalanceBefore, expectedV1BalanceBefore);
+        assertGt(v1BalanceBefore, 0);
         assertEq(v2BalanceBefore, 0);
 
         numVestingEntries = rewardEscrowV1.numVestingEntries(account);
-        assertEq(numVestingEntries, expectedNumVestingEntries);
+        assertGt(numVestingEntries, 0);
 
         _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(account, 0, numVestingEntries);
         assertEq(_entryIDs.length, numVestingEntries);

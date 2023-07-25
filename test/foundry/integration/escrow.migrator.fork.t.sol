@@ -23,8 +23,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 
     function test_Step_1_Normal() public {
         // check initial state
-        (uint256[] memory _entryIDs,) =
-            checkStateBeforeStepOne(user1, 16.324711673459301166 ether, 16);
+        (uint256[] memory _entryIDs,) = claimAndCheckInitialState(user1);
 
         // step 1
         vm.prank(user1);
@@ -36,8 +35,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 
     function test_Step_1_Two_Rounds() public {
         // check initial state
-        (uint256[] memory _entryIDs, uint256 numVestingEntries) =
-            checkStateBeforeStepOne(user1, 16.324711673459301166 ether, 16);
+        (uint256[] memory _entryIDs, uint256 numVestingEntries) = claimAndCheckInitialState(user1);
 
         // step 1.1 - transfer some entries
         _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 10);
@@ -45,7 +43,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
 
         // step 1.2 - transfer some more entries
-        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 10, 6);
+        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 10, 7);
         vm.prank(user1);
         escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
 
@@ -54,10 +52,10 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         checkStateAfterStepOne(user1, _entryIDs, true);
     }
 
+    // TODO: test registering entries that are already registered
     function test_Step_1_Three_Rounds() public {
         // check initial state
-        (uint256[] memory _entryIDs, uint256 numVestingEntries) =
-            checkStateBeforeStepOne(user1, 16.324711673459301166 ether, 16);
+        (uint256[] memory _entryIDs, uint256 numVestingEntries) = claimAndCheckInitialState(user1);
 
         // step 1.1 - transfer some entries
         _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 5);
@@ -70,7 +68,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
 
         // step 1.3 - transfer some more entries
-        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 10, 6);
+        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 10, 7);
         vm.prank(user1);
         escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
 
@@ -87,8 +85,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         vm.assume(numPerRound < 20);
 
         // check initial state
-        (uint256[] memory _entryIDs,) =
-            checkStateBeforeStepOne(user1, 16.324711673459301166 ether, 16);
+        (uint256[] memory _entryIDs,) = claimAndCheckInitialState(user1);
 
         uint256 numTransferredSoFar;
         for (uint256 i = 0; i < numRounds; i++) {
@@ -111,8 +108,8 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 
     function test_Cannot_Register_Someone_Elses_Entry() public {
         // check initial state
-        (uint256[] memory _entryIDs,) =
-            checkStateBeforeStepOne(user1, 16.324711673459301166 ether, 16);
+        getStakingRewardsV1(user2);
+        (uint256[] memory _entryIDs,) = claimAndCheckInitialState(user1);
 
         // step 1
         vm.prank(user2);
@@ -126,7 +123,14 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 
     function test_Cannot_Register_If_No_Escrow_Balance() public {
         // check initial state
-        (uint256[] memory _entryIDs,) = checkStateBeforeStepOne(user3, 0, 0);
+        uint256 numVestingEntries = rewardEscrowV1.numVestingEntries(user3);
+        uint256[] memory _entryIDs =
+            rewardEscrowV1.getAccountVestingEntryIDs(user3, 0, numVestingEntries);
+        uint256 v2BalanceBefore = rewardEscrowV2.escrowedBalanceOf(user3);
+        uint256 v1BalanceBefore = rewardEscrowV1.balanceOf(user3);
+        assertEq(numVestingEntries, 0);
+        assertEq(v1BalanceBefore, 0);
+        assertEq(v2BalanceBefore, 0);
 
         // step 1
         vm.prank(user3);
@@ -134,10 +138,19 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
     }
 
+    function test_Cannot_Register_Without_Claiming_First() public {
+        // check initial state
+        (uint256[] memory _entryIDs,) = claimAndCheckInitialState(user1);
+
+        // step 1
+        vm.prank(user2);
+        vm.expectRevert(IEscrowMigrator.MustClaimStakingRewards.selector);
+        escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
+    }
+
     function test_Cannot_Register_Vested_Entries() public {
         // check initial state
-        (uint256[] memory _entryIDs,) =
-            checkStateBeforeStepOne(user1, 16.324711673459301166 ether, 16);
+        (uint256[] memory _entryIDs,) = claimAndCheckInitialState(user1);
 
         // vest 15 entries
         _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 10);
@@ -155,8 +168,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 
     function test_Cannot_Register_Mature_Entries() public {
         // check initial state
-        (uint256[] memory _entryIDs,) =
-            checkStateBeforeStepOne(user1, 16.324711673459301166 ether, 16);
+        (uint256[] memory _entryIDs,) = claimAndCheckInitialState(user1);
 
         // fast forward until all entries are mature
         vm.warp(block.timestamp + 52 weeks);
@@ -172,7 +184,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 
     function test_Cannot_Register_Entries_That_Do_Not_Exist() public {
         // check initial state
-        checkStateBeforeStepOne(user1, 16.324711673459301166 ether, 16);
+        claimAndCheckInitialState(user1);
 
         // step 1
         entryIDs.push(rewardEscrowV1.nextEntryId());
@@ -189,8 +201,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 
     function test_Cannot_Register_After_Confirmation() public {
         // check initial state
-        (uint256[] memory _entryIDs,) =
-            checkStateBeforeStepOne(user1, 16.324711673459301166 ether, 16);
+        (uint256[] memory _entryIDs,) = claimAndCheckInitialState(user1);
 
         // step 1
         _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 10);
@@ -214,8 +225,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 
     function test_Step_2_Normal() public {
         // check initial state
-        (uint256[] memory _entryIDs,) =
-            checkStateBeforeStepOne(user1, 16.324711673459301166 ether, 16);
+        (uint256[] memory _entryIDs,) = claimAndCheckInitialState(user1);
 
         // step 1
         vm.prank(user1);
@@ -238,21 +248,23 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
     //////////////////////////////////////////////////////////////*/
 
     function test_Migrator() public {
+        getStakingRewardsV1(user1);
+
         uint256 v2BalanceBefore = rewardEscrowV2.escrowedBalanceOf(user1);
         uint256 v1BalanceBefore = rewardEscrowV1.balanceOf(user1);
-        assertEq(v1BalanceBefore, 16.324711673459301166 ether);
+        assertEq(v1BalanceBefore, 17.246155111414632908 ether);
         assertEq(v2BalanceBefore, 0);
 
         uint256 numVestingEntries = rewardEscrowV1.numVestingEntries(user1);
-        assertEq(numVestingEntries, 16);
+        assertEq(numVestingEntries, 17);
 
         entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, numVestingEntries);
-        assertEq(entryIDs.length, 16);
+        assertEq(entryIDs.length, 17);
 
         (uint256 total, uint256 totalFee) = rewardEscrowV1.getVestingQuantity(user1, entryIDs);
 
-        assertEq(total, 3_479_506_953_460_982_524);
-        assertEq(totalFee, 12_845_204_719_998_318_642);
+        assertEq(total, 3.571651297256515699 ether);
+        assertEq(totalFee, 13.674503814158117209 ether);
 
         // step 1
         vm.prank(user1);

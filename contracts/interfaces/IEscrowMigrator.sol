@@ -58,6 +58,8 @@ interface IEscrowMigrator {
     /// @notice the caller is not approved to take this action
     error NotApproved();
 
+    error MustClaimStakingRewards();
+
     error MigrationAlreadyStarted();
 
     error NoEscrowBalanceToMigrate();
