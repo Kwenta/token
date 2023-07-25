@@ -238,16 +238,8 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
     //////////////////////////////////////////////////////////////*/
 
     function test_Step_2_Normal() public {
-        // check initial state
-        (uint256[] memory _entryIDs,) = claimAndCheckInitialState(user1);
-
-        // step 1
-        vm.prank(user1);
-        escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
-
-        // step 2.1 - vest
-        vm.prank(user1);
-        rewardEscrowV1.vest(_entryIDs);
+        // complete step 1 and vest
+        (uint256[] memory _entryIDs,) = registerAndVestAllEntries(user1);
 
         // step 2.2 - confirm vest
         vm.prank(user1);
@@ -258,16 +250,8 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
     }
 
     function test_Step_2_Two_Rounds() public {
-        // check initial state
-        (uint256[] memory _entryIDs, uint256 numVestingEntries) = claimAndCheckInitialState(user1);
-
-        // step 1
-        vm.prank(user1);
-        escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
-
-        // step 2.1 - vest
-        vm.prank(user1);
-        rewardEscrowV1.vest(_entryIDs);
+        // complete step 1 and vest
+        (uint256[] memory _entryIDs, uint256 numVestingEntries) = registerAndVestAllEntries(user1);
 
         // step 2.2A - confirm vest some entries
         _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 10);
@@ -291,16 +275,8 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         vm.assume(numRounds < 20);
         vm.assume(numPerRound < 20);
 
-        // check initial state
-        (uint256[] memory _entryIDs, uint256 numVestingEntries) = claimAndCheckInitialState(user1);
-
-        // step 1
-        vm.prank(user1);
-        escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
-
-        // step 2.1 - vest
-        vm.prank(user1);
-        rewardEscrowV1.vest(_entryIDs);
+        // complete step 1 and vest
+        (uint256[] memory _entryIDs, uint256 numVestingEntries) = registerAndVestAllEntries(user1);
 
         uint256 numConfirmedSoFar;
         for (uint256 i = 0; i < numRounds; i++) {
@@ -319,6 +295,34 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, numConfirmedSoFar);
         checkStateAfterStepTwo(user1, _entryIDs, numConfirmedSoFar == numVestingEntries);
     }
+
+    /*//////////////////////////////////////////////////////////////
+                           STEP 2 EDGE CASES
+    //////////////////////////////////////////////////////////////*/
+
+    // function test_Cannot_Confirm_On_Behalf_Of_Someone_Else() public {
+    //     // check initial state
+    //     (uint256[] memory _entryIDs,) = claimAndCheckInitialState(user1);
+
+    //     // step 1
+    //     vm.prank(user1);
+    //     escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
+
+    //     // step 2.1 - vest
+    //     vm.prank(user1);
+    //     rewardEscrowV1.vest(_entryIDs);
+
+    //     // step 2.2 - confirm vest
+    //     vm.prank(user1);
+    //     escrowMigrator.confirmEntriesAreVested(_entryIDs);
+
+    //     // check final state
+    //     checkStateAfterStepTwo(user1, _entryIDs, true);
+    // }
+
+    // function test_Cannot_Confirm_Someone_Elses_Registered_Entry() public {
+
+    // }
 
     /*//////////////////////////////////////////////////////////////
                                FULL FLOW
