@@ -317,7 +317,6 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 
         // check final state
         _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, numConfirmedSoFar);
-        assert(numConfirmedSoFar <= numVestingEntries);
         checkStateAfterStepTwo(user1, _entryIDs, numConfirmedSoFar == numVestingEntries);
     }
 

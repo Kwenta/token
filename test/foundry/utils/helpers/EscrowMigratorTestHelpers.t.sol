@@ -187,6 +187,7 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
             totalEscrowConfirmed += escrowAmount;
         }
 
+        assertLe(_entryIDs.length, escrowMigrator.numberOfRegisteredEntries(account));
         assertLt(
             escrowMigrator.escrowVestedAtStart(account),
             rewardEscrowV1.totalVestedAccountBalance(account)
