@@ -332,6 +332,43 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         checkStateAfterStepTwo(user2, _entryIDs, false);
     }
 
+    function test_Cannot_Confirm_In_Not_Started_State() public {
+        (uint256[] memory _entryIDs, uint256 numVestingEntries) = claimAndCheckInitialState(user1);
+
+        // attempt in NOT_STARTED state
+        assertEq(uint(escrowMigrator.migrationStatus(user1)), uint(IEscrowMigrator.MigrationStatus.NOT_STARTED));
+        vm.prank(user1);
+        vm.expectRevert(IEscrowMigrator.MustBeInRegisteredState.selector);
+        escrowMigrator.confirmEntriesAreVested(_entryIDs);
+    }
+
+    // function test_Cannot_Confirm_Outside_Registered_State() public {
+    //     (uint256[] memory _entryIDs, uint256 numVestingEntries) = claimAndCheckInitialState(user1);
+
+    //     // attempt in NOT_STARTED state
+    //     assertEq(uint(escrowMigrator.migrationStatus(user1)), uint(IEscrowMigrator.MigrationStatus.NOT_STARTED));
+    //     vm.prank(user1);
+    //     vm.expectRevert(IEscrowMigrator.MustBeInRegisteredState.selector);
+    //     escrowMigrator.confirmEntriesAreVested(_entryIDs);
+
+    //     // attempt in INITIATED state
+    //     getStakingRewardsV1(user1);
+    //     _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 0);
+    //     escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
+    //     assertEq(uint(escrowMigrator.migrationStatus(user1)), uint(IEscrowMigrator.MigrationStatus.INITIATED));
+    //     // escrowMigrator.confirmEntriesAreVested(_entryIDs);
+
+    //     // // complete step 1 and vest
+    //     // (uint256[] memory _entryIDs,) = registerAndVestAllEntries(user1);
+
+    //     // // step 2.2 - confirm vest
+    //     // vm.prank(user1);
+    //     // escrowMigrator.confirmEntriesAreVested(_entryIDs);
+
+    //     // // check final state
+    //     // checkStateAfterStepTwo(user1, _entryIDs, true);
+    // }
+
     /*//////////////////////////////////////////////////////////////
                                FULL FLOW
     //////////////////////////////////////////////////////////////*/
