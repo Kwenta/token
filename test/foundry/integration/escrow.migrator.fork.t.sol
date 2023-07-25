@@ -152,17 +152,18 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         // check initial state
         (uint256[] memory _entryIDs,) = claimAndCheckInitialState(user1);
 
-        // vest 15 entries
+        // vest 10 entries
         _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 10);
         vm.prank(user1);
         rewardEscrowV1.vest(_entryIDs);
 
         // step 1
-        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 10, 6);
+        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 17);
         vm.prank(user1);
         escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
 
         // check final state
+        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 10, 7);
         checkStateAfterStepOne(user1, _entryIDs, true);
     }
 
