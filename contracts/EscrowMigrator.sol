@@ -167,9 +167,7 @@ contract EscrowMigrator is
             (uint64 endTime, uint256 escrowAmount, uint256 duration) =
                 rewardEscrowV1.getVestingEntry(account, entryID);
 
-            // skip if entry does not exist
-            if (endTime == 0) continue;
-            // skip if entry is already vested
+            // skip if entry is already vested or does not exist
             if (escrowAmount == 0) continue;
             // skip if entry is already fully mature (hence no need to migrate)
             if (endTime <= block.timestamp) continue;
