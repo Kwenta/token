@@ -63,7 +63,6 @@ contract EscrowMigrator is
 
     mapping(address => uint256) public escrowVestedAtStart;
 
-
     mapping(address => MigrationStatus) public migrationStatus;
 
     // TODO: consider just storing numberOfRegisterdEntries intead of the array
@@ -138,8 +137,7 @@ contract EscrowMigrator is
             if (rewardEscrowV1.balanceOf(account) == 0) revert NoEscrowBalanceToMigrate();
 
             migrationStatus[account] = MigrationStatus.INITIATED;
-            escrowVestedAtStart[account] =
-                rewardEscrowV1.totalVestedAccountBalance(account);
+            escrowVestedAtStart[account] = rewardEscrowV1.totalVestedAccountBalance(account);
         }
 
         if (
@@ -181,7 +179,10 @@ contract EscrowMigrator is
 
         totalRegistered += registeredEscrow;
 
-        if (registeredEntryIDs[account].length > 0) {
+        if (
+            migrationStatus[account] != MigrationStatus.REGISTERED
+                && registeredEntryIDs[account].length > 0
+        ) {
             migrationStatus[account] = MigrationStatus.REGISTERED;
         }
     }
@@ -206,7 +207,6 @@ contract EscrowMigrator is
             if (registeredEntry.endTime == 0) continue;
             // cannot confirm twice
             if (registeredEntry.confirmed) continue;
-
             // if it is not zero, it hasn't been vested
             if (escrowAmount != 0) continue;
 
