@@ -213,10 +213,17 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         }
 
         assertLe(_entryIDs.length, escrowMigrator.numberOfRegisteredEntries(account));
-        assertLt(
-            escrowMigrator.escrowVestedAtStart(account),
-            rewardEscrowV1.totalVestedAccountBalance(account)
-        );
+        if (entryIDs.length > 0) {
+            assertLt(
+                escrowMigrator.escrowVestedAtStart(account),
+                rewardEscrowV1.totalVestedAccountBalance(account)
+            );
+        } else {
+            assertLe(
+                escrowMigrator.escrowVestedAtStart(account),
+                rewardEscrowV1.totalVestedAccountBalance(account)
+            );
+        }
         if (confirmedAll) {
             assertEq(escrowMigrator.numberOfRegisteredEntries(account), _entryIDs.length);
         }
