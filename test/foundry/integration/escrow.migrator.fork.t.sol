@@ -309,9 +309,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         assertCloseTo(newTotalFee, totalFee, totalFee / 15);
     }
 }
-
-// TODO: 1. check no earning on stakingv1 before initiating
-// TODO: 2. check rewardEscrowV1.balanceOf changes by correct amount between registration and confirmation
+// TODO: Move payment measure into confirmation step
 // TODO: 3. Update checkState helpers to account for expected changes in rewardEscrowV1.balanceOf
 // TODO: 4. Update checkState helpers to account for expected changes in totalRegisteredEscrow and similar added new variables
 

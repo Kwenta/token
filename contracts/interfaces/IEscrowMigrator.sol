@@ -64,10 +64,6 @@ interface IEscrowMigrator {
 
     error NoEscrowBalanceToMigrate();
 
-    error InsufficientEscrowVested();
-
-    error TooMuchEscrowVested();
-
     error MustBeInitiatedOrRegistered();
 
     error MustBeInRegisteredState();

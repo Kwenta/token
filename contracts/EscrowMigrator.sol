@@ -57,17 +57,16 @@ contract EscrowMigrator is
     // uint256 public totalRegistered;
     // uint256 public totalConfirmed;
     // uint256 public totalMigrated;
+    uint256 public totalRegistered;
 
     mapping(address => mapping(uint256 => VestingEntry)) public registeredVestingSchedules;
 
-    mapping(address => uint256) public totalVestedAccountBalanceAtRegistrationTime;
+    mapping(address => uint256) public escrowVestedAtStart;
 
-    mapping(address => uint256) public totalEscrowBalanceAtRegistrationTime;
-
-    mapping(address => uint256) public totalRegisteredEscrow;
 
     mapping(address => MigrationStatus) public migrationStatus;
 
+    // TODO: consider just storing numberOfRegisterdEntries intead of the array
     mapping(address => uint256[]) public registeredEntryIDs;
 
     mapping(address => uint256) public numberOfConfirmedEntries;
@@ -139,10 +138,8 @@ contract EscrowMigrator is
             if (rewardEscrowV1.balanceOf(account) == 0) revert NoEscrowBalanceToMigrate();
 
             migrationStatus[account] = MigrationStatus.INITIATED;
-            totalVestedAccountBalanceAtRegistrationTime[account] =
+            escrowVestedAtStart[account] =
                 rewardEscrowV1.totalVestedAccountBalance(account);
-
-            totalEscrowBalanceAtRegistrationTime[account] = rewardEscrowV1.balanceOf(account);
         }
 
         if (
@@ -182,7 +179,7 @@ contract EscrowMigrator is
             registeredEscrow += escrowAmount;
         }
 
-        totalRegisteredEscrow[account] += registeredEscrow;
+        totalRegistered += registeredEscrow;
 
         if (registeredEntryIDs[account].length > 0) {
             migrationStatus[account] = MigrationStatus.REGISTERED;
@@ -199,13 +196,6 @@ contract EscrowMigrator is
         if (migrationStatus[account] != MigrationStatus.REGISTERED) {
             revert MustBeInRegisteredState();
         }
-
-        uint256 expectedEscrowBalanceNow =
-            totalEscrowBalanceAtRegistrationTime[account] - totalRegisteredEscrow[account];
-        uint256 actualEscrowBalanceNow = rewardEscrowV1.balanceOf(account);
-
-        if (actualEscrowBalanceNow > expectedEscrowBalanceNow) revert InsufficientEscrowVested();
-        if (actualEscrowBalanceNow < expectedEscrowBalanceNow) revert TooMuchEscrowVested();
 
         for (uint256 i = 0; i < _entryIDs.length; i++) {
             uint256 entryID = _entryIDs[i];
@@ -233,7 +223,7 @@ contract EscrowMigrator is
     // - could store totalVested at confirmation stage - if it has increased
     // we require them to register further entries?
     function _payForMigration(address account) internal {
-        uint256 vestedAtRegistration = totalVestedAccountBalanceAtRegistrationTime[account];
+        uint256 vestedAtRegistration = escrowVestedAtStart[account];
         uint256 vestedNow = rewardEscrowV1.totalVestedAccountBalance(account);
         uint256 userDebt = vestedNow - vestedAtRegistration;
         kwenta.transferFrom(msg.sender, address(this), userDebt);

@@ -108,7 +108,7 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         assertEq(_entryIDs.length, numVestingEntries);
 
         assertEq(uint256(escrowMigrator.migrationStatus(account)), 0);
-        assertEq(escrowMigrator.totalVestedAccountBalanceAtRegistrationTime(account), 0);
+        assertEq(escrowMigrator.escrowVestedAtStart(account), 0);
         assertEq(escrowMigrator.numberOfConfirmedEntries(account), 0);
         assertEq(escrowMigrator.numberOfMigratedEntries(account), 0);
         assertEq(escrowMigrator.numberOfRegisteredEntries(account), 0);
@@ -139,7 +139,7 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         }
 
         assertEq(
-            escrowMigrator.totalVestedAccountBalanceAtRegistrationTime(account),
+            escrowMigrator.escrowVestedAtStart(account),
             rewardEscrowV1.totalVestedAccountBalance(account)
         );
         assertEq(escrowMigrator.numberOfRegisteredEntries(account), _entryIDs.length);
@@ -189,7 +189,7 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         }
 
         assertLt(
-            escrowMigrator.totalVestedAccountBalanceAtRegistrationTime(account),
+            escrowMigrator.escrowVestedAtStart(account),
             rewardEscrowV1.totalVestedAccountBalance(account)
         );
         assertEq(escrowMigrator.numberOfRegisteredEntries(account), _entryIDs.length);
