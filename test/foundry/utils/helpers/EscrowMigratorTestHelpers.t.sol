@@ -230,4 +230,19 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         assertEq(escrowMigrator.numberOfConfirmedEntries(account), _entryIDs.length);
         assertEq(escrowMigrator.numberOfMigratedEntries(account), 0);
     }
+
+    /*//////////////////////////////////////////////////////////////
+                             STEP 3 HELPERS
+    //////////////////////////////////////////////////////////////*/
+
+    function registerVestAndConfirmAllEntries(address account)
+        internal
+        returns (uint256[] memory _entryIDs, uint256 numVestingEntries)
+    {
+        // register and vest
+        (_entryIDs, numVestingEntries) = registerAndVestAllEntries(account);
+
+        vm.prank(account);
+        escrowMigrator.confirmEntriesAreVested(_entryIDs);
+    }
 }
