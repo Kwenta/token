@@ -279,10 +279,10 @@ contract EscrowMigrator is
 
             uint256 earlyVestingFee;
             uint256 newDuration;
+            // TODO: update logic to skip this block as it does nothing
             if (endTime <= block.timestamp) {
                 newDuration = 0;
-                // 50% is the minimum allowed earlyVestingFee
-                earlyVestingFee = 50;
+                earlyVestingFee = 0;
             } else {
                 uint256 timeRemaining = endTime - block.timestamp;
                 newDuration = timeRemaining;
@@ -291,14 +291,16 @@ contract EscrowMigrator is
                 // 90% is the fixed early vesting fee for V1 entries
                 // reduce based on the percentage of time remaining
                 earlyVestingFee = percentageLeft * 90 / 100;
+                // TODO: possibly remove assert for gas savings
                 assert(earlyVestingFee <= 90);
-                earlyVestingFee = max(earlyVestingFee, 50);
             }
 
             kwenta.approve(address(rewardEscrowV2), originalEscrowAmount);
-            // TODO: updated 2 weeks to stakingRewardsV2.cooldownPeriod()
             rewardEscrowV2.createEscrowEntry(
-                to, originalEscrowAmount, max(newDuration, 2 weeks), uint8(earlyVestingFee)
+                to,
+                originalEscrowAmount,
+                max(newDuration, stakingRewardsV2.cooldownPeriod()),
+                maxUint8(uint8(earlyVestingFee), rewardEscrowV2.MINIMUM_EARLY_VESTING_FEE())
             );
 
             numberOfMigratedEntries[account]++;
@@ -313,6 +315,10 @@ contract EscrowMigrator is
     }
 
     function max(uint256 a, uint256 b) internal pure returns (uint256) {
+        return a > b ? a : b;
+    }
+
+    function maxUint8(uint8 a, uint8 b) internal pure returns (uint8) {
         return a > b ? a : b;
     }
 
