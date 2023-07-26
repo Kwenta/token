@@ -333,6 +333,7 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         checkStateAfterStepThreeAssertions(account, _entryIDs, completed, totalEscrowMigrated);
     }
 
+    // TODO: finish this function
     function checkMigratedEntryAfterStepThree(
         address account,
         uint256 newEntryID,
