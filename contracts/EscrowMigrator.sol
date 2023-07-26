@@ -277,30 +277,12 @@ contract EscrowMigrator is
             // skip if entry is not already vested
             if (escrowAmount != 0) continue;
 
-            uint256 earlyVestingFee;
-            uint256 newDuration;
-            // TODO: update logic to skip this block as it does nothing
-            if (endTime <= block.timestamp) {
-                newDuration = 0;
-                earlyVestingFee = 0;
-            } else {
-                uint256 timeRemaining = endTime - block.timestamp;
-                newDuration = timeRemaining;
-                // max percentageLeft is 100 as timeRemaining cannot be larger than duration
-                uint256 percentageLeft = timeRemaining * 100 / duration;
-                // 90% is the fixed early vesting fee for V1 entries
-                // reduce based on the percentage of time remaining
-                earlyVestingFee = percentageLeft * 90 / 100;
-                // TODO: possibly remove assert for gas savings
-                assert(earlyVestingFee <= 90);
-            }
+            (uint256 newDuration, uint8 newEarlyVestingFee) =
+                getNewEscrowEntryData(endTime, duration);
 
             kwenta.approve(address(rewardEscrowV2), originalEscrowAmount);
             rewardEscrowV2.createEscrowEntry(
-                to,
-                originalEscrowAmount,
-                max(newDuration, stakingRewardsV2.cooldownPeriod()),
-                maxUint8(uint8(earlyVestingFee), rewardEscrowV2.MINIMUM_EARLY_VESTING_FEE())
+                to, originalEscrowAmount, newDuration, newEarlyVestingFee
             );
 
             numberOfMigratedEntries[account]++;
@@ -312,6 +294,36 @@ contract EscrowMigrator is
         if (numberOfMigratedEntries[account] == numberOfRegisteredEntries(account)) {
             migrationStatus[account] = MigrationStatus.COMPLETED;
         }
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                                HELPERS
+    //////////////////////////////////////////////////////////////*/
+
+    function getNewEscrowEntryData(uint64 originalEndTime, uint256 originalDuration)
+        public
+        view
+        returns (uint256 newDuration, uint8 newEarlyVestingFee)
+    {
+        if (originalEndTime > block.timestamp) {
+            uint256 timeRemaining = originalEndTime - block.timestamp;
+            newDuration = timeRemaining;
+            // max percentageLeft is 100 as timeRemaining cannot be larger than duration
+            uint256 percentageLeft = timeRemaining * 100 / originalDuration;
+            // 90% is the fixed early vesting fee for V1 entries
+            // reduce based on the percentage of time remaining
+            newEarlyVestingFee = uint8(percentageLeft * 90 / 100);
+
+            if (newEarlyVestingFee < 50) {
+                // uint256 currentlyShouldBeAbleToVest 
+            }
+
+            // TODO: possibly remove assert for gas savings
+            assert(newEarlyVestingFee <= 90);
+        }
+        newDuration = max(newDuration, stakingRewardsV2.cooldownPeriod());
+        newEarlyVestingFee =
+            maxUint8(newEarlyVestingFee, rewardEscrowV2.MINIMUM_EARLY_VESTING_FEE());
     }
 
     function max(uint256 a, uint256 b) internal pure returns (uint256) {
