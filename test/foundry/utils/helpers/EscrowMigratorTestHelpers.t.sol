@@ -316,26 +316,79 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
     function checkStateAfterStepThree(address account, uint256[] memory _entryIDs, bool completed)
         internal
     {
+        uint256 numOfV2Entries = rewardEscrowV2.balanceOf(account);
+        uint256[] memory migratedEntries =
+            rewardEscrowV2.getAccountVestingEntryIDs(account, 0, numOfV2Entries);
+        assertEq(numOfV2Entries, _entryIDs.length);
+
+        uint256 totalEscrowMigrated;
+        for (uint256 i = 0; i < _entryIDs.length; i++) {
+            uint256 entryID = _entryIDs[i];
+            uint256 migratedEntryID = migratedEntries[i];
+            checkMigratedEntryAfterStepThree(account, migratedEntryID, entryID);
+            (uint256 escrowAmount,,,,) = checkEntryAfterStepThree(account, i, entryID);
+            totalEscrowMigrated += escrowAmount;
+        }
+
+        checkStateAfterStepThreeAssertions(account, _entryIDs, completed, totalEscrowMigrated);
+    }
+
+    function checkMigratedEntryAfterStepThree(
+        address account,
+        uint256 newEntryID,
+        uint256 oldEntryID
+    ) internal {
+        (uint64 endTime, uint256 escrowAmount, uint256 duration, uint8 earlyVestingFee) =
+            rewardEscrowV2.getVestingEntry(newEntryID);
+
+        (uint256 registeredEscrowAmount, uint256 registeredDuration, uint64 registeredEndTime,,) =
+            escrowMigrator.registeredVestingSchedules(account, oldEntryID);
+
+        // assertEq(earlyVestingFee, 90);
+        assertEq(escrowAmount, registeredEscrowAmount);
+        // assertEq(duration, registeredDuration);
+        // TODO: update to use stakingRewardsV2.unstakingCooldownPeriod();
+        // assertEq(endTime, min(registeredEndTime, 2 weeks));
+    }
+
+    function checkEntryAfterStepThree(address account, uint256 i, uint256 entryID)
+        internal
+        returns (
+            uint256 escrowAmount,
+            uint256 duration,
+            uint64 endTime,
+            bool confirmed,
+            bool migrated
+        )
+    {
+        assertEq(escrowMigrator.registeredEntryIDs(account, i), entryID);
+
+        (escrowAmount, duration, endTime, confirmed, migrated) =
+            escrowMigrator.registeredVestingSchedules(account, entryID);
+        (uint64 endTimeOriginal, uint256 escrowAmountOriginal, uint256 durationOriginal) =
+            rewardEscrowV1.getVestingEntry(account, entryID);
+
+        assertGt(escrowAmount, 0);
+        assertEq(escrowAmountOriginal, 0);
+        assertEq(duration, durationOriginal);
+        assertEq(endTime, endTimeOriginal);
+        assertEq(confirmed, true);
+        assertEq(migrated, true);
+    }
+
+    function checkStateAfterStepThreeAssertions(
+        address account,
+        uint256[] memory _entryIDs,
+        bool completed,
+        uint256 totalEscrowMigrated
+    ) internal {
         if (completed) {
             assertEq(uint256(escrowMigrator.migrationStatus(account)), 5);
         } else {
             assertEq(uint256(escrowMigrator.migrationStatus(account)), 4);
         }
 
-        for (uint256 i = 0; i < _entryIDs.length; i++) {
-            uint256 entryID = _entryIDs[i];
-            assertEq(escrowMigrator.registeredEntryIDs(account, i), entryID);
-            (uint256 escrowAmount, uint256 duration, uint64 endTime, bool confirmed, bool migrated)
-            = escrowMigrator.registeredVestingSchedules(account, entryID);
-            (uint64 endTimeOriginal, uint256 escrowAmountOriginal, uint256 durationOriginal) =
-                rewardEscrowV1.getVestingEntry(account, entryID);
-            assertGt(escrowAmount, 0);
-            assertEq(escrowAmountOriginal, 0);
-            assertEq(duration, durationOriginal);
-            assertEq(endTime, endTimeOriginal);
-            assertEq(confirmed, true);
-            assertEq(migrated, true);
-        }
+        assertEq(rewardEscrowV2.totalEscrowedAccountBalance(account), totalEscrowMigrated);
 
         assertLe(_entryIDs.length, escrowMigrator.numberOfRegisteredEntries(account));
         assertLt(
@@ -366,7 +419,5 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
             );
             assertGt(escrowMigrator.numberOfConfirmedEntries(account), _entryIDs.length);
         }
-
-        // TODO: check that the correct entries were created on V2
     }
 }
