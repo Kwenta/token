@@ -32,6 +32,7 @@ contract RewardEscrowV2 is
     /// @notice Max escrow duration
     uint256 public constant MAX_DURATION = 4 * 52 weeks; // Default max 4 years duration
 
+    /// @notice Min escrow duration
     uint256 public constant DEFAULT_DURATION = 52 weeks; // Default 1 year duration
 
     /// @notice Default early vesting fee - used for new vesting entries from staking rewards
@@ -40,7 +41,7 @@ contract RewardEscrowV2 is
     /// @notice Maximum early vesting fee - cannot be higher than 100%
     uint8 public constant MAXIMUM_EARLY_VESTING_FEE = 100;
 
-    /// @notice Minimum early vesting fee
+    /// @inheritdoc IRewardEscrowV2
     uint8 public constant MINIMUM_EARLY_VESTING_FEE = 50;
 
     /// @notice Contract for KWENTA ERC20 token
@@ -404,7 +405,8 @@ contract RewardEscrowV2 is
         if (_earlyVestingFee > MAXIMUM_EARLY_VESTING_FEE) revert EarlyVestingFeeTooHigh();
         if (_earlyVestingFee < MINIMUM_EARLY_VESTING_FEE) revert EarlyVestingFeeTooLow();
         if (_deposit == 0) revert ZeroAmount();
-        if (_duration == 0 || _duration > MAX_DURATION) revert InvalidDuration();
+        uint256 minimumDuration = stakingRewards.cooldownPeriod();
+        if (_duration < minimumDuration || _duration > MAX_DURATION) revert InvalidDuration();
 
         /// @dev this will revert if the kwenta token transfer fails
         kwenta.transferFrom(msg.sender, address(this), _deposit);
@@ -432,6 +434,7 @@ contract RewardEscrowV2 is
     function bulkTransferFrom(address _from, address _to, uint256[] calldata _entryIDs)
         external
         override
+        whenNotPaused
     {
         if (_from == _to) revert CannotTransferToSelf();
 
@@ -459,7 +462,7 @@ contract RewardEscrowV2 is
 
     /// @dev override the internal _transfer function to ensure vestingSchedules and account balances are updated
     /// and that there is sufficient unstaked escrow for a transfer when transferFrom and safeTransferFrom are called
-    function _transfer(address _from, address _to, uint256 _entryID) internal override {
+    function _transfer(address _from, address _to, uint256 _entryID) internal override whenNotPaused {
         uint256 escrowAmount = vestingSchedules[_entryID].escrowAmount;
 
         _applyTransferBalanceUpdates(_from, _to, escrowAmount);

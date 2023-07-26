@@ -60,6 +60,12 @@ interface IRewardEscrowV2 {
                                 VIEWS
     ///////////////////////////////////////////////////////////////*/
 
+    /// @notice Minimum early vesting fee
+    /// @dev this must be high enought to prevent governance attacks where the user
+    /// can set the early vesting fee to a very low number, stake, vote, then withdraw
+    /// via vesting which avoids the unstaking cooldown
+    function MINIMUM_EARLY_VESTING_FEE() external view returns (uint8);
+
     /// @notice helper function to return kwenta address
     function getKwentaAddress() external view returns (address);
 

@@ -15,13 +15,14 @@ interface IEscrowMigrator {
         // The time at which the entry will be fully matured
         uint64 endTime;
         bool confirmed;
+        bool migrated;
     }
 
     enum MigrationStatus {
         NOT_STARTED,
         INITIATED,
         REGISTERED,
-        VESTED,
+        VESTING_CONFIRMED,
         PAID,
         COMPLETED
     }
@@ -58,13 +59,11 @@ interface IEscrowMigrator {
     /// @notice the caller is not approved to take this action
     error NotApproved();
 
+    error MustClaimStakingRewards();
+
     error MigrationAlreadyStarted();
 
     error NoEscrowBalanceToMigrate();
-
-    error InsufficientEscrowVested();
-
-    error TooMuchEscrowVested();
 
     error MustBeInitiatedOrRegistered();
 

@@ -9,9 +9,8 @@ contract MockStakingRewardsV3 is StakingRewardsV2 {
     constructor(
         address _kwenta,
         address _rewardEscrow,
-        address _supplySchedule,
-        address _stakingRewardsV1
-    ) StakingRewardsV2(_kwenta, _rewardEscrow, _supplySchedule, _stakingRewardsV1) {}
+        address _supplySchedule
+    ) StakingRewardsV2(_kwenta, _rewardEscrow, _supplySchedule) {}
 
     function setNewNum(uint256 _newNum) external {
         newNum = _newNum;

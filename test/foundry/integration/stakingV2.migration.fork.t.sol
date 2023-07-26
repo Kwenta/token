@@ -43,7 +43,6 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
             _owner: owner,
             _kwenta: address(kwenta),
             _supplySchedule: address(supplySchedule),
-            _stakingRewardsV1: address(stakingRewardsV1),
             _treasuryDAO: treasury,
             _printLogs: false
         });
@@ -70,8 +69,8 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
         assertGt(user1EscrowV1, 0);
 
         // check v2 state before unstaking
-        assertEq(user1StakedV1, stakingRewardsV2.v1BalanceOf(user1));
-        assertEq(v1TotalSupply, stakingRewardsV2.v1TotalSupply());
+        assertEq(user1StakedV1, stakingRewardsV1.balanceOf(user1));
+        assertEq(v1TotalSupply, stakingRewardsV1.totalSupply());
 
         // unstake funds from v1
         exitStakingV1(user1);
@@ -80,6 +79,7 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
         assertEq(stakingRewardsV1.balanceOf(user1), user1EscrowStakedV1);
         assertEq(stakingRewardsV1.nonEscrowedBalanceOf(user1), 0);
         assertEq(stakingRewardsV1.earned(user1), 0);
+        assertEq(stakingRewardsV1.totalSupply(), v1TotalSupply - user1NonEscrowStakedV1);
         assertEq(kwenta.balanceOf(user1), initialBalance + user1NonEscrowStakedV1);
         assertEq(rewardEscrowV1.balanceOf(user1), user1EscrowV1 + user1Earned);
 
@@ -89,8 +89,6 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
         assertEq(stakingRewardsV2.nonEscrowedBalanceOf(user1), 0);
         assertEq(stakingRewardsV2.escrowedBalanceOf(user1), 0);
         assertEq(stakingRewardsV2.totalSupply(), 0);
-        assertEq(stakingRewardsV2.v1BalanceOf(user1), user1EscrowStakedV1);
-        assertEq(stakingRewardsV2.v1TotalSupply(), v1TotalSupply - user1NonEscrowStakedV1);
         assertEq(rewardEscrowV2.escrowedBalanceOf(user1), 0);
 
         user1EscrowV1 = rewardEscrowV1.balanceOf(user1);

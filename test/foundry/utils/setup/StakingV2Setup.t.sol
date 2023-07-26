@@ -58,7 +58,6 @@ contract StakingV2Setup is StakingV1Setup {
                 address(this),
                 address(kwenta),
                 address(supplySchedule),
-                address(stakingRewardsV1),
                 false
             )
         );

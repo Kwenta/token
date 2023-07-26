@@ -35,10 +35,6 @@ interface IStakingRewardsV2 {
     /// @return total amount of tokens that are being staked
     function totalSupply() external view returns (uint256);
 
-    /// @notice Getter function for the total number of v1 staked tokens
-    /// @return amount of tokens staked in v1
-    function v1TotalSupply() external view returns (uint256);
-
     // staking state
 
     /// @notice Returns the total number of staked tokens for a user
@@ -46,11 +42,6 @@ interface IStakingRewardsV2 {
     /// @param _account: address of potential staker
     /// @return amount of tokens staked by account
     function balanceOf(address _account) external view returns (uint256);
-
-    /// @notice Getter function for the number of v1 staked tokens
-    /// @param _account address to check the tokens staked
-    /// @return amount of tokens staked
-    function v1BalanceOf(address _account) external view returns (uint256);
 
     /// @notice Getter function for number of staked escrow tokens
     /// @param _account address to check the escrowed tokens staked
@@ -66,6 +57,9 @@ interface IStakingRewardsV2 {
     /// @param _account: address to check
     /// @return amount of tokens escrowed but not staked
     function unstakedEscrowedBalanceOf(address _account) external view returns (uint256);
+
+    /// @notice the period of time a user has to wait after staking to unstake
+    function cooldownPeriod() external view returns (uint256);
 
     // rewards
 
