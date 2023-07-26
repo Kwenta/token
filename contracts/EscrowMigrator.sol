@@ -176,7 +176,8 @@ contract EscrowMigrator is
                 endTime: endTime,
                 escrowAmount: escrowAmount,
                 duration: duration,
-                confirmed: false
+                confirmed: false,
+                migrated: false
             });
 
             /// @dev A counter of numberOfRegisteredEntries would do, but this allows easier inspection
@@ -261,14 +262,18 @@ contract EscrowMigrator is
             VestingEntry storage registeredEntry = registeredVestingSchedules[account][entryID];
             uint256 originalEscrowAmount = registeredEntry.escrowAmount;
 
+            // TODO: think this check can be removed as it is already done in previous steps
             // skip if not registered
             if (registeredEntry.endTime == 0) continue;
+            // skip if already migrated
+            if (registeredEntry.migrated) continue;
             // entry must have been confirmed before migrating
             if (!registeredEntry.confirmed) continue;
 
             (uint64 endTime, uint256 escrowAmount, uint256 duration) =
                 rewardEscrowV1.getVestingEntry(account, entryID);
 
+            // TODO: think this check can be removed as it is already done in the last step
             // skip if entry is not already vested
             if (escrowAmount != 0) continue;
 
@@ -298,8 +303,8 @@ contract EscrowMigrator is
 
             numberOfMigratedEntries[account]++;
 
-            // update this to zero so it cannot be migrated again
-            registeredEntry.endTime = 0;
+            // update this so it cannot be migrated again
+            registeredEntry.migrated = true;
         }
 
         if (numberOfMigratedEntries[account] == numberOfRegisteredEntries(account)) {

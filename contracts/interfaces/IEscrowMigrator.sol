@@ -15,6 +15,7 @@ interface IEscrowMigrator {
         // The time at which the entry will be fully matured
         uint64 endTime;
         bool confirmed;
+        bool migrated;
     }
 
     enum MigrationStatus {
