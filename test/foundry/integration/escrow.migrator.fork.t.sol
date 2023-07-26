@@ -348,7 +348,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 
     function test_Cannot_Confirm_In_Vesting_Confirmed_State() public {
         // complete step 1 and vest
-        (uint256[] memory _entryIDs,) = registerVestAndConfirmAllEntries(user1);
+        (uint256[] memory _entryIDs,,) = registerVestAndConfirmAllEntries(user1);
 
         // attempt in VESTING_CONFIRMED state
         assertEq(
@@ -472,6 +472,28 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
     }
 
     /*//////////////////////////////////////////////////////////////
+                              STEP 3 TESTS
+    //////////////////////////////////////////////////////////////*/
+
+    function test_Step_3_Normal() public {
+        // complete step 1 and 2
+        (uint256[] memory _entryIDs,, uint256 toPay) = registerVestAndConfirmAllEntries(user1);
+
+        // step 3.1 - pay for migration
+        vm.prank(user1);
+        kwenta.approve(address(escrowMigrator), toPay);
+
+        // step 3.2 - migrate entries
+        vm.prank(user1);
+        escrowMigrator.migrateConfirmedEntries(user1, _entryIDs);
+
+        // check final state
+        checkStateAfterStepThree(user1, _entryIDs, true);
+    }
+
+    // TODO: test duplicate migrate entries
+
+    /*//////////////////////////////////////////////////////////////
                                FULL FLOW
     //////////////////////////////////////////////////////////////*/
 
@@ -537,14 +559,15 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         assertCloseTo(newTotalFee, totalFee, totalFee / 15);
     }
 }
-// TODO: Move payment measure into confirmation step
+
 // TODO: 3. Update checkState helpers to account for expected changes in rewardEscrowV1.balanceOf
 // TODO: 4. Update checkState helpers to account for expected changes in totalRegisteredEscrow and similar added new variables
 // TODO: test confirming and then registering again
 // TODO: test vest, confirm, vest, confirm
 // TODO: test register, vest, register, vest etc.
+// TODO: test confirm, register, vest, confirm
 // TODO: test not migrating all entries from end-to-end
 // TODO: add tests to ensure each function can only be executed in the correct state for step 1 & 3
+// TODO: test sending in entryIDs in a funny order
 
-// QUESTION: 1. Should they be forced to migrate all entries?
 // QUESTION: 2. Option to simplify to O(1) time, using just balanceOf & totalVestedAccountBalance

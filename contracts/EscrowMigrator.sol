@@ -54,9 +54,9 @@ contract EscrowMigrator is
     //////////////////////////////////////////////////////////////*/
 
     // TODO: add these and think about global accounting
-    // uint256 public totalRegistered;
     // uint256 public totalConfirmed;
     // uint256 public totalMigrated;
+    // TODO: add this value to state check tests
     uint256 public totalRegistered;
 
     mapping(address => mapping(uint256 => VestingEntry)) public registeredVestingSchedules;
