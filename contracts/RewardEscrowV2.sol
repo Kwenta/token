@@ -40,7 +40,7 @@ contract RewardEscrowV2 is
     /// @notice Maximum early vesting fee - cannot be higher than 100%
     uint8 public constant MAXIMUM_EARLY_VESTING_FEE = 100;
 
-    /// @notice Minimum early vesting fee
+    /// @inheritdoc IRewardEscrowV2
     uint8 public constant MINIMUM_EARLY_VESTING_FEE = 50;
 
     /// @notice Contract for KWENTA ERC20 token
