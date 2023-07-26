@@ -30,6 +30,8 @@ contract RewardEscrowV2 is
     ///////////////////////////////////////////////////////////////*/
 
     /// @notice Max escrow duration
+    /// @dev WARNING: updating this value to less than 2 years will allow this check to be bypassed
+    /// via the escrow migrator contract, by creating V1 escrow entries and migrating them to V2
     uint256 public constant MAX_DURATION = 4 * 52 weeks; // Default max 4 years duration
 
     /// @notice Min escrow duration
@@ -42,6 +44,7 @@ contract RewardEscrowV2 is
     uint8 public constant MAXIMUM_EARLY_VESTING_FEE = 100;
 
     /// @inheritdoc IRewardEscrowV2
+    /// @dev WARNING: see warning in IRewardEscrowV2 if planning on changing this value
     uint8 public constant MINIMUM_EARLY_VESTING_FEE = 50;
 
     /// @notice Contract for KWENTA ERC20 token
@@ -390,6 +393,7 @@ contract RewardEscrowV2 is
         }
     }
 
+    /// @inheritdoc IRewardEscrowV2
     function importEscrowEntry(address _account, VestingEntry memory _entry) external onlyEscrowMigrator {
         _mint(_account, _entry.endTime, _entry.escrowAmount, _entry.duration, _entry.earlyVestingFee);
     }
