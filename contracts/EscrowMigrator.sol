@@ -256,8 +256,7 @@ contract EscrowMigrator is
             revert MustBeInPaidState();
         }
 
-        // TODO: update to query this value
-        uint256 cooldownTime = 2 weeks;
+        uint256 cooldown = stakingRewardsV2.cooldownPeriod();
 
         for (uint256 i = 0; i < _entryIDs.length; i++) {
             uint256 entryID = _entryIDs[i];
@@ -273,10 +272,25 @@ contract EscrowMigrator is
             // entry must have been confirmed before migrating
             if (!registeredEntry.confirmed) continue;
 
+            uint256 duration;
+            uint64 endTime;
+            /// @dev it essential for security that the duration is not less than the cooldown period,
+            /// otherwise the user could do a governance attack by bypassing the unstaking cooldown lock
+            /// by migrating their escrow then staking, voting, and vesting immediately
+            if (registeredEntry.duration < cooldown) {
+                uint256 timeCreated = registeredEntry.endTime - registeredEntry.duration;
+                uint64 newEndTime = uint64(timeCreated + cooldown);
+                duration = cooldown;
+                endTime = newEndTime;
+            } else {
+                duration = registeredEntry.duration;
+                endTime = registeredEntry.endTime;
+            }
+
             IRewardEscrowV2.VestingEntry memory entry = IRewardEscrowV2.VestingEntry({
                 escrowAmount: originalEscrowAmount,
-                duration: max(registeredEntry.duration, cooldownTime),
-                endTime: uint64(max(registeredEntry.endTime, block.timestamp + cooldownTime)),
+                duration: duration,
+                endTime: endTime,
                 earlyVestingFee: 90
             });
 
@@ -292,44 +306,6 @@ contract EscrowMigrator is
         if (numberOfMigratedEntries[account] == numberOfRegisteredEntries(account)) {
             migrationStatus[account] = MigrationStatus.COMPLETED;
         }
-    }
-
-    /*//////////////////////////////////////////////////////////////
-                                HELPERS
-    //////////////////////////////////////////////////////////////*/
-
-    function getNewEscrowEntryData(uint64 originalEndTime, uint256 originalDuration)
-        public
-        view
-        returns (uint256 newDuration, uint8 newEarlyVestingFee)
-    {
-        if (originalEndTime > block.timestamp) {
-            uint256 timeRemaining = originalEndTime - block.timestamp;
-            newDuration = timeRemaining;
-            // max percentageLeft is 100 as timeRemaining cannot be larger than duration
-            uint256 percentageLeft = timeRemaining * 100 / originalDuration;
-            // 90% is the fixed early vesting fee for V1 entries
-            // reduce based on the percentage of time remaining
-            newEarlyVestingFee = uint8(percentageLeft * 90 / 100);
-
-            if (newEarlyVestingFee < 50) {
-                // uint256 currentlyShouldBeAbleToVest 
-            }
-
-            // TODO: possibly remove assert for gas savings
-            assert(newEarlyVestingFee <= 90);
-        }
-        newDuration = max(newDuration, stakingRewardsV2.cooldownPeriod());
-        newEarlyVestingFee =
-            maxUint8(newEarlyVestingFee, rewardEscrowV2.MINIMUM_EARLY_VESTING_FEE());
-    }
-
-    function max(uint256 a, uint256 b) internal pure returns (uint256) {
-        return a > b ? a : b;
-    }
-
-    function maxUint8(uint8 a, uint8 b) internal pure returns (uint8) {
-        return a > b ? a : b;
     }
 
     /*//////////////////////////////////////////////////////////////
