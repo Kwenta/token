@@ -51,7 +51,6 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
             _owner: owner,
             _kwenta: address(kwenta),
             _supplySchedule: address(supplySchedule),
-            _stakingRewardsV1: address(stakingRewardsV1),
             _treasuryDAO: treasury,
             _printLogs: false
         });
