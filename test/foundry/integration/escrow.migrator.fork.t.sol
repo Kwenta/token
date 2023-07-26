@@ -520,7 +520,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 
         // step 3.2 - migrate entries
         vm.prank(user1);
-        escrowMigrator.migrateRegisteredEntries(user1, entryIDs);
+        escrowMigrator.migrateConfirmedEntries(user1, entryIDs);
 
         // check escrow sent to v2
         uint256 v2BalanceAfter = rewardEscrowV2.escrowedBalanceOf(user1);

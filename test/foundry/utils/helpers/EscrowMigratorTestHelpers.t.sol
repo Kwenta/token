@@ -280,7 +280,7 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         kwenta.approve(address(escrowMigrator), type(uint256).max);
         _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(account, 0, 0);
         vm.prank(account);
-        escrowMigrator.migrateRegisteredEntries(account, _entryIDs);
+        escrowMigrator.migrateConfirmedEntries(account, _entryIDs);
 
         // restore entryIDs
         _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(account, 0, numVestingEntries);
@@ -297,6 +297,6 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         vm.prank(account);
         kwenta.approve(address(escrowMigrator), type(uint256).max);
         vm.prank(account);
-        escrowMigrator.migrateRegisteredEntries(account, _entryIDs);
+        escrowMigrator.migrateConfirmedEntries(account, _entryIDs);
     }
 }

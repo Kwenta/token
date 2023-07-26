@@ -240,11 +240,11 @@ contract EscrowMigrator is
     }
 
     // step 3: pay liquid kwenta for migration & migrate all registered entries
-    function migrateRegisteredEntries(address to, uint256[] calldata _entryIDs) external {
-        _migrateRegisteredEntries(msg.sender, to, _entryIDs);
+    function migrateConfirmedEntries(address to, uint256[] calldata _entryIDs) external {
+        _migrateConfirmedEntries(msg.sender, to, _entryIDs);
     }
 
-    function _migrateRegisteredEntries(address account, address to, uint256[] calldata _entryIDs)
+    function _migrateConfirmedEntries(address account, address to, uint256[] calldata _entryIDs)
         internal
     {
         if (migrationStatus[account] == MigrationStatus.VESTING_CONFIRMED) {
@@ -342,7 +342,7 @@ contract EscrowMigrator is
     ) external {
         address beneficiary = IStakingRewardsV2Integrator(_integrator).beneficiary();
         if (beneficiary != msg.sender) revert NotApproved();
-        _migrateRegisteredEntries(_integrator, to, _entryIDs);
+        _migrateConfirmedEntries(_integrator, to, _entryIDs);
     }
 
     /*//////////////////////////////////////////////////////////////
