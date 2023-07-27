@@ -257,6 +257,32 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
     }
 
+    function test_Cannot_Register_In_Paid_State() public {
+        // move to paid state
+        (uint256[] memory _entryIDs,) = moveToPaidState(user1);
+
+        assertEq(
+            uint256(escrowMigrator.migrationStatus(user1)),
+            uint256(IEscrowMigrator.MigrationStatus.PAID)
+        );
+        vm.prank(user1);
+        vm.expectRevert(IEscrowMigrator.MustBeInitiatedOrRegistered.selector);
+        escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
+    }
+
+    function test_Cannot_Register_In_Completed_State() public {
+        // move to completed state
+        (uint256[] memory _entryIDs,) = moveToCompletedState(user1);
+
+        assertEq(
+            uint256(escrowMigrator.migrationStatus(user1)),
+            uint256(IEscrowMigrator.MigrationStatus.COMPLETED)
+        );
+        vm.prank(user1);
+        vm.expectRevert(IEscrowMigrator.MustBeInitiatedOrRegistered.selector);
+        escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
+    }
+
     /*//////////////////////////////////////////////////////////////
                               STEP 2 TESTS
     //////////////////////////////////////////////////////////////*/
