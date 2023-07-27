@@ -707,7 +707,33 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         escrowMigrator.migrateConfirmedEntries(user1, _entryIDs);
     }
 
-    // TODO: test_Cannot_Migrate_With_Non_Confirmed_Entries (state limit)
+    function test_Cannot_Migrate_In_Registered_State() public {
+        // complete step 1 and 2
+        (uint256[] memory _entryIDs,) = registerAllEntries(user1);
+        assertEq(
+            uint256(escrowMigrator.migrationStatus(user1)),
+            uint256(IEscrowMigrator.MigrationStatus.REGISTERED)
+        );
+
+        // step 3.1 - migrate entries
+        vm.prank(user1);
+        vm.expectRevert(IEscrowMigrator.MustBeInVestingConfirmedState.selector);
+        escrowMigrator.migrateConfirmedEntries(user1, _entryIDs);
+    }
+
+    function test_Cannot_Migrate_In_Completed_State() public {
+        // move to completed state
+        (uint256[] memory _entryIDs,) = moveToCompletedState(user1);
+
+        assertEq(
+            uint256(escrowMigrator.migrationStatus(user1)),
+            uint256(IEscrowMigrator.MigrationStatus.COMPLETED)
+        );
+        vm.prank(user1);
+        vm.expectRevert(IEscrowMigrator.MustBeInPaidState.selector);
+        escrowMigrator.migrateConfirmedEntries(user1, _entryIDs);
+    }
+
     // TODO: can migrate, then register more entries?
     // TODO: test sending entries to another `to` address
 
