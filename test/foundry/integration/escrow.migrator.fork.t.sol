@@ -534,6 +534,20 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         checkStateAfterStepThree(user1, _entryIDs, numRounds > 0);
     }
 
+    /*//////////////////////////////////////////////////////////////
+                           STEP 3 EDGE CASES
+    //////////////////////////////////////////////////////////////*/
+
+    function test_Step_3_Must_Pay() public {
+        // complete step 1 and 2
+        (uint256[] memory _entryIDs,,) = registerVestAndConfirmAllEntries(user1);
+
+        // step 3.2 - migrate entries
+        vm.prank(user1);
+        vm.expectRevert("ERC20: transfer amount exceeds allowance");
+        escrowMigrator.migrateConfirmedEntries(user1, _entryIDs);
+    }
+
     // TODO: test duplicate migrate entries
 
     /*//////////////////////////////////////////////////////////////
