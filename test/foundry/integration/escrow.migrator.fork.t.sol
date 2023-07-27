@@ -678,6 +678,28 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         uint256[] memory _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(
             user1, 0, rewardEscrowV1.numVestingEntries(user1)
         );
+        assertEq(
+            uint256(escrowMigrator.migrationStatus(user1)),
+            uint256(IEscrowMigrator.MigrationStatus.NOT_STARTED)
+        );
+
+        // step 3.1 - migrate entries
+        vm.prank(user1);
+        vm.expectRevert(IEscrowMigrator.MustBeInVestingConfirmedState.selector);
+        escrowMigrator.migrateConfirmedEntries(user1, _entryIDs);
+    }
+
+    function test_Cannot_Migrate_In_Initiated_State() public {
+        (uint256[] memory _entryIDs,) = claimAndCheckInitialState(user1);
+
+        // attempt in INITIATED state
+        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 0);
+        vm.prank(user1);
+        escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
+        assertEq(
+            uint256(escrowMigrator.migrationStatus(user1)),
+            uint256(IEscrowMigrator.MigrationStatus.INITIATED)
+        );
 
         // step 3.1 - migrate entries
         vm.prank(user1);
