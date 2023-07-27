@@ -548,6 +548,21 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         escrowMigrator.migrateConfirmedEntries(user1, _entryIDs);
     }
 
+    function test_Step_3_Must_Pay_Fuzz(uint256 approveAmount) public {
+        // complete step 1 and 2
+        (uint256[] memory _entryIDs,, uint256 toPay) = registerVestAndConfirmAllEntries(user1);
+
+        vm.prank(user1);
+        kwenta.approve(address(escrowMigrator), approveAmount);
+
+        // step 3.2 - migrate entries
+        vm.prank(user1);
+        if (toPay > approveAmount) {
+            vm.expectRevert("ERC20: transfer amount exceeds allowance");
+        }
+        escrowMigrator.migrateConfirmedEntries(user1, _entryIDs);
+    }
+
     // TODO: test duplicate migrate entries
 
     /*//////////////////////////////////////////////////////////////
