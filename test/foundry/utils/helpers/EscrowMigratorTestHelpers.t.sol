@@ -283,6 +283,22 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         toPay = escrowMigrator.toPayForMigration(account);
     }
 
+    function registerVestConfirmAllEntriesAndApprove(address account)
+        internal
+        returns (uint256[] memory _entryIDs, uint256 numVestingEntries, uint256 toPay)
+    {
+        // register and vest
+        (_entryIDs, numVestingEntries) = registerAndVestAllEntries(account);
+
+        vm.prank(account);
+        escrowMigrator.confirmEntriesAreVested(_entryIDs);
+
+        toPay = escrowMigrator.toPayForMigration(account);
+
+        vm.prank(account);
+        kwenta.approve(address(escrowMigrator), toPay);
+    }
+
     function moveToPaidState(address account)
         internal
         returns (uint256[] memory _entryIDs, uint256 numVestingEntries)

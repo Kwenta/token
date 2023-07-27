@@ -477,17 +477,32 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 
     function test_Step_3_Normal() public {
         // complete step 1 and 2
-        (uint256[] memory _entryIDs,, uint256 toPay) = registerVestAndConfirmAllEntries(user1);
-
-        // step 3.1 - pay for migration
-        vm.prank(user1);
-        kwenta.approve(address(escrowMigrator), toPay);
+        (uint256[] memory _entryIDs,,) = registerVestConfirmAllEntriesAndApprove(user1);
 
         // step 3.2 - migrate entries
         vm.prank(user1);
         escrowMigrator.migrateConfirmedEntries(user1, _entryIDs);
 
         // check final state
+        checkStateAfterStepThree(user1, _entryIDs, true);
+    }
+
+    function test_Step_3_Two_Rounds() public {
+        // complete step 1 and 2
+        (uint256[] memory _entryIDs,,) = registerVestConfirmAllEntriesAndApprove(user1);
+
+        // step 3.2 - migrate some entries
+        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 10);
+        vm.prank(user1);
+        escrowMigrator.migrateConfirmedEntries(user1, _entryIDs);
+
+        // step 3.2 - migrate some more entries
+        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 10, 7);
+        vm.prank(user1);
+        escrowMigrator.migrateConfirmedEntries(user1, _entryIDs);
+
+        // check final state
+        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 17);
         checkStateAfterStepThree(user1, _entryIDs, true);
     }
 
