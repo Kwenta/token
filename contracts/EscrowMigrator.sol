@@ -264,9 +264,6 @@ contract EscrowMigrator is
             VestingEntry storage registeredEntry = registeredVestingSchedules[account][entryID];
             uint256 originalEscrowAmount = registeredEntry.escrowAmount;
 
-            // TODO: think this check can be removed as it is already done in previous steps
-            // skip if not registered
-            if (registeredEntry.endTime == 0) continue;
             // skip if already migrated
             if (registeredEntry.migrated) continue;
             // entry must have been confirmed before migrating
@@ -316,6 +313,7 @@ contract EscrowMigrator is
         address _integrator,
         uint256[] calldata _entryIDs
     ) external {
+        // TODO: create onlyBeneficiary modifier
         address beneficiary = IStakingRewardsV2Integrator(_integrator).beneficiary();
         if (beneficiary != msg.sender) revert NotApproved();
         _registerEntriesForVestingAndMigration(_integrator, _entryIDs);
