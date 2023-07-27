@@ -80,6 +80,25 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
 
         vm.prank(owner);
         rewardEscrowV1.setTreasuryDAO(address(escrowMigrator));
+
+        assertEq(stakingRewardsV2.rewardRate(), 0);
+        assertEq(kwenta.balanceOf(address(stakingRewardsV2)), 0);
+
+        // mint first rewards into V2
+        uint256 timeOfNextMint = supplySchedule.lastMintEvent() + supplySchedule.MINT_PERIOD_DURATION() + 1;
+        vm.warp(timeOfNextMint + 1);
+        supplySchedule.mint();
+
+        assertGt(stakingRewardsV2.rewardRate(), 0);
+        assertGt(kwenta.balanceOf(address(stakingRewardsV2)), 0);
+
+        // call updateReward in staking rewards v1
+        vm.prank(treasury);
+        stakingRewardsV1.unstake(1);
+
+        // check no more new rewards in v1
+        assertEq(stakingRewardsV1.lastTimeRewardApplicable() - stakingRewardsV1.lastUpdateTime(), 0);
+        assertEq(stakingRewardsV1.lastTimeRewardApplicable(), stakingRewardsV1.periodFinish());
     }
 
     /*//////////////////////////////////////////////////////////////

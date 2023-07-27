@@ -807,8 +807,8 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 
         (uint256 total, uint256 totalFee) = rewardEscrowV1.getVestingQuantity(user1, entryIDs);
 
-        assertEq(total, 3.571651297256515699 ether);
-        assertEq(totalFee, 13.674503814158117209 ether);
+        assertEq(total, 3.819707122432513665 ether);
+        assertEq(totalFee, 13.426447988982119243 ether);
 
         // step 1
         vm.prank(user1);
