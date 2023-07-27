@@ -279,9 +279,8 @@ contract EscrowMigrator is
             /// by migrating their escrow then staking, voting, and vesting immediately
             if (registeredEntry.duration < cooldown) {
                 uint256 timeCreated = registeredEntry.endTime - registeredEntry.duration;
-                uint64 newEndTime = uint64(timeCreated + cooldown);
                 duration = cooldown;
-                endTime = newEndTime;
+                endTime = uint64(timeCreated + cooldown);
             } else {
                 duration = registeredEntry.duration;
                 endTime = registeredEntry.endTime;
