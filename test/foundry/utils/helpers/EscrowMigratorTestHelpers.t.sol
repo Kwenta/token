@@ -331,7 +331,7 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         escrowMigrator.migrateConfirmedEntries(account, _entryIDs);
     }
 
-    function checkStateAfterStepThree(address account, uint256[] memory _entryIDs, bool completed)
+    function checkStateAfterStepThree(address account, uint256[] memory _entryIDs, bool paid)
         internal
     {
         uint256 numOfV2Entries = rewardEscrowV2.balanceOf(account);
@@ -348,7 +348,7 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
             totalEscrowMigrated += escrowAmount;
         }
 
-        checkStateAfterStepThreeAssertions(account, _entryIDs, completed, totalEscrowMigrated);
+        checkStateAfterStepThreeAssertions(account, _entryIDs, paid, totalEscrowMigrated);
     }
 
     // TODO: finish this function
@@ -404,17 +404,19 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
     function checkStateAfterStepThreeAssertions(
         address account,
         uint256[] memory _entryIDs,
-        bool completed,
+        bool paid,
         uint256 totalEscrowMigrated
     ) internal {
+        bool completed = escrowMigrator.numberOfRegisteredEntries(account) == _entryIDs.length;
         if (completed) {
             assertEq(uint256(escrowMigrator.migrationStatus(account)), 5);
-        } else {
+        } else if (paid) {
             assertEq(uint256(escrowMigrator.migrationStatus(account)), 4);
+        } else {
+            assertEq(uint256(escrowMigrator.migrationStatus(account)), 3);
         }
 
         assertEq(rewardEscrowV2.totalEscrowedAccountBalance(account), totalEscrowMigrated);
-
         assertLe(_entryIDs.length, escrowMigrator.numberOfRegisteredEntries(account));
         assertLt(
             escrowMigrator.escrowVestedAtStart(account),
@@ -444,5 +446,7 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
             );
             assertGt(escrowMigrator.numberOfConfirmedEntries(account), _entryIDs.length);
         }
+
+        // TODO: assertions that the amount out is within reasonable bounds if completed
     }
 }

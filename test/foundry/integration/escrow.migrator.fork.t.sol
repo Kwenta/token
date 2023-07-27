@@ -280,7 +280,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 
         uint256 numConfirmedSoFar;
         for (uint256 i = 0; i < numRounds; i++) {
-            // step 1.i - confirm some entries
+            // step 2.i - confirm some entries
             if (numConfirmedSoFar == numVestingEntries) {
                 break;
             }
@@ -504,6 +504,34 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         // check final state
         _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 17);
         checkStateAfterStepThree(user1, _entryIDs, true);
+    }
+
+    function test_Step_3_N_Rounds_Fuzz(uint8 _numRounds, uint8 _numPerRound) public {
+        uint256 numRounds = _numRounds;
+        uint256 numPerRound = _numPerRound;
+
+        vm.assume(numRounds < 20);
+        vm.assume(numPerRound < 20);
+
+        (uint256[] memory _entryIDs, uint256 numVestingEntries,) =
+            registerVestConfirmAllEntriesAndApprove(user1);
+
+        uint256 numConfirmedSoFar;
+        for (uint256 i = 0; i < numRounds; i++) {
+            // step 3.i - migrate some entries
+            if (numConfirmedSoFar == numVestingEntries) {
+                break;
+            }
+            _entryIDs =
+                rewardEscrowV1.getAccountVestingEntryIDs(user1, numConfirmedSoFar, numPerRound);
+            vm.prank(user1);
+            escrowMigrator.migrateConfirmedEntries(user1, _entryIDs);
+            numConfirmedSoFar += _entryIDs.length;
+        }
+
+        // check final state
+        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, numConfirmedSoFar);
+        checkStateAfterStepThree(user1, _entryIDs, numRounds > 0);
     }
 
     // TODO: test duplicate migrate entries
