@@ -347,11 +347,17 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         (uint256 registeredEscrowAmount, uint256 registeredDuration, uint64 registeredEndTime,,) =
             escrowMigrator.registeredVestingSchedules(account, oldEntryID);
 
-        // assertEq(earlyVestingFee, 90);
+        assertEq(earlyVestingFee, 90);
         assertEq(escrowAmount, registeredEscrowAmount);
-        // assertEq(duration, registeredDuration);
-        // TODO: update to use stakingRewardsV2.unstakingCooldownPeriod();
-        // assertEq(endTime, min(registeredEndTime, 2 weeks));
+        uint256 cooldown = stakingRewardsV2.cooldownPeriod();
+        if (duration < cooldown) {
+            // TODO: ensure this bit is tested
+            assertEq(duration, cooldown);
+            assertEq(endTime, registeredEndTime - registeredDuration + cooldown);
+        } else {
+            assertEq(duration, registeredDuration);
+            assertEq(endTime, registeredEndTime);
+        }
     }
 
     function checkEntryAfterStepThree(address account, uint256 i, uint256 entryID)
