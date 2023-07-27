@@ -645,6 +645,30 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         checkStateAfterStepThree(user1, migratedEntryIDs, false);
     }
 
+    function test_Cannot_Bypass_Unstaking_Cooldown_Lock() public {
+        vm.prank(treasury);
+        kwenta.transfer(user1, 50 ether);
+        vm.prank(user1);
+        kwenta.approve(address(rewardEscrowV1), type(uint256).max);
+        vm.prank(user1);
+        // this is the malicious entry - the duration is set to 1
+        rewardEscrowV1.createEscrowEntry(user1, 50 ether, 1);
+
+        (uint256[] memory _entryIDs, uint256 numVestingEntries,) = fullyMigrateAllEntries(user1);
+        checkStateAfterStepThree(user1, _entryIDs, true);
+
+        // specifically
+        uint256[] memory migratedEntryIDs =
+            rewardEscrowV2.getAccountVestingEntryIDs(user1, numVestingEntries - 2, 1);
+        uint256 maliciousEntryID = migratedEntryIDs[0];
+        (uint64 endTime, uint256 escrowAmount, uint256 duration, uint8 earlyVestingFee) =
+            rewardEscrowV2.getVestingEntry(maliciousEntryID);
+        assertEq(endTime, block.timestamp + stakingRewardsV2.cooldownPeriod());
+        assertEq(escrowAmount, 50 ether);
+        assertEq(duration, stakingRewardsV2.cooldownPeriod());
+        assertEq(earlyVestingFee, 90);
+    }
+
     // TODO: test_Cannot_Migrate_With_Non_Confirmed_Entries (state limit)
     // TODO: can migrate, then register more entries?
     // TODO: test sending entries to another `to` address

@@ -270,6 +270,17 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
                              STEP 3 HELPERS
     //////////////////////////////////////////////////////////////*/
 
+    function fullyMigrateAllEntries(address account)
+        internal
+        returns (uint256[] memory _entryIDs, uint256 numVestingEntries, uint256 toPay)
+    {
+        // register and vest
+        (_entryIDs, numVestingEntries, toPay) = registerVestConfirmAllEntriesAndApprove(account);
+
+        vm.prank(account);
+        escrowMigrator.migrateConfirmedEntries(account, _entryIDs);
+    }
+
     function registerVestAndConfirmEntries(address account, uint256[] memory _entryIDs) internal {
         registerAndVestEntries(account, _entryIDs);
 
@@ -277,7 +288,9 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         escrowMigrator.confirmEntriesAreVested(_entryIDs);
     }
 
-    function registerVestConfirmAndApproveEntries(address account, uint256[] memory _entryIDs) internal {
+    function registerVestConfirmAndApproveEntries(address account, uint256[] memory _entryIDs)
+        internal
+    {
         registerAndVestEntries(account, _entryIDs);
 
         vm.prank(account);
@@ -385,8 +398,7 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         assertEq(earlyVestingFee, 90);
         assertEq(escrowAmount, registeredEscrowAmount);
         uint256 cooldown = stakingRewardsV2.cooldownPeriod();
-        if (duration < cooldown) {
-            // TODO: ensure this bit is tested
+        if (registeredDuration < cooldown) {
             assertEq(duration, cooldown);
             assertEq(endTime, registeredEndTime - registeredDuration + cooldown);
         } else {
