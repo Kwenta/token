@@ -669,6 +669,22 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         assertEq(earlyVestingFee, 90);
     }
 
+    /*//////////////////////////////////////////////////////////////
+                          STEP 3 STATE LIMITS
+    //////////////////////////////////////////////////////////////*/
+
+    function test_Cannot_Migrate_In_Not_Started_State() public {
+        // complete step 1 and 2
+        uint256[] memory _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(
+            user1, 0, rewardEscrowV1.numVestingEntries(user1)
+        );
+
+        // step 3.1 - migrate entries
+        vm.prank(user1);
+        vm.expectRevert(IEscrowMigrator.MustBeInVestingConfirmedState.selector);
+        escrowMigrator.migrateConfirmedEntries(user1, _entryIDs);
+    }
+
     // TODO: test_Cannot_Migrate_With_Non_Confirmed_Entries (state limit)
     // TODO: can migrate, then register more entries?
     // TODO: test sending entries to another `to` address
