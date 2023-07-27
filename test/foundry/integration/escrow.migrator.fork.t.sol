@@ -578,8 +578,48 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         checkStateAfterStepThree(user1, _entryIDs, true);
     }
 
-    // TODO: test duplicate migrate entries
-    // TODO: test_Cannot_Migrate_With_Non_Confirmed_Entries
+    function test_Cannot_Duplicate_Migrate_Entries() public {
+        // complete step 1 and 2
+        (uint256[] memory _entryIDs,,) = registerVestConfirmAllEntriesAndApprove(user1);
+
+        // pay extra to the escrow migrator, so it would have enough money to create the extra entries
+        vm.prank(treasury);
+        kwenta.transfer(address(escrowMigrator), 20 ether);
+
+        // step 3.2 - migrate some entries
+        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 15);
+        vm.prank(user1);
+        escrowMigrator.migrateConfirmedEntries(user1, _entryIDs);
+
+        // step 3.2 - duplicate migrate
+        vm.prank(user1);
+        escrowMigrator.migrateConfirmedEntries(user1, _entryIDs);
+
+        // check final state
+        checkStateAfterStepThree(user1, _entryIDs, true);
+    }
+
+    function test_Cannot_Migrate_Non_Existing_Entries() public {
+        // complete step 1 and 2
+        (entryIDs,,) = registerVestConfirmAllEntriesAndApprove(user1);
+
+        // step 3.2 - migrate entries
+        entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 0);
+        entryIDs.push(rewardEscrowV1.nextEntryId());
+        entryIDs.push(rewardEscrowV1.nextEntryId());
+        entryIDs.push(rewardEscrowV1.nextEntryId());
+        entryIDs.push(rewardEscrowV1.nextEntryId());
+        vm.prank(user1);
+        escrowMigrator.migrateConfirmedEntries(user1, entryIDs);
+
+        // check final state
+        entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 0);
+        checkStateAfterStepThree(user1, entryIDs, true);
+    }
+
+    // TODO: test cannot migrate someone elses entries
+    // TODO: someone else cannot migrate your entries for you
+    // TODO: test_Cannot_Migrate_With_Non_Confirmed_Entries (state limit)
 
     /*//////////////////////////////////////////////////////////////
                                FULL FLOW
