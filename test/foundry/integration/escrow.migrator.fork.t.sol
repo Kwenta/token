@@ -617,6 +617,20 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         checkStateAfterStepThree(user1, entryIDs, true);
     }
 
+    function test_Cannot_Migrate_Someone_Elses_Entries() public {
+        // complete step 1 and 2
+        (uint256[] memory user1EntryIDs,,) = registerVestConfirmAllEntriesAndApprove(user1);
+        registerVestConfirmAllEntriesAndApprove(user2);
+
+        // step 3.2 - user2 attempts to migrate user1's entries
+        vm.prank(user2);
+        escrowMigrator.migrateConfirmedEntries(user2, user1EntryIDs);
+
+        // check final state - user2 didn't manage to migrate any entries
+        uint256[] memory migratedEntryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user2, 0, 0);
+        checkStateAfterStepThree(user2, migratedEntryIDs, true);
+    }
+
     // TODO: test cannot migrate someone elses entries
     // TODO: someone else cannot migrate your entries for you
     // TODO: test_Cannot_Migrate_With_Non_Confirmed_Entries (state limit)
