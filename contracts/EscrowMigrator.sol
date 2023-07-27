@@ -253,6 +253,9 @@ contract EscrowMigrator is
         }
 
         if (migrationStatus[account] != MigrationStatus.PAID) {
+            if (uint256(migrationStatus[account]) < uint256(MigrationStatus.VESTING_CONFIRMED)) {
+                revert MustBeInVestingConfirmedState();
+            }
             revert MustBeInPaidState();
         }
 

@@ -69,7 +69,7 @@ interface IEscrowMigrator {
 
     error MustBeInRegisteredState();
 
-    error MustBeInVestedState();
+    error MustBeInVestingConfirmedState();
 
     error MustBeInPaidState();
 }
