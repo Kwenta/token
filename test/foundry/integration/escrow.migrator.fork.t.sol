@@ -597,7 +597,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         entryIDs = rewardEscrowV2.getAccountVestingEntryIDs(user1, 0, numVestingEntries);
         (uint256 newTotal, uint256 newTotalFee) = rewardEscrowV2.getVestingQuantity(entryIDs);
 
-        // check within 6% of target
+        // check within 1% of target
         assertCloseTo(newTotal, total, total / 100);
         assertCloseTo(newTotalFee, totalFee, totalFee / 100);
     }

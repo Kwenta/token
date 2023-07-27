@@ -446,7 +446,5 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
             );
             assertGt(escrowMigrator.numberOfConfirmedEntries(account), _entryIDs.length);
         }
-
-        // TODO: assertions that the amount out is within reasonable bounds if completed
     }
 }
