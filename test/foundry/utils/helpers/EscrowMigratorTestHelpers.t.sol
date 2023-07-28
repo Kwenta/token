@@ -126,11 +126,16 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
     function approveAndMigrate(address account, uint256 index, uint256 amount) internal {
         uint256[] memory _entryIDs = getEntryIDs(account, index, amount);
 
-        vm.prank(account);
-        kwenta.approve(address(escrowMigrator), type(uint256).max);
+        approve(account);
 
         vm.prank(account);
         escrowMigrator.migrateEntries(account, _entryIDs);
+    }
+
+    function approve(address account) internal returns (uint256 toPay) {
+        toPay = escrowMigrator.toPay(account);
+        vm.prank(account);
+        kwenta.approve(address(escrowMigrator), toPay);
     }
 
     function migrateEntries(address account, uint256 index, uint256 amount)
@@ -154,6 +159,11 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         uint256[] memory _entryIDs = getEntryIDs(account, index, amount);
         vm.prank(account);
         rewardEscrowV1.vest(_entryIDs);
+    }
+
+    function vestAndApprove(address account, uint256 index, uint256 amount) internal {
+        vest(account, index, amount);
+        approve(account);
     }
 
     function registerEntries(address account, uint256 index, uint256 amount)
@@ -417,16 +427,23 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
     //     escrowMigrator.confirmEntriesAreVested(_entryIDs);
     // }
 
+    function claimRegisterVestAndApprove(address account, uint256 index, uint256 amount)
+        internal
+        returns (uint256[] memory _entryIDs, uint256 numVestingEntries, uint256 toPay)
+    {
+        (_entryIDs, numVestingEntries) = claimRegisterAndVestEntries(account, index, amount);
+        toPay = approve(account);
+
+        return (_entryIDs, numVestingEntries, toPay);
+    }
+
     function claimRegisterVestAndApprove(address account, uint256[] memory _entryIDs)
         internal
         returns (uint256[] memory, uint256 numVestingEntries, uint256 toPay)
     {
         (_entryIDs, numVestingEntries) = claimRegisterAndVestEntries(account, _entryIDs);
+        toPay = approve(account);
 
-        toPay = escrowMigrator.toPay(account);
-
-        vm.prank(account);
-        kwenta.approve(address(escrowMigrator), toPay);
         return (_entryIDs, numVestingEntries, toPay);
     }
 
@@ -449,11 +466,7 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
     {
         // register and vest
         (_entryIDs, numVestingEntries) = claimRegisterAndVestAllEntries(account);
-
-        toPay = escrowMigrator.toPay(account);
-
-        vm.prank(account);
-        kwenta.approve(address(escrowMigrator), toPay);
+        toPay = approve(account);
     }
 
     // function moveToPaidState(address account)
@@ -464,8 +477,8 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
     //     (_entryIDs, numVestingEntries,) = registerVestAndConfirmAllEntries(account);
 
     //     // migrate with 0 entries
-    //     vm.prank(account);
-    //     kwenta.approve(address(escrowMigrator), type(uint256).max);
+    //     approve(account);
+
     //     _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(account, 0, 0);
     //     vm.prank(account);
     //     escrowMigrator.migrateEntries(account, _entryIDs);
@@ -482,8 +495,7 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
     //     (_entryIDs, numVestingEntries,) = registerVestAndConfirmAllEntries(account);
 
     //     // migrate with all entries
-    //     vm.prank(account);
-    //     kwenta.approve(address(escrowMigrator), type(uint256).max);
+    //     approve(account);
     //     vm.prank(account);
     //     escrowMigrator.migrateEntries(account, _entryIDs);
     // }

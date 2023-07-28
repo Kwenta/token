@@ -342,7 +342,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 
         uint256 numMigrated;
         for (uint256 i = 0; i < numRounds; i++) {
-            // step 3 - migrate some entries
+            // step 2 - migrate some entries
             if (numMigrated == numVestingEntries) {
                 break;
             }
@@ -355,11 +355,11 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
     }
 
     /*//////////////////////////////////////////////////////////////
-                           STEP 3 EDGE CASES
+                           STEP 2 EDGE CASES
     //////////////////////////////////////////////////////////////*/
 
-    function test_Step_3_Must_Pay() public {
-        // complete step 1 and 2
+    function test_Step_2_Must_Pay() public {
+        // complete step 1
         (uint256[] memory _entryIDs,) = claimRegisterAndVestAllEntries(user1);
 
         // step 3.2 - migrate entries
@@ -368,14 +368,14 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         escrowMigrator.migrateEntries(user1, _entryIDs);
     }
 
-    function test_Step_3_Must_Pay_Fuzz(uint256 approveAmount) public {
+    function test_Step_2_Must_Pay_Fuzz(uint256 approveAmount) public {
         // complete step 1 and 2
         (uint256[] memory _entryIDs, uint256 toPay) = claimRegisterAndVestAllEntries(user1);
 
         vm.prank(user1);
         kwenta.approve(address(escrowMigrator), approveAmount);
 
-        // step 3.2 - migrate entries
+        // step 2 - migrate entries
         vm.prank(user1);
         if (toPay > approveAmount) {
             vm.expectRevert("ERC20: transfer amount exceeds allowance");
@@ -384,18 +384,28 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
     }
 
     function test_Cannot_Migrate_Non_Registered_Entries() public {
-        // // complete step 1 and 2
-        // uint256[] memory _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 10);
-        // registerVestConfirmAndApproveEntries(user1, _entryIDs);
+        // complete step 1
+        claimRegisterVestAndApprove(user1, 0, 10);
 
-        // // step 3.2 - migrate extra entries
-        // _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 17);
-        // vm.prank(user1);
-        // escrowMigrator.migrateEntries(user1, _entryIDs);
+        // step 2 - migrate extra entries
+        migrateEntries(user1, 0, 17);
 
-        // // check final state
-        // _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 10);
-        // checkStateAfterStepTwo(user1, _entryIDs, true);
+        // check final state
+        checkStateAfterStepTwo(user1, 0, 10);
+    }
+
+    function test_Cannot_Migrate_Non_Registered_Late_Vested_Entries() public {
+        // complete step 1
+        claimRegisterAndVestEntries(user1, 0, 10);
+
+        // vest extra entries and approve
+        vestAndApprove(user1, 0, 17);
+
+        // step 2 - migrate extra entries
+        migrateEntries(user1, 0, 17);
+
+        // check final state
+        checkStateAfterStepTwo(user1, 0, 10);
     }
 
     // function test_Cannot_Duplicate_Migrate_Entries() public {
