@@ -1003,35 +1003,35 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         checkStateAfterStepTwo(user1, 0, 17);
     }
 
-    // /*//////////////////////////////////////////////////////////////
-    //                    STRANGE FLOWS UP TO STEP 3
-    // //////////////////////////////////////////////////////////////*/
+    /*//////////////////////////////////////////////////////////////
+                      STRANGE FLOWS BEYOND STEP 2
+    //////////////////////////////////////////////////////////////*/
 
-    // function test_MVM() public {
-    //     claimRegisterAndVestEntries(user1, 0, 10);
+    function test_MVM() public {
+        claimRegisterAndVestEntries(user1, 0, 10);
 
-    //     // M
-    //     confirm(user1, 0, 10);
-    //     // V
-    //     vest(user1, 0, 17);
-    //     // M
-    //     approveAndMigrate(user1, 0, 10);
+        // M
+        approveAndMigrate(user1, 0, 10);
+        // V
+        vest(user1, 0, 17);
+        // M
+        approveAndMigrate(user1, 0, 10);
 
-    //     checkStateAfterStepTwo(user1, 0, 10);
-    // }
+        checkStateAfterStepTwo(user1, 0, 10);
+    }
 
-    // function test_MCM() public {
-    //     claimRegisterAndVestEntries(user1, 0, 17);
+    function test_MCM() public {
+        claimRegisterAndVestEntries(user1, 0, 17);
 
-    //     // M
-    //     confirm(user1, 0, 17);
-    //     // C
-    //     createRewardEscrowEntryV1(user1, 1 ether);
-    //     // M
-    //     approveAndMigrate(user1, 0, 17);
+        // M
+        approveAndMigrate(user1, 0, 17);
+        // C
+        createRewardEscrowEntryV1(user1, 1 ether);
+        // M
+        approveAndMigrate(user1, 0, 17);
 
-    //     checkStateAfterStepTwo(user1, 0, 17);
-    // }
+        checkStateAfterStepTwo(user1, 0, 17);
+    }
 }
 
 // Up to step 3
