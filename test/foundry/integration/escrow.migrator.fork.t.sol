@@ -1028,16 +1028,29 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         // C
         createRewardEscrowEntryV1(user1, 1 ether);
         // M
+        approveAndMigrate(user1, 0, 18);
+
+        checkStateAfterStepTwo(user1, 0, 17);
+    }
+
+    function test_MCVM() public {
+        claimRegisterAndVestEntries(user1, 0, 17);
+
+        // M
         approveAndMigrate(user1, 0, 17);
+        // C
+        createRewardEscrowEntryV1(user1, 1 ether);
+        // V
+        vest(user1, 0, 18);
+        // M
+        approveAndMigrate(user1, 0, 18);
 
         checkStateAfterStepTwo(user1, 0, 17);
     }
 }
 
-// Up to step 3
+// Beyond Step 2
 
-// MCVM
-// MVCM
 
 // TODO: 3. Update checkState helpers to account for expected changes in rewardEscrowV1.balanceOf
 // TODO: 4. Update checkState helpers to account for expected changes in totalRegisteredEscrow and similar added new variables
