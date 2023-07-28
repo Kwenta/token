@@ -198,6 +198,56 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
     }
 
     // /*//////////////////////////////////////////////////////////////
+    //                       STEP 1 STATE LIMITS
+    // //////////////////////////////////////////////////////////////*/
+
+    // function test_Cannot_Register_In_Vesting_Confirmed_State() public {
+    //     // complete step 1 and vest
+    //     (uint256[] memory _entryIDs,,) = registerVestAndConfirmAllEntries(user1);
+
+    //     // To avoid NoEscrowBalanceToMigrate check (not necessary, but bulletproofs against future changes)
+    //     vm.prank(treasury);
+    //     kwenta.approve(address(rewardEscrowV1), 1 ether);
+    //     vm.prank(treasury);
+    //     rewardEscrowV1.createEscrowEntry(user1, 1 ether, 52 weeks);
+
+    //     // attempt in VESTING_CONFIRMED state
+    //     assertEq(
+    //         uint256(escrowMigrator.migrationStatus(user1)),
+    //         uint256(IEscrowMigrator.MigrationStatus.VESTING_CONFIRMED)
+    //     );
+    //     vm.prank(user1);
+    //     vm.expectRevert(IEscrowMigrator.MustBeInitiatedOrRegistered.selector);
+    //     escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
+    // }
+
+    // function test_Cannot_Register_In_Paid_State() public {
+    //     // move to paid state
+    //     (uint256[] memory _entryIDs,) = moveToPaidState(user1);
+
+    //     assertEq(
+    //         uint256(escrowMigrator.migrationStatus(user1)),
+    //         uint256(IEscrowMigrator.MigrationStatus.PAID)
+    //     );
+    //     vm.prank(user1);
+    //     vm.expectRevert(IEscrowMigrator.MustBeInitiatedOrRegistered.selector);
+    //     escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
+    // }
+
+    // function test_Cannot_Register_In_Completed_State() public {
+    //     // move to completed state
+    //     (uint256[] memory _entryIDs,) = moveToCompletedState(user1);
+
+    //     assertEq(
+    //         uint256(escrowMigrator.migrationStatus(user1)),
+    //         uint256(IEscrowMigrator.MigrationStatus.COMPLETED)
+    //     );
+    //     vm.prank(user1);
+    //     vm.expectRevert(IEscrowMigrator.MustBeInitiatedOrRegistered.selector);
+    //     escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
+    // }
+
+    // /*//////////////////////////////////////////////////////////////
     //                    CONFIRMATION STEP TESTS
     // //////////////////////////////////////////////////////////////*/
 
