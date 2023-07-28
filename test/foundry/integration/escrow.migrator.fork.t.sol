@@ -593,7 +593,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         // this is the malicious entry - the duration is set to 1
         createRewardEscrowEntryV1(user1, 50 ether, 1);
 
-        (uint256[] memory _entryIDs, uint256 numVestingEntries,) = fullyMigrateAllEntries(user1);
+        (uint256[] memory _entryIDs, uint256 numVestingEntries,) = claimAndFullyMigrate(user1);
         checkStateAfterStepTwo(user1, _entryIDs);
 
         // specifically
@@ -635,18 +635,18 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         checkStateAfterStepTwo(user1, 0, 0);
     }
 
-    // function test_Cannot_Migrate_In_Completed_State() public {
-    //     // move to completed state
-    //     (uint256[] memory _entryIDs,) = moveToCompletedState(user1);
+    function test_Can_Migrate_In_Completed_State() public {
+        // move to completed state
+        moveToCompletedState(user1);
 
-    //     assertEq(
-    //         uint256(escrowMigrator.migrationStatus(user1)),
-    //         uint256(IEscrowMigrator.MigrationStatus.COMPLETED)
-    //     );
-    //     vm.prank(user1);
-    //     vm.expectRevert(IEscrowMigrator.MustBeInPaidState.selector);
-    //     escrowMigrator.migrateEntries(user1, _entryIDs);
-    // }
+        createRewardEscrowEntryV1(user1, 10 ether);
+        createRewardEscrowEntryV1(user1, 10 ether);
+        createRewardEscrowEntryV1(user1, 10 ether);
+
+        fullyMigrate(user1, 17, 3);
+
+        checkStateAfterStepTwo(user1, 0, 20);
+    }
 
     // // TODO: can migrate, then register more entries?
     // // TODO: test sending entries to another `to` address

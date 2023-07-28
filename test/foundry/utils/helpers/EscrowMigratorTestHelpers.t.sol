@@ -123,13 +123,19 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
                             COMMAND HELPERS
     //////////////////////////////////////////////////////////////*/
 
+    function approveAndMigrate(address account) internal {
+        uint256[] memory _entryIDs = getEntryIDs(account);
+        approveAndMigrate(account, _entryIDs);
+    }
+
     function approveAndMigrate(address account, uint256 index, uint256 amount) internal {
         uint256[] memory _entryIDs = getEntryIDs(account, index, amount);
+        approveAndMigrate(account, _entryIDs);
+    }
 
+    function approveAndMigrate(address account, uint256[] memory _entryIDs) internal {
         approve(account);
-
-        vm.prank(account);
-        escrowMigrator.migrateEntries(account, _entryIDs);
+        migrateEntries(account, _entryIDs);
     }
 
     function approve(address account) internal returns (uint256 toPay) {
@@ -160,8 +166,17 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         return _entryIDs;
     }
 
+    function vest(address account) internal {
+        uint256[] memory _entryIDs = getEntryIDs(account);
+        vest(account, _entryIDs);
+    }
+
     function vest(address account, uint256 index, uint256 amount) internal {
         uint256[] memory _entryIDs = getEntryIDs(account, index, amount);
+        vest(account, _entryIDs);
+    }
+
+    function vest(address account, uint256[] memory _entryIDs) internal {
         vm.prank(account);
         rewardEscrowV1.vest(_entryIDs);
     }
@@ -182,6 +197,57 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
     function registerEntries(address account, uint256[] memory _entryIDs) internal {
         vm.prank(account);
         escrowMigrator.registerEntries(_entryIDs);
+    }
+
+    function registerAndVestEntries(address account)
+        internal
+        returns (uint256[] memory _entryIDs, uint256 numVestingEntries)
+    {
+        _entryIDs = getEntryIDs(account);
+        return registerAndVestEntries(account, _entryIDs);
+    }
+
+    function registerAndVestEntries(address account, uint256 index, uint256 amount)
+        internal
+        returns (uint256[] memory _entryIDs, uint256 numVestingEntries)
+    {
+        _entryIDs = getEntryIDs(account, index, amount);
+        return registerAndVestEntries(account, _entryIDs);
+    }
+
+    function registerAndVestEntries(address account, uint256[] memory _entryIDs)
+        internal
+        returns (uint256[] memory, uint256 numVestingEntries)
+    {
+        vm.prank(account);
+        escrowMigrator.registerEntries(_entryIDs);
+        vest(account, _entryIDs);
+        return (_entryIDs, _entryIDs.length);
+    }
+
+    function registerVestAndApprove(address account)
+        internal
+        returns (uint256[] memory _entryIDs, uint256 numVestingEntries, uint256 toPay)
+    {
+        _entryIDs = getEntryIDs(account);
+        return registerVestAndApprove(account, _entryIDs);
+    }
+
+    function registerVestAndApprove(address account, uint256 index, uint256 amount)
+        internal
+        returns (uint256[] memory _entryIDs, uint256 numVestingEntries, uint256 toPay)
+    {
+        _entryIDs = getEntryIDs(account, index, amount);
+        return registerVestAndApprove(account, _entryIDs);
+    }
+
+    function registerVestAndApprove(address account, uint256[] memory _entryIDs)
+        internal
+        returns (uint256[] memory, uint256 numVestingEntries, uint256 toPay)
+    {
+        (, numVestingEntries) = registerAndVestEntries(account, _entryIDs);
+        toPay = approve(account);
+        return (_entryIDs, numVestingEntries, toPay);
     }
 
     function claimAndRegisterEntries(address account, uint256 index, uint256 amount)
@@ -414,13 +480,38 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
     //                          STEP 3 HELPERS
     // //////////////////////////////////////////////////////////////*/
 
-    function fullyMigrateAllEntries(address account)
+    function claimAndFullyMigrate(address account)
         internal
         returns (uint256[] memory, uint256, uint256)
     {
         (uint256[] memory _entryIDs,, uint256 toPay) = claimRegisterVestAndApprove(account);
         migrateEntries(account);
         return (_entryIDs, _entryIDs.length, toPay);
+    }
+
+    function fullyMigrate(address account)
+        internal
+        returns (uint256[] memory _entryIDs, uint256 numVestingEntries, uint256 toPay)
+    {
+        _entryIDs = getEntryIDs(account);
+        return fullyMigrate(account, _entryIDs);
+    }
+
+    function fullyMigrate(address account, uint256 index, uint256 amount)
+        internal
+        returns (uint256[] memory _entryIDs, uint256 numVestingEntries, uint256 toPay)
+    {
+        _entryIDs = getEntryIDs(account, index, amount);
+        return fullyMigrate(account, _entryIDs);
+    }
+
+    function fullyMigrate(address account, uint256[] memory _entryIDs)
+        internal
+        returns (uint256[] memory, uint256 numVestingEntries, uint256 toPay)
+    {
+        (, numVestingEntries, toPay) = registerVestAndApprove(account, _entryIDs);
+        migrateEntries(account, _entryIDs);
+        return (_entryIDs, numVestingEntries, toPay);
     }
 
     // function registerVestAndConfirmEntries(address account, uint256[] memory _entryIDs) internal {
@@ -490,18 +581,13 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
     //     _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(account, 0, numVestingEntries);
     // }
 
-    // function moveToCompletedState(address account)
-    //     internal
-    //     returns (uint256[] memory _entryIDs, uint256 numVestingEntries)
-    // {
-    //     // register, vest and confirm
-    //     (_entryIDs, numVestingEntries,) = registerVestAndConfirmAllEntries(account);
-
-    //     // migrate with all entries
-    //     approve(account);
-    //     vm.prank(account);
-    //     escrowMigrator.migrateEntries(account, _entryIDs);
-    // }
+    function moveToCompletedState(address account)
+        internal
+        returns (uint256[] memory _entryIDs, uint256 numVestingEntries)
+    {
+        (_entryIDs, numVestingEntries,) = claimRegisterVestAndApprove(account);
+        approveAndMigrate(account);
+    }
 
     function checkStateAfterStepTwo(address account, uint256 index, uint256 amount) internal {
         uint256[] memory _entryIDs = getEntryIDs(account, index, amount);
