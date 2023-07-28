@@ -14,17 +14,7 @@ interface IEscrowMigrator {
         uint256 duration;
         // The time at which the entry will be fully matured
         uint64 endTime;
-        bool confirmed;
         bool migrated;
-    }
-
-    enum MigrationStatus {
-        NOT_STARTED,
-        INITIATED,
-        REGISTERED,
-        VESTING_CONFIRMED,
-        PAID,
-        COMPLETED
     }
 
     // Register start of migration - stores users vested balance
@@ -61,15 +51,7 @@ interface IEscrowMigrator {
 
     error MustClaimStakingRewards();
 
-    error MigrationAlreadyStarted();
-
     error NoEscrowBalanceToMigrate();
 
-    error MustBeInitiatedOrRegistered();
-
-    error MustBeInRegisteredState();
-
-    error MustBeInVestingConfirmedState();
-
-    error MustBeInPaidState();
+    error MustBeInitiated();
 }
