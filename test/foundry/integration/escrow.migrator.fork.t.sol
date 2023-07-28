@@ -1031,13 +1031,46 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 
         checkStateAfterStepTwo(user1, 0, 6, false);
     }
+
+    function test_RVRVNC() public {
+        // R
+        claimAndRegisterEntries(user1, 0, 6);
+        // V
+        vest(user1, 0, 3);
+        // R
+        registerEntries(user1, 6, 4);
+        // V
+        vest(user1, 3, 7);
+        // N
+        createRewardEscrowEntryV1(user1, 1 ether);
+        // C
+        confirm(user1, 0, 10);
+
+        checkStateAfterStepTwo(user1, 0, 10, true);
+    }
+
+    function test_RNVCRVC() public {
+        // R
+        claimAndRegisterEntries(user1, 0, 6);
+        // N
+        createRewardEscrowEntryV1(user1, 1 ether);
+        // V
+        vest(user1, 0, 3);
+        // C
+        confirm(user1, 0, 6);
+        // R
+        registerEntries(user1, 6, 4);
+        // V
+        vest(user1, 3, 7);
+        // C
+        confirm(user1, 0, 10);
+
+        checkStateAfterStepTwo(user1, 0, 10, true);
+    }
 }
 
 // Up to step 2
-// RVRNVC
-// RVRVNC
 
-// RNVCRVC
 // RVNCRVC
 // RVCNRVC
 // RVCRNVC
