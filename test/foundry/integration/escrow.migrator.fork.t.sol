@@ -865,27 +865,96 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
     /// So for example, RVC means register, vest, confirm, in that order
 
     function test_RVRVC() public {
+        // R
         uint256[] memory _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 5);
         registerEntries(user1, _entryIDs);
 
+        // V
         vm.prank(user1);
         rewardEscrowV1.vest(_entryIDs);
 
+        // R
         _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 5, 5);
-
         vm.prank(user1);
         escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
 
+        // V
         vm.prank(user1);
         rewardEscrowV1.vest(_entryIDs);
 
+        // C
         _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 10);
         vm.prank(user1);
         escrowMigrator.confirmEntriesAreVested(_entryIDs);
 
         checkStateAfterStepTwo(user1, _entryIDs, true);
     }
+
+    function test_RVCRVC() public {
+        // R
+        uint256[] memory _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 6);
+        registerEntries(user1, _entryIDs);
+
+        // V
+        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 5);
+        vm.prank(user1);
+        rewardEscrowV1.vest(_entryIDs);
+
+        // C
+        vm.prank(user1);
+        escrowMigrator.confirmEntriesAreVested(_entryIDs);
+
+        // R
+        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 6, 4);
+        vm.prank(user1);
+        escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
+
+        // V
+        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 5, 5);
+        vm.prank(user1);
+        rewardEscrowV1.vest(_entryIDs);
+
+        // C
+        vm.prank(user1);
+        escrowMigrator.confirmEntriesAreVested(_entryIDs);
+
+        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 10);
+        checkStateAfterStepTwo(user1, _entryIDs, true);
+    }
 }
+
+// RVCRVC
+
+// Up to step 1
+// NR
+// VR
+// NVR
+// VNR
+
+// Up to step 2
+// RNC
+
+// RNVC
+// RVNC
+
+// RNVRVC
+// RVNRVC
+// RVRNVC
+// RVRVNC
+
+// RNVCRVC
+// RVNCRVC
+// RVCNRVC
+// RVCRNVC
+// RVCRVNC
+
+// Up to step 3
+// CVM
+// CNM
+
+// CNVM
+// CVNM
+
 
 // TODO: 3. Update checkState helpers to account for expected changes in rewardEscrowV1.balanceOf
 // TODO: 4. Update checkState helpers to account for expected changes in totalRegisteredEscrow and similar added new variables
