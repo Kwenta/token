@@ -712,31 +712,31 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         assertCloseTo(newTotalFee, totalFee, totalFee / 100);
     }
 
-    // /*//////////////////////////////////////////////////////////////
-    //                     STRANGE EFFECTIVE FLOWS
-    // //////////////////////////////////////////////////////////////*/
+    /*//////////////////////////////////////////////////////////////
+                        STRANGE EFFECTIVE FLOWS
+    //////////////////////////////////////////////////////////////*/
 
-    // /// @dev There are numerous different ways the user could interact with the system,
-    // /// as opposed for the way we intend for the user to interact with the system.
-    // /// These tests check that users going "alterantive routes" don't break the system.
-    // /// In order to breifly annoate special flows, I have created an annotation system:
-    // /// R = register, V = vest, C = confirm, M = migrate, P = pay, N = create new escrow entry
-    // /// So for example, RVC means register, vest, confirm, in that order
+    /// @dev There are numerous different ways the user could interact with the system,
+    /// as opposed for the way we intend for the user to interact with the system.
+    /// These tests check that users going "alterantive routes" don't break the system.
+    /// In order to breifly annoate special flows, I have created an annotation system:
+    /// R = register, V = vest, M = migrate, C = create new escrow entry
+    /// So for example, RVC means register, vest, confirm, in that order
 
-    // function test_RVRVC() public {
-    //     // R
-    //     claimAndRegisterEntries(user1, 0, 5);
-    //     // V
-    //     vest(user1, 0, 5);
-    //     // R
-    //     registerEntries(user1, 5, 5);
-    //     // V
-    //     vest(user1, 5, 5);
-    //     // C
-    //     confirm(user1, 0, 10);
+    function test_RVRVM() public {
+        // R
+        claimAndRegisterEntries(user1, 0, 5);
+        // V
+        vest(user1, 0, 5);
+        // R
+        registerEntries(user1, 5, 5);
+        // V
+        vest(user1, 5, 5);
+        // C
+        approveAndMigrate(user1, 0, 10);
 
-    //     checkStateAfterStepTwo(user1, 0, 10, true);
-    // }
+        checkStateAfterStepTwo(user1, 0, 10);
+    }
 
     // function test_RVCRVC() public {
     //     // R
