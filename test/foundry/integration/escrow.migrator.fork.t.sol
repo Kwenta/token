@@ -867,16 +867,12 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
     function test_RVRVC() public {
         // R
         claimAndRegisterEntries(user1, 0, 5);
-
         // V
         vest(user1, 0, 5);
-
         // R
         registerEntries(user1, 5, 5);
-
         // V
         vest(user1, 5, 5);
-
         // C
         confirm(user1, 0, 10);
 
@@ -885,34 +881,19 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 
     function test_RVCRVC() public {
         // R
-        uint256[] memory _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 6);
-        claimAndRegisterEntries(user1, _entryIDs);
-
+        claimAndRegisterEntries(user1, 0, 6);
         // V
-        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 5);
-        vm.prank(user1);
-        rewardEscrowV1.vest(_entryIDs);
-
+        vest(user1, 0, 5);
         // C
-        vm.prank(user1);
-        escrowMigrator.confirmEntriesAreVested(_entryIDs);
-
+        confirm(user1, 0, 5);
         // R
-        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 6, 4);
-        vm.prank(user1);
-        escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
-
+        registerEntries(user1, 6, 4);
         // V
-        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 5, 5);
-        vm.prank(user1);
-        rewardEscrowV1.vest(_entryIDs);
-
+        vest(user1, 5, 5);
         // C
-        vm.prank(user1);
-        escrowMigrator.confirmEntriesAreVested(_entryIDs);
+        confirm(user1, 5, 5);
 
-        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 10);
-        checkStateAfterStepTwo(user1, _entryIDs, true);
+        checkStateAfterStepTwo(user1, 0, 10, true);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -949,7 +930,6 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 
 // CNVM
 // CVNM
-
 
 // TODO: 3. Update checkState helpers to account for expected changes in rewardEscrowV1.balanceOf
 // TODO: 4. Update checkState helpers to account for expected changes in totalRegisteredEscrow and similar added new variables
