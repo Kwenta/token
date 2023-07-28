@@ -759,8 +759,8 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
                        STRANGE FLOWS UP TO STEP 1
     //////////////////////////////////////////////////////////////*/
 
-    function test_NR() public {
-        // N
+    function test_CR() public {
+        // C
         createRewardEscrowEntryV1(user1, 1 ether);
         // R
         claimAndRegisterEntries(user1, 0, 6);
@@ -777,8 +777,8 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         checkStateAfterStepOne(user1, 3, 3, true);
     }
 
-    function test_NVR() public {
-        // N
+    function test_CVR() public {
+        // C
         createRewardEscrowEntryV1(user1, 1 ether);
         // V
         vest(user1, 0, 3);
@@ -788,10 +788,10 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         checkStateAfterStepOne(user1, 3, 3, true);
     }
 
-    function test_VNR() public {
+    function test_VCR() public {
         // V
         vest(user1, 0, 3);
-        // N
+        // C
         createRewardEscrowEntryV1(user1, 1 ether);
         // R
         claimAndRegisterEntries(user1, 0, 6);
@@ -799,51 +799,51 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         checkStateAfterStepOne(user1, 3, 3, true);
     }
 
-    // /*//////////////////////////////////////////////////////////////
-    //                    STRANGE FLOWS UP TO STEP 2
-    // //////////////////////////////////////////////////////////////*/
+    /*//////////////////////////////////////////////////////////////
+                       STRANGE FLOWS UP TO STEP 2
+    //////////////////////////////////////////////////////////////*/
 
-    // function test_RNC() public {
+    function test_RCM() public {
+        // R
+        claimAndRegisterEntries(user1, 0, 6);
+        // C
+        createRewardEscrowEntryV1(user1, 1 ether);
+        // M
+        approveAndMigrate(user1, 0, 6);
+
+        checkStateAfterStepTwo(user1, 0, 0);
+    }
+
+    // function test_RCVM() public {
     //     // R
     //     claimAndRegisterEntries(user1, 0, 6);
-    //     // N
-    //     createRewardEscrowEntryV1(user1, 1 ether);
     //     // C
-    //     confirm(user1, 0, 6);
-
-    //     checkStateAfterStepTwo(user1, 0, 0, false);
-    // }
-
-    // function test_RNVC() public {
-    //     // R
-    //     claimAndRegisterEntries(user1, 0, 6);
-    //     // N
     //     createRewardEscrowEntryV1(user1, 1 ether);
     //     // V
     //     vest(user1, 0, 3);
-    //     // C
-    //     confirm(user1, 0, 6);
-
-    //     checkStateAfterStepTwo(user1, 0, 3, false);
-    // }
-
-    // function test_RVNC() public {
-    //     // R
-    //     claimAndRegisterEntries(user1, 0, 6);
-    //     // V
-    //     vest(user1, 0, 3);
-    //     // N
-    //     createRewardEscrowEntryV1(user1, 1 ether);
-    //     // C
+    //     // M
     //     confirm(user1, 0, 6);
 
     //     checkStateAfterStepTwo(user1, 0, 3, false);
     // }
 
-    // function test_RNVRVC() public {
+    // function test_RVCM() public {
     //     // R
     //     claimAndRegisterEntries(user1, 0, 6);
-    //     // N
+    //     // V
+    //     vest(user1, 0, 3);
+    //     // C
+    //     createRewardEscrowEntryV1(user1, 1 ether);
+    //     // M
+    //     confirm(user1, 0, 6);
+
+    //     checkStateAfterStepTwo(user1, 0, 3, false);
+    // }
+
+    // function test_RCVRVM() public {
+    //     // R
+    //     claimAndRegisterEntries(user1, 0, 6);
+    //     // C
     //     createRewardEscrowEntryV1(user1, 1 ether);
     //     // V
     //     vest(user1, 0, 3);
@@ -851,47 +851,47 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
     //     registerEntries(user1, 6, 4);
     //     // V
     //     vest(user1, 3, 3);
-    //     // C
+    //     // M
     //     confirm(user1, 0, 10);
 
     //     checkStateAfterStepTwo(user1, 0, 6, false);
     // }
 
-    // function test_RVNRVC() public {
+    // function test_RVCRVM() public {
     //     // R
     //     claimAndRegisterEntries(user1, 0, 6);
     //     // V
     //     vest(user1, 0, 3);
-    //     // N
+    //     // C
     //     createRewardEscrowEntryV1(user1, 1 ether);
     //     // R
     //     registerEntries(user1, 6, 4);
     //     // V
     //     vest(user1, 3, 3);
-    //     // C
+    //     // M
     //     confirm(user1, 0, 10);
 
     //     checkStateAfterStepTwo(user1, 0, 6, false);
     // }
 
-    // function test_RVRNVC() public {
+    // function test_RVRCVM() public {
     //     // R
     //     claimAndRegisterEntries(user1, 0, 6);
     //     // V
     //     vest(user1, 0, 3);
     //     // R
     //     registerEntries(user1, 6, 4);
-    //     // N
+    //     // C
     //     createRewardEscrowEntryV1(user1, 1 ether);
     //     // V
     //     vest(user1, 3, 3);
-    //     // C
+    //     // M
     //     confirm(user1, 0, 10);
 
     //     checkStateAfterStepTwo(user1, 0, 6, false);
     // }
 
-    // function test_RVRVNC() public {
+    // function test_RVRVCM() public {
     //     // R
     //     claimAndRegisterEntries(user1, 0, 6);
     //     // V
@@ -900,104 +900,104 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
     //     registerEntries(user1, 6, 4);
     //     // V
     //     vest(user1, 3, 7);
-    //     // N
-    //     createRewardEscrowEntryV1(user1, 1 ether);
     //     // C
+    //     createRewardEscrowEntryV1(user1, 1 ether);
+    //     // M
     //     confirm(user1, 0, 10);
 
     //     checkStateAfterStepTwo(user1, 0, 10, true);
     // }
 
-    // function test_RNVCRVC() public {
+    // function test_RCVMRVM() public {
     //     // R
     //     claimAndRegisterEntries(user1, 0, 6);
-    //     // N
+    //     // C
     //     createRewardEscrowEntryV1(user1, 1 ether);
     //     // V
     //     vest(user1, 0, 3);
-    //     // C
+    //     // M
     //     confirm(user1, 0, 6);
     //     // R
     //     registerEntries(user1, 6, 4);
     //     // V
     //     vest(user1, 3, 7);
-    //     // C
+    //     // M
     //     confirm(user1, 0, 10);
 
     //     checkStateAfterStepTwo(user1, 0, 10, true);
     // }
 
-    // function test_RVNCRVC() public {
+    // function test_RVCMRVM() public {
     //     // R
     //     claimAndRegisterEntries(user1, 0, 6);
     //     // V
     //     vest(user1, 0, 3);
-    //     // N
-    //     createRewardEscrowEntryV1(user1, 1 ether);
     //     // C
+    //     createRewardEscrowEntryV1(user1, 1 ether);
+    //     // M
     //     confirm(user1, 0, 6);
     //     // R
     //     registerEntries(user1, 6, 4);
     //     // V
     //     vest(user1, 3, 7);
-    //     // C
+    //     // M
     //     confirm(user1, 0, 10);
 
     //     checkStateAfterStepTwo(user1, 0, 10, true);
     // }
 
-    // function test_RVCNRVC() public {
+    // function test_RVMCRVM() public {
     //     // R
     //     claimAndRegisterEntries(user1, 0, 10);
     //     // V
     //     vest(user1, 0, 3);
-    //     // C
+    //     // M
     //     confirm(user1, 0, 6);
-    //     // N
+    //     // C
     //     createRewardEscrowEntryV1(user1, 1 ether);
     //     // R
     //     registerEntries(user1, 10, 4);
     //     // V
     //     vest(user1, 3, 7);
-    //     // C
+    //     // M
     //     confirm(user1, 0, 10);
 
     //     checkStateAfterStepTwo(user1, 0, 10, false);
     // }
 
-    // function test_RVCRNVC() public {
+    // function test_RVMRCVM() public {
     //     // R
     //     claimAndRegisterEntries(user1, 0, 10);
     //     // V
     //     vest(user1, 0, 3);
-    //     // C
+    //     // M
     //     confirm(user1, 0, 6);
     //     // R
     //     registerEntries(user1, 10, 7);
-    //     // N
+    //     // C
     //     createRewardEscrowEntryV1(user1, 1 ether);
     //     // V
     //     vest(user1, 3, 14);
-    //     // C
+    //     // M
     //     confirm(user1, 3, 17);
 
     //     checkStateAfterStepTwo(user1, 0, 17, true);
     // }
 
-    // function test_RVCRVNC() public {
+    // function test_RVMRVCM() public {
     //     // R
     //     claimAndRegisterEntries(user1, 0, 10);
     //     // V
     //     vest(user1, 0, 3);
-    //     // C
+    //     // M
     //     confirm(user1, 0, 6);
     //     // R
     //     registerEntries(user1, 10, 7);
     //     // V
     //     vest(user1, 3, 14);
-    //     // N
-    //     createRewardEscrowEntryV1(user1, 1 ether);
     //     // C
+    //     createRewardEscrowEntryV1(user1, 1 ether);
+    //     // M
     //     confirm(user1, 3, 17);
 
     //     checkStateAfterStepTwo(user1, 0, 17, true);
@@ -1007,10 +1007,10 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
     //                    STRANGE FLOWS UP TO STEP 3
     // //////////////////////////////////////////////////////////////*/
 
-    // function test_CVM() public {
+    // function test_MVM() public {
     //     claimRegisterAndVestEntries(user1, 0, 10);
 
-    //     // C
+    //     // M
     //     confirm(user1, 0, 10);
     //     // V
     //     vest(user1, 0, 17);
@@ -1020,12 +1020,12 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
     //     checkStateAfterStepTwo(user1, 0, 10, true);
     // }
 
-    // function test_CNM() public {
+    // function test_MCM() public {
     //     claimRegisterAndVestEntries(user1, 0, 17);
 
-    //     // C
+    //     // M
     //     confirm(user1, 0, 17);
-    //     // N
+    //     // C
     //     createRewardEscrowEntryV1(user1, 1 ether);
     //     // M
     //     approveAndMigrate(user1, 0, 17);
@@ -1036,8 +1036,8 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 
 // Up to step 3
 
-// CNVM
-// CVNM
+// MCVM
+// MVCM
 
 // TODO: 3. Update checkState helpers to account for expected changes in rewardEscrowV1.balanceOf
 // TODO: 4. Update checkState helpers to account for expected changes in totalRegisteredEscrow and similar added new variables
