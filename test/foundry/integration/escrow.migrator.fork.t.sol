@@ -648,74 +648,69 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         checkStateAfterStepTwo(user1, 0, 20);
     }
 
-    // // TODO: can migrate, then register more entries?
     // // TODO: test sending entries to another `to` address
 
-    // /*//////////////////////////////////////////////////////////////
-    //                            FULL FLOW
-    // //////////////////////////////////////////////////////////////*/
+    /*//////////////////////////////////////////////////////////////
+                               FULL FLOW
+    //////////////////////////////////////////////////////////////*/
 
-    // function test_Migrator() public {
-    //     getStakingRewardsV1(user1);
+    function test_Migrator() public {
+        getStakingRewardsV1(user1);
 
-    //     uint256 v2BalanceBefore = rewardEscrowV2.escrowedBalanceOf(user1);
-    //     uint256 v1BalanceBefore = rewardEscrowV1.balanceOf(user1);
-    //     assertEq(v1BalanceBefore, 17.246155111414632908 ether);
-    //     assertEq(v2BalanceBefore, 0);
+        uint256 v2BalanceBefore = rewardEscrowV2.escrowedBalanceOf(user1);
+        uint256 v1BalanceBefore = rewardEscrowV1.balanceOf(user1);
+        assertEq(v1BalanceBefore, 17.246155111414632908 ether);
+        assertEq(v2BalanceBefore, 0);
 
-    //     uint256 numVestingEntries = rewardEscrowV1.numVestingEntries(user1);
-    //     assertEq(numVestingEntries, 17);
+        uint256 numVestingEntries = rewardEscrowV1.numVestingEntries(user1);
+        assertEq(numVestingEntries, 17);
 
-    //     entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, numVestingEntries);
-    //     assertEq(entryIDs.length, 17);
+        entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, numVestingEntries);
+        assertEq(entryIDs.length, 17);
 
-    //     (uint256 total, uint256 totalFee) = rewardEscrowV1.getVestingQuantity(user1, entryIDs);
+        (uint256 total, uint256 totalFee) = rewardEscrowV1.getVestingQuantity(user1, entryIDs);
 
-    //     assertEq(total, 3.819707122432513665 ether);
-    //     assertEq(totalFee, 13.426447988982119243 ether);
+        assertEq(total, 3.819707122432513665 ether);
+        assertEq(totalFee, 13.426447988982119243 ether);
 
-    //     // step 1
-    //     vm.prank(user1);
-    //     escrowMigrator.registerEntries(entryIDs);
+        // step 1
+        vm.prank(user1);
+        escrowMigrator.registerEntries(entryIDs);
 
-    //     uint256 step2UserBalance = kwenta.balanceOf(user1);
-    //     uint256 step2MigratorBalance = kwenta.balanceOf(address(escrowMigrator));
+        uint256 step2UserBalance = kwenta.balanceOf(user1);
+        uint256 step2MigratorBalance = kwenta.balanceOf(address(escrowMigrator));
 
-    //     // step 2.1 - vest
-    //     vm.prank(user1);
-    //     rewardEscrowV1.vest(entryIDs);
+        // step 2.1 - vest
+        vm.prank(user1);
+        rewardEscrowV1.vest(entryIDs);
 
-    //     uint256 step2UserBalanceAfterVest = kwenta.balanceOf(user1);
-    //     uint256 step2MigratorBalanceAfterVest = kwenta.balanceOf(address(escrowMigrator));
-    //     assertEq(step2UserBalanceAfterVest, step2UserBalance + total);
-    //     assertEq(step2MigratorBalanceAfterVest, step2MigratorBalance + totalFee);
+        uint256 step2UserBalanceAfterVest = kwenta.balanceOf(user1);
+        uint256 step2MigratorBalanceAfterVest = kwenta.balanceOf(address(escrowMigrator));
+        assertEq(step2UserBalanceAfterVest, step2UserBalance + total);
+        assertEq(step2MigratorBalanceAfterVest, step2MigratorBalance + totalFee);
 
-    //     // step 2.2 - confirm vest
-    //     vm.prank(user1);
-    //     escrowMigrator.confirmEntriesAreVested(entryIDs);
+        // step 2.2 - pay for migration
+        vm.prank(user1);
+        kwenta.approve(address(escrowMigrator), total);
 
-    //     // step 3.1 - pay for migration
-    //     vm.prank(user1);
-    //     kwenta.approve(address(escrowMigrator), total);
+        // step 2.3 - migrate entries
+        vm.prank(user1);
+        escrowMigrator.migrateEntries(user1, entryIDs);
 
-    //     // step 3.2 - migrate entries
-    //     vm.prank(user1);
-    //     escrowMigrator.migrateEntries(user1, entryIDs);
+        // check escrow sent to v2
+        uint256 v2BalanceAfter = rewardEscrowV2.escrowedBalanceOf(user1);
+        uint256 v1BalanceAfter = rewardEscrowV1.balanceOf(user1);
+        assertEq(v2BalanceAfter, v2BalanceBefore + total + totalFee);
+        assertEq(v1BalanceAfter, v1BalanceBefore - total - totalFee);
 
-    //     // check escrow sent to v2
-    //     uint256 v2BalanceAfter = rewardEscrowV2.escrowedBalanceOf(user1);
-    //     uint256 v1BalanceAfter = rewardEscrowV1.balanceOf(user1);
-    //     assertEq(v2BalanceAfter, v2BalanceBefore + total + totalFee);
-    //     assertEq(v1BalanceAfter, v1BalanceBefore - total - totalFee);
+        // confirm entries have right composition
+        entryIDs = rewardEscrowV2.getAccountVestingEntryIDs(user1, 0, numVestingEntries);
+        (uint256 newTotal, uint256 newTotalFee) = rewardEscrowV2.getVestingQuantity(entryIDs);
 
-    //     // confirm entries have right composition
-    //     entryIDs = rewardEscrowV2.getAccountVestingEntryIDs(user1, 0, numVestingEntries);
-    //     (uint256 newTotal, uint256 newTotalFee) = rewardEscrowV2.getVestingQuantity(entryIDs);
-
-    //     // check within 1% of target
-    //     assertCloseTo(newTotal, total, total / 100);
-    //     assertCloseTo(newTotalFee, totalFee, totalFee / 100);
-    // }
+        // check within 1% of target
+        assertCloseTo(newTotal, total, total / 100);
+        assertCloseTo(newTotalFee, totalFee, totalFee / 100);
+    }
 
     // /*//////////////////////////////////////////////////////////////
     //                     STRANGE EFFECTIVE FLOWS
