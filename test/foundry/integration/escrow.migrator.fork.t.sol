@@ -408,26 +408,22 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         checkStateAfterStepTwo(user1, 0, 10);
     }
 
-    // function test_Cannot_Duplicate_Migrate_Entries() public {
-    //     // complete step 1 and 2
-    //     (uint256[] memory _entryIDs,,) = registerVestConfirmAllEntriesAndApprove(user1);
+    function test_Cannot_Duplicate_Migrate_Entries() public {
+        // complete step 1
+        claimRegisterVestAndApprove(user1);
 
-    //     // pay extra to the escrow migrator, so it would have enough money to create the extra entries
-    //     vm.prank(treasury);
-    //     kwenta.transfer(address(escrowMigrator), 20 ether);
+        // pay extra to the escrow migrator, so it would have enough money to create the extra entries
+        vm.prank(treasury);
+        kwenta.transfer(address(escrowMigrator), 20 ether);
 
-    //     // step 3.2 - migrate some entries
-    //     _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 15);
-    //     vm.prank(user1);
-    //     escrowMigrator.migrateEntries(user1, _entryIDs);
+        // step 2 - migrate some entries
+        migrateEntries(user1, 0, 15);
+        // duplicate migrate
+        migrateEntries(user1, 0, 15);
 
-    //     // step 3.2 - duplicate migrate
-    //     vm.prank(user1);
-    //     escrowMigrator.migrateEntries(user1, _entryIDs);
-
-    //     // check final state
-    //     checkStateAfterStepTwo(user1, _entryIDs, true);
-    // }
+        // check final state
+        checkStateAfterStepTwo(user1, 0, 15);
+    }
 
     // function test_Cannot_Migrate_Non_Existing_Entries() public {
     //     // complete step 1 and 2
