@@ -269,6 +269,79 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
     // }
 
     // /*//////////////////////////////////////////////////////////////
+    //                  CONFIRMATION STEP STATE LIMITS
+    // //////////////////////////////////////////////////////////////*/
+
+    // function test_Cannot_Confirm_In_Not_Started_State() public {
+    //     (uint256[] memory _entryIDs,) = claimAndCheckInitialState(user1);
+
+    //     // attempt in NOT_STARTED state
+    //     assertEq(
+    //         uint256(escrowMigrator.migrationStatus(user1)),
+    //         uint256(IEscrowMigrator.MigrationStatus.NOT_STARTED)
+    //     );
+    //     vm.prank(user1);
+    //     vm.expectRevert(IEscrowMigrator.MustBeInRegisteredState.selector);
+    //     escrowMigrator.confirmEntriesAreVested(_entryIDs);
+    // }
+
+    // function test_Cannot_Confirm_In_Initiated_State() public {
+    //     (uint256[] memory _entryIDs,) = claimAndCheckInitialState(user1);
+
+    //     // attempt in INITIATED state
+    //     _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 0);
+    //     vm.prank(user1);
+    //     escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
+    //     assertEq(
+    //         uint256(escrowMigrator.migrationStatus(user1)),
+    //         uint256(IEscrowMigrator.MigrationStatus.INITIATED)
+    //     );
+    //     vm.prank(user1);
+    //     vm.expectRevert(IEscrowMigrator.MustBeInRegisteredState.selector);
+    //     escrowMigrator.confirmEntriesAreVested(_entryIDs);
+    // }
+
+    // function test_Cannot_Confirm_In_Vesting_Confirmed_State() public {
+    //     // complete step 1 and vest
+    //     (uint256[] memory _entryIDs,,) = registerVestAndConfirmAllEntries(user1);
+
+    //     // attempt in VESTING_CONFIRMED state
+    //     assertEq(
+    //         uint256(escrowMigrator.migrationStatus(user1)),
+    //         uint256(IEscrowMigrator.MigrationStatus.VESTING_CONFIRMED)
+    //     );
+    //     vm.prank(user1);
+    //     vm.expectRevert(IEscrowMigrator.MustBeInRegisteredState.selector);
+    //     escrowMigrator.confirmEntriesAreVested(_entryIDs);
+    // }
+
+    // function test_Cannot_Confirm_In_Paid_State() public {
+    //     // move to paid state
+    //     (uint256[] memory _entryIDs,) = moveToPaidState(user1);
+
+    //     assertEq(
+    //         uint256(escrowMigrator.migrationStatus(user1)),
+    //         uint256(IEscrowMigrator.MigrationStatus.PAID)
+    //     );
+    //     vm.prank(user1);
+    //     vm.expectRevert(IEscrowMigrator.MustBeInRegisteredState.selector);
+    //     escrowMigrator.confirmEntriesAreVested(_entryIDs);
+    // }
+
+    // function test_Cannot_Confirm_In_Completed_State() public {
+    //     // move to completed state
+    //     (uint256[] memory _entryIDs,) = moveToCompletedState(user1);
+
+    //     assertEq(
+    //         uint256(escrowMigrator.migrationStatus(user1)),
+    //         uint256(IEscrowMigrator.MigrationStatus.COMPLETED)
+    //     );
+    //     vm.prank(user1);
+    //     vm.expectRevert(IEscrowMigrator.MustBeInRegisteredState.selector);
+    //     escrowMigrator.confirmEntriesAreVested(_entryIDs);
+    // }
+
+    // /*//////////////////////////////////////////////////////////////
     //                 CONFIRMATION STEP EDGE CASES
     // //////////////////////////////////////////////////////////////*/
 
