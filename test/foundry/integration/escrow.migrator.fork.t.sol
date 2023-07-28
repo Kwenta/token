@@ -1067,14 +1067,83 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 
         checkStateAfterStepTwo(user1, 0, 10, true);
     }
+
+    function test_RVNCRVC() public {
+        // R
+        claimAndRegisterEntries(user1, 0, 6);
+        // V
+        vest(user1, 0, 3);
+        // N
+        createRewardEscrowEntryV1(user1, 1 ether);
+        // C
+        confirm(user1, 0, 6);
+        // R
+        registerEntries(user1, 6, 4);
+        // V
+        vest(user1, 3, 7);
+        // C
+        confirm(user1, 0, 10);
+
+        checkStateAfterStepTwo(user1, 0, 10, true);
+    }
+
+    function test_RVCNRVC() public {
+        // R
+        claimAndRegisterEntries(user1, 0, 10);
+        // V
+        vest(user1, 0, 3);
+        // C
+        confirm(user1, 0, 6);
+        // N
+        createRewardEscrowEntryV1(user1, 1 ether);
+        // R
+        registerEntries(user1, 10, 4);
+        // V
+        vest(user1, 3, 7);
+        // C
+        confirm(user1, 0, 10);
+
+        checkStateAfterStepTwo(user1, 0, 10, false);
+    }
+
+    function test_RVCRNVC() public {
+        // R
+        claimAndRegisterEntries(user1, 0, 10);
+        // V
+        vest(user1, 0, 3);
+        // C
+        confirm(user1, 0, 6);
+        // R
+        registerEntries(user1, 10, 7);
+        // N
+        createRewardEscrowEntryV1(user1, 1 ether);
+        // V
+        vest(user1, 3, 14);
+        // C
+        confirm(user1, 3, 17);
+
+        checkStateAfterStepTwo(user1, 0, 17, true);
+    }
+
+    function test_RVCRVNC() public {
+        // R
+        claimAndRegisterEntries(user1, 0, 10);
+        // V
+        vest(user1, 0, 3);
+        // C
+        confirm(user1, 0, 6);
+        // R
+        registerEntries(user1, 10, 7);
+        // V
+        vest(user1, 3, 14);
+        // N
+        createRewardEscrowEntryV1(user1, 1 ether);
+        // C
+        confirm(user1, 3, 17);
+
+        checkStateAfterStepTwo(user1, 0, 17, true);
+    }
 }
-
-// Up to step 2
-
-// RVNCRVC
-// RVCNRVC
-// RVCRNVC
-// RVCRVNC
 
 // Up to step 3
 // CVM
