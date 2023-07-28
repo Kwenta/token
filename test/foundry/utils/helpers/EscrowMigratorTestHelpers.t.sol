@@ -118,6 +118,22 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
                             COMMAND HELPERS
     //////////////////////////////////////////////////////////////*/
 
+    function approveAndMigrate(address account, uint256 index, uint256 amount) public {
+        uint256[] memory _entryIDs = getEntryIDs(account, index, amount);
+
+        vm.prank(account);
+        kwenta.approve(address(escrowMigrator), type(uint256).max);
+
+        vm.prank(account);
+        escrowMigrator.migrateConfirmedEntries(account, _entryIDs);
+    }
+
+    function migrateEntries(address account, uint256 index, uint256 amount) public {
+        uint256[] memory _entryIDs = getEntryIDs(account, index, amount);
+        vm.prank(account);
+        escrowMigrator.migrateConfirmedEntries(account, _entryIDs);
+    }
+
     function confirm(address account, uint256 index, uint256 amount) public {
         uint256[] memory _entryIDs = getEntryIDs(account, index, amount);
         vm.prank(account);
@@ -158,6 +174,19 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         // step 1
         vm.prank(account);
         escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
+    }
+
+    function claimRegisterAndVestEntries(address account, uint256 index, uint256 amount) public {
+        uint256[] memory _entryIDs = getEntryIDs(account, index, amount);
+        claimRegisterAndVestEntries(account, _entryIDs);
+    }
+
+    function claimRegisterAndVestEntries(address account, uint256[] memory _entryIDs) internal {
+        claimAndRegisterEntries(account, _entryIDs);
+
+        // step 2.1 - vest
+        vm.prank(account);
+        rewardEscrowV1.vest(_entryIDs);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -258,14 +287,6 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
     /*//////////////////////////////////////////////////////////////
                              STEP 2 HELPERS
     //////////////////////////////////////////////////////////////*/
-
-    function registerAndVestEntries(address account, uint256[] memory _entryIDs) internal {
-        claimAndRegisterEntries(account, _entryIDs);
-
-        // step 2.1 - vest
-        vm.prank(account);
-        rewardEscrowV1.vest(_entryIDs);
-    }
 
     function registerAllEntries(address account)
         internal
@@ -371,7 +392,7 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
     }
 
     function registerVestAndConfirmEntries(address account, uint256[] memory _entryIDs) internal {
-        registerAndVestEntries(account, _entryIDs);
+        claimRegisterAndVestEntries(account, _entryIDs);
 
         vm.prank(account);
         escrowMigrator.confirmEntriesAreVested(_entryIDs);
@@ -380,7 +401,7 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
     function registerVestConfirmAndApproveEntries(address account, uint256[] memory _entryIDs)
         internal
     {
-        registerAndVestEntries(account, _entryIDs);
+        claimRegisterAndVestEntries(account, _entryIDs);
 
         vm.prank(account);
         escrowMigrator.confirmEntriesAreVested(_entryIDs);

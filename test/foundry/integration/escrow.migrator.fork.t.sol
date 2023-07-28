@@ -475,7 +475,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
     function test_Cannot_Confirm_Non_Registered_Entry() public {
         // complete step 1 and vest
         uint256[] memory _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 10);
-        registerAndVestEntries(user1, _entryIDs);
+        claimRegisterAndVestEntries(user1, _entryIDs);
 
         // step 2.2 - confirm vest
         _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 17);
@@ -1142,6 +1142,23 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         confirm(user1, 3, 17);
 
         checkStateAfterStepTwo(user1, 0, 17, true);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                       STRANGE FLOWS UP TO STEP 3
+    //////////////////////////////////////////////////////////////*/
+
+    function test_CVM() public {
+        claimRegisterAndVestEntries(user1, 0, 10);
+
+        // C
+        confirm(user1, 0, 10);
+        // V
+        vest(user1, 0, 17);
+        // M
+        approveAndMigrate(user1, 0, 10);
+
+        checkStateAfterStepThree(user1, 0, 10, true);
     }
 }
 
