@@ -485,6 +485,18 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         assertEq(earlyVestingFee, 90);
     }
 
+    function test_Cannot_Migrate_In_Non_Initiated_State() public {
+        (uint256[] memory _entryIDs,) = claimAndCheckInitialState(user1);
+
+        // attempt in non initiated state
+        assertEq(escrowMigrator.initiated(user1), false);
+
+        // step 2 - migrate entries
+        vm.prank(user1);
+        vm.expectRevert(IEscrowMigrator.MustBeInitiated.selector);
+        escrowMigrator.migrateEntries(user1, _entryIDs);
+    }
+
     // /*//////////////////////////////////////////////////////////////
     //                       STEP 3 STATE LIMITS
     // //////////////////////////////////////////////////////////////*/
