@@ -899,10 +899,18 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
     /*//////////////////////////////////////////////////////////////
                         STRANGE FLOWS PRE STEP 1
     //////////////////////////////////////////////////////////////*/
+
+    function test_NR() public {
+        // N
+        createRewardEscrowEntryV1(user1, 1 ether);
+        // R
+        claimAndRegisterEntries(user1, 0, 6);
+
+        checkStateAfterStepOne(user1, 0, 6, true);
+    }
 }
 
 // Up to step 1
-// NR
 // VR
 // NVR
 // VNR

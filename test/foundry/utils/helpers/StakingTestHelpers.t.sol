@@ -79,6 +79,24 @@ contract StakingTestHelpers is StakingV2Setup {
                             V1 Helper Functions
     //////////////////////////////////////////////////////////////*/
 
+    function createRewardEscrowEntryV1(address _account, uint256 _amount)
+        public
+    {
+        vm.prank(treasury);
+        kwenta.approve(address(rewardEscrowV1), _amount);
+        vm.prank(treasury);
+        rewardEscrowV1.createEscrowEntry(_account, _amount, 52 weeks);
+    }
+
+    function createRewardEscrowEntryV1(address _account, uint256 _amount, uint256 _duration)
+        public
+    {
+        vm.prank(treasury);
+        kwenta.approve(address(rewardEscrowV1), _amount);
+        vm.prank(treasury);
+        rewardEscrowV1.createEscrowEntry(_account, _amount, _duration);
+    }
+
     function addNewRewardsToStakingRewardsV1(uint256 _reward) public {
         vm.prank(treasury);
         kwenta.transfer(address(stakingRewardsV1), _reward);
