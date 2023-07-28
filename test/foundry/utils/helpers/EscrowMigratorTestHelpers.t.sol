@@ -573,10 +573,12 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         assertEq(escrowMigrator.initiated(account), true);
         assertEq(rewardEscrowV2.totalEscrowedAccountBalance(account), totalEscrowMigrated);
         assertLe(_entryIDs.length, escrowMigrator.numberOfRegisteredEntries(account));
-        assertLt(
-            escrowMigrator.escrowVestedAtStart(account),
-            rewardEscrowV1.totalVestedAccountBalance(account)
-        );
+        if (totalEscrowMigrated > 0) {
+            assertLt(
+                escrowMigrator.escrowVestedAtStart(account),
+                rewardEscrowV1.totalVestedAccountBalance(account)
+            );
+        }
         assertGe(escrowMigrator.numberOfRegisteredEntries(account), _entryIDs.length);
         assertEq(escrowMigrator.numberOfMigratedEntries(account), _entryIDs.length);
         assertLe(

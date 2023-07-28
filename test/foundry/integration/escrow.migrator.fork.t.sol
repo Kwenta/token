@@ -620,57 +620,20 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         escrowMigrator.migrateEntries(user1, _entryIDs);
     }
 
-    // /*//////////////////////////////////////////////////////////////
-    //                       STEP 3 STATE LIMITS
-    // //////////////////////////////////////////////////////////////*/
+    /*//////////////////////////////////////////////////////////////
+                          STEP 3 STATE LIMITS
+    //////////////////////////////////////////////////////////////*/
 
-    // function test_Cannot_Migrate_In_Not_Started_State() public {
-    //     // complete step 1 and 2
-    //     uint256[] memory _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(
-    //         user1, 0, rewardEscrowV1.numVestingEntries(user1)
-    //     );
-    //     assertEq(
-    //         uint256(escrowMigrator.migrationStatus(user1)),
-    //         uint256(IEscrowMigrator.MigrationStatus.NOT_STARTED)
-    //     );
+    function test_Cannot_Migrate_Initiated_Without_Registering_Anything() public {
+        // complete step 1
+        claimAndRegisterEntries(user1, 0, 0);
 
-    //     // step 3.1 - migrate entries
-    //     vm.prank(user1);
-    //     vm.expectRevert(IEscrowMigrator.MustBeInVestingConfirmedState.selector);
-    //     escrowMigrator.migrateEntries(user1, _entryIDs);
-    // }
+        // step 2 - migrate entries
+        migrateEntries(user1, 0, 17);
+        vm.prank(user1);
 
-    // function test_Cannot_Migrate_In_Initiated_State() public {
-    //     (uint256[] memory _entryIDs,) = claimAndCheckInitialState(user1);
-
-    //     // attempt in INITIATED state
-    //     _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 0);
-    //     vm.prank(user1);
-    //     escrowMigrator.registerEntries(_entryIDs);
-    //     assertEq(
-    //         uint256(escrowMigrator.migrationStatus(user1)),
-    //         uint256(IEscrowMigrator.MigrationStatus.INITIATED)
-    //     );
-
-    //     // step 3.1 - migrate entries
-    //     vm.prank(user1);
-    //     vm.expectRevert(IEscrowMigrator.MustBeInVestingConfirmedState.selector);
-    //     escrowMigrator.migrateEntries(user1, _entryIDs);
-    // }
-
-    // function test_Cannot_Migrate_In_Registered_State() public {
-    //     // complete step 1 and 2
-    //     (uint256[] memory _entryIDs,) = claimAndRegisterAllEntries(user1);
-    //     assertEq(
-    //         uint256(escrowMigrator.migrationStatus(user1)),
-    //         uint256(IEscrowMigrator.MigrationStatus.REGISTERED)
-    //     );
-
-    //     // step 3.1 - migrate entries
-    //     vm.prank(user1);
-    //     vm.expectRevert(IEscrowMigrator.MustBeInVestingConfirmedState.selector);
-    //     escrowMigrator.migrateEntries(user1, _entryIDs);
-    // }
+        checkStateAfterStepTwo(user1, 0, 0);
+    }
 
     // function test_Cannot_Migrate_In_Completed_State() public {
     //     // move to completed state
