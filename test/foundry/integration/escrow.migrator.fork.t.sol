@@ -466,29 +466,24 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         checkStateAfterStepTwo(user1, 0, 0);
     }
 
-    // function test_Cannot_Bypass_Unstaking_Cooldown_Lock() public {
-    //     vm.prank(treasury);
-    //     kwenta.transfer(user1, 50 ether);
-    //     vm.prank(user1);
-    //     kwenta.approve(address(rewardEscrowV1), type(uint256).max);
-    //     vm.prank(user1);
-    //     // this is the malicious entry - the duration is set to 1
-    //     rewardEscrowV1.createEscrowEntry(user1, 50 ether, 1);
+    function test_Cannot_Bypass_Unstaking_Cooldown_Lock() public {
+        // this is the malicious entry - the duration is set to 1
+        createRewardEscrowEntryV1(user1, 50 ether, 1);
 
-    //     (uint256[] memory _entryIDs, uint256 numVestingEntries,) = fullyMigrateAllEntries(user1);
-    //     checkStateAfterStepTwo(user1, _entryIDs, true);
+        (uint256[] memory _entryIDs, uint256 numVestingEntries,) = fullyMigrateAllEntries(user1);
+        checkStateAfterStepTwo(user1, _entryIDs);
 
-    //     // specifically
-    //     uint256[] memory migratedEntryIDs =
-    //         rewardEscrowV2.getAccountVestingEntryIDs(user1, numVestingEntries - 2, 1);
-    //     uint256 maliciousEntryID = migratedEntryIDs[0];
-    //     (uint64 endTime, uint256 escrowAmount, uint256 duration, uint8 earlyVestingFee) =
-    //         rewardEscrowV2.getVestingEntry(maliciousEntryID);
-    //     assertEq(endTime, block.timestamp + stakingRewardsV2.cooldownPeriod());
-    //     assertEq(escrowAmount, 50 ether);
-    //     assertEq(duration, stakingRewardsV2.cooldownPeriod());
-    //     assertEq(earlyVestingFee, 90);
-    // }
+        // specifically
+        uint256[] memory migratedEntryIDs =
+            rewardEscrowV2.getAccountVestingEntryIDs(user1, numVestingEntries - 2, 1);
+        uint256 maliciousEntryID = migratedEntryIDs[0];
+        (uint64 endTime, uint256 escrowAmount, uint256 duration, uint8 earlyVestingFee) =
+            rewardEscrowV2.getVestingEntry(maliciousEntryID);
+        assertEq(endTime, block.timestamp + stakingRewardsV2.cooldownPeriod());
+        assertEq(escrowAmount, 50 ether);
+        assertEq(duration, stakingRewardsV2.cooldownPeriod());
+        assertEq(earlyVestingFee, 90);
+    }
 
     // /*//////////////////////////////////////////////////////////////
     //                       STEP 3 STATE LIMITS

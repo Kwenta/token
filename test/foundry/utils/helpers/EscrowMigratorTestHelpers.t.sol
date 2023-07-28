@@ -138,6 +138,11 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         kwenta.approve(address(escrowMigrator), toPay);
     }
 
+    function migrateEntries(address account) internal returns (uint256[] memory _entryIDs) {
+        _entryIDs = getEntryIDs(account);
+        migrateEntries(account, _entryIDs);
+    }
+
     function migrateEntries(address account, uint256 index, uint256 amount)
         internal
         returns (uint256[] memory _entryIDs)
@@ -409,16 +414,14 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
     //                          STEP 3 HELPERS
     // //////////////////////////////////////////////////////////////*/
 
-    // function fullyMigrateAllEntries(address account)
-    //     internal
-    //     returns (uint256[] memory _entryIDs, uint256 numVestingEntries, uint256 toPay)
-    // {
-    //     // register and vest
-    //     (_entryIDs, numVestingEntries, toPay) = registerVestConfirmAllEntriesAndApprove(account);
-
-    //     vm.prank(account);
-    //     escrowMigrator.migrateEntries(account, _entryIDs);
-    // }
+    function fullyMigrateAllEntries(address account)
+        internal
+        returns (uint256[] memory, uint256, uint256)
+    {
+        (uint256[] memory _entryIDs,, uint256 toPay) = claimRegisterVestAndApprove(account);
+        migrateEntries(account);
+        return (_entryIDs, _entryIDs.length, toPay);
+    }
 
     // function registerVestAndConfirmEntries(address account, uint256[] memory _entryIDs) internal {
     //     claimRegisterAndVestEntries(account, _entryIDs);
