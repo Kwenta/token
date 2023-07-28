@@ -755,49 +755,49 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         checkStateAfterStepTwo(user1, 0, 10);
     }
 
-    // /*//////////////////////////////////////////////////////////////
-    //                    STRANGE FLOWS UP TO STEP 1
-    // //////////////////////////////////////////////////////////////*/
+    /*//////////////////////////////////////////////////////////////
+                       STRANGE FLOWS UP TO STEP 1
+    //////////////////////////////////////////////////////////////*/
 
-    // function test_NR() public {
-    //     // N
-    //     createRewardEscrowEntryV1(user1, 1 ether);
-    //     // R
-    //     claimAndRegisterEntries(user1, 0, 6);
+    function test_NR() public {
+        // N
+        createRewardEscrowEntryV1(user1, 1 ether);
+        // R
+        claimAndRegisterEntries(user1, 0, 6);
 
-    //     checkStateAfterStepOne(user1, 0, 6, true);
-    // }
+        checkStateAfterStepOne(user1, 0, 6, true);
+    }
 
-    // function test_VR() public {
-    //     // V
-    //     vest(user1, 0, 3);
-    //     // R
-    //     claimAndRegisterEntries(user1, 0, 6);
+    function test_VR() public {
+        // V
+        vest(user1, 0, 3);
+        // R
+        claimAndRegisterEntries(user1, 0, 6);
 
-    //     checkStateAfterStepOne(user1, 3, 3, true);
-    // }
+        checkStateAfterStepOne(user1, 3, 3, true);
+    }
 
-    // function test_NVR() public {
-    //     // N
-    //     createRewardEscrowEntryV1(user1, 1 ether);
-    //     // V
-    //     vest(user1, 0, 3);
-    //     // R
-    //     claimAndRegisterEntries(user1, 0, 6);
+    function test_NVR() public {
+        // N
+        createRewardEscrowEntryV1(user1, 1 ether);
+        // V
+        vest(user1, 0, 3);
+        // R
+        claimAndRegisterEntries(user1, 0, 6);
 
-    //     checkStateAfterStepOne(user1, 3, 3, true);
-    // }
+        checkStateAfterStepOne(user1, 3, 3, true);
+    }
 
-    // function test_VNR() public {
-    //     // V
-    //     vest(user1, 0, 3);
-    //     // N
-    //     createRewardEscrowEntryV1(user1, 1 ether);
-    //     // R
-    //     claimAndRegisterEntries(user1, 0, 6);
+    function test_VNR() public {
+        // V
+        vest(user1, 0, 3);
+        // N
+        createRewardEscrowEntryV1(user1, 1 ether);
+        // R
+        claimAndRegisterEntries(user1, 0, 6);
 
-    //     checkStateAfterStepOne(user1, 3, 3, true);
-    // }
+        checkStateAfterStepOne(user1, 3, 3, true);
+    }
 
     // /*//////////////////////////////////////////////////////////////
     //                    STRANGE FLOWS UP TO STEP 2
