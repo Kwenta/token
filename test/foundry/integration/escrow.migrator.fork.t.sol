@@ -814,194 +814,194 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         checkStateAfterStepTwo(user1, 0, 0);
     }
 
-    // function test_RCVM() public {
-    //     // R
-    //     claimAndRegisterEntries(user1, 0, 6);
-    //     // C
-    //     createRewardEscrowEntryV1(user1, 1 ether);
-    //     // V
-    //     vest(user1, 0, 3);
-    //     // M
-    //     confirm(user1, 0, 6);
+    function test_RCVM() public {
+        // R
+        claimAndRegisterEntries(user1, 0, 6);
+        // C
+        createRewardEscrowEntryV1(user1, 1 ether);
+        // V
+        vest(user1, 0, 3);
+        // M
+        approveAndMigrate(user1, 0, 6);
 
-    //     checkStateAfterStepTwo(user1, 0, 3, false);
-    // }
+        checkStateAfterStepTwo(user1, 0, 3);
+    }
 
-    // function test_RVCM() public {
-    //     // R
-    //     claimAndRegisterEntries(user1, 0, 6);
-    //     // V
-    //     vest(user1, 0, 3);
-    //     // C
-    //     createRewardEscrowEntryV1(user1, 1 ether);
-    //     // M
-    //     confirm(user1, 0, 6);
+    function test_RVCM() public {
+        // R
+        claimAndRegisterEntries(user1, 0, 6);
+        // V
+        vest(user1, 0, 3);
+        // C
+        createRewardEscrowEntryV1(user1, 1 ether);
+        // M
+        approveAndMigrate(user1, 0, 6);
 
-    //     checkStateAfterStepTwo(user1, 0, 3, false);
-    // }
+        checkStateAfterStepTwo(user1, 0, 3);
+    }
 
-    // function test_RCVRVM() public {
-    //     // R
-    //     claimAndRegisterEntries(user1, 0, 6);
-    //     // C
-    //     createRewardEscrowEntryV1(user1, 1 ether);
-    //     // V
-    //     vest(user1, 0, 3);
-    //     // R
-    //     registerEntries(user1, 6, 4);
-    //     // V
-    //     vest(user1, 3, 3);
-    //     // M
-    //     confirm(user1, 0, 10);
+    function test_RCVRVM() public {
+        // R
+        claimAndRegisterEntries(user1, 0, 6);
+        // C
+        createRewardEscrowEntryV1(user1, 1 ether);
+        // V
+        vest(user1, 0, 3);
+        // R
+        registerEntries(user1, 6, 4);
+        // V
+        vest(user1, 3, 3);
+        // M
+        approveAndMigrate(user1, 0, 10);
 
-    //     checkStateAfterStepTwo(user1, 0, 6, false);
-    // }
+        checkStateAfterStepTwo(user1, 0, 6);
+    }
 
-    // function test_RVCRVM() public {
-    //     // R
-    //     claimAndRegisterEntries(user1, 0, 6);
-    //     // V
-    //     vest(user1, 0, 3);
-    //     // C
-    //     createRewardEscrowEntryV1(user1, 1 ether);
-    //     // R
-    //     registerEntries(user1, 6, 4);
-    //     // V
-    //     vest(user1, 3, 3);
-    //     // M
-    //     confirm(user1, 0, 10);
+    function test_RVCRVM() public {
+        // R
+        claimAndRegisterEntries(user1, 0, 6);
+        // V
+        vest(user1, 0, 3);
+        // C
+        createRewardEscrowEntryV1(user1, 1 ether);
+        // R
+        registerEntries(user1, 6, 4);
+        // V
+        vest(user1, 3, 3);
+        // M
+        approveAndMigrate(user1, 0, 10);
 
-    //     checkStateAfterStepTwo(user1, 0, 6, false);
-    // }
+        checkStateAfterStepTwo(user1, 0, 6);
+    }
 
-    // function test_RVRCVM() public {
-    //     // R
-    //     claimAndRegisterEntries(user1, 0, 6);
-    //     // V
-    //     vest(user1, 0, 3);
-    //     // R
-    //     registerEntries(user1, 6, 4);
-    //     // C
-    //     createRewardEscrowEntryV1(user1, 1 ether);
-    //     // V
-    //     vest(user1, 3, 3);
-    //     // M
-    //     confirm(user1, 0, 10);
+    function test_RVRCVM() public {
+        // R
+        claimAndRegisterEntries(user1, 0, 6);
+        // V
+        vest(user1, 0, 3);
+        // R
+        registerEntries(user1, 6, 4);
+        // C
+        createRewardEscrowEntryV1(user1, 1 ether);
+        // V
+        vest(user1, 3, 3);
+        // M
+        approveAndMigrate(user1, 0, 10);
 
-    //     checkStateAfterStepTwo(user1, 0, 6, false);
-    // }
+        checkStateAfterStepTwo(user1, 0, 6);
+    }
 
-    // function test_RVRVCM() public {
-    //     // R
-    //     claimAndRegisterEntries(user1, 0, 6);
-    //     // V
-    //     vest(user1, 0, 3);
-    //     // R
-    //     registerEntries(user1, 6, 4);
-    //     // V
-    //     vest(user1, 3, 7);
-    //     // C
-    //     createRewardEscrowEntryV1(user1, 1 ether);
-    //     // M
-    //     confirm(user1, 0, 10);
+    function test_RVRVCM() public {
+        // R
+        claimAndRegisterEntries(user1, 0, 6);
+        // V
+        vest(user1, 0, 3);
+        // R
+        registerEntries(user1, 6, 4);
+        // V
+        vest(user1, 3, 7);
+        // C
+        createRewardEscrowEntryV1(user1, 1 ether);
+        // M
+        approveAndMigrate(user1, 0, 10);
 
-    //     checkStateAfterStepTwo(user1, 0, 10, true);
-    // }
+        checkStateAfterStepTwo(user1, 0, 10);
+    }
 
-    // function test_RCVMRVM() public {
-    //     // R
-    //     claimAndRegisterEntries(user1, 0, 6);
-    //     // C
-    //     createRewardEscrowEntryV1(user1, 1 ether);
-    //     // V
-    //     vest(user1, 0, 3);
-    //     // M
-    //     confirm(user1, 0, 6);
-    //     // R
-    //     registerEntries(user1, 6, 4);
-    //     // V
-    //     vest(user1, 3, 7);
-    //     // M
-    //     confirm(user1, 0, 10);
+    function test_RCVMRVM() public {
+        // R
+        claimAndRegisterEntries(user1, 0, 6);
+        // C
+        createRewardEscrowEntryV1(user1, 1 ether);
+        // V
+        vest(user1, 0, 3);
+        // M
+        approveAndMigrate(user1, 0, 6);
+        // R
+        registerEntries(user1, 6, 4);
+        // V
+        vest(user1, 3, 7);
+        // M
+        approveAndMigrate(user1, 0, 10);
 
-    //     checkStateAfterStepTwo(user1, 0, 10, true);
-    // }
+        checkStateAfterStepTwo(user1, 0, 10);
+    }
 
-    // function test_RVCMRVM() public {
-    //     // R
-    //     claimAndRegisterEntries(user1, 0, 6);
-    //     // V
-    //     vest(user1, 0, 3);
-    //     // C
-    //     createRewardEscrowEntryV1(user1, 1 ether);
-    //     // M
-    //     confirm(user1, 0, 6);
-    //     // R
-    //     registerEntries(user1, 6, 4);
-    //     // V
-    //     vest(user1, 3, 7);
-    //     // M
-    //     confirm(user1, 0, 10);
+    function test_RVCMRVM() public {
+        // R
+        claimAndRegisterEntries(user1, 0, 6);
+        // V
+        vest(user1, 0, 3);
+        // C
+        createRewardEscrowEntryV1(user1, 1 ether);
+        // M
+        approveAndMigrate(user1, 0, 6);
+        // R
+        registerEntries(user1, 6, 4);
+        // V
+        vest(user1, 3, 7);
+        // M
+        approveAndMigrate(user1, 0, 10);
 
-    //     checkStateAfterStepTwo(user1, 0, 10, true);
-    // }
+        checkStateAfterStepTwo(user1, 0, 10);
+    }
 
-    // function test_RVMCRVM() public {
-    //     // R
-    //     claimAndRegisterEntries(user1, 0, 10);
-    //     // V
-    //     vest(user1, 0, 3);
-    //     // M
-    //     confirm(user1, 0, 6);
-    //     // C
-    //     createRewardEscrowEntryV1(user1, 1 ether);
-    //     // R
-    //     registerEntries(user1, 10, 4);
-    //     // V
-    //     vest(user1, 3, 7);
-    //     // M
-    //     confirm(user1, 0, 10);
+    function test_RVMCRVM() public {
+        // R
+        claimAndRegisterEntries(user1, 0, 10);
+        // V
+        vest(user1, 0, 3);
+        // M
+        approveAndMigrate(user1, 0, 6);
+        // C
+        createRewardEscrowEntryV1(user1, 1 ether);
+        // R
+        registerEntries(user1, 10, 4);
+        // V
+        vest(user1, 3, 7);
+        // M
+        approveAndMigrate(user1, 0, 10);
 
-    //     checkStateAfterStepTwo(user1, 0, 10, false);
-    // }
+        checkStateAfterStepTwo(user1, 0, 10);
+    }
 
-    // function test_RVMRCVM() public {
-    //     // R
-    //     claimAndRegisterEntries(user1, 0, 10);
-    //     // V
-    //     vest(user1, 0, 3);
-    //     // M
-    //     confirm(user1, 0, 6);
-    //     // R
-    //     registerEntries(user1, 10, 7);
-    //     // C
-    //     createRewardEscrowEntryV1(user1, 1 ether);
-    //     // V
-    //     vest(user1, 3, 14);
-    //     // M
-    //     confirm(user1, 3, 17);
+    function test_RVMRCVM() public {
+        // R
+        claimAndRegisterEntries(user1, 0, 10);
+        // V
+        vest(user1, 0, 3);
+        // M
+        approveAndMigrate(user1, 0, 6);
+        // R
+        registerEntries(user1, 10, 7);
+        // C
+        createRewardEscrowEntryV1(user1, 1 ether);
+        // V
+        vest(user1, 3, 14);
+        // M
+        approveAndMigrate(user1, 3, 17);
 
-    //     checkStateAfterStepTwo(user1, 0, 17, true);
-    // }
+        checkStateAfterStepTwo(user1, 0, 17);
+    }
 
-    // function test_RVMRVCM() public {
-    //     // R
-    //     claimAndRegisterEntries(user1, 0, 10);
-    //     // V
-    //     vest(user1, 0, 3);
-    //     // M
-    //     confirm(user1, 0, 6);
-    //     // R
-    //     registerEntries(user1, 10, 7);
-    //     // V
-    //     vest(user1, 3, 14);
-    //     // C
-    //     createRewardEscrowEntryV1(user1, 1 ether);
-    //     // M
-    //     confirm(user1, 3, 17);
+    function test_RVMRVCM() public {
+        // R
+        claimAndRegisterEntries(user1, 0, 10);
+        // V
+        vest(user1, 0, 3);
+        // M
+        approveAndMigrate(user1, 0, 6);
+        // R
+        registerEntries(user1, 10, 7);
+        // V
+        vest(user1, 3, 14);
+        // C
+        createRewardEscrowEntryV1(user1, 1 ether);
+        // M
+        approveAndMigrate(user1, 3, 17);
 
-    //     checkStateAfterStepTwo(user1, 0, 17, true);
-    // }
+        checkStateAfterStepTwo(user1, 0, 17);
+    }
 
     // /*//////////////////////////////////////////////////////////////
     //                    STRANGE FLOWS UP TO STEP 3
@@ -1017,7 +1017,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
     //     // M
     //     approveAndMigrate(user1, 0, 10);
 
-    //     checkStateAfterStepTwo(user1, 0, 10, true);
+    //     checkStateAfterStepTwo(user1, 0, 10);
     // }
 
     // function test_MCM() public {
@@ -1030,7 +1030,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
     //     // M
     //     approveAndMigrate(user1, 0, 17);
 
-    //     checkStateAfterStepTwo(user1, 0, 17, true);
+    //     checkStateAfterStepTwo(user1, 0, 17);
     // }
 }
 
