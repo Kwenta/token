@@ -732,28 +732,28 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         registerEntries(user1, 5, 5);
         // V
         vest(user1, 5, 5);
-        // C
+        // M
         approveAndMigrate(user1, 0, 10);
 
         checkStateAfterStepTwo(user1, 0, 10);
     }
 
-    // function test_RVCRVC() public {
-    //     // R
-    //     claimAndRegisterEntries(user1, 0, 6);
-    //     // V
-    //     vest(user1, 0, 5);
-    //     // C
-    //     confirm(user1, 0, 5);
-    //     // R
-    //     registerEntries(user1, 6, 4);
-    //     // V
-    //     vest(user1, 5, 5);
-    //     // C
-    //     confirm(user1, 5, 5);
+    function test_RVMRVM() public {
+        // R
+        claimAndRegisterEntries(user1, 0, 6);
+        // V
+        vest(user1, 0, 5);
+        // M
+        approveAndMigrate(user1, 0, 5);
+        // R
+        registerEntries(user1, 6, 4);
+        // V
+        vest(user1, 5, 5);
+        // M
+        approveAndMigrate(user1, 5, 5);
 
-    //     checkStateAfterStepTwo(user1, 0, 10, true);
-    // }
+        checkStateAfterStepTwo(user1, 0, 10);
+    }
 
     // /*//////////////////////////////////////////////////////////////
     //                    STRANGE FLOWS UP TO STEP 1
