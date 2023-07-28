@@ -852,6 +852,39 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         assertCloseTo(newTotal, total, total / 100);
         assertCloseTo(newTotalFee, totalFee, totalFee / 100);
     }
+
+    /*//////////////////////////////////////////////////////////////
+                             STRANGE FLOWS
+    //////////////////////////////////////////////////////////////*/
+
+    /// @dev There are numerous different ways the user could interact with the system,
+    /// as opposed for the way we intend for the user to interact with the system.
+    /// These tests check that users going "alterantive routes" don't break the system.
+    /// In order to breifly annoate special flows, I have created an annotation system:
+    /// R = register, V = vest, C = confirm, M = migrate, P = pay, N = create new escrow entry
+    /// So for example, RVC means register, vest, confirm, in that order
+
+    function test_RVRVC() public {
+        uint256[] memory _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 5);
+        registerEntries(user1, _entryIDs);
+
+        vm.prank(user1);
+        rewardEscrowV1.vest(_entryIDs);
+
+        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 5, 5);
+
+        vm.prank(user1);
+        escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
+
+        vm.prank(user1);
+        rewardEscrowV1.vest(_entryIDs);
+
+        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 10);
+        vm.prank(user1);
+        escrowMigrator.confirmEntriesAreVested(_entryIDs);
+
+        checkStateAfterStepTwo(user1, _entryIDs, true);
+    }
 }
 
 // TODO: 3. Update checkState helpers to account for expected changes in rewardEscrowV1.balanceOf
