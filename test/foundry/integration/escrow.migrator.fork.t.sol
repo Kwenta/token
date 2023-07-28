@@ -425,23 +425,21 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         checkStateAfterStepTwo(user1, 0, 15);
     }
 
-    // function test_Cannot_Migrate_Non_Existing_Entries() public {
-    //     // complete step 1 and 2
-    //     (entryIDs,,) = registerVestConfirmAllEntriesAndApprove(user1);
+    function test_Cannot_Migrate_Non_Existing_Entries() public {
+        // complete step 1 and 2
+        (entryIDs,,) = claimRegisterVestAndApprove(user1);
 
-    //     // step 3.2 - migrate entries
-    //     entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 0);
-    //     entryIDs.push(rewardEscrowV1.nextEntryId());
-    //     entryIDs.push(rewardEscrowV1.nextEntryId());
-    //     entryIDs.push(rewardEscrowV1.nextEntryId());
-    //     entryIDs.push(rewardEscrowV1.nextEntryId());
-    //     vm.prank(user1);
-    //     escrowMigrator.migrateEntries(user1, entryIDs);
+        // step 3.2 - migrate entries
+        entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 0);
+        entryIDs.push(rewardEscrowV1.nextEntryId());
+        entryIDs.push(rewardEscrowV1.nextEntryId());
+        entryIDs.push(rewardEscrowV1.nextEntryId());
+        entryIDs.push(rewardEscrowV1.nextEntryId());
+        migrateEntries(user1, entryIDs);
 
-    //     // check final state
-    //     entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 0);
-    //     checkStateAfterStepTwo(user1, entryIDs, true);
-    // }
+        // check final state
+        checkStateAfterStepTwo(user1, 0, 0);
+    }
 
     // function test_Cannot_Migrate_Someone_Elses_Entries() public {
     //     // complete step 1 and 2
