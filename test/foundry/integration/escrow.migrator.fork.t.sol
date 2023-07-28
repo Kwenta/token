@@ -917,10 +917,20 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 
         checkStateAfterStepOne(user1, 3, 3, true);
     }
+
+    function test_NVR() public {
+        // N
+        createRewardEscrowEntryV1(user1, 1 ether);
+        // V
+        vest(user1, 0, 3);
+        // R
+        claimAndRegisterEntries(user1, 0, 6);
+
+        checkStateAfterStepOne(user1, 3, 3, true);
+    }
 }
 
 // Up to step 1
-// VR
 // NVR
 // VNR
 
