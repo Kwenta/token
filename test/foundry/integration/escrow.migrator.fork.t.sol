@@ -1160,11 +1160,22 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 
         checkStateAfterStepThree(user1, 0, 10, true);
     }
+
+    function test_CNM() public {
+        claimRegisterAndVestEntries(user1, 0, 17);
+
+        // C
+        confirm(user1, 0, 17);
+        // N
+        createRewardEscrowEntryV1(user1, 1 ether);
+        // M
+        approveAndMigrate(user1, 0, 17);
+
+        checkStateAfterStepThree(user1, 0, 17, true);
+    }
 }
 
 // Up to step 3
-// CVM
-// CNM
 
 // CNVM
 // CVNM

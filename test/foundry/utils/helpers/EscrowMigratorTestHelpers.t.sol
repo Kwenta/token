@@ -177,6 +177,7 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
     }
 
     function claimRegisterAndVestEntries(address account, uint256 index, uint256 amount) public {
+        claimAndCheckInitialState(account);
         uint256[] memory _entryIDs = getEntryIDs(account, index, amount);
         claimRegisterAndVestEntries(account, _entryIDs);
     }
