@@ -854,7 +854,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
     }
 
     /*//////////////////////////////////////////////////////////////
-                             STRANGE FLOWS
+                        STRANGE EFFECTIVE FLOWS
     //////////////////////////////////////////////////////////////*/
 
     /// @dev There are numerous different ways the user could interact with the system,
@@ -866,34 +866,27 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 
     function test_RVRVC() public {
         // R
-        uint256[] memory _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 5);
-        registerEntries(user1, _entryIDs);
+        claimAndRegisterEntries(user1, 0, 5);
 
         // V
-        vm.prank(user1);
-        rewardEscrowV1.vest(_entryIDs);
+        vest(user1, 0, 5);
 
         // R
-        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 5, 5);
-        vm.prank(user1);
-        escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
+        registerEntries(user1, 5, 5);
 
         // V
-        vm.prank(user1);
-        rewardEscrowV1.vest(_entryIDs);
+        vest(user1, 5, 5);
 
         // C
-        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 10);
-        vm.prank(user1);
-        escrowMigrator.confirmEntriesAreVested(_entryIDs);
+        confirm(user1, 0, 10);
 
-        checkStateAfterStepTwo(user1, _entryIDs, true);
+        checkStateAfterStepTwo(user1, 0, 10, true);
     }
 
     function test_RVCRVC() public {
         // R
         uint256[] memory _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 6);
-        registerEntries(user1, _entryIDs);
+        claimAndRegisterEntries(user1, _entryIDs);
 
         // V
         _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 5);
@@ -921,9 +914,11 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 10);
         checkStateAfterStepTwo(user1, _entryIDs, true);
     }
-}
 
-// RVCRVC
+    /*//////////////////////////////////////////////////////////////
+                        STRANGE FLOWS PRE STEP 1
+    //////////////////////////////////////////////////////////////*/
+}
 
 // Up to step 1
 // NR

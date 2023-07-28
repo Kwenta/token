@@ -85,7 +85,8 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         assertEq(kwenta.balanceOf(address(stakingRewardsV2)), 0);
 
         // mint first rewards into V2
-        uint256 timeOfNextMint = supplySchedule.lastMintEvent() + supplySchedule.MINT_PERIOD_DURATION() + 1;
+        uint256 timeOfNextMint =
+            supplySchedule.lastMintEvent() + supplySchedule.MINT_PERIOD_DURATION() + 1;
         vm.warp(timeOfNextMint + 1);
         supplySchedule.mint();
 
@@ -99,6 +100,64 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         // check no more new rewards in v1
         assertEq(stakingRewardsV1.lastTimeRewardApplicable() - stakingRewardsV1.lastUpdateTime(), 0);
         assertEq(stakingRewardsV1.lastTimeRewardApplicable(), stakingRewardsV1.periodFinish());
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                            GENERIC HELPERS
+    //////////////////////////////////////////////////////////////*/
+
+    function getEntryIDs(address account, uint256 index, uint256 amount)
+        internal
+        view
+        returns (uint256[] memory)
+    {
+        return rewardEscrowV1.getAccountVestingEntryIDs(account, index, amount);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                            COMMAND HELPERS
+    //////////////////////////////////////////////////////////////*/
+
+    function confirm(address account, uint256 index, uint256 amount) public {
+        uint256[] memory _entryIDs = getEntryIDs(account, index, amount);
+        vm.prank(account);
+        escrowMigrator.confirmEntriesAreVested(_entryIDs);
+    }
+
+    function vest(address account, uint256 index, uint256 amount) public {
+        uint256[] memory _entryIDs = getEntryIDs(account, index, amount);
+        vm.prank(account);
+        rewardEscrowV1.vest(_entryIDs);
+    }
+
+    function registerEntries(address account, uint256 index, uint256 amount) public {
+        uint256[] memory _entryIDs = getEntryIDs(account, index, amount);
+        registerEntries(account, _entryIDs);
+    }
+
+    function registerEntries(address account, uint256[] memory _entryIDs) public {
+        vm.prank(account);
+        escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
+    }
+
+    function claimAndRegisterEntries(address account, uint256 index, uint256 amount) internal {
+        // check initial state
+        claimAndCheckInitialState(account);
+
+        uint256[] memory _entryIDs = getEntryIDs(account, index, amount);
+
+        // step 1
+        vm.prank(account);
+        escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
+    }
+
+    function claimAndRegisterEntries(address account, uint256[] memory _entryIDs) internal {
+        // check initial state
+        claimAndCheckInitialState(account);
+
+        // step 1
+        vm.prank(account);
+        escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -148,6 +207,16 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         }
     }
 
+    function checkStateAfterStepOne(
+        address account,
+        uint256 index,
+        uint256 amount,
+        bool didRegister
+    ) public {
+        uint256[] memory _entryIDs = getEntryIDs(account, index, amount);
+        checkStateAfterStepOne(account, _entryIDs, didRegister);
+    }
+
     function checkStateAfterStepOne(address account, uint256[] memory _entryIDs, bool didRegister)
         internal
     {
@@ -190,17 +259,8 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
                              STEP 2 HELPERS
     //////////////////////////////////////////////////////////////*/
 
-    function registerEntries(address account, uint256[] memory _entryIDs) internal {
-        // check initial state
-        claimAndCheckInitialState(account);
-
-        // step 1
-        vm.prank(account);
-        escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
-    }
-
     function registerAndVestEntries(address account, uint256[] memory _entryIDs) internal {
-        registerEntries(account, _entryIDs);
+        claimAndRegisterEntries(account, _entryIDs);
 
         // step 2.1 - vest
         vm.prank(account);
@@ -228,6 +288,16 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         // step 2.1 - vest
         vm.prank(account);
         rewardEscrowV1.vest(_entryIDs);
+    }
+
+    function checkStateAfterStepTwo(
+        address account,
+        uint256 index,
+        uint256 amount,
+        bool confirmedAll
+    ) public {
+        uint256[] memory _entryIDs = getEntryIDs(account, index, amount);
+        checkStateAfterStepTwo(account, _entryIDs, confirmedAll);
     }
 
     function checkStateAfterStepTwo(address account, uint256[] memory _entryIDs, bool confirmedAll)
@@ -380,6 +450,13 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         kwenta.approve(address(escrowMigrator), type(uint256).max);
         vm.prank(account);
         escrowMigrator.migrateConfirmedEntries(account, _entryIDs);
+    }
+
+    function checkStateAfterStepThree(address account, uint256 index, uint256 amount, bool paid)
+        public
+    {
+        uint256[] memory _entryIDs = getEntryIDs(account, index, amount);
+        checkStateAfterStepThree(account, _entryIDs, paid);
     }
 
     function checkStateAfterStepThree(address account, uint256[] memory _entryIDs, bool paid)
