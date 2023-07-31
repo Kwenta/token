@@ -46,7 +46,8 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         // set owners address code to trick the test into allowing onlyOwner functions to be called via script
         vm.etch(owner, address(new Migrate()).code);
 
-        (rewardEscrowV2, stakingRewardsV2,escrowMigrator,,,) = Migrate(owner).runCompleteMigrationProcess({
+        (rewardEscrowV2, stakingRewardsV2, escrowMigrator,,,) = Migrate(owner)
+            .runCompleteMigrationProcess({
             _owner: owner,
             _kwenta: address(kwenta),
             _supplySchedule: address(supplySchedule),
@@ -307,6 +308,8 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         assertEq(escrowMigrator.initiated(account), false);
         assertEq(escrowMigrator.escrowVestedAtStart(account), 0);
         assertEq(escrowMigrator.numberOfMigratedEntries(account), 0);
+        assertEq(escrowMigrator.totalEscrowRegistered(account), 0);
+        assertEq(escrowMigrator.totalEscrowMigrated(account), 0);
         assertEq(escrowMigrator.numberOfRegisteredEntries(account), 0);
         assertEq(escrowMigrator.paidSoFar(account), 0);
 
@@ -344,6 +347,8 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         assertEq(escrowMigrator.numberOfMigratedEntries(account), 0);
         assertEq(escrowMigrator.paidSoFar(account), 0);
 
+        uint256 totalRegistered;
+
         for (uint256 i = 0; i < _entryIDs.length; i++) {
             uint256 entryID = _entryIDs[i];
             assertEq(escrowMigrator.registeredEntryIDs(account, i), entryID);
@@ -355,7 +360,11 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
             assertEq(duration, durationOriginal);
             assertEq(endTime, endTimeOriginal);
             assertEq(migrated, false);
+            totalRegistered += escrowAmountOriginal;
         }
+
+        assertEq(escrowMigrator.totalEscrowRegistered(account), totalRegistered);
+        assertEq(escrowMigrator.totalEscrowMigrated(account), 0);
     }
 
     // /*//////////////////////////////////////////////////////////////
@@ -530,7 +539,11 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
     ) internal {
         assertEq(escrowMigrator.initiated(account), true);
         assertEq(rewardEscrowV2.totalEscrowedAccountBalance(account), totalEscrowMigrated);
+        assertEq(escrowMigrator.totalEscrowMigrated(account), totalEscrowMigrated);
         assertLe(_entryIDs.length, escrowMigrator.numberOfRegisteredEntries(account));
+        if (_entryIDs.length == escrowMigrator.numberOfRegisteredEntries(account)) {
+            assertEq(escrowMigrator.totalEscrowRegistered(account), totalEscrowMigrated);
+        }
         if (totalEscrowMigrated > 0) {
             assertLt(
                 escrowMigrator.escrowVestedAtStart(account),
