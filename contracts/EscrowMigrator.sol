@@ -182,7 +182,6 @@ contract EscrowMigrator is
         _registerEntries(msg.sender, _entryIDs);
     }
 
-    // TODO: test cannot be used when paused
     function _registerEntries(address account, uint256[] calldata _entryIDs)
         internal
         whenNotPaused
