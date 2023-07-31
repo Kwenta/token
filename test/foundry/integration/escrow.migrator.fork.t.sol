@@ -85,6 +85,51 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
     }
 
     /*//////////////////////////////////////////////////////////////
+                              TEST TOTALS
+    //////////////////////////////////////////////////////////////*/
+
+    function test_Total_Registered() public {
+        (uint256[] memory _entryIDs,) = claimAndCheckInitialState(user1);
+
+        // check initial state
+        assertEq(escrowMigrator.totalRegistered(), 0);
+
+        uint256 totalRegistered;
+        for (uint256 i = 0; i < _entryIDs.length; i++) {
+            uint256 entryID = _entryIDs[i];
+            (, uint256 escrowAmount,) = rewardEscrowV1.getVestingEntry(user1, entryID);
+            totalRegistered += escrowAmount;
+        }
+
+        // register
+        registerEntries(user1, _entryIDs);
+
+        // check final state
+        assertEq(escrowMigrator.totalRegistered(), totalRegistered);
+    }
+
+    function test_Total_Registered_Fuzz(uint8 numToRegister) public {
+        (uint256[] memory allEntryIDs, ) = claimAndCheckInitialState(user1);
+        uint256[] memory registeredEntryIDs = new uint256[](numToRegister);
+        // check initial state
+        assertEq(escrowMigrator.totalRegistered(), 0);
+
+        uint256 totalRegistered;
+        for (uint256 i = 0; i < min(allEntryIDs.length, numToRegister) ; i++) {
+            uint256 entryID = allEntryIDs[i];
+            (, uint256 escrowAmount,) = rewardEscrowV1.getVestingEntry(user1, entryID);
+            totalRegistered += escrowAmount;
+            registeredEntryIDs[i] = entryID;
+        }
+
+        // register
+        registerEntries(user1, registeredEntryIDs);
+
+        // check final state
+        assertEq(escrowMigrator.totalRegistered(), totalRegistered);
+    }
+
+    /*//////////////////////////////////////////////////////////////
                               STEP 1 TESTS
     //////////////////////////////////////////////////////////////*/
 
