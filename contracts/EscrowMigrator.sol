@@ -68,6 +68,7 @@ contract EscrowMigrator is
     //////////////////////////////////////////////////////////////*/
 
     uint256 public totalRegistered;
+
     uint256 public totalMigrated;
 
     mapping(address => mapping(uint256 => VestingEntry)) public registeredVestingSchedules;
@@ -125,6 +126,7 @@ contract EscrowMigrator is
     /*//////////////////////////////////////////////////////////////
                                  VIEWS
     //////////////////////////////////////////////////////////////*/
+
     function numberOfRegisteredEntries(address account) public view returns (uint256) {
         return registeredEntryIDs[account].length;
     }
