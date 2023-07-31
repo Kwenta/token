@@ -386,71 +386,6 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         toPay = escrowMigrator.toPay(account);
     }
 
-    // function checkzStateAfterStepTwo(
-    //     address account,
-    //     uint256 index,
-    //     uint256 amount,
-    //     bool confirmedAll
-    // ) internal {
-    //     uint256[] memory _entryIDs = getEntryIDs(account, index, amount);
-    //     checkStatezAfterStepTwo(account, _entryIDs, confirmedAll);
-    // }
-
-    // function checkzStateAfterStepTwo(address account, uint256[] memory _entryIDs, bool confirmedAll)
-    //     internal
-    // {
-    //     if (confirmedAll) {
-    //         assertEq(uint256(escrowMigrator.migrationStatus(account)), 3);
-    //     } else {
-    //         assertEq(uint256(escrowMigrator.migrationStatus(account)), 2);
-    //     }
-
-    //     for (uint256 i = 0; i < _entryIDs.length; i++) {
-    //         uint256 entryID = _entryIDs[i];
-    //         assertEq(escrowMigrator.registeredEntryIDs(account, i), entryID);
-    //         (uint256 escrowAmount, uint256 duration, uint64 endTime, bool confirmed, bool migrated)
-    //         = escrowMigrator.registeredVestingSchedules(account, entryID);
-    //         (uint64 endTimeOriginal, uint256 escrowAmountOriginal, uint256 durationOriginal) =
-    //             rewardEscrowV1.getVestingEntry(account, entryID);
-    //         assertGt(escrowAmount, 0);
-    //         assertEq(escrowAmountOriginal, 0);
-    //         assertEq(duration, durationOriginal);
-    //         assertEq(endTime, endTimeOriginal);
-    //         assertEq(confirmed, true);
-    //         assertEq(migrated, false);
-    //     }
-
-    //     assertLe(_entryIDs.length, escrowMigrator.numberOfRegisteredEntries(account));
-    //     if (entryIDs.length > 0) {
-    //         assertLt(
-    //             escrowMigrator.escrowVestedAtStart(account),
-    //             rewardEscrowV1.totalVestedAccountBalance(account)
-    //         );
-    //     } else {
-    //         assertLe(
-    //             escrowMigrator.escrowVestedAtStart(account),
-    //             rewardEscrowV1.totalVestedAccountBalance(account)
-    //         );
-    //     }
-
-    //     assertEq(escrowMigrator.numberOfConfirmedEntries(account), _entryIDs.length);
-    //     assertEq(escrowMigrator.numberOfMigratedEntries(account), 0);
-    //     if (confirmedAll) {
-    //         assertEq(
-    //             escrowMigrator.numberOfConfirmedEntries(account),
-    //             escrowMigrator.numberOfRegisteredEntries(account)
-    //         );
-    //         assertEq(escrowMigrator.numberOfRegisteredEntries(account), _entryIDs.length);
-    //         assertEq(
-    //             escrowMigrator.toPay(account),
-    //             rewardEscrowV1.totalVestedAccountBalance(account)
-    //                 - escrowMigrator.escrowVestedAtStart(account)
-    //         );
-    //     } else {
-    //         assertEq(escrowMigrator.toPay(account), 0);
-    //     }
-    // }
-
     // /*//////////////////////////////////////////////////////////////
     //                          STEP 3 HELPERS
     // //////////////////////////////////////////////////////////////*/
@@ -489,13 +424,6 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         return (_entryIDs, numVestingEntries, toPay);
     }
 
-    // function registerVestAndConfirmEntries(address account, uint256[] memory _entryIDs) internal {
-    //     claimRegisterAndVestEntries(account, _entryIDs);
-
-    //     vm.prank(account);
-    //     escrowMigrator.confirmEntriesAreVested(_entryIDs);
-    // }
-
     function claimRegisterVestAndApprove(address account, uint256 index, uint256 amount)
         internal
         returns (uint256[] memory _entryIDs, uint256 numVestingEntries, uint256 toPay)
@@ -516,19 +444,6 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         return (_entryIDs, numVestingEntries, toPay);
     }
 
-    // function registerVestAndConfirmAllEntries(address account)
-    //     internal
-    //     returns (uint256[] memory _entryIDs, uint256 numVestingEntries, uint256 toPay)
-    // {
-    //     // register and vest
-    //     (_entryIDs, numVestingEntries) = claimRegisterAndVestAllEntries(account);
-
-    //     vm.prank(account);
-    //     escrowMigrator.confirmEntriesAreVested(_entryIDs);
-
-    //     toPay = escrowMigrator.toPay(account);
-    // }
-
     function claimRegisterVestAndApprove(address account)
         internal
         returns (uint256[] memory _entryIDs, uint256 numVestingEntries, uint256 toPay)
@@ -537,24 +452,6 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         (_entryIDs, numVestingEntries) = claimRegisterAndVestAllEntries(account);
         toPay = approve(account);
     }
-
-    // function moveToPaidState(address account)
-    //     internal
-    //     returns (uint256[] memory _entryIDs, uint256 numVestingEntries)
-    // {
-    //     // register, vest and confirm
-    //     (_entryIDs, numVestingEntries,) = registerVestAndConfirmAllEntries(account);
-
-    //     // migrate with 0 entries
-    //     approve(account);
-
-    //     _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(account, 0, 0);
-    //     vm.prank(account);
-    //     escrowMigrator.migrateEntries(account, _entryIDs);
-
-    //     // restore entryIDs
-    //     _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(account, 0, numVestingEntries);
-    // }
 
     function moveToCompletedState(address account)
         internal
