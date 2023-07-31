@@ -18,6 +18,73 @@ import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
     /*//////////////////////////////////////////////////////////////
+                              PAUSABILITY
+    //////////////////////////////////////////////////////////////*/
+
+    function test_Pause_Is_Only_Owner() public {
+        vm.prank(user1);
+        vm.expectRevert("Ownable: caller is not the owner");
+        escrowMigrator.pauseEscrowMigrator();
+    }
+
+    function test_Unpause_Is_Only_Owner() public {
+        vm.prank(user1);
+        vm.expectRevert("Ownable: caller is not the owner");
+        escrowMigrator.unpauseEscrowMigrator();
+    }
+
+    function test_Pause_Register() public {
+        // check initial state
+        (uint256[] memory _entryIDs,) = claimAndCheckInitialState(user1);
+
+        // pause
+        vm.prank(owner);
+        escrowMigrator.pauseEscrowMigrator();
+
+        // attempt to register and fail
+        vm.prank(user1);
+        vm.expectRevert("Pausable: paused");
+        escrowMigrator.registerEntries(_entryIDs);
+
+        // unpause
+        vm.prank(owner);
+        escrowMigrator.unpauseEscrowMigrator();
+
+        // register and succeed
+        vm.prank(user1);
+        escrowMigrator.registerEntries(_entryIDs);
+
+        checkStateAfterStepOne(user1, _entryIDs, true);
+    }
+
+    function test_Pause_Migrate() public {
+        // check initial state
+        (uint256[] memory _entryIDs,) = claimAndCheckInitialState(user1);
+
+        // register, vest and approve
+        registerVestAndApprove(user1, _entryIDs);
+
+        // pause
+        vm.prank(owner);
+        escrowMigrator.pauseEscrowMigrator();
+
+        // attempt to migrate and fail
+        vm.prank(user1);
+        vm.expectRevert("Pausable: paused");
+        escrowMigrator.migrateEntries(user1, _entryIDs);
+
+        // unpause
+        vm.prank(owner);
+        escrowMigrator.unpauseEscrowMigrator();
+
+        // migrate and succeed
+        vm.prank(user1);
+        escrowMigrator.migrateEntries(user1, _entryIDs);
+
+        checkStateAfterStepTwo(user1, _entryIDs);
+    }
+
+    /*//////////////////////////////////////////////////////////////
                               STEP 1 TESTS
     //////////////////////////////////////////////////////////////*/
 
