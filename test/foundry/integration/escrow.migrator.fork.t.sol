@@ -401,6 +401,18 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         checkStateAfterStepTwo(user1, 0, numMigrated);
     }
 
+    function test_Step_2_Different_To_Address() public {
+        // complete step 1
+        (uint256[] memory _entryIDs,,) = claimRegisterVestAndApprove(user1);
+
+        // step 2 - migrate entries
+        vm.prank(user1);
+        escrowMigrator.migrateEntries(user2, _entryIDs);
+
+        // check final state
+        checkStateAfterStepTwo(user1, user2, _entryIDs);
+    }
+
     /*//////////////////////////////////////////////////////////////
                            STEP 2 EDGE CASES
     //////////////////////////////////////////////////////////////*/
@@ -418,8 +430,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 
         // check final state
         /// @dev skip first entry as it was vested before migration, so couldn't be migrated
-        _entryIDs =
-            rewardEscrowV1.getAccountVestingEntryIDs(user3, 1, _entryIDs.length);
+        _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user3, 1, _entryIDs.length);
         checkStateAfterStepTwo(user3, _entryIDs);
     }
 
@@ -607,8 +618,6 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 
         checkStateAfterStepTwo(user1, 0, 20);
     }
-
-    // // TODO: test sending entries to another `to` address
 
     /*//////////////////////////////////////////////////////////////
                                FULL FLOW

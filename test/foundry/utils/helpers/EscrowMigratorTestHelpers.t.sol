@@ -472,13 +472,22 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
 
     function checkStateAfterStepTwo(address account, uint256 index, uint256 amount) internal {
         uint256[] memory _entryIDs = getEntryIDs(account, index, amount);
-        checkStateAfterStepTwo(account, _entryIDs);
+        checkStateAfterStepTwo(account, account, _entryIDs);
+    }
+
+    function checkStateAfterStepTwo(address account, address to, uint256 index, uint256 amount) internal {
+        uint256[] memory _entryIDs = getEntryIDs(account, index, amount);
+        checkStateAfterStepTwo(account, to, _entryIDs);
     }
 
     function checkStateAfterStepTwo(address account, uint256[] memory _entryIDs) internal {
-        uint256 numOfV2Entries = rewardEscrowV2.balanceOf(account);
+        checkStateAfterStepTwo(account, account, _entryIDs);
+    }
+
+    function checkStateAfterStepTwo(address account, address to, uint256[] memory _entryIDs) internal {
+        uint256 numOfV2Entries = rewardEscrowV2.balanceOf(to);
         uint256[] memory migratedEntries =
-            rewardEscrowV2.getAccountVestingEntryIDs(account, 0, numOfV2Entries);
+            rewardEscrowV2.getAccountVestingEntryIDs(to, 0, numOfV2Entries);
         assertEq(numOfV2Entries, _entryIDs.length);
 
         uint256 totalEscrowMigrated;
@@ -490,7 +499,7 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
             totalEscrowMigrated += escrowAmount;
         }
 
-        checkStateAfterStepTwoAssertions(account, _entryIDs, totalEscrowMigrated);
+        checkStateAfterStepTwoAssertions(account, to, _entryIDs, totalEscrowMigrated);
     }
 
     function checkMigratedEntryAfterStepTwo(address account, uint256 newEntryID, uint256 oldEntryID)
@@ -534,11 +543,12 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
 
     function checkStateAfterStepTwoAssertions(
         address account,
+        address to,
         uint256[] memory _entryIDs,
         uint256 totalEscrowMigrated
     ) internal {
         assertEq(escrowMigrator.initiated(account), true);
-        assertEq(rewardEscrowV2.totalEscrowedAccountBalance(account), totalEscrowMigrated);
+        assertEq(rewardEscrowV2.totalEscrowedAccountBalance(to), totalEscrowMigrated);
         assertEq(escrowMigrator.totalEscrowMigrated(account), totalEscrowMigrated);
         assertLe(_entryIDs.length, escrowMigrator.numberOfRegisteredEntries(account));
         if (_entryIDs.length == escrowMigrator.numberOfRegisteredEntries(account)) {
