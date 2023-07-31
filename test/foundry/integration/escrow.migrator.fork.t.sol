@@ -58,11 +58,8 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
     }
 
     function test_Pause_Migrate() public {
-        // check initial state
-        (uint256[] memory _entryIDs,) = claimAndCheckInitialState(user1);
-
         // register, vest and approve
-        registerVestAndApprove(user1, _entryIDs);
+        (uint256[] memory _entryIDs,,) = claimRegisterVestAndApprove(user1);
 
         // pause
         vm.prank(owner);
@@ -109,13 +106,13 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
     }
 
     function test_Total_Registered_Fuzz(uint8 numToRegister) public {
-        (uint256[] memory allEntryIDs, ) = claimAndCheckInitialState(user1);
+        (uint256[] memory allEntryIDs,) = claimAndCheckInitialState(user1);
         uint256[] memory registeredEntryIDs = new uint256[](numToRegister);
         // check initial state
         assertEq(escrowMigrator.totalRegistered(), 0);
 
         uint256 totalRegistered;
-        for (uint256 i = 0; i < min(allEntryIDs.length, numToRegister) ; i++) {
+        for (uint256 i = 0; i < min(allEntryIDs.length, numToRegister); i++) {
             uint256 entryID = allEntryIDs[i];
             (, uint256 escrowAmount,) = rewardEscrowV1.getVestingEntry(user1, entryID);
             totalRegistered += escrowAmount;
@@ -127,6 +124,50 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 
         // check final state
         assertEq(escrowMigrator.totalRegistered(), totalRegistered);
+    }
+
+    function test_Total_Migrated() public {
+        // register, vest and approve
+        (uint256[] memory _entryIDs,,) = claimRegisterVestAndApprove(user1);
+
+        // check initial state
+        assertEq(escrowMigrator.totalMigrated(), 0);
+
+        uint256 totalMigrated;
+        for (uint256 i = 0; i < _entryIDs.length; i++) {
+            uint256 entryID = _entryIDs[i];
+            (uint256 escrowAmount,,,) = escrowMigrator.registeredVestingSchedules(user1, entryID);
+            totalMigrated += escrowAmount;
+        }
+
+        // migrate
+        migrateEntries(user1, _entryIDs);
+
+        // check final state
+        assertEq(escrowMigrator.totalMigrated(), totalMigrated);
+    }
+
+    function test_Total_Migrated_Fuzz(uint8 numToMigrate) public {
+        // register, vest and approve
+        (uint256[] memory allEntryIDs,,) = claimRegisterVestAndApprove(user1);
+        uint256[] memory migratedEntryIDs = new uint256[](numToMigrate);
+
+        // check initial state
+        assertEq(escrowMigrator.totalMigrated(), 0);
+
+        uint256 totalMigrated;
+        for (uint256 i = 0; i < min(allEntryIDs.length, numToMigrate); i++) {
+            uint256 entryID = allEntryIDs[i];
+            (uint256 escrowAmount,,,) = escrowMigrator.registeredVestingSchedules(user1, entryID);
+            totalMigrated += escrowAmount;
+            migratedEntryIDs[i] = entryID;
+        }
+
+        // migrate
+        migrateEntries(user1, migratedEntryIDs);
+
+        // check final state
+        assertEq(escrowMigrator.totalMigrated(), totalMigrated);
     }
 
     /*//////////////////////////////////////////////////////////////
