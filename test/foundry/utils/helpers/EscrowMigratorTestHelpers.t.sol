@@ -117,7 +117,7 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
     function approve(address account) internal returns (uint256 toPay) {
         toPay = escrowMigrator.toPay(account);
         vm.prank(account);
-        kwenta.approve(address(escrowMigrator), toPay);
+        kwenta.approve(address(escrowMigrator), type(uint256).max);
     }
 
     function migrateEntries(address account) internal returns (uint256[] memory _entryIDs) {
