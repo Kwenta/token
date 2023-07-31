@@ -17,9 +17,6 @@ interface IEscrowMigrator {
         bool migrated;
     }
 
-    // Register start of migration - stores users vested balance
-    // Confirm entries - register the escrow entries
-
     /*///////////////////////////////////////////////////////////////
                                 INITIALIZER
     ///////////////////////////////////////////////////////////////*/
@@ -34,10 +31,10 @@ interface IEscrowMigrator {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Pause the reward escrow contract
-    function pauseRewardEscrow() external;
+    function pauseEscrowMigrator() external;
 
     /// @notice Unpause the reward escrow contract
-    function unpauseRewardEscrow() external;
+    function unpauseEscrowMigrator() external;
 
     /*//////////////////////////////////////////////////////////////
                                 ERRORS
@@ -49,9 +46,13 @@ interface IEscrowMigrator {
     /// @notice the caller is not approved to take this action
     error NotApproved();
 
+    /// @notice users cannot begin the migration process until they have claimed
+    /// their last v1 staking rewards
     error MustClaimStakingRewards();
 
+    /// @notice the user may not begin the migration process if they have nothing to migrate
     error NoEscrowBalanceToMigrate();
 
+    /// @notice step 2 canont be called until the user has initiated via step 1
     error MustBeInitiated();
 }

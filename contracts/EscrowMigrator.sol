@@ -213,7 +213,6 @@ contract EscrowMigrator is
         _migrateEntries(msg.sender, to, _entryIDs);
     }
 
-    // TODO: test cannot be used when paused
     function _migrateEntries(address account, address to, uint256[] calldata _entryIDs)
         internal
         whenNotPaused
@@ -302,6 +301,7 @@ contract EscrowMigrator is
                              UPGRADEABILITY
     //////////////////////////////////////////////////////////////*/
 
+    // TODO: test onlyOwner and test upgradeability
     function _authorizeUpgrade(address _newImplementation) internal override onlyOwner {}
 
     /*///////////////////////////////////////////////////////////////
@@ -309,12 +309,12 @@ contract EscrowMigrator is
     ///////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IEscrowMigrator
-    function pauseRewardEscrow() external override onlyOwner {
+    function pauseEscrowMigrator() external override onlyOwner {
         _pause();
     }
 
     /// @inheritdoc IEscrowMigrator
-    function unpauseRewardEscrow() external override onlyOwner {
+    function unpauseEscrowMigrator() external override onlyOwner {
         _unpause();
     }
 }
