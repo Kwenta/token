@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.19;
 
-// TODO: see if I can add a way to restart the process for a user
-
 // Inheritance
 import {IEscrowMigrator} from "./interfaces/IEscrowMigrator.sol";
 import {Ownable2StepUpgradeable} from
@@ -27,6 +25,8 @@ import {IStakingRewardsV2Integrator} from "./interfaces/IStakingRewardsV2Integra
 /// Once a user is initiated, any entries they vest BEFORE registering, they will have to pay extra for
 /// Once again:
 /// If a user vests an entry after initiating without registering it first, they will have to pay extra for it
+
+// TODO: add events???
 
 /*//////////////////////////////////////////////////////////////
                         ESCROW MIGRATOR
@@ -66,11 +66,8 @@ contract EscrowMigrator is
                                  STATE
     //////////////////////////////////////////////////////////////*/
 
-    // TODO: add these and think about global accounting
-    // uint256 public totalConfirmed;
-    // uint256 public totalMigrated;
-    // TODO: add this value to state check tests
     uint256 public totalRegistered;
+    uint256 public totalMigrated;
 
     mapping(address => mapping(uint256 => VestingEntry)) public registeredVestingSchedules;
 
@@ -195,7 +192,6 @@ contract EscrowMigrator is
             registeredEscrow += escrowAmount;
         }
 
-        // TODO: think about removing totalRegistered to save gas
         /// @dev Simlarly this value is not needed, but just added for easier on-chain inspection
         totalRegistered += registeredEscrow;
     }
@@ -220,6 +216,7 @@ contract EscrowMigrator is
         if (!initiated[account]) revert MustBeInitiated();
         _payForMigration(account);
 
+        uint256 migratedEscrow;
         uint256 cooldown = stakingRewardsV2.cooldownPeriod();
 
         for (uint256 i = 0; i < _entryIDs.length; i++) {
@@ -268,7 +265,12 @@ contract EscrowMigrator is
             // TODO: think - could remove `migrated` as a gas optimization and just set endTime to 0
             // update this so it cannot be migrated again
             registeredEntry.migrated = true;
+
+            migratedEscrow += originalEscrowAmount;
         }
+
+        /// @dev This value is not needed, but just added for easier on-chain inspection
+        totalMigrated += migratedEscrow;
     }
 
     /*//////////////////////////////////////////////////////////////
