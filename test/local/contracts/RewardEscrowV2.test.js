@@ -42,7 +42,9 @@ const StakingRewardsV2 = artifacts.require(
     "contracts/StakingRewardsV2.sol:StakingRewardsV2"
 );
 const TokenContract = artifacts.require("Kwenta");
+const RewardEscrowV1 = artifacts.require("RewardEscrow");
 const RewardEscrowV2 = artifacts.require("RewardEscrowV2");
+const EscrowMigrator = artifacts.require("EscrowMigrator");
 
 const NAME = "Kwenta";
 const SYMBOL = "KWENTA";
@@ -84,11 +86,7 @@ const deployStakingRewardsV2 = async (
         [owner],
         {
             kind: "uups",
-            constructorArgs: [
-                token,
-                rewardEscrow,
-                supplySchedule
-            ],
+            constructorArgs: [token, rewardEscrow, supplySchedule],
         }
     );
     await stakingRewardsV2.deployed();
@@ -96,12 +94,45 @@ const deployStakingRewardsV2 = async (
     return await StakingRewardsV2.at(stakingRewardsV2.address);
 };
 
+const deployEscrowMigrator = async (
+    token,
+    rewardEscrowV1,
+    rewardEscrowV2,
+    stakingRewardsV1,
+    stakingRewardsV2,
+    owner
+) => {
+    const EscrowMigratorFactory = await ethers.getContractFactory(
+        "EscrowMigrator"
+    );
+
+    const escrowMigrator = await upgrades.deployProxy(
+        EscrowMigratorFactory,
+        [owner],
+        {
+            kind: "uups",
+            constructorArgs: [
+                token,
+                rewardEscrowV1,
+                rewardEscrowV2,
+                stakingRewardsV1,
+                stakingRewardsV2,
+            ],
+        }
+    );
+    await escrowMigrator.deployed();
+    // convert from hardhat to truffle contract
+    return await EscrowMigrator.at(escrowMigrator.address);
+};
+
 contract("RewardEscrowV2 KWENTA", ([owner, staker1, staker2, treasuryDAO]) => {
     console.log("Start tests");
     let stakingRewards;
     let stakingRewardsV2;
     let stakingToken;
+    let rewardEscrowV1;
     let rewardEscrowV2;
+    let escrowMigrator;
     let kwentaSmock;
     let supplySchedule;
 
@@ -117,6 +148,8 @@ contract("RewardEscrowV2 KWENTA", ([owner, staker1, staker2, treasuryDAO]) => {
             treasuryDAO
         );
 
+        rewardEscrowV1 = await RewardEscrowV1.new(owner, kwentaSmock.address);
+
         rewardEscrowV2 = await deployRewardEscrowV2(owner, kwentaSmock.address);
 
         stakingRewards = await StakingRewards.new(
@@ -129,6 +162,15 @@ contract("RewardEscrowV2 KWENTA", ([owner, staker1, staker2, treasuryDAO]) => {
             kwentaSmock.address,
             rewardEscrowV2.address,
             supplySchedule.address,
+            owner
+        );
+
+        escrowMigrator = await deployEscrowMigrator(
+            kwentaSmock.address,
+            rewardEscrowV1.address,
+            rewardEscrowV2.address,
+            stakingRewards.address,
+            stakingRewardsV2.address,
             owner
         );
 
@@ -147,6 +189,14 @@ contract("RewardEscrowV2 KWENTA", ([owner, staker1, staker2, treasuryDAO]) => {
         );
 
         await rewardEscrowV2.setStakingRewards(stakingRewardsV2.address, {
+            from: owner,
+        });
+
+        await rewardEscrowV2.setEscrowMigrator(escrowMigrator.address, {
+            from: owner,
+        });
+
+        await rewardEscrowV1.setTreasuryDAO(escrowMigrator.address, {
             from: owner,
         });
 

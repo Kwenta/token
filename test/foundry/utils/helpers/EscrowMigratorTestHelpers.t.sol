@@ -21,7 +21,6 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
     //////////////////////////////////////////////////////////////*/
 
     address public owner;
-    EscrowMigrator public escrowMigrator;
 
     /*//////////////////////////////////////////////////////////////
                                 SETUP
@@ -47,39 +46,15 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         // set owners address code to trick the test into allowing onlyOwner functions to be called via script
         vm.etch(owner, address(new Migrate()).code);
 
-        (rewardEscrowV2, stakingRewardsV2,,) = Migrate(owner).runCompleteMigrationProcess({
+        (rewardEscrowV2, stakingRewardsV2,escrowMigrator,,,) = Migrate(owner).runCompleteMigrationProcess({
             _owner: owner,
             _kwenta: address(kwenta),
             _supplySchedule: address(supplySchedule),
             _treasuryDAO: treasury,
+            _rewardEscrowV1: address(rewardEscrowV1),
+            _stakingRewardsV1: address(stakingRewardsV1),
             _printLogs: false
         });
-
-        // deploy migrator
-        address migratorImpl = address(
-            new EscrowMigrator(
-            address(kwenta),
-            address(rewardEscrowV1),
-            address(rewardEscrowV2),
-            address(stakingRewardsV1),
-            address(stakingRewardsV2)
-            )
-        );
-
-        escrowMigrator = EscrowMigrator(
-            address(
-                new ERC1967Proxy(
-                    migratorImpl,
-                    abi.encodeWithSignature("initialize(address)", owner)
-                )
-            )
-        );
-
-        vm.prank(owner);
-        rewardEscrowV2.setEscrowMigrator(address(escrowMigrator));
-
-        vm.prank(owner);
-        rewardEscrowV1.setTreasuryDAO(address(escrowMigrator));
 
         assertEq(stakingRewardsV2.rewardRate(), 0);
         assertEq(kwenta.balanceOf(address(stakingRewardsV2)), 0);

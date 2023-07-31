@@ -5,6 +5,7 @@ import {console} from "forge-std/Test.sol";
 import {Migrate} from "../../../../scripts/Migrate.s.sol";
 import {StakingV1Setup} from "../../utils/setup/StakingV1Setup.t.sol";
 import {RewardEscrowV2} from "../../../../contracts/RewardEscrowV2.sol";
+import {EscrowMigrator} from "../../../../contracts/EscrowMigrator.sol";
 import {StakingRewardsV2} from "../../../../contracts/StakingRewardsV2.sol";
 import {IRewardEscrowV2} from "../../../../contracts/interfaces/IRewardEscrowV2.sol";
 import "../../utils/Constants.t.sol";
@@ -37,10 +38,12 @@ contract StakingV2Setup is StakingV1Setup {
 
     RewardEscrowV2 public rewardEscrowV2;
     StakingRewardsV2 public stakingRewardsV2;
+    EscrowMigrator public escrowMigrator;
     Migrate public migrate;
 
     address rewardEscrowV2Implementation;
     address stakingRewardsV2Implementation;
+    address escrowMigratorImplementation;
 
     /*//////////////////////////////////////////////////////////////
                                 Setup
@@ -58,6 +61,8 @@ contract StakingV2Setup is StakingV1Setup {
                 address(this),
                 address(kwenta),
                 address(supplySchedule),
+                address(rewardEscrowV1),
+                address(stakingRewardsV1),
                 false
             )
         );
@@ -65,9 +70,14 @@ contract StakingV2Setup is StakingV1Setup {
         (
             rewardEscrowV2,
             stakingRewardsV2,
+            escrowMigrator,
             rewardEscrowV2Implementation,
-            stakingRewardsV2Implementation
-        ) = abi.decode(deploymentData, (RewardEscrowV2, StakingRewardsV2, address, address));
+            stakingRewardsV2Implementation,
+            escrowMigratorImplementation
+        ) = abi.decode(
+            deploymentData,
+            (RewardEscrowV2, StakingRewardsV2, EscrowMigrator, address, address, address)
+        );
 
         // check staking rewards cannot be set to 0
         vm.expectRevert(IRewardEscrowV2.ZeroAddress.selector);
@@ -78,6 +88,15 @@ contract StakingV2Setup is StakingV1Setup {
         vm.expectRevert("Ownable: caller is not the owner");
         rewardEscrowV2.setStakingRewards(address(stakingRewardsV2));
 
+        // check escrow migrator cannot be set to 0
+        vm.expectRevert(IRewardEscrowV2.ZeroAddress.selector);
+        rewardEscrowV2.setEscrowMigrator(address(0));
+
+        // check escrow migrator can only be set by owner
+        vm.prank(user1);
+        vm.expectRevert("Ownable: caller is not the owner");
+        rewardEscrowV2.setEscrowMigrator(address(escrowMigrator));
+
         // Setup StakingV2
         vm.expectEmit(true, true, true, true);
         emit StakingRewardsSet(address(stakingRewardsV2));
@@ -86,6 +105,7 @@ contract StakingV2Setup is StakingV1Setup {
                 migrate.setupSystem.selector,
                 address(rewardEscrowV2),
                 address(stakingRewardsV2),
+                address(escrowMigrator),
                 address(treasury),
                 false
             )
@@ -103,7 +123,9 @@ contract StakingV2Setup is StakingV1Setup {
             abi.encodeWithSelector(
                 migrate.migrateSystem.selector,
                 address(supplySchedule),
+                address(rewardEscrowV1),
                 address(stakingRewardsV2),
+                address(escrowMigrator),
                 false
             )
         );

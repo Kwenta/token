@@ -39,11 +39,14 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
         // set owners address code to trick the test into allowing onlyOwner functions to be called via script
         vm.etch(owner, address(new Migrate()).code);
 
-        (rewardEscrowV2, stakingRewardsV2,,) = Migrate(owner).runCompleteMigrationProcess({
+        (rewardEscrowV2, stakingRewardsV2, escrowMigrator,,,) = Migrate(owner)
+            .runCompleteMigrationProcess({
             _owner: owner,
             _kwenta: address(kwenta),
             _supplySchedule: address(supplySchedule),
             _treasuryDAO: treasury,
+            _rewardEscrowV1: address(rewardEscrowV1),
+            _stakingRewardsV1: address(stakingRewardsV1),
             _printLogs: false
         });
     }
