@@ -144,6 +144,7 @@ contract RewardEscrowV2 is
         emit StakingRewardsSet(_stakingRewards);
     }
 
+    /// @inheritdoc IRewardEscrowV2
     function setEscrowMigrator(address _escrowMigrator) external override onlyOwner {
         if (_escrowMigrator == address(0)) revert ZeroAddress();
 
