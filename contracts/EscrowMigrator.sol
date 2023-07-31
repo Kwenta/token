@@ -27,7 +27,6 @@ import {IStakingRewardsV2Integrator} from "./interfaces/IStakingRewardsV2Integra
 /// If a user vests an entry after initiating without registering it first, they will have to pay extra for it
 
 // TODO: add events???
-// TODO: add a view for totalEscrowRegistered(user), totalEscrowMigrated(user), numberOfMigratedEntries
 
 /*//////////////////////////////////////////////////////////////
                         ESCROW MIGRATOR
@@ -79,7 +78,7 @@ contract EscrowMigrator is
 
     mapping(address => uint256) public paidSoFar;
 
-    // TODO: consider just storing numberOfRegisterdEntries intead of the array
+    // OPT: consider just storing numberOfRegisterdEntries intead of the array
     // TODO: add view function to return this data as a memory array
     mapping(address => uint256[]) public registeredEntryIDs;
 
@@ -284,12 +283,12 @@ contract EscrowMigrator is
                 earlyVestingFee: 90
             });
 
-            // TODO: think if this transfer can be done once in advance (could pass in total via calldata args)
+            // OPT: think if this transfer can be done once in advance (could pass in total via calldata args)
             // then check it at the end to ensure it is correct
             kwenta.transfer(address(rewardEscrowV2), originalEscrowAmount);
             rewardEscrowV2.importEscrowEntry(to, entry);
 
-            // TODO: think - could remove `migrated` as a gas optimization and just set endTime to 0
+            // OPT: think - could remove `migrated` as a gas optimization and just set endTime to 0
             // update this so it cannot be migrated again
             registeredEntry.migrated = true;
 
