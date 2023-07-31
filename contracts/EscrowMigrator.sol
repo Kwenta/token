@@ -139,6 +139,27 @@ contract EscrowMigrator is
         }
     }
 
+    function totalEscrowRegistered(address account) external view returns (uint256 total) {
+        uint256 length = numberOfRegisteredEntries(account);
+
+        for (uint256 i = 0; i < length; i++) {
+            total +=
+                registeredVestingSchedules[account][registeredEntryIDs[account][i]].escrowAmount;
+        }
+    }
+
+    function totalEscrowMigrated(address account) external view returns (uint256 total) {
+        uint256 length = numberOfRegisteredEntries(account);
+
+        for (uint256 i = 0; i < length; i++) {
+            if (registeredVestingSchedules[account][registeredEntryIDs[account][i]].migrated) {
+                total +=
+                    registeredVestingSchedules[account][registeredEntryIDs[account][i]]
+                        .escrowAmount;
+            }
+        }
+    }
+
     function toPay(address account) public view returns (uint256) {
         uint256 totalPaymentRequired =
             rewardEscrowV1.totalVestedAccountBalance(account) - escrowVestedAtStart[account];
