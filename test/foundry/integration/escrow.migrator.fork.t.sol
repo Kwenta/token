@@ -591,6 +591,68 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         escrowMigrator.migrateEntries(user1, _entryIDs);
     }
 
+    function test_Migrate_Entries_In_Funny_Order_Fuzz(uint256 salt) public {
+        (uint256[] memory _entryIDs,) = claimAndCheckInitialState(user1);
+        uint256[] memory entriesToRegister = new uint256[](_entryIDs.length);
+        uint256[] memory entriesToVest = new uint256[](_entryIDs.length);
+        uint256[] memory entriesToMigrate = new uint256[](_entryIDs.length);
+        uint256[] memory entriesFullyMigrated = new uint256[](_entryIDs.length);
+
+        uint256 j;
+        uint256 numOfEntriesFullyMigrated;
+        uint256 totalEscrowMigrated;
+        for (uint256 i = _entryIDs.length; i > 0; i--) {
+            bool fullyMigrated = true;
+            uint256 entryID = _entryIDs[i - 1];
+            if (flipCoin(salt)) {
+                entriesToRegister[j] = entryID;
+            } else {
+                fullyMigrated = false;
+            }
+            if (flipCoin(salt)) {
+                entriesToVest[j] = entryID;
+            } else {
+                fullyMigrated = false;
+            }
+            if (flipCoin(salt)) {
+                entriesToMigrate[j] = entryID;
+            } else {
+                fullyMigrated = false;
+            }
+
+            if (fullyMigrated) {
+                entriesFullyMigrated[j] = entryID;
+                numOfEntriesFullyMigrated++;
+                (, uint256 escrowAmount,) = rewardEscrowV1.getVestingEntry(user1, entryID);
+                totalEscrowMigrated += escrowAmount;
+            }
+            j++;
+        }
+        uint256[] memory entriesFullyMigratedList = new uint256[](numOfEntriesFullyMigrated);
+        uint256 k;
+        for (uint256 i; i < entriesFullyMigrated.length; i++) {
+            if (entriesFullyMigrated[i] != 0) {
+                entriesFullyMigratedList[k] = entriesFullyMigrated[i];
+                k++;
+            }
+        }
+
+        // step 1 - register entries
+        registerEntries(user1, entriesToRegister);
+
+        // step 2 - vest entries
+        vestAndApprove(user1, entriesToVest);
+
+        // step 3 - migrate entries
+        migrateEntries(user1, entriesToMigrate);
+
+        // check final state
+        assertEq(rewardEscrowV2.balanceOf(user1), numOfEntriesFullyMigrated);
+        checkStateAfterStepTwoAssertions(
+            user1, user1, entriesFullyMigratedList, totalEscrowMigrated
+        );
+    }
+
     /*//////////////////////////////////////////////////////////////
                           STEP 3 STATE LIMITS
     //////////////////////////////////////////////////////////////*/
@@ -1179,6 +1241,3 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         checkStateAfterStepTwo(user1, 0, 17);
     }
 }
-
-// TODO: test sending in entryIDs in a funny order
-

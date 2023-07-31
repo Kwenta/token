@@ -162,6 +162,11 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         approve(account);
     }
 
+    function vestAndApprove(address account, uint256[] memory _entryIDs) internal {
+        vest(account, _entryIDs);
+        approve(account);
+    }
+
     function registerEntries(address account, uint256 index, uint256 amount)
         internal
         returns (uint256[] memory _entryIDs)
