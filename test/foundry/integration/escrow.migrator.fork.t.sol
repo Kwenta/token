@@ -1180,14 +1180,5 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
     }
 }
 
-// TODO: 3. Update checkState helpers to account for expected changes in rewardEscrowV1.balanceOf
-// TODO: 4. Update checkState helpers to account for expected changes in totalRegisteredEscrow and similar added new variables
-// TODO: test confirming and then registering again
-// TODO: test vest, confirm, vest, confirm
-// TODO: test register, vest, register, vest etc.
-// TODO: test confirm, register, vest, confirm
-// TODO: test not migrating all entries from end-to-end
-// TODO: add tests to ensure each function can only be executed in the correct state for step 1 & 3
 // TODO: test sending in entryIDs in a funny order
 
-// QUESTION: 2. Option to simplify to O(1) time, using just balanceOf & totalVestedAccountBalance
