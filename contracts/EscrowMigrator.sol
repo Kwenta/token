@@ -27,6 +27,7 @@ import {IStakingRewardsV2Integrator} from "./interfaces/IStakingRewardsV2Integra
 /// If a user vests an entry after initiating without registering it first, they will have to pay extra for it
 
 // TODO: add events???
+// TODO: add a view for totalEscrowRegistered(user), totalEscrowMigrated(user), numberOfMigratedEntries
 
 /*//////////////////////////////////////////////////////////////
                         ESCROW MIGRATOR
@@ -81,9 +82,6 @@ contract EscrowMigrator is
     // TODO: add view function to return this data as a memory array
     mapping(address => uint256[]) public registeredEntryIDs;
 
-    // TODO: consider removing this to save gas
-    mapping(address => uint256) public numberOfMigratedEntries;
-
     /*///////////////////////////////////////////////////////////////
                         CONSTRUCTOR / INITIALIZER
     ///////////////////////////////////////////////////////////////*/
@@ -129,6 +127,16 @@ contract EscrowMigrator is
     //////////////////////////////////////////////////////////////*/
     function numberOfRegisteredEntries(address account) public view returns (uint256) {
         return registeredEntryIDs[account].length;
+    }
+
+    function numberOfMigratedEntries(address account) external view returns (uint256 total) {
+        uint256 length = numberOfRegisteredEntries(account);
+
+        for (uint256 i = 0; i < length; i++) {
+            if (registeredVestingSchedules[account][registeredEntryIDs[account][i]].migrated) {
+                total++;
+            }
+        }
     }
 
     function toPay(address account) public view returns (uint256) {
@@ -258,9 +266,6 @@ contract EscrowMigrator is
             // then check it at the end to ensure it is correct
             kwenta.transfer(address(rewardEscrowV2), originalEscrowAmount);
             rewardEscrowV2.importEscrowEntry(to, entry);
-
-            // TODO: could remove this as a gas optimization
-            numberOfMigratedEntries[account]++;
 
             // TODO: think - could remove `migrated` as a gas optimization and just set endTime to 0
             // update this so it cannot be migrated again
