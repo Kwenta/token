@@ -350,164 +350,6 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         checkStateAfterStepTwo(user1, 0, 10);
     }
 
-    // /*//////////////////////////////////////////////////////////////
-    //                  CONFIRMATION STEP STATE LIMITS
-    // //////////////////////////////////////////////////////////////*/
-
-    // function test_Cannot_Confirm_In_Not_Started_State() public {
-    //     (uint256[] memory _entryIDs,) = claimAndCheckInitialState(user1);
-
-    //     // attempt in NOT_STARTED state
-    //     assertEq(
-    //         uint256(escrowMigrator.migrationStatus(user1)),
-    //         uint256(IEscrowMigrator.MigrationStatus.NOT_STARTED)
-    //     );
-    //     vm.prank(user1);
-    //     vm.expectRevert(IEscrowMigrator.MustBeInRegisteredState.selector);
-    //     escrowMigrator.confirmEntriesAreVested(_entryIDs);
-    // }
-
-    // function test_Cannot_Confirm_In_Initiated_State() public {
-    //     (uint256[] memory _entryIDs,) = claimAndCheckInitialState(user1);
-
-    //     // attempt in INITIATED state
-    //     _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 0);
-    //     vm.prank(user1);
-    //     escrowMigrator.registerEntriesForVestingAndMigration(_entryIDs);
-    //     assertEq(
-    //         uint256(escrowMigrator.migrationStatus(user1)),
-    //         uint256(IEscrowMigrator.MigrationStatus.INITIATED)
-    //     );
-    //     vm.prank(user1);
-    //     vm.expectRevert(IEscrowMigrator.MustBeInRegisteredState.selector);
-    //     escrowMigrator.confirmEntriesAreVested(_entryIDs);
-    // }
-
-    // function test_Cannot_Confirm_In_Vesting_Confirmed_State() public {
-    //     // complete step 1 and vest
-    //     (uint256[] memory _entryIDs,,) = registerVestAndConfirmAllEntries(user1);
-
-    //     // attempt in VESTING_CONFIRMED state
-    //     assertEq(
-    //         uint256(escrowMigrator.migrationStatus(user1)),
-    //         uint256(IEscrowMigrator.MigrationStatus.VESTING_CONFIRMED)
-    //     );
-    //     vm.prank(user1);
-    //     vm.expectRevert(IEscrowMigrator.MustBeInRegisteredState.selector);
-    //     escrowMigrator.confirmEntriesAreVested(_entryIDs);
-    // }
-
-    // function test_Cannot_Confirm_In_Paid_State() public {
-    //     // move to paid state
-    //     (uint256[] memory _entryIDs,) = moveToPaidState(user1);
-
-    //     assertEq(
-    //         uint256(escrowMigrator.migrationStatus(user1)),
-    //         uint256(IEscrowMigrator.MigrationStatus.PAID)
-    //     );
-    //     vm.prank(user1);
-    //     vm.expectRevert(IEscrowMigrator.MustBeInRegisteredState.selector);
-    //     escrowMigrator.confirmEntriesAreVested(_entryIDs);
-    // }
-
-    // function test_Cannot_Confirm_In_Completed_State() public {
-    //     // move to completed state
-    //     (uint256[] memory _entryIDs,) = moveToCompletedState(user1);
-
-    //     assertEq(
-    //         uint256(escrowMigrator.migrationStatus(user1)),
-    //         uint256(IEscrowMigrator.MigrationStatus.COMPLETED)
-    //     );
-    //     vm.prank(user1);
-    //     vm.expectRevert(IEscrowMigrator.MustBeInRegisteredState.selector);
-    //     escrowMigrator.confirmEntriesAreVested(_entryIDs);
-    // }
-
-    // /*//////////////////////////////////////////////////////////////
-    //                 CONFIRMATION STEP EDGE CASES
-    // //////////////////////////////////////////////////////////////*/
-
-    // function test_Cannot_Confirm_On_Behalf_Of_Someone_Else() public {
-    //     // complete step 1 and vest
-    //     (uint256[] memory _entryIDs,) = claimRegisterAndVestAllEntries(user1);
-
-    //     // register user2 so he can call confirm vest
-    //     claimAndRegisterAllEntries(user2);
-
-    //     // step 2.2 - confirm vest
-    //     vm.prank(user2);
-    //     escrowMigrator.confirmEntriesAreVested(_entryIDs);
-
-    //     // check final state
-    //     _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 0);
-    //     checkStateAfterStepTwo(user1, _entryIDs, false);
-    // }
-
-    // function test_Cannot_Confirm_Someone_Elses_Registered_Entry() public {
-    //     // complete step 1 and vest
-    //     (uint256[] memory _entryIDs,) = claimRegisterAndVestAllEntries(user1);
-
-    //     // register user2 so he can call confirm vest
-    //     claimRegisterAndVestAllEntries(user2);
-
-    //     // step 2.2 - confirm vest
-    //     vm.prank(user2);
-    //     escrowMigrator.confirmEntriesAreVested(_entryIDs);
-
-    //     // check final state
-    //     _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user2, 0, 0);
-    //     checkStateAfterStepTwo(user2, _entryIDs, false);
-    // }
-
-    // function test_Cannot_Confirm_Non_Registered_Entry() public {
-    //     // complete step 1 and vest
-    //     uint256[] memory _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 10);
-    //     claimRegisterAndVestEntries(user1, _entryIDs);
-
-    //     // step 2.2 - confirm vest
-    //     _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 17);
-    //     vm.prank(user1);
-    //     escrowMigrator.confirmEntriesAreVested(_entryIDs);
-
-    //     // check final state
-    //     _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 10);
-    //     checkStateAfterStepTwo(user1, _entryIDs, true);
-    // }
-
-    // function test_Cannot_Confirm_Entry_Twice() public {
-    //     // complete step 1 and vest
-    //     (uint256[] memory _entryIDs,) = claimRegisterAndVestAllEntries(user1);
-
-    //     // step 2.2 - confirm vest
-    //     _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 10);
-    //     vm.prank(user1);
-    //     escrowMigrator.confirmEntriesAreVested(_entryIDs);
-    //     _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 17);
-    //     vm.prank(user1);
-    //     escrowMigrator.confirmEntriesAreVested(_entryIDs);
-
-    //     // check final state
-    //     checkStateAfterStepTwo(user1, _entryIDs, true);
-    // }
-
-    // function test_Cannot_Confirm_Non_Vested_Entry() public {
-    //     // complete step 1 and vest
-    //     (uint256[] memory _entryIDs,) = claimAndRegisterAllEntries(user1);
-
-    //     // step 2.2 - vest just the first handful of the entries
-    //     _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 10);
-    //     vm.prank(user1);
-    //     rewardEscrowV1.vest(_entryIDs);
-    //     // confirm all the entries
-    //     _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 17);
-    //     vm.prank(user1);
-    //     escrowMigrator.confirmEntriesAreVested(_entryIDs);
-
-    //     // check final state
-    //     _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user1, 0, 10);
-    //     checkStateAfterStepTwo(user1, _entryIDs, false);
-    // }
-
     /*//////////////////////////////////////////////////////////////
                               STEP 2 TESTS
     //////////////////////////////////////////////////////////////*/
@@ -604,6 +446,24 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
             vm.expectRevert("ERC20: transfer amount exceeds allowance");
         }
         escrowMigrator.migrateEntries(user1, _entryIDs);
+    }
+
+    function test_Cannot_Migrate_Non_Vested_Entries() public {
+        // give escrow migrator funds so it could be cheated
+        vm.prank(treasury);
+        kwenta.transfer(address(escrowMigrator), 50 ether);
+
+        // complete step 1
+        claimAndRegisterAllEntries(user1);
+
+        vest(user1, 0, 15);
+        approve(user1);
+
+        // step 2 - migrate entries
+        migrateEntries(user1, 0, 17);
+
+        // check final state
+        checkStateAfterStepTwo(user1, 0, 15);
     }
 
     function test_Cannot_Migrate_Non_Registered_Entries() public {
