@@ -1047,10 +1047,169 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 
         checkStateAfterStepTwo(user1, 0, 17);
     }
+
+    function test_MVCM() public {
+        claimRegisterAndVestEntries(user1, 0, 15);
+
+        // M
+        approveAndMigrate(user1, 0, 15);
+        // V
+        vest(user1, 0, 15);
+        // C
+        createRewardEscrowEntryV1(user1, 1 ether);
+        // M
+        approveAndMigrate(user1, 0, 18);
+
+        checkStateAfterStepTwo(user1, 0, 15);
+    }
+
+    function test_MRVM() public {
+        claimRegisterAndVestEntries(user1, 0, 15);
+
+        // M
+        approveAndMigrate(user1, 0, 15);
+        // R
+        registerEntries(user1, 15, 2);
+        // V
+        vest(user1, 0, 17);
+        // M
+        approveAndMigrate(user1, 0, 17);
+
+        checkStateAfterStepTwo(user1, 0, 17);
+    }
+
+    function test_MRCM() public {
+        claimRegisterAndVestEntries(user1, 0, 15);
+
+        // M
+        approveAndMigrate(user1, 0, 15);
+        // R
+        registerEntries(user1, 15, 2);
+        // C
+        createRewardEscrowEntryV1(user1, 1 ether);
+        // M
+        approveAndMigrate(user1, 0, 18);
+
+        checkStateAfterStepTwo(user1, 0, 15);
+    }
+
+    function test_MCRM() public {
+        claimRegisterAndVestEntries(user1, 0, 15);
+
+        // M
+        approveAndMigrate(user1, 0, 15);
+        // C
+        createRewardEscrowEntryV1(user1, 1 ether);
+        // R
+        registerEntries(user1, 15, 2);
+        // M
+        approveAndMigrate(user1, 0, 18);
+
+        checkStateAfterStepTwo(user1, 0, 15);
+    }
+
+    function test_MRCVM() public {
+        claimRegisterAndVestEntries(user1, 0, 15);
+
+        // M
+        approveAndMigrate(user1, 0, 15);
+        // R
+        registerEntries(user1, 15, 2);
+        // C
+        createRewardEscrowEntryV1(user1, 1 ether);
+        // V
+        vest(user1, 0, 18);
+        // M
+        approveAndMigrate(user1, 0, 18);
+
+        checkStateAfterStepTwo(user1, 0, 17);
+    }
+
+    function test_MRVCM() public {
+        claimRegisterAndVestEntries(user1, 0, 15);
+
+        // M
+        approveAndMigrate(user1, 0, 15);
+        // R
+        registerEntries(user1, 15, 2);
+        // V
+        vest(user1, 0, 17);
+        // C
+        createRewardEscrowEntryV1(user1, 1 ether);
+        // M
+        approveAndMigrate(user1, 0, 18);
+
+        checkStateAfterStepTwo(user1, 0, 17);
+    }
+
+    function test_MVRCM() public {
+        claimRegisterAndVestEntries(user1, 0, 15);
+
+        // M
+        approveAndMigrate(user1, 0, 15);
+        // V
+        vest(user1, 0, 17);
+        // R
+        registerEntries(user1, 15, 2);
+        // C
+        createRewardEscrowEntryV1(user1, 1 ether);
+        // M
+        approveAndMigrate(user1, 0, 18);
+
+        checkStateAfterStepTwo(user1, 0, 15);
+    }
+
+    function test_MVCRM() public {
+        claimRegisterAndVestEntries(user1, 0, 15);
+
+        // M
+        approveAndMigrate(user1, 0, 15);
+        // V
+        vest(user1, 0, 17);
+        // C
+        createRewardEscrowEntryV1(user1, 1 ether);
+        // R
+        registerEntries(user1, 15, 3);
+        // M
+        approveAndMigrate(user1, 0, 18);
+
+        checkStateAfterStepTwo(user1, 0, 15);
+    }
+
+    function test_MCVRM() public {
+        claimRegisterAndVestEntries(user1, 0, 15);
+
+        // M
+        approveAndMigrate(user1, 0, 15);
+        // C
+        createRewardEscrowEntryV1(user1, 1 ether);
+        // V
+        vest(user1, 0, 17);
+        // R
+        registerEntries(user1, 15, 3);
+        // M
+        approveAndMigrate(user1, 0, 18);
+
+        checkStateAfterStepTwo(user1, 0, 15);
+    }
+
+    function test_MCRVM() public {
+        claimRegisterAndVestEntries(user1, 0, 15);
+
+        // M
+        approveAndMigrate(user1, 0, 15);
+        // C
+        createRewardEscrowEntryV1(user1, 1 ether);
+        // R
+        registerEntries(user1, 15, 3);
+        // V
+        vest(user1, 0, 17);
+        // M
+        approveAndMigrate(user1, 0, 18);
+
+        checkStateAfterStepTwo(user1, 0, 17);
+    }
 }
-
-// Beyond Step 2
-
 
 // TODO: 3. Update checkState helpers to account for expected changes in rewardEscrowV1.balanceOf
 // TODO: 4. Update checkState helpers to account for expected changes in totalRegisteredEscrow and similar added new variables
