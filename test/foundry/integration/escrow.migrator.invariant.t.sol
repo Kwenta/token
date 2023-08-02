@@ -95,7 +95,22 @@ contract EscrowMigratorInvariantTests is EscrowMigratorTestHelpers {
 
     /// @custom:condition no creating v2 escrow entries
     /// @custom:condition no claiming rewards on staking rewards v2
+    /// @custom:condition no vesting in reward escrow v2
     function invariant_RewardEscrowV2_Gets_Exactly_How_Much_Is_Migrated() public {
         assertEq(rewardEscrowV2.totalEscrowedBalance(), escrowMigrator.totalMigrated());
+    }
+
+    /// @custom:condition no creating v2 escrow entries
+    /// @custom:condition no claiming rewards on staking rewards v2
+    /// @custom:condition no vesting in reward escrow v2
+    /// @custom:condition no transferring escrow in reward escrow v2
+    function invariant_RewardEscrowV2_Gets_Exactly_How_Much_Is_Migrated_Per_Migrator() public {
+        for (uint256 i = 0; i < migrators.length; i++) {
+            address migrator = migrators[i];
+            assertEq(
+                rewardEscrowV2.totalEscrowedAccountBalance(migrator),
+                escrowMigrator.totalEscrowMigrated(migrator)
+            );
+        }
     }
 }
