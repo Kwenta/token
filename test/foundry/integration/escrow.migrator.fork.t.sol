@@ -727,7 +727,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 
     function test_Can_Migrate_In_Completed_State() public {
         // move to completed state
-        moveToCompletedState(user1);
+        claimAndFullyMigrate(user1);
 
         createRewardEscrowEntryV1(user1, 10 ether);
         createRewardEscrowEntryV1(user1, 10 ether);
