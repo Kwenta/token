@@ -73,6 +73,16 @@ contract EscrowMigratorInvariantTests is StakingV2Setup {
         }
     }
 
+    function invariant_Escrow_Vested_At_Start_Cannot_Be_Greater_Than_Vested_Account_Balance() public {
+        for (uint256 i = 0; i < migrators.length; i++) {
+            address migrator = migrators[i];
+            assertGe(
+                rewardEscrowV1.totalVestedAccountBalance(migrator),
+                escrowMigrator.escrowVestedAtStart(migrator)
+            );
+        }
+    }
+
     /*//////////////////////////////////////////////////////////////
                            PARTIAL INVARIANTS
     //////////////////////////////////////////////////////////////*/
@@ -88,6 +98,13 @@ contract EscrowMigratorInvariantTests is StakingV2Setup {
     /// @custom:condition no vesting in reward escrow v2
     function invariant_RewardEscrowV2_Gets_Exactly_How_Much_Is_Migrated() public {
         assertEq(rewardEscrowV2.totalEscrowedBalance(), escrowMigrator.totalMigrated());
+    }
+
+    /// @custom:condition no creating v2 escrow entries
+    /// @custom:condition no claiming rewards on staking rewards v2
+    /// @custom:condition no vesting in reward escrow v2
+    function invariant_RewardEscrowV2_Cannot_Get_More_Than_Is_Registered() public {
+        assertLe(rewardEscrowV2.totalEscrowedBalance(), escrowMigrator.totalRegistered());
     }
 
     /// @custom:condition no creating v2 escrow entries
