@@ -22,6 +22,7 @@ contract EscrowMigratorInvariantTests is EscrowMigratorTestHelpers {
     //////////////////////////////////////////////////////////////*/
 
     EscrowMigratorHandler handler;
+    address[] migrators;
 
     /*//////////////////////////////////////////////////////////////
                                  SETUP
@@ -32,13 +33,11 @@ contract EscrowMigratorInvariantTests is EscrowMigratorTestHelpers {
 
         switchToStakingV2();
 
-        address[] memory migrators = new address[](5);
-
-        migrators[0] = user1;
-        migrators[1] = user2;
-        migrators[2] = user3;
-        migrators[3] = user4;
-        migrators[4] = user5;
+        migrators.push(user1);
+        migrators.push(user2);
+        migrators.push(user3);
+        migrators.push(user4);
+        migrators.push(user5);
 
         handler = new EscrowMigratorHandler(
             treasury,
@@ -60,8 +59,28 @@ contract EscrowMigratorInvariantTests is EscrowMigratorTestHelpers {
                                INVARIANTS
     //////////////////////////////////////////////////////////////*/
 
-    function invariant_TotalRegistered_Greater_Than_Migrated() public {
+    function invariant_Total_Registered_Greater_Than_Migrated() public {
         // total migrated should never be greater than the total registered
         assertGe(escrowMigrator.totalRegistered(), escrowMigrator.totalMigrated());
+    }
+
+    function invariant_Cannot_Register_More_Entries_Than_Created() public {
+        for (uint256 i = 0; i < migrators.length; i++) {
+            address migrator = migrators[i];
+            assertGe(
+                rewardEscrowV1.numVestingEntries(migrator),
+                escrowMigrator.numberOfRegisteredEntries(migrator)
+            );
+        }
+    }
+
+    function invariant_Cannot_Migrate_More_Entries_Than_Created() public {
+        for (uint256 i = 0; i < migrators.length; i++) {
+            address migrator = migrators[i];
+            assertGe(
+                rewardEscrowV1.numVestingEntries(migrator),
+                escrowMigrator.numberOfMigratedEntries(migrator)
+            );
+        }
     }
 }
