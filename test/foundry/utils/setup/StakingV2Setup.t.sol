@@ -36,10 +36,10 @@ contract StakingV2Setup is StakingV1Setup {
                                 State
     //////////////////////////////////////////////////////////////*/
 
-    RewardEscrowV2 public rewardEscrowV2;
-    StakingRewardsV2 public stakingRewardsV2;
-    EscrowMigrator public escrowMigrator;
-    Migrate public migrate;
+    RewardEscrowV2 internal rewardEscrowV2;
+    StakingRewardsV2 internal stakingRewardsV2;
+    EscrowMigrator internal escrowMigrator;
+    Migrate internal migrate;
 
     address rewardEscrowV2Implementation;
     address stakingRewardsV2Implementation;
@@ -117,7 +117,7 @@ contract StakingV2Setup is StakingV1Setup {
                             Migration Helpers
     //////////////////////////////////////////////////////////////*/
 
-    function switchToStakingV2() public {
+    function switchToStakingV2() internal {
         // Update SupplySchedule to point to StakingV2
         (bool migrationSuccess,) = address(migrate).delegatecall(
             abi.encodeWithSelector(

@@ -12,7 +12,7 @@ contract StakingTestHelpers is StakingV2Setup {
 
     // Note - this must be run before triggering notifyRewardAmount and getReward
     function getExpectedRewardV1(uint256 _reward, uint256 _waitTime, address _user)
-        public
+        internal
         view
         returns (uint256)
     {
@@ -40,7 +40,7 @@ contract StakingTestHelpers is StakingV2Setup {
 
     // Note - this must be run before triggering notifyRewardAmount and getReward
     function getExpectedRewardV2(uint256 _reward, uint256 _waitTime, address _user)
-        public
+        internal
         view
         returns (uint256)
     {
@@ -66,7 +66,7 @@ contract StakingTestHelpers is StakingV2Setup {
         return expectedRewards;
     }
 
-    function jumpToEndOfRewardsPeriod(uint256 _waitTime) public {
+    function jumpToEndOfRewardsPeriod(uint256 _waitTime) internal {
         uint256 rewardsDuration = stakingRewardsV1.rewardsDuration();
 
         bool waitTimeLessThanRewardsDuration = _waitTime < rewardsDuration;
@@ -80,7 +80,7 @@ contract StakingTestHelpers is StakingV2Setup {
     //////////////////////////////////////////////////////////////*/
 
     function createRewardEscrowEntryV1(address _account, uint256 _amount)
-        public
+        internal
     {
         vm.prank(treasury);
         kwenta.approve(address(rewardEscrowV1), _amount);
@@ -89,7 +89,7 @@ contract StakingTestHelpers is StakingV2Setup {
     }
 
     function createRewardEscrowEntryV1(address _account, uint256 _amount, uint256 _duration)
-        public
+        internal
     {
         vm.prank(treasury);
         kwenta.approve(address(rewardEscrowV1), _amount);
@@ -97,64 +97,64 @@ contract StakingTestHelpers is StakingV2Setup {
         rewardEscrowV1.createEscrowEntry(_account, _amount, _duration);
     }
 
-    function addNewRewardsToStakingRewardsV1(uint256 _reward) public {
+    function addNewRewardsToStakingRewardsV1(uint256 _reward) internal {
         vm.prank(treasury);
         kwenta.transfer(address(stakingRewardsV1), _reward);
         vm.prank(address(supplySchedule));
         stakingRewardsV1.notifyRewardAmount(_reward);
     }
 
-    function fundAndApproveAccountV1(address _account, uint256 _amount) public {
+    function fundAndApproveAccountV1(address _account, uint256 _amount) internal {
         vm.prank(treasury);
         kwenta.transfer(_account, _amount);
         vm.prank(_account);
         kwenta.approve(address(stakingRewardsV1), _amount);
     }
 
-    function fundAccountAndStakeV1(address _account, uint256 _amount) public {
+    function fundAccountAndStakeV1(address _account, uint256 _amount) internal {
         fundAndApproveAccountV1(_account, _amount);
         vm.prank(_account);
         stakingRewardsV1.stake(_amount);
     }
 
-    function stakeFundsV1(address _account, uint256 _amount) public {
+    function stakeFundsV1(address _account, uint256 _amount) internal {
         vm.prank(_account);
         kwenta.approve(address(stakingRewardsV1), _amount);
         vm.prank(_account);
         stakingRewardsV1.stake(_amount);
     }
 
-    function unstakeFundsV1(address _account, uint256 _amount) public {
+    function unstakeFundsV1(address _account, uint256 _amount) internal {
         vm.prank(_account);
         stakingRewardsV1.unstake(_amount);
     }
 
-    function exitStakingV1(address _account) public {
+    function exitStakingV1(address _account) internal {
         vm.prank(_account);
         stakingRewardsV1.exit();
     }
 
-    function getStakingRewardsV1(address _account) public {
+    function getStakingRewardsV1(address _account) internal {
         vm.prank(_account);
         stakingRewardsV1.getReward();
     }
 
-    function stakeAllUnstakedEscrowV1(address _account) public {
+    function stakeAllUnstakedEscrowV1(address _account) internal {
         uint256 amount = getNonStakedEscrowAmountV1(_account);
         vm.prank(_account);
         rewardEscrowV1.stakeEscrow(amount);
     }
 
-    function unstakeAllUnstakedEscrowV1(address _account, uint256 _amount) public {
+    function unstakeAllUnstakedEscrowV1(address _account, uint256 _amount) internal {
         vm.prank(_account);
         rewardEscrowV1.unstakeEscrow(_amount);
     }
 
-    function getNonStakedEscrowAmountV1(address _account) public view returns (uint256) {
+    function getNonStakedEscrowAmountV1(address _account) internal view returns (uint256) {
         return rewardEscrowV1.balanceOf(_account) - stakingRewardsV1.escrowedBalanceOf(_account);
     }
 
-    function warpAndMint(uint256 _time) public {
+    function warpAndMint(uint256 _time) internal {
         vm.warp(block.timestamp + _time);
         supplySchedule.mint();
     }
@@ -163,56 +163,56 @@ contract StakingTestHelpers is StakingV2Setup {
                             V2 Helper Functions
     //////////////////////////////////////////////////////////////*/
 
-    function addNewRewardsToStakingRewardsV2(uint256 _reward) public {
+    function addNewRewardsToStakingRewardsV2(uint256 _reward) internal {
         vm.prank(treasury);
         kwenta.transfer(address(stakingRewardsV2), _reward);
         vm.prank(address(supplySchedule));
         stakingRewardsV2.notifyRewardAmount(_reward);
     }
 
-    function fundAndApproveAccountV2(address _account, uint256 _amount) public {
+    function fundAndApproveAccountV2(address _account, uint256 _amount) internal {
         vm.prank(treasury);
         kwenta.transfer(_account, _amount);
         vm.prank(_account);
         kwenta.approve(address(stakingRewardsV2), _amount);
     }
 
-    function fundAccountAndStakeV2(address _account, uint256 _amount) public {
+    function fundAccountAndStakeV2(address _account, uint256 _amount) internal {
         fundAndApproveAccountV2(_account, _amount);
         vm.prank(_account);
         stakingRewardsV2.stake(_amount);
     }
 
-    function stakeFundsV2(address _account, uint256 _amount) public {
+    function stakeFundsV2(address _account, uint256 _amount) internal {
         vm.prank(_account);
         kwenta.approve(address(stakingRewardsV2), _amount);
         vm.prank(_account);
         stakingRewardsV2.stake(_amount);
     }
 
-    function unstakeFundsV2(address _account, uint256 _amount) public {
+    function unstakeFundsV2(address _account, uint256 _amount) internal {
         vm.prank(_account);
         stakingRewardsV2.unstake(_amount);
     }
 
-    function stakeEscrowedFundsV2(address _account, uint256 _amount) public {
+    function stakeEscrowedFundsV2(address _account, uint256 _amount) internal {
         if (_amount != 0) createRewardEscrowEntryV2(_account, _amount, 52 weeks);
         vm.prank(_account);
         stakingRewardsV2.stakeEscrow(_amount);
     }
 
-    function unstakeEscrowedFundsV2(address _account, uint256 _amount) public {
+    function unstakeEscrowedFundsV2(address _account, uint256 _amount) internal {
         vm.prank(_account);
         stakingRewardsV2.unstakeEscrow(_amount);
     }
 
-    function unstakeEscrowSkipCooldownFundsV2(address _account, uint256 _amount) public {
+    function unstakeEscrowSkipCooldownFundsV2(address _account, uint256 _amount) internal {
         vm.prank(address(rewardEscrowV2));
         stakingRewardsV2.unstakeEscrowSkipCooldown(_account, _amount);
     }
 
     function createRewardEscrowEntryV2(address _account, uint256 _amount)
-        public
+        internal
     {
         vm.prank(treasury);
         kwenta.approve(address(rewardEscrowV2), _amount);
@@ -221,7 +221,7 @@ contract StakingTestHelpers is StakingV2Setup {
     }
 
     function createRewardEscrowEntryV2(address _account, uint256 _amount, uint256 _duration)
-        public
+        internal
     {
         vm.prank(treasury);
         kwenta.approve(address(rewardEscrowV2), _amount);
@@ -234,37 +234,37 @@ contract StakingTestHelpers is StakingV2Setup {
         uint256 _amount,
         uint256 _duration,
         uint8 _earlyVestingFee
-    ) public {
+    ) internal {
         vm.prank(treasury);
         kwenta.approve(address(rewardEscrowV2), _amount);
         vm.prank(treasury);
         rewardEscrowV2.createEscrowEntry(_account, _amount, _duration, _earlyVestingFee);
     }
 
-    function appendRewardEscrowEntryV2(address _account, uint256 _amount) public {
+    function appendRewardEscrowEntryV2(address _account, uint256 _amount) internal {
         vm.prank(treasury);
         kwenta.transfer(address(rewardEscrowV2), _amount);
         vm.prank(address(stakingRewardsV2));
         rewardEscrowV2.appendVestingEntry(_account, _amount);
     }
 
-    function getStakingRewardsV2(address _account) public {
+    function getStakingRewardsV2(address _account) internal {
         vm.prank(_account);
         stakingRewardsV2.getReward();
     }
 
-    function stakeAllUnstakedEscrowV2(address _account) public {
+    function stakeAllUnstakedEscrowV2(address _account) internal {
         uint256 amount = stakingRewardsV2.unstakedEscrowedBalanceOf(_account);
         vm.prank(_account);
         stakingRewardsV2.stakeEscrow(amount);
     }
 
-    function transferEscrow(address _from, address _to, uint256 _entryID) public {
+    function transferEscrow(address _from, address _to, uint256 _entryID) internal {
         vm.prank(_from);
         rewardEscrowV2.transferFrom(_from, _to, _entryID);
     }
 
-    function safeTransferEscrow(address _from, address _to, uint256 _entryID) public {
+    function safeTransferEscrow(address _from, address _to, uint256 _entryID) internal {
         vm.prank(_from);
         rewardEscrowV2.safeTransferFrom(_from, _to, _entryID);
     }
