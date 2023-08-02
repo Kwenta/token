@@ -145,9 +145,10 @@ contract StakingTestHelpers is StakingV2Setup {
         rewardEscrowV1.stakeEscrow(amount);
     }
 
-    function unstakeAllUnstakedEscrowV1(address _account, uint256 _amount) internal {
+    function unstakeAllUnstakedEscrowV1(address _account) internal {
+        uint256 amount = stakingRewardsV1.escrowedBalanceOf(_account);
         vm.prank(_account);
-        rewardEscrowV1.unstakeEscrow(_amount);
+        rewardEscrowV1.unstakeEscrow(amount);
     }
 
     function getNonStakedEscrowAmountV1(address _account) internal view returns (uint256) {
