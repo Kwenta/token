@@ -56,11 +56,10 @@ contract EscrowMigratorInvariantTests is EscrowMigratorTestHelpers {
     }
 
     /*//////////////////////////////////////////////////////////////
-                               INVARIANTS
+                            FULL INVARIANTS
     //////////////////////////////////////////////////////////////*/
 
-    function invariant_Total_Registered_Greater_Than_Migrated() public {
-        // total migrated should never be greater than the total registered
+    function invariant_Cannot_Migrate_Total_More_Than_Registered() public {
         assertGe(escrowMigrator.totalRegistered(), escrowMigrator.totalMigrated());
     }
 
@@ -82,5 +81,21 @@ contract EscrowMigratorInvariantTests is EscrowMigratorTestHelpers {
                 escrowMigrator.numberOfMigratedEntries(migrator)
             );
         }
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                           PARTIAL INVARIANTS
+    //////////////////////////////////////////////////////////////*/
+
+    /// @dev: WARNING - these "partial" invariants only hold due to the limitations of the
+    /// handler contract. Updating the handler contract can cause these invariants to break.
+    /// This is because these invariants hold given the fact that certain actions are not taken.
+    /// The relevant actions that are not being taken for an invariant to hold will be mentioned
+    /// at the top of each invariant test
+
+    /// @custom:condition no creating v2 escrow entries
+    /// @custom:condition no claiming rewards on staking rewards v2
+    function invariant_RewardEscrowV2_Gets_Exactly_How_Much_Is_Migrated() public {
+        assertEq(rewardEscrowV2.totalEscrowedBalance(), escrowMigrator.totalMigrated());
     }
 }
