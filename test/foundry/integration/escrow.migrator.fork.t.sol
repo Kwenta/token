@@ -16,7 +16,70 @@ import {EscrowMigratorTestHelpers} from "../utils/helpers/EscrowMigratorTestHelp
 
 import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
+// TODO: rename contract and fix ci related error
 contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
+    /*//////////////////////////////////////////////////////////////
+                                STATE
+    //////////////////////////////////////////////////////////////*/
+
+    address public owner;
+
+    /*//////////////////////////////////////////////////////////////
+                                SETUP
+    //////////////////////////////////////////////////////////////*/
+
+    function setUp() public virtual override {
+        vm.rollFork(106_878_447);
+
+        // define main contracts
+        kwenta = Kwenta(OPTIMISM_KWENTA_TOKEN);
+        rewardEscrowV1 = RewardEscrow(OPTIMISM_REWARD_ESCROW_V1);
+        supplySchedule = SupplySchedule(OPTIMISM_SUPPLY_SCHEDULE);
+        stakingRewardsV1 = StakingRewards(OPTIMISM_STAKING_REWARDS_V1);
+
+        // define main addresses
+        owner = OPTIMISM_PDAO;
+        treasury = OPTIMISM_TREASURY_DAO;
+        user1 = OPTIMISM_RANDOM_STAKING_USER_1;
+        user2 = OPTIMISM_RANDOM_STAKING_USER_2;
+        user3 = OPTIMISM_RANDOM_STAKING_USER_3;
+        user4 = createUser();
+
+        // set owners address code to trick the test into allowing onlyOwner functions to be called via script
+        vm.etch(owner, address(new Migrate()).code);
+
+        (rewardEscrowV2, stakingRewardsV2, escrowMigrator,,,) = Migrate(owner)
+            .runCompleteMigrationProcess({
+            _owner: owner,
+            _kwenta: address(kwenta),
+            _supplySchedule: address(supplySchedule),
+            _treasuryDAO: treasury,
+            _rewardEscrowV1: address(rewardEscrowV1),
+            _stakingRewardsV1: address(stakingRewardsV1),
+            _printLogs: false
+        });
+
+        assertEq(stakingRewardsV2.rewardRate(), 0);
+        assertEq(kwenta.balanceOf(address(stakingRewardsV2)), 0);
+
+        // mint first rewards into V2
+        uint256 timeOfNextMint =
+            supplySchedule.lastMintEvent() + supplySchedule.MINT_PERIOD_DURATION() + 1;
+        vm.warp(timeOfNextMint + 1);
+        supplySchedule.mint();
+
+        assertGt(stakingRewardsV2.rewardRate(), 0);
+        assertGt(kwenta.balanceOf(address(stakingRewardsV2)), 0);
+
+        // call updateReward in staking rewards v1
+        vm.prank(treasury);
+        stakingRewardsV1.unstake(1);
+
+        // check no more new rewards in v1
+        assertEq(stakingRewardsV1.lastTimeRewardApplicable() - stakingRewardsV1.lastUpdateTime(), 0);
+        assertEq(stakingRewardsV1.lastTimeRewardApplicable(), stakingRewardsV1.periodFinish());
+    }
+
     /*//////////////////////////////////////////////////////////////
                               PAUSABILITY
     //////////////////////////////////////////////////////////////*/
