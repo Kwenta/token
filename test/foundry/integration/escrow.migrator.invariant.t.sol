@@ -2,21 +2,11 @@
 pragma solidity 0.8.19;
 
 import {console} from "forge-std/Test.sol";
-import {StakingTestHelpers} from "../utils/helpers/StakingTestHelpers.t.sol";
-import {Migrate} from "../../../scripts/Migrate.s.sol";
-import {Kwenta} from "../../../contracts/Kwenta.sol";
-import {RewardEscrow} from "../../../contracts/RewardEscrow.sol";
-import {VestingEntries} from "../../../contracts/interfaces/IRewardEscrow.sol";
-import {IEscrowMigrator} from "../../../contracts/interfaces/IEscrowMigrator.sol";
-import {SupplySchedule} from "../../../contracts/SupplySchedule.sol";
-import {StakingRewards} from "../../../contracts/StakingRewards.sol";
-import {EscrowMigrator} from "../../../contracts/EscrowMigrator.sol";
-import "../utils/Constants.t.sol";
-import {EscrowMigratorTestHelpers} from "../utils/helpers/EscrowMigratorTestHelpers.t.sol";
+import {StakingV2Setup} from "../utils/setup/StakingV2Setup.t.sol";
 import {EscrowMigratorHandler} from "../handlers/EscrowMigratorHandler.t.sol";
 
-// TODO: think - perhaps this can just inherit StakingV2Setup
-contract EscrowMigratorInvariantTests is EscrowMigratorTestHelpers {
+
+contract EscrowMigratorInvariantTests is StakingV2Setup {
     /*//////////////////////////////////////////////////////////////
                                  STATE
     //////////////////////////////////////////////////////////////*/
