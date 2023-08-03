@@ -1357,4 +1357,15 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         checkStateAfterStepThree(address(integrator), user1, _entryIDs);
     }
 
+    /*//////////////////////////////////////////////////////////////
+                         INTEGRATOR EDGE CASES
+    //////////////////////////////////////////////////////////////*/
+
+    function test_Must_Be_Integrator_Beneficiary() public {
+        vm.expectRevert(IEscrowMigrator.NotApproved.selector);
+        escrowMigrator.registerIntegratorEntries(address(integrator), entryIDs);
+
+        vm.expectRevert(IEscrowMigrator.NotApproved.selector);
+        escrowMigrator.migrateIntegratorEntries(address(integrator), address(this), entryIDs);
+    }
 }
