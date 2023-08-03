@@ -235,9 +235,9 @@ contract EscrowMigrator is
                                  STEP 2
     //////////////////////////////////////////////////////////////*/
 
-    /// @notice The user must vest any registered entries before proceeding to step 3
+    /// @notice The user must vest any registered entries and approve this contract to spend `toPay` amount of liquid $KWENTA
+    /// before proceeding to step 3
     /// @notice The user MUST NOT vest any non-registered entries at this point (or they will have to pay extra)
-    /// @notice The user must also approve EscrowMigrator contract to spend `toPay` amount of $KWENTA
 
     /*//////////////////////////////////////////////////////////////
                                  STEP 3
