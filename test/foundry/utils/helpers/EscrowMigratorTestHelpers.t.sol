@@ -321,7 +321,7 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
     }
 
     /*//////////////////////////////////////////////////////////////
-                             STEP 2 HELPERS
+                             STEP 3 HELPERS
     //////////////////////////////////////////////////////////////*/
 
     function claimAndRegisterAllEntries(address account)
@@ -415,23 +415,23 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         toPay = approve(account);
     }
 
-    function checkStateAfterStepTwo(address account, uint256 index, uint256 amount) internal {
+    function checkStateAfterStepThree(address account, uint256 index, uint256 amount) internal {
         uint256[] memory _entryIDs = getEntryIDs(account, index, amount);
-        checkStateAfterStepTwo(account, account, _entryIDs);
+        checkStateAfterStepThree(account, account, _entryIDs);
     }
 
-    function checkStateAfterStepTwo(address account, address to, uint256 index, uint256 amount)
+    function checkStateAfterStepThree(address account, address to, uint256 index, uint256 amount)
         internal
     {
         uint256[] memory _entryIDs = getEntryIDs(account, index, amount);
-        checkStateAfterStepTwo(account, to, _entryIDs);
+        checkStateAfterStepThree(account, to, _entryIDs);
     }
 
-    function checkStateAfterStepTwo(address account, uint256[] memory _entryIDs) internal {
-        checkStateAfterStepTwo(account, account, _entryIDs);
+    function checkStateAfterStepThree(address account, uint256[] memory _entryIDs) internal {
+        checkStateAfterStepThree(account, account, _entryIDs);
     }
 
-    function checkStateAfterStepTwo(address account, address to, uint256[] memory _entryIDs)
+    function checkStateAfterStepThree(address account, address to, uint256[] memory _entryIDs)
         internal
     {
         uint256 numOfV2Entries = rewardEscrowV2.balanceOf(to);
@@ -443,15 +443,15 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         for (uint256 i = 0; i < _entryIDs.length; i++) {
             uint256 entryID = _entryIDs[i];
             uint256 migratedEntryID = migratedEntries[i];
-            checkMigratedEntryAfterStepTwo(account, migratedEntryID, entryID);
-            (uint256 escrowAmount,,,) = checkEntryAfterStepTwo(account, i, entryID);
+            checkMigratedEntryAfterStepThree(account, migratedEntryID, entryID);
+            (uint256 escrowAmount,,,) = checkEntryAfterStepThree(account, i, entryID);
             totalEscrowMigrated += escrowAmount;
         }
 
-        checkStateAfterStepTwoAssertions(account, to, _entryIDs, totalEscrowMigrated);
+        checkStateAfterStepThreeAssertions(account, to, _entryIDs, totalEscrowMigrated);
     }
 
-    function checkMigratedEntryAfterStepTwo(address account, uint256 newEntryID, uint256 oldEntryID)
+    function checkMigratedEntryAfterStepThree(address account, uint256 newEntryID, uint256 oldEntryID)
         internal
     {
         (uint64 endTime, uint256 escrowAmount, uint256 duration, uint8 earlyVestingFee) =
@@ -472,7 +472,7 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         }
     }
 
-    function checkEntryAfterStepTwo(address account, uint256 i, uint256 entryID)
+    function checkEntryAfterStepThree(address account, uint256 i, uint256 entryID)
         internal
         returns (uint256 escrowAmount, uint256 duration, uint64 endTime, bool migrated)
     {
@@ -490,7 +490,7 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         assertEq(migrated, true);
     }
 
-    function checkStateAfterStepTwoAssertions(
+    function checkStateAfterStepThreeAssertions(
         address account,
         address to,
         uint256[] memory _entryIDs,

@@ -20,6 +20,7 @@ address constant OPTIMISM_RANDOM_STAKING_USER_1 = 0x049569adb8a1e8A9349E9F1111C7
 address constant OPTIMISM_RANDOM_STAKING_USER_2 = 0xE8788a8926dac3d25C591CAa64d5296044c1446D;
 /// @dev this user has vested rewards
 address constant OPTIMISM_RANDOM_STAKING_USER_3 = 0x7CD30F32a8baC32252b753a4441218bb23e46d68;
+address constant OPTIMISM_STAKING_V1_INTEGRATOR = 0x9F39AF3e71ac27aCf01E1662a4F6069Fd3F16a2c;
 
 /*//////////////////////////////////////////////////////////////
                         GOERLI ADDRESSES

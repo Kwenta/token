@@ -19,6 +19,12 @@ import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 // TODO: rename contract and fix ci related error
 contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
     /*//////////////////////////////////////////////////////////////
+                                 STATE
+    //////////////////////////////////////////////////////////////*/
+
+    address integrator;
+
+    /*//////////////////////////////////////////////////////////////
                                 SETUP
     //////////////////////////////////////////////////////////////*/
 
@@ -38,6 +44,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         user2 = OPTIMISM_RANDOM_STAKING_USER_2;
         user3 = OPTIMISM_RANDOM_STAKING_USER_3;
         user4 = createUser();
+        integrator = OPTIMISM_STAKING_V1_INTEGRATOR;
 
         // set owners address code to trick the test into allowing onlyOwner functions to be called via script
         vm.etch(owner, address(new Migrate()).code);
@@ -135,7 +142,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         vm.prank(user1);
         escrowMigrator.migrateEntries(user1, _entryIDs);
 
-        checkStateAfterStepTwo(user1, _entryIDs);
+        checkStateAfterStepThree(user1, _entryIDs);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -404,14 +411,14 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         registerEntries(user1, 0, 10);
         migrateEntries(user1, 0, 10);
 
-        checkStateAfterStepTwo(user1, 0, 10);
+        checkStateAfterStepThree(user1, 0, 10);
     }
 
     /*//////////////////////////////////////////////////////////////
-                              STEP 2 TESTS
+                              STEP 3 TESTS
     //////////////////////////////////////////////////////////////*/
 
-    function test_Step_2_Normal() public {
+    function test_Step_3_Normal() public {
         // complete step 1
         (uint256[] memory _entryIDs,,) = claimRegisterVestAndApprove(user1);
 
@@ -419,7 +426,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         migrateEntries(user1, _entryIDs);
 
         // check final state
-        checkStateAfterStepTwo(user1, _entryIDs);
+        checkStateAfterStepThree(user1, _entryIDs);
     }
 
     function test_Step_3_Two_Rounds() public {
@@ -431,10 +438,10 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         migrateEntries(user1, 10, 7);
 
         // check final state
-        checkStateAfterStepTwo(user1, 0, 17);
+        checkStateAfterStepThree(user1, 0, 17);
     }
 
-    function test_Step_2_N_Rounds_Fuzz(uint8 _numRounds, uint8 _numPerRound) public {
+    function test_Step_3_N_Rounds_Fuzz(uint8 _numRounds, uint8 _numPerRound) public {
         uint256 numRounds = _numRounds;
         uint256 numPerRound = _numPerRound;
 
@@ -455,10 +462,10 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         }
 
         // check final state
-        checkStateAfterStepTwo(user1, 0, numMigrated);
+        checkStateAfterStepThree(user1, 0, numMigrated);
     }
 
-    function test_Step_2_Different_To_Address() public {
+    function test_Step_3_Different_To_Address() public {
         // complete step 1
         (uint256[] memory _entryIDs,,) = claimRegisterVestAndApprove(user1);
 
@@ -467,11 +474,11 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         escrowMigrator.migrateEntries(user2, _entryIDs);
 
         // check final state
-        checkStateAfterStepTwo(user1, user2, _entryIDs);
+        checkStateAfterStepThree(user1, user2, _entryIDs);
     }
 
     /*//////////////////////////////////////////////////////////////
-                           STEP 2 EDGE CASES
+                           STEP 3 EDGE CASES
     //////////////////////////////////////////////////////////////*/
 
     function test_Payment_Cost_Takes_Account_Of_Escrow_Vested_At_Start() public {
@@ -488,10 +495,10 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         // check final state
         /// @dev skip first entry as it was vested before migration, so couldn't be migrated
         _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(user3, 1, _entryIDs.length);
-        checkStateAfterStepTwo(user3, _entryIDs);
+        checkStateAfterStepThree(user3, _entryIDs);
     }
 
-    function test_Step_2_Must_Pay() public {
+    function test_Step_3_Must_Pay() public {
         // complete step 1
         (uint256[] memory _entryIDs,) = claimRegisterAndVestAllEntries(user1);
 
@@ -501,7 +508,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         escrowMigrator.migrateEntries(user1, _entryIDs);
     }
 
-    function test_Step_2_Must_Pay_Fuzz(uint256 approveAmount) public {
+    function test_Step_3_Must_Pay_Fuzz(uint256 approveAmount) public {
         // complete step 1 and 2
         (uint256[] memory _entryIDs, uint256 toPay) = claimRegisterAndVestAllEntries(user1);
 
@@ -531,7 +538,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         migrateEntries(user1, 0, 17);
 
         // check final state
-        checkStateAfterStepTwo(user1, 0, 15);
+        checkStateAfterStepThree(user1, 0, 15);
     }
 
     function test_Cannot_Migrate_Non_Registered_Entries() public {
@@ -542,7 +549,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         migrateEntries(user1, 0, 17);
 
         // check final state
-        checkStateAfterStepTwo(user1, 0, 10);
+        checkStateAfterStepThree(user1, 0, 10);
     }
 
     function test_Cannot_Migrate_Non_Registered_Late_Vested_Entries() public {
@@ -556,7 +563,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         migrateEntries(user1, 0, 17);
 
         // check final state
-        checkStateAfterStepTwo(user1, 0, 10);
+        checkStateAfterStepThree(user1, 0, 10);
     }
 
     function test_Cannot_Duplicate_Migrate_Entries() public {
@@ -573,7 +580,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         migrateEntries(user1, 0, 15);
 
         // check final state
-        checkStateAfterStepTwo(user1, 0, 15);
+        checkStateAfterStepThree(user1, 0, 15);
     }
 
     function test_Cannot_Migrate_Non_Existing_Entries() public {
@@ -589,7 +596,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         migrateEntries(user1, entryIDs);
 
         // check final state
-        checkStateAfterStepTwo(user1, 0, 0);
+        checkStateAfterStepThree(user1, 0, 0);
     }
 
     function test_Cannot_Migrate_Someone_Elses_Entries() public {
@@ -601,7 +608,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         migrateEntries(user2, user1EntryIDs);
 
         // check final state - user2 didn't manage to migrate any entries
-        checkStateAfterStepTwo(user2, 0, 0);
+        checkStateAfterStepThree(user2, 0, 0);
     }
 
     function test_Cannot_Migrate_On_Behalf_Of_Someone() public {
@@ -614,7 +621,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         escrowMigrator.migrateEntries(user1, user1EntryIDs);
 
         // check final state - user2 didn't manage to migrate any entries
-        checkStateAfterStepTwo(user1, 0, 0);
+        checkStateAfterStepThree(user1, 0, 0);
     }
 
     function test_Cannot_Bypass_Unstaking_Cooldown_Lock() public {
@@ -622,7 +629,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         createRewardEscrowEntryV1(user1, 50 ether, 1);
 
         (uint256[] memory _entryIDs, uint256 numVestingEntries,) = claimAndFullyMigrate(user1);
-        checkStateAfterStepTwo(user1, _entryIDs);
+        checkStateAfterStepThree(user1, _entryIDs);
 
         // specifically
         uint256[] memory migratedEntryIDs =
@@ -705,7 +712,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 
         // check final state
         assertEq(rewardEscrowV2.balanceOf(user1), numOfEntriesFullyMigrated);
-        checkStateAfterStepTwoAssertions(
+        checkStateAfterStepThreeAssertions(
             user1, user1, entriesFullyMigratedList, totalEscrowMigrated
         );
     }
@@ -722,7 +729,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         migrateEntries(user1, 0, 17);
         vm.prank(user1);
 
-        checkStateAfterStepTwo(user1, 0, 0);
+        checkStateAfterStepThree(user1, 0, 0);
     }
 
     function test_Can_Migrate_In_Completed_State() public {
@@ -735,7 +742,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 
         fullyMigrate(user1, 17, 3);
 
-        checkStateAfterStepTwo(user1, 0, 20);
+        checkStateAfterStepThree(user1, 0, 20);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -823,7 +830,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         // M
         approveAndMigrate(user1, 0, 10);
 
-        checkStateAfterStepTwo(user1, 0, 10);
+        checkStateAfterStepThree(user1, 0, 10);
     }
 
     function test_RVMRVM() public {
@@ -840,7 +847,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         // M
         approveAndMigrate(user1, 5, 5);
 
-        checkStateAfterStepTwo(user1, 0, 10);
+        checkStateAfterStepThree(user1, 0, 10);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -888,7 +895,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
     }
 
     /*//////////////////////////////////////////////////////////////
-                       STRANGE FLOWS UP TO STEP 2
+                       STRANGE FLOWS UP TO STEP 3
     //////////////////////////////////////////////////////////////*/
 
     function test_RCM() public {
@@ -899,7 +906,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         // M
         approveAndMigrate(user1, 0, 6);
 
-        checkStateAfterStepTwo(user1, 0, 0);
+        checkStateAfterStepThree(user1, 0, 0);
     }
 
     function test_RCVM() public {
@@ -912,7 +919,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         // M
         approveAndMigrate(user1, 0, 6);
 
-        checkStateAfterStepTwo(user1, 0, 3);
+        checkStateAfterStepThree(user1, 0, 3);
     }
 
     function test_RVCM() public {
@@ -925,7 +932,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         // M
         approveAndMigrate(user1, 0, 6);
 
-        checkStateAfterStepTwo(user1, 0, 3);
+        checkStateAfterStepThree(user1, 0, 3);
     }
 
     function test_RCVRVM() public {
@@ -942,7 +949,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         // M
         approveAndMigrate(user1, 0, 10);
 
-        checkStateAfterStepTwo(user1, 0, 6);
+        checkStateAfterStepThree(user1, 0, 6);
     }
 
     function test_RVCRVM() public {
@@ -959,7 +966,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         // M
         approveAndMigrate(user1, 0, 10);
 
-        checkStateAfterStepTwo(user1, 0, 6);
+        checkStateAfterStepThree(user1, 0, 6);
     }
 
     function test_RVRCVM() public {
@@ -976,7 +983,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         // M
         approveAndMigrate(user1, 0, 10);
 
-        checkStateAfterStepTwo(user1, 0, 6);
+        checkStateAfterStepThree(user1, 0, 6);
     }
 
     function test_RVRVCM() public {
@@ -993,7 +1000,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         // M
         approveAndMigrate(user1, 0, 10);
 
-        checkStateAfterStepTwo(user1, 0, 10);
+        checkStateAfterStepThree(user1, 0, 10);
     }
 
     function test_RCVMRVM() public {
@@ -1012,7 +1019,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         // M
         approveAndMigrate(user1, 0, 10);
 
-        checkStateAfterStepTwo(user1, 0, 10);
+        checkStateAfterStepThree(user1, 0, 10);
     }
 
     function test_RVCMRVM() public {
@@ -1031,7 +1038,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         // M
         approveAndMigrate(user1, 0, 10);
 
-        checkStateAfterStepTwo(user1, 0, 10);
+        checkStateAfterStepThree(user1, 0, 10);
     }
 
     function test_RVMCRVM() public {
@@ -1050,7 +1057,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         // M
         approveAndMigrate(user1, 0, 10);
 
-        checkStateAfterStepTwo(user1, 0, 10);
+        checkStateAfterStepThree(user1, 0, 10);
     }
 
     function test_RVMRCVM() public {
@@ -1069,7 +1076,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         // M
         approveAndMigrate(user1, 3, 17);
 
-        checkStateAfterStepTwo(user1, 0, 17);
+        checkStateAfterStepThree(user1, 0, 17);
     }
 
     function test_RVMRVCM() public {
@@ -1088,11 +1095,11 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         // M
         approveAndMigrate(user1, 3, 17);
 
-        checkStateAfterStepTwo(user1, 0, 17);
+        checkStateAfterStepThree(user1, 0, 17);
     }
 
     /*//////////////////////////////////////////////////////////////
-                      STRANGE FLOWS BEYOND STEP 2
+                      STRANGE FLOWS BEYOND STEP 3
     //////////////////////////////////////////////////////////////*/
 
     function test_MVM() public {
@@ -1105,7 +1112,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         // M
         approveAndMigrate(user1, 0, 10);
 
-        checkStateAfterStepTwo(user1, 0, 10);
+        checkStateAfterStepThree(user1, 0, 10);
     }
 
     function test_MCM() public {
@@ -1118,7 +1125,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         // M
         approveAndMigrate(user1, 0, 18);
 
-        checkStateAfterStepTwo(user1, 0, 17);
+        checkStateAfterStepThree(user1, 0, 17);
     }
 
     function test_MCVM() public {
@@ -1133,7 +1140,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         // M
         approveAndMigrate(user1, 0, 18);
 
-        checkStateAfterStepTwo(user1, 0, 17);
+        checkStateAfterStepThree(user1, 0, 17);
     }
 
     function test_MVCM() public {
@@ -1148,7 +1155,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         // M
         approveAndMigrate(user1, 0, 18);
 
-        checkStateAfterStepTwo(user1, 0, 15);
+        checkStateAfterStepThree(user1, 0, 15);
     }
 
     function test_MRVM() public {
@@ -1163,7 +1170,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         // M
         approveAndMigrate(user1, 0, 17);
 
-        checkStateAfterStepTwo(user1, 0, 17);
+        checkStateAfterStepThree(user1, 0, 17);
     }
 
     function test_MRCM() public {
@@ -1178,7 +1185,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         // M
         approveAndMigrate(user1, 0, 18);
 
-        checkStateAfterStepTwo(user1, 0, 15);
+        checkStateAfterStepThree(user1, 0, 15);
     }
 
     function test_MCRM() public {
@@ -1193,7 +1200,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         // M
         approveAndMigrate(user1, 0, 18);
 
-        checkStateAfterStepTwo(user1, 0, 15);
+        checkStateAfterStepThree(user1, 0, 15);
     }
 
     function test_MRCVM() public {
@@ -1210,7 +1217,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         // M
         approveAndMigrate(user1, 0, 18);
 
-        checkStateAfterStepTwo(user1, 0, 17);
+        checkStateAfterStepThree(user1, 0, 17);
     }
 
     function test_MRVCM() public {
@@ -1227,7 +1234,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         // M
         approveAndMigrate(user1, 0, 18);
 
-        checkStateAfterStepTwo(user1, 0, 17);
+        checkStateAfterStepThree(user1, 0, 17);
     }
 
     function test_MVRCM() public {
@@ -1244,7 +1251,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         // M
         approveAndMigrate(user1, 0, 18);
 
-        checkStateAfterStepTwo(user1, 0, 15);
+        checkStateAfterStepThree(user1, 0, 15);
     }
 
     function test_MVCRM() public {
@@ -1261,7 +1268,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         // M
         approveAndMigrate(user1, 0, 18);
 
-        checkStateAfterStepTwo(user1, 0, 15);
+        checkStateAfterStepThree(user1, 0, 15);
     }
 
     function test_MCVRM() public {
@@ -1278,7 +1285,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         // M
         approveAndMigrate(user1, 0, 18);
 
-        checkStateAfterStepTwo(user1, 0, 15);
+        checkStateAfterStepThree(user1, 0, 15);
     }
 
     function test_MCRVM() public {
@@ -1295,6 +1302,14 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         // M
         approveAndMigrate(user1, 0, 18);
 
-        checkStateAfterStepTwo(user1, 0, 17);
+        checkStateAfterStepThree(user1, 0, 17);
     }
+
+    /*//////////////////////////////////////////////////////////////
+                            INTEGRATOR TESTS
+    //////////////////////////////////////////////////////////////*/
+
+    // function test_Integrator_Step_1() public {
+
+    // }
 }
