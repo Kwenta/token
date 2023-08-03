@@ -364,17 +364,20 @@ contract StakingRewardsV2 is
                            INTEGRATOR REWARDS
     //////////////////////////////////////////////////////////////*/
 
+    /// @inheritdoc IStakingRewardsV2
     function getIntegratorReward(address _integrator) public override {
         address beneficiary = IStakingRewardsV2Integrator(_integrator).beneficiary();
         if (beneficiary != msg.sender) revert NotApproved();
         _getReward(_integrator, beneficiary);
     }
 
+    /// @inheritdoc IStakingRewardsV2
     function getIntegratorAndSenderReward(address _integrator) external override {
         getIntegratorReward(_integrator);
         _getReward(msg.sender);
     }
 
+    /// @inheritdoc IStakingRewardsV2
     function getIntegratorRewardAndCompound(address _integrator) external override {
         getIntegratorReward(_integrator);
         _compound(msg.sender);

@@ -26,6 +26,74 @@ interface IEscrowMigrator {
     /// @dev this function should be called via proxy, not via direct contract interaction
     function initialize(address _owner) external;
 
+    /*//////////////////////////////////////////////////////////////
+                                 STEP 0
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice claim any remaining StakingRewards V1 rewards
+    /// This must be done before the migration process can begin
+
+    /*//////////////////////////////////////////////////////////////
+                                 STEP 1
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice Step 1 in the migration process - register any entries to be migrated
+    /// @param _entryIDs: The entries to register for migration
+    /// @dev WARNING: If the user vests non-registerd entries after this step, they will have to pay extra for the migration.
+    /// The user should register all entries they want to migrate BEFORE vesting, otherwise it will not be possible to migrate them.
+    /// @dev WARNING: To reiterate, if the user vests any entries that are not registered after initiating, they will have
+    /// to pay extra for the migration. This is because the user will have to pay for the migration based on the total vested balance at the time of
+    /// migration - but only registered entries will be created for them on V2
+    function registerEntries(uint256[] calldata _entryIDs) external;
+
+    /*//////////////////////////////////////////////////////////////
+                                 STEP 2
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice Vest any registered entries and approve the EscrowMigrator contract
+    /// to spend liquid at least the `toPay` amount of $KWENTA
+    /// @notice WARNING: DO NOT VEST ANY NON-REGISTERED ENTRIES
+
+    /*//////////////////////////////////////////////////////////////
+                                 STEP 3
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice Step 3 in the migration process - migrate the registered entries
+    /// @notice The user MUST vest any registered entries before they can be migrated
+    /// @notice The user MUST NOT vest any non-registered entries before this step
+    function migrateEntries(address to, uint256[] calldata _entryIDs) external;
+
+    /*//////////////////////////////////////////////////////////////
+                                 VIEWS
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice Get the total number of registered vesting entries for a given account
+    /// @param account The address of the account to query
+    /// @return The number of vesting entries for the given account
+    function numberOfRegisteredEntries(address account) external view returns (uint256);
+
+    /// @notice Get the total number of migrated vesting entries for a given account
+    /// @param account The address of the account to query
+    /// @return The number of vesting entries for the given account
+    function numberOfMigratedEntries(address account) external view returns (uint256);
+
+    /// @notice Get the total escrowed registerd for an account
+    /// @param account The address of the account to query
+    /// @return total the total escrow registered for the given account
+    function totalEscrowRegistered(address account) external view returns (uint256 total);
+
+    /// @notice Get the total escrowed migrated for an account
+    /// @param account The address of the account to query
+    /// @return total the total escrow migrated for the given account
+    function totalEscrowMigrated(address account) external view returns (uint256 total);
+
+    /// @notice the amount a given user needs to pay to migrate all currently vested
+    /// registered entries. The user should approve the escrow migrator for at least
+    /// this amount before beginning the migration step
+    /// @param account The address of the account to query
+    /// @return toPay the amount the user needs to pay to migrate all currently vested
+    function toPay(address account) external view returns (uint256);
+
     /*///////////////////////////////////////////////////////////////
                                 PAUSABLE
     //////////////////////////////////////////////////////////////*/

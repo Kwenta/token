@@ -79,7 +79,7 @@ contract EscrowMigrator is
     mapping(address => uint256) public paidSoFar;
 
     // OPT: consider just storing numberOfRegisterdEntries intead of the array
-    // TODO: add view function to return this data as a memory array
+    // TODO: add view function to return this data as a memory array, and to query individual entries
     mapping(address => uint256[]) public registeredEntryIDs;
 
     /*///////////////////////////////////////////////////////////////
@@ -126,11 +126,13 @@ contract EscrowMigrator is
                                  VIEWS
     //////////////////////////////////////////////////////////////*/
 
-    function numberOfRegisteredEntries(address account) public view returns (uint256) {
+    /// @inheritdoc IEscrowMigrator
+    function numberOfRegisteredEntries(address account) public view override returns (uint256) {
         return registeredEntryIDs[account].length;
     }
 
-    function numberOfMigratedEntries(address account) external view returns (uint256 total) {
+    /// @inheritdoc IEscrowMigrator
+    function numberOfMigratedEntries(address account) external view override returns (uint256 total) {
         uint256 length = numberOfRegisteredEntries(account);
 
         for (uint256 i = 0; i < length; i++) {
@@ -140,7 +142,8 @@ contract EscrowMigrator is
         }
     }
 
-    function totalEscrowRegistered(address account) external view returns (uint256 total) {
+    /// @inheritdoc IEscrowMigrator
+    function totalEscrowRegistered(address account) external view override returns (uint256 total) {
         uint256 length = numberOfRegisteredEntries(account);
 
         for (uint256 i = 0; i < length; i++) {
@@ -149,35 +152,38 @@ contract EscrowMigrator is
         }
     }
 
-    function totalEscrowMigrated(address account) external view returns (uint256 total) {
+    /// @inheritdoc IEscrowMigrator
+    function totalEscrowMigrated(address account) external view override returns (uint256 total) {
         uint256 length = numberOfRegisteredEntries(account);
 
         for (uint256 i = 0; i < length; i++) {
             if (registeredVestingSchedules[account][registeredEntryIDs[account][i]].migrated) {
                 total +=
-                    registeredVestingSchedules[account][registeredEntryIDs[account][i]]
-                        .escrowAmount;
+                    registeredVestingSchedules[account][registeredEntryIDs[account][i]].escrowAmount;
             }
         }
     }
 
-    function toPay(address account) public view returns (uint256) {
+    /// @inheritdoc IEscrowMigrator
+    function toPay(address account) public view override returns (uint256) {
         uint256 totalPaymentRequired =
             rewardEscrowV1.totalVestedAccountBalance(account) - escrowVestedAtStart[account];
         return totalPaymentRequired - paidSoFar[account];
     }
 
     /*//////////////////////////////////////////////////////////////
-                          EOA MIGRATION STEPS
+                                 STEP 0
     //////////////////////////////////////////////////////////////*/
 
-    // step 1: initiate & register entries for migration
-    /// @dev WARNING: If the user vests non-registerd entries after this step, they will have to pay extra for the migration.
-    /// The user should register all entries they want to migrate BEFORE vesting, otherwise it will not be possible to migrate them.
-    /// @dev WARNING: To reiterate, if the user vests any entries that are not registered after initiating, they will have
-    /// to pay extra for the migration. This is because the user will have to pay for the migration based on the total vested balance at the time of
-    /// migration - but only registered entries will be created for them on V2
-    function registerEntries(uint256[] calldata _entryIDs) external {
+    /// @notice claim any remaining StakingRewards V1 rewards
+    /// This must be done before the migration process can begin
+
+    /*//////////////////////////////////////////////////////////////
+                                 STEP 1
+    //////////////////////////////////////////////////////////////*/
+
+    /// @inheritdoc IEscrowMigrator
+    function registerEntries(uint256[] calldata _entryIDs) external override {
         _registerEntries(msg.sender, _entryIDs);
     }
 
@@ -225,15 +231,19 @@ contract EscrowMigrator is
         totalRegistered += registeredEscrow;
     }
 
-    function _payForMigration(address account) internal {
-        uint256 toPayNow = toPay(account);
-        if (toPayNow > 0) {
-            kwenta.transferFrom(msg.sender, address(this), toPayNow);
-            paidSoFar[account] += toPayNow;
-        }
-    }
+    /*//////////////////////////////////////////////////////////////
+                                 STEP 2
+    //////////////////////////////////////////////////////////////*/
 
-    // step 2: vest all entries, then pay liquid kwenta for migration & migrate registered entries
+    /// @notice The user must vest any registered entries before proceeding to step 3
+    /// @notice The user MUST NOT vest any non-registered entries at this point (or they will have to pay extra)
+    /// @notice The user must also approve EscrowMigrator contract to spend `toPay` amount of $KWENTA
+
+    /*//////////////////////////////////////////////////////////////
+                                 STEP 3
+    //////////////////////////////////////////////////////////////*/
+
+    /// @inheritdoc IEscrowMigrator
     function migrateEntries(address to, uint256[] calldata _entryIDs) external {
         _migrateEntries(msg.sender, to, _entryIDs);
     }
@@ -299,31 +309,43 @@ contract EscrowMigrator is
         totalMigrated += migratedEscrow;
     }
 
+    function _payForMigration(address account) internal {
+        uint256 toPayNow = toPay(account);
+        if (toPayNow > 0) {
+            kwenta.transferFrom(msg.sender, address(this), toPayNow);
+            paidSoFar[account] += toPayNow;
+        }
+    }
+
     /*//////////////////////////////////////////////////////////////
                        INTEGRATOR MIGRATION STEPS
     //////////////////////////////////////////////////////////////*/
 
-    // // step 1: initiate & register entries for migration
-    // function registerEntriesForIntegratorMigration(
-    //     address _integrator,
-    //     uint256[] calldata _entryIDs
-    // ) external {
-    //     // TODO: create onlyBeneficiary modifier
-    //     address beneficiary = IStakingRewardsV2Integrator(_integrator).beneficiary();
-    //     if (beneficiary != msg.sender) revert NotApproved();
-    //     _registerEntries(_integrator, _entryIDs);
-    // }
+    /// @dev These functions will only be used by a few V1 smart contract users who set the
+    /// recipient of their V1 staked escrow to the "beneficiary" stored on the smart contract
 
-    // // step 2: after vesting registered entries, pay liquid kwenta for migration & migrate registered entries
-    // function migrateRegisteredIntegratorEntries(
-    //     address _integrator,
-    //     address to,
-    //     uint256[] calldata _entryIDs
-    // ) external {
-    //     address beneficiary = IStakingRewardsV2Integrator(_integrator).beneficiary();
-    //     if (beneficiary != msg.sender) revert NotApproved();
-    //     _migrateEntries(_integrator, to, _entryIDs);
-    // }
+    /// @dev check the msg.sender is the "beneficiary" stored on the integrator smart contract
+    modifier onlyBeneficiary(address _integrator) {
+        address beneficiary = IStakingRewardsV2Integrator(_integrator).beneficiary();
+        if (beneficiary != msg.sender) revert NotApproved();
+        _;
+    }
+
+    // step 1: initiate & register entries for migration
+    function registerIntegratorEntries(address _integrator, uint256[] calldata _entryIDs)
+        external
+        onlyBeneficiary(_integrator)
+    {
+        _registerEntries(_integrator, _entryIDs);
+    }
+
+    // step 2: vest all entries, then pay liquid kwenta for migration & migrate registered entries
+    function migrateIntegratorEntries(address _integrator, address to, uint256[] calldata _entryIDs)
+        external
+        onlyBeneficiary(_integrator)
+    {
+        _migrateEntries(_integrator, to, _entryIDs);
+    }
 
     /*//////////////////////////////////////////////////////////////
                              UPGRADEABILITY
