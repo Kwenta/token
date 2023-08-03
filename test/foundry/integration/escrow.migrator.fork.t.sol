@@ -11,7 +11,8 @@ import {IEscrowMigrator} from "../../../contracts/interfaces/IEscrowMigrator.sol
 import {SupplySchedule} from "../../../contracts/SupplySchedule.sol";
 import {StakingRewards} from "../../../contracts/StakingRewards.sol";
 import {EscrowMigrator} from "../../../contracts/EscrowMigrator.sol";
-import {IStakingRewardsIntegrator} from "../../../contracts/interfaces/IStakingRewardsIntegrator.sol";
+import {IStakingRewardsIntegrator} from
+    "../../../contracts/interfaces/IStakingRewardsIntegrator.sol";
 import "../utils/Constants.t.sol";
 import {EscrowMigratorTestHelpers} from "../utils/helpers/EscrowMigratorTestHelpers.t.sol";
 
@@ -1332,4 +1333,28 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         // check final state
         checkStateAfterStepOne(address(integrator), _entryIDs, true);
     }
+
+    function test_Integrator_Step_3_Normal() public {
+        // complete step 1
+        address beneficiary = integrator.beneficiary();
+        (uint256[] memory _entryIDs,,) = claimRegisterVestAndApproveIntegrator(integrator);
+
+        // step 2 - migrate entries
+        migrateIntegratorEntries(integrator, _entryIDs, beneficiary);
+
+        // check final state
+        checkStateAfterStepThree(address(integrator), beneficiary, _entryIDs);
+    }
+
+    function test_Integrator_Step_3_Different_To_Address() public {
+        // complete step 1
+        (uint256[] memory _entryIDs,,) = claimRegisterVestAndApproveIntegrator(integrator);
+
+        // step 2 - migrate entries
+        migrateIntegratorEntries(integrator, _entryIDs, user1);
+
+        // check final state
+        checkStateAfterStepThree(address(integrator), user1, _entryIDs);
+    }
+
 }

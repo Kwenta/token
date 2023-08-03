@@ -548,4 +548,32 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         vm.prank(beneficiary);
         escrowMigrator.registerIntegratorEntries(address(_integrator), _entryIDs);
     }
+
+    function migrateIntegratorEntries(
+        IStakingRewardsIntegrator _integrator,
+        uint256[] memory _entryIDs,
+        address to
+    ) internal {
+        address beneficiary = _integrator.beneficiary();
+
+        vm.prank(beneficiary);
+        escrowMigrator.migrateIntegratorEntries(address(_integrator), to, _entryIDs);
+    }
+
+    function claimRegisterVestAndApproveIntegrator(IStakingRewardsIntegrator _integrator)
+        internal
+        returns (uint256[] memory _entryIDs, uint256 numVestingEntries, uint256 toPay)
+    {
+        address beneficiary = _integrator.beneficiary();
+        (_entryIDs, numVestingEntries) = claimAndCheckInitialState(address(_integrator));
+
+        registerIntegratorEntries(_integrator, _entryIDs);
+        vest(address(_integrator), _entryIDs);
+        toPay = escrowMigrator.toPay(address(_integrator));
+
+        vm.prank(address(_integrator));
+        kwenta.transfer(beneficiary, toPay);
+
+        approve(beneficiary);
+    }
 }
