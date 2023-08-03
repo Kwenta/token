@@ -15,7 +15,7 @@ import {IRewardEscrowV2} from "./interfaces/IRewardEscrowV2.sol";
 import {IStakingRewardsV2} from "./interfaces/IStakingRewardsV2.sol";
 import {IRewardEscrow} from "./interfaces/IRewardEscrow.sol";
 import {IStakingRewards} from "./interfaces/IStakingRewards.sol";
-import {IStakingRewardsV2Integrator} from "./interfaces/IStakingRewardsV2Integrator.sol";
+import {IStakingRewardsIntegrator} from "./interfaces/IStakingRewardsIntegrator.sol";
 
 /*//////////////////////////////////////////////////////////////
                             WARNING
@@ -326,7 +326,7 @@ contract EscrowMigrator is
 
     /// @dev check the msg.sender is the "beneficiary" stored on the integrator smart contract
     modifier onlyBeneficiary(address _integrator) {
-        address beneficiary = IStakingRewardsV2Integrator(_integrator).beneficiary();
+        address beneficiary = IStakingRewardsIntegrator(_integrator).beneficiary();
         if (beneficiary != msg.sender) revert NotApproved();
         _;
     }

@@ -9,7 +9,7 @@ import {Ownable2StepUpgradeable} from
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {IKwenta} from "./interfaces/IKwenta.sol";
 import {IStakingRewardsV2} from "./interfaces/IStakingRewardsV2.sol";
-import {IStakingRewardsV2Integrator} from "./interfaces/IStakingRewardsV2Integrator.sol";
+import {IStakingRewardsIntegrator} from "./interfaces/IStakingRewardsIntegrator.sol";
 import {ISupplySchedule} from "./interfaces/ISupplySchedule.sol";
 import {IRewardEscrowV2} from "./interfaces/IRewardEscrowV2.sol";
 
@@ -366,7 +366,7 @@ contract StakingRewardsV2 is
 
     /// @inheritdoc IStakingRewardsV2
     function getIntegratorReward(address _integrator) public override {
-        address beneficiary = IStakingRewardsV2Integrator(_integrator).beneficiary();
+        address beneficiary = IStakingRewardsIntegrator(_integrator).beneficiary();
         if (beneficiary != msg.sender) revert NotApproved();
         _getReward(_integrator, beneficiary);
     }

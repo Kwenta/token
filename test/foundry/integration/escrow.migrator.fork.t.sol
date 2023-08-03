@@ -11,6 +11,7 @@ import {IEscrowMigrator} from "../../../contracts/interfaces/IEscrowMigrator.sol
 import {SupplySchedule} from "../../../contracts/SupplySchedule.sol";
 import {StakingRewards} from "../../../contracts/StakingRewards.sol";
 import {EscrowMigrator} from "../../../contracts/EscrowMigrator.sol";
+import {IStakingRewardsIntegrator} from "../../../contracts/interfaces/IStakingRewardsIntegrator.sol";
 import "../utils/Constants.t.sol";
 import {EscrowMigratorTestHelpers} from "../utils/helpers/EscrowMigratorTestHelpers.t.sol";
 
@@ -1310,6 +1311,6 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
     //////////////////////////////////////////////////////////////*/
 
     // function test_Integrator_Step_1() public {
-
+    //     address beneficiary = 
     // }
 }

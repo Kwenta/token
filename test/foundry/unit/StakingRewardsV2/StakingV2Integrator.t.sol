@@ -3,8 +3,8 @@ pragma solidity 0.8.19;
 
 import {console} from "forge-std/Test.sol";
 import {IStakingRewardsV2} from "../../../../contracts/interfaces/IStakingRewardsV2.sol";
-import {IStakingRewardsV2Integrator} from
-    "../../../../contracts/interfaces/IStakingRewardsV2Integrator.sol";
+import {IStakingRewardsIntegrator} from
+    "../../../../contracts/interfaces/IStakingRewardsIntegrator.sol";
 import {DefaultStakingV2Setup} from "../../utils/setup/DefaultStakingV2Setup.t.sol";
 import {MockStakingV2Integrator} from "../../utils/mocks/MockStakingV2Integrator.t.sol";
 import {MaliciousStakingV2Integrator} from "../../utils/mocks/MaliciousStakingV2Integrator.t.sol";
@@ -15,8 +15,8 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
                                  STATE
     //////////////////////////////////////////////////////////////*/
 
-    IStakingRewardsV2Integrator public integrator;
-    IStakingRewardsV2Integrator public maliciousIntegrator;
+    IStakingRewardsIntegrator public integrator;
+    IStakingRewardsIntegrator public maliciousIntegrator;
 
     /*//////////////////////////////////////////////////////////////
                                  SETUP
@@ -25,7 +25,7 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
     function setUp() public override {
         super.setUp();
 
-        maliciousIntegrator = IStakingRewardsV2Integrator(
+        maliciousIntegrator = IStakingRewardsIntegrator(
             address(new MaliciousStakingV2Integrator(address(this), address(stakingRewardsV2)))
         );
 
@@ -43,7 +43,7 @@ contract StakingV2IntegratorTests is DefaultStakingV2Setup {
 
     function test_Beneficiary_Cannot_Be_Zero_Address() public {
         // setup bad integrator
-        IStakingRewardsV2Integrator badIntegrator = new MockStakingV2Integrator(address(0));
+        IStakingRewardsIntegrator badIntegrator = new MockStakingV2Integrator(address(0));
         fundAccountAndStakeV2(address(badIntegrator), 1 ether);
         createRewardEscrowEntryV2(address(badIntegrator), 1 ether);
         assertEq(address(0), badIntegrator.beneficiary());
