@@ -8,6 +8,8 @@ import {Kwenta} from "../../../../contracts/Kwenta.sol";
 import {RewardEscrow} from "../../../../contracts/RewardEscrow.sol";
 import {VestingEntries} from "../../../../contracts/interfaces/IRewardEscrow.sol";
 import {IEscrowMigrator} from "../../../../contracts/interfaces/IEscrowMigrator.sol";
+import {IStakingRewardsIntegrator} from
+    "../../../../contracts/interfaces/IStakingRewardsIntegrator.sol";
 import {SupplySchedule} from "../../../../contracts/SupplySchedule.sol";
 import {StakingRewards} from "../../../../contracts/StakingRewards.sol";
 import {EscrowMigrator} from "../../../../contracts/EscrowMigrator.sol";
@@ -451,9 +453,11 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         checkStateAfterStepThreeAssertions(account, to, _entryIDs, totalEscrowMigrated);
     }
 
-    function checkMigratedEntryAfterStepThree(address account, uint256 newEntryID, uint256 oldEntryID)
-        internal
-    {
+    function checkMigratedEntryAfterStepThree(
+        address account,
+        uint256 newEntryID,
+        uint256 oldEntryID
+    ) internal {
         (uint64 endTime, uint256 escrowAmount, uint256 duration, uint8 earlyVestingFee) =
             rewardEscrowV2.getVestingEntry(newEntryID);
 
@@ -516,5 +520,32 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
             rewardEscrowV1.totalVestedAccountBalance(account)
                 - escrowMigrator.escrowVestedAtStart(account)
         );
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                           INTEGRATOR HELPERS
+    //////////////////////////////////////////////////////////////*/
+
+    function registerIntegratorEntries(
+        IStakingRewardsIntegrator _integrator,
+        uint256[] memory _entryIDs
+    ) internal {
+        address beneficiary = _integrator.beneficiary();
+
+        vm.prank(beneficiary);
+        escrowMigrator.registerIntegratorEntries(address(_integrator), _entryIDs);
+    }
+
+    function registerIntegratorEntries(
+        IStakingRewardsIntegrator _integrator,
+        uint256 index,
+        uint256 amount
+    ) internal returns (uint256[] memory _entryIDs) {
+        address beneficiary = _integrator.beneficiary();
+
+        _entryIDs = getEntryIDs(address(_integrator), index, amount);
+
+        vm.prank(beneficiary);
+        escrowMigrator.registerIntegratorEntries(address(_integrator), _entryIDs);
     }
 }

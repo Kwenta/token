@@ -23,7 +23,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
                                  STATE
     //////////////////////////////////////////////////////////////*/
 
-    address integrator;
+    IStakingRewardsIntegrator internal integrator;
 
     /*//////////////////////////////////////////////////////////////
                                 SETUP
@@ -45,7 +45,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         user2 = OPTIMISM_RANDOM_STAKING_USER_2;
         user3 = OPTIMISM_RANDOM_STAKING_USER_3;
         user4 = createUser();
-        integrator = OPTIMISM_STAKING_V1_INTEGRATOR;
+        integrator = IStakingRewardsIntegrator(OPTIMISM_STAKING_V1_INTEGRATOR);
 
         // set owners address code to trick the test into allowing onlyOwner functions to be called via script
         vm.etch(owner, address(new Migrate()).code);
@@ -1310,7 +1310,26 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
                             INTEGRATOR TESTS
     //////////////////////////////////////////////////////////////*/
 
-    // function test_Integrator_Step_1() public {
-    //     address beneficiary = 
-    // }
+    function test_Integrator_Step_1_Normal() public {
+        address beneficiary = integrator.beneficiary();
+        (uint256[] memory _entryIDs,) = claimAndCheckInitialState(address(integrator));
+        checkStateBeforeStepOne(beneficiary);
+
+        registerIntegratorEntries(integrator, _entryIDs);
+
+        // check final state
+        checkStateAfterStepOne(address(integrator), _entryIDs, true);
+    }
+
+    function test_Integrator_Step_1_Two_Rounds() public {
+        // check initial state
+        (uint256[] memory _entryIDs,) = claimAndCheckInitialState(address(integrator));
+
+        // step 1 - register some entries
+        registerIntegratorEntries(integrator, 0, 20);
+        registerIntegratorEntries(integrator, 20, 25);
+
+        // check final state
+        checkStateAfterStepOne(address(integrator), _entryIDs, true);
+    }
 }
