@@ -616,9 +616,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
 
         // this would work if unstakeEscrow was called
         // but unstake is called so it fails
-        vm.expectRevert(
-            abi.encodeWithSelector(IStakingRewardsV2.InsufficientBalance.selector, 0)
-        );
+        vm.expectRevert(abi.encodeWithSelector(IStakingRewardsV2.InsufficientBalance.selector, 0));
         stakingRewardsV2.unstake(TEST_VALUE);
     }
 
@@ -763,6 +761,111 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
     }
 
     /*//////////////////////////////////////////////////////////////
+                        UPDATE REWARD MODIFIERS
+    //////////////////////////////////////////////////////////////*/
+
+    function test_Rewards_Updated_stake() public {
+        fundAndApproveAccountV2(address(this), TEST_VALUE);
+
+        // stake
+        stakingRewardsV2.stake(TEST_VALUE);
+
+        // configure reward rate
+        vm.prank(address(supplySchedule));
+        stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
+
+        // fast forward 3 weeks
+        vm.warp(3 weeks);
+
+        // stake
+        fundAccountAndStakeV2(address(this), TEST_VALUE);
+
+        assertEq(stakingRewardsV2.lastUpdateTime(), stakingRewardsV2.lastTimeRewardApplicable());
+        assertEq(stakingRewardsV2.rewardPerTokenStored(), stakingRewardsV2.rewardPerToken());
+        assertEq(
+            stakingRewardsV2.userRewardPerTokenPaid(address(this)),
+            stakingRewardsV2.rewardPerTokenStored()
+        );
+        assertGt(stakingRewardsV2.rewards(address(this)), 0);
+    }
+
+    function test_Rewards_Updated_unstake() public {
+        fundAndApproveAccountV2(address(this), TEST_VALUE);
+
+        // stake
+        stakingRewardsV2.stake(TEST_VALUE);
+
+        // configure reward rate
+        vm.prank(address(supplySchedule));
+        stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
+
+        // fast forward 3 weeks
+        vm.warp(3 weeks);
+
+        // unstake
+        unstakeFundsV2(address(this), 1);
+
+        assertEq(stakingRewardsV2.lastUpdateTime(), stakingRewardsV2.lastTimeRewardApplicable());
+        assertEq(stakingRewardsV2.rewardPerTokenStored(), stakingRewardsV2.rewardPerToken());
+        assertEq(
+            stakingRewardsV2.userRewardPerTokenPaid(address(this)),
+            stakingRewardsV2.rewardPerTokenStored()
+        );
+        assertGt(stakingRewardsV2.rewards(address(this)), 0);
+    }
+
+    function test_Rewards_Updated_stakeEscrow() public {
+        fundAndApproveAccountV2(address(this), TEST_VALUE);
+
+        // stake
+        stakingRewardsV2.stake(TEST_VALUE);
+
+        // configure reward rate
+        vm.prank(address(supplySchedule));
+        stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
+
+        // fast forward 3 weeks
+        vm.warp(3 weeks);
+
+        // stake escrow
+        stakeEscrowedFundsV2(address(this), 1000);
+
+        assertEq(stakingRewardsV2.lastUpdateTime(), stakingRewardsV2.lastTimeRewardApplicable());
+        assertEq(stakingRewardsV2.rewardPerTokenStored(), stakingRewardsV2.rewardPerToken());
+        assertEq(
+            stakingRewardsV2.userRewardPerTokenPaid(address(this)),
+            stakingRewardsV2.rewardPerTokenStored()
+        );
+        assertGt(stakingRewardsV2.rewards(address(this)), 0);
+    }
+
+    function test_Rewards_Updated_unstakeEscrow() public {
+        fundAndApproveAccountV2(address(this), TEST_VALUE);
+
+        // stake
+        stakingRewardsV2.stake(TEST_VALUE);
+        stakeEscrowedFundsV2(address(this), 1000);
+
+        // configure reward rate
+        vm.prank(address(supplySchedule));
+        stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
+
+        // fast forward 3 weeks
+        vm.warp(3 weeks);
+
+        // unstake escrow
+        unstakeEscrowedFundsV2(address(this), 1000);
+
+        assertEq(stakingRewardsV2.lastUpdateTime(), stakingRewardsV2.lastTimeRewardApplicable());
+        assertEq(stakingRewardsV2.rewardPerTokenStored(), stakingRewardsV2.rewardPerToken());
+        assertEq(
+            stakingRewardsV2.userRewardPerTokenPaid(address(this)),
+            stakingRewardsV2.rewardPerTokenStored()
+        );
+        assertGt(stakingRewardsV2.rewards(address(this)), 0);
+    }
+
+    /*//////////////////////////////////////////////////////////////
                             setRewardsDuration
     //////////////////////////////////////////////////////////////*/
 
@@ -874,9 +977,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
     function test_Cannot_unstake_If_Nothing_Staked() public {
         vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod());
 
-        vm.expectRevert(
-            abi.encodeWithSelector(IStakingRewardsV2.InsufficientBalance.selector, 0)
-        );
+        vm.expectRevert(abi.encodeWithSelector(IStakingRewardsV2.InsufficientBalance.selector, 0));
         stakingRewardsV2.unstake(TEST_VALUE);
     }
 
@@ -912,14 +1013,10 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
     function test_Cannot_unstakeEscrow_If_None_Staked() public {
         vm.warp(block.timestamp + stakingRewardsV2.cooldownPeriod());
 
-        vm.expectRevert(
-            abi.encodeWithSelector(IStakingRewardsV2.InsufficientBalance.selector, 0)
-        );
+        vm.expectRevert(abi.encodeWithSelector(IStakingRewardsV2.InsufficientBalance.selector, 0));
         unstakeEscrowedFundsV2(address(this), TEST_VALUE);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(IStakingRewardsV2.InsufficientBalance.selector, 0)
-        );
+        vm.expectRevert(abi.encodeWithSelector(IStakingRewardsV2.InsufficientBalance.selector, 0));
         unstakeEscrowSkipCooldownFundsV2(address(this), TEST_VALUE);
     }
 
