@@ -540,6 +540,26 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         assertEq(earlyVestingFee, 90);
     }
 
+    function test_vest_Should_Properly_Emit_Event() public {
+        appendRewardEscrowEntryV2(address(this), 1000 ether);
+        vm.warp(block.timestamp + 26 weeks);
+
+        // check initial values
+        (uint256 claimable, uint256 fee) = rewardEscrowV2.getVestingEntryClaimable(1);
+        assertEq(claimable, 550 ether);
+        assertEq(fee, 450 ether);
+        assertEq(rewardEscrowV2.totalEscrowedBalance(), 1000 ether);
+        assertEq(rewardEscrowV2.totalEscrowedAccountBalance(address(this)), 1000 ether);
+        assertEq(rewardEscrowV2.totalVestedAccountBalance(address(this)), 0);
+
+        vm.expectEmit(true, true, true, true);
+        emit EarlyVestFeeSentToDAO(225 ether);
+        vm.expectEmit(true, true, true, true);
+        emit EarlyVestFeeSentToDistributor(225 ether);
+        entryIDs.push(1);
+        rewardEscrowV2.vest(entryIDs);
+    }
+
     function test_Should_Revert_If_Kwenta_Transfer_Fails() public {
         appendRewardEscrowEntryV2(address(this), 1000 ether);
 

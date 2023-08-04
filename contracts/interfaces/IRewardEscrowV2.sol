@@ -198,7 +198,7 @@ interface IRewardEscrowV2 {
 
     /// @notice emitted when the early vest fee is sent to the DAO
     /// @param amount The amount of KWENTA sent to the DAO
-    event EarlyVestFeeSentToDao(uint256 amount);
+    event EarlyVestFeeSentToDAO(uint256 amount);
 
     /// @notice emitted when the early vest fee is sent to the distributor
     /// @param amount The amount of KWENTA sent to the distributor
