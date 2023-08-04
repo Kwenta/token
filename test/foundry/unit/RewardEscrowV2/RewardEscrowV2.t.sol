@@ -490,7 +490,55 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         assertEq(rewardEscrowV2.totalEscrowedAccountBalance(address(this)), 1000 ether);
     }
 
-    function test_vest_Should_Properly_Distribute_Escrow() public {
+    function test_vest_Should_Properly_Distribute_Escrow_Without_Distributor() public {
+        appendRewardEscrowEntryV2(address(this), 1000 ether);
+        vm.warp(block.timestamp + 26 weeks);
+
+        // check initial values
+        (uint256 claimable, uint256 fee) = rewardEscrowV2.getVestingEntryClaimable(1);
+        assertEq(claimable, 550 ether);
+        assertEq(fee, 450 ether);
+        assertEq(rewardEscrowV2.totalEscrowedBalance(), 1000 ether);
+        assertEq(rewardEscrowV2.totalEscrowedAccountBalance(address(this)), 1000 ether);
+        assertEq(rewardEscrowV2.totalVestedAccountBalance(address(this)), 0);
+
+        uint256 treasuryBalanceBefore = kwenta.balanceOf(treasury);
+
+        entryIDs.push(1);
+        rewardEscrowV2.vest(entryIDs);
+
+        uint256 treasuryBalanceAfter = kwenta.balanceOf(treasury);
+        uint256 treasuryReceived = treasuryBalanceAfter - treasuryBalanceBefore;
+
+        // 45% should go to the treasury
+        assertEq(treasuryReceived, 450 ether);
+
+        // 55% should go to the staker
+        assertEq(rewardEscrowV2.totalVestedAccountBalance(address(this)), 550 ether);
+        assertEq(kwenta.balanceOf(address(this)), 550 ether);
+        assertEq(rewardEscrowV2.totalEscrowedAccountBalance(address(this)), 0);
+
+        // Nothing should be left in reward escrow
+        assertEq(rewardEscrowV2.totalEscrowedBalance(), 0);
+        assertEq(rewardEscrowV2.totalEscrowedAccountBalance(address(this)), 0);
+        assertEq(kwenta.balanceOf(address(rewardEscrowV2)), 0);
+
+        // check entry has been burned
+        assertEq(rewardEscrowV2.balanceOf(address(this)), 0);
+        vm.expectRevert("ERC721: invalid token ID");
+        assertEq(rewardEscrowV2.ownerOf(1), address(0));
+
+        // old vesting entry data still exists
+        (uint64 endTime, uint256 escrowAmount, uint256 duration, uint8 earlyVestingFee) =
+            rewardEscrowV2.getVestingEntry(1);
+        assertEq(escrowAmount, 1000 ether);
+        assertEq(endTime, block.timestamp + 26 weeks);
+        assertEq(duration, 52 weeks);
+        assertEq(earlyVestingFee, 90);
+    }
+
+    function test_vest_Should_Properly_Distribute_Escrow_With_Distributor() public {
+        rewardEscrowV2.setEarlyVestFeeDistributor(mockEarlyVestFeeDistributor);
         appendRewardEscrowEntryV2(address(this), 1000 ether);
         vm.warp(block.timestamp + 26 weeks);
 
@@ -540,7 +588,26 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         assertEq(earlyVestingFee, 90);
     }
 
-    function test_vest_Should_Properly_Emit_Event() public {
+    function test_vest_Should_Properly_Emit_Event_Without_Distributor() public {
+        appendRewardEscrowEntryV2(address(this), 1000 ether);
+        vm.warp(block.timestamp + 26 weeks);
+
+        // check initial values
+        (uint256 claimable, uint256 fee) = rewardEscrowV2.getVestingEntryClaimable(1);
+        assertEq(claimable, 550 ether);
+        assertEq(fee, 450 ether);
+        assertEq(rewardEscrowV2.totalEscrowedBalance(), 1000 ether);
+        assertEq(rewardEscrowV2.totalEscrowedAccountBalance(address(this)), 1000 ether);
+        assertEq(rewardEscrowV2.totalVestedAccountBalance(address(this)), 0);
+
+        vm.expectEmit(true, true, true, true);
+        emit EarlyVestFeeSentToDAO(450 ether);
+        entryIDs.push(1);
+        rewardEscrowV2.vest(entryIDs);
+    }
+
+    function test_vest_Should_Properly_Emit_Event_With_Distributor() public {
+        rewardEscrowV2.setEarlyVestFeeDistributor(mockEarlyVestFeeDistributor);
         appendRewardEscrowEntryV2(address(this), 1000 ether);
         vm.warp(block.timestamp + 26 weeks);
 
