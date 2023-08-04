@@ -199,6 +199,7 @@ contract EscrowMigrator is
             escrowVestedAtStart[account] = rewardEscrowV1.totalVestedAccountBalance(account);
         }
 
+        // OPT: update to use getVestingSchedules to save gas from all the message calls
         uint256 registeredEscrow;
 
         for (uint256 i = 0; i < _entryIDs.length; i++) {
