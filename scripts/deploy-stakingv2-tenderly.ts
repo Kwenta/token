@@ -29,10 +29,13 @@ async function main() {
     // ========== DEPLOYMENT ========== */
 
     console.log("\n💥 Beginning deployments...");
-    const [rewardEscrowV2, rewardEscrowV2Impl] = await deployRewardEscrowV2();
+    const [rewardEscrowV2, rewardEscrowV2Impl] = await deployRewardEscrowV2(
+        deployer.address
+    );
     const [stakingRewardsV2, stakingRewardsV2Impl] =
-        await deployStakingRewardsV2(rewardEscrowV2.address);
+        await deployStakingRewardsV2(deployer.address, rewardEscrowV2.address);
     const [escrowMigrator, escrowMigratorImpl] = await deployEscrowMigrator(
+        deployer.address,
         rewardEscrowV2.address,
         stakingRewardsV2.address
     );
@@ -47,42 +50,64 @@ async function main() {
 
     // ========== SETTERS ========== */
 
-    // console.log("\n🔩 Configuring setters...");
-    // // set treasuryDAO for reward escrow v2
-    // await rewardEscrowV2.setTreasuryDAO(OPTIMISM_TREASURY_DAO);
-    // console.log(
-    //     "RewardEscrowV2: treasuryDAO address set to:          ",
-    //     await rewardEscrowV2.treasuryDAO()
-    // );
+    console.log("\n🔩 Configuring setters...");
+    // set treasuryDAO for reward escrow v2
+    // TODO: rewardEscrowV2.setTreasuryDAO is not a function - return implementation contract wrapped around proxy contract address
+    // instead of actual proxy contract
+    await rewardEscrowV2.setTreasuryDAO(OPTIMISM_TREASURY_DAO);
+    console.log(
+        "RewardEscrowV2: treasuryDAO address set to:          ",
+        await rewardEscrowV2.treasuryDAO()
+    );
 
-    // // set staking rewards for reward escrow v2
-    // await rewardEscrowV2.setStakingRewards(stakingRewardsV2.address);
-    // console.log(
-    //     "RewardEscrowV2: stakingRewards address set to:          ",
-    //     await rewardEscrowV2.stakingRewards()
-    // );
+    // set staking rewards for reward escrow v2
+    await rewardEscrowV2.setStakingRewards(stakingRewardsV2.address);
+    console.log(
+        "RewardEscrowV2: stakingRewards address set to:          ",
+        await rewardEscrowV2.stakingRewards()
+    );
 
-    // // set escrow migrator for reward escrow v2
-    // await rewardEscrowV2.setEscrowMigrator(escrowMigrator.address);
-    // console.log(
-    //     "RewardEscrowV2: escrowMigrator address set to:          ",
-    //     await rewardEscrowV2.escrowMigrator()
-    // );
-    // console.log("✅ Setters set!");
+    // set escrow migrator for reward escrow v2
+    await rewardEscrowV2.setEscrowMigrator(escrowMigrator.address);
+    console.log(
+        "RewardEscrowV2: escrowMigrator address set to:          ",
+        await rewardEscrowV2.escrowMigrator()
+    );
+    console.log("✅ Setters set!");
+
+    // ========== MIGRATION ========== */
+
+    console.log("\n🔩 Migration setters...");
+
+
+    provider.send("tenderly_simulateTransaction", [
+        {
+            from: OPTIMISM_PDAO,
+            to: OPTIMISM_SUPPLY_SCHEDULE,
+            gas: "0x7a1200",
+            gasPrice: "0x0",
+            value: "0x0",
+            data: `0x6fb83a57000000000000000000000000${remove0xFromAddress(
+                rewardEscrowV2.address
+            )}`,
+        },
+    ]);
+
+    console.log("✅ Migration setters set!");
 }
 
 /************************************************
  * @deployers
  ************************************************/
 
-const deployRewardEscrowV2 = async () =>
+const deployRewardEscrowV2 = async (owner: string) =>
     await deployUUPSProxy({
         contractName: "RewardEscrowV2",
         constructorArgs: [OPTIMISM_KWENTA_TOKEN],
-        initializerArgs: [OPTIMISM_PDAO],
+        initializerArgs: [owner],
     });
 
-const deployStakingRewardsV2 = async (rewardEscrowV2: string) =>
+const deployStakingRewardsV2 = async (owner: string, rewardEscrowV2: string) =>
     await deployUUPSProxy({
         contractName: "StakingRewardsV2",
         constructorArgs: [
@@ -90,10 +115,11 @@ const deployStakingRewardsV2 = async (rewardEscrowV2: string) =>
             rewardEscrowV2,
             OPTIMISM_SUPPLY_SCHEDULE,
         ],
-        initializerArgs: [OPTIMISM_PDAO],
+        initializerArgs: [owner],
     });
 
 const deployEscrowMigrator = async (
+    owner: string,
     rewardEscrowV2: string,
     stakingRewardsV2: string
 ) =>
@@ -106,7 +132,7 @@ const deployEscrowMigrator = async (
             OPTIMISM_STAKING_REWARDS_V1,
             stakingRewardsV2,
         ],
-        initializerArgs: [OPTIMISM_PDAO],
+        initializerArgs: [owner],
     });
 
 /************************************************
@@ -179,6 +205,8 @@ export const getInitializerData = (
         throw e;
     }
 };
+
+const remove0xFromAddress = (address: string): string => address.slice(-40);
 
 /************************************************
  * @execute
