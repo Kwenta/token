@@ -1151,9 +1151,9 @@ contract EarlyVestFeeDistributorTest is DefaultStakingV2Setup {
 
         goForward(1 days + 1);
         uint result = eVFDI.startOfWeek(block.timestamp);
-        assertEq(result, 2 days);
+        assertEq(result, startTime - 5 days);
         vm.expectEmit(false, false, false, true);
-        emit CheckpointToken(1 weeks + 1 days + 3, 0);
+        emit CheckpointToken(startTime + 1 days + 1, 0);
         eVFDI.checkpointWhenReady();
     }
 
@@ -1167,13 +1167,13 @@ contract EarlyVestFeeDistributorTest is DefaultStakingV2Setup {
         );
 
         uint result = eVFDI.startOfWeek(block.timestamp);
-        assertEq(result, 2 days);
+        assertEq(result, startTime - 5 days);
 
-        goForward(3 days);
+        goForward(5 days);
         uint result2 = eVFDI.startOfWeek(block.timestamp);
-        assertEq(result2, 1 weeks + 2 days);
+        assertEq(result2, startTime + 2 days);
         vm.expectEmit(false, false, false, true);
-        emit CheckpointToken(1 weeks + 3 days + 2, 0);
+        emit CheckpointToken(startTime + 5 days, 0);
         eVFDI.checkpointWhenReady();
     }
 
@@ -1188,14 +1188,14 @@ contract EarlyVestFeeDistributorTest is DefaultStakingV2Setup {
 
         goForward(1.5 days);
         uint result = eVFDI.startOfWeek(block.timestamp);
-        assertEq(result, 2 days);
+        assertEq(result, startTime - 5 days);
         eVFDI.checkpointToken();
 
-        goForward(1 days);
+        goForward(.9 days);
         uint result2 = eVFDI.startOfWeek(block.timestamp);
-        assertEq(result2, 1 weeks + 2 days);
+        assertEq(result2, startTime + 2 days);
         vm.expectEmit(false, false, false, true);
-        emit CheckpointToken(1 weeks + 2.5 days + 2, 0);
+        emit CheckpointToken(startTime + 2.4 days, 0);
         eVFDI.checkpointWhenReady();
     }
 
@@ -1211,9 +1211,9 @@ contract EarlyVestFeeDistributorTest is DefaultStakingV2Setup {
         eVFDI.checkpointToken();
         goForward(1 days);
         uint result = eVFDI.startOfWeek(block.timestamp);
-        assertEq(result, 2 days);
+        assertEq(result, startTime - 5 days);
         vm.expectEmit(false, false, false, true);
-        emit CheckpointToken(1 weeks + 1 days + 2, 0);
+        emit CheckpointToken(startTime + 1 days, 0);
         eVFDI.checkpointWhenReady();
     }
 
