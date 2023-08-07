@@ -29,17 +29,46 @@ async function main() {
     // ========== DEPLOYMENT ========== */
 
     console.log("\n💥 Beginning deployments...");
-    const [rewardEscrowV2Proxy, rewardEscrowV2Impl] =
-        await deployRewardEscrowV2();
-    const [stakingRewardsV2Proxy, stakingRewardsV2Impl] =
-        await deployStakingRewardsV2(rewardEscrowV2Proxy.address);
+    const [rewardEscrowV2, rewardEscrowV2Impl] = await deployRewardEscrowV2();
+    const [stakingRewardsV2, stakingRewardsV2Impl] =
+        await deployStakingRewardsV2(rewardEscrowV2.address);
+    const [escrowMigrator, escrowMigratorImpl] = await deployEscrowMigrator(
+        rewardEscrowV2.address,
+        stakingRewardsV2.address
+    );
+    console.log("RewardEscrowV2 Proxy   :", rewardEscrowV2.address);
+    console.log("RewardEscrowV2 Impl    :", rewardEscrowV2Impl.address);
+    console.log("StakingRewardsV2 Proxy :", stakingRewardsV2.address);
+    console.log("StakingRewardsV2 Impl  :", stakingRewardsV2Impl.address);
+    console.log("EscrowMigrator Proxy   :", escrowMigrator.address);
+    console.log("EscrowMigrator Impl    :", escrowMigratorImpl.address);
 
-    console.log("RewardEscrowV2 Proxy: ", rewardEscrowV2Proxy.address);
-    console.log("RewardEscrowV2 Impl:  ", rewardEscrowV2Impl.address);
-    console.log("StakingRewardsV2 Proxy : ", stakingRewardsV2Proxy.address);
-    console.log("StakingRewardsV2 Impl  : ", stakingRewardsV2Impl.address);
-    // console.log("EscrowMigrator: ", escrowMigrator.address);
     console.log("✅ Deployments complete!");
+
+    // ========== SETTERS ========== */
+
+    // console.log("\n🔩 Configuring setters...");
+    // // set treasuryDAO for reward escrow v2
+    // await rewardEscrowV2.setTreasuryDAO(OPTIMISM_TREASURY_DAO);
+    // console.log(
+    //     "RewardEscrowV2: treasuryDAO address set to:          ",
+    //     await rewardEscrowV2.treasuryDAO()
+    // );
+
+    // // set staking rewards for reward escrow v2
+    // await rewardEscrowV2.setStakingRewards(stakingRewardsV2.address);
+    // console.log(
+    //     "RewardEscrowV2: stakingRewards address set to:          ",
+    //     await rewardEscrowV2.stakingRewards()
+    // );
+
+    // // set escrow migrator for reward escrow v2
+    // await rewardEscrowV2.setEscrowMigrator(escrowMigrator.address);
+    // console.log(
+    //     "RewardEscrowV2: escrowMigrator address set to:          ",
+    //     await rewardEscrowV2.escrowMigrator()
+    // );
+    // console.log("✅ Setters set!");
 }
 
 /************************************************
@@ -60,6 +89,22 @@ const deployStakingRewardsV2 = async (rewardEscrowV2: string) =>
             OPTIMISM_KWENTA_TOKEN,
             rewardEscrowV2,
             OPTIMISM_SUPPLY_SCHEDULE,
+        ],
+        initializerArgs: [OPTIMISM_PDAO],
+    });
+
+const deployEscrowMigrator = async (
+    rewardEscrowV2: string,
+    stakingRewardsV2: string
+) =>
+    await deployUUPSProxy({
+        contractName: "EscrowMigrator",
+        constructorArgs: [
+            OPTIMISM_KWENTA_TOKEN,
+            OPTIMISM_REWARD_ESCROW_V1,
+            rewardEscrowV2,
+            OPTIMISM_STAKING_REWARDS_V1,
+            stakingRewardsV2,
         ],
         initializerArgs: [OPTIMISM_PDAO],
     });
