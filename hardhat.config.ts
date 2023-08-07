@@ -14,8 +14,13 @@ import "hardhat-interface-generator";
 import "@nomiclabs/hardhat-etherscan";
 import "./scripts/tasks/create-claim";
 import { TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS } from "hardhat/builtin-tasks/task-names";
+import * as tdly from "@tenderly/hardhat-tenderly";
 
 dotenv.config();
+tdly.setup({
+  automaticVerifications: false,
+});
+
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -110,6 +115,14 @@ export default {
       url: `https://opt-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
       accounts: process.env.DEPLOYER_PRIVATE_KEY ? [process.env.DEPLOYER_PRIVATE_KEY] : undefined,
     },
+    tenderly: {
+      url: process.env.TENDERLY_FORK_URL
+    }
+  },
+  tenderly: {
+    username: "kwenta",
+    project: "kwenta",
+    privateVerification: true
   },
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY,
