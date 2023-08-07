@@ -56,6 +56,11 @@ interface IRewardEscrowV2 {
     /// @dev This function can only be called multiple times
     function setTreasuryDAO(address _treasuryDAO) external;
 
+    /// @notice Function used to define the EarlyVestFeeDistributor address to use
+    /// @param _earlyVestFeeDistributor The address of the EarlyVestFeeDistributor
+    /// @dev This function can only be called multiple times
+    function setEarlyVestFeeDistributor(address _earlyVestFeeDistributor) external;
+
     /*///////////////////////////////////////////////////////////////
                                 VIEWS
     ///////////////////////////////////////////////////////////////*/
@@ -205,6 +210,18 @@ interface IRewardEscrowV2 {
     /// @notice emitted when the treasury DAO is set
     /// @param treasuryDAO The address of the treasury DAO
     event TreasuryDAOSet(address treasuryDAO);
+
+    /// @notice emitted when the EarlyVestFeeDistributor is set
+    /// @param earlyVestFeeDistributor The address of the early vest fee distributor
+    event EarlyVestFeeDistributorSet(address earlyVestFeeDistributor);
+
+    /// @notice emitted when the early vest fee is sent to the DAO
+    /// @param amount The amount of KWENTA sent to the DAO
+    event EarlyVestFeeSentToDAO(uint256 amount);
+
+    /// @notice emitted when the early vest fee is sent to the distributor
+    /// @param amount The amount of KWENTA sent to the distributor
+    event EarlyVestFeeSentToDistributor(uint256 amount);
 
     /*//////////////////////////////////////////////////////////////
                                 ERRORS

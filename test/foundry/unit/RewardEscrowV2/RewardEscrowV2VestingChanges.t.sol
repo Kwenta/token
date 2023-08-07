@@ -135,7 +135,7 @@ contract RewardEscrowV2VestingChangesTests is DefaultStakingV2Setup {
         assertEq(balanceAfter, balanceBefore + amountVestedAfterFee);
     }
 
-    function test_Fees_Are_Correctly_Distributed_At_Max_Early_Vesting_Fee() public {
+    function test_Fees_Are_Correctly_Distributed_At_Max_Early_Vesting_Fee_Without_Distributor() public {
         uint256 escrowAmount = 1 ether;
         uint256 duration = 52 weeks;
         uint8 earlyVestingFee = 100;
@@ -155,6 +155,31 @@ contract RewardEscrowV2VestingChangesTests is DefaultStakingV2Setup {
         assertEq(balanceAfter, userBalanceBefore);
         uint256 treasuryBalanceAfter = kwenta.balanceOf(treasury);
         assertEq(treasuryBalanceAfter, treasuryBalanceBefore + escrowAmount);
+    }
+
+    function test_Fees_Are_Correctly_Distributed_At_Max_Early_Vesting_Fee_With_Distributor() public {
+        rewardEscrowV2.setEarlyVestFeeDistributor(mockEarlyVestFeeDistributor);
+        uint256 escrowAmount = 1 ether;
+        uint256 duration = 52 weeks;
+        uint8 earlyVestingFee = 100;
+
+        // create entry
+        createRewardEscrowEntryV2(user1, escrowAmount, duration, earlyVestingFee);
+        uint256 userBalanceBefore = kwenta.balanceOf(user1);
+        uint256 treasuryBalanceBefore = kwenta.balanceOf(treasury);
+
+        // vest entry
+        entryIDs.push(1);
+        vm.prank(user1);
+        rewardEscrowV2.vest(entryIDs);
+
+        // check vested balance
+        uint256 balanceAfter = kwenta.balanceOf(user1);
+        assertEq(balanceAfter, userBalanceBefore);
+        uint256 treasuryBalanceAfter = kwenta.balanceOf(treasury);
+        assertEq(treasuryBalanceAfter, treasuryBalanceBefore + escrowAmount * 50 / 100);
+        uint256 earlyVestFeeDistributorBalanceAfter = kwenta.balanceOf(mockEarlyVestFeeDistributor);
+        assertEq(earlyVestFeeDistributorBalanceAfter, escrowAmount * 50 / 100);
     }
 
     /*//////////////////////////////////////////////////////////////

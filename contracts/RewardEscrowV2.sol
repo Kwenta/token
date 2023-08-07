@@ -3,11 +3,9 @@ pragma solidity 0.8.19;
 
 // Inheritance
 import {IRewardEscrowV2} from "./interfaces/IRewardEscrowV2.sol";
-import {ERC721EnumerableUpgradeable} from
-    "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
+import {ERC721EnumerableUpgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
 import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
-import {PausableUpgradeable} from
-    "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
+import {PausableUpgradeable} from "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 // Internal references
@@ -79,6 +77,9 @@ contract RewardEscrowV2 is
     /// @notice The total remaining escrowed balance, for verifying the actual KWENTA balance of this contract against
     uint256 public totalEscrowedBalance;
 
+    /// @notice EarlyVestFeeDistributor address
+    address public earlyVestFeeDistributor;
+
     /*///////////////////////////////////////////////////////////////
                                 AUTH
     ///////////////////////////////////////////////////////////////*/
@@ -136,9 +137,12 @@ contract RewardEscrowV2 is
     ///////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IRewardEscrowV2
-    function setStakingRewards(address _stakingRewards) external override onlyOwner {
+    function setStakingRewards(
+        address _stakingRewards
+    ) external override onlyOwner {
         if (_stakingRewards == address(0)) revert ZeroAddress();
-        if (address(stakingRewards) != address(0)) revert StakingRewardsAlreadySet();
+        if (address(stakingRewards) != address(0))
+            revert StakingRewardsAlreadySet();
 
         stakingRewards = IStakingRewardsV2(_stakingRewards);
         emit StakingRewardsSet(_stakingRewards);
@@ -159,6 +163,15 @@ contract RewardEscrowV2 is
         emit TreasuryDAOSet(treasuryDAO);
     }
 
+    /// @inheritdoc IRewardEscrowV2
+    function setEarlyVestFeeDistributor(
+        address _earlyVestFeeDistributor
+    ) external override onlyOwner {
+        if (_earlyVestFeeDistributor == address(0)) revert ZeroAddress();
+        earlyVestFeeDistributor = _earlyVestFeeDistributor;
+        emit EarlyVestFeeDistributorSet(earlyVestFeeDistributor);
+    }
+
     /*///////////////////////////////////////////////////////////////
                                 VIEWS
     ///////////////////////////////////////////////////////////////*/
@@ -169,21 +182,34 @@ contract RewardEscrowV2 is
     }
 
     /// @inheritdoc IRewardEscrowV2
-    function escrowedBalanceOf(address _account) external view override returns (uint256) {
+    function escrowedBalanceOf(
+        address _account
+    ) external view override returns (uint256) {
         return totalEscrowedAccountBalance[_account];
     }
 
     /// @inheritdoc IRewardEscrowV2
-    function unstakedEscrowedBalanceOf(address _account) public view override returns (uint256) {
-        return totalEscrowedAccountBalance[_account] - stakingRewards.escrowedBalanceOf(_account);
+    function unstakedEscrowedBalanceOf(
+        address _account
+    ) public view override returns (uint256) {
+        return
+            totalEscrowedAccountBalance[_account] -
+            stakingRewards.escrowedBalanceOf(_account);
     }
 
     /// @inheritdoc IRewardEscrowV2
-    function getVestingEntry(uint256 _entryID)
+    function getVestingEntry(
+        uint256 _entryID
+    )
         external
         view
         override
-        returns (uint64 endTime, uint256 escrowAmount, uint256 duration, uint8 earlyVestingFee)
+        returns (
+            uint64 endTime,
+            uint256 escrowAmount,
+            uint256 duration,
+            uint8 earlyVestingFee
+        )
     {
         VestingEntry storage entry = vestingSchedules[_entryID];
         endTime = entry.endTime;
@@ -193,12 +219,11 @@ contract RewardEscrowV2 is
     }
 
     /// @inheritdoc IRewardEscrowV2
-    function getVestingSchedules(address _account, uint256 _index, uint256 _pageSize)
-        external
-        view
-        override
-        returns (VestingEntryWithID[] memory)
-    {
+    function getVestingSchedules(
+        address _account,
+        uint256 _index,
+        uint256 _pageSize
+    ) external view override returns (VestingEntryWithID[] memory) {
         if (_pageSize == 0) {
             return new VestingEntryWithID[](0);
         }
@@ -218,8 +243,10 @@ contract RewardEscrowV2 is
             n = endIndex - _index;
         }
 
-        VestingEntryWithID[] memory vestingEntries = new VestingEntryWithID[](n);
-        for (uint256 i; i < n;) {
+        VestingEntryWithID[] memory vestingEntries = new VestingEntryWithID[](
+            n
+        );
+        for (uint256 i; i < n; ) {
             uint256 entryID;
 
             unchecked {
@@ -242,12 +269,11 @@ contract RewardEscrowV2 is
     }
 
     /// @inheritdoc IRewardEscrowV2
-    function getAccountVestingEntryIDs(address _account, uint256 _index, uint256 _pageSize)
-        external
-        view
-        override
-        returns (uint256[] memory)
-    {
+    function getAccountVestingEntryIDs(
+        address _account,
+        uint256 _index,
+        uint256 _pageSize
+    ) external view override returns (uint256[] memory) {
         uint256 endIndex = _index + _pageSize;
 
         // If the page extends past the end of the list, truncate it.
@@ -261,7 +287,7 @@ contract RewardEscrowV2 is
 
         uint256 n = endIndex - _index;
         uint256[] memory page = new uint256[](n);
-        for (uint256 i; i < n;) {
+        for (uint256 i; i < n; ) {
             unchecked {
                 page[i] = tokenOfOwnerByIndex(_account, i + _index);
             }
@@ -274,14 +300,11 @@ contract RewardEscrowV2 is
     }
 
     /// @inheritdoc IRewardEscrowV2
-    function getVestingQuantity(uint256[] calldata _entryIDs)
-        external
-        view
-        override
-        returns (uint256 total, uint256 totalFee)
-    {
+    function getVestingQuantity(
+        uint256[] calldata _entryIDs
+    ) external view override returns (uint256 total, uint256 totalFee) {
         uint256 entryIDsLength = _entryIDs.length;
-        for (uint256 i = 0; i < entryIDsLength;) {
+        for (uint256 i = 0; i < entryIDsLength; ) {
             VestingEntry memory entry = vestingSchedules[_entryIDs[i]];
 
             (uint256 quantity, uint256 fee) = _claimableAmount(entry);
@@ -297,21 +320,16 @@ contract RewardEscrowV2 is
     }
 
     /// @inheritdoc IRewardEscrowV2
-    function getVestingEntryClaimable(uint256 _entryID)
-        external
-        view
-        override
-        returns (uint256 quantity, uint256 fee)
-    {
+    function getVestingEntryClaimable(
+        uint256 _entryID
+    ) external view override returns (uint256 quantity, uint256 fee) {
         VestingEntry memory entry = vestingSchedules[_entryID];
         (quantity, fee) = _claimableAmount(entry);
     }
 
-    function _claimableAmount(VestingEntry memory _entry)
-        internal
-        view
-        returns (uint256 quantity, uint256 fee)
-    {
+    function _claimableAmount(
+        VestingEntry memory _entry
+    ) internal view returns (uint256 quantity, uint256 fee) {
         uint256 escrowAmount = _entry.escrowAmount;
 
         // Full escrow amounts claimable if block.timestamp equal to or after entry endTime
@@ -323,15 +341,14 @@ contract RewardEscrowV2 is
         }
     }
 
-    function _earlyVestFee(VestingEntry memory _entry)
-        internal
-        view
-        returns (uint256 earlyVestFee)
-    {
+    function _earlyVestFee(
+        VestingEntry memory _entry
+    ) internal view returns (uint256 earlyVestFee) {
         uint256 timeUntilVest = _entry.endTime - block.timestamp;
         // Fee starts by default at 90% (but could be any percentage) and falls linearly
         earlyVestFee =
-            _entry.escrowAmount * _entry.earlyVestingFee * timeUntilVest / (100 * _entry.duration);
+            (_entry.escrowAmount * _entry.earlyVestingFee * timeUntilVest) /
+            (100 * _entry.duration);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -339,7 +356,9 @@ contract RewardEscrowV2 is
     ///////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IRewardEscrowV2
-    function vest(uint256[] calldata _entryIDs) external override whenNotPaused {
+    function vest(
+        uint256[] calldata _entryIDs
+    ) external override whenNotPaused {
         uint256 total;
         uint256 totalFee;
         uint256 entryIDsLength = _entryIDs.length;
@@ -369,7 +388,10 @@ contract RewardEscrowV2 is
                 unchecked {
                     amountToUnstake = totalWithFee - unstakedEscrow;
                 }
-                stakingRewards.unstakeEscrowSkipCooldown(msg.sender, amountToUnstake);
+                stakingRewards.unstakeEscrowSkipCooldown(
+                    msg.sender,
+                    amountToUnstake
+                );
             }
 
             // update balances
@@ -380,10 +402,22 @@ contract RewardEscrowV2 is
             // trigger event
             emit Vested(msg.sender, total);
 
-            // Send any fee to Treasury
+            // Send 50% any fee to Treasury and
+            // 50% to EarlyVestFeeDistributor
+            // UNLESS Distributor isn't set
+            // then send all funds to Treasury
             if (totalFee != 0) {
-                /// @dev this will revert if the kwenta token transfer fails
-                kwenta.transfer(treasuryDAO, totalFee);
+                if (earlyVestFeeDistributor == address(0)) {
+                    kwenta.transfer(treasuryDAO, totalFee);
+                    emit EarlyVestFeeSentToDAO(totalFee);
+                } else {
+                    /// @dev this will revert if the kwenta token transfer fails
+                    uint256 proportionalFee = (totalFee * 50) / 100;
+                    kwenta.transfer(treasuryDAO, proportionalFee);
+                    kwenta.transfer(earlyVestFeeDistributor, proportionalFee);
+                    emit EarlyVestFeeSentToDAO(proportionalFee);
+                    emit EarlyVestFeeSentToDistributor(proportionalFee);
+                }
             }
 
             if (total != 0) {
@@ -407,8 +441,10 @@ contract RewardEscrowV2 is
         uint8 _earlyVestingFee
     ) external override whenNotPaused {
         if (_beneficiary == address(0)) revert ZeroAddress();
-        if (_earlyVestingFee > MAXIMUM_EARLY_VESTING_FEE) revert EarlyVestingFeeTooHigh();
-        if (_earlyVestingFee < MINIMUM_EARLY_VESTING_FEE) revert EarlyVestingFeeTooLow();
+        if (_earlyVestingFee > MAXIMUM_EARLY_VESTING_FEE)
+            revert EarlyVestingFeeTooHigh();
+        if (_earlyVestingFee < MINIMUM_EARLY_VESTING_FEE)
+            revert EarlyVestingFeeTooLow();
         if (_deposit == 0) revert ZeroAmount();
         uint256 minimumDuration = stakingRewards.cooldownPeriod();
         if (_duration < minimumDuration || _duration > MAX_DURATION) revert InvalidDuration();
@@ -445,9 +481,10 @@ contract RewardEscrowV2 is
 
         uint256 totalEscrowTransferred;
         uint256 entryIDsLength = _entryIDs.length;
-        for (uint256 i = 0; i < entryIDsLength;) {
+        for (uint256 i = 0; i < entryIDsLength; ) {
             // sum totalEscrowTransferred so that _applyTransferBalanceUpdates can be applied only once to save gas
-            totalEscrowTransferred += vestingSchedules[_entryIDs[i]].escrowAmount;
+            totalEscrowTransferred += vestingSchedules[_entryIDs[i]]
+                .escrowAmount;
 
             _checkApproved(_entryIDs[i]);
             // use super._transfer to avoid double updating of balances
@@ -475,9 +512,11 @@ contract RewardEscrowV2 is
         super._transfer(_from, _to, _entryID);
     }
 
-    function _applyTransferBalanceUpdates(address _from, address _to, uint256 _escrowAmount)
-        internal
-    {
+    function _applyTransferBalanceUpdates(
+        address _from,
+        address _to,
+        uint256 _escrowAmount
+    ) internal {
         uint256 unstakedEscrow = unstakedEscrowedBalanceOf(_from);
         if (unstakedEscrow < _escrowAmount) {
             revert InsufficientUnstakedBalance(_escrowAmount, unstakedEscrow);
@@ -520,12 +559,20 @@ contract RewardEscrowV2 is
             ++nextEntryId;
         }
 
-        emit VestingEntryCreated(_account, _quantity, _duration, entryID, _earlyVestingFee);
+        emit VestingEntryCreated(
+            _account,
+            _quantity,
+            _duration,
+            entryID,
+            _earlyVestingFee
+        );
 
         super._mint(_account, entryID);
     }
 
-    function _authorizeUpgrade(address _newImplementation) internal override onlyOwner {}
+    function _authorizeUpgrade(
+        address _newImplementation
+    ) internal override onlyOwner {}
 
     /*///////////////////////////////////////////////////////////////
                                 PAUSABLE

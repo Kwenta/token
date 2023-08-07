@@ -31,7 +31,10 @@ contract StakingV2Setup is StakingV1Setup {
         uint8 earlyVestingFee
     );
     event TreasuryDAOSet(address treasuryDAO);
+    event EarlyVestFeeDistributorSet(address earlyVestFeeDistributor);
     event StakingRewardsSet(address stakingRewards);
+    event EarlyVestFeeSentToDAO(uint256 amount);
+    event EarlyVestFeeSentToDistributor(uint256 amount);
 
     /*//////////////////////////////////////////////////////////////
                                 State
@@ -123,6 +126,8 @@ contract StakingV2Setup is StakingV1Setup {
             )
         );
         require(setupSuccess, "Migrate.setupSystem failed");
+
+        //rewardEscrowV2.setEarlyVestFeeDistributor(mockEarlyVestFeeDistributor);
     }
 
     /*//////////////////////////////////////////////////////////////

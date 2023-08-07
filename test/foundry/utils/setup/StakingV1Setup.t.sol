@@ -15,13 +15,14 @@ contract StakingV1Setup is TestHelpers {
                                 State
     //////////////////////////////////////////////////////////////*/
 
-    address internal treasury;
+    address public mockEarlyVestFeeDistributor;
     address internal owner;
-    address internal user1;
-    address internal user2;
-    address internal user3;
-    address internal user4;
-    address internal user5;
+    address public treasury;
+    address public user1;
+    address public user2;
+    address public user3;
+    address public user4;
+    address public user5;
 
     Kwenta internal kwenta;
     RewardEscrow internal rewardEscrowV1;
@@ -37,6 +38,7 @@ contract StakingV1Setup is TestHelpers {
 
     function setUp() public virtual {
         // Setup StakingV1
+        mockEarlyVestFeeDistributor = createUser();
         treasury = createUser();
         owner = address(this);
         user1 = createUser();
