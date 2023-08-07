@@ -392,13 +392,13 @@ contract EarlyVestFeeDistributorTest is DefaultStakingV2Setup {
         kwenta.approve(address(stakingRewardsV2), 2);
         stakingRewardsV2.stake(2);
         vm.stopPrank();
-        goForward(1 weeks - 2);
+        goForward(1 weeks);
 
         /// @dev send fees to EarlyVestFeeDistributor midway through epoch 1
         /// this will be split between all of epoch 0 and half of 1
         goForward(.5 weeks);
         kwenta.transfer(address(earlyVestFeeDistributor), amount);
-        uint256 timeSinceLastCheckpoint = block.timestamp - 1 weeks;
+        uint256 timeSinceLastCheckpoint = block.timestamp - startTime;
         earlyVestFeeDistributor.checkpointToken();
 
         uint256 result = earlyVestFeeDistributor.calculateEpochFees(address(user2), 1);
@@ -428,7 +428,7 @@ contract EarlyVestFeeDistributorTest is DefaultStakingV2Setup {
         kwenta.approve(address(stakingRewardsV2), 2);
         stakingRewardsV2.stake(2);
         vm.stopPrank();
-        goForward(1 weeks - 2);
+        goForward(1 weeks);
 
         /// @dev send fees to EarlyVestFeeDistributor midway through epoch 3
         /// this will be split between epochs 0 - 3.5
@@ -512,7 +512,7 @@ contract EarlyVestFeeDistributorTest is DefaultStakingV2Setup {
         kwenta.approve(address(stakingRewardsV2), 2);
         stakingRewardsV2.stake(2);
         vm.stopPrank();
-        goForward(1 weeks - 2);
+        goForward(1 weeks);
 
         /// @dev send fees to EarlyVestFeeDistributor
         goForward(1 weeks);
