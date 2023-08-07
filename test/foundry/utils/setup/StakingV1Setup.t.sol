@@ -15,13 +15,13 @@ contract StakingV1Setup is TestHelpers {
                                 State
     //////////////////////////////////////////////////////////////*/
 
+    address internal treasury;
     address internal owner;
-    address public treasury;
-    address public user1;
-    address public user2;
-    address public user3;
-    address public user4;
-    address public user5;
+    address internal user1;
+    address internal user2;
+    address internal user3;
+    address internal user4;
+    address internal user5;
 
     Kwenta internal kwenta;
     RewardEscrow internal rewardEscrowV1;
