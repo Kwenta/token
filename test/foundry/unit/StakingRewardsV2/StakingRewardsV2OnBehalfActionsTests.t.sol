@@ -118,7 +118,7 @@ contract StakingRewardsV2OnBehalfActionsTests is DefaultStakingV2Setup {
         addNewRewardsToStakingRewardsV2(TEST_VALUE);
 
         // fast forward 2 weeks
-        vm.warp(2 weeks);
+        vm.warp(block.timestamp + 2 weeks);
 
         // approve user1 as operator
         stakingRewardsV2.approveOperator(user1, true);
@@ -152,7 +152,7 @@ contract StakingRewardsV2OnBehalfActionsTests is DefaultStakingV2Setup {
         addNewRewardsToStakingRewardsV2(TEST_VALUE);
 
         // fast forward 2 weeks
-        vm.warp(2 weeks);
+        vm.warp(block.timestamp + 2 weeks);
 
         // approve operator
         vm.prank(owner);
@@ -449,7 +449,7 @@ contract StakingRewardsV2OnBehalfActionsTests is DefaultStakingV2Setup {
         addNewRewardsToStakingRewardsV2(TEST_VALUE);
 
         // fast forward 2 weeks
-        vm.warp(2 weeks);
+        vm.warp(block.timestamp + 2 weeks);
 
         // approve operator
         stakingRewardsV2.approveOperator(user1, true);
@@ -494,7 +494,7 @@ contract StakingRewardsV2OnBehalfActionsTests is DefaultStakingV2Setup {
         addNewRewardsToStakingRewardsV2(newRewards);
 
         // fast forward 2 weeks
-        vm.warp(2 weeks);
+        vm.warp(block.timestamp + 2 weeks);
 
         // approve operator
         vm.prank(owner);
