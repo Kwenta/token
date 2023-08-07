@@ -12,19 +12,10 @@ import {EarlyVestFeeDistributor} from "../../../../contracts/EarlyVestFeeDistrib
 /// @notice test how many weeks we can go without checkpointing
 /// and how much gas will it cost
 contract EarlyVestFeeDistributorGasCalculation is DefaultStakingV2Setup {
-    EarlyVestFeeDistributor public earlyVestFeeDistributor;
-
     function setUp() public override {
         /// @dev starts after a week so the startTime is != 0
         goForward(1 weeks + 1);
         super.setUp();
-        switchToStakingV2();
-        earlyVestFeeDistributor = new EarlyVestFeeDistributor(
-            address(kwenta),
-            address(stakingRewardsV2),
-            address(rewardEscrowV2),
-            0
-        );
         vm.prank(treasury);
         kwenta.transfer(address(this), 100_000 ether);
     }
