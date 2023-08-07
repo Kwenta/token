@@ -673,7 +673,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
 
         // fast forward 2 weeks
-        vm.warp(2 weeks);
+        vm.warp(block.timestamp + 2 weeks);
 
         // check some stake has been earned
         assertTrue(stakingRewardsV2.earned(address(this)) > 0);
@@ -751,7 +751,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
 
         // fast forward 2 weeks
-        vm.warp(2 weeks);
+        vm.warp(block.timestamp + 2 weeks);
 
         // get reward
         stakingRewardsV2.getReward();
@@ -775,7 +775,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
 
         // fast forward 3 weeks
-        vm.warp(3 weeks);
+        vm.warp(block.timestamp + 3 weeks);
 
         // stake
         fundAccountAndStakeV2(address(this), TEST_VALUE);
@@ -800,7 +800,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
 
         // fast forward 3 weeks
-        vm.warp(3 weeks);
+        vm.warp(block.timestamp + 3 weeks);
 
         // unstake
         unstakeFundsV2(address(this), 1);
@@ -825,7 +825,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
 
         // fast forward 3 weeks
-        vm.warp(3 weeks);
+        vm.warp(block.timestamp + 3 weeks);
 
         // stake escrow
         stakeEscrowedFundsV2(address(this), 1000);
@@ -851,7 +851,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
 
         // fast forward 3 weeks
-        vm.warp(3 weeks);
+        vm.warp(block.timestamp + 3 weeks);
 
         // unstake escrow
         unstakeEscrowedFundsV2(address(this), 1000);
@@ -894,7 +894,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
 
         // fast 1 day
-        vm.warp(1 days);
+        vm.warp(block.timestamp + 1 days);
 
         // set rewards duration
         vm.expectRevert(IStakingRewardsV2.RewardsPeriodNotComplete.selector);
@@ -912,7 +912,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
 
         // fast forward 2 weeks
-        vm.warp(2 weeks);
+        vm.warp(block.timestamp + 2 weeks);
 
         // set rewards duration
         vm.expectEmit(true, false, false, true);
