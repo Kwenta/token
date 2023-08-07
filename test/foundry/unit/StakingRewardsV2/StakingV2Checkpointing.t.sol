@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.19;
+pragma solidity 0.8.19;
 
 import {console} from "forge-std/Test.sol";
 import {DefaultStakingV2Setup} from "../../utils/setup/DefaultStakingV2Setup.t.sol";
@@ -15,7 +15,8 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
         fundAccountAndStakeV2(address(this), TEST_VALUE);
 
         // get last checkpoint
-        (uint256 ts, uint256 blk, uint256 value) = stakingRewardsV2.balances(address(this), 0);
+        (uint256 ts, uint256 blk, uint256 value) =
+            stakingRewardsV2.balancesCheckpoints(address(this), 0);
 
         // check values
         assertEq(ts, block.timestamp);
@@ -33,7 +34,7 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
         stakingRewardsV2.unstake(TEST_VALUE);
 
         // get last checkpoint
-        (ts, blk, value) = stakingRewardsV2.balances(address(this), 1);
+        (ts, blk, value) = stakingRewardsV2.balancesCheckpoints(address(this), 1);
 
         // check values
         assertEq(ts, block.timestamp);
@@ -46,7 +47,8 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
         stakeEscrowedFundsV2(address(this), TEST_VALUE);
 
         // get last checkpoint
-        (uint256 ts, uint256 blk, uint256 value) = stakingRewardsV2.balances(address(this), 0);
+        (uint256 ts, uint256 blk, uint256 value) =
+            stakingRewardsV2.balancesCheckpoints(address(this), 0);
 
         // check values
         assertEq(ts, block.timestamp);
@@ -64,7 +66,7 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
         unstakeEscrowedFundsV2(address(this), TEST_VALUE);
 
         // get last checkpoint
-        (ts, blk, value) = stakingRewardsV2.balances(address(this), 1);
+        (ts, blk, value) = stakingRewardsV2.balancesCheckpoints(address(this), 1);
 
         // check values
         assertEq(ts, block.timestamp);
@@ -94,10 +96,10 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
             fundAccountAndStakeV2(address(this), amountToStake);
 
             // get last checkpoint
-            uint256 length = stakingRewardsV2.balancesLength(address(this));
+            uint256 length = stakingRewardsV2.balancesCheckpointsLength(address(this));
             uint256 finalIndex = length == 0 ? 0 : length - 1;
             (uint256 ts, uint256 blk, uint256 value) =
-                stakingRewardsV2.balances(address(this), finalIndex);
+                stakingRewardsV2.balancesCheckpoints(address(this), finalIndex);
 
             // check checkpoint values
             assertEq(ts, block.timestamp);
@@ -116,7 +118,7 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
 
             // get last checkpoint
             uint256 newIndex = finalIndex + 1;
-            (ts, blk, value) = stakingRewardsV2.balances(address(this), newIndex);
+            (ts, blk, value) = stakingRewardsV2.balancesCheckpoints(address(this), newIndex);
 
             // check checkpoint values
             assertEq(ts, block.timestamp);
@@ -150,10 +152,10 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
             stakeEscrowedFundsV2(address(this), amountToStake);
 
             // get last checkpoint
-            uint256 length = stakingRewardsV2.balancesLength(address(this));
+            uint256 length = stakingRewardsV2.balancesCheckpointsLength(address(this));
             uint256 finalIndex = length == 0 ? 0 : length - 1;
             (uint256 ts, uint256 blk, uint256 value) =
-                stakingRewardsV2.balances(address(this), finalIndex);
+                stakingRewardsV2.balancesCheckpoints(address(this), finalIndex);
 
             // check checkpoint values
             assertEq(ts, block.timestamp);
@@ -172,7 +174,7 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
 
             // get last checkpoint
             uint256 newIndex = finalIndex + 1;
-            (ts, blk, value) = stakingRewardsV2.balances(address(this), newIndex);
+            (ts, blk, value) = stakingRewardsV2.balancesCheckpoints(address(this), newIndex);
 
             // check checkpoint values
             assertEq(ts, block.timestamp);
@@ -196,7 +198,7 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
 
         // get last checkpoint
         (uint256 ts, uint256 blk, uint256 value) =
-            stakingRewardsV2.escrowedBalances(address(this), 0);
+            stakingRewardsV2.escrowedBalancesCheckpoints(address(this), 0);
 
         // check values
         assertEq(ts, block.timestamp);
@@ -214,7 +216,7 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
         unstakeEscrowedFundsV2(address(this), TEST_VALUE);
 
         // get last checkpoint
-        (ts, blk, value) = stakingRewardsV2.escrowedBalances(address(this), 1);
+        (ts, blk, value) = stakingRewardsV2.escrowedBalancesCheckpoints(address(this), 1);
 
         // check values
         assertEq(ts, block.timestamp);
@@ -244,10 +246,10 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
             stakeEscrowedFundsV2(address(this), amountToStake);
 
             // get last checkpoint
-            uint256 length = stakingRewardsV2.escrowedBalancesLength(address(this));
+            uint256 length = stakingRewardsV2.escrowedBalancesCheckpointsLength(address(this));
             uint256 finalIndex = length == 0 ? 0 : length - 1;
             (uint256 ts, uint256 blk, uint256 value) =
-                stakingRewardsV2.escrowedBalances(address(this), finalIndex);
+                stakingRewardsV2.escrowedBalancesCheckpoints(address(this), finalIndex);
 
             // check checkpoint values
             assertEq(ts, block.timestamp);
@@ -266,7 +268,7 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
 
             // get last checkpoint
             uint256 newIndex = finalIndex + 1;
-            (ts, blk, value) = stakingRewardsV2.escrowedBalances(address(this), newIndex);
+            (ts, blk, value) = stakingRewardsV2.escrowedBalancesCheckpoints(address(this), newIndex);
 
             // check checkpoint values
             assertEq(ts, block.timestamp);
@@ -287,7 +289,7 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
         fundAccountAndStakeV2(address(this), TEST_VALUE);
 
         // get last checkpoint
-        (uint256 ts, uint256 blk, uint256 value) = stakingRewardsV2._totalSupply(0);
+        (uint256 ts, uint256 blk, uint256 value) = stakingRewardsV2.totalSupplyCheckpoints(0);
 
         // check values
         assertEq(ts, block.timestamp);
@@ -305,7 +307,7 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
         stakingRewardsV2.unstake(TEST_VALUE);
 
         // get last checkpoint
-        (ts, blk, value) = stakingRewardsV2._totalSupply(1);
+        (ts, blk, value) = stakingRewardsV2.totalSupplyCheckpoints(1);
 
         // check values
         assertEq(ts, block.timestamp);
@@ -318,7 +320,7 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
         stakeEscrowedFundsV2(address(this), TEST_VALUE);
 
         // get last checkpoint
-        (uint256 ts, uint256 blk, uint256 value) = stakingRewardsV2._totalSupply(0);
+        (uint256 ts, uint256 blk, uint256 value) = stakingRewardsV2.totalSupplyCheckpoints(0);
 
         // check values
         assertEq(ts, block.timestamp);
@@ -336,7 +338,7 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
         unstakeEscrowedFundsV2(address(this), TEST_VALUE);
 
         // get last checkpoint
-        (ts, blk, value) = stakingRewardsV2._totalSupply(1);
+        (ts, blk, value) = stakingRewardsV2.totalSupplyCheckpoints(1);
 
         // check values
         assertEq(ts, block.timestamp);
@@ -371,9 +373,10 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
             }
 
             // get last checkpoint
-            uint256 length = stakingRewardsV2.totalSupplyLength();
+            uint256 length = stakingRewardsV2.totalSupplyCheckpointsLength();
             uint256 finalIndex = length == 0 ? 0 : length - 1;
-            (uint256 ts, uint256 blk, uint256 value) = stakingRewardsV2._totalSupply(finalIndex);
+            (uint256 ts, uint256 blk, uint256 value) =
+                stakingRewardsV2.totalSupplyCheckpoints(finalIndex);
 
             // check checkpoint values
             assertEq(ts, block.timestamp);
@@ -396,7 +399,7 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
 
             // get last checkpoint
             uint256 newIndex = finalIndex + 1;
-            (ts, blk, value) = stakingRewardsV2._totalSupply(newIndex);
+            (ts, blk, value) = stakingRewardsV2.totalSupplyCheckpoints(newIndex);
 
             // check checkpoint values
             assertEq(ts, block.timestamp);

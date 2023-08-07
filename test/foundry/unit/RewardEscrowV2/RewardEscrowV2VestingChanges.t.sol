@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.19;
+pragma solidity 0.8.19;
 
 import {console} from "forge-std/Test.sol";
 import {DefaultStakingV2Setup} from "../../utils/setup/DefaultStakingV2Setup.t.sol";
@@ -48,7 +48,7 @@ contract RewardEscrowV2VestingChangesTests is DefaultStakingV2Setup {
         uint8 earlyVestingFee
     ) public {
         vm.assume(escrowAmount > 0);
-        vm.assume(duration > 0);
+        vm.assume(duration >= stakingRewardsV2.cooldownPeriod());
         vm.assume(earlyVestingFee <= 100);
         vm.assume(earlyVestingFee > rewardEscrowV2.MINIMUM_EARLY_VESTING_FEE());
 
@@ -116,7 +116,7 @@ contract RewardEscrowV2VestingChangesTests is DefaultStakingV2Setup {
         uint8 earlyVestingFee = _earlyVestingFee;
 
         vm.assume(escrowAmount > 0);
-        vm.assume(duration > 0);
+        vm.assume(duration >= stakingRewardsV2.cooldownPeriod());
         vm.assume(earlyVestingFee <= 100);
         vm.assume(earlyVestingFee > rewardEscrowV2.MINIMUM_EARLY_VESTING_FEE());
 
@@ -133,6 +133,28 @@ contract RewardEscrowV2VestingChangesTests is DefaultStakingV2Setup {
         uint256 balanceAfter = kwenta.balanceOf(user1);
         uint256 amountVestedAfterFee = escrowAmount - (escrowAmount * earlyVestingFee / 100);
         assertEq(balanceAfter, balanceBefore + amountVestedAfterFee);
+    }
+
+    function test_Fees_Are_Correctly_Distributed_At_Max_Early_Vesting_Fee() public {
+        uint256 escrowAmount = 1 ether;
+        uint256 duration = 52 weeks;
+        uint8 earlyVestingFee = 100;
+
+        // create entry
+        createRewardEscrowEntryV2(user1, escrowAmount, duration, earlyVestingFee);
+        uint256 userBalanceBefore = kwenta.balanceOf(user1);
+        uint256 treasuryBalanceBefore = kwenta.balanceOf(treasury);
+
+        // vest entry
+        entryIDs.push(1);
+        vm.prank(user1);
+        rewardEscrowV2.vest(entryIDs);
+
+        // check vested balance
+        uint256 balanceAfter = kwenta.balanceOf(user1);
+        assertEq(balanceAfter, userBalanceBefore);
+        uint256 treasuryBalanceAfter = kwenta.balanceOf(treasury);
+        assertEq(treasuryBalanceAfter, treasuryBalanceBefore + escrowAmount);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -177,7 +199,7 @@ contract RewardEscrowV2VestingChangesTests is DefaultStakingV2Setup {
         vm.assume(escrowAmount > 0);
         vm.assume(stakingAmount > 0);
         vm.assume(stakingAmount <= escrowAmount);
-        vm.assume(duration > 0);
+        vm.assume(duration >= stakingRewardsV2.cooldownPeriod());
         vm.assume(earlyVestingFee <= 100);
         vm.assume(earlyVestingFee > rewardEscrowV2.MINIMUM_EARLY_VESTING_FEE());
 

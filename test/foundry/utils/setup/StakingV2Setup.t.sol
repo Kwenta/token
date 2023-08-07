@@ -3,19 +3,14 @@ pragma solidity ^0.8.13;
 
 import {console} from "forge-std/Test.sol";
 import {Migrate} from "../../../../scripts/Migrate.s.sol";
-import {TestHelpers} from "../../utils/helpers/TestHelpers.t.sol";
-import {Kwenta} from "../../../../contracts/Kwenta.sol";
-import {RewardEscrow} from "../../../../contracts/RewardEscrow.sol";
+import {StakingV1Setup} from "../../utils/setup/StakingV1Setup.t.sol";
 import {RewardEscrowV2} from "../../../../contracts/RewardEscrowV2.sol";
-import {SupplySchedule} from "../../../../contracts/SupplySchedule.sol";
-import {StakingRewards} from "../../../../contracts/StakingRewards.sol";
+import {EscrowMigrator} from "../../../../contracts/EscrowMigrator.sol";
 import {StakingRewardsV2} from "../../../../contracts/StakingRewardsV2.sol";
-import {MultipleMerkleDistributor} from "../../../../contracts/MultipleMerkleDistributor.sol";
 import {IRewardEscrowV2} from "../../../../contracts/interfaces/IRewardEscrowV2.sol";
-import {IERC20} from "../../../../contracts/interfaces/IERC20.sol";
 import "../../utils/Constants.t.sol";
 
-contract StakingSetup is TestHelpers {
+contract StakingV2Setup is StakingV1Setup {
     /*//////////////////////////////////////////////////////////////
                                 Events
     //////////////////////////////////////////////////////////////*/
@@ -41,67 +36,22 @@ contract StakingSetup is TestHelpers {
                                 State
     //////////////////////////////////////////////////////////////*/
 
-    address public treasury;
-    address public user1;
-    address public user2;
-    address public user3;
-    address public user4;
-    address public user5;
-
-    IERC20 public mockToken;
-    Kwenta public kwenta;
-    RewardEscrow public rewardEscrowV1;
-    RewardEscrowV2 public rewardEscrowV2;
-    SupplySchedule public supplySchedule;
-    StakingRewards public stakingRewardsV1;
-    StakingRewardsV2 public stakingRewardsV2;
-    MultipleMerkleDistributor public tradingRewards;
-    Migrate public migrate;
+    RewardEscrowV2 internal rewardEscrowV2;
+    StakingRewardsV2 internal stakingRewardsV2;
+    EscrowMigrator internal escrowMigrator;
+    Migrate internal migrate;
 
     address rewardEscrowV2Implementation;
     address stakingRewardsV2Implementation;
-
-    uint256[] public entryIDs;
+    address escrowMigratorImplementation;
 
     /*//////////////////////////////////////////////////////////////
                                 Setup
     //////////////////////////////////////////////////////////////*/
 
-    function setUp() public virtual {
+    function setUp() public virtual override {
         // Setup StakingV1
-        treasury = createUser();
-        user1 = createUser();
-        user2 = createUser();
-        user3 = createUser();
-        user4 = createUser();
-        user5 = createUser();
-        mockToken = new Kwenta(
-            "Mock",
-            "MOCK",
-            INITIAL_SUPPLY,
-            address(this),
-            treasury
-        );
-        kwenta = new Kwenta(
-            "Kwenta",
-            "KWENTA",
-            INITIAL_SUPPLY,
-            address(this),
-            treasury
-        );
-        rewardEscrowV1 = new RewardEscrow(address(this), address(kwenta));
-        supplySchedule = new SupplySchedule(address(this), treasury);
-        supplySchedule.setKwenta(kwenta);
-        kwenta.setSupplySchedule(address(supplySchedule));
-        stakingRewardsV1 = new StakingRewards(
-            address(kwenta),
-            address(rewardEscrowV1),
-            address(supplySchedule)
-        );
-        tradingRewards = new MultipleMerkleDistributor(address(this), address(kwenta));
-        supplySchedule.setStakingRewards(address(stakingRewardsV1));
-        supplySchedule.setTradingRewards(address(tradingRewards));
-        rewardEscrowV1.setStakingRewards(address(stakingRewardsV1));
+        super.setUp();
 
         // Deploy StakingV2
         migrate = new Migrate();
@@ -111,6 +61,7 @@ contract StakingSetup is TestHelpers {
                 address(this),
                 address(kwenta),
                 address(supplySchedule),
+                address(rewardEscrowV1),
                 address(stakingRewardsV1),
                 false
             )
@@ -119,13 +70,32 @@ contract StakingSetup is TestHelpers {
         (
             rewardEscrowV2,
             stakingRewardsV2,
+            escrowMigrator,
             rewardEscrowV2Implementation,
-            stakingRewardsV2Implementation
-        ) = abi.decode(deploymentData, (RewardEscrowV2, StakingRewardsV2, address, address));
+            stakingRewardsV2Implementation,
+            escrowMigratorImplementation
+        ) = abi.decode(
+            deploymentData,
+            (RewardEscrowV2, StakingRewardsV2, EscrowMigrator, address, address, address)
+        );
 
         // check staking rewards cannot be set to 0
         vm.expectRevert(IRewardEscrowV2.ZeroAddress.selector);
         rewardEscrowV2.setStakingRewards(address(0));
+
+        // check staking rewards can only be set by owner
+        vm.prank(user1);
+        vm.expectRevert("Ownable: caller is not the owner");
+        rewardEscrowV2.setStakingRewards(address(stakingRewardsV2));
+
+        // check escrow migrator cannot be set to 0
+        vm.expectRevert(IRewardEscrowV2.ZeroAddress.selector);
+        rewardEscrowV2.setEscrowMigrator(address(0));
+
+        // check escrow migrator can only be set by owner
+        vm.prank(user1);
+        vm.expectRevert("Ownable: caller is not the owner");
+        rewardEscrowV2.setEscrowMigrator(address(escrowMigrator));
 
         // Setup StakingV2
         vm.expectEmit(true, true, true, true);
@@ -135,6 +105,7 @@ contract StakingSetup is TestHelpers {
                 migrate.setupSystem.selector,
                 address(rewardEscrowV2),
                 address(stakingRewardsV2),
+                address(escrowMigrator),
                 address(treasury),
                 false
             )
@@ -146,13 +117,15 @@ contract StakingSetup is TestHelpers {
                             Migration Helpers
     //////////////////////////////////////////////////////////////*/
 
-    function switchToStakingV2() public {
+    function switchToStakingV2() internal {
         // Update SupplySchedule to point to StakingV2
         (bool migrationSuccess,) = address(migrate).delegatecall(
             abi.encodeWithSelector(
                 migrate.migrateSystem.selector,
                 address(supplySchedule),
+                address(rewardEscrowV1),
                 address(stakingRewardsV2),
+                address(escrowMigrator),
                 false
             )
         );

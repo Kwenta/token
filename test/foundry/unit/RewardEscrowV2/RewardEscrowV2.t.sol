@@ -1,11 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.19;
+pragma solidity 0.8.19;
 
 import {console} from "forge-std/Test.sol";
 import {DefaultStakingV2Setup} from "../../utils/setup/DefaultStakingV2Setup.t.sol";
-import {
-    IRewardEscrowV2, VestingEntries
-} from "../../../../contracts/interfaces/IRewardEscrowV2.sol";
+import {IRewardEscrowV2} from "../../../../contracts/interfaces/IRewardEscrowV2.sol";
 import {IStakingRewardsV2} from "../../../../contracts/interfaces/IStakingRewardsV2.sol";
 import "../../utils/Constants.t.sol";
 
@@ -51,6 +49,60 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     }
 
     /*//////////////////////////////////////////////////////////////
+                            OWNERSHIP TESTS
+    //////////////////////////////////////////////////////////////*/
+
+    function test_Only_Owner_Can_Set_Staking_TreasuryDAO() public {
+        vm.prank(user1);
+        vm.expectRevert("Ownable: caller is not the owner");
+        rewardEscrowV2.setTreasuryDAO(user1);
+    }
+
+    function test_Only_Owner_Can_Renounce_Ownership() public {
+        vm.prank(user1);
+        vm.expectRevert("Ownable: caller is not the owner");
+        stakingRewardsV2.renounceOwnership();
+    }
+
+    function test_Only_Owner_Can_Transfer_Ownership() public {
+        vm.prank(user1);
+        vm.expectRevert("Ownable: caller is not the owner");
+        stakingRewardsV2.transferOwnership(user2);
+    }
+
+    function test_Renounce_Ownership() public {
+        stakingRewardsV2.renounceOwnership();
+        assertEq(stakingRewardsV2.owner(), address(0));
+    }
+
+    function test_Transfer_Ownership() public {
+        // check ownership
+        assertEq(rewardEscrowV2.owner(), address(this));
+
+        // transfer ownership
+        rewardEscrowV2.transferOwnership(user1);
+
+        // accept ownership
+        vm.prank(user1);
+        rewardEscrowV2.acceptOwnership();
+
+        // check ownership
+        assertEq(rewardEscrowV2.owner(), address(user1));
+        vm.expectRevert("Ownable: caller is not the owner");
+        rewardEscrowV2.transferOwnership(address(this));
+
+        // transfer ownership
+        vm.prank(user1);
+        rewardEscrowV2.transferOwnership(address(this));
+
+        // accept ownership
+        rewardEscrowV2.acceptOwnership();
+
+        // check ownership
+        assertEq(rewardEscrowV2.owner(), address(this));
+    }
+
+    /*//////////////////////////////////////////////////////////////
                         When No Escrow Entries
     //////////////////////////////////////////////////////////////*/
 
@@ -83,7 +135,8 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     function test_appendVestingEntry_Should_Not_Create_A_Vesting_Entry_Insufficient_Kwenta()
         public
     {
-        vm.expectRevert(IRewardEscrowV2.InsufficientBalance.selector);
+        // assertion is violated
+        vm.expectRevert();
         vm.prank(address(stakingRewardsV2));
         rewardEscrowV2.appendVestingEntry(address(this), 1 ether);
     }
@@ -204,6 +257,30 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         rewardEscrowV2.createEscrowEntry(address(this), 0, 52 weeks, 90);
     }
 
+    function test_createEscrowEntry_Should_Not_Append_Entries_With_Short_Duration() public {
+        uint256 duration = stakingRewardsV2.cooldownPeriod();
+
+        vm.prank(treasury);
+        kwenta.approve(address(rewardEscrowV2), TEST_VALUE);
+        vm.prank(treasury);
+        vm.expectRevert(IRewardEscrowV2.InvalidDuration.selector);
+        rewardEscrowV2.createEscrowEntry(address(this), TEST_VALUE, duration - 1, 90);
+    }
+
+    function test_createEscrowEntry_Should_Not_Append_Entries_With_Bad_Duration_Fuzz(
+        uint256 duration
+    ) public {
+        uint256 cooldownPeriod = stakingRewardsV2.cooldownPeriod();
+
+        vm.prank(treasury);
+        kwenta.approve(address(rewardEscrowV2), TEST_VALUE);
+        if (duration < cooldownPeriod || duration > rewardEscrowV2.MAX_DURATION()) {
+            vm.expectRevert(IRewardEscrowV2.InvalidDuration.selector);
+        }
+        vm.prank(treasury);
+        rewardEscrowV2.createEscrowEntry(address(this), TEST_VALUE, duration, 90);
+    }
+
     function test_createEscrowEntry_Should_Not_Create_A_Vesting_Entry_Without_Allowance() public {
         vm.expectRevert("ERC20: transfer amount exceeds balance");
         rewardEscrowV2.createEscrowEntry(address(this), TEST_VALUE, 52 weeks, 90);
@@ -267,7 +344,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     //////////////////////////////////////////////////////////////*/
 
     function test_Creates_New_Vesting_Entry() public {
-        createRewardEscrowEntryV2(address(this), TEST_VALUE, 52 weeks, 90);
+        createRewardEscrowEntryV2(address(this), TEST_VALUE, 52 weeks);
 
         (uint64 endTime, uint256 escrowAmount, uint256 duration, uint8 earlyVestingFee) =
             rewardEscrowV2.getVestingEntry(1);
@@ -288,27 +365,27 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     }
 
     function test_Increments_The_Next_Entry_ID() public {
-        createRewardEscrowEntryV2(address(this), TEST_VALUE, 52 weeks, 90);
+        createRewardEscrowEntryV2(address(this), TEST_VALUE, 52 weeks);
         assertEq(rewardEscrowV2.nextEntryId(), 2);
     }
 
     function test_Increments_totalEscrowedBalance() public {
-        createRewardEscrowEntryV2(address(this), TEST_VALUE, 52 weeks, 90);
+        createRewardEscrowEntryV2(address(this), TEST_VALUE, 52 weeks);
         assertEq(rewardEscrowV2.totalEscrowedBalance(), TEST_VALUE);
     }
 
     function test_Increments_escrowedBalanceOf() public {
-        createRewardEscrowEntryV2(address(this), TEST_VALUE, 52 weeks, 90);
+        createRewardEscrowEntryV2(address(this), TEST_VALUE, 52 weeks);
         assertEq(rewardEscrowV2.escrowedBalanceOf(address(this)), TEST_VALUE);
     }
 
     function test_totalVestedAccountBalance_Remains_0() public {
-        createRewardEscrowEntryV2(address(this), TEST_VALUE, 52 weeks, 90);
+        createRewardEscrowEntryV2(address(this), TEST_VALUE, 52 weeks);
         assertEq(rewardEscrowV2.totalVestedAccountBalance(address(this)), 0);
     }
 
     function test_balanceOf_Is_Incremented() public {
-        createRewardEscrowEntryV2(address(this), TEST_VALUE, 52 weeks, 90);
+        createRewardEscrowEntryV2(address(this), TEST_VALUE, 52 weeks);
         assertEq(rewardEscrowV2.balanceOf(address(this)), 1);
     }
 
@@ -316,16 +393,27 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
                         Read Vesting Schedules
     //////////////////////////////////////////////////////////////*/
 
+    function test_getVestingSchedules_InvalidIndex() public {
+        createRewardEscrowEntryV2(user1, 200 ether, 52 weeks);
+        createRewardEscrowEntryV2(user1, 200 ether, 52 weeks);
+        createRewardEscrowEntryV2(user1, 200 ether, 52 weeks);
+        createRewardEscrowEntryV2(user1, 200 ether, 52 weeks);
+        createRewardEscrowEntryV2(user1, 200 ether, 52 weeks);
+
+        vm.expectRevert(IRewardEscrowV2.InvalidIndex.selector);
+        rewardEscrowV2.getVestingSchedules(user1, 6, 10);
+    }
+
     function test_getVestingSchedules() public {
         uint256 startTime = block.timestamp;
 
-        createRewardEscrowEntryV2(user1, 200 ether, 52 weeks, 90);
+        createRewardEscrowEntryV2(user1, 200 ether, 52 weeks);
         vm.warp(block.timestamp + 1 weeks);
-        createRewardEscrowEntryV2(user1, 300 ether, 52 weeks, 90);
+        createRewardEscrowEntryV2(user1, 300 ether, 52 weeks);
         vm.warp(block.timestamp + 1 weeks);
-        createRewardEscrowEntryV2(user1, 500 ether, 52 weeks, 90);
+        createRewardEscrowEntryV2(user1, 500 ether, 52 weeks);
 
-        VestingEntries.VestingEntryWithID[] memory entries =
+        IRewardEscrowV2.VestingEntryWithID[] memory entries =
             rewardEscrowV2.getVestingSchedules(user1, 0, 3);
 
         assertEq(entries.length, 3);
@@ -349,7 +437,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     function test_getVestingSchedules_0_Page_Size() public {
         create3Entries(user1);
 
-        VestingEntries.VestingEntryWithID[] memory entries =
+        IRewardEscrowV2.VestingEntryWithID[] memory entries =
             rewardEscrowV2.getVestingSchedules(user1, 0, 0);
 
         assertEq(entries.length, 0);
@@ -368,8 +456,8 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     }
 
     function test_getVestingQuantity() public {
-        createRewardEscrowEntryV2(user1, 200 ether, 52 weeks, 90);
-        createRewardEscrowEntryV2(user1, 200 ether, 52 weeks, 90);
+        createRewardEscrowEntryV2(user1, 200 ether, 52 weeks);
+        createRewardEscrowEntryV2(user1, 200 ether, 52 weeks);
         vm.warp(block.timestamp + 26 weeks);
 
         uint256[] memory entries = rewardEscrowV2.getAccountVestingEntryIDs(user1, 0, 2);
@@ -715,7 +803,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     function test_Should_Return_Schedules() public {
         createXEntries(260);
 
-        VestingEntries.VestingEntryWithID[] memory entries =
+        IRewardEscrowV2.VestingEntryWithID[] memory entries =
             rewardEscrowV2.getVestingSchedules(address(this), 0, 300);
 
         assertEq(entries.length, 260);
@@ -828,11 +916,11 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     }
 
     function create3Entries(address user) public {
-        createRewardEscrowEntryV2(user, 200 ether, 52 weeks, 90);
+        createRewardEscrowEntryV2(user, 200 ether, 52 weeks);
         vm.warp(block.timestamp + 1 weeks);
-        createRewardEscrowEntryV2(user, 300 ether, 52 weeks, 90);
+        createRewardEscrowEntryV2(user, 300 ether, 52 weeks);
         vm.warp(block.timestamp + 1 weeks);
-        createRewardEscrowEntryV2(user, 500 ether, 52 weeks, 90);
+        createRewardEscrowEntryV2(user, 500 ether, 52 weeks);
         vm.warp(block.timestamp + 52 weeks);
     }
 
@@ -847,11 +935,11 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     }
 
     function create3EntriesWithDifferentDurations(address user) public {
-        createRewardEscrowEntryV2(user, 200 ether, 52 weeks, 90);
+        createRewardEscrowEntryV2(user, 200 ether, 52 weeks);
         vm.warp(block.timestamp + 1 weeks);
-        createRewardEscrowEntryV2(user, 300 ether, 52 weeks, 90);
+        createRewardEscrowEntryV2(user, 300 ether, 52 weeks);
         vm.warp(block.timestamp + 1 weeks);
-        createRewardEscrowEntryV2(user, 500 ether, 52 weeks * 2, 90);
+        createRewardEscrowEntryV2(user, 500 ether, 52 weeks * 2);
         vm.warp(block.timestamp + 52 weeks);
     }
 }

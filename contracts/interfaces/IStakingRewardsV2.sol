@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.19;
+pragma solidity 0.8.19;
 
 interface IStakingRewardsV2 {
     /*//////////////////////////////////////////////////////////////
-                                Structs
+                                STRUCTS
     //////////////////////////////////////////////////////////////*/
 
     /// @notice A checkpoint for tracking values at a given timestamp
@@ -21,19 +21,9 @@ interface IStakingRewardsV2 {
     ///////////////////////////////////////////////////////////////*/
 
     /// @notice Initializes the contract
-    /// @param _token: token used for staking and for rewards
-    /// @param _rewardEscrow: escrow contract which holds (and may stake) reward tokens
-    /// @param _supplySchedule: handles reward token minting logic
-    /// @param _stakingRewardsV1: previous version of staking rewards contract - used for reward calculations
     /// @param _owner: owner of this contract
     /// @dev this function should be called via proxy, not via direct contract interaction
-    function initialize(
-        address _token,
-        address _rewardEscrow,
-        address _supplySchedule,
-        address _stakingRewardsV1,
-        address _owner
-    ) external;
+    function initialize(address _owner) external;
 
     /*//////////////////////////////////////////////////////////////
                                 Views
@@ -45,10 +35,6 @@ interface IStakingRewardsV2 {
     /// @return total amount of tokens that are being staked
     function totalSupply() external view returns (uint256);
 
-    /// @notice Getter function for the total number of v1 staked tokens
-    /// @return amount of tokens staked in v1
-    function v1TotalSupply() external view returns (uint256);
-
     // staking state
 
     /// @notice Returns the total number of staked tokens for a user
@@ -56,11 +42,6 @@ interface IStakingRewardsV2 {
     /// @param _account: address of potential staker
     /// @return amount of tokens staked by account
     function balanceOf(address _account) external view returns (uint256);
-
-    /// @notice Getter function for the number of v1 staked tokens
-    /// @param _account address to check the tokens staked
-    /// @return amount of tokens staked
-    function v1BalanceOf(address _account) external view returns (uint256);
 
     /// @notice Getter function for number of staked escrow tokens
     /// @param _account address to check the escrowed tokens staked
@@ -76,6 +57,9 @@ interface IStakingRewardsV2 {
     /// @param _account: address to check
     /// @return amount of tokens escrowed but not staked
     function unstakedEscrowedBalanceOf(address _account) external view returns (uint256);
+
+    /// @notice the period of time a user has to wait after staking to unstake
+    function cooldownPeriod() external view returns (uint256);
 
     // rewards
 
@@ -101,16 +85,16 @@ interface IStakingRewardsV2 {
     /// @notice get the number of balances checkpoints for an account
     /// @param _account: address of account to check
     /// @return number of balances checkpoints
-    function balancesLength(address _account) external view returns (uint256);
+    function balancesCheckpointsLength(address _account) external view returns (uint256);
 
     /// @notice get the number of escrowed balance checkpoints for an account
     /// @param _account: address of account to check
     /// @return number of escrowed balance checkpoints
-    function escrowedBalancesLength(address _account) external view returns (uint256);
+    function escrowedBalancesCheckpointsLength(address _account) external view returns (uint256);
 
     /// @notice get the number of total supply checkpoints
     /// @return number of total supply checkpoints
-    function totalSupplyLength() external view returns (uint256);
+    function totalSupplyCheckpointsLength() external view returns (uint256);
 
     /// @notice get a users balance at a given timestamp
     /// @param _account: address of account to check
@@ -176,6 +160,23 @@ interface IStakingRewardsV2 {
 
     /// @notice claim rewards for an account and stake them
     function compound() external;
+
+    // claim integrator rewards
+
+    /// @notice claim rewards for an integrator contract
+    /// Note: the funds will be sent to the msg.sender
+    /// @param _integrator: address of integrator contract to claim rewards for
+    function getIntegratorReward(address _integrator) external;
+
+    /// @notice claim rewards for an integrator contract and msg.sender
+    /// Note: the funds will be sent to the msg.sender
+    /// @param _integrator: address of integrator contract to claim rewards for
+    function getIntegratorAndSenderReward(address _integrator) external;
+
+    /// @notice claim rewards for an integrator contract and compound them
+    /// Note: the funds will be sent to the msg.sender
+    /// @param _integrator: address of integrator contract to claim rewards for
+    function getIntegratorRewardAndCompound(address _integrator) external;
 
     // delegation
 
@@ -291,11 +292,19 @@ interface IStakingRewardsV2 {
     /// @notice error someone other than the supply schedule calls an onlySupplySchedule function
     error OnlySupplySchedule();
 
+    /// @notice cannot set this value to the zero address
+    error ZeroAddress();
+
     /// @notice error when user tries to stake/unstake 0 tokens
     error AmountZero();
 
     /// @notice the user does not have enough tokens to unstake that amount
-    error InsufficientBalance();
+    /// @param availableBalance: amount of tokens available to withdraw
+    error InsufficientBalance(uint256 availableBalance);
+
+    /// @notice error when trying to stakeEscrow more than the unstakedEscrow available
+    /// @param unstakedEscrow amount of unstaked escrow
+    error InsufficientUnstakedEscrow(uint256 unstakedEscrow);
 
     /// @notice previous rewards period must be complete before changing the duration for the new period
     error RewardsPeriodNotComplete();
@@ -307,6 +316,9 @@ interface IStakingRewardsV2 {
     /// @param canUnstakeAt timestamp when user can unstake
     error MustWaitForUnlock(uint256 canUnstakeAt);
 
+    /// @notice error when trying to set a rewards duration that is too short
+    error RewardsDurationCannotBeZero();
+
     /// @notice error when trying to set a cooldown period below the minimum
     /// @param minCooldownPeriod minimum cooldown period
     error CooldownPeriodTooLow(uint256 minCooldownPeriod);
@@ -314,10 +326,6 @@ interface IStakingRewardsV2 {
     /// @notice error when trying to set a cooldown period above the maximum
     /// @param maxCooldownPeriod maximum cooldown period
     error CooldownPeriodTooHigh(uint256 maxCooldownPeriod);
-
-    /// @notice error when trying to stakeEscrow more than the unstakedEscrow available
-    /// @param unstakedEscrow amount of unstaked escrow
-    error InsufficientUnstakedEscrow(uint256 unstakedEscrow);
 
     /// @notice the caller is not approved to take this action
     error NotApproved();

@@ -1,31 +1,42 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.19;
+pragma solidity 0.8.19;
 
-library VestingEntries {
+interface IRewardEscrowV2 {
+    /*//////////////////////////////////////////////////////////////
+                                STRUCTS
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice A vesting entry contains the data for each escrow NFT
     struct VestingEntry {
+        // The amount of KWENTA stored in this vesting entry
         uint256 escrowAmount;
+        // The length of time until the entry is fully matured
         uint256 duration;
+        // The time at which the entry will be fully matured
         uint64 endTime;
+        // The percentage fee for vesting immediately
+        // The actual penalty decreases linearly with time until it reaches 0 at block.timestamp=endTime
         uint8 earlyVestingFee;
     }
 
+    /// @notice Helper struct for getVestingSchedules view
     struct VestingEntryWithID {
+        // The amount of KWENTA stored in this vesting entry
         uint256 escrowAmount;
+        // The unique ID of this escrow entry NFT
         uint256 entryID;
+        // The time at which the entry will be fully matured
         uint64 endTime;
     }
-}
 
-interface IRewardEscrowV2 {
     /*///////////////////////////////////////////////////////////////
                                 INITIALIZER
     ///////////////////////////////////////////////////////////////*/
 
     /// @notice Initializes the contract
     /// @param _owner The address of the owner of this contract
-    /// @param _kwenta The address of the Kwenta contract
     /// @dev this function should be called via proxy, not via direct contract interaction
-    function initialize(address _owner, address _kwenta) external;
+    function initialize(address _owner) external;
 
     /*///////////////////////////////////////////////////////////////
                                 SETTERS
@@ -36,6 +47,10 @@ interface IRewardEscrowV2 {
     /// @dev This function can only be called once
     function setStakingRewards(address _stakingRewards) external;
 
+    /// @notice Function used to define the EscrowMigrator contract address to use
+    /// @param _escrowMigrator The address of the EscrowMigrator contract
+    function setEscrowMigrator(address _escrowMigrator) external;
+
     /// @notice Function used to define the TreasuryDAO address to use
     /// @param _treasuryDAO The address of the TreasuryDAO
     /// @dev This function can only be called multiple times
@@ -44,6 +59,12 @@ interface IRewardEscrowV2 {
     /*///////////////////////////////////////////////////////////////
                                 VIEWS
     ///////////////////////////////////////////////////////////////*/
+
+    /// @notice Minimum early vesting fee
+    /// @dev this must be high enought to prevent governance attacks where the user
+    /// can set the early vesting fee to a very low number, stake, vote, then withdraw
+    /// via vesting which avoids the unstaking cooldown
+    function MINIMUM_EARLY_VESTING_FEE() external view returns (uint8);
 
     /// @notice helper function to return kwenta address
     function getKwentaAddress() external view returns (address);
@@ -73,7 +94,7 @@ interface IRewardEscrowV2 {
     function getVestingSchedules(address _account, uint256 _index, uint256 _pageSize)
         external
         view
-        returns (VestingEntries.VestingEntryWithID[] memory);
+        returns (VestingEntryWithID[] memory);
 
     /// @notice Get the vesting entries for a given account
     /// @param _account The account to get the vesting entries for
@@ -107,6 +128,11 @@ interface IRewardEscrowV2 {
     /// @notice Vest escrowed amounts that are claimable - allows users to vest their vesting entries based on msg.sender
     /// @param _entryIDs The ids of the vesting entries to vest
     function vest(uint256[] calldata _entryIDs) external;
+
+    /// @notice Utilized by the escrow migrator contract to transfer V1 escrow
+    /// @param _account The account to import the escrow entry to
+    /// @param entryToImport The vesting entry to import
+    function importEscrowEntry(address _account, VestingEntry memory entryToImport) external;
 
     /// @notice Create an escrow entry to lock KWENTA for a given duration in seconds
     /// @param _beneficiary The account that will be able to withdraw the escrowed amount
@@ -168,9 +194,13 @@ interface IRewardEscrowV2 {
         uint8 earlyVestingFee
     );
 
-    /// @notice emitted the staking rewards contract is set
+    /// @notice emitted when the staking rewards contract is set
     /// @param stakingRewards The address of the staking rewards contract
     event StakingRewardsSet(address stakingRewards);
+
+    /// @notice emitted when the escrow migrator contract is set
+    /// @param escrowMigrator The address of the escrow migrator contract
+    event EscrowMigratorSet(address escrowMigrator);
 
     /// @notice emitted when the treasury DAO is set
     /// @param treasuryDAO The address of the treasury DAO
@@ -179,6 +209,12 @@ interface IRewardEscrowV2 {
     /*//////////////////////////////////////////////////////////////
                                 ERRORS
     //////////////////////////////////////////////////////////////*/
+
+    /// @notice Thrown when attempting to bulk transfer from and to the same address
+    error CannotTransferToSelf();
+
+    /// @notice There are not enough entries to get vesting schedules starting from this index
+    error InvalidIndex();
 
     /// @notice Insufficient unstaked escrow to facilitate transfer
     /// @param escrowAmount the amount of escrow attempted to transfer
@@ -194,6 +230,9 @@ interface IRewardEscrowV2 {
     /// @notice error someone other than staking rewards calls an onlyStakingRewards function
     error OnlyStakingRewards();
 
+    /// @notice error someone other than escrow migrator calls an onlyEscrowMigrator function
+    error OnlyEscrowMigrator();
+
     /// @notice staking rewards is only allowed to be set once
     error StakingRewardsAlreadySet();
 
@@ -202,9 +241,6 @@ interface IRewardEscrowV2 {
 
     /// @notice cannot mint entries with zero escrow
     error ZeroAmount();
-
-    /// @notice Must be enough balance in the contract to provide for the vesting entry
-    error InsufficientBalance();
 
     /// @notice Cannot escrow with 0 duration OR above max_duration
     error InvalidDuration();

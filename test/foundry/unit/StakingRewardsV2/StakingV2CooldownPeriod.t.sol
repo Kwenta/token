@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.19;
+pragma solidity 0.8.19;
 
 import {console} from "forge-std/Test.sol";
 import {DefaultStakingV2Setup} from "../../utils/setup/DefaultStakingV2Setup.t.sol";
@@ -264,37 +264,37 @@ contract StakingV2CooldownPeriodTests is DefaultStakingV2Setup {
 
     function test_setCooldownPeriod_Range() public {
         // Expect revert if cooldown period is too low
+        uint256 minPeriod = stakingRewardsV2.MIN_COOLDOWN_PERIOD();
         vm.expectRevert(
-            abi.encodeWithSelector(IStakingRewardsV2.CooldownPeriodTooLow.selector, 1 weeks)
+            abi.encodeWithSelector(IStakingRewardsV2.CooldownPeriodTooLow.selector, minPeriod)
         );
-        stakingRewardsV2.setCooldownPeriod(1 weeks - 1);
+        stakingRewardsV2.setCooldownPeriod(minPeriod - 1);
 
         // Expect revert if cooldown period is too high
+        uint256 maxPeriod = stakingRewardsV2.MAX_COOLDOWN_PERIOD();
         vm.expectRevert(
-            abi.encodeWithSelector(IStakingRewardsV2.CooldownPeriodTooHigh.selector, 52 weeks)
+            abi.encodeWithSelector(IStakingRewardsV2.CooldownPeriodTooHigh.selector, maxPeriod)
         );
-        stakingRewardsV2.setCooldownPeriod(52 weeks + 1);
+        stakingRewardsV2.setCooldownPeriod(maxPeriod + 1);
     }
 
     function test_setCooldownPeriod_Range_Fuzz(uint256 newCooldownPeriod) public {
         // Expect revert if cooldown period is too low
-        if (newCooldownPeriod < 1 weeks) {
+        uint256 minPeriod = stakingRewardsV2.MIN_COOLDOWN_PERIOD();
+        if (newCooldownPeriod < minPeriod) {
             vm.expectRevert(
-                abi.encodeWithSelector(
-                    IStakingRewardsV2.CooldownPeriodTooLow.selector,
-                    stakingRewardsV2.MIN_COOLDOWN_PERIOD()
-                )
+                abi.encodeWithSelector(IStakingRewardsV2.CooldownPeriodTooLow.selector, minPeriod)
             );
-        }
-
-        // Expect revert if cooldown period is too high
-        if (newCooldownPeriod > 52 weeks) {
-            vm.expectRevert(
-                abi.encodeWithSelector(
-                    IStakingRewardsV2.CooldownPeriodTooHigh.selector,
-                    stakingRewardsV2.MAX_COOLDOWN_PERIOD()
-                )
-            );
+        } else {
+            // Expect revert if cooldown period is too high
+            uint256 maxPeriod = stakingRewardsV2.MAX_COOLDOWN_PERIOD();
+            if (newCooldownPeriod > maxPeriod) {
+                vm.expectRevert(
+                    abi.encodeWithSelector(
+                        IStakingRewardsV2.CooldownPeriodTooHigh.selector, maxPeriod
+                    )
+                );
+            }
         }
 
         // Set new cooldown period
