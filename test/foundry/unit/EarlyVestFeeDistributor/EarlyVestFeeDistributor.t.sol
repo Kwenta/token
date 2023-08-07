@@ -12,10 +12,12 @@ import {EarlyVestFeeDistributor} from "../../../../contracts/EarlyVestFeeDistrib
 contract EarlyVestFeeDistributorTest is DefaultStakingV2Setup {
     event CheckpointToken(uint time, uint tokens);
     event EpochClaim(address user, uint epoch, uint tokens);
+    uint256 startTime;
 
     function setUp() public override {
         /// @dev starts after a week so the startTime is != 0
-        goForward(1 weeks + 1);
+        goForward(1 weeks);
+        startTime = block.timestamp;
         super.setUp();
         vm.prank(treasury);
         kwenta.transfer(address(this), 100_000 ether);
@@ -62,7 +64,7 @@ contract EarlyVestFeeDistributorTest is DefaultStakingV2Setup {
         goForward(1 weeks);
 
         vm.expectEmit(true, true, true, true);
-        emit CheckpointToken(2 weeks + 2, 10);
+        emit CheckpointToken(startTime + 1 weeks, 10);
         earlyVestFeeDistributor.checkpointToken();
     }
 
@@ -71,7 +73,7 @@ contract EarlyVestFeeDistributorTest is DefaultStakingV2Setup {
         kwenta.transfer(address(earlyVestFeeDistributor), 10);
         goForward(5 weeks);
         vm.expectEmit(true, true, true, true);
-        emit CheckpointToken(6 weeks + 2, 10);
+        emit CheckpointToken(startTime + 5 weeks, 10);
         earlyVestFeeDistributor.checkpointToken();
     }
 
@@ -85,10 +87,10 @@ contract EarlyVestFeeDistributorTest is DefaultStakingV2Setup {
         goForward(1 weeks);
 
         vm.expectEmit(true, true, true, true);
-        emit CheckpointToken(2 weeks + 2, 10);
+        emit CheckpointToken(startTime + 1 weeks, 10);
         earlyVestFeeDistributor.checkpointToken();
         vm.expectEmit(true, true, true, true);
-        emit CheckpointToken(2 weeks + 2, 0);
+        emit CheckpointToken(startTime + 1 weeks, 0);
         earlyVestFeeDistributor.checkpointToken();
     }
 
