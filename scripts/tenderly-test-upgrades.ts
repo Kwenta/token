@@ -31,12 +31,12 @@ async function main() {
     console.log("\n💥 Beginning deployments...");
     const { rewardEscrowV2Proxy, rewardEscrowV2Impl } =
         await deployRewardEscrowV2();
-    // const stakingRewardsV2 = await deployStakingRewardsV2(
-    //     rewardEscrowV2.address
-    // );
+    const { stakingRewardsV2Proxy, stakingRewardsV2Impl } =
+        await deployStakingRewardsV2(rewardEscrowV2Proxy.address);
     console.log("RewardEscrowV2 Proxy: ", rewardEscrowV2Proxy.address);
     console.log("RewardEscrowV2 Impl:  ", rewardEscrowV2Impl.address);
-    // console.log("StakingRewardsV2: ", stakingRewardsV2.address);
+    console.log("StakingRewardsV2 Proxy : ", stakingRewardsV2Proxy.address);
+    console.log("StakingRewardsV2 Impl  : ", stakingRewardsV2Impl.address);
     // console.log("EscrowMigrator: ", escrowMigrator.address);
     console.log("✅ Deployments complete!");
 }
@@ -54,6 +54,22 @@ const deployRewardEscrowV2 = async () => {
     return {
         rewardEscrowV2Proxy: proxy,
         rewardEscrowV2Impl: implementation,
+    };
+};
+
+const deployStakingRewardsV2 = async (rewardEscrowV2: string) => {
+    const { proxy, implementation } = await deployUUPSProxy({
+        contractName: "StakingRewardsV2",
+        constructorArgs: [
+            OPTIMISM_KWENTA_TOKEN,
+            rewardEscrowV2,
+            OPTIMISM_SUPPLY_SCHEDULE,
+        ],
+        initializerArgs: [OPTIMISM_PDAO],
+    });
+    return {
+        stakingRewardsV2Proxy: proxy,
+        stakingRewardsV2Impl: implementation,
     };
 };
 
