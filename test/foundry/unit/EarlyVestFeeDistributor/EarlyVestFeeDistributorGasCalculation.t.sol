@@ -5,13 +5,13 @@ import {IEarlyVestFeeDistributor} from "../../../../contracts/interfaces/IEarlyV
 import {Kwenta} from "../../../../contracts/Kwenta.sol";
 import {RewardEscrowV2} from "../../../../contracts/RewardEscrowV2.sol";
 import {StakingRewardsV2} from "../../../../contracts/StakingRewardsV2.sol";
-import {StakingSetup} from "../../utils/setup/StakingSetup.t.sol";
+import {DefaultStakingV2Setup} from "../../utils/setup/DefaultStakingV2Setup.t.sol";
 import {EarlyVestFeeDistributorInternals} from "../../utils/EarlyVestFeeDistributorInternals.sol";
 import {EarlyVestFeeDistributor} from "../../../../contracts/EarlyVestFeeDistributor.sol";
 
 /// @notice test how many weeks we can go without checkpointing
 /// and how much gas will it cost
-contract EarlyVestFeeDistributorGasCalculation is StakingSetup {
+contract EarlyVestFeeDistributorGasCalculation is DefaultStakingV2Setup {
     EarlyVestFeeDistributor public earlyVestFeeDistributor;
 
     function setUp() public override {

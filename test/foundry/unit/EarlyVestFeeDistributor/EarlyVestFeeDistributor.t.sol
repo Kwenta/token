@@ -5,11 +5,11 @@ import {IEarlyVestFeeDistributor} from "../../../../contracts/interfaces/IEarlyV
 import {Kwenta} from "../../../../contracts/Kwenta.sol";
 import {RewardEscrowV2} from "../../../../contracts/RewardEscrowV2.sol";
 import {StakingRewardsV2} from "../../../../contracts/StakingRewardsV2.sol";
-import {StakingSetup} from "../../utils/setup/StakingSetup.t.sol";
+import {DefaultStakingV2Setup} from "../../utils/setup/DefaultStakingV2Setup.t.sol";
 import {EarlyVestFeeDistributorInternals} from "../../utils/EarlyVestFeeDistributorInternals.sol";
 import {EarlyVestFeeDistributor} from "../../../../contracts/EarlyVestFeeDistributor.sol";
 
-contract EarlyVestFeeDistributorTest is StakingSetup {
+contract EarlyVestFeeDistributorTest is DefaultStakingV2Setup {
     event CheckpointToken(uint time, uint tokens);
     event EpochClaim(address user, uint epoch, uint tokens);
 
