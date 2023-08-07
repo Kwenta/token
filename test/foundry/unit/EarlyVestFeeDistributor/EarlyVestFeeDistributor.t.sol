@@ -17,7 +17,8 @@ contract EarlyVestFeeDistributorTest is DefaultStakingV2Setup {
     function setUp() public override {
         /// @dev starts after a week so the startTime is != 0
         goForward(1 weeks);
-        startTime = block.timestamp;
+        startTime = block.timestamp / 1 weeks * 1 weeks;
+        vm.warp(startTime);
         super.setUp();
         vm.prank(treasury);
         kwenta.transfer(address(this), 100_000 ether);
@@ -117,11 +118,11 @@ contract EarlyVestFeeDistributorTest is DefaultStakingV2Setup {
         goForward(1 weeks);
 
         vm.expectEmit(true, true, true, true);
-        emit CheckpointToken(3 weeks + 2, 10);
+        emit CheckpointToken(startTime + 2 weeks, 10);
         vm.expectEmit(true, true, false, true);
-        emit VestingEntryCreated(address(user1), 4, 52 weeks, 1, 90);
+        emit VestingEntryCreated(address(user1), 5, 52 weeks, 1, 90);
         vm.expectEmit(true, true, true, true);
-        emit EpochClaim(address(user1), 1, 4);
+        emit EpochClaim(address(user1), 1, 5);
         earlyVestFeeDistributor.claimEpoch(address(user1), 1);
     }
 
@@ -158,7 +159,7 @@ contract EarlyVestFeeDistributorTest is DefaultStakingV2Setup {
         earlyVestFeeDistributorOffset.checkpointToken();
         kwenta.transfer(address(earlyVestFeeDistributorOffset), 10);
         /// @dev forward to the exact end of epoch 0 and start of 1
-        goForward(2 days - 2);
+        goForward(2 days);
 
         vm.expectEmit(true, true, false, true);
         emit VestingEntryCreated(address(user1), 2, 52 weeks, 1, 90);
@@ -199,7 +200,7 @@ contract EarlyVestFeeDistributorTest is DefaultStakingV2Setup {
         earlyVestFeeDistributorOffset.checkpointToken();
         kwenta.transfer(address(earlyVestFeeDistributorOffset), 10);
         /// @dev forward to the exact end of epoch 0 and start of 1
-        goForward(2 days - 2);
+        goForward(2 days);
 
         vm.expectEmit(true, true, false, true);
         emit VestingEntryCreated(address(user1), 10, 52 weeks, 1, 90);
@@ -222,13 +223,13 @@ contract EarlyVestFeeDistributorTest is DefaultStakingV2Setup {
         kwenta.approve(address(stakingRewardsV2), 2);
         stakingRewardsV2.stake(2);
         vm.stopPrank();
-        goForward(1 weeks + 1);
+        goForward(1 weeks);
 
         /// @dev checkpoint just before the week ends
         kwenta.transfer(address(earlyVestFeeDistributor), 10);
         goForward(1 weeks - 4800);
         vm.expectEmit(true, true, true, true);
-        emit CheckpointToken(1809603, 10);
+        emit CheckpointToken(startTime + 2 weeks - 4800, 10);
         earlyVestFeeDistributor.checkpointToken();
         kwenta.transfer(address(earlyVestFeeDistributor), 5);
         goForward(4801);
@@ -236,7 +237,7 @@ contract EarlyVestFeeDistributorTest is DefaultStakingV2Setup {
         /// @dev make sure a claim at the turn of the week
         /// will checkpoint even if its < 24 hours
         vm.expectEmit(true, true, true, true);
-        emit CheckpointToken(1814404, 5);
+        emit CheckpointToken(startTime + 2 weeks + 1, 5);
         vm.expectEmit(true, true, false, true);
         emit VestingEntryCreated(address(user1), 2, 52 weeks, 1, 90);
         earlyVestFeeDistributor.claimEpoch(address(user1), 1);
