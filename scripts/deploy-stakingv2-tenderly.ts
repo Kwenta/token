@@ -79,7 +79,7 @@ async function main() {
 
     console.log("\n🔩 Migration setters...");
 
-
+    // setTreasuryDAO
     provider.send("tenderly_simulateTransaction", [
         {
             from: OPTIMISM_PDAO,
