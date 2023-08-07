@@ -1,6 +1,7 @@
 import { BigNumber } from "@ethersproject/bignumber";
 import { expect } from "chai";
 import { ethers, network } from "hardhat";
+import { Interface } from "@ethersproject/abi";
 
 export const onlyGivenAddressCanInvoke = async (
     call: any, // TODO: look into typechain to grab types
@@ -90,3 +91,32 @@ export const impersonate = async (address: string) => {
     });
     return await ethers.getSigner(address);
 };
+
+export const getInitializerData = (
+    contractInterface: Interface,
+    args: unknown[],
+    initializer?: string | false
+): string => {
+    if (initializer === false) {
+        return "0x";
+    }
+
+    const allowNoInitialization =
+        initializer === undefined && args.length === 0;
+    initializer = initializer ?? "initialize";
+
+    try {
+        const fragment = contractInterface.getFunction(initializer);
+        return contractInterface.encodeFunctionData(fragment, args);
+    } catch (e: unknown) {
+        if (e instanceof Error) {
+            if (
+                allowNoInitialization &&
+                e.message.includes("no matching function")
+            ) {
+                return "0x";
+            }
+        }
+        throw e;
+    }
+}
