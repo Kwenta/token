@@ -1097,9 +1097,9 @@ contract EarlyVestFeeDistributorTest is DefaultStakingV2Setup {
         /// @dev this goForward gets it right before the offset week changes
         /// but a regular week has already changed. claim should revert because
         /// it is offset and still not ready to claim
-        goForward(2 days - 3);
+        goForward(2 days - 1);
         uint result = earlyVestFeeDistributorOffset.startOfWeek(block.timestamp);
-        assertEq(result, 2 days);
+        assertEq(result, startTime - 5 days);
         vm.expectRevert(
             abi.encodeWithSelector(IEarlyVestFeeDistributor.CannotClaimYet.selector)
         );
