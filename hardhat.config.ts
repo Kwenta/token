@@ -116,7 +116,7 @@ export default {
       accounts: process.env.DEPLOYER_PRIVATE_KEY ? [process.env.DEPLOYER_PRIVATE_KEY] : undefined,
     },
     tenderly: {
-      url: process.env.TENDERLY_FORK_URL
+      url: process.env.TENDERLY_FORK_URL ?? ""
     }
   },
   tenderly: {
