@@ -470,13 +470,13 @@ contract EarlyVestFeeDistributorTest is DefaultStakingV2Setup {
         kwenta.approve(address(stakingRewardsV2), staking2);
         stakingRewardsV2.stake(staking2);
         vm.stopPrank();
-        goForward(1 weeks - 2);
+        goForward(1 weeks);
 
         /// @dev send fees to EarlyVestFeeDistributor midway through epoch 1
         /// this will be split between all of epoch 0 and half of 1
         goForward(.5 weeks);
         kwenta.transfer(address(earlyVestFeeDistributor), amount);
-        uint256 timeSinceLastCheckpoint = block.timestamp - 1 weeks;
+        uint256 timeSinceLastCheckpoint = block.timestamp - startTime;
         earlyVestFeeDistributor.checkpointToken();
 
         uint256 result = earlyVestFeeDistributor.calculateEpochFees(address(user2), 1);
@@ -703,8 +703,7 @@ contract EarlyVestFeeDistributorTest is DefaultStakingV2Setup {
         vm.stopPrank();
         /// @dev checkpoint at the end of epoch 0
         /// to remove cross epoch distribution
-        /// -2 because setup takes 2 seconds
-        goForward(1 weeks - 2);
+        goForward(1 weeks);
         earlyVestFeeDistributor.checkpointToken();
 
         /// @dev send fees to EarlyVestFeeDistributor 1 second before
@@ -922,14 +921,14 @@ contract EarlyVestFeeDistributorTest is DefaultStakingV2Setup {
         vm.stopPrank();
 
         /// @dev fees received at the start of the epoch (should be + 2 days)
-        goForward(2 days - 2);
+        goForward(2 days);
         earlyVestFeeDistributorOffset.checkpointToken();
         kwenta.transfer(address(earlyVestFeeDistributorOffset), amount);
 
         /// @dev claim at the start of the new epoch (should also checkpoint)
         goForward(1 weeks);
         vm.expectEmit(true, true, true, true);
-        emit CheckpointToken(1382400, amount);
+        emit CheckpointToken(startTime + 1 weeks + 2 days, amount);
         vm.expectEmit(true, true, true, true);
         emit EpochClaim(address(user1), 1, proportionalFees1);
         earlyVestFeeDistributorOffset.claimEpoch(address(user1), 1);
