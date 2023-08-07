@@ -29,10 +29,11 @@ async function main() {
     // ========== DEPLOYMENT ========== */
 
     console.log("\n💥 Beginning deployments...");
-    const { rewardEscrowV2Proxy, rewardEscrowV2Impl } =
+    const [rewardEscrowV2Proxy, rewardEscrowV2Impl] =
         await deployRewardEscrowV2();
-    const { stakingRewardsV2Proxy, stakingRewardsV2Impl } =
+    const [stakingRewardsV2Proxy, stakingRewardsV2Impl] =
         await deployStakingRewardsV2(rewardEscrowV2Proxy.address);
+
     console.log("RewardEscrowV2 Proxy: ", rewardEscrowV2Proxy.address);
     console.log("RewardEscrowV2 Impl:  ", rewardEscrowV2Impl.address);
     console.log("StakingRewardsV2 Proxy : ", stakingRewardsV2Proxy.address);
@@ -45,20 +46,15 @@ async function main() {
  * @deployers
  ************************************************/
 
-const deployRewardEscrowV2 = async () => {
-    const { proxy, implementation } = await deployUUPSProxy({
+const deployRewardEscrowV2 = async () =>
+    await deployUUPSProxy({
         contractName: "RewardEscrowV2",
         constructorArgs: [OPTIMISM_KWENTA_TOKEN],
         initializerArgs: [OPTIMISM_PDAO],
     });
-    return {
-        rewardEscrowV2Proxy: proxy,
-        rewardEscrowV2Impl: implementation,
-    };
-};
 
-const deployStakingRewardsV2 = async (rewardEscrowV2: string) => {
-    const { proxy, implementation } = await deployUUPSProxy({
+const deployStakingRewardsV2 = async (rewardEscrowV2: string) =>
+    await deployUUPSProxy({
         contractName: "StakingRewardsV2",
         constructorArgs: [
             OPTIMISM_KWENTA_TOKEN,
@@ -67,11 +63,6 @@ const deployStakingRewardsV2 = async (rewardEscrowV2: string) => {
         ],
         initializerArgs: [OPTIMISM_PDAO],
     });
-    return {
-        stakingRewardsV2Proxy: proxy,
-        stakingRewardsV2Impl: implementation,
-    };
-};
 
 /************************************************
  * @helpers
@@ -112,7 +103,7 @@ const deployUUPSProxy = async ({
         name: "ERC1967ProxyExposed",
         address: proxy.address,
     });
-    return { proxy, implementation };
+    return [proxy, implementation];
 };
 
 /************************************************
