@@ -24,6 +24,7 @@
   },
   "devDependencies": {
     "@defi-wonderland/smock": "^2.3.4",
+    "@ethersproject/abi": "^5.7.0",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.8",
     "@nomiclabs/hardhat-ethers": "^2.0.2",
     "@nomiclabs/hardhat-etherscan": "^3.1.0",
@@ -36,6 +37,7 @@
     "@openzeppelin/truffle-upgrades": "1.18.2",
     "@synthetixio/contracts-interface": "2.63.0",
     "@synthetixio/wei": "2.61.2",
+    "@tenderly/hardhat-tenderly": "^1.7.7",
     "@types/chai": "^4.2.21",
     "@types/lodash": "^4.14.181",
     "@types/mocha": "^9.0.0",
