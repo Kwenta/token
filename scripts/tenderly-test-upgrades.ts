@@ -18,6 +18,10 @@ const provider = new ethers.providers.JsonRpcProvider(
     process.env.TENDERLY_FORK_URL
 );
 
+/************************************************
+ * @main
+ ************************************************/
+
 async function main() {
     const [deployer] = await ethers.getSigners();
     console.log("Deployer: ", deployer.address);
@@ -27,45 +31,77 @@ async function main() {
     console.log("\n💥 Beginning deployments...");
     const { rewardEscrowV2Proxy, rewardEscrowV2Impl } =
         await deployRewardEscrowV2();
+    // const stakingRewardsV2 = await deployStakingRewardsV2(
+    //     rewardEscrowV2.address
+    // );
     console.log("RewardEscrowV2 Proxy: ", rewardEscrowV2Proxy.address);
-    console.log("RewardEscrowV2 Impl: ", rewardEscrowV2Impl.address);
+    console.log("RewardEscrowV2 Impl:  ", rewardEscrowV2Impl.address);
     // console.log("StakingRewardsV2: ", stakingRewardsV2.address);
     // console.log("EscrowMigrator: ", escrowMigrator.address);
     console.log("✅ Deployments complete!");
 }
 
+/************************************************
+ * @deployers
+ ************************************************/
+
 const deployRewardEscrowV2 = async () => {
-    // Deploy implementation
-    const RewardEscrowV2 = await ethers.getContractFactory("RewardEscrowV2");
-    const rewardEscrowV2Impl = await RewardEscrowV2.deploy(
-        OPTIMISM_KWENTA_TOKEN
-    );
-    await rewardEscrowV2Impl.deployed();
+    const { proxy, implementation } = await deployUUPSProxy({
+        contractName: "RewardEscrowV2",
+        constructorArgs: [OPTIMISM_KWENTA_TOKEN],
+        initializerArgs: [OPTIMISM_PDAO],
+    });
+    return {
+        rewardEscrowV2Proxy: proxy,
+        rewardEscrowV2Impl: implementation,
+    };
+};
+
+/************************************************
+ * @helpers
+ ************************************************/
+
+const deployUUPSProxy = async ({
+    contractName,
+    constructorArgs,
+    initializerArgs,
+}: {
+    contractName: string;
+    constructorArgs: unknown[];
+    initializerArgs: unknown[];
+}) => {
+    const Factory = await ethers.getContractFactory(contractName);
+    const implementation = await Factory.deploy(...constructorArgs);
+    await implementation.deployed();
     await tenderly.verify({
-        name: "RewardEscrowV2",
-        address: rewardEscrowV2Impl.address,
+        name: contractName,
+        address: implementation.address,
     });
 
     // Deploy proxy
     const ERC1967ProxyExposed = await ethers.getContractFactory(
         "ERC1967ProxyExposed"
     );
-    const rewardEscrowInitializerData = getInitializerData(
-        RewardEscrowV2.interface,
-        [OPTIMISM_PDAO],
+    const initializerData = getInitializerData(
+        Factory.interface,
+        initializerArgs,
         undefined
     );
-    const rewardEscrowV2Proxy = await ERC1967ProxyExposed.deploy(
-        rewardEscrowV2Impl.address,
-        rewardEscrowInitializerData
+    const proxy = await ERC1967ProxyExposed.deploy(
+        implementation.address,
+        initializerData
     );
-    await rewardEscrowV2Proxy.deployed();
+    await proxy.deployed();
     await tenderly.verify({
         name: "ERC1967ProxyExposed",
-        address: rewardEscrowV2Proxy.address,
+        address: proxy.address,
     });
-    return { rewardEscrowV2Proxy, rewardEscrowV2Impl };
+    return { proxy, implementation };
 };
+
+/************************************************
+ * @execute
+ ************************************************/
 
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
