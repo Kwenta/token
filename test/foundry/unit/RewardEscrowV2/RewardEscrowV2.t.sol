@@ -562,7 +562,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     }
 
     function test_vest_Should_Properly_Distribute_Escrow_With_Distributor() public {
-        rewardEscrowV2.setEarlyVestFeeDistributor(mockEarlyVestFeeDistributor);
+        rewardEscrowV2.setEarlyVestFeeDistributor(address(earlyVestFeeDistributor));
         appendRewardEscrowEntryV2(address(this), 1000 ether);
         vm.warp(block.timestamp + 26 weeks);
 
@@ -586,7 +586,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         assertEq(treasuryReceived, 225 ether);
 
         // 22.5% should go to EarlyVestFeeDistributor
-        assertEq(kwenta.balanceOf(mockEarlyVestFeeDistributor), 225 ether);
+        assertEq(kwenta.balanceOf(address(earlyVestFeeDistributor)), 225 ether);
 
         // 55% should go to the staker
         assertEq(rewardEscrowV2.totalVestedAccountBalance(address(this)), 550 ether);
@@ -631,7 +631,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     }
 
     function test_vest_Should_Properly_Emit_Event_With_Distributor() public {
-        rewardEscrowV2.setEarlyVestFeeDistributor(mockEarlyVestFeeDistributor);
+        rewardEscrowV2.setEarlyVestFeeDistributor(address(earlyVestFeeDistributor));
         appendRewardEscrowEntryV2(address(this), 1000 ether);
         vm.warp(block.timestamp + 26 weeks);
 
