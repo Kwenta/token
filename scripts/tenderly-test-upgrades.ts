@@ -3,8 +3,8 @@
 //
 // When running the script with `npx hardhat run <script>` you'll find the Hardhat
 // Runtime Environment's members available in the global scope.
-import { ethers, upgrades, tenderly } from "hardhat";
-import { getInitializerData } from "../test/utils/helpers.ts";
+import { ethers, tenderly } from "hardhat";
+import { Interface } from "@ethersproject/abi";
 
 const OPTIMISM_KWENTA_TOKEN = "0x920Cf626a271321C151D027030D5d08aF699456b";
 const OPTIMISM_PDAO = "0xe826d43961a87fBE71C91d9B73F7ef9b16721C07";
@@ -149,6 +149,35 @@ const deployUUPSProxy = async ({
         address: proxy.address,
     });
     return [proxy, implementation];
+};
+
+export const getInitializerData = (
+    contractInterface: Interface,
+    args: unknown[],
+    initializer?: string | false
+): string => {
+    if (initializer === false) {
+        return "0x";
+    }
+
+    const allowNoInitialization =
+        initializer === undefined && args.length === 0;
+    initializer = initializer ?? "initialize";
+
+    try {
+        const fragment = contractInterface.getFunction(initializer);
+        return contractInterface.encodeFunctionData(fragment, args);
+    } catch (e: unknown) {
+        if (e instanceof Error) {
+            if (
+                allowNoInitialization &&
+                e.message.includes("no matching function")
+            ) {
+                return "0x";
+            }
+        }
+        throw e;
+    }
 };
 
 /************************************************
