@@ -140,6 +140,7 @@ contract EscrowMigrator is
     {
         uint256 length = numberOfRegisteredEntries(account);
 
+        /// @dev while this loop is potentially limitless, this function is mainly for running off-chain
         for (uint256 i = 0; i < length; i++) {
             if (registeredVestingSchedules[account][registeredEntryIDs[account][i]].migrated) {
                 total++;
@@ -156,6 +157,7 @@ contract EscrowMigrator is
     {
         uint256 length = numberOfRegisteredEntries(account);
 
+        /// @dev while this loop is potentially limitless, this function is mainly for running off-chain
         for (uint256 i = 0; i < length; i++) {
             total +=
                 registeredVestingSchedules[account][registeredEntryIDs[account][i]].escrowAmount;
@@ -166,6 +168,7 @@ contract EscrowMigrator is
     function totalEscrowMigrated(address account) external view override returns (uint256 total) {
         uint256 length = numberOfRegisteredEntries(account);
 
+        /// @dev while this loop is potentially limitless, this function is mainly for running off-chain
         for (uint256 i = 0; i < length; i++) {
             if (registeredVestingSchedules[account][registeredEntryIDs[account][i]].migrated) {
                 total +=
