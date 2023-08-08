@@ -332,7 +332,7 @@ contract EscrowMigrator is
         _;
     }
 
-    // step 1: initiate & register entries for migration
+    /// @inheritdoc IEscrowMigrator
     function registerIntegratorEntries(address _integrator, uint256[] calldata _entryIDs)
         external
         onlyBeneficiary(_integrator)
@@ -340,7 +340,7 @@ contract EscrowMigrator is
         _registerEntries(_integrator, _entryIDs);
     }
 
-    // step 2: vest all entries, then pay liquid kwenta for migration & migrate registered entries
+    /// @inheritdoc IEscrowMigrator
     function migrateIntegratorEntries(address _integrator, address to, uint256[] calldata _entryIDs)
         external
         onlyBeneficiary(_integrator)

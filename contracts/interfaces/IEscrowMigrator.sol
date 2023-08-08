@@ -27,6 +27,37 @@ interface IEscrowMigrator {
     function initialize(address _owner) external;
 
     /*//////////////////////////////////////////////////////////////
+                                 VIEWS
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice Get the total number of registered vesting entries for a given account
+    /// @param account The address of the account to query
+    /// @return The number of vesting entries for the given account
+    function numberOfRegisteredEntries(address account) external view returns (uint256);
+
+    /// @notice Get the total number of migrated vesting entries for a given account
+    /// @param account The address of the account to query
+    /// @return The number of vesting entries for the given account
+    function numberOfMigratedEntries(address account) external view returns (uint256);
+
+    /// @notice Get the total escrowed registerd for an account
+    /// @param account The address of the account to query
+    /// @return total the total escrow registered for the given account
+    function totalEscrowRegistered(address account) external view returns (uint256 total);
+
+    /// @notice Get the total escrowed migrated for an account
+    /// @param account The address of the account to query
+    /// @return total the total escrow migrated for the given account
+    function totalEscrowMigrated(address account) external view returns (uint256 total);
+
+    /// @notice the amount a given user needs to pay to migrate all currently vested
+    /// registered entries. The user should approve the escrow migrator for at least
+    /// this amount before beginning the migration step
+    /// @param account The address of the account to query
+    /// @return toPay the amount the user needs to pay to migrate all currently vested
+    function toPay(address account) external view returns (uint256);
+
+    /*//////////////////////////////////////////////////////////////
                                  STEP 0
     //////////////////////////////////////////////////////////////*/
 
@@ -64,35 +95,26 @@ interface IEscrowMigrator {
     function migrateEntries(address to, uint256[] calldata _entryIDs) external;
 
     /*//////////////////////////////////////////////////////////////
-                                 VIEWS
+                          INTEGRATOR MIGRATION
     //////////////////////////////////////////////////////////////*/
 
-    /// @notice Get the total number of registered vesting entries for a given account
-    /// @param account The address of the account to query
-    /// @return The number of vesting entries for the given account
-    function numberOfRegisteredEntries(address account) external view returns (uint256);
+    /// @notice step 0 - claim any remaining StakingRewards V1 rewards
 
-    /// @notice Get the total number of migrated vesting entries for a given account
-    /// @param account The address of the account to query
-    /// @return The number of vesting entries for the given account
-    function numberOfMigratedEntries(address account) external view returns (uint256);
+    /// @notice step 1 - initiate & register entries for migration
+    /// @param _integrator: The address of the integrator to register entries for
+    /// @param _entryIDs: The entries to register for migration
+    /// @dev WARNING: If the integrator vests non-registerd entries after this step, they will have to pay extra for the migration.
+    function registerIntegratorEntries(address _integrator, uint256[] calldata _entryIDs)
+        external;
 
-    /// @notice Get the total escrowed registerd for an account
-    /// @param account The address of the account to query
-    /// @return total the total escrow registered for the given account
-    function totalEscrowRegistered(address account) external view returns (uint256 total);
+    /// @notice step 2 - vest all registered entries and approve the EscrowMigrator contract
 
-    /// @notice Get the total escrowed migrated for an account
-    /// @param account The address of the account to query
-    /// @return total the total escrow migrated for the given account
-    function totalEscrowMigrated(address account) external view returns (uint256 total);
-
-    /// @notice the amount a given user needs to pay to migrate all currently vested
-    /// registered entries. The user should approve the escrow migrator for at least
-    /// this amount before beginning the migration step
-    /// @param account The address of the account to query
-    /// @return toPay the amount the user needs to pay to migrate all currently vested
-    function toPay(address account) external view returns (uint256);
+    /// @notice step 3 - migrate all registered & vested entries
+    /// @param _integrator: The address of the integrator to migrate entries for
+    /// @param to: The address to migrate the entries to
+    /// @param _entryIDs: The entries to migrate
+    function migrateIntegratorEntries(address _integrator, address to, uint256[] calldata _entryIDs)
+        external;
 
     /*///////////////////////////////////////////////////////////////
                                 PAUSABLE
