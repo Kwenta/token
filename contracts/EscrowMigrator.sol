@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.19;
 
-import {console} from "forge-std/Test.sol";
-
 // Inheritance
 import {IEscrowMigrator} from "./interfaces/IEscrowMigrator.sol";
 import {Ownable2StepUpgradeable} from
