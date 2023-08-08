@@ -216,7 +216,7 @@ contract EscrowMigrator is
             endIndex = numEntries;
         }
 
-        if (endIndex < index) revert InvalidIndex();
+        if (endIndex < index) return new VestingEntryWithID[](0);
 
         uint256 n;
         unchecked {
@@ -242,6 +242,38 @@ contract EscrowMigrator is
             }
         }
         return vestingEntries;
+    }
+
+    /// @inheritdoc IEscrowMigrator
+    function getRegisteredVestingEntryIDs(address _account, uint256 _index, uint256 _pageSize)
+        external
+        view
+        override
+        returns (uint256[] memory)
+    {
+        uint256 endIndex = _index + _pageSize;
+
+        // If the page extends past the end of the list, truncate it.
+        uint256 numEntries = numberOfRegisteredEntries(_account);
+        if (endIndex > numEntries) {
+            endIndex = numEntries;
+        }
+        if (endIndex <= _index) {
+            return new uint256[](0);
+        }
+
+        uint256 n = endIndex - _index;
+        uint256[] memory page = new uint256[](n);
+        for (uint256 i; i < n;) {
+            unchecked {
+                page[i] = registeredEntryIDs[_account][i + _index];
+            }
+
+            unchecked {
+                ++i;
+            }
+        }
+        return page;
     }
 
     /*//////////////////////////////////////////////////////////////

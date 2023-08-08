@@ -78,15 +78,23 @@ interface IEscrowMigrator {
         view
         returns (uint256 escrowAmount, uint256 duration, uint64 endTime, bool migrated);
 
-    /// @notice get a list of vesting entries for a given account 
+    /// @notice get a list of vesting entries for a given account
     /// @param account The address of the account to query
     /// @param index The index of the first entry to query
     /// @param pageSize The number of entries to query
-    function getRegisteredVestingSchedules(
-        address account,
-        uint256 index,
-        uint256 pageSize
-    ) external view returns (VestingEntryWithID[] memory);
+    function getRegisteredVestingSchedules(address account, uint256 index, uint256 pageSize)
+        external
+        view
+        returns (VestingEntryWithID[] memory);
+
+    /// @notice get a list of vesting entry IDs for a given account
+    /// @param _account The address of the account to query
+    /// @param _index The index of the first entry to query
+    /// @param _pageSize The number of entries to query
+    function getRegisteredVestingEntryIDs(address _account, uint256 _index, uint256 _pageSize)
+        external
+        view
+        returns (uint256[] memory);
 
     /*//////////////////////////////////////////////////////////////
                                  STEP 0
@@ -160,9 +168,6 @@ interface IEscrowMigrator {
     /*//////////////////////////////////////////////////////////////
                                 ERRORS
     //////////////////////////////////////////////////////////////*/
-
-    /// @notice There are not enough entries to get vesting schedules starting from this index
-    error InvalidIndex();
 
     /// @notice cannot set this value to the zero address
     error ZeroAddress();

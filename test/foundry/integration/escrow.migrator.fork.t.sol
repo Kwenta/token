@@ -283,6 +283,64 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         assertEq(registeredEntries.length, 0);
     }
 
+    function test_getRegisteredVestingSchedules_Invalid_Index() public {
+        (uint256[] memory _entryIDs,) = claimAndCheckInitialState(user1);
+
+        registerEntries(user1, _entryIDs);
+
+        IEscrowMigrator.VestingEntryWithID[] memory registeredEntries =
+            escrowMigrator.getRegisteredVestingSchedules(user1, 100, 5);
+
+        assertEq(registeredEntries.length, 0);
+    }
+
+    function test_getRegisteredVestingEntryIDs() public {
+        (uint256[] memory _entryIDs,) = claimAndCheckInitialState(user1);
+
+        registerEntries(user1, _entryIDs);
+
+        uint256[] memory registeredEntries =
+            escrowMigrator.getRegisteredVestingEntryIDs(user1, 0, 10);
+
+        for (uint256 i = 0; i < registeredEntries.length; i++) {
+            uint256 entry = registeredEntries[i];
+            assertEq(entry, _entryIDs[i]);
+        }
+    }
+
+    function test_getRegisteredVestingEntryIDs_Wrong_Account() public {
+        (uint256[] memory _entryIDs,) = claimAndCheckInitialState(user1);
+
+        registerEntries(user1, _entryIDs);
+
+        uint256[] memory registeredEntries =
+            escrowMigrator.getRegisteredVestingEntryIDs(user2, 0, 10);
+
+        assertEq(registeredEntries.length, 0);
+    }
+
+    function test_getRegisteredVestingEntryIDs_Size_0() public {
+        (uint256[] memory _entryIDs,) = claimAndCheckInitialState(user1);
+
+        registerEntries(user1, _entryIDs);
+
+        uint256[] memory registeredEntries =
+            escrowMigrator.getRegisteredVestingEntryIDs(user1, 0, 0);
+
+        assertEq(registeredEntries.length, 0);
+    }
+
+    function test_getRegisteredVestingEntryIDs_Invalid_Index() public {
+        (uint256[] memory _entryIDs,) = claimAndCheckInitialState(user1);
+
+        registerEntries(user1, _entryIDs);
+
+        uint256[] memory registeredEntries =
+            escrowMigrator.getRegisteredVestingEntryIDs(user1, 100, 5);
+
+        assertEq(registeredEntries.length, 0);
+    }
+
     /*//////////////////////////////////////////////////////////////
                               STEP 1 TESTS
     //////////////////////////////////////////////////////////////*/
