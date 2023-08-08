@@ -7,6 +7,30 @@ contract TestHelpers is Test {
     uint256 internal userNonce;
     uint256 internal nonce;
 
+    string private checkpointLabel;
+    uint256 private checkpointGasLeft = 1; // Start the slot warm.
+
+    /// @dev start measuring gas consumption
+    /// @param label the string to print next to the gas consumed
+    /// when stopping measuring
+    function startMeasuringGas(string memory label) internal virtual {
+        checkpointLabel = label;
+
+        checkpointGasLeft = gasleft();
+    }
+
+    /// @dev stop measuring gas consumption
+    /// @return gasDelta the gas consumed since startMeasuringGas was called
+    /// @dev Add 21k to this amount to get gas used in a transaction
+    function stopMeasuringGas() internal virtual returns (uint256 gasDelta) {
+        uint256 checkpointGasLeft2 = gasleft();
+
+        // Subtract 100 to account for the warm SLOAD in startMeasuringGas.
+        gasDelta = checkpointGasLeft - checkpointGasLeft2 - 100;
+
+        emit log_named_uint(string(abi.encodePacked(checkpointLabel, " Gas")), gasDelta);
+    }
+
     /// @dev create a new user address
     function createUser() internal returns (address) {
         userNonce++;
