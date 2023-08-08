@@ -17,6 +17,7 @@ contract EarlyVestFeeDistributorTest is DefaultStakingV2Setup {
     function setUp() public override {
         /// @dev starts after a week so the startTime is != 0
         goForward(1 weeks);
+        /// @dev set startTime to truncated week for easy testing
         startTime = block.timestamp / 1 weeks * 1 weeks;
         vm.warp(startTime);
         super.setUp();
