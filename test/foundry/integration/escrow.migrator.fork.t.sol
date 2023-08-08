@@ -46,7 +46,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         user2 = OPTIMISM_RANDOM_STAKING_USER_2;
         user3 = OPTIMISM_RANDOM_STAKING_USER_3;
         user4 = createUser();
-        integrator = IStakingRewardsIntegrator(OPTIMISM_STAKING_V1_INTEGRATOR);
+        integrator = IStakingRewardsIntegrator(OPTIMISM_STAKING_V1_INTEGRATOR_1);
 
         // set owners address code to trick the test into allowing onlyOwner functions to be called via script
         vm.etch(owner, address(new Migrate()).code);
@@ -1367,5 +1367,13 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 
         vm.expectRevert(IEscrowMigrator.NotApproved.selector);
         escrowMigrator.migrateIntegratorEntries(address(integrator), address(this), entryIDs);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                               GAS TESTS
+    //////////////////////////////////////////////////////////////*/
+
+    function test_Max_Registerable_In_One_Go() public {
+
     }
 }
