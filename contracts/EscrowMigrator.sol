@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.19;
 
+import {console} from "forge-std/Test.sol";
+
 // Inheritance
 import {IEscrowMigrator} from "./interfaces/IEscrowMigrator.sol";
 import {Ownable2StepUpgradeable} from
@@ -131,48 +133,49 @@ contract EscrowMigrator is
     }
 
     /// @inheritdoc IEscrowMigrator
+    /// @dev WARNING: this loop is potentially limitless - could revert with out of gas error if called on-chain
     function numberOfMigratedEntries(address _account)
         external
         view
         override
         returns (uint256 total)
     {
-        uint256 length = numberOfRegisteredEntries(_account);
+        uint256[] storage entries = registeredEntryIDs[_account];
+        uint256 length = entries.length;
 
-        /// @dev while this loop is potentially limitless, this function is mainly for running off-chain
         for (uint256 i = 0; i < length; i++) {
-            if (registeredVestingSchedules[_account][registeredEntryIDs[_account][i]].migrated) {
-                total++;
-            }
+            uint256 entryID = entries[i];
+            VestingEntry storage entry = registeredVestingSchedules[_account][entryID];
+            if (entry.migrated) total++;
         }
     }
 
     /// @inheritdoc IEscrowMigrator
+    /// @dev WARNING: this loop is potentially limitless - could revert with out of gas error if called on-chain
     function totalEscrowRegistered(address _account)
         external
         view
         override
         returns (uint256 total)
     {
-        uint256 length = numberOfRegisteredEntries(_account);
-
-        /// @dev while this loop is potentially limitless, this function is mainly for running off-chain
+        uint256[] storage entries = registeredEntryIDs[_account];
+        uint256 length = entries.length;
         for (uint256 i = 0; i < length; i++) {
-            total +=
-                registeredVestingSchedules[_account][registeredEntryIDs[_account][i]].escrowAmount;
+            uint256 entryID = entries[i];
+            VestingEntry storage entry = registeredVestingSchedules[_account][entryID];
+            total += entry.escrowAmount;
         }
     }
 
     /// @inheritdoc IEscrowMigrator
+    /// @dev WARNING: this loop is potentially limitless - could revert with out of gas error if called on-chain
     function totalEscrowMigrated(address _account) external view override returns (uint256 total) {
-        uint256 length = numberOfRegisteredEntries(_account);
-
-        /// @dev while this loop is potentially limitless, this function is mainly for running off-chain
+        uint256[] storage entries = registeredEntryIDs[_account];
+        uint256 length = entries.length;
         for (uint256 i = 0; i < length; i++) {
-            if (registeredVestingSchedules[_account][registeredEntryIDs[_account][i]].migrated) {
-                total += registeredVestingSchedules[_account][registeredEntryIDs[_account][i]]
-                    .escrowAmount;
-            }
+            uint256 entryID = entries[i];
+            VestingEntry storage entry = registeredVestingSchedules[_account][entryID];
+            if (entry.migrated) total += entry.escrowAmount;
         }
     }
 
