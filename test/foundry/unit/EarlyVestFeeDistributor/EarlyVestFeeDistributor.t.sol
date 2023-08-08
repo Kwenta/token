@@ -1027,9 +1027,6 @@ contract EarlyVestFeeDistributorTest is DefaultStakingV2Setup {
 
     /// @notice test startOfWeek
     function testStartOfWeek() public {
-        /// @dev starts after another week so the startTime is != 0
-        goForward(1 weeks);
-
         EarlyVestFeeDistributorInternals earlyVestFeeDistributorOffset = new EarlyVestFeeDistributorInternals(
                 address(kwenta),
                 address(stakingRewardsV2),
@@ -1037,28 +1034,28 @@ contract EarlyVestFeeDistributorTest is DefaultStakingV2Setup {
                 2
             );
 
-        /// @dev normally the start of the week would be 608400 but offset of 2
-        /// makes it it 777600 (608400 + 86400 * 2)
-        /// @note the current timestamp is 608402 but the start of the OFFSET week
-        /// is not for another 2 days
+        /// @dev normally the start of the week would be StartTime but offset of 2
+        /// makes it it StartTime - 5 days (Last week + 2 days)
+        /// @note the current timestamp is StartTime but the start of the OFFSET week
+        /// was 5 days ago (2 days past the last week)
         uint result = earlyVestFeeDistributorOffset.startOfWeek(block.timestamp);
-        assertEq(result, 1 weeks + 2 days);
+        assertEq(result, startTime - 5 days);
 
         goForward(2 days);
         uint result2 = earlyVestFeeDistributorOffset.startOfWeek(block.timestamp);
-        assertEq(result2, 2 weeks + 2 days);
+        assertEq(result2, startTime + 2 days);
 
         /// @dev this should be passed a normal week but just before the offset
         /// week so nothing should change
-        goForward(604000);
+        goForward(.9 weeks);
         uint result3 = earlyVestFeeDistributorOffset.startOfWeek(block.timestamp);
-        assertEq(result3, 2 weeks + 2 days);
+        assertEq(result3, startTime + 2 days);
 
         /// @dev this is a few hundred seconds into a new offset week so should
         /// be a different start time
-        goForward(1000);
+        goForward(.1 weeks);
         uint result4 = earlyVestFeeDistributorOffset.startOfWeek(block.timestamp);
-        assertEq(result4, 3 weeks + 2 days);
+        assertEq(result4, startTime + 1 weeks + 2 days);
     }
 
     /// @notice test startOfWeek exactly at the turn of the week
