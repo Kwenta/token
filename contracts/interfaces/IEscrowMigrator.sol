@@ -57,6 +57,14 @@ interface IEscrowMigrator {
     /// @return toPay the amount the user needs to pay to migrate all currently vested
     function toPay(address account) external view returns (uint256);
 
+    /// @notice Get the vesting entry data for a given account and entry ID
+    /// @param account The address of the account to query
+    /// @param entryID The ID of the entry to query
+    function getRegistereddEntry(address account, uint256 entryID)
+        external
+        view
+        returns (uint256 escrowAmount, uint256 duration, uint64 endTime, bool migrated);
+
     /*//////////////////////////////////////////////////////////////
                                  STEP 0
     //////////////////////////////////////////////////////////////*/

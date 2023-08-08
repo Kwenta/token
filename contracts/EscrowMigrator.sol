@@ -132,7 +132,12 @@ contract EscrowMigrator is
     }
 
     /// @inheritdoc IEscrowMigrator
-    function numberOfMigratedEntries(address account) external view override returns (uint256 total) {
+    function numberOfMigratedEntries(address account)
+        external
+        view
+        override
+        returns (uint256 total)
+    {
         uint256 length = numberOfRegisteredEntries(account);
 
         for (uint256 i = 0; i < length; i++) {
@@ -143,7 +148,12 @@ contract EscrowMigrator is
     }
 
     /// @inheritdoc IEscrowMigrator
-    function totalEscrowRegistered(address account) external view override returns (uint256 total) {
+    function totalEscrowRegistered(address account)
+        external
+        view
+        override
+        returns (uint256 total)
+    {
         uint256 length = numberOfRegisteredEntries(account);
 
         for (uint256 i = 0; i < length; i++) {
@@ -169,6 +179,19 @@ contract EscrowMigrator is
         uint256 totalPaymentRequired =
             rewardEscrowV1.totalVestedAccountBalance(account) - escrowVestedAtStart[account];
         return totalPaymentRequired - paidSoFar[account];
+    }
+
+    /// @inheritdoc IEscrowMigrator
+    function getRegistereddEntry(address account, uint256 entryID)
+        external
+        view
+        override
+        returns (uint256 escrowAmount, uint256 duration, uint64 endTime, bool migrated)
+    {
+        escrowAmount = registeredVestingSchedules[account][entryID].escrowAmount;
+        duration = registeredVestingSchedules[account][entryID].duration;
+        endTime = registeredVestingSchedules[account][entryID].endTime;
+        migrated = registeredVestingSchedules[account][entryID].migrated;
     }
 
     /*//////////////////////////////////////////////////////////////
