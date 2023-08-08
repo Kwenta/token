@@ -417,6 +417,11 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         toPay = approve(account);
     }
 
+    function checkStateAfterStepThree(address account) internal {
+        uint256[] memory _entryIDs = getEntryIDs(account);
+        checkStateAfterStepThree(account, account, _entryIDs);
+    }
+
     function checkStateAfterStepThree(address account, uint256 index, uint256 amount) internal {
         uint256[] memory _entryIDs = getEntryIDs(account, index, amount);
         checkStateAfterStepThree(account, account, _entryIDs);

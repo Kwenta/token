@@ -151,6 +151,39 @@ contract StakingV2UpgradeTests is DefaultStakingV2Setup {
     }
 
     /*//////////////////////////////////////////////////////////////
+                        UPGRADE ESCROW MIGRATOR
+    //////////////////////////////////////////////////////////////*/
+
+    function test_Upgrade_EscrowMigrator_To_V2() public {
+        address escrowMigratorV2Impl = deployEscrowMigratorImpl();
+
+        escrowMigrator.upgradeTo(escrowMigratorV2Impl);
+
+        MockEscrowMigratorV2 escrowMigratorV2 = MockEscrowMigratorV2(address(escrowMigrator));
+
+        assertEq(escrowMigratorV2.newFunctionality(), 42);
+        assertEq(escrowMigratorV2.newNum(), 0);
+
+        testStakingV2StillWorking();
+    }
+
+    function test_Upgrade_And_Call_EscrowMigrator_To_V2() public {
+        address escrowMigratorV2Impl = deployEscrowMigratorImpl();
+
+        escrowMigrator.upgradeToAndCall(
+            escrowMigratorV2Impl, abi.encodeWithSignature("setNewNum(uint256)", 5)
+        );
+
+        MockEscrowMigratorV2 escrowMigratorV2 = MockEscrowMigratorV2(address(escrowMigrator));
+
+        assertEq(escrowMigratorV2.newFunctionality(), 42);
+        assertEq(escrowMigratorV2.newNum(), 5);
+
+        testEscrowMigratorStillWorking();
+    }
+
+
+    /*//////////////////////////////////////////////////////////////
                                 HELPERS
     //////////////////////////////////////////////////////////////*/
 
@@ -208,5 +241,18 @@ contract StakingV2UpgradeTests is DefaultStakingV2Setup {
         assertEq(2 ether + 1 weeks, stakingRewardsV2.balanceOf(user1));
         assertEq(1 ether + 1 weeks, stakingRewardsV2.escrowedBalanceOf(user1));
         assertEq(0, rewardEscrowV2.unstakedEscrowedBalanceOf(user1));
+    }
+
+    function testEscrowMigratorStillWorking() internal {
+        // create escrow entries
+        createRewardEscrowEntryV1(user1, 1 ether);
+        createRewardEscrowEntryV1(user1, 2 ether);
+        createRewardEscrowEntryV1(user1, 3 ether);
+
+        // migrate escrow entries
+        claimAndFullyMigrate(user1);
+
+        // check that the migration worked
+        checkStateAfterStepThree(user1);
     }
 }
