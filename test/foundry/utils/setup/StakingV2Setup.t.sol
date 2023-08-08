@@ -31,6 +31,7 @@ contract StakingV2Setup is StakingV1Setup {
     );
     event TreasuryDAOSet(address treasuryDAO);
     event StakingRewardsSet(address stakingRewards);
+    event EscrowMigratorSet(address escrowMigrator);
 
     /*//////////////////////////////////////////////////////////////
                                 State
@@ -100,6 +101,8 @@ contract StakingV2Setup is StakingV1Setup {
         // Setup StakingV2
         vm.expectEmit(true, true, true, true);
         emit StakingRewardsSet(address(stakingRewardsV2));
+        vm.expectEmit(true, true, true, true);
+        emit EscrowMigratorSet(address(escrowMigrator));
         (bool setupSuccess,) = address(migrate).delegatecall(
             abi.encodeWithSelector(
                 migrate.setupSystem.selector,
