@@ -2,10 +2,10 @@
 pragma solidity 0.8.19;
 
 import {console} from "forge-std/Test.sol";
-import {StakingTestHelpers} from "../../utils/helpers/StakingTestHelpers.t.sol";
+import {EscrowMigratorTestHelpers} from "../../utils/helpers/EscrowMigratorTestHelpers.t.sol";
 import "../../utils/Constants.t.sol";
 
-contract DefaultStakingV2Setup is StakingTestHelpers {
+contract DefaultStakingV2Setup is EscrowMigratorTestHelpers {
     /*//////////////////////////////////////////////////////////////
                                 Setup
     //////////////////////////////////////////////////////////////*/

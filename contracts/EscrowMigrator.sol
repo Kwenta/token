@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.19;
 
+import {console} from "forge-std/Test.sol";
+
 // Inheritance
 import {IEscrowMigrator} from "./interfaces/IEscrowMigrator.sol";
 import {Ownable2StepUpgradeable} from
@@ -78,8 +80,6 @@ contract EscrowMigrator is
 
     mapping(address => uint256) public paidSoFar;
 
-    // OPT: consider just storing numberOfRegisterdEntries intead of the array
-    // TODO: add view function to return this data as a memory array, and to query individual entries
     mapping(address => uint256[]) public registeredEntryIDs;
 
     /*///////////////////////////////////////////////////////////////
@@ -127,48 +127,154 @@ contract EscrowMigrator is
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IEscrowMigrator
-    function numberOfRegisteredEntries(address account) public view override returns (uint256) {
-        return registeredEntryIDs[account].length;
+    function numberOfRegisteredEntries(address _account) public view override returns (uint256) {
+        return registeredEntryIDs[_account].length;
     }
 
     /// @inheritdoc IEscrowMigrator
-    function numberOfMigratedEntries(address account) external view override returns (uint256 total) {
-        uint256 length = numberOfRegisteredEntries(account);
+    /// @dev WARNING: this loop is potentially limitless - could revert with out of gas error if called on-chain
+    function numberOfMigratedEntries(address _account)
+        external
+        view
+        override
+        returns (uint256 total)
+    {
+        uint256[] storage entries = registeredEntryIDs[_account];
+        uint256 length = entries.length;
 
         for (uint256 i = 0; i < length; i++) {
-            if (registeredVestingSchedules[account][registeredEntryIDs[account][i]].migrated) {
-                total++;
-            }
+            uint256 entryID = entries[i];
+            VestingEntry storage entry = registeredVestingSchedules[_account][entryID];
+            if (entry.migrated) total++;
         }
     }
 
     /// @inheritdoc IEscrowMigrator
-    function totalEscrowRegistered(address account) external view override returns (uint256 total) {
-        uint256 length = numberOfRegisteredEntries(account);
-
+    /// @dev WARNING: this loop is potentially limitless - could revert with out of gas error if called on-chain
+    function totalEscrowRegistered(address _account)
+        external
+        view
+        override
+        returns (uint256 total)
+    {
+        uint256[] storage entries = registeredEntryIDs[_account];
+        uint256 length = entries.length;
         for (uint256 i = 0; i < length; i++) {
-            total +=
-                registeredVestingSchedules[account][registeredEntryIDs[account][i]].escrowAmount;
+            uint256 entryID = entries[i];
+            VestingEntry storage entry = registeredVestingSchedules[_account][entryID];
+            total += entry.escrowAmount;
         }
     }
 
     /// @inheritdoc IEscrowMigrator
-    function totalEscrowMigrated(address account) external view override returns (uint256 total) {
-        uint256 length = numberOfRegisteredEntries(account);
-
+    /// @dev WARNING: this loop is potentially limitless - could revert with out of gas error if called on-chain
+    function totalEscrowMigrated(address _account) external view override returns (uint256 total) {
+        uint256[] storage entries = registeredEntryIDs[_account];
+        uint256 length = entries.length;
         for (uint256 i = 0; i < length; i++) {
-            if (registeredVestingSchedules[account][registeredEntryIDs[account][i]].migrated) {
-                total +=
-                    registeredVestingSchedules[account][registeredEntryIDs[account][i]].escrowAmount;
-            }
+            uint256 entryID = entries[i];
+            VestingEntry storage entry = registeredVestingSchedules[_account][entryID];
+            if (entry.migrated) total += entry.escrowAmount;
         }
     }
 
     /// @inheritdoc IEscrowMigrator
-    function toPay(address account) public view override returns (uint256) {
+    function toPay(address _account) public view override returns (uint256) {
         uint256 totalPaymentRequired =
-            rewardEscrowV1.totalVestedAccountBalance(account) - escrowVestedAtStart[account];
-        return totalPaymentRequired - paidSoFar[account];
+            rewardEscrowV1.totalVestedAccountBalance(_account) - escrowVestedAtStart[_account];
+        return totalPaymentRequired - paidSoFar[_account];
+    }
+
+    /// @inheritdoc IEscrowMigrator
+    function getRegisteredVestingEntry(address _account, uint256 _entryID)
+        external
+        view
+        override
+        returns (uint256 escrowAmount, uint256 duration, uint64 endTime, bool migrated)
+    {
+        escrowAmount = registeredVestingSchedules[_account][_entryID].escrowAmount;
+        duration = registeredVestingSchedules[_account][_entryID].duration;
+        endTime = registeredVestingSchedules[_account][_entryID].endTime;
+        migrated = registeredVestingSchedules[_account][_entryID].migrated;
+    }
+
+    /// @inheritdoc IEscrowMigrator
+    function getRegisteredVestingSchedules(address _account, uint256 _index, uint256 _pageSize)
+        external
+        view
+        override
+        returns (VestingEntryWithID[] memory)
+    {
+        if (_pageSize == 0) {
+            return new VestingEntryWithID[](0);
+        }
+
+        uint256 endIndex = _index + _pageSize;
+
+        // If the page extends past the end of the list, truncate it.
+        uint256 numEntries = numberOfRegisteredEntries(_account);
+        if (endIndex > numEntries) {
+            endIndex = numEntries;
+        }
+
+        if (endIndex < _index) return new VestingEntryWithID[](0);
+
+        uint256 n;
+        unchecked {
+            n = endIndex - _index;
+        }
+
+        VestingEntryWithID[] memory vestingEntries = new VestingEntryWithID[](n);
+        for (uint256 i; i < n;) {
+            uint256 entryID = registeredEntryIDs[_account][i + _index];
+
+            VestingEntry storage entry = registeredVestingSchedules[_account][entryID];
+
+            vestingEntries[i] = VestingEntryWithID({
+                entryID: entryID,
+                escrowAmount: entry.escrowAmount,
+                duration: entry.duration,
+                endTime: entry.endTime,
+                migrated: entry.migrated
+            });
+
+            unchecked {
+                ++i;
+            }
+        }
+        return vestingEntries;
+    }
+
+    /// @inheritdoc IEscrowMigrator
+    function getRegisteredVestingEntryIDs(address _account, uint256 _index, uint256 _pageSize)
+        external
+        view
+        override
+        returns (uint256[] memory)
+    {
+        uint256 endIndex = _index + _pageSize;
+
+        // If the page extends past the end of the list, truncate it.
+        uint256 numEntries = numberOfRegisteredEntries(_account);
+        if (endIndex > numEntries) {
+            endIndex = numEntries;
+        }
+        if (endIndex <= _index) {
+            return new uint256[](0);
+        }
+
+        uint256 n = endIndex - _index;
+        uint256[] memory page = new uint256[](n);
+        for (uint256 i; i < n;) {
+            unchecked {
+                page[i] = registeredEntryIDs[_account][i + _index];
+            }
+
+            unchecked {
+                ++i;
+            }
+        }
+        return page;
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -187,16 +293,16 @@ contract EscrowMigrator is
         _registerEntries(msg.sender, _entryIDs);
     }
 
-    function _registerEntries(address account, uint256[] calldata _entryIDs)
+    function _registerEntries(address _account, uint256[] calldata _entryIDs)
         internal
         whenNotPaused
     {
-        if (!initiated[account]) {
-            if (stakingRewardsV1.earned(account) != 0) revert MustClaimStakingRewards();
-            if (rewardEscrowV1.balanceOf(account) == 0) revert NoEscrowBalanceToMigrate();
+        if (!initiated[_account]) {
+            if (stakingRewardsV1.earned(_account) != 0) revert MustClaimStakingRewards();
+            if (rewardEscrowV1.balanceOf(_account) == 0) revert NoEscrowBalanceToMigrate();
 
-            initiated[account] = true;
-            escrowVestedAtStart[account] = rewardEscrowV1.totalVestedAccountBalance(account);
+            initiated[_account] = true;
+            escrowVestedAtStart[_account] = rewardEscrowV1.totalVestedAccountBalance(_account);
         }
 
         // OPT: update to use getVestingSchedules to save gas from all the message calls
@@ -206,17 +312,17 @@ contract EscrowMigrator is
             uint256 entryID = _entryIDs[i];
 
             // skip if already registered
-            if (registeredVestingSchedules[account][entryID].endTime != 0) continue;
+            if (registeredVestingSchedules[_account][entryID].endTime != 0) continue;
 
             (uint64 endTime, uint256 escrowAmount, uint256 duration) =
-                rewardEscrowV1.getVestingEntry(account, entryID);
+                rewardEscrowV1.getVestingEntry(_account, entryID);
 
             // skip if entry is already vested or does not exist
             if (escrowAmount == 0) continue;
             // skip if entry is already fully mature (hence no need to migrate)
             if (endTime <= block.timestamp) continue;
 
-            registeredVestingSchedules[account][entryID] = VestingEntry({
+            registeredVestingSchedules[_account][entryID] = VestingEntry({
                 endTime: endTime,
                 escrowAmount: escrowAmount,
                 duration: duration,
@@ -224,7 +330,7 @@ contract EscrowMigrator is
             });
 
             /// @dev A counter of numberOfRegisteredEntries would do, but this allows easier inspection
-            registeredEntryIDs[account].push(entryID);
+            registeredEntryIDs[_account].push(entryID);
             registeredEscrow += escrowAmount;
         }
 
@@ -245,16 +351,16 @@ contract EscrowMigrator is
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IEscrowMigrator
-    function migrateEntries(address to, uint256[] calldata _entryIDs) external {
-        _migrateEntries(msg.sender, to, _entryIDs);
+    function migrateEntries(address _to, uint256[] calldata _entryIDs) external {
+        _migrateEntries(msg.sender, _to, _entryIDs);
     }
 
-    function _migrateEntries(address account, address to, uint256[] calldata _entryIDs)
+    function _migrateEntries(address _account, address _to, uint256[] calldata _entryIDs)
         internal
         whenNotPaused
     {
-        if (!initiated[account]) revert MustBeInitiated();
-        _payForMigration(account);
+        if (!initiated[_account]) revert MustBeInitiated();
+        _payForMigration(_account);
 
         uint256 migratedEscrow;
         uint256 cooldown = stakingRewardsV2.cooldownPeriod();
@@ -262,8 +368,8 @@ contract EscrowMigrator is
         for (uint256 i = 0; i < _entryIDs.length; i++) {
             uint256 entryID = _entryIDs[i];
 
-            (, uint256 escrowAmount,) = rewardEscrowV1.getVestingEntry(account, entryID);
-            VestingEntry storage registeredEntry = registeredVestingSchedules[account][entryID];
+            (, uint256 escrowAmount,) = rewardEscrowV1.getVestingEntry(_account, entryID);
+            VestingEntry storage registeredEntry = registeredVestingSchedules[_account][entryID];
             uint256 originalEscrowAmount = registeredEntry.escrowAmount;
 
             // if it is not zero, it hasn't been vested
@@ -297,7 +403,7 @@ contract EscrowMigrator is
             // OPT: think if this transfer can be done once in advance (could pass in total via calldata args)
             // then check it at the end to ensure it is correct
             kwenta.transfer(address(rewardEscrowV2), originalEscrowAmount);
-            rewardEscrowV2.importEscrowEntry(to, entry);
+            rewardEscrowV2.importEscrowEntry(_to, entry);
 
             // OPT: think - could remove `migrated` as a gas optimization and just set endTime to 0
             // update this so it cannot be migrated again
@@ -310,11 +416,11 @@ contract EscrowMigrator is
         totalMigrated += migratedEscrow;
     }
 
-    function _payForMigration(address account) internal {
-        uint256 toPayNow = toPay(account);
+    function _payForMigration(address _account) internal {
+        uint256 toPayNow = toPay(_account);
         if (toPayNow > 0) {
             kwenta.transferFrom(msg.sender, address(this), toPayNow);
-            paidSoFar[account] += toPayNow;
+            paidSoFar[_account] += toPayNow;
         }
     }
 
@@ -332,7 +438,7 @@ contract EscrowMigrator is
         _;
     }
 
-    // step 1: initiate & register entries for migration
+    /// @inheritdoc IEscrowMigrator
     function registerIntegratorEntries(address _integrator, uint256[] calldata _entryIDs)
         external
         onlyBeneficiary(_integrator)
@@ -340,19 +446,19 @@ contract EscrowMigrator is
         _registerEntries(_integrator, _entryIDs);
     }
 
-    // step 2: vest all entries, then pay liquid kwenta for migration & migrate registered entries
-    function migrateIntegratorEntries(address _integrator, address to, uint256[] calldata _entryIDs)
-        external
-        onlyBeneficiary(_integrator)
-    {
-        _migrateEntries(_integrator, to, _entryIDs);
+    /// @inheritdoc IEscrowMigrator
+    function migrateIntegratorEntries(
+        address _integrator,
+        address _to,
+        uint256[] calldata _entryIDs
+    ) external onlyBeneficiary(_integrator) {
+        _migrateEntries(_integrator, _to, _entryIDs);
     }
 
     /*//////////////////////////////////////////////////////////////
                              UPGRADEABILITY
     //////////////////////////////////////////////////////////////*/
 
-    // TODO: test onlyOwner and test upgradeability
     function _authorizeUpgrade(address _newImplementation) internal override onlyOwner {}
 
     /*///////////////////////////////////////////////////////////////

@@ -5,6 +5,7 @@ import {console} from "forge-std/Test.sol";
 import {DefaultStakingV2Setup} from "../utils/setup/DefaultStakingV2Setup.t.sol";
 import {MockStakingRewardsV3} from "../utils/mocks/MockStakingRewardsV3.t.sol";
 import {MockRewardEscrowV3} from "../utils/mocks/MockRewardEscrowV3.t.sol";
+import {MockEscrowMigratorV2} from "../utils/mocks/MockEscrowMigratorV2.t.sol";
 import "../utils/Constants.t.sol";
 
 contract StakingV2UpgradeTests is DefaultStakingV2Setup {
@@ -43,8 +44,26 @@ contract StakingV2UpgradeTests is DefaultStakingV2Setup {
 
         vm.expectRevert("Ownable: caller is not the owner");
         vm.prank(user1);
-        stakingRewardsV2.upgradeToAndCall(
+        rewardEscrowV2.upgradeToAndCall(
             rewardEscrowV3Implementation, abi.encodeWithSignature("setNewNum(uint256)", 5)
+        );
+    }
+
+    function test_Only_Owner_Can_Upgrade_EscrowMigrator() public {
+        address escrowMigratorV2Impl = deployEscrowMigratorImpl();
+
+        vm.expectRevert("Ownable: caller is not the owner");
+        vm.prank(user1);
+        escrowMigrator.upgradeTo(escrowMigratorV2Impl);
+    }
+
+    function test_Only_Owner_Can_Upgrade_And_Call_EscrowMigrator() public {
+        address escrowMigratorV2Impl = deployEscrowMigratorImpl();
+
+        vm.expectRevert("Ownable: caller is not the owner");
+        vm.prank(user1);
+        escrowMigrator.upgradeToAndCall(
+            escrowMigratorV2Impl, abi.encodeWithSignature("setNewNum(uint256)", 5)
         );
     }
 
@@ -60,6 +79,11 @@ contract StakingV2UpgradeTests is DefaultStakingV2Setup {
     function test_StakingRewardsV2_Implementation_Cannot_Be_Initialized() public {
         vm.expectRevert("Initializable: contract is already initialized");
         stakingRewardsV2.initialize(address(0));
+    }
+
+    function test_EscrowMigrator_Implementation_Cannot_Be_Initialized() public {
+        vm.expectRevert("Initializable: contract is already initialized");
+        escrowMigrator.initialize(address(0));
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -127,6 +151,39 @@ contract StakingV2UpgradeTests is DefaultStakingV2Setup {
     }
 
     /*//////////////////////////////////////////////////////////////
+                        UPGRADE ESCROW MIGRATOR
+    //////////////////////////////////////////////////////////////*/
+
+    function test_Upgrade_EscrowMigrator_To_V2() public {
+        address escrowMigratorV2Impl = deployEscrowMigratorImpl();
+
+        escrowMigrator.upgradeTo(escrowMigratorV2Impl);
+
+        MockEscrowMigratorV2 escrowMigratorV2 = MockEscrowMigratorV2(address(escrowMigrator));
+
+        assertEq(escrowMigratorV2.newFunctionality(), 42);
+        assertEq(escrowMigratorV2.newNum(), 0);
+
+        testStakingV2StillWorking();
+    }
+
+    function test_Upgrade_And_Call_EscrowMigrator_To_V2() public {
+        address escrowMigratorV2Impl = deployEscrowMigratorImpl();
+
+        escrowMigrator.upgradeToAndCall(
+            escrowMigratorV2Impl, abi.encodeWithSignature("setNewNum(uint256)", 5)
+        );
+
+        MockEscrowMigratorV2 escrowMigratorV2 = MockEscrowMigratorV2(address(escrowMigrator));
+
+        assertEq(escrowMigratorV2.newFunctionality(), 42);
+        assertEq(escrowMigratorV2.newNum(), 5);
+
+        testEscrowMigratorStillWorking();
+    }
+
+
+    /*//////////////////////////////////////////////////////////////
                                 HELPERS
     //////////////////////////////////////////////////////////////*/
 
@@ -139,6 +196,18 @@ contract StakingV2UpgradeTests is DefaultStakingV2Setup {
                 address(kwenta),
                 address(rewardEscrowV2),
                 address(supplySchedule)
+            )
+        );
+    }
+
+    function deployEscrowMigratorImpl() internal returns (address escrowMigratorImpl) {
+        escrowMigratorImpl = address(
+            new MockEscrowMigratorV2(
+                address(kwenta),
+                address(rewardEscrowV1),
+                address(rewardEscrowV2),
+                address(stakingRewardsV1),
+                address(stakingRewardsV2)
             )
         );
     }
@@ -172,5 +241,18 @@ contract StakingV2UpgradeTests is DefaultStakingV2Setup {
         assertEq(2 ether + 1 weeks, stakingRewardsV2.balanceOf(user1));
         assertEq(1 ether + 1 weeks, stakingRewardsV2.escrowedBalanceOf(user1));
         assertEq(0, rewardEscrowV2.unstakedEscrowedBalanceOf(user1));
+    }
+
+    function testEscrowMigratorStillWorking() internal {
+        // create escrow entries
+        createRewardEscrowEntryV1(user1, 1 ether);
+        createRewardEscrowEntryV1(user1, 2 ether);
+        createRewardEscrowEntryV1(user1, 3 ether);
+
+        // migrate escrow entries
+        claimAndFullyMigrate(user1);
+
+        // check that the migration worked
+        checkStateAfterStepThree(user1);
     }
 }

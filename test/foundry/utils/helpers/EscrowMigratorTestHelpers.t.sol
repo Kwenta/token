@@ -181,6 +181,21 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         return (_entryIDs, numVestingEntries, toPay);
     }
 
+    function claimAndRegisterEntries(address account)
+        internal
+        returns (uint256[] memory _entryIDs, uint256 numVestingEntries)
+    {
+        // check initial state
+        claimAndCheckInitialState(account);
+
+        _entryIDs = getEntryIDs(account);
+        numVestingEntries = _entryIDs.length;
+
+        // step 1
+        vm.prank(account);
+        escrowMigrator.registerEntries(_entryIDs);
+    }
+
     function claimAndRegisterEntries(address account, uint256 index, uint256 amount)
         internal
         returns (uint256[] memory _entryIDs, uint256 numVestingEntries)
@@ -271,7 +286,7 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         for (uint256 i = 0; i < _entryIDs.length; i++) {
             uint256 entryID = _entryIDs[i];
             (uint256 escrowAmount, uint256 duration, uint64 endTime, bool migrated) =
-                escrowMigrator.registeredVestingSchedules(account, entryID);
+                escrowMigrator.getRegisteredVestingEntry(account, entryID);
             assertEq(escrowAmount, 0);
             assertEq(duration, 0);
             assertEq(endTime, 0);
@@ -308,7 +323,7 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
             uint256 entryID = _entryIDs[i];
             assertEq(escrowMigrator.registeredEntryIDs(account, i), entryID);
             (uint256 escrowAmount, uint256 duration, uint64 endTime, bool migrated) =
-                escrowMigrator.registeredVestingSchedules(account, entryID);
+                escrowMigrator.getRegisteredVestingEntry(account, entryID);
             (uint64 endTimeOriginal, uint256 escrowAmountOriginal, uint256 durationOriginal) =
                 rewardEscrowV1.getVestingEntry(account, entryID);
             assertEq(escrowAmount, escrowAmountOriginal);
@@ -417,6 +432,11 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         toPay = approve(account);
     }
 
+    function checkStateAfterStepThree(address account) internal {
+        uint256[] memory _entryIDs = getEntryIDs(account);
+        checkStateAfterStepThree(account, account, _entryIDs);
+    }
+
     function checkStateAfterStepThree(address account, uint256 index, uint256 amount) internal {
         uint256[] memory _entryIDs = getEntryIDs(account, index, amount);
         checkStateAfterStepThree(account, account, _entryIDs);
@@ -462,7 +482,7 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
             rewardEscrowV2.getVestingEntry(newEntryID);
 
         (uint256 registeredEscrowAmount, uint256 registeredDuration, uint64 registeredEndTime,) =
-            escrowMigrator.registeredVestingSchedules(account, oldEntryID);
+            escrowMigrator.getRegisteredVestingEntry(account, oldEntryID);
 
         assertEq(earlyVestingFee, 90);
         assertEq(escrowAmount, registeredEscrowAmount);
@@ -483,7 +503,7 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         assertEq(escrowMigrator.registeredEntryIDs(account, i), entryID);
 
         (escrowAmount, duration, endTime, migrated) =
-            escrowMigrator.registeredVestingSchedules(account, entryID);
+            escrowMigrator.getRegisteredVestingEntry(account, entryID);
         (uint64 endTimeOriginal, uint256 escrowAmountOriginal, uint256 durationOriginal) =
             rewardEscrowV1.getVestingEntry(account, entryID);
 
