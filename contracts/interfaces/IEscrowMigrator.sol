@@ -60,7 +60,7 @@ interface IEscrowMigrator {
     /// @notice Get the vesting entry data for a given account and entry ID
     /// @param account The address of the account to query
     /// @param entryID The ID of the entry to query
-    function getRegistereddEntry(address account, uint256 entryID)
+    function getRegisteredVestingEntry(address account, uint256 entryID)
         external
         view
         returns (uint256 escrowAmount, uint256 duration, uint64 endTime, bool migrated);

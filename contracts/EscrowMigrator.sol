@@ -185,7 +185,7 @@ contract EscrowMigrator is
     }
 
     /// @inheritdoc IEscrowMigrator
-    function getRegistereddEntry(address account, uint256 entryID)
+    function getRegisteredVestingEntry(address account, uint256 entryID)
         external
         view
         override
