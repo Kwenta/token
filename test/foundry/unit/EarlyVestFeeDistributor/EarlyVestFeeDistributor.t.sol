@@ -762,8 +762,7 @@ contract EarlyVestFeeDistributorTest is DefaultStakingV2Setup {
         vm.stopPrank();
         /// @dev checkpoint at the end of epoch 0
         /// to remove cross epoch distribution
-        /// -2 because setup takes 2 seconds
-        goForward(1 weeks - 2);
+        goForward(1 weeks);
         earlyVestFeeDistributor.checkpointToken();
 
         /// @dev send fees to EarlyVestFeeDistributor 1 second before
