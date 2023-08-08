@@ -1506,7 +1506,7 @@ contract EarlyVestFeeDistributorTest is DefaultStakingV2Setup {
         assertEq(result1, 0);
 
         /// @dev right at the start of epoch 1
-        goForward(2 days - 2);
+        goForward(2 days);
         uint result2 = eVFDI.epochFromTimestamp(block.timestamp);
         assertEq(result2, 1);
 
@@ -1515,9 +1515,14 @@ contract EarlyVestFeeDistributorTest is DefaultStakingV2Setup {
         uint result3 = eVFDI.epochFromTimestamp(block.timestamp);
         assertEq(result3, 1);
 
-        goForward(10 weeks);
+        /// @dev turn over into a new offset week
+        goForward(2 days);
         uint result4 = eVFDI.epochFromTimestamp(block.timestamp);
-        assertEq(result4, 11);
+        assertEq(result4, 2);
+
+        goForward(10 weeks);
+        uint result5 = eVFDI.epochFromTimestamp(block.timestamp);
+        assertEq(result5, 12);
     }
 
     /// @notice make sure _startOfWeek and _startOfEpoch are always aligned
