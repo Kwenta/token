@@ -79,7 +79,6 @@ contract EscrowMigrator is
     mapping(address => uint256) public paidSoFar;
 
     // OPT: consider just storing numberOfRegisterdEntries intead of the array
-    // TODO: add view function to return this data as a memory array, and to query individual entries
     mapping(address => uint256[]) public registeredEntryIDs;
 
     /*///////////////////////////////////////////////////////////////
