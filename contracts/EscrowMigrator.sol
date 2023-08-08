@@ -352,7 +352,6 @@ contract EscrowMigrator is
                              UPGRADEABILITY
     //////////////////////////////////////////////////////////////*/
 
-    // TODO: test onlyOwner and test upgradeability
     function _authorizeUpgrade(address _newImplementation) internal override onlyOwner {}
 
     /*///////////////////////////////////////////////////////////////
