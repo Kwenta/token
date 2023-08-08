@@ -80,7 +80,6 @@ contract EscrowMigrator is
 
     mapping(address => uint256) public paidSoFar;
 
-    // OPT: consider just storing numberOfRegisterdEntries intead of the array
     mapping(address => uint256[]) public registeredEntryIDs;
 
     /*///////////////////////////////////////////////////////////////
