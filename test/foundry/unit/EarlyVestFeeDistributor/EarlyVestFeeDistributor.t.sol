@@ -1070,17 +1070,17 @@ contract EarlyVestFeeDistributorTest is DefaultStakingV2Setup {
             0
         );
         uint result1 = eVFDI.startOfWeek(block.timestamp);
-        assertEq(result1, 1 weeks);
+        assertEq(result1, startTime);
 
         /// @dev this is 1 second before the turn of the week
-        goForward(1 weeks - 3);
+        goForward(1 weeks - 1);
         uint result2 = eVFDI.startOfWeek(block.timestamp);
-        assertEq(result2, 1 weeks);
+        assertEq(result2, startTime);
 
         /// @dev this is the first second of week 2
         goForward(1);
         uint result3 = eVFDI.startOfWeek(block.timestamp);
-        assertEq(result3, 2 weeks);
+        assertEq(result3, startTime + 1 weeks);
     }
 
     /// @notice test claiming an unready epoch with an offset
