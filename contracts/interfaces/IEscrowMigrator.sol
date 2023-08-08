@@ -6,8 +6,21 @@ interface IEscrowMigrator {
                            STRUCTS AND ENUMS
     //////////////////////////////////////////////////////////////*/
 
-    /// @notice A vesting entry contains the data for each escrow NFT
+    /// @notice A vesting entry contains the data for each escrow entry
     struct VestingEntry {
+        // The amount of KWENTA stored in this vesting entry
+        uint256 escrowAmount;
+        // The length of time until the entry is fully matured
+        uint256 duration;
+        // The time at which the entry will be fully matured
+        uint64 endTime;
+        bool migrated;
+    }
+
+    /// @notice A vesting entry contains the data for each escrow entry
+    struct VestingEntryWithID {
+        // The entryID associated with this vesting entry
+        uint256 entryID;
         // The amount of KWENTA stored in this vesting entry
         uint256 escrowAmount;
         // The length of time until the entry is fully matured
@@ -64,6 +77,16 @@ interface IEscrowMigrator {
         external
         view
         returns (uint256 escrowAmount, uint256 duration, uint64 endTime, bool migrated);
+
+    /// @notice get a list of vesting entries for a given account 
+    /// @param account The address of the account to query
+    /// @param index The index of the first entry to query
+    /// @param pageSize The number of entries to query
+    function getRegisteredVestingSchedules(
+        address account,
+        uint256 index,
+        uint256 pageSize
+    ) external view returns (VestingEntryWithID[] memory);
 
     /*//////////////////////////////////////////////////////////////
                                  STEP 0
@@ -137,6 +160,9 @@ interface IEscrowMigrator {
     /*//////////////////////////////////////////////////////////////
                                 ERRORS
     //////////////////////////////////////////////////////////////*/
+
+    /// @notice There are not enough entries to get vesting schedules starting from this index
+    error InvalidIndex();
 
     /// @notice cannot set this value to the zero address
     error ZeroAddress();

@@ -237,6 +237,53 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
     }
 
     /*//////////////////////////////////////////////////////////////
+                                 VIEWS
+    //////////////////////////////////////////////////////////////*/
+
+    function test_getRegisteredVestingSchedules() public {
+        (uint256[] memory _entryIDs,) = claimAndCheckInitialState(user1);
+
+        registerEntries(user1, _entryIDs);
+
+        IEscrowMigrator.VestingEntryWithID[] memory registeredEntries =
+            escrowMigrator.getRegisteredVestingSchedules(user1, 0, 10);
+
+        for (uint256 i = 0; i < registeredEntries.length; i++) {
+            IEscrowMigrator.VestingEntryWithID memory entry = registeredEntries[i];
+            (uint64 endTime, uint256 escrowAmount, uint256 duration) =
+                rewardEscrowV1.getVestingEntry(user1, entry.entryID);
+
+            assertEq(entry.entryID, _entryIDs[i]);
+            assertEq(entry.escrowAmount, escrowAmount);
+            assertEq(entry.duration, duration);
+            assertEq(entry.endTime, endTime);
+            assertEq(entry.migrated, false);
+        }
+    }
+
+    function test_getRegisteredVestingSchedules_Wrong_Account() public {
+        (uint256[] memory _entryIDs,) = claimAndCheckInitialState(user1);
+
+        registerEntries(user1, _entryIDs);
+
+        IEscrowMigrator.VestingEntryWithID[] memory registeredEntries =
+            escrowMigrator.getRegisteredVestingSchedules(user2, 0, 10);
+
+        assertEq(registeredEntries.length, 0);
+    }
+
+    function test_getRegisteredVestingSchedules_Size_0() public {
+        (uint256[] memory _entryIDs,) = claimAndCheckInitialState(user1);
+
+        registerEntries(user1, _entryIDs);
+
+        IEscrowMigrator.VestingEntryWithID[] memory registeredEntries =
+            escrowMigrator.getRegisteredVestingSchedules(user1, 0, 0);
+
+        assertEq(registeredEntries.length, 0);
+    }
+
+    /*//////////////////////////////////////////////////////////////
                               STEP 1 TESTS
     //////////////////////////////////////////////////////////////*/
 
@@ -1373,7 +1420,24 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
                                GAS TESTS
     //////////////////////////////////////////////////////////////*/
 
-    function test_Max_Registerable_In_One_Go() public {
+    // function test_Max_Registerable_In_One_Go() public {
+    //     uint256 numInRound = 1500;
+    //     console.log("num in round:", numInRound);
 
-    }
+    //     address botUser = OPTIMISM_RANDOM_STAKING_BOT_USER_1;
+    //     claimAndCheckInitialState(botUser);
+    //     uint256[] memory _entryIDs = getEntryIDs(botUser, 0, numInRound);
+
+    //     startMeasuringGas("registering entries");
+    //     registerEntries(botUser, _entryIDs);
+    //     uint256 gasDelta = stopMeasuringGas() + 21_000;
+    //     assertLe(gasDelta, 15_000_000);
+
+    //     vestAndApprove(botUser, 0, numInRound);
+
+    //     startMeasuringGas("migrating entries");
+    //     migrateEntries(botUser, _entryIDs);
+    //     gasDelta = stopMeasuringGas() + 21_000;
+    //     assertLe(gasDelta, 15_000_000);
+    // }
 }

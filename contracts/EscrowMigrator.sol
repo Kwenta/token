@@ -197,6 +197,53 @@ contract EscrowMigrator is
         migrated = registeredVestingSchedules[account][entryID].migrated;
     }
 
+    /// @inheritdoc IEscrowMigrator
+    function getRegisteredVestingSchedules(address account, uint256 index, uint256 pageSize)
+        external
+        view
+        override
+        returns (VestingEntryWithID[] memory)
+    {
+        if (pageSize == 0) {
+            return new VestingEntryWithID[](0);
+        }
+
+        uint256 endIndex = index + pageSize;
+
+        // If the page extends past the end of the list, truncate it.
+        uint256 numEntries = numberOfRegisteredEntries(account);
+        if (endIndex > numEntries) {
+            endIndex = numEntries;
+        }
+
+        if (endIndex < index) revert InvalidIndex();
+
+        uint256 n;
+        unchecked {
+            n = endIndex - index;
+        }
+
+        VestingEntryWithID[] memory vestingEntries = new VestingEntryWithID[](n);
+        for (uint256 i; i < n;) {
+            uint256 entryID = registeredEntryIDs[account][i + index];
+
+            VestingEntry storage entry = registeredVestingSchedules[account][entryID];
+
+            vestingEntries[i] = VestingEntryWithID({
+                entryID: entryID,
+                escrowAmount: entry.escrowAmount,
+                duration: entry.duration,
+                endTime: entry.endTime,
+                migrated: entry.migrated
+            });
+
+            unchecked {
+                ++i;
+            }
+        }
+        return vestingEntries;
+    }
+
     /*//////////////////////////////////////////////////////////////
                                  STEP 0
     //////////////////////////////////////////////////////////////*/
