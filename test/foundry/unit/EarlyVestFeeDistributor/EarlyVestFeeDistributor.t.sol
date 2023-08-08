@@ -1003,7 +1003,7 @@ contract EarlyVestFeeDistributorTest is DefaultStakingV2Setup {
         vm.stopPrank();
 
         /// @dev fees received at the start of the epoch (should be + 2 days)
-        goForward(2 days - 2);
+        goForward(2 days);
         earlyVestFeeDistributorOffset.checkpointToken();
         kwenta.transfer(address(earlyVestFeeDistributorOffset), amount);
 
@@ -1011,7 +1011,7 @@ contract EarlyVestFeeDistributorTest is DefaultStakingV2Setup {
         goForward(1 weeks);
         goForward(time);
         vm.expectEmit(true, true, true, true);
-        emit CheckpointToken(1382400 + time, amount);
+        emit CheckpointToken(startTime + 1 weeks + 2 days + time, amount);
         vm.expectEmit(true, true, true, true);
         emit EpochClaim(address(user1), 1, proportionalFees1);
         earlyVestFeeDistributorOffset.claimEpoch(address(user1), 1);
