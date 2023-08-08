@@ -788,6 +788,83 @@ contract EarlyVestFeeDistributorTest is DefaultStakingV2Setup {
         earlyVestFeeDistributor.claimEpoch(address(user1), 1);
     }
 
+    /// @notice fuzz claimEpochFees, fuzz time with a random start
+    /// (when the distributor does not start right at a truncated week)
+    function testFuzzTimeClaimWithRandomStart(
+        uint256 amount,
+        uint128 staking1,
+        uint128 staking2,
+        uint128 time,
+        uint128 randomStart
+    ) public {
+        vm.assume(time > 0);
+        vm.assume(randomStart > 0);
+        vm.assume(randomStart < 1 weeks);
+        goForward(randomStart);
+        EarlyVestFeeDistributor earlyVestFeeDistributorRandom = new EarlyVestFeeDistributor(
+                address(kwenta),
+                address(stakingRewardsV2),
+                address(rewardEscrowV2),
+                0
+        );
+
+        /// @dev make sure its less than this contract
+        /// holds and greater than 10 so the result isn't
+        /// 0 after dividing
+        vm.assume(amount < 10_000 ether);
+        vm.assume(amount > 10);
+
+        vm.assume(staking1 < 45_000 ether);
+        vm.assume(staking1 > 0);
+
+        vm.assume(staking2 < 45_000 ether);
+        vm.assume(staking2 > 0);
+
+        /// @dev this is so we dont get "Cannot claim 0 fees"
+        vm.assume(time < 52 weeks);
+        uint proportionalFees = (((amount * 1 weeks) / (time + randomStart)) *
+            staking1) / (staking1 + staking2);
+        vm.assume(proportionalFees > 0);
+
+        kwenta.transfer(address(user1), staking1);
+        kwenta.transfer(address(user2), staking2);
+        vm.startPrank(address(user1));
+        kwenta.approve(address(stakingRewardsV2), staking1);
+        stakingRewardsV2.stake(staking1);
+        vm.stopPrank();
+        vm.startPrank(address(user2));
+        kwenta.approve(address(stakingRewardsV2), staking2);
+        stakingRewardsV2.stake(staking2);
+        vm.stopPrank();
+
+        /// @dev forward a random amount of time
+        goForward(time);
+        kwenta.transfer(address(earlyVestFeeDistributorRandom), amount);
+
+        /// @dev this is so we dont get "Cannot claim yet"
+        /// cannot claim epoch 1 until 2 weeks has passed
+        if (randomStart + time < 2 weeks) {
+            vm.prank(user1);
+            vm.expectRevert(
+            abi.encodeWithSelector(IEarlyVestFeeDistributor.CannotClaimYet.selector)
+            );
+            earlyVestFeeDistributorRandom.claimEpoch(address(user1), 1);
+        } else {
+            vm.prank(user1);
+            vm.expectEmit(true, true, false, true);
+            emit VestingEntryCreated(
+                address(user1),
+                proportionalFees,
+                52 weeks,
+                1,
+                90
+            );
+            vm.expectEmit(true, true, true, true);
+            emit EpochClaim(address(user1), 1, proportionalFees);
+            earlyVestFeeDistributorRandom.claimEpoch(address(user1), 1);
+        }
+    }
+
     /// @notice test everything with a custom offset
     function testOffset() public {
         EarlyVestFeeDistributor earlyVestFeeDistributorOffset = new EarlyVestFeeDistributor(
