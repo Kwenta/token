@@ -21,6 +21,7 @@
     "deploy:mainnet": "npx hardhat run --network optimistic-mainnet scripts/deploy.ts",
     "deploy:escrow-distributor:testnet": "npx hardhat run --network optimistic-goerli scripts/deploy-escrow-distributor.ts",
     "deploy:stakingv2-tenderly": "npx hardhat run --network tenderly scripts/deploy-stakingv2-tenderly.ts",
+    "tenderly:time": "npx hardhat run --network tenderly scripts/get-tenderly-time.ts",
     "interact:local": "npx hardhat interact --network localhost",
     "gas-snapshot": "forge snapshot"
   },
