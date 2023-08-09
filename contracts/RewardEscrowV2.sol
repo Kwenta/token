@@ -142,9 +142,7 @@ contract RewardEscrowV2 is
     /// @inheritdoc IRewardEscrowV2
     function setStakingRewards(address _stakingRewards) external override onlyOwner {
         if (_stakingRewards == address(0)) revert ZeroAddress();
-        if (address(stakingRewards) != address(0)) {
-            revert StakingRewardsAlreadySet();
-        }
+        if (address(stakingRewards) != address(0)) revert StakingRewardsAlreadySet();
 
         stakingRewards = IStakingRewardsV2(_stakingRewards);
         emit StakingRewardsSet(_stakingRewards);
@@ -443,12 +441,8 @@ contract RewardEscrowV2 is
         uint8 _earlyVestingFee
     ) external override whenNotPaused {
         if (_beneficiary == address(0)) revert ZeroAddress();
-        if (_earlyVestingFee > MAXIMUM_EARLY_VESTING_FEE) {
-            revert EarlyVestingFeeTooHigh();
-        }
-        if (_earlyVestingFee < MINIMUM_EARLY_VESTING_FEE) {
-            revert EarlyVestingFeeTooLow();
-        }
+        if (_earlyVestingFee > MAXIMUM_EARLY_VESTING_FEE) revert EarlyVestingFeeTooHigh();
+        if (_earlyVestingFee < MINIMUM_EARLY_VESTING_FEE) revert EarlyVestingFeeTooLow();
         if (_deposit == 0) revert ZeroAmount();
         uint256 minimumDuration = stakingRewards.cooldownPeriod();
         if (_duration < minimumDuration || _duration > MAX_DURATION) revert InvalidDuration();
