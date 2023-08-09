@@ -26,8 +26,6 @@ import {IStakingRewardsIntegrator} from "./interfaces/IStakingRewardsIntegrator.
 /// Once again:
 /// If a user vests an entry after initiating without registering it first, they will have to pay extra for it
 
-// TODO: add events???
-
 /*//////////////////////////////////////////////////////////////
                         ESCROW MIGRATOR
 //////////////////////////////////////////////////////////////*/
