@@ -90,55 +90,23 @@ async function main() {
  ************************************************/
 
 const setStakingRewardsOnSupplySchedule = async (stakingRewardsV2: string) => {
-    const supplySchedule = await ethers.getContractAt(
-        "SupplySchedule",
-        OPTIMISM_SUPPLY_SCHEDULE
-    );
-
-    const unsignedTx = await supplySchedule.populateTransaction[
-        "setStakingRewards"
-    ](stakingRewardsV2);
-
-    const transactionParameters = [
-        {
-            to: supplySchedule.address,
-            from: OPTIMISM_PDAO,
-            data: unsignedTx.data,
-        },
-    ];
-
-    console.log(
-        "SupplySchedule: stakingRewards address set to:       ",
-        stakingRewardsV2
-    );
-
-    await provider.send("eth_sendTransaction", transactionParameters);
+    await sendTransaction({
+        contractName: "SupplySchedule",
+        contractAddress: OPTIMISM_SUPPLY_SCHEDULE,
+        functionName: "setStakingRewards",
+        functionArgs: [stakingRewardsV2],
+        from: OPTIMISM_PDAO,
+    });
 };
 
 const setTreasuryDAOOnRewardEscrow = async (escrowMigrator: string) => {
-    const rewardEscrow = await ethers.getContractAt(
-        "RewardEscrow",
-        OPTIMISM_REWARD_ESCROW_V1
-    );
-
-    const unsignedTx = await rewardEscrow.populateTransaction["setTreasuryDAO"](
-        escrowMigrator
-    );
-
-    const transactionParameters = [
-        {
-            to: rewardEscrow.address,
-            from: OPTIMISM_PDAO,
-            data: unsignedTx.data,
-        },
-    ];
-
-    console.log(
-        "RewardEscrow: treasuryDAO address set to:            ",
-        escrowMigrator
-    );
-
-    await provider.send("eth_sendTransaction", transactionParameters);
+    await sendTransaction({
+        contractName: "RewardEscrow",
+        contractAddress: OPTIMISM_REWARD_ESCROW_V1,
+        functionName: "setTreasuryDAO",
+        functionArgs: [escrowMigrator],
+        from: OPTIMISM_PDAO,
+    });
 };
 
 /************************************************
@@ -256,7 +224,46 @@ export const getInitializerData = (
     }
 };
 
-const remove0xFromAddress = (address: string): string => address.slice(-40);
+const sendTransaction = async ({
+    contractName,
+    contractAddress,
+    functionName,
+    functionArgs,
+    from,
+}: {
+    contractName: string;
+    contractAddress: string;
+    functionName: string;
+    functionArgs: unknown[];
+    from: string;
+}) => {
+    const contract = await ethers.getContractAt(contractName, contractAddress);
+
+    const unsignedTx = await contract.populateTransaction[functionName](
+        ...functionArgs
+    );
+
+    const transactionParameters = [
+        {
+            to: contract.address,
+            from: from,
+            data: unsignedTx.data,
+        },
+    ];
+
+    createLog(contractName, functionName, functionArgs);
+    await provider.send("eth_sendTransaction", transactionParameters);
+};
+
+const createLog = (
+    contractName: string,
+    functionName: string,
+    functionArgs: unknown[]
+) => {
+    let log = `${contractName}: ${functionName} called with:`;
+    while (log.length < 53) log += " ";
+    console.log(log, ...functionArgs);
+};
 
 /************************************************
  * @execute
