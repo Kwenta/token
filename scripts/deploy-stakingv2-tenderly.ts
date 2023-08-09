@@ -52,8 +52,6 @@ async function main() {
 
     console.log("\n🔩 Configuring setters...");
     // set treasuryDAO for reward escrow v2
-    // TODO: rewardEscrowV2.setTreasuryDAO is not a function - return implementation contract wrapped around proxy contract address
-    // instead of actual proxy contract
     await rewardEscrowV2.setTreasuryDAO(OPTIMISM_TREASURY_DAO);
     console.log(
         "RewardEscrowV2: treasuryDAO address set to:          ",
@@ -79,21 +77,23 @@ async function main() {
 
     console.log("\n🔩 Migration setters...");
 
-    // setTreasuryDAO
-    provider.send("tenderly_simulateTransaction", [
-        {
-            from: OPTIMISM_PDAO,
-            to: OPTIMISM_SUPPLY_SCHEDULE,
-            gas: "0x7a1200",
-            gasPrice: "0x0",
-            value: "0x0",
-            data: `0x6fb83a57000000000000000000000000${remove0xFromAddress(
-                rewardEscrowV2.address
-            )}`,
-        },
-    ]);
+    // // setTreasuryDAO
+    // provider.send("tenderly_simulateTransaction", [
+    //     {
+    //         from: OPTIMISM_PDAO,
+    //         to: OPTIMISM_SUPPLY_SCHEDULE,
+    //         gas: "0x7a1200",
+    //         gasPrice: "0x0",
+    //         value: "0x0",
+    //         data: `0x6fb83a57000000000000000000000000${remove0xFromAddress(
+    //             rewardEscrowV2.address
+    //         )}`,
+    //     },
+    // ]);
 
     console.log("✅ Migration setters set!");
+
+    // TODO: transfer ownership to PDAO after setup
 }
 
 /************************************************
@@ -174,7 +174,12 @@ const deployUUPSProxy = async ({
         name: "ERC1967ProxyExposed",
         address: proxy.address,
     });
-    return [proxy, implementation];
+
+    const wrappedProxy = await ethers.getContractAt(
+        contractName,
+        proxy.address
+    );
+    return [wrappedProxy, implementation];
 };
 
 export const getInitializerData = (
