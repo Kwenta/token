@@ -5,6 +5,7 @@
 // Runtime Environment's members available in the global scope.
 import { ethers, tenderly } from "hardhat";
 import { Interface } from "@ethersproject/abi";
+import { Contract } from "ethers";
 
 const OPTIMISM_KWENTA_TOKEN = "0x920Cf626a271321C151D027030D5d08aF699456b";
 const OPTIMISM_PDAO = "0xe826d43961a87fBE71C91d9B73F7ef9b16721C07";
@@ -84,72 +85,75 @@ async function main() {
 
     // ========== OWNERSHIP ========== */
 
-    await rewardEscrowV2.transferOwnership(OPTIMISM_PDAO);
-    console.log(
-        "RewardEscrowV2: owner address set to:                ",
+    console.log("\n🔐 Ownership transfers...");
+
+    await transferOwnership(rewardEscrowV2, "RewardEscrowV2", OPTIMISM_PDAO);
+    await transferOwnership(
+        stakingRewardsV2,
+        "StakingRewardsV2",
         OPTIMISM_PDAO
     );
-    await stakingRewardsV2.transferOwnership(OPTIMISM_PDAO);
-    console.log(
-        "StakingRewardsV2: owner address set to:              ",
-        OPTIMISM_PDAO
-    );
-    await escrowMigrator.transferOwnership(OPTIMISM_PDAO);
-    console.log(
-        "EscrowMigrator: owner address set to:                ",
-        OPTIMISM_PDAO
-    );
+    await transferOwnership(escrowMigrator, "EscrowMigrator", OPTIMISM_PDAO);
 
-    await sendTransaction({
-        contractName: "RewardEscrowV2",
-        contractAddress: rewardEscrowV2.address,
-        functionName: "acceptOwnership",
-        functionArgs: [],
-        from: OPTIMISM_PDAO,
-    });
-    console.log("RewardEscrowV2: ownership accepted");
-
-    await sendTransaction({
-        contractName: "StakingRewardsV2",
-        contractAddress: stakingRewardsV2.address,
-        functionName: "acceptOwnership",
-        functionArgs: [],
-        from: OPTIMISM_PDAO,
-    });
-    console.log("StakingRewardsV2: ownership accepted");
-
-    await sendTransaction({
-        contractName: "EscrowMigrator",
-        contractAddress: escrowMigrator.address,
-        functionName: "acceptOwnership",
-        functionArgs: [],
-        from: OPTIMISM_PDAO,
-    });
-    console.log("EscrowMigrator: ownership accepted");
+    console.log("✅ Ownership transferred!");
 }
+
+/************************************************
+ * @ownership
+ ************************************************/
+
+const transferOwnership = async (
+    contract: Contract,
+    contractName: string,
+    to: string
+) => {
+    await contract.transferOwnership(to);
+    console.log(extendLog(`${contractName}: owner address set to:`), to);
+
+    await sendTransaction({
+        contractName: contractName,
+        contractAddress: contract.address,
+        functionName: "acceptOwnership",
+        functionArgs: [],
+        from: to,
+    });
+    console.log(extendLog(`${contractName}: ownership accepted by:`), to);
+};
 
 /************************************************
  * @setters
  ************************************************/
 
 const setStakingRewardsOnSupplySchedule = async (stakingRewardsV2: string) => {
+    const contractName = "SupplySchedule";
+    const functionName = "setStakingRewards";
+    const functionArgs = [stakingRewardsV2];
+
     await sendTransaction({
-        contractName: "SupplySchedule",
+        contractName,
         contractAddress: OPTIMISM_SUPPLY_SCHEDULE,
-        functionName: "setStakingRewards",
-        functionArgs: [stakingRewardsV2],
+        functionName,
+        functionArgs,
         from: OPTIMISM_PDAO,
     });
+
+    logTransaction(contractName, functionName, functionArgs);
 };
 
 const setTreasuryDAOOnRewardEscrow = async (escrowMigrator: string) => {
+    const contractName = "RewardEscrow";
+    const functionName = "setTreasuryDAO";
+    const functionArgs = [escrowMigrator];
+
     await sendTransaction({
-        contractName: "RewardEscrow",
+        contractName,
         contractAddress: OPTIMISM_REWARD_ESCROW_V1,
-        functionName: "setTreasuryDAO",
-        functionArgs: [escrowMigrator],
+        functionName,
+        functionArgs,
         from: OPTIMISM_PDAO,
     });
+
+    logTransaction(contractName, functionName, functionArgs);
 };
 
 /************************************************
@@ -294,18 +298,21 @@ const sendTransaction = async ({
         },
     ];
 
-    createLog(contractName, functionName, functionArgs);
     await provider.send("eth_sendTransaction", transactionParameters);
 };
 
-const createLog = (
+const logTransaction = (
     contractName: string,
     functionName: string,
     functionArgs: unknown[]
 ) => {
     let log = `${contractName}: ${functionName} called with:`;
+    console.log(extendLog(log), ...functionArgs);
+};
+
+const extendLog = (log: string) => {
     while (log.length < 53) log += " ";
-    console.log(log, ...functionArgs);
+    return log;
 };
 
 /************************************************
