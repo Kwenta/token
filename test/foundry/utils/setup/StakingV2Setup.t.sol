@@ -7,6 +7,7 @@ import {StakingV1Setup} from "../../utils/setup/StakingV1Setup.t.sol";
 import {RewardEscrowV2} from "../../../../contracts/RewardEscrowV2.sol";
 import {EscrowMigrator} from "../../../../contracts/EscrowMigrator.sol";
 import {StakingRewardsV2} from "../../../../contracts/StakingRewardsV2.sol";
+import {EarlyVestFeeDistributor} from "../../../../contracts/EarlyVestFeeDistributor.sol";
 import {IRewardEscrowV2} from "../../../../contracts/interfaces/IRewardEscrowV2.sol";
 import "../../utils/Constants.t.sol";
 
@@ -30,7 +31,10 @@ contract StakingV2Setup is StakingV1Setup {
         uint8 earlyVestingFee
     );
     event TreasuryDAOSet(address treasuryDAO);
+    event EarlyVestFeeDistributorSet(address earlyVestFeeDistributor);
     event StakingRewardsSet(address stakingRewards);
+    event EarlyVestFeeSentToDAO(uint256 amount);
+    event EarlyVestFeeSentToDistributor(uint256 amount);
     event EscrowMigratorSet(address escrowMigrator);
 
     /*//////////////////////////////////////////////////////////////
@@ -40,6 +44,7 @@ contract StakingV2Setup is StakingV1Setup {
     RewardEscrowV2 internal rewardEscrowV2;
     StakingRewardsV2 internal stakingRewardsV2;
     EscrowMigrator internal escrowMigrator;
+    EarlyVestFeeDistributor internal earlyVestFeeDistributor;
     Migrate internal migrate;
 
     address rewardEscrowV2Implementation;
@@ -64,6 +69,7 @@ contract StakingV2Setup is StakingV1Setup {
                 address(supplySchedule),
                 address(rewardEscrowV1),
                 address(stakingRewardsV1),
+                0,
                 false
             )
         );
@@ -72,12 +78,21 @@ contract StakingV2Setup is StakingV1Setup {
             rewardEscrowV2,
             stakingRewardsV2,
             escrowMigrator,
+            earlyVestFeeDistributor,
             rewardEscrowV2Implementation,
             stakingRewardsV2Implementation,
             escrowMigratorImplementation
         ) = abi.decode(
             deploymentData,
-            (RewardEscrowV2, StakingRewardsV2, EscrowMigrator, address, address, address)
+            (
+                RewardEscrowV2,
+                StakingRewardsV2,
+                EscrowMigrator,
+                EarlyVestFeeDistributor,
+                address,
+                address,
+                address
+            )
         );
 
         // check staking rewards cannot be set to 0

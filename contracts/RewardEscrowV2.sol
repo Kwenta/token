@@ -5,7 +5,8 @@ pragma solidity 0.8.19;
 import {IRewardEscrowV2} from "./interfaces/IRewardEscrowV2.sol";
 import {ERC721EnumerableUpgradeable} from
     "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
-import {Ownable2StepUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
+import {Ownable2StepUpgradeable} from
+    "@openzeppelin/contracts-upgradeable/access/Ownable2StepUpgradeable.sol";
 import {PausableUpgradeable} from
     "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
@@ -79,6 +80,9 @@ contract RewardEscrowV2 is
     /// @notice The total remaining escrowed balance, for verifying the actual KWENTA balance of this contract against
     uint256 public totalEscrowedBalance;
 
+    /// @notice EarlyVestFeeDistributor address
+    address public earlyVestFeeDistributor;
+
     /*///////////////////////////////////////////////////////////////
                                 AUTH
     ///////////////////////////////////////////////////////////////*/
@@ -138,7 +142,9 @@ contract RewardEscrowV2 is
     /// @inheritdoc IRewardEscrowV2
     function setStakingRewards(address _stakingRewards) external override onlyOwner {
         if (_stakingRewards == address(0)) revert ZeroAddress();
-        if (address(stakingRewards) != address(0)) revert StakingRewardsAlreadySet();
+        if (address(stakingRewards) != address(0)) {
+            revert StakingRewardsAlreadySet();
+        }
 
         stakingRewards = IStakingRewardsV2(_stakingRewards);
         emit StakingRewardsSet(_stakingRewards);
@@ -157,6 +163,17 @@ contract RewardEscrowV2 is
         if (_treasuryDAO == address(0)) revert ZeroAddress();
         treasuryDAO = _treasuryDAO;
         emit TreasuryDAOSet(treasuryDAO);
+    }
+
+    /// @inheritdoc IRewardEscrowV2
+    function setEarlyVestFeeDistributor(address _earlyVestFeeDistributor)
+        external
+        override
+        onlyOwner
+    {
+        if (_earlyVestFeeDistributor == address(0)) revert ZeroAddress();
+        earlyVestFeeDistributor = _earlyVestFeeDistributor;
+        emit EarlyVestFeeDistributorSet(earlyVestFeeDistributor);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -218,7 +235,9 @@ contract RewardEscrowV2 is
             n = endIndex - _index;
         }
 
-        VestingEntryWithID[] memory vestingEntries = new VestingEntryWithID[](n);
+        VestingEntryWithID[] memory vestingEntries = new VestingEntryWithID[](
+            n
+        );
         for (uint256 i; i < n;) {
             uint256 entryID;
 
@@ -331,7 +350,7 @@ contract RewardEscrowV2 is
         uint256 timeUntilVest = _entry.endTime - block.timestamp;
         // Fee starts by default at 90% (but could be any percentage) and falls linearly
         earlyVestFee =
-            _entry.escrowAmount * _entry.earlyVestingFee * timeUntilVest / (100 * _entry.duration);
+            (_entry.escrowAmount * _entry.earlyVestingFee * timeUntilVest) / (100 * _entry.duration);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -380,10 +399,22 @@ contract RewardEscrowV2 is
             // trigger event
             emit Vested(msg.sender, total);
 
-            // Send any fee to Treasury
+            // Send 50% any fee to Treasury and
+            // 50% to EarlyVestFeeDistributor
+            // UNLESS Distributor isn't set
+            // then send all funds to Treasury
             if (totalFee != 0) {
-                /// @dev this will revert if the kwenta token transfer fails
-                kwenta.transfer(treasuryDAO, totalFee);
+                if (earlyVestFeeDistributor == address(0)) {
+                    kwenta.transfer(treasuryDAO, totalFee);
+                    emit EarlyVestFeeSentToDAO(totalFee);
+                } else {
+                    /// @dev this will revert if the kwenta token transfer fails
+                    uint256 proportionalFee = totalFee / 2;
+                    kwenta.transfer(treasuryDAO, proportionalFee);
+                    kwenta.transfer(earlyVestFeeDistributor, proportionalFee);
+                    emit EarlyVestFeeSentToDAO(proportionalFee);
+                    emit EarlyVestFeeSentToDistributor(proportionalFee);
+                }
             }
 
             if (total != 0) {
@@ -395,8 +426,13 @@ contract RewardEscrowV2 is
     }
 
     /// @inheritdoc IRewardEscrowV2
-    function importEscrowEntry(address _account, VestingEntry memory _entry) external onlyEscrowMigrator {
-        _mint(_account, _entry.endTime, _entry.escrowAmount, _entry.duration, _entry.earlyVestingFee);
+    function importEscrowEntry(address _account, VestingEntry memory _entry)
+        external
+        onlyEscrowMigrator
+    {
+        _mint(
+            _account, _entry.endTime, _entry.escrowAmount, _entry.duration, _entry.earlyVestingFee
+        );
     }
 
     /// @inheritdoc IRewardEscrowV2
@@ -407,8 +443,12 @@ contract RewardEscrowV2 is
         uint8 _earlyVestingFee
     ) external override whenNotPaused {
         if (_beneficiary == address(0)) revert ZeroAddress();
-        if (_earlyVestingFee > MAXIMUM_EARLY_VESTING_FEE) revert EarlyVestingFeeTooHigh();
-        if (_earlyVestingFee < MINIMUM_EARLY_VESTING_FEE) revert EarlyVestingFeeTooLow();
+        if (_earlyVestingFee > MAXIMUM_EARLY_VESTING_FEE) {
+            revert EarlyVestingFeeTooHigh();
+        }
+        if (_earlyVestingFee < MINIMUM_EARLY_VESTING_FEE) {
+            revert EarlyVestingFeeTooLow();
+        }
         if (_deposit == 0) revert ZeroAmount();
         uint256 minimumDuration = stakingRewards.cooldownPeriod();
         if (_duration < minimumDuration || _duration > MAX_DURATION) revert InvalidDuration();
@@ -467,7 +507,11 @@ contract RewardEscrowV2 is
 
     /// @dev override the internal _transfer function to ensure vestingSchedules and account balances are updated
     /// and that there is sufficient unstaked escrow for a transfer when transferFrom and safeTransferFrom are called
-    function _transfer(address _from, address _to, uint256 _entryID) internal override whenNotPaused {
+    function _transfer(address _from, address _to, uint256 _entryID)
+        internal
+        override
+        whenNotPaused
+    {
         uint256 escrowAmount = vestingSchedules[_entryID].escrowAmount;
 
         _applyTransferBalanceUpdates(_from, _to, escrowAmount);
@@ -497,9 +541,13 @@ contract RewardEscrowV2 is
         );
     }
 
-    function _mint(address _account, uint64 endTime, uint256 _quantity, uint256 _duration, uint8 _earlyVestingFee)
-        internal
-    {
+    function _mint(
+        address _account,
+        uint64 endTime,
+        uint256 _quantity,
+        uint256 _duration,
+        uint8 _earlyVestingFee
+    ) internal {
         // There must be enough balance in the contract to provide for the vesting entry.
         totalEscrowedBalance += _quantity;
         assert(kwenta.balanceOf(address(this)) >= totalEscrowedBalance);

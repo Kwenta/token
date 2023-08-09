@@ -105,4 +105,10 @@ contract TestHelpers is Test {
             }
         }
     }
+
+    function goForward(uint256 time) internal {
+        vm.warp(block.timestamp + time);
+        uint256 blockNumber = time / 12;
+        vm.roll(block.number + blockNumber);
+    }
 }

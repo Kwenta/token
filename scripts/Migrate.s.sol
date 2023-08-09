@@ -9,6 +9,7 @@ import {RewardEscrow} from "../contracts/RewardEscrow.sol";
 import {RewardEscrowV2} from "../contracts/RewardEscrowV2.sol";
 import {StakingRewardsV2} from "../contracts/StakingRewardsV2.sol";
 import {EscrowMigrator} from "../contracts/EscrowMigrator.sol";
+import {EarlyVestFeeDistributor} from "../contracts/EarlyVestFeeDistributor.sol";
 import "../test/foundry/utils/Constants.t.sol";
 
 // Upgradeability imports
@@ -32,6 +33,7 @@ contract Migrate {
         address _supplySchedule,
         address _rewardEscrowV1,
         address _stakingRewardsV1,
+        uint256 _daysToOffsetBy,
         bool _printLogs
     )
         public
@@ -39,6 +41,7 @@ contract Migrate {
             RewardEscrowV2 rewardEscrowV2,
             StakingRewardsV2 stakingRewardsV2,
             EscrowMigrator escrowMigrator,
+            EarlyVestFeeDistributor earlyVestFeeDistributor,
             address rewardEscrowV2Implementation,
             address stakingRewardsV2Implementation,
             address escrowMigratorImplementation
@@ -121,6 +124,18 @@ contract Migrate {
         }
         if (_printLogs) {
             console.log("Deployed EscrowMigrator Proxy at %s", address(escrowMigrator));
+        }
+
+        // Deploy EarlyVestFeeDistributor
+        earlyVestFeeDistributor = new EarlyVestFeeDistributor(
+            _kwenta,
+            address(stakingRewardsV2),
+            address(rewardEscrowV2),
+            _daysToOffsetBy
+        );
+
+        if (_printLogs) {
+            console.log("Deployed EarlyVestFeeDistributor at %s", address(earlyVestFeeDistributor));
         }
 
         if (_printLogs) console.log(unicode"--------- 🚀 DEPLOYMENT COMPLETE 🚀 ---------");
@@ -217,6 +232,7 @@ contract Migrate {
         address _treasuryDAO,
         address _rewardEscrowV1,
         address _stakingRewardsV1,
+        uint256 _daysToOffsetBy,
         bool _printLogs
     )
         public
@@ -224,6 +240,7 @@ contract Migrate {
             RewardEscrowV2 rewardEscrowV2,
             StakingRewardsV2 stakingRewardsV2,
             EscrowMigrator escrowMigrator,
+            EarlyVestFeeDistributor earlyVestFeeDistributor,
             address rewardEscrowV2Implementation,
             address stakingRewardsV2Implementation,
             address escrowMigratorImplementation
@@ -234,11 +251,18 @@ contract Migrate {
             rewardEscrowV2,
             stakingRewardsV2,
             escrowMigrator,
+            earlyVestFeeDistributor,
             rewardEscrowV2Implementation,
             stakingRewardsV2Implementation,
             escrowMigratorImplementation
         ) = deploySystem(
-            _owner, _kwenta, _supplySchedule, _rewardEscrowV1, _stakingRewardsV1, _printLogs
+            _owner,
+            _kwenta,
+            _supplySchedule,
+            _rewardEscrowV1,
+            _stakingRewardsV1,
+            _daysToOffsetBy,
+            _printLogs
         );
 
         // Step 2: Setup StakingV2 contracts
@@ -286,12 +310,14 @@ contract DeployAndSetupOptimism is Script, Migrate {
             EscrowMigrator escrowMigrator,
             ,
             ,
+            ,
         ) = Migrate.deploySystem(
             deployer,
             OPTIMISM_KWENTA_TOKEN,
             OPTIMISM_SUPPLY_SCHEDULE,
             OPTIMISM_REWARD_ESCROW_V1,
             OPTIMISM_STAKING_REWARDS_V1,
+            0, // TODO: choose correct value for this
             true
         );
 
@@ -334,12 +360,14 @@ contract DeployAndSetupOptimismGoerli is Script, Migrate {
             EscrowMigrator escrowMigrator,
             ,
             ,
+            ,
         ) = Migrate.deploySystem(
             deployer,
             OPTIMISM_GOERLI_KWENTA_TOKEN,
             OPTIMISM_GOERLI_SUPPLY_SCHEDULE,
             OPTIMISM_GOERLI_REWARD_ESCROW_V1,
             OPTIMISM_GOERLI_STAKING_REWARDS_V1,
+            0, // TODO: choose correct value for this
             true
         );
 
@@ -375,6 +403,7 @@ contract DeploySetupAndMigrateOptimismGoerli is Script, Migrate {
             OPTIMISM_GOERLI_TREASURY_DAO,
             OPTIMISM_GOERLI_REWARD_ESCROW_V1,
             OPTIMISM_GOERLI_STAKING_REWARDS_V1,
+            0, // TODO: choose correct value for this
             true
         );
 
