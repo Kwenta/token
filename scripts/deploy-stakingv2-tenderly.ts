@@ -96,6 +96,50 @@ async function main() {
     await transferOwnership(escrowMigrator, "EscrowMigrator", OPTIMISM_PDAO);
 
     console.log("✅ Ownership transferred!");
+
+    // ========== ADVANCE TIME ========== */
+
+    console.log("\n🕣 Update time...");
+
+    const supplySchedule = await ethers.getContractAt(
+        "SupplySchedule",
+        OPTIMISM_SUPPLY_SCHEDULE
+    );
+
+    const timeNow = await getLatestBlockTimestamp();
+    const timeOfLastMint = (await supplySchedule.lastMintEvent()).toNumber();
+    const mintPeriodDuration = (
+        await supplySchedule.MINT_PERIOD_DURATION()
+    ).toNumber();
+    const timeOfNextMint = timeOfLastMint + mintPeriodDuration;
+    const timeToNextMint = timeOfNextMint - timeNow;
+
+    if (timeToNextMint > 0) {
+        const params = [
+            ethers.utils.hexValue(timeToNextMint + 1), // hex encoded number of seconds
+        ];
+        await provider.send("evm_increaseTime", params);
+        console.log(
+            "Days fast forwarded:                                 ",
+            timeToNextMint / 60 / 60 / 24
+        );
+        console.log(
+            "Updated time to:                                     ",
+            timeOfNextMint,
+            new Date(timeOfNextMint * 1000)
+        );
+
+        const newTimeNow = await getLatestBlockTimestamp();
+        console.log(
+            "time confirmed:                              ",
+            newTimeNow,
+            new Date(newTimeNow * 1000)
+        );
+    } else {
+        console.log("Time not updated");
+    }
+
+    console.log("✅ Time updated!");
 }
 
 /************************************************
@@ -313,6 +357,13 @@ const logTransaction = (
 const extendLog = (log: string) => {
     while (log.length < 53) log += " ";
     return log;
+};
+
+const getLatestBlockTimestamp = async (): Promise<number> => {
+    const currentBlock = await ethers.provider.getBlockNumber();
+    const blockTimestamp = (await ethers.provider.getBlock(currentBlock))
+        .timestamp;
+    return blockTimestamp;
 };
 
 /************************************************
