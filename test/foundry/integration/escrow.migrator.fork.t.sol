@@ -68,7 +68,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 
         // mint first rewards into V2
         uint256 timeOfNextMint =
-            supplySchedule.lastMintEvent() + supplySchedule.MINT_PERIOD_DURATION() + 1;
+            supplySchedule.lastMintEvent() + supplySchedule.MINT_PERIOD_DURATION();
         vm.warp(timeOfNextMint + 1);
         supplySchedule.mint();
 
@@ -873,8 +873,8 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 
         (uint256 total, uint256 totalFee) = rewardEscrowV1.getVestingQuantity(user1, entryIDs);
 
-        assertEq(total, 3.819707122432513665 ether);
-        assertEq(totalFee, 13.426447988982119243 ether);
+        assertEq(total, 3.819706655264711650 ether);
+        assertEq(totalFee, 13.426448456149921258 ether);
 
         // step 1
         vm.prank(user1);
