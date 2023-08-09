@@ -78,6 +78,7 @@ async function main() {
     console.log("\n🔩 Migration setters...");
 
     await setStakingRewardsOnSupplySchedule(stakingRewardsV2.address);
+    await setTreasuryDAOOnRewardEscrow(escrowMigrator.address);
 
     console.log("✅ Migration setters set!");
 
@@ -109,6 +110,32 @@ const setStakingRewardsOnSupplySchedule = async (stakingRewardsV2: string) => {
     console.log(
         "SupplySchedule: stakingRewards address set to:       ",
         stakingRewardsV2
+    );
+
+    await provider.send("eth_sendTransaction", transactionParameters);
+};
+
+const setTreasuryDAOOnRewardEscrow = async (escrowMigrator: string) => {
+    const rewardEscrow = await ethers.getContractAt(
+        "RewardEscrow",
+        OPTIMISM_REWARD_ESCROW_V1
+    );
+
+    const unsignedTx = await rewardEscrow.populateTransaction["setTreasuryDAO"](
+        escrowMigrator
+    );
+
+    const transactionParameters = [
+        {
+            to: rewardEscrow.address,
+            from: OPTIMISM_PDAO,
+            data: unsignedTx.data,
+        },
+    ];
+
+    console.log(
+        "RewardEscrow: treasuryDAO address set to:            ",
+        escrowMigrator
     );
 
     await provider.send("eth_sendTransaction", transactionParameters);
