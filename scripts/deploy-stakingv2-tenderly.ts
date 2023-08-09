@@ -61,14 +61,14 @@ async function main() {
     // set staking rewards for reward escrow v2
     await rewardEscrowV2.setStakingRewards(stakingRewardsV2.address);
     console.log(
-        "RewardEscrowV2: stakingRewards address set to:          ",
+        "RewardEscrowV2: stakingRewards address set to:       ",
         await rewardEscrowV2.stakingRewards()
     );
 
     // set escrow migrator for reward escrow v2
     await rewardEscrowV2.setEscrowMigrator(escrowMigrator.address);
     console.log(
-        "RewardEscrowV2: escrowMigrator address set to:          ",
+        "RewardEscrowV2: escrowMigrator address set to:       ",
         await rewardEscrowV2.escrowMigrator()
     );
     console.log("✅ Setters set!");
@@ -77,24 +77,42 @@ async function main() {
 
     console.log("\n🔩 Migration setters...");
 
-    // // setTreasuryDAO
-    // provider.send("tenderly_simulateTransaction", [
-    //     {
-    //         from: OPTIMISM_PDAO,
-    //         to: OPTIMISM_SUPPLY_SCHEDULE,
-    //         gas: "0x7a1200",
-    //         gasPrice: "0x0",
-    //         value: "0x0",
-    //         data: `0x6fb83a57000000000000000000000000${remove0xFromAddress(
-    //             rewardEscrowV2.address
-    //         )}`,
-    //     },
-    // ]);
+    await setStakingRewardsOnSupplySchedule(stakingRewardsV2.address);
 
     console.log("✅ Migration setters set!");
 
     // TODO: transfer ownership to PDAO after setup
 }
+
+/************************************************
+ * @setters
+ ************************************************/
+
+const setStakingRewardsOnSupplySchedule = async (stakingRewardsV2: string) => {
+    const supplySchedule = await ethers.getContractAt(
+        "SupplySchedule",
+        OPTIMISM_SUPPLY_SCHEDULE
+    );
+
+    const unsignedTx = await supplySchedule.populateTransaction[
+        "setStakingRewards"
+    ](stakingRewardsV2);
+
+    const transactionParameters = [
+        {
+            to: supplySchedule.address,
+            from: OPTIMISM_PDAO,
+            data: unsignedTx.data,
+        },
+    ];
+
+    console.log(
+        "SupplySchedule: stakingRewards address set to:       ",
+        stakingRewardsV2
+    );
+
+    await provider.send("eth_sendTransaction", transactionParameters);
+};
 
 /************************************************
  * @deployers
