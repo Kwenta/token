@@ -82,7 +82,50 @@ async function main() {
 
     console.log("✅ Migration setters set!");
 
-    // TODO: transfer ownership to PDAO after setup
+    // ========== OWNERSHIP ========== */
+
+    await rewardEscrowV2.transferOwnership(OPTIMISM_PDAO);
+    console.log(
+        "RewardEscrowV2: owner address set to:                ",
+        OPTIMISM_PDAO
+    );
+    await stakingRewardsV2.transferOwnership(OPTIMISM_PDAO);
+    console.log(
+        "StakingRewardsV2: owner address set to:              ",
+        OPTIMISM_PDAO
+    );
+    await escrowMigrator.transferOwnership(OPTIMISM_PDAO);
+    console.log(
+        "EscrowMigrator: owner address set to:                ",
+        OPTIMISM_PDAO
+    );
+
+    await sendTransaction({
+        contractName: "RewardEscrowV2",
+        contractAddress: rewardEscrowV2.address,
+        functionName: "acceptOwnership",
+        functionArgs: [],
+        from: OPTIMISM_PDAO,
+    });
+    console.log("RewardEscrowV2: ownership accepted");
+
+    await sendTransaction({
+        contractName: "StakingRewardsV2",
+        contractAddress: stakingRewardsV2.address,
+        functionName: "acceptOwnership",
+        functionArgs: [],
+        from: OPTIMISM_PDAO,
+    });
+    console.log("StakingRewardsV2: ownership accepted");
+
+    await sendTransaction({
+        contractName: "EscrowMigrator",
+        contractAddress: escrowMigrator.address,
+        functionName: "acceptOwnership",
+        functionArgs: [],
+        from: OPTIMISM_PDAO,
+    });
+    console.log("EscrowMigrator: ownership accepted");
 }
 
 /************************************************
