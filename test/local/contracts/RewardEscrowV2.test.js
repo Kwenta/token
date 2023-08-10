@@ -50,6 +50,7 @@ const NAME = "Kwenta";
 const SYMBOL = "KWENTA";
 const INITIAL_SUPPLY = hre.ethers.utils.parseUnits("313373");
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+const YEAR = 31556926;
 
 const toUnit = (amount) => toBN(toWei(amount.toString(), "ether"));
 
@@ -133,11 +134,9 @@ contract("RewardEscrowV2 KWENTA", ([owner, staker1, staker2, treasuryDAO]) => {
     let rewardEscrowV1;
     let rewardEscrowV2;
     let escrowMigrator;
-    let kwentaSmock;
     let supplySchedule;
 
     before(async () => {
-        kwentaSmock = await smock.fake("Kwenta");
         supplySchedule = await smock.fake("SupplySchedule");
 
         stakingToken = await TokenContract.new(
@@ -148,25 +147,35 @@ contract("RewardEscrowV2 KWENTA", ([owner, staker1, staker2, treasuryDAO]) => {
             treasuryDAO
         );
 
-        rewardEscrowV1 = await RewardEscrowV1.new(owner, kwentaSmock.address);
+        rewardEscrowV1 = await RewardEscrowV1.new(owner, stakingToken.address);
 
-        rewardEscrowV2 = await deployRewardEscrowV2(owner, kwentaSmock.address);
+        rewardEscrowV2 = await deployRewardEscrowV2(
+            owner,
+            stakingToken.address
+        );
 
         stakingRewards = await StakingRewards.new(
-            kwentaSmock.address,
+            stakingToken.address,
             rewardEscrowV2.address,
             supplySchedule.address
         );
 
+        await rewardEscrowV1.setStakingRewards(stakingRewards.address, {
+            from: owner,
+        });
+        await rewardEscrowV1.setTreasuryDAO(treasuryDAO, {
+            from: owner,
+        });
+
         stakingRewardsV2 = await deployStakingRewardsV2(
-            kwentaSmock.address,
+            stakingToken.address,
             rewardEscrowV2.address,
             supplySchedule.address,
             owner
         );
 
         escrowMigrator = await deployEscrowMigrator(
-            kwentaSmock.address,
+            stakingToken.address,
             rewardEscrowV1.address,
             rewardEscrowV2.address,
             stakingRewards.address,
@@ -200,6 +209,10 @@ contract("RewardEscrowV2 KWENTA", ([owner, staker1, staker2, treasuryDAO]) => {
             from: owner,
         });
 
+        await rewardEscrowV2.setTreasuryDAO(treasuryDAO, {
+            from: owner,
+        });
+
         await stakingToken.transfer(staker1, toUnit(10000), {
             from: treasuryDAO,
         });
@@ -216,21 +229,12 @@ contract("RewardEscrowV2 KWENTA", ([owner, staker1, staker2, treasuryDAO]) => {
         ]);
     });
 
-    beforeEach(async () => {
-        // Reset RewardsEscrow
-        rewardEscrowV2 = await deployRewardEscrowV2(owner, kwentaSmock.address);
-        await rewardEscrowV2.setStakingRewards(stakingRewardsV2.address, {
-            from: owner,
-        });
-        await rewardEscrowV2.setTreasuryDAO(treasuryDAO);
-    });
-
     describe("Deploys correctly", async () => {
         it("Should have a KWENTA token", async () => {
             const kwentaAddress = await rewardEscrowV2.getKwentaAddress();
             assert.equal(
                 kwentaAddress,
-                kwentaSmock.address,
+                stakingToken.address,
                 "Wrong staking token address"
             );
         });
@@ -280,6 +284,76 @@ contract("RewardEscrowV2 KWENTA", ([owner, staker1, staker2, treasuryDAO]) => {
         it("should set nextEntryId to 1", async () => {
             const nextEntryId = await rewardEscrowV2.nextEntryId();
             assert.equal(nextEntryId, 1);
+        });
+    });
+
+    describe("Can Migrate Escrow", async () => {
+        it("Can migrate entries from v1 to v2", async () => {
+            let escrowAmount = toUnit("1");
+            let duration = YEAR;
+
+            await stakingToken.approve(
+                rewardEscrowV1.address,
+                toUnit("100000"),
+                {
+                    from: treasuryDAO,
+                }
+            );
+
+            let numEntries = 1_00;
+
+            for (let i = 0; i < numEntries; i++) {
+                await rewardEscrowV1.createEscrowEntry(
+                    staker1,
+                    escrowAmount,
+                    duration,
+                    {
+                        from: treasuryDAO,
+                    }
+                );
+            }
+
+            let entries = await rewardEscrowV1.getAccountVestingEntryIDs(
+                staker1,
+                0,
+                numEntries
+            );
+
+            await escrowMigrator.registerEntries(entries, {
+                from: staker1,
+            });
+
+            await rewardEscrowV1.vest(entries, {
+                from: staker1,
+            });
+
+            await stakingToken.approve(
+                escrowMigrator.address,
+                toUnit("100000"),
+                {
+                    from: staker1,
+                }
+            );
+
+            await escrowMigrator.migrateEntries(staker1, entries, {
+                from: staker1,
+            });
+
+            const registered = await escrowMigrator.totalEscrowRegistered(
+                staker1
+            );
+            const migrated = await escrowMigrator.totalEscrowMigrated(staker1);
+            const v2Entries = await rewardEscrowV2.balanceOf(staker1);
+
+            assert.equal(numEntries, v2Entries.toNumber());
+            assert.equal(
+                escrowAmount.mul(new BN(numEntries)).toString(),
+                registered.toString()
+            );
+            assert.equal(
+                escrowAmount.mul(new BN(numEntries)).toString(),
+                migrated.toString()
+            );
         });
     });
 });
