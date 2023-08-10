@@ -13,6 +13,7 @@
     "f-test:em": "forge test --match-path ./test/foundry/integration/escrow.migrator.fork.t.sol --fork-url $(grep ARCHIVE_NODE_URL_L2 .env | cut -d '=' -f2) -vv",
     "test:v2": "npm run test:re2 && npm run f-test && npm run f-test:fork",
     "coverage": "npx hardhat coverage",
+    "f-coverage": "forge coverage --fork-url $(grep ARCHIVE_NODE_URL_L2 .env | cut -d '=' -f2) -vv --no-match-test invariant --report lcov",
     "generate-distribution:stakers": "npx ts-node ./scripts/distribution/staker-distribution.ts",
     "generate-distribution:traders": "npx ts-node ./scripts/distribution/trader-distribution.ts",
     "generate:aelin-allowlist": "npx ts-node ./scripts/aelin-distribution/generate-allowlist-and-lono.ts",

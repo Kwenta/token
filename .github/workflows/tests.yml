@@ -45,7 +45,7 @@ jobs:
         run: npm run compile
       - name: Execute integration tests
         run: npm run test:integration
-  Fork:
+  Foundry_Fork_Tests:
     runs-on: ubuntu-latest
     env:
       ARCHIVE_NODE_URL: ${{ secrets.ARCHIVE_NODE_URL }}
@@ -122,7 +122,7 @@ jobs:
             version: nightly
       - name: Run Foundry Unit Tests
         run: npm run f-test:invariant
-  Code_Coverage:
+  Foundry_Code_Coverage:
     runs-on: ubuntu-latest
     env:
       ARCHIVE_NODE_URL: ${{ secrets.ARCHIVE_NODE_URL }}
@@ -148,7 +148,7 @@ jobs:
         with:
             version: nightly
       - name: Run forge coverage
-        run: forge coverage --report lcov
+        run: npm run f-coverage
 
       - name: Upload Coverage Report
         uses: codecov/codecov-action@v3
