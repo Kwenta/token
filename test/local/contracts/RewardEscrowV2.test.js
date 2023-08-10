@@ -300,7 +300,7 @@ contract("RewardEscrowV2 KWENTA", ([owner, staker1, staker2, treasuryDAO]) => {
                 }
             );
 
-            let numEntries = 1_00;
+            let numEntries = 1_30;
 
             for (let i = 0; i < numEntries; i++) {
                 await rewardEscrowV1.createEscrowEntry(
