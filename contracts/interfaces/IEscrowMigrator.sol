@@ -10,10 +10,7 @@ interface IEscrowMigrator {
     struct VestingEntry {
         // The amount of KWENTA stored in this vesting entry
         uint256 escrowAmount;
-        // The length of time until the entry is fully matured
-        uint256 duration;
-        // The time at which the entry will be fully matured
-        uint64 endTime;
+        // Whether the entry has been migrated to v2
         bool migrated;
     }
 
@@ -23,10 +20,7 @@ interface IEscrowMigrator {
         uint256 entryID;
         // The amount of KWENTA stored in this vesting entry
         uint256 escrowAmount;
-        // The length of time until the entry is fully matured
-        uint256 duration;
-        // The time at which the entry will be fully matured
-        uint64 endTime;
+        // Whether the entry has been migrated to v2
         bool migrated;
     }
 
@@ -76,7 +70,7 @@ interface IEscrowMigrator {
     function getRegisteredVestingEntry(address _account, uint256 _entryID)
         external
         view
-        returns (uint256 escrowAmount, uint256 duration, uint64 endTime, bool migrated);
+        returns (uint256 escrowAmount, bool migrated);
 
     /// @notice get a list of vesting entries for a given account
     /// @param _account The address of the account to query

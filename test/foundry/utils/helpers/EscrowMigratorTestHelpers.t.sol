@@ -285,11 +285,9 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
 
         for (uint256 i = 0; i < _entryIDs.length; i++) {
             uint256 entryID = _entryIDs[i];
-            (uint256 escrowAmount, uint256 duration, uint64 endTime, bool migrated) =
+            (uint256 escrowAmount, bool migrated) =
                 escrowMigrator.getRegisteredVestingEntry(account, entryID);
             assertEq(escrowAmount, 0);
-            assertEq(duration, 0);
-            assertEq(endTime, 0);
             assertEq(migrated, false);
         }
     }
@@ -322,13 +320,10 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         for (uint256 i = 0; i < _entryIDs.length; i++) {
             uint256 entryID = _entryIDs[i];
             assertEq(escrowMigrator.registeredEntryIDs(account, i), entryID);
-            (uint256 escrowAmount, uint256 duration, uint64 endTime, bool migrated) =
+            (uint256 escrowAmount, bool migrated) =
                 escrowMigrator.getRegisteredVestingEntry(account, entryID);
-            (uint64 endTimeOriginal, uint256 escrowAmountOriginal, uint256 durationOriginal) =
-                rewardEscrowV1.getVestingEntry(account, entryID);
+            (, uint256 escrowAmountOriginal,) = rewardEscrowV1.getVestingEntry(account, entryID);
             assertEq(escrowAmount, escrowAmountOriginal);
-            assertEq(duration, durationOriginal);
-            assertEq(endTime, endTimeOriginal);
             assertEq(migrated, false);
             totalRegistered += escrowAmountOriginal;
         }
@@ -481,7 +476,10 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         (uint64 endTime, uint256 escrowAmount, uint256 duration, uint8 earlyVestingFee) =
             rewardEscrowV2.getVestingEntry(newEntryID);
 
-        (uint256 registeredEscrowAmount, uint256 registeredDuration, uint64 registeredEndTime,) =
+        (uint64 registeredEndTime,, uint256 registeredDuration) =
+            rewardEscrowV1.getVestingEntry(account, oldEntryID);
+
+        (uint256 registeredEscrowAmount,) =
             escrowMigrator.getRegisteredVestingEntry(account, oldEntryID);
 
         assertEq(earlyVestingFee, 90);
@@ -502,15 +500,14 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
     {
         assertEq(escrowMigrator.registeredEntryIDs(account, i), entryID);
 
-        (escrowAmount, duration, endTime, migrated) =
-            escrowMigrator.getRegisteredVestingEntry(account, entryID);
+        (escrowAmount, migrated) = escrowMigrator.getRegisteredVestingEntry(account, entryID);
         (uint64 endTimeOriginal, uint256 escrowAmountOriginal, uint256 durationOriginal) =
             rewardEscrowV1.getVestingEntry(account, entryID);
+        duration = durationOriginal;
+        endTime = endTimeOriginal;
 
         assertGt(escrowAmount, 0);
         assertEq(escrowAmountOriginal, 0);
-        assertEq(duration, durationOriginal);
-        assertEq(endTime, endTimeOriginal);
         assertEq(migrated, true);
     }
 

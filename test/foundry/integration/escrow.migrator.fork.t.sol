@@ -51,8 +51,9 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         // set owners address code to trick the test into allowing onlyOwner functions to be called via script
         vm.etch(owner, address(new Migrate()).code);
 
-        (rewardEscrowV2, stakingRewardsV2, escrowMigrator, earlyVestFeeDistributor,,,) = Migrate(owner)
-            .runCompleteMigrationProcess({
+        (rewardEscrowV2, stakingRewardsV2, escrowMigrator, earlyVestFeeDistributor,,,) = Migrate(
+            owner
+        ).runCompleteMigrationProcess({
             _owner: owner,
             _kwenta: address(kwenta),
             _supplySchedule: address(supplySchedule),
@@ -203,7 +204,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         uint256 totalMigrated;
         for (uint256 i = 0; i < _entryIDs.length; i++) {
             uint256 entryID = _entryIDs[i];
-            (uint256 escrowAmount,,,) = escrowMigrator.registeredVestingSchedules(user1, entryID);
+            (uint256 escrowAmount,) = escrowMigrator.registeredVestingSchedules(user1, entryID);
             totalMigrated += escrowAmount;
         }
 
@@ -225,7 +226,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         uint256 totalMigrated;
         for (uint256 i = 0; i < min(allEntryIDs.length, numToMigrate); i++) {
             uint256 entryID = allEntryIDs[i];
-            (uint256 escrowAmount,,,) = escrowMigrator.registeredVestingSchedules(user1, entryID);
+            (uint256 escrowAmount,) = escrowMigrator.registeredVestingSchedules(user1, entryID);
             totalMigrated += escrowAmount;
             migratedEntryIDs[i] = entryID;
         }
@@ -251,13 +252,10 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 
         for (uint256 i = 0; i < registeredEntries.length; i++) {
             IEscrowMigrator.VestingEntryWithID memory entry = registeredEntries[i];
-            (uint64 endTime, uint256 escrowAmount, uint256 duration) =
-                rewardEscrowV1.getVestingEntry(user1, entry.entryID);
+            (, uint256 escrowAmount,) = rewardEscrowV1.getVestingEntry(user1, entry.entryID);
 
             assertEq(entry.entryID, _entryIDs[i]);
             assertEq(entry.escrowAmount, escrowAmount);
-            assertEq(entry.duration, duration);
-            assertEq(entry.endTime, endTime);
             assertEq(entry.migrated, false);
         }
     }
@@ -873,7 +871,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 
         (uint256 total, uint256 totalFee) = rewardEscrowV1.getVestingQuantity(user1, entryIDs);
 
-        assertEq(total, 3.819706655264711650 ether);
+        assertEq(total, 3.81970665526471165 ether);
         assertEq(totalFee, 13.426448456149921258 ether);
 
         // step 1

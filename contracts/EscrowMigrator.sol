@@ -186,11 +186,9 @@ contract EscrowMigrator is
         external
         view
         override
-        returns (uint256 escrowAmount, uint256 duration, uint64 endTime, bool migrated)
+        returns (uint256 escrowAmount, bool migrated)
     {
         escrowAmount = registeredVestingSchedules[_account][_entryID].escrowAmount;
-        duration = registeredVestingSchedules[_account][_entryID].duration;
-        endTime = registeredVestingSchedules[_account][_entryID].endTime;
         migrated = registeredVestingSchedules[_account][_entryID].migrated;
     }
 
@@ -229,8 +227,6 @@ contract EscrowMigrator is
             vestingEntries[i] = VestingEntryWithID({
                 entryID: entryID,
                 escrowAmount: entry.escrowAmount,
-                duration: entry.duration,
-                endTime: entry.endTime,
                 migrated: entry.migrated
             });
 
@@ -308,9 +304,9 @@ contract EscrowMigrator is
             uint256 entryID = _entryIDs[i];
 
             // skip if already registered
-            if (registeredVestingSchedules[_account][entryID].endTime != 0) continue;
+            if (registeredVestingSchedules[_account][entryID].escrowAmount != 0) continue;
 
-            (uint64 endTime, uint256 escrowAmount, uint256 duration) =
+            (uint64 endTime, uint256 escrowAmount,) =
                 rewardEscrowV1.getVestingEntry(_account, entryID);
 
             // skip if entry is already vested or does not exist
@@ -318,12 +314,8 @@ contract EscrowMigrator is
             // skip if entry is already fully mature (hence no need to migrate)
             if (endTime <= block.timestamp) continue;
 
-            registeredVestingSchedules[_account][entryID] = VestingEntry({
-                endTime: endTime,
-                escrowAmount: escrowAmount,
-                duration: duration,
-                migrated: false
-            });
+            registeredVestingSchedules[_account][entryID] =
+                VestingEntry({escrowAmount: escrowAmount, migrated: false});
 
             /// @dev A counter of numberOfRegisteredEntries would do, but this allows easier inspection
             registeredEntryIDs[_account].push(entryID);
@@ -364,29 +356,25 @@ contract EscrowMigrator is
         for (uint256 i = 0; i < _entryIDs.length; i++) {
             uint256 entryID = _entryIDs[i];
 
-            (, uint256 escrowAmount,) = rewardEscrowV1.getVestingEntry(_account, entryID);
+            (uint64 endTime, uint256 escrowAmount, uint256 duration) =
+                rewardEscrowV1.getVestingEntry(_account, entryID);
             VestingEntry storage registeredEntry = registeredVestingSchedules[_account][entryID];
             uint256 originalEscrowAmount = registeredEntry.escrowAmount;
 
             // if it is not zero, it hasn't been vested
             if (escrowAmount != 0) continue;
             // entry must have been registered
-            if (registeredEntry.endTime == 0) continue;
+            if (originalEscrowAmount == 0) continue;
             // skip if already migrated
             if (registeredEntry.migrated) continue;
 
-            uint256 duration;
-            uint64 endTime;
             /// @dev it essential for security that the duration is not less than the cooldown period,
             /// otherwise the user could do a governance attack by bypassing the unstaking cooldown lock
             /// by migrating their escrow then staking, voting, and vesting immediately
-            if (registeredEntry.duration < cooldown) {
-                uint256 timeCreated = registeredEntry.endTime - registeredEntry.duration;
+            if (duration < cooldown) {
+                uint256 timeCreated = endTime - duration;
                 duration = cooldown;
                 endTime = uint64(timeCreated + cooldown);
-            } else {
-                duration = registeredEntry.duration;
-                endTime = registeredEntry.endTime;
             }
 
             IRewardEscrowV2.VestingEntry memory entry = IRewardEscrowV2.VestingEntry({
