@@ -389,7 +389,7 @@ contract EscrowMigrator is
             kwenta.transfer(address(rewardEscrowV2), originalEscrowAmount);
             rewardEscrowV2.importEscrowEntry(_to, entry);
 
-            // OPT: think - could remove `migrated` as a gas optimization and just set endTime to 0
+            // OPT: think - could remove `migrated` as a gas optimization and just set escrowAmount to 0
             // update this so it cannot be migrated again
             registeredEntry.migrated = true;
 
