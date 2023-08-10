@@ -45,16 +45,19 @@ interface IEscrowMigrator {
     /// @notice Get the total number of migrated vesting entries for a given account
     /// @param _account The address of the account to query
     /// @return The number of vesting entries for the given account
+    /// @dev WARNING: loop is potentially limitless - could revert with out of gas error if called on-chain
     function numberOfMigratedEntries(address _account) external view returns (uint256);
 
     /// @notice Get the total escrowed registerd for an account
     /// @param _account The address of the account to query
     /// @return total the total escrow registered for the given account
+    /// @dev WARNING: loop is potentially limitless - could revert with out of gas error if called on-chain
     function totalEscrowRegistered(address _account) external view returns (uint256 total);
 
     /// @notice Get the total escrowed migrated for an account
     /// @param _account The address of the account to query
     /// @return total the total escrow migrated for the given account
+    /// @dev WARNING: loop is potentially limitless - could revert with out of gas error if called on-chain
     function totalEscrowMigrated(address _account) external view returns (uint256 total);
 
     /// @notice the amount a given user needs to pay to migrate all currently vested
