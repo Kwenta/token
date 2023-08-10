@@ -297,9 +297,7 @@ contract EscrowMigrator is
             escrowVestedAtStart[_account] = rewardEscrowV1.totalVestedAccountBalance(_account);
         }
 
-        // OPT: update to use getVestingSchedules to save gas from all the message calls
         uint256 registeredEscrow;
-
         for (uint256 i = 0; i < _entryIDs.length; i++) {
             uint256 entryID = _entryIDs[i];
 
@@ -384,13 +382,9 @@ contract EscrowMigrator is
                 earlyVestingFee: 90
             });
 
-            // OPT: think if this transfer can be done once in advance (could pass in total via calldata args)
-            // then check it at the end to ensure it is correct
             kwenta.transfer(address(rewardEscrowV2), originalEscrowAmount);
             rewardEscrowV2.importEscrowEntry(_to, entry);
 
-            // OPT: think - could remove `migrated` as a gas optimization and just set escrowAmount to 0
-            // update this so it cannot be migrated again
             registeredEntry.migrated = true;
 
             migratedEscrow += originalEscrowAmount;
