@@ -94,7 +94,7 @@ jobs:
         with:
             version: nightly
       - name: Run Foundry Unit Tests
-        run: npm run f-test:fork
+        run: forge test --match-contract StakingV2MigrationForkTests --fork-url ${{ secrets.ARCHIVE_NODE_URL }} -vv
   Foundry_Unit_Tests:
     runs-on: ubuntu-latest
     env:
