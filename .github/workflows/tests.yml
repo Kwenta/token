@@ -115,8 +115,6 @@ jobs:
           key: ${{ runner.os }}-modules-${{ hashFiles('**/package-lock.json') }}
       - name: Install dependencies
         run: npm i --no-audit
-      - name: Compile contracts
-        run: npm run compile
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
@@ -142,8 +140,6 @@ jobs:
           key: ${{ runner.os }}-modules-${{ hashFiles('**/package-lock.json') }}
       - name: Install dependencies
         run: npm i --no-audit
-      - name: Compile contracts
-        run: npm run compile
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
@@ -169,8 +165,6 @@ jobs:
           key: ${{ runner.os }}-modules-${{ hashFiles('**/package-lock.json') }}
       - name: Install dependencies
         run: npm i --no-audit
-      - name: Compile contracts
-        run: npm run compile
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
