@@ -459,7 +459,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         checkStateAfterStepOne(user1, 10, 7, true);
     }
 
-    function test_Cannot_Register_Mature_Entries() public {
+    function test_Can_Register_Mature_Entries() public {
         // check initial state
         (uint256[] memory _entryIDs,) = claimAndCheckInitialState(user1);
 
@@ -470,7 +470,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         registerEntries(user1, _entryIDs);
 
         // check final state
-        checkStateAfterStepOne(user1, 0, 0, true);
+        checkStateAfterStepOne(user1, _entryIDs, true);
     }
 
     function test_Cannot_Duplicate_Register_Entries() public {
@@ -586,6 +586,37 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
     /*//////////////////////////////////////////////////////////////
                            STEP 3 EDGE CASES
     //////////////////////////////////////////////////////////////*/
+
+    function test_Can_Migrate_Mature_Entries() public {
+        // check initial state
+        (uint256[] memory _entryIDs,) = claimAndCheckInitialState(user1);
+
+        // fast forward until all entries are mature
+        vm.warp(block.timestamp + 52 weeks);
+
+        // step 1
+        registerVestAndApprove(user1, _entryIDs);
+        migrateEntries(user1, _entryIDs);
+
+        // check final state
+        checkStateAfterStepThree(user1, _entryIDs);
+    }
+
+    function test_Can_Migrate_Entries_Matured_After_Registering() public {
+        // check initial state
+        (uint256[] memory _entryIDs,) = claimAndCheckInitialState(user1);
+
+        // step 1
+        registerVestAndApprove(user1, _entryIDs);
+
+        // fast forward until all entries are mature
+        vm.warp(block.timestamp + 52 weeks);
+
+        migrateEntries(user1, _entryIDs);
+
+        // check final state
+        checkStateAfterStepThree(user1, _entryIDs);
+    }
 
     function test_Payment_Cost_Takes_Account_Of_Escrow_Vested_At_Start() public {
         // give user extra funds so they could in theory overpay

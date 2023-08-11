@@ -304,13 +304,11 @@ contract EscrowMigrator is
             // skip if already registered
             if (registeredVestingSchedules[_account][entryID].escrowAmount != 0) continue;
 
-            (uint64 endTime, uint256 escrowAmount,) =
+            (, uint256 escrowAmount,) =
                 rewardEscrowV1.getVestingEntry(_account, entryID);
 
             // skip if entry is already vested or does not exist
             if (escrowAmount == 0) continue;
-            // skip if entry is already fully mature (hence no need to migrate)
-            if (endTime <= block.timestamp) continue;
 
             registeredVestingSchedules[_account][entryID] =
                 VestingEntry({escrowAmount: escrowAmount, migrated: false});
