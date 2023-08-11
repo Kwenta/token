@@ -65,4 +65,58 @@ contract RewardEscrowV2PausabilityTests is DefaultStakingV2Setup {
         vm.prank(treasury);
         rewardEscrowV2.createEscrowEntry(address(this), TEST_VALUE, 52 weeks, 90);
     }
+
+    function test_Cannot_Append_Escrow_Entry_When_Paused() public {
+        vm.prank(treasury);
+        kwenta.transfer(address(rewardEscrowV2), TEST_VALUE);
+
+        // pause
+        rewardEscrowV2.pauseRewardEscrow();
+
+        vm.prank(address(stakingRewardsV2));
+        vm.expectRevert("Pausable: paused");
+        rewardEscrowV2.appendVestingEntry(address(this), TEST_VALUE);
+
+        // unpause
+        rewardEscrowV2.unpauseRewardEscrow();
+
+        // now shouldn't revert
+        vm.prank(address(stakingRewardsV2));
+        rewardEscrowV2.appendVestingEntry(address(this), TEST_VALUE);
+    }
+
+    function test_Cannot_Import_Entry_When_Paused() public {
+        vm.prank(treasury);
+        kwenta.transfer(address(rewardEscrowV2), TEST_VALUE);
+
+        // pause
+        rewardEscrowV2.pauseRewardEscrow();
+
+        vm.prank(address(escrowMigrator));
+        vm.expectRevert("Pausable: paused");
+        rewardEscrowV2.importEscrowEntry(
+            address(this),
+            IRewardEscrowV2.VestingEntry({
+                endTime: uint64(block.timestamp + 52 weeks),
+                escrowAmount: TEST_VALUE,
+                duration: 52 weeks,
+                earlyVestingFee: 90
+            })
+        );
+
+        // unpause
+        rewardEscrowV2.unpauseRewardEscrow();
+
+        // now shouldn't revert
+        vm.prank(address(escrowMigrator));
+        rewardEscrowV2.importEscrowEntry(
+            address(this),
+            IRewardEscrowV2.VestingEntry({
+                endTime: uint64(block.timestamp + 52 weeks),
+                escrowAmount: TEST_VALUE,
+                duration: 52 weeks,
+                earlyVestingFee: 90
+            })
+        );
+    }
 }
