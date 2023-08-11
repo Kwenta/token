@@ -394,9 +394,6 @@ contract RewardEscrowV2 is
             totalEscrowedAccountBalance[msg.sender] -= totalWithFee;
             totalVestedAccountBalance[msg.sender] += total;
 
-            // trigger event
-            emit Vested(msg.sender, total);
-
             // Send 50% any fee to Treasury and
             // 50% to EarlyVestFeeDistributor
             // UNLESS Distributor isn't set
@@ -420,6 +417,9 @@ contract RewardEscrowV2 is
                 /// @dev this will revert if the kwenta token transfer fails
                 kwenta.transfer(msg.sender, total);
             }
+
+            // trigger event
+            emit Vested(msg.sender, total);
         }
     }
 
