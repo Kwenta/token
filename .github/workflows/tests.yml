@@ -3,7 +3,7 @@ on: [push]
 env:
   NODE_OPTIONS: --max-old-space-size=5120
 jobs:
-  Contract:
+  Hardhat_Contract_Tests:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository code
@@ -24,7 +24,7 @@ jobs:
         run: npm run compile
       - name: Execute contract tests
         run: npm run test:contracts
-  Integration:
+  Hardhat_Integration_Tests:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository code
@@ -45,7 +45,7 @@ jobs:
         run: npm run compile
       - name: Execute integration tests
         run: npm run test:integration
-  Fork_Tests:
+  Hardhat_Fork_Tests:
     runs-on: ubuntu-latest
     env:
       ARCHIVE_NODE_URL: ${{ secrets.ARCHIVE_NODE_URL }}
