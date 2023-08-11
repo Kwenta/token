@@ -761,6 +761,16 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         escrowMigrator.migrateEntries(user1, _entryIDs);
     }
 
+    function test_Cannot_Use_Zero_To_Address() public {
+        // complete step 1
+        (uint256[] memory _entryIDs,,) = claimRegisterVestAndApprove(user1);
+
+        // step 2 - migrate entries to zero address
+        vm.prank(user1);
+        vm.expectRevert("ERC721: mint to the zero address");
+        escrowMigrator.migrateEntries(address(0), _entryIDs);
+    }
+
     function test_Migrate_Entries_In_Funny_Order_Fuzz(uint256 salt) public {
         (uint256[] memory _entryIDs,) = claimAndCheckInitialState(user1);
         uint256[] memory entriesToRegister = new uint256[](_entryIDs.length);
