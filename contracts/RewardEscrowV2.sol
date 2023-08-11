@@ -439,7 +439,7 @@ contract RewardEscrowV2 is
         uint256 _deposit,
         uint256 _duration,
         uint8 _earlyVestingFee
-    ) external override whenNotPaused {
+    ) external override {
         if (_beneficiary == address(0)) revert ZeroAddress();
         if (_earlyVestingFee > MAXIMUM_EARLY_VESTING_FEE) revert EarlyVestingFeeTooHigh();
         if (_earlyVestingFee < MINIMUM_EARLY_VESTING_FEE) revert EarlyVestingFeeTooLow();
@@ -541,7 +541,7 @@ contract RewardEscrowV2 is
         uint256 _quantity,
         uint256 _duration,
         uint8 _earlyVestingFee
-    ) internal {
+    ) internal whenNotPaused {
         // There must be enough balance in the contract to provide for the vesting entry.
         totalEscrowedBalance += _quantity;
         assert(kwenta.balanceOf(address(this)) >= totalEscrowedBalance);
