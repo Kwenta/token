@@ -72,6 +72,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       ARCHIVE_NODE_URL: ${{ secrets.ARCHIVE_NODE_URL }}
+      ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
     steps:
       - name: Check out repository code
         uses: actions/checkout@v2
@@ -94,7 +95,7 @@ jobs:
         with:
             version: nightly
       - name: Run Foundry Unit Tests
-        run: forge test --match-contract StakingV2MigrationForkTests --fork-url ${{ secrets.ARCHIVE_NODE_URL }} -vv
+        run: forge test --match-contract StakingV2MigrationForkTests --fork-url ${{ secrets.ARCHIVE_NODE_URL }} --etherscan-api-key ${{ secrets.ETHERSCAN_API_KEY }} -vv
   Foundry_Unit_Tests:
     runs-on: ubuntu-latest
     env:
