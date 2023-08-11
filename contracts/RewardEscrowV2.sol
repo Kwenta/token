@@ -42,6 +42,8 @@ contract RewardEscrowV2 is
     uint8 public constant DEFAULT_EARLY_VESTING_FEE = 90; // Default 90 percent
 
     /// @notice Maximum early vesting fee - cannot be higher than 100%
+    /// @dev WARNING: Updating this value to below 90 will be able to be bypassed via importEscrowEntry
+    /// through the EscrowMigrator contract
     uint8 public constant MAXIMUM_EARLY_VESTING_FEE = 100;
 
     /// @inheritdoc IRewardEscrowV2
