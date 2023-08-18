@@ -364,6 +364,10 @@ contract EscrowMigrator is
             // skip if already migrated
             if (registeredEntry.migrated) continue;
 
+            // update state
+            registeredEntry.migrated = true;
+            migratedEscrow += originalEscrowAmount;
+
             /// @dev it essential for security that the duration is not less than the cooldown period,
             /// otherwise the user could do a governance attack by bypassing the unstaking cooldown lock
             /// by migrating their escrow then staking, voting, and vesting immediately
@@ -380,12 +384,9 @@ contract EscrowMigrator is
                 earlyVestingFee: 90
             });
 
+            // create duplicate vesting entry on v2
             kwenta.transfer(address(rewardEscrowV2), originalEscrowAmount);
             rewardEscrowV2.importEscrowEntry(_to, entry);
-
-            registeredEntry.migrated = true;
-
-            migratedEscrow += originalEscrowAmount;
         }
 
         /// @dev This value is not needed, but just added for easier on-chain inspection
