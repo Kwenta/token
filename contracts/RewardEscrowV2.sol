@@ -403,13 +403,13 @@ contract RewardEscrowV2 is
             if (totalFee != 0) {
                 if (earlyVestFeeDistributor == address(0)) {
                     kwenta.transfer(treasuryDAO, totalFee);
-                    emit EarlyVestFeeSentToDAO(totalFee);
+                    emit EarlyVestFeeSentToTreasury(totalFee);
                 } else {
                     /// @dev this will revert if the kwenta token transfer fails
                     uint256 proportionalFee = totalFee / 2;
                     kwenta.transfer(treasuryDAO, proportionalFee);
                     kwenta.transfer(earlyVestFeeDistributor, proportionalFee);
-                    emit EarlyVestFeeSentToDAO(proportionalFee);
+                    emit EarlyVestFeeSentToTreasury(proportionalFee);
                     emit EarlyVestFeeSentToDistributor(proportionalFee);
                 }
             }

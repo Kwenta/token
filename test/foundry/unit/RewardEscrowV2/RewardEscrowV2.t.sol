@@ -625,7 +625,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         assertEq(rewardEscrowV2.totalVestedAccountBalance(address(this)), 0);
 
         vm.expectEmit(true, true, true, true);
-        emit EarlyVestFeeSentToDAO(450 ether);
+        emit EarlyVestFeeSentToTreasury(450 ether);
         entryIDs.push(1);
         rewardEscrowV2.vest(entryIDs);
     }
@@ -644,7 +644,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         assertEq(rewardEscrowV2.totalVestedAccountBalance(address(this)), 0);
 
         vm.expectEmit(true, true, true, true);
-        emit EarlyVestFeeSentToDAO(225 ether);
+        emit EarlyVestFeeSentToTreasury(225 ether);
         vm.expectEmit(true, true, true, true);
         emit EarlyVestFeeSentToDistributor(225 ether);
         entryIDs.push(1);

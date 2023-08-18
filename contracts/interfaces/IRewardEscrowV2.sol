@@ -215,9 +215,9 @@ interface IRewardEscrowV2 {
     /// @param earlyVestFeeDistributor The address of the early vest fee distributor
     event EarlyVestFeeDistributorSet(address earlyVestFeeDistributor);
 
-    /// @notice emitted when the early vest fee is sent to the DAO
-    /// @param amount The amount of KWENTA sent to the DAO
-    event EarlyVestFeeSentToDAO(uint256 amount);
+    /// @notice emitted when the early vest fee is sent to the treasury
+    /// @param amount The amount of KWENTA sent to the treasury
+    event EarlyVestFeeSentToTreasury(uint256 amount);
 
     /// @notice emitted when the early vest fee is sent to the distributor
     /// @param amount The amount of KWENTA sent to the distributor
