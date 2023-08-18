@@ -539,7 +539,7 @@ contract RewardEscrowV2 is
 
     function _mint(
         address _account,
-        uint64 endTime,
+        uint64 _endTime,
         uint256 _quantity,
         uint256 _duration,
         uint8 _earlyVestingFee
@@ -553,7 +553,7 @@ contract RewardEscrowV2 is
 
         uint256 entryID = nextEntryId;
         vestingSchedules[entryID] = VestingEntry({
-            endTime: endTime,
+            endTime: _endTime,
             escrowAmount: _quantity,
             duration: _duration,
             earlyVestingFee: _earlyVestingFee
