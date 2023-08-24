@@ -141,10 +141,14 @@ contract EscrowMigrator is
         uint256 length = entries.length;
 
         mapping(uint256 => VestingEntry) storage userEntries = registeredVestingSchedules[_account];
-        for (uint256 i = 0; i < length; i++) {
+        for (uint256 i = 0; i < length;) {
             uint256 entryID = entries[i];
             VestingEntry storage entry = userEntries[entryID];
             if (entry.migrated) total++;
+
+            unchecked {
+                ++i;
+            }
         }
     }
 
@@ -160,10 +164,14 @@ contract EscrowMigrator is
         uint256 length = entries.length;
 
         mapping(uint256 => VestingEntry) storage userEntries = registeredVestingSchedules[_account];
-        for (uint256 i = 0; i < length; i++) {
+        for (uint256 i = 0; i < length;) {
             uint256 entryID = entries[i];
             VestingEntry storage entry = userEntries[entryID];
             total += entry.escrowAmount;
+
+            unchecked {
+                ++i;
+            }
         }
     }
 
@@ -174,10 +182,14 @@ contract EscrowMigrator is
         uint256 length = entries.length;
 
         mapping(uint256 => VestingEntry) storage userEntries = registeredVestingSchedules[_account];
-        for (uint256 i = 0; i < length; i++) {
+        for (uint256 i = 0; i < length;) {
             uint256 entryID = entries[i];
             VestingEntry storage entry = userEntries[entryID];
             if (entry.migrated) total += entry.escrowAmount;
+
+            unchecked {
+                ++i;
+            }
         }
     }
 
@@ -310,8 +322,7 @@ contract EscrowMigrator is
             // skip if already registered
             if (registeredVestingSchedules[_account][entryID].escrowAmount != 0) continue;
 
-            (, uint256 escrowAmount,) =
-                rewardEscrowV1.getVestingEntry(_account, entryID);
+            (, uint256 escrowAmount,) = rewardEscrowV1.getVestingEntry(_account, entryID);
 
             // skip if entry is already vested or does not exist
             if (escrowAmount == 0) continue;
