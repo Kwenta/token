@@ -140,9 +140,10 @@ contract EscrowMigrator is
         uint256[] storage entries = registeredEntryIDs[_account];
         uint256 length = entries.length;
 
+        mapping(uint256 => VestingEntry) storage userEntries = registeredVestingSchedules[_account];
         for (uint256 i = 0; i < length; i++) {
             uint256 entryID = entries[i];
-            VestingEntry storage entry = registeredVestingSchedules[_account][entryID];
+            VestingEntry storage entry = userEntries[entryID];
             if (entry.migrated) total++;
         }
     }
@@ -157,9 +158,11 @@ contract EscrowMigrator is
     {
         uint256[] storage entries = registeredEntryIDs[_account];
         uint256 length = entries.length;
+
+        mapping(uint256 => VestingEntry) storage userEntries = registeredVestingSchedules[_account];
         for (uint256 i = 0; i < length; i++) {
             uint256 entryID = entries[i];
-            VestingEntry storage entry = registeredVestingSchedules[_account][entryID];
+            VestingEntry storage entry = userEntries[entryID];
             total += entry.escrowAmount;
         }
     }
@@ -169,9 +172,11 @@ contract EscrowMigrator is
     function totalEscrowMigrated(address _account) external view override returns (uint256 total) {
         uint256[] storage entries = registeredEntryIDs[_account];
         uint256 length = entries.length;
+
+        mapping(uint256 => VestingEntry) storage userEntries = registeredVestingSchedules[_account];
         for (uint256 i = 0; i < length; i++) {
             uint256 entryID = entries[i];
-            VestingEntry storage entry = registeredVestingSchedules[_account][entryID];
+            VestingEntry storage entry = userEntries[entryID];
             if (entry.migrated) total += entry.escrowAmount;
         }
     }
