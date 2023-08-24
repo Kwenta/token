@@ -435,14 +435,15 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         escrowMigrator.registerEntries(_entryIDs);
     }
 
-    function test_Cannot_Register_Without_Claiming_First() public {
+    function test_Can_Register_Without_Claiming_First() public {
         // check initial state
         (uint256[] memory _entryIDs,) = checkStateBeforeStepOne(user1);
 
         // step 1
         vm.prank(user1);
-        vm.expectRevert(IEscrowMigrator.MustClaimStakingRewards.selector);
         escrowMigrator.registerEntries(_entryIDs);
+
+        checkStateAfterStepOne(user1, _entryIDs, true);
     }
 
     function test_Cannot_Register_Vested_Entries() public {

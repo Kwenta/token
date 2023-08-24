@@ -178,10 +178,6 @@ interface IEscrowMigrator {
     /// @notice the caller is not approved to take this action
     error NotApproved();
 
-    /// @notice users cannot begin the migration process until they have claimed
-    /// their last v1 staking rewards
-    error MustClaimStakingRewards();
-
     /// @notice the user may not begin the migration process if they have nothing to migrate
     error NoEscrowBalanceToMigrate();
 

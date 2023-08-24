@@ -292,7 +292,6 @@ contract EscrowMigrator is
         whenNotPaused
     {
         if (!initiated[_account]) {
-            if (stakingRewardsV1.earned(_account) != 0) revert MustClaimStakingRewards();
             if (rewardEscrowV1.balanceOf(_account) == 0) revert NoEscrowBalanceToMigrate();
 
             initiated[_account] = true;
