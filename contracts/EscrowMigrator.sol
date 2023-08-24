@@ -95,6 +95,8 @@ contract EscrowMigrator is
         if (_kwenta == address(0)) revert ZeroAddress();
         if (_rewardEscrowV1 == address(0)) revert ZeroAddress();
         if (_rewardEscrowV2 == address(0)) revert ZeroAddress();
+        if (_stakingRewardsV1 == address(0)) revert ZeroAddress();
+        if (_stakingRewardsV2 == address(0)) revert ZeroAddress();
 
         kwenta = IKwenta(_kwenta);
         rewardEscrowV1 = IRewardEscrow(_rewardEscrowV1);
