@@ -230,7 +230,7 @@ contract EscrowMigrator is
             endIndex = numEntries;
         }
 
-        if (endIndex < _index) return new VestingEntryWithID[](0);
+        if (endIndex <= _index) return new VestingEntryWithID[](0);
 
         uint256 n;
         unchecked {
