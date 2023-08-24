@@ -71,6 +71,14 @@ interface IRewardEscrowV2 {
     /// via vesting which avoids the unstaking cooldown
     function MINIMUM_EARLY_VESTING_FEE() external view returns (uint8);
 
+    /// @notice Default early vesting fee
+    /// @dev This is the default fee applied for early vesting
+    function DEFAULT_EARLY_VESTING_FEE() external view returns (uint8);
+
+    /// @notice Default escrow duration
+    /// @dev This is the default duration for escrow
+    function DEFAULT_DURATION() external view returns (uint256);
+
     /// @notice helper function to return kwenta address
     function getKwentaAddress() external view returns (address);
 
