@@ -408,7 +408,7 @@ contract RewardEscrowV2 is
                     /// @dev this will revert if the kwenta token transfer fails
                     uint256 proportionalFee = totalFee / 2;
                     kwenta.transfer(treasuryDAO, proportionalFee);
-                    kwenta.transfer(earlyVestFeeDistributor, proportionalFee);
+                    kwenta.transfer(earlyVestFeeDistributor, totalFee - proportionalFee);
                     emit EarlyVestFeeSentToTreasury(proportionalFee);
                     emit EarlyVestFeeSentToDistributor(proportionalFee);
                 }
