@@ -9,7 +9,7 @@ interface IEscrowMigrator {
     /// @notice A vesting entry contains the data for each escrow entry
     struct VestingEntry {
         // The amount of KWENTA stored in this vesting entry
-        uint256 escrowAmount;
+        uint248 escrowAmount;
         // Whether the entry has been migrated to v2
         bool migrated;
     }

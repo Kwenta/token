@@ -328,7 +328,7 @@ contract EscrowMigrator is
             if (escrowAmount == 0) continue;
 
             registeredVestingSchedules[_account][entryID] =
-                VestingEntry({escrowAmount: escrowAmount, migrated: false});
+                VestingEntry({escrowAmount: uint248(escrowAmount), migrated: false});
 
             /// @dev A counter of numberOfRegisteredEntries would do, but this allows easier inspection
             registeredEntryIDs[_account].push(entryID);
