@@ -118,6 +118,9 @@ contract EscrowMigrator is
 
         // transfer ownership
         _transferOwnership(_contractOwner);
+
+        // start contract as paused
+        _pause();
     }
 
     /*//////////////////////////////////////////////////////////////

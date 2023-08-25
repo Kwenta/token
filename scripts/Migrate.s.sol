@@ -217,6 +217,15 @@ contract Migrate {
             console.log("Switched RewardEscrow to point to EscrowMigrator at %s", _escrowMigrator);
         }
 
+        // Unpause EscrowMigrator
+        EscrowMigrator escrowMigrator = EscrowMigrator(_escrowMigrator);
+        escrowMigrator.unpauseEscrowMigrator();
+
+        if (_printLogs) {
+            console.log("Unpaused EscrowMigrator at %s", _escrowMigrator);
+        }
+        
+
         if (_printLogs) console.log(unicode"--------- 🎉 MIGRATION COMPLETE 🎉 ---------");
     }
 

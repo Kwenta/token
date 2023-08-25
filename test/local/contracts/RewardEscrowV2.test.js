@@ -213,6 +213,10 @@ contract("RewardEscrowV2 KWENTA", ([owner, staker1, staker2, treasuryDAO]) => {
             from: owner,
         });
 
+        await escrowMigrator.unpauseEscrowMigrator({
+            from: owner,
+        });
+
         await stakingToken.transfer(staker1, toUnit(10000), {
             from: treasuryDAO,
         });
