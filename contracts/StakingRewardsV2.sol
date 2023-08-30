@@ -534,9 +534,9 @@ contract StakingRewardsV2 is
     /// @param _checkpoints: array of checkpoints to search
     /// @param _timestamp: timestamp to check
     /// @dev returns 0 if no checkpoints exist, uses iterative binary search
-    function _checkpointBinarySearch(Checkpoint[] memory _checkpoints, uint256 _timestamp)
+    function _checkpointBinarySearch(Checkpoint[] storage _checkpoints, uint256 _timestamp)
         internal
-        pure
+        view
         returns (uint256)
     {
         uint256 length = _checkpoints.length;
