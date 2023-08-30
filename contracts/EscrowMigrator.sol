@@ -210,8 +210,9 @@ contract EscrowMigrator is
         override
         returns (uint256 escrowAmount, bool migrated)
     {
-        escrowAmount = registeredVestingSchedules[_account][_entryID].escrowAmount;
-        migrated = registeredVestingSchedules[_account][_entryID].migrated;
+        VestingEntry storage entry = registeredVestingSchedules[_account][_entryID];
+        escrowAmount = entry.escrowAmount;
+        migrated = entry.migrated;
     }
 
     /// @inheritdoc IEscrowMigrator
@@ -240,11 +241,17 @@ contract EscrowMigrator is
             n = endIndex - _index;
         }
 
+        mapping(uint256 => VestingEntry) storage userEntries = registeredVestingSchedules[_account];
+        uint256[] storage entryIDs = registeredEntryIDs[_account];
+
         VestingEntryWithID[] memory vestingEntries = new VestingEntryWithID[](n);
         for (uint256 i; i < n;) {
-            uint256 entryID = registeredEntryIDs[_account][i + _index];
+            uint256 entryID;
+            unchecked {
+                entryID = entryIDs[i + _index];
+            }
 
-            VestingEntry storage entry = registeredVestingSchedules[_account][entryID];
+            VestingEntry storage entry = userEntries[entryID];
 
             vestingEntries[i] = VestingEntryWithID({
                 entryID: entryID,
@@ -277,11 +284,13 @@ contract EscrowMigrator is
             return new uint256[](0);
         }
 
+        uint256[] storage entryIDs = registeredEntryIDs[_account];
+
         uint256 n = endIndex - _index;
         uint256[] memory page = new uint256[](n);
         for (uint256 i; i < n;) {
             unchecked {
-                page[i] = registeredEntryIDs[_account][i + _index];
+                page[i] = entryIDs[i + _index];
             }
 
             unchecked {
@@ -318,23 +327,26 @@ contract EscrowMigrator is
             escrowVestedAtStart[_account] = rewardEscrowV1.totalVestedAccountBalance(_account);
         }
 
+        uint256[] storage userEntryIDs = registeredEntryIDs[_account];
+        mapping(uint256 => VestingEntry) storage userEntries = registeredVestingSchedules[_account];
+
         uint256 registeredEscrow;
         for (uint256 i = 0; i < _entryIDs.length; i++) {
             uint256 entryID = _entryIDs[i];
 
             // skip if already registered
-            if (registeredVestingSchedules[_account][entryID].escrowAmount != 0) continue;
+            if (userEntries[entryID].escrowAmount != 0) continue;
 
             (, uint256 escrowAmount,) = rewardEscrowV1.getVestingEntry(_account, entryID);
 
             // skip if entry is already vested or does not exist
             if (escrowAmount == 0) continue;
 
-            registeredVestingSchedules[_account][entryID] =
+            userEntries[entryID] =
                 VestingEntry({escrowAmount: uint248(escrowAmount), migrated: false});
 
             /// @dev A counter of numberOfRegisteredEntries would do, but this allows easier inspection
-            registeredEntryIDs[_account].push(entryID);
+            userEntryIDs.push(entryID);
             registeredEscrow += escrowAmount;
         }
 
@@ -369,12 +381,14 @@ contract EscrowMigrator is
         uint256 migratedEscrow;
         uint256 cooldown = stakingRewardsV2.cooldownPeriod();
 
+        mapping(uint256 => VestingEntry) storage userEntries = registeredVestingSchedules[_account];
+
         for (uint256 i = 0; i < _entryIDs.length; i++) {
             uint256 entryID = _entryIDs[i];
 
             (uint64 endTime, uint256 escrowAmount, uint256 duration) =
                 rewardEscrowV1.getVestingEntry(_account, entryID);
-            VestingEntry storage registeredEntry = registeredVestingSchedules[_account][entryID];
+            VestingEntry storage registeredEntry = userEntries[entryID];
             uint256 originalEscrowAmount = registeredEntry.escrowAmount;
 
             // if it is not zero, it hasn't been vested
