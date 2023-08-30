@@ -158,6 +158,15 @@ interface IEscrowMigrator {
         uint256[] calldata _entryIDs
     ) external;
 
+    /*//////////////////////////////////////////////////////////////
+                             FUND RECOVERY
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice Withdraw excess funds from the contract
+    /// @param _to The address to send the funds to
+    function withdrawFunds(address _to) external;
+    
+
     /*///////////////////////////////////////////////////////////////
                                 PAUSABLE
     //////////////////////////////////////////////////////////////*/

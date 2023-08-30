@@ -467,6 +467,19 @@ contract EscrowMigrator is
     }
 
     /*//////////////////////////////////////////////////////////////
+                             FUND RECOVERY
+    //////////////////////////////////////////////////////////////*/
+
+    /// @inheritdoc IEscrowMigrator
+    function withdrawFunds(address _to) external onlyOwner {
+        uint256 leaveInContract = totalRegistered - totalMigrated;
+        uint256 balance = kwenta.balanceOf(address(this));
+        if (balance > leaveInContract) {
+            kwenta.transfer(_to, balance - leaveInContract);
+        }
+    }
+
+    /*//////////////////////////////////////////////////////////////
                              UPGRADEABILITY
     //////////////////////////////////////////////////////////////*/
 

@@ -97,6 +97,11 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         rewardEscrowV1.vest(_entryIDs);
     }
 
+    function vestApproveAndMigrate(address account) internal {
+        vestAndApprove(account);
+        migrateEntries(account);
+    }
+
     function vestAndApprove(address account) internal {
         uint256[] memory _entryIDs = getEntryIDs(account);
         vestAndApprove(account, _entryIDs);
@@ -223,6 +228,16 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         escrowMigrator.registerEntries(_entryIDs);
 
         return (_entryIDs, _entryIDs.length);
+    }
+
+    function claimRegisterAndVestEntries(address account)
+        internal
+        returns (uint256[] memory _entryIDs, uint256 numVestingEntries)
+    {
+        claimAndCheckInitialState(account);
+        _entryIDs = getEntryIDs(account);
+        numVestingEntries = _entryIDs.length;
+        claimRegisterAndVestEntries(account, _entryIDs);
     }
 
     function claimRegisterAndVestEntries(address account, uint256 index, uint256 amount)
