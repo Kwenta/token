@@ -121,7 +121,7 @@ contract RewardEscrowV2 is
     }
 
     /// @inheritdoc IRewardEscrowV2
-    function initialize(address _contractOwner) external override initializer {
+    function initialize(address _contractOwner) external initializer {
         if (_contractOwner == address(0)) revert ZeroAddress();
 
         // Initialize inherited contracts
@@ -142,7 +142,7 @@ contract RewardEscrowV2 is
     ///////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IRewardEscrowV2
-    function setStakingRewards(address _stakingRewards) external override onlyOwner {
+    function setStakingRewards(address _stakingRewards) external onlyOwner {
         if (_stakingRewards == address(0)) revert ZeroAddress();
         if (address(stakingRewards) != address(0)) revert StakingRewardsAlreadySet();
 
@@ -151,7 +151,7 @@ contract RewardEscrowV2 is
     }
 
     /// @inheritdoc IRewardEscrowV2
-    function setEscrowMigrator(address _escrowMigrator) external override onlyOwner {
+    function setEscrowMigrator(address _escrowMigrator) external onlyOwner {
         if (_escrowMigrator == address(0)) revert ZeroAddress();
 
         escrowMigrator = IEscrowMigrator(_escrowMigrator);
@@ -159,18 +159,14 @@ contract RewardEscrowV2 is
     }
 
     /// @inheritdoc IRewardEscrowV2
-    function setTreasuryDAO(address _treasuryDAO) external override onlyOwner {
+    function setTreasuryDAO(address _treasuryDAO) external onlyOwner {
         if (_treasuryDAO == address(0)) revert ZeroAddress();
         treasuryDAO = _treasuryDAO;
         emit TreasuryDAOSet(treasuryDAO);
     }
 
     /// @inheritdoc IRewardEscrowV2
-    function setEarlyVestFeeDistributor(address _earlyVestFeeDistributor)
-        external
-        override
-        onlyOwner
-    {
+    function setEarlyVestFeeDistributor(address _earlyVestFeeDistributor) external onlyOwner {
         if (_earlyVestFeeDistributor == address(0)) revert ZeroAddress();
         earlyVestFeeDistributor = _earlyVestFeeDistributor;
         emit EarlyVestFeeDistributorSet(earlyVestFeeDistributor);
@@ -181,17 +177,17 @@ contract RewardEscrowV2 is
     ///////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IRewardEscrowV2
-    function getKwentaAddress() external view override returns (address) {
+    function getKwentaAddress() external view returns (address) {
         return address(kwenta);
     }
 
     /// @inheritdoc IRewardEscrowV2
-    function escrowedBalanceOf(address _account) external view override returns (uint256) {
+    function escrowedBalanceOf(address _account) external view returns (uint256) {
         return totalEscrowedAccountBalance[_account];
     }
 
     /// @inheritdoc IRewardEscrowV2
-    function unstakedEscrowedBalanceOf(address _account) public view override returns (uint256) {
+    function unstakedEscrowedBalanceOf(address _account) public view returns (uint256) {
         return totalEscrowedAccountBalance[_account] - stakingRewards.escrowedBalanceOf(_account);
     }
 
@@ -199,7 +195,6 @@ contract RewardEscrowV2 is
     function getVestingEntry(uint256 _entryID)
         external
         view
-        override
         returns (uint64 endTime, uint256 escrowAmount, uint256 duration, uint8 earlyVestingFee)
     {
         VestingEntry storage entry = vestingSchedules[_entryID];
@@ -213,7 +208,6 @@ contract RewardEscrowV2 is
     function getVestingSchedules(address _account, uint256 _index, uint256 _pageSize)
         external
         view
-        override
         returns (VestingEntryWithID[] memory)
     {
         if (_pageSize == 0) {
@@ -264,7 +258,6 @@ contract RewardEscrowV2 is
     function getAccountVestingEntryIDs(address _account, uint256 _index, uint256 _pageSize)
         external
         view
-        override
         returns (uint256[] memory)
     {
         uint256 endIndex = _index + _pageSize;
@@ -296,7 +289,6 @@ contract RewardEscrowV2 is
     function getVestingQuantity(uint256[] calldata _entryIDs)
         external
         view
-        override
         returns (uint256 total, uint256 totalFee)
     {
         uint256 entryIDsLength = _entryIDs.length;
@@ -319,7 +311,6 @@ contract RewardEscrowV2 is
     function getVestingEntryClaimable(uint256 _entryID)
         external
         view
-        override
         returns (uint256 quantity, uint256 fee)
     {
         VestingEntry memory entry = vestingSchedules[_entryID];
@@ -358,7 +349,7 @@ contract RewardEscrowV2 is
     ///////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IRewardEscrowV2
-    function vest(uint256[] calldata _entryIDs) external override whenNotPaused {
+    function vest(uint256[] calldata _entryIDs) external whenNotPaused {
         uint256 total;
         uint256 totalFee;
         uint256 entryIDsLength = _entryIDs.length;
@@ -441,7 +432,7 @@ contract RewardEscrowV2 is
         uint256 _deposit,
         uint256 _duration,
         uint8 _earlyVestingFee
-    ) external override {
+    ) external {
         if (_beneficiary == address(0)) revert ZeroAddress();
         if (_earlyVestingFee > MAXIMUM_EARLY_VESTING_FEE) revert EarlyVestingFeeTooHigh();
         if (_earlyVestingFee < MINIMUM_EARLY_VESTING_FEE) revert EarlyVestingFeeTooLow();
@@ -460,11 +451,7 @@ contract RewardEscrowV2 is
     }
 
     /// @inheritdoc IRewardEscrowV2
-    function appendVestingEntry(address _account, uint256 _quantity)
-        external
-        override
-        onlyStakingRewards
-    {
+    function appendVestingEntry(address _account, uint256 _quantity) external onlyStakingRewards {
         // Escrow the tokens for duration.
         uint256 endTime = block.timestamp + DEFAULT_DURATION;
 
@@ -474,7 +461,6 @@ contract RewardEscrowV2 is
     /// @inheritdoc IRewardEscrowV2
     function bulkTransferFrom(address _from, address _to, uint256[] calldata _entryIDs)
         external
-        override
         whenNotPaused
     {
         if (_from == _to) revert CannotTransferToSelf();
@@ -576,12 +562,12 @@ contract RewardEscrowV2 is
     ///////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IRewardEscrowV2
-    function pauseRewardEscrow() external override onlyOwner {
+    function pauseRewardEscrow() external onlyOwner {
         _pause();
     }
 
     /// @inheritdoc IRewardEscrowV2
-    function unpauseRewardEscrow() external override onlyOwner {
+    function unpauseRewardEscrow() external onlyOwner {
         _unpause();
     }
 }
