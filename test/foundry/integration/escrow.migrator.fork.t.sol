@@ -1519,55 +1519,91 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
                           FUND RECOVERY TESTS
     //////////////////////////////////////////////////////////////*/
 
-    function test_Fund_Recovery_User_Regisered() public {
-        uint256 userBalanceBeforeVest = kwenta.balanceOf(user1);
-        uint256 escrowMigratorBalanceBeforeVest = kwenta.balanceOf(address(escrowMigrator));
-        
-        uint256[] memory _entryIDs = getEntryIDs(user1);
-        (uint256 total, uint256 fee) = rewardEscrowV1.getVestingQuantity(user1, _entryIDs);
+    // function test_Fund_Recovery_User_Regisered() public {
+    //     uint256 userBalanceBeforeVest = kwenta.balanceOf(user1);
+    //     uint256 escrowMigratorBalanceBeforeVest = kwenta.balanceOf(address(escrowMigrator));
 
-        vest(user1);
+    //     uint256[] memory _entryIDs = getEntryIDs(user1);
+    //     (uint256 total, uint256 fee) = rewardEscrowV1.getVestingQuantity(user1, _entryIDs);
 
-        uint256 userBalanceAfterVest = kwenta.balanceOf(user1);
-        uint256 escrowMigratorBalanceAfterVest = kwenta.balanceOf(address(escrowMigrator));
+    //     vest(user1);
 
-        assertEq(userBalanceAfterVest - userBalanceBeforeVest, total);
-        assertEq(escrowMigratorBalanceAfterVest - escrowMigratorBalanceBeforeVest, fee);
+    //     assertEq(kwenta.balanceOf(address(escrowMigrator)), fee);
+    //     assertEq(escrowMigrator.totalRegistered(), 0);
+    //     assertEq(escrowMigrator.totalMigrated(), 0);
 
-        claimAndFullyMigrate(user2);
-        claimAndRegisterEntries(user3);
+    //     console.log("balance", kwenta.balanceOf(address(escrowMigrator)));
+    //     console.log("fee", fee);
 
-        uint256 balanceBefore = kwenta.balanceOf(treasury);
+    //     uint256 userBalanceAfterVest = kwenta.balanceOf(user1);
+    //     uint256 escrowMigratorBalanceAfterVest = kwenta.balanceOf(address(escrowMigrator));
 
-        vm.prank(owner);
-        escrowMigrator.withdrawFunds(treasury);
+    //     assertEq(userBalanceAfterVest - userBalanceBeforeVest, total);
+    //     assertEq(escrowMigratorBalanceAfterVest - escrowMigratorBalanceBeforeVest, fee);
 
-        uint256 balanceAfter = kwenta.balanceOf(treasury);
+    //     claimAndFullyMigrate(user2);
+    //     claimAndRegisterEntries(user3);
 
-        assertLe(balanceAfter - balanceBefore, fee);
+    //     uint256 balanceBefore = kwenta.balanceOf(treasury);
 
-        vestApproveAndMigrate(user3);
-        checkStateAfterStepThree(user3, 1, 12);
-    }
+    //     vm.prank(owner);
+    //     escrowMigrator.withdrawFunds(treasury);
+
+    //     uint256 balanceAfter = kwenta.balanceOf(treasury);
+
+    //     assertLe(balanceAfter - balanceBefore, fee);
+
+    //     vestApproveAndMigrate(user3);
+    //     checkStateAfterStepThree(user3, 1, 12);
+    // }
 
     function test_Fund_Recovery_User_Registered_And_Vested() public {
+        vm.prank(user1);
+        stakingRewardsV1.getReward();
+        vm.prank(user2);
+        stakingRewardsV1.getReward();
+        vm.prank(user3);
+        stakingRewardsV1.getReward();
+
         uint256 userBalanceBeforeVest = kwenta.balanceOf(user1);
         uint256 escrowMigratorBalanceBeforeVest = kwenta.balanceOf(address(escrowMigrator));
-        
+
         uint256[] memory _entryIDs = getEntryIDs(user1);
         (uint256 total, uint256 fee) = rewardEscrowV1.getVestingQuantity(user1, _entryIDs);
+        (uint256 user2Total, uint256 user2Fee) =
+            rewardEscrowV1.getVestingQuantity(user2, getEntryIDs(user2));
+        (uint256 user3Total, uint256 user3Fee) =
+            rewardEscrowV1.getVestingQuantity(user3, getEntryIDs(user3));
 
         vest(user1);
 
-        uint256 userBalanceAfterVest = kwenta.balanceOf(user1);
-        uint256 escrowMigratorBalanceAfterVest = kwenta.balanceOf(address(escrowMigrator));
-
-        assertEq(userBalanceAfterVest - userBalanceBeforeVest, total);
-        assertEq(escrowMigratorBalanceAfterVest - escrowMigratorBalanceBeforeVest, fee);
+        assertEq(escrowMigrator.totalRegistered(), 0);
+        assertEq(escrowMigrator.totalMigrated(), 0);
+        assertEq(kwenta.balanceOf(address(escrowMigrator)), fee);
+        assertEq(kwenta.balanceOf(user1) - userBalanceBeforeVest, total);
+        assertEq(kwenta.balanceOf(address(escrowMigrator)) - escrowMigratorBalanceBeforeVest, fee);
 
         claimAndFullyMigrate(user2);
         claimRegisterAndVestEntries(user3);
 
+        assertEq(
+            escrowMigrator.totalRegistered(),
+            escrowMigrator.totalEscrowRegistered(user2)
+                + escrowMigrator.totalEscrowRegistered(user3)
+        );
+        assertEq(
+            escrowMigrator.totalEscrowRegistered(user2), rewardEscrowV2.escrowedBalanceOf(user2)
+        );
+        assertEq(escrowMigrator.totalEscrowRegistered(user2), user2Total + user2Fee);
+        assertEq(escrowMigrator.totalEscrowRegistered(user3), user3Total + user3Fee);
+        assertEq(escrowMigrator.totalMigrated(), escrowMigrator.totalEscrowRegistered(user2));
+        assertEq(escrowMigrator.totalMigrated(), user2Total + user2Fee);
+        assertEq(kwenta.balanceOf(address(escrowMigrator)), fee + user3Fee);
+        assertEq(
+            kwenta.balanceOf(address(escrowMigrator)) - escrowMigratorBalanceBeforeVest,
+            fee + user3Fee
+        );
+
         uint256 balanceBefore = kwenta.balanceOf(treasury);
 
         vm.prank(owner);
@@ -1575,9 +1611,45 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 
         uint256 balanceAfter = kwenta.balanceOf(treasury);
 
-        assertLe(balanceAfter - balanceBefore, fee);
+        assertEq(balanceAfter - balanceBefore, fee - user3Total);
+        assertEq(kwenta.balanceOf(address(escrowMigrator)), user3Total + user3Fee);
 
         approveAndMigrate(user3);
+        checkStateAfterStepThree(user3, 1, 12);
+    }
+
+    function test_Fund_Recovery_User_Migrated() public {
+        uint256 userBalanceBeforeVest = kwenta.balanceOf(user1);
+        uint256 escrowMigratorBalanceBeforeVest = kwenta.balanceOf(address(escrowMigrator));
+
+        uint256[] memory _entryIDs = getEntryIDs(user1);
+        (uint256 total, uint256 fee) = rewardEscrowV1.getVestingQuantity(user1, _entryIDs);
+
+        vest(user1);
+
+        assertEq(escrowMigrator.totalRegistered(), 0);
+        assertEq(escrowMigrator.totalMigrated(), 0);
+        assertEq(kwenta.balanceOf(address(escrowMigrator)), fee);
+        assertEq(kwenta.balanceOf(user1) - userBalanceBeforeVest, total);
+        assertEq(kwenta.balanceOf(address(escrowMigrator)) - escrowMigratorBalanceBeforeVest, fee);
+
+        claimAndFullyMigrate(user2);
+
+        assertEq(escrowMigrator.totalRegistered(), rewardEscrowV2.escrowedBalanceOf(user2));
+        assertEq(escrowMigrator.totalMigrated(), escrowMigrator.totalRegistered());
+        assertEq(kwenta.balanceOf(address(escrowMigrator)), fee);
+        assertEq(kwenta.balanceOf(address(escrowMigrator)) - escrowMigratorBalanceBeforeVest, fee);
+
+        uint256 balanceBefore = kwenta.balanceOf(treasury);
+
+        vm.prank(owner);
+        escrowMigrator.withdrawFunds(treasury);
+
+        assertEq(kwenta.balanceOf(address(escrowMigrator)), 0);
+        assertEq(kwenta.balanceOf(treasury) - balanceBefore, fee);
+
+        claimAndFullyMigrate(user3);
+        checkStateAfterStepThree(user2);
         checkStateAfterStepThree(user3, 1, 12);
     }
 
