@@ -32,7 +32,6 @@ contract Migrate {
         address _kwenta,
         address _supplySchedule,
         address _rewardEscrowV1,
-        address _stakingRewardsV1,
         address _treasuryDAO,
         bool _printLogs
     )
@@ -256,7 +255,6 @@ contract Migrate {
             _kwenta,
             _supplySchedule,
             _rewardEscrowV1,
-            _stakingRewardsV1,
             _treasuryDAO,
             _printLogs
         );
@@ -312,7 +310,6 @@ contract DeployAndSetupOptimism is Script, Migrate {
             OPTIMISM_KWENTA_TOKEN,
             OPTIMISM_SUPPLY_SCHEDULE,
             OPTIMISM_REWARD_ESCROW_V1,
-            OPTIMISM_STAKING_REWARDS_V1,
             OPTIMISM_TREASURY_DAO,
             true
         );
@@ -362,7 +359,6 @@ contract DeployAndSetupOptimismGoerli is Script, Migrate {
             OPTIMISM_GOERLI_KWENTA_TOKEN,
             OPTIMISM_GOERLI_SUPPLY_SCHEDULE,
             OPTIMISM_GOERLI_REWARD_ESCROW_V1,
-            OPTIMISM_GOERLI_STAKING_REWARDS_V1,
             OPTIMISM_GOERLI_TREASURY_DAO,
             true
         );
