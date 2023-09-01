@@ -37,7 +37,7 @@ contract StakingV2SetupTests is StakingV1Setup {
         (address rewardEscrowV2, address stakingRewardsV2) =
             deployRewardEscrowV2AndStakingRewardsV2(address(this));
 
-        new EscrowMigrator(address(kwenta), address(rewardEscrowV1), rewardEscrowV2, address(stakingRewardsV1), stakingRewardsV2);
+        new EscrowMigrator(address(kwenta), address(rewardEscrowV1), rewardEscrowV2, stakingRewardsV2);
     }
 
     function test_Cannot_Setup_EscrowMigrator_With_Kwenta_Zero_Address() public {
@@ -45,7 +45,7 @@ contract StakingV2SetupTests is StakingV1Setup {
             deployRewardEscrowV2AndStakingRewardsV2(address(this));
 
         vm.expectRevert(IEscrowMigrator.ZeroAddress.selector);
-        new EscrowMigrator(address(0), address(rewardEscrowV1), rewardEscrowV2, address(stakingRewardsV1), stakingRewardsV2);
+        new EscrowMigrator(address(0), address(rewardEscrowV1), rewardEscrowV2, stakingRewardsV2);
     }
 
     function test_Cannot_Setup_EscrowMigrator_With_RewardEscrowV1_Zero_Address() public {
@@ -53,29 +53,21 @@ contract StakingV2SetupTests is StakingV1Setup {
             deployRewardEscrowV2AndStakingRewardsV2(address(this));
 
         vm.expectRevert(IEscrowMigrator.ZeroAddress.selector);
-        new EscrowMigrator(address(kwenta), address(0), rewardEscrowV2, address(stakingRewardsV1), stakingRewardsV2);
+        new EscrowMigrator(address(kwenta), address(0), rewardEscrowV2, stakingRewardsV2);
     }
 
     function test_Cannot_Setup_EscrowMigrator_With_RewardEscrowV2_Zero_Address() public {
         (, address stakingRewardsV2) = deployRewardEscrowV2AndStakingRewardsV2(address(this));
 
         vm.expectRevert(IEscrowMigrator.ZeroAddress.selector);
-        new EscrowMigrator(address(kwenta), address(rewardEscrowV1), address(0), address(stakingRewardsV1), stakingRewardsV2);
-    }
-
-    function test_Cannot_Setup_EscrowMigrator_With_StakingRewardsV1_Zero_Address() public {
-        (address rewardEscrowV2, address stakingRewardsV2) =
-            deployRewardEscrowV2AndStakingRewardsV2(address(this));
-
-        vm.expectRevert(IEscrowMigrator.ZeroAddress.selector);
-        new EscrowMigrator(address(kwenta), address(rewardEscrowV1), rewardEscrowV2, address(0), stakingRewardsV2);
+        new EscrowMigrator(address(kwenta), address(rewardEscrowV1), address(0), stakingRewardsV2);
     }
 
     function test_Cannot_Setup_EscrowMigrator_With_StakingRewardsV2_Zero_Address() public {
         (address rewardEscrowV2,) = deployRewardEscrowV2AndStakingRewardsV2(address(this));
 
         vm.expectRevert(IEscrowMigrator.ZeroAddress.selector);
-        new EscrowMigrator(address(kwenta), address(rewardEscrowV1), rewardEscrowV2, address(stakingRewardsV1), address(0));
+        new EscrowMigrator(address(kwenta), address(rewardEscrowV1), rewardEscrowV2, address(0));
     }
 
     function test_Cannot_Initialize_EscrowMigrator_Proxy_With_Owner_Zero_Address() public {
@@ -83,7 +75,7 @@ contract StakingV2SetupTests is StakingV1Setup {
             deployRewardEscrowV2AndStakingRewardsV2(address(this));
 
         escrowMigratorImplementation = address(
-            new EscrowMigrator(address(kwenta), address(rewardEscrowV1), rewardEscrowV2, address(stakingRewardsV1), stakingRewardsV2)
+            new EscrowMigrator(address(kwenta), address(rewardEscrowV1), rewardEscrowV2, stakingRewardsV2)
         );
 
         vm.expectRevert(IEscrowMigrator.ZeroAddress.selector);
@@ -102,7 +94,7 @@ contract StakingV2SetupTests is StakingV1Setup {
             deployRewardEscrowV2AndStakingRewardsV2(address(this));
 
         escrowMigratorImplementation = address(
-            new EscrowMigrator(address(kwenta), address(rewardEscrowV1), rewardEscrowV2, address(stakingRewardsV1), stakingRewardsV2)
+            new EscrowMigrator(address(kwenta), address(rewardEscrowV1), rewardEscrowV2, stakingRewardsV2)
         );
 
         vm.expectRevert(IEscrowMigrator.ZeroAddress.selector);

@@ -103,7 +103,6 @@ contract Migrate {
                 _kwenta,
                 _rewardEscrowV1,
                 address(rewardEscrowV2),
-                _stakingRewardsV1,
                 address(stakingRewardsV2)
             )
         );

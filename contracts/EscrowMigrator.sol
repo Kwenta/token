@@ -55,10 +55,6 @@ contract EscrowMigrator is
     /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
     IRewardEscrowV2 public immutable rewardEscrowV2;
 
-    /// @notice Contract for StakingRewardsV1
-    /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
-    IStakingRewards public immutable stakingRewardsV1;
-
     /// @notice Contract for StakingRewardsV2
     /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
     IStakingRewardsV2 public immutable stakingRewardsV2;
@@ -97,19 +93,16 @@ contract EscrowMigrator is
         address _kwenta,
         address _rewardEscrowV1,
         address _rewardEscrowV2,
-        address _stakingRewardsV1,
         address _stakingRewardsV2
     ) {
         if (_kwenta == address(0)) revert ZeroAddress();
         if (_rewardEscrowV1 == address(0)) revert ZeroAddress();
         if (_rewardEscrowV2 == address(0)) revert ZeroAddress();
-        if (_stakingRewardsV1 == address(0)) revert ZeroAddress();
         if (_stakingRewardsV2 == address(0)) revert ZeroAddress();
 
         kwenta = IKwenta(_kwenta);
         rewardEscrowV1 = IRewardEscrow(_rewardEscrowV1);
         rewardEscrowV2 = IRewardEscrowV2(_rewardEscrowV2);
-        stakingRewardsV1 = IStakingRewards(_stakingRewardsV1);
         stakingRewardsV2 = IStakingRewardsV2(_stakingRewardsV2);
 
         _disableInitializers();

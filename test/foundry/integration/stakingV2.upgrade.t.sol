@@ -182,7 +182,6 @@ contract StakingV2UpgradeTests is DefaultStakingV2Setup {
         testEscrowMigratorStillWorking();
     }
 
-
     /*//////////////////////////////////////////////////////////////
                                 HELPERS
     //////////////////////////////////////////////////////////////*/
@@ -206,7 +205,6 @@ contract StakingV2UpgradeTests is DefaultStakingV2Setup {
                 address(kwenta),
                 address(rewardEscrowV1),
                 address(rewardEscrowV2),
-                address(stakingRewardsV1),
                 address(stakingRewardsV2)
             )
         );
