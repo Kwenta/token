@@ -97,6 +97,11 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         rewardEscrowV1.vest(_entryIDs);
     }
 
+    function vestApproveAndMigrate(address account, uint256 index, uint256 amount) internal {
+        vestAndApprove(account, index, amount);
+        migrateEntries(account, index, amount);
+    }
+
     function vestApproveAndMigrate(address account) internal {
         vestAndApprove(account);
         migrateEntries(account);
