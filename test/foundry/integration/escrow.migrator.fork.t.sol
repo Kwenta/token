@@ -588,6 +588,18 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
                            STEP 3 EDGE CASES
     //////////////////////////////////////////////////////////////*/
 
+    function test_Step_Cannot_Migrate_After_Two_Weeks() public {
+        // complete step 1
+        (uint256[] memory _entryIDs,,) = claimRegisterVestAndApprove(user1);
+
+        vm.warp(block.timestamp + 2 weeks + 1);
+
+        // step 3.2 - migrate entries
+        vm.prank(user1);
+        vm.expectRevert(IEscrowMigrator.DeadlinePassed.selector);
+        escrowMigrator.migrateEntries(user1, _entryIDs);
+    }
+
     function test_Can_Migrate_Mature_Entries() public {
         // check initial state
         (uint256[] memory _entryIDs,) = claimAndCheckInitialState(user1);
@@ -604,6 +616,9 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
     }
 
     function test_Can_Migrate_Entries_Matured_After_Registering() public {
+        // fast forward until most entries are mature
+        vm.warp(block.timestamp + 50 weeks);
+
         // check initial state
         (uint256[] memory _entryIDs,) = claimAndCheckInitialState(user1);
 
@@ -611,7 +626,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         registerVestAndApprove(user1, _entryIDs);
 
         // fast forward until all entries are mature
-        vm.warp(block.timestamp + 52 weeks);
+        vm.warp(block.timestamp + 2 weeks);
 
         migrateEntries(user1, _entryIDs);
 
