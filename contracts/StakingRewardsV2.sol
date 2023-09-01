@@ -532,33 +532,28 @@ contract StakingRewardsV2 is
     /// @param _account: address of account to add checkpoint for
     /// @param _value: value of checkpoint to add
     function _addBalancesCheckpoint(address _account, uint256 _value) internal {
-        Checkpoint[] storage checkpoints = balancesCheckpoints[_account];
-        uint256 length = checkpoints.length;
-        uint256 lastTimestamp;
-        unchecked {
-            lastTimestamp = length == 0 ? 0 : checkpoints[length - 1].ts;
-        }
-
-        if (lastTimestamp != block.timestamp) {
-            checkpoints.push(
-                Checkpoint({
-                    ts: uint64(block.timestamp),
-                    blk: uint64(block.number),
-                    value: uint128(_value)
-                })
-            );
-        } else {
-            unchecked {
-                checkpoints[length - 1].value = uint128(_value);
-            }
-        }
+        _addCheckpoint(balancesCheckpoints[_account], _value);
     }
 
     /// @notice add a new escrowed balance checkpoint for an account
     /// @param _account: address of account to add checkpoint for
     /// @param _value: value of checkpoint to add
     function _addEscrowedBalancesCheckpoint(address _account, uint256 _value) internal {
-        Checkpoint[] storage checkpoints = escrowedBalancesCheckpoints[_account];
+        _addCheckpoint(escrowedBalancesCheckpoints[_account], _value);
+    }
+
+    /// @notice add a new total supply checkpoint
+    /// @param _value: value of checkpoint to add
+    function _addTotalSupplyCheckpoint(uint256 _value) internal {
+        _addCheckpoint(totalSupplyCheckpoints, _value);
+    }
+
+    /// @notice Adds a new checkpoint or updates the last one
+    /// @param checkpoints The array of checkpoints to modify
+    /// @param _value The new value to add as a checkpoint
+    /// @dev If the last checkpoint is from a different block, a new checkpoint is added.
+    /// If it's from the current block, the value of the last checkpoint is updated.
+    function _addCheckpoint(Checkpoint[] storage checkpoints, uint256 _value) internal {
         uint256 length = checkpoints.length;
         uint256 lastTimestamp;
         unchecked {
@@ -576,30 +571,6 @@ contract StakingRewardsV2 is
         } else {
             unchecked {
                 checkpoints[length - 1].value = uint128(_value);
-            }
-        }
-    }
-
-    /// @notice add a new total supply checkpoint
-    /// @param _value: value of checkpoint to add
-    function _addTotalSupplyCheckpoint(uint256 _value) internal {
-        uint256 length = totalSupplyCheckpoints.length;
-        uint256 lastTimestamp;
-        unchecked {
-            lastTimestamp = length == 0 ? 0 : totalSupplyCheckpoints[length - 1].ts;
-        }
-
-        if (lastTimestamp != block.timestamp) {
-            totalSupplyCheckpoints.push(
-                Checkpoint({
-                    ts: uint64(block.timestamp),
-                    blk: uint64(block.number),
-                    value: uint128(_value)
-                })
-            );
-        } else {
-            unchecked {
-                totalSupplyCheckpoints[length - 1].value = uint128(_value);
             }
         }
     }
