@@ -404,6 +404,24 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
                            STEP 1 EDGE CASES
     //////////////////////////////////////////////////////////////*/
 
+    function test_Cannot_Register_After_Deadline() public {
+        // check initial state
+        claimAndCheckInitialState(user1);
+
+        // step 1
+        registerEntries(user1, 0, 5);
+
+        // attempt to register further entries after the deadline
+        vm.warp(block.timestamp + escrowMigrator.MIGRATION_DEADLINE() + 1);
+        uint256[] memory extraEntryIDs = getEntryIDs(user1, 5, 10); 
+        vm.prank(user1);
+        vm.expectRevert(IEscrowMigrator.DeadlinePassed.selector);
+        escrowMigrator.registerEntries(extraEntryIDs);
+
+        // check final state
+        checkStateAfterStepOne(user1, 0, 5, true);
+    }
+
     function test_Cannot_Register_Someone_Elses_Entry() public {
         // check initial state
         getStakingRewardsV1(user2);
@@ -591,7 +609,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         // complete step 1
         (uint256[] memory _entryIDs,,) = claimRegisterVestAndApprove(user1);
 
-        vm.warp(block.timestamp + 2 weeks + 1);
+        vm.warp(block.timestamp + escrowMigrator.MIGRATION_DEADLINE() + 1);
 
         // step 3.2 - migrate entries
         vm.prank(user1);
@@ -625,7 +643,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         registerVestAndApprove(user1, _entryIDs);
 
         // fast forward until all entries are mature
-        vm.warp(block.timestamp + 2 weeks);
+        vm.warp(block.timestamp + escrowMigrator.MIGRATION_DEADLINE());
 
         migrateEntries(user1, _entryIDs);
 
