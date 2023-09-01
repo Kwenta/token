@@ -1580,7 +1580,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         uint256 balanceBefore = kwenta.balanceOf(treasury);
 
         vm.prank(owner);
-        escrowMigrator.withdrawFunds(treasury);
+        escrowMigrator.withdrawFunds();
 
         uint256 balanceAfter = kwenta.balanceOf(treasury);
 
@@ -1641,7 +1641,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         uint256 balanceBefore = kwenta.balanceOf(treasury);
 
         vm.prank(owner);
-        escrowMigrator.withdrawFunds(treasury);
+        escrowMigrator.withdrawFunds();
 
         uint256 balanceAfter = kwenta.balanceOf(treasury);
 
@@ -1677,7 +1677,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         uint256 balanceBefore = kwenta.balanceOf(treasury);
 
         vm.prank(owner);
-        escrowMigrator.withdrawFunds(treasury);
+        escrowMigrator.withdrawFunds();
 
         assertEq(kwenta.balanceOf(address(escrowMigrator)), 0);
         assertEq(kwenta.balanceOf(treasury) - balanceBefore, fee);

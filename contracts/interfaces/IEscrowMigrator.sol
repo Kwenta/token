@@ -163,9 +163,8 @@ interface IEscrowMigrator {
                              FUND RECOVERY
     //////////////////////////////////////////////////////////////*/
 
-    /// @notice Withdraw excess funds from the contract
-    /// @param _to The address to send the funds to
-    function withdrawFunds(address _to) external;
+    /// @notice Withdraw excess funds from the contract to the treasury
+    function withdrawFunds() external;
     
 
     /*///////////////////////////////////////////////////////////////
