@@ -494,7 +494,7 @@ contract EscrowMigrator is
     }
 
     /// @inheritdoc IEscrowMigrator
-    function withdrawFunds() external {
+    function recoverExcessFunds() external {
         uint256 leaveInContract = totalRegistered - totalMigrated;
         uint256 balance = kwenta.balanceOf(address(this));
         if (balance > leaveInContract) {

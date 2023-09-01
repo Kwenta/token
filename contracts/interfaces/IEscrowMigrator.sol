@@ -168,7 +168,7 @@ interface IEscrowMigrator {
     function setTreasuryDAO(address _newTreasuryDAO) external;
 
     /// @notice Withdraw excess funds from the contract to the treasury
-    function withdrawFunds() external;
+    function recoverExcessFunds() external;
 
     /*///////////////////////////////////////////////////////////////
                                 PAUSABLE

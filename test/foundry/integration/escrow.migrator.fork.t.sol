@@ -1603,7 +1603,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         uint256 balanceBefore = kwenta.balanceOf(treasury);
 
         vm.prank(owner);
-        escrowMigrator.withdrawFunds();
+        escrowMigrator.recoverExcessFunds();
 
         uint256 balanceAfter = kwenta.balanceOf(treasury);
 
@@ -1664,7 +1664,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         uint256 balanceBefore = kwenta.balanceOf(treasury);
 
         vm.prank(owner);
-        escrowMigrator.withdrawFunds();
+        escrowMigrator.recoverExcessFunds();
 
         uint256 balanceAfter = kwenta.balanceOf(treasury);
 
@@ -1700,7 +1700,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         uint256 balanceBefore = kwenta.balanceOf(treasury);
 
         vm.prank(owner);
-        escrowMigrator.withdrawFunds();
+        escrowMigrator.recoverExcessFunds();
 
         assertEq(kwenta.balanceOf(address(escrowMigrator)), 0);
         assertEq(kwenta.balanceOf(treasury) - balanceBefore, fee);
@@ -1710,7 +1710,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         checkStateAfterStepThree(user3, 1, 12);
     }
 
-    // TODO: test access control for withdrawFunds
+    // TODO: test access control for recoverExcessFunds
 
     /*//////////////////////////////////////////////////////////////
                                GAS TESTS
