@@ -150,7 +150,8 @@ interface IEscrowMigrator {
     function registerIntegratorEntries(address _integrator, uint256[] calldata _entryIDs)
         external;
 
-    /// @notice step 2 - vest all registered entries and approve the EscrowMigrator contract
+    /// @notice step 2 - vest all registered entries via the integartor, pulling the early vested KWENTA to the beneficiary's address.
+    /// Then the beneficiary must approve the EscrowMigrator contract for at least the integrators `toPay` amount.
 
     /// @notice step 3 - migrate all registered & vested entries
     /// @param _integrator: The address of the integrator to migrate entries for
