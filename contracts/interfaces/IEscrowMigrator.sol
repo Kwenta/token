@@ -170,6 +170,16 @@ interface IEscrowMigrator {
     /// @param _newTreasuryDAO The address of the new treasury DAO
     function setTreasuryDAO(address _newTreasuryDAO) external;
 
+    /// @notice Account for frozen funds for a list of expired migrators
+    /// @param _expiredMigrators The addresses of the expired migrators
+    /// @dev warning - may fail due to unbounded loop for certain users
+    function accountForFrozenFunds(address[] memory _expiredMigrators) external;
+
+    /// @notice Account for frozen funds for a single expired migrator
+    /// @param _expiredMigrator The address of the expired migrator
+    /// @dev warning - may fail due to unbounded loop for certain users
+    function accountForFrozenFunds(address _expiredMigrator) external;
+
     /// @notice Withdraw excess funds from the contract to the treasury
     function recoverExcessFunds() external;
 

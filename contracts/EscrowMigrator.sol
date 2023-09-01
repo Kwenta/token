@@ -497,6 +497,7 @@ contract EscrowMigrator is
         treasuryDAO = _newTreasuryDAO;
     }
 
+    /// @inheritdoc IEscrowMigrator
     /// @dev warning - may fail due to unbounded loop for certain users
     function accountForFrozenFunds(address[] memory _expiredMigrators) external {
         for (uint256 i = 0; i < _expiredMigrators.length;) {
@@ -507,6 +508,7 @@ contract EscrowMigrator is
         }
     }
 
+    /// @inheritdoc IEscrowMigrator
     /// @dev warning - may fail due to unbounded loop for certain users
     function accountForFrozenFunds(address _expiredMigrator) public {
         if (_deadlinePassed(initializationTime[_expiredMigrator])) {
