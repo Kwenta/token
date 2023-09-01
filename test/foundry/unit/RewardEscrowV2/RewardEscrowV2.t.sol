@@ -428,8 +428,10 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         createRewardEscrowEntryV2(user1, 200 ether, 52 weeks);
         createRewardEscrowEntryV2(user1, 200 ether, 52 weeks);
 
-        vm.expectRevert(IRewardEscrowV2.InvalidIndex.selector);
-        rewardEscrowV2.getVestingSchedules(user1, 6, 10);
+        IRewardEscrowV2.VestingEntryWithID[] memory entries =
+            rewardEscrowV2.getVestingSchedules(user1, 6, 10);
+
+        assertEq(entries.length, 0);
     }
 
     function test_getVestingSchedules() public {

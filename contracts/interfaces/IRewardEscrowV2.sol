@@ -238,9 +238,6 @@ interface IRewardEscrowV2 {
     /// @notice Thrown when attempting to bulk transfer from and to the same address
     error CannotTransferToSelf();
 
-    /// @notice There are not enough entries to get vesting schedules starting from this index
-    error InvalidIndex();
-
     /// @notice Insufficient unstaked escrow to facilitate transfer
     /// @param escrowAmount the amount of escrow attempted to transfer
     /// @param unstakedBalance the amount of unstaked escrow available
