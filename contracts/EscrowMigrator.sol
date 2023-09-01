@@ -129,7 +129,7 @@ contract EscrowMigrator is
         // transfer ownership
         _transferOwnership(_contractOwner);
 
-        // set treasuryDA)
+        // set treasuryDAO
         treasuryDAO = _treasuryDAO;
 
         // start contract as paused
@@ -486,6 +486,12 @@ contract EscrowMigrator is
     /*//////////////////////////////////////////////////////////////
                              FUND RECOVERY
     //////////////////////////////////////////////////////////////*/
+
+    /// @inheritdoc IEscrowMigrator
+    function setTreasuryDAO(address _newTreasuryDAO) external onlyOwner {
+        if (_newTreasuryDAO == address(0)) revert ZeroAddress();
+        treasuryDAO = _newTreasuryDAO;
+    }
 
     /// @inheritdoc IEscrowMigrator
     function withdrawFunds() external {

@@ -163,9 +163,12 @@ interface IEscrowMigrator {
                              FUND RECOVERY
     //////////////////////////////////////////////////////////////*/
 
+    /// @notice Allows the owner to change the treasury DAO address
+    /// @param _newTreasuryDAO The address of the new treasury DAO
+    function setTreasuryDAO(address _newTreasuryDAO) external;
+
     /// @notice Withdraw excess funds from the contract to the treasury
     function withdrawFunds() external;
-    
 
     /*///////////////////////////////////////////////////////////////
                                 PAUSABLE

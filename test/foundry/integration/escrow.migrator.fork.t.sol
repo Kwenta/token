@@ -1533,6 +1533,29 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
                           FUND RECOVERY TESTS
     //////////////////////////////////////////////////////////////*/
 
+    function test_setTreasuryDAO() public {
+        assertEq(escrowMigrator.treasuryDAO(), treasury);
+
+        // Only owner can set the treasury DAO address
+        vm.expectRevert("Ownable: caller is not the owner");
+        escrowMigrator.setTreasuryDAO(user1);
+
+        // Owner can set the treasury DAO address
+        vm.prank(owner);
+        escrowMigrator.setTreasuryDAO(user1);
+
+        // Check that the treasury DAO address has been updated
+        assertEq(escrowMigrator.treasuryDAO(), user1);
+
+        // Owner can set the treasury DAO address back to the original
+        vm.prank(owner);
+        escrowMigrator.setTreasuryDAO(treasury);
+
+        // Check that the treasury DAO address has been updated
+        assertEq(escrowMigrator.treasuryDAO(), treasury);
+        
+    }
+
     function test_Fund_Recovery_User_Regisered() public {
         vm.prank(user1);
         stakingRewardsV1.getReward();
