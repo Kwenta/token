@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.19;
 
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {PausableUpgradeable} from
     "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import {Ownable2StepUpgradeable} from
@@ -132,6 +132,9 @@ contract StakingRewardsV2 is
     /// @dev disable default constructor to disable the implementation contract
     /// Actual contract construction will take place in the initialize function via proxy
     /// @custom:oz-upgrades-unsafe-allow constructor
+    /// @param _kwenta The address for the KWENTA ERC20 token
+    /// @param _rewardEscrow The address for the RewardEscrowV2 contract
+    /// @param _supplySchedule The address for the SupplySchedule contract
     constructor(address _kwenta, address _rewardEscrow, address _supplySchedule) {
         if (_kwenta == address(0) || _rewardEscrow == address(0) || _supplySchedule == address(0)) {
             revert ZeroAddress();

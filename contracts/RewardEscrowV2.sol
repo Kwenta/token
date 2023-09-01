@@ -61,7 +61,7 @@ contract RewardEscrowV2 is
     /// @notice Contract for StakingRewardsV2
     IStakingRewardsV2 public stakingRewards;
 
-    /// @notice Contract for StakingRewardsV2
+    /// @notice Contract for EscrowMigrator
     IEscrowMigrator public escrowMigrator;
 
     /// @notice treasury address - this may change
@@ -112,6 +112,7 @@ contract RewardEscrowV2 is
     /// @dev disable default constructor for disable implementation contract
     /// Actual contract construction will take place in the initialize function via proxy
     /// @custom:oz-upgrades-unsafe-allow constructor
+    /// @param _kwenta The address for the KWENTA ERC20 token
     constructor(address _kwenta) {
         if (_kwenta == address(0)) revert ZeroAddress();
 
@@ -222,7 +223,7 @@ contract RewardEscrowV2 is
             endIndex = numEntries;
         }
 
-        if (endIndex < _index) revert InvalidIndex();
+        if (endIndex < _index) return new VestingEntryWithID[](0);
 
         uint256 n;
         unchecked {

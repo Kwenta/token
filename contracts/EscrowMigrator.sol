@@ -51,7 +51,7 @@ contract EscrowMigrator is
     /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
     IRewardEscrow public immutable rewardEscrowV1;
 
-    /// @notice Contract for RewardEscrowV1
+    /// @notice Contract for RewardEscrowV2
     /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
     IRewardEscrowV2 public immutable rewardEscrowV2;
 
@@ -89,6 +89,10 @@ contract EscrowMigrator is
     /// @dev disable default constructor for disable implementation contract
     /// Actual contract construction will take place in the initialize function via proxy
     /// @custom:oz-upgrades-unsafe-allow constructor
+    /// @param _kwenta The address for the KWENTA ERC20 token
+    /// @param _rewardEscrowV1 The address for the RewardEscrowV1 contract
+    /// @param _rewardEscrowV2 The address for the RewardEscrowV2 contract
+    /// @param _stakingRewardsV2 The address for the StakingRewardsV2 contract
     constructor(
         address _kwenta,
         address _rewardEscrowV1,
@@ -109,6 +113,7 @@ contract EscrowMigrator is
     }
 
     /// @inheritdoc IEscrowMigrator
+    
     function initialize(address _contractOwner, address _treasuryDAO) external initializer {
         if (_contractOwner == address(0) || _treasuryDAO == address(0)) revert ZeroAddress();
 
