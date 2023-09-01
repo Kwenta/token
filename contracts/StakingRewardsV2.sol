@@ -499,6 +499,8 @@ contract StakingRewardsV2 is
     /// @param _checkpoints: array of checkpoints to search
     /// @param _timestamp: timestamp to check
     /// @dev returns 0 if no checkpoints exist, uses iterative binary search
+    /// @dev if called with a timestamp that equals the current block timestamp, then the function might return inconsistent
+    /// values as further transactions changing the balances can still occur within the same block. 
     function _checkpointBinarySearch(Checkpoint[] storage _checkpoints, uint256 _timestamp)
         internal
         view
