@@ -12,16 +12,22 @@ contract NotifiableRewardAccumulator {
     IKwenta internal immutable kwenta;
 
     /// @notice rewards staking contract
-    IStakingRewardsV2 internal immutable stakingRewardsV2;
+    IStakingRewardsV2 internal stakingRewardsV2;
 
     /// @notice supply schedule contract
     ISupplySchedule internal immutable supplySchedule;
+
+    /// @notice one time setter boolean
+    bool public stakingRewardsV2IsSet;
 
     /// @notice Input address is 0
     error InputAddress0();
 
     /// @notice OnlySupplySchedule can access this
     error OnlySupplySchedule();
+
+    /// @notice StakingRewardsV2 is already set
+    error StakingRewardsV2IsSet();
 
     /// @notice access control modifier for supplySchedule
     modifier onlySupplySchedule() {
@@ -33,16 +39,23 @@ contract NotifiableRewardAccumulator {
         if (msg.sender != address(supplySchedule)) revert OnlySupplySchedule();
     }
 
-    constructor(address _kwenta, address _stakingRewardsV2, address _supplySchedule) {
-        if (_kwenta == address(0) || _stakingRewardsV2 == address(0) || _supplySchedule == address(0)) {
+    //todo: add access control modifier for stakingRewardsV2
+    function setStakingRewardsV2(address _stakingRewardsV2) external {
+        if (_stakingRewardsV2 == address(0)) revert InputAddress0();
+        if (stakingRewardsV2IsSet) revert StakingRewardsV2IsSet();
+        stakingRewardsV2IsSet = true;
+        stakingRewardsV2 = IStakingRewardsV2(_stakingRewardsV2);
+    }
+
+    constructor(address _kwenta, address _supplySchedule) {
+        if (_kwenta == address(0) || _supplySchedule == address(0)) {
             revert InputAddress0();
         }
         kwenta = IKwenta(_kwenta);
-        stakingRewardsV2 = IStakingRewardsV2(_stakingRewardsV2);
         supplySchedule = ISupplySchedule(_supplySchedule);
     }
 
-    function notifyRewardAmount(uint mintedAmount) external onlySupplySchedule {
+    function notifyRewardAmount(uint mintedAmount) external {
         /// @dev delete because it is not used
         /// instead currentBalance is used
         delete mintedAmount;
