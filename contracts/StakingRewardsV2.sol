@@ -564,10 +564,16 @@ contract StakingRewardsV2 is
         }
 
         if (lastTimestamp != block.timestamp) {
-            checkpoints.push(Checkpoint({ts: block.timestamp, blk: block.number, value: _value}));
+            checkpoints.push(
+                Checkpoint({
+                    ts: uint64(block.timestamp),
+                    blk: uint64(block.number),
+                    value: uint128(_value)
+                })
+            );
         } else {
             unchecked {
-                checkpoints[length - 1].value = _value;
+                checkpoints[length - 1].value = uint128(_value);
             }
         }
     }
@@ -584,10 +590,16 @@ contract StakingRewardsV2 is
         }
 
         if (lastTimestamp != block.timestamp) {
-            checkpoints.push(Checkpoint({ts: block.timestamp, blk: block.number, value: _value}));
+            checkpoints.push(
+                Checkpoint({
+                    ts: uint64(block.timestamp),
+                    blk: uint64(block.number),
+                    value: uint128(_value)
+                })
+            );
         } else {
             unchecked {
-                checkpoints[length - 1].value = _value;
+                checkpoints[length - 1].value = uint128(_value);
             }
         }
     }
@@ -603,11 +615,15 @@ contract StakingRewardsV2 is
 
         if (lastTimestamp != block.timestamp) {
             totalSupplyCheckpoints.push(
-                Checkpoint({ts: block.timestamp, blk: block.number, value: _value})
+                Checkpoint({
+                    ts: uint64(block.timestamp),
+                    blk: uint64(block.number),
+                    value: uint128(_value)
+                })
             );
         } else {
             unchecked {
-                totalSupplyCheckpoints[length - 1].value = _value;
+                totalSupplyCheckpoints[length - 1].value = uint128(_value);
             }
         }
     }

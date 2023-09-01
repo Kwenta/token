@@ -9,11 +9,11 @@ interface IStakingRewardsV2 {
     /// @notice A checkpoint for tracking values at a given timestamp
     struct Checkpoint {
         // The timestamp when the value was generated
-        uint256 ts;
+        uint64 ts;
         // The block number when the value was generated
-        uint256 blk;
+        uint64 blk;
         // The value of the checkpoint
-        uint256 value;
+        uint128 value;
     }
 
     /*///////////////////////////////////////////////////////////////
