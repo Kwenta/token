@@ -11,6 +11,8 @@ import {StakingV2Setup} from "./StakingV2SetupWithAccumulator.t.sol";
 
 contract NotifiableRewardAccumulatorTest is StakingV2Setup {
 
+    event RewardAdded(uint256 reward);
+
     function setUp() public override {
         super.setUp();
         notifiableRewardAccumulator.setStakingRewardsV2(address(stakingRewardsV2));
@@ -25,10 +27,27 @@ contract NotifiableRewardAccumulatorTest is StakingV2Setup {
     }
 
     function testNotifiableRewardAccumulatorMintSuccess() public {
+        uint256 mintAmount = 17177543635384615384614;
         uint256 balanceBefore = kwenta.balanceOf(address(stakingRewardsV2));
         vm.warp(block.timestamp + 2 weeks);
+        vm.expectEmit(true, true, true, true);
+        emit RewardAdded(mintAmount);
         supplySchedule.mint();
         uint256 balanceAfter = kwenta.balanceOf(address(stakingRewardsV2));
         assertGt(balanceAfter, balanceBefore);
+    }
+
+    function testNotifiableRewardAccumulatorRetroactiveFundsSuccess() public {
+        uint256 mintAmount = 17177543635384615384614;
+        vm.warp(block.timestamp + 1 weeks);
+        kwenta.transfer(address(notifiableRewardAccumulator), 1000 ether);
+        vm.warp(block.timestamp + 1 weeks);
+        uint256 balanceBefore = kwenta.balanceOf(address(stakingRewardsV2));
+        vm.expectEmit(true, true, true, true);
+        emit RewardAdded(mintAmount + 1000 ether);
+        supplySchedule.mint();
+        uint256 balanceAfter = kwenta.balanceOf(address(stakingRewardsV2));
+        assertGt(balanceAfter, balanceBefore);
+        assertEq(balanceAfter - balanceBefore, 1000 ether + mintAmount);
     }
 }
