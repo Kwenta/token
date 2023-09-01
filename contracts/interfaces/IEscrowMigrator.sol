@@ -102,7 +102,7 @@ interface IEscrowMigrator {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice claim any remaining StakingRewards V1 rewards
-    /// This must be done before the migration process can begin
+    /// This should be done before the migration process can begin
 
     /*//////////////////////////////////////////////////////////////
                                  STEP 1
