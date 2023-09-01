@@ -40,6 +40,7 @@ contract EscrowMigrator is
                         CONSTANTS/IMMUTABLES
     ///////////////////////////////////////////////////////////////*/
 
+    /// @notice The deadline for migration, set to 2 weeks from when a user initializes
     uint256 public constant MIGRATION_DEADLINE = 2 weeks;
 
     /// @notice Contract for KWENTA ERC20 token
@@ -65,6 +66,9 @@ contract EscrowMigrator is
     /*//////////////////////////////////////////////////////////////
                                  STATE
     //////////////////////////////////////////////////////////////*/
+
+    // TODO: add natspec for these state variables
+    address public treasuryDAO;
 
     uint256 public totalRegistered;
 
@@ -110,7 +114,11 @@ contract EscrowMigrator is
     }
 
     /// @inheritdoc IEscrowMigrator
-    function initialize(address _contractOwner) external override initializer {
+    function initialize(address _contractOwner, address _treasuryDAO)
+        external
+        override
+        initializer
+    {
         if (_contractOwner == address(0)) revert ZeroAddress();
 
         // Initialize inherited contracts
@@ -120,6 +128,9 @@ contract EscrowMigrator is
 
         // transfer ownership
         _transferOwnership(_contractOwner);
+
+        // set treasuryDA)
+        treasuryDAO = _treasuryDAO;
 
         // start contract as paused
         _pause();

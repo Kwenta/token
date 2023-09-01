@@ -30,8 +30,9 @@ interface IEscrowMigrator {
 
     /// @notice Initializes the contract
     /// @param _owner The address of the owner of this contract
+    /// @param _treasuryDAO The address of the treasury DAO
     /// @dev this function should be called via proxy, not via direct contract interaction
-    function initialize(address _owner) external;
+    function initialize(address _owner, address _treasuryDAO) external;
 
     /*//////////////////////////////////////////////////////////////
                                  VIEWS

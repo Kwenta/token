@@ -83,7 +83,7 @@ contract StakingV2UpgradeTests is DefaultStakingV2Setup {
 
     function test_EscrowMigrator_Implementation_Cannot_Be_Initialized() public {
         vm.expectRevert("Initializable: contract is already initialized");
-        escrowMigrator.initialize(address(0));
+        escrowMigrator.initialize(address(0x1), treasury);
     }
 
     /*//////////////////////////////////////////////////////////////
