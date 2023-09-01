@@ -40,6 +40,8 @@ contract EscrowMigrator is
                         CONSTANTS/IMMUTABLES
     ///////////////////////////////////////////////////////////////*/
 
+    uint256 public constant MIGRATION_DEADLINE = 2 weeks;
+
     /// @notice Contract for KWENTA ERC20 token
     /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
     IKwenta public immutable kwenta;
@@ -428,7 +430,7 @@ contract EscrowMigrator is
     function _checkIfMigrationAllowed(address _account) internal view {
         uint256 initiatedAt = initializationTime[_account];
         if (initiatedAt == 0) revert MustBeInitiated();
-        if (block.timestamp > initiatedAt + 2 weeks) revert DeadlinePassed();
+        if (block.timestamp > initiatedAt + MIGRATION_DEADLINE) revert DeadlinePassed();
     }
 
     function _payForMigration(address _account) internal {
