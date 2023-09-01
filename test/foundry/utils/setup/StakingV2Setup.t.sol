@@ -69,7 +69,7 @@ contract StakingV2Setup is StakingV1Setup {
                 address(supplySchedule),
                 address(rewardEscrowV1),
                 address(stakingRewardsV1),
-                0,
+                treasury,
                 false
             )
         );

@@ -78,7 +78,7 @@ contract StakingV2SetupTests is StakingV1Setup {
         new EscrowMigrator(address(kwenta), address(rewardEscrowV1), rewardEscrowV2, address(stakingRewardsV1), address(0));
     }
 
-    function test_Cannot_Initialize_EscrowMigrator_Proxy_With_Zero_Address() public {
+    function test_Cannot_Initialize_EscrowMigrator_Proxy_With_Owner_Zero_Address() public {
         (address rewardEscrowV2, address stakingRewardsV2) =
             deployRewardEscrowV2AndStakingRewardsV2(address(this));
 
@@ -90,7 +90,27 @@ contract StakingV2SetupTests is StakingV1Setup {
         new ERC1967Proxy(
                 escrowMigratorImplementation,
                 abi.encodeWithSignature(
-                    "initialize(address)",
+                    "initialize(address,address)",
+                    address(0),
+                    treasury
+                )
+            );
+    }
+
+    function test_Cannot_Initialize_EscrowMigrator_Proxy_With_Treasury_Zero_Address() public {
+        (address rewardEscrowV2, address stakingRewardsV2) =
+            deployRewardEscrowV2AndStakingRewardsV2(address(this));
+
+        escrowMigratorImplementation = address(
+            new EscrowMigrator(address(kwenta), address(rewardEscrowV1), rewardEscrowV2, address(stakingRewardsV1), stakingRewardsV2)
+        );
+
+        vm.expectRevert(IEscrowMigrator.ZeroAddress.selector);
+        new ERC1967Proxy(
+                escrowMigratorImplementation,
+                abi.encodeWithSignature(
+                    "initialize(address,address)",
+                    address(0x1),
                     address(0)
                 )
             );
