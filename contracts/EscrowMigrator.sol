@@ -109,11 +109,7 @@ contract EscrowMigrator is
     }
 
     /// @inheritdoc IEscrowMigrator
-    function initialize(address _contractOwner, address _treasuryDAO)
-        external
-        override
-        initializer
-    {
+    function initialize(address _contractOwner, address _treasuryDAO) external initializer {
         if (_contractOwner == address(0) || _treasuryDAO == address(0)) revert ZeroAddress();
 
         // Initialize inherited contracts
@@ -136,18 +132,13 @@ contract EscrowMigrator is
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IEscrowMigrator
-    function numberOfRegisteredEntries(address _account) public view override returns (uint256) {
+    function numberOfRegisteredEntries(address _account) public view returns (uint256) {
         return registeredEntryIDs[_account].length;
     }
 
     /// @inheritdoc IEscrowMigrator
     /// @dev WARNING: this loop is potentially limitless - could revert with out of gas error if called on-chain
-    function numberOfMigratedEntries(address _account)
-        external
-        view
-        override
-        returns (uint256 total)
-    {
+    function numberOfMigratedEntries(address _account) external view returns (uint256 total) {
         uint256[] storage entries = registeredEntryIDs[_account];
         uint256 length = entries.length;
 
@@ -165,7 +156,7 @@ contract EscrowMigrator is
 
     /// @inheritdoc IEscrowMigrator
     /// @dev WARNING: this loop is potentially limitless - could revert with out of gas error if called on-chain
-    function totalEscrowRegistered(address _account) public view override returns (uint256 total) {
+    function totalEscrowRegistered(address _account) public view returns (uint256 total) {
         uint256[] storage entries = registeredEntryIDs[_account];
         uint256 length = entries.length;
 
@@ -183,7 +174,7 @@ contract EscrowMigrator is
 
     /// @inheritdoc IEscrowMigrator
     /// @dev WARNING: this loop is potentially limitless - could revert with out of gas error if called on-chain
-    function totalEscrowMigrated(address _account) public view override returns (uint256 total) {
+    function totalEscrowMigrated(address _account) public view returns (uint256 total) {
         uint256[] storage entries = registeredEntryIDs[_account];
         uint256 length = entries.length;
 
@@ -200,7 +191,7 @@ contract EscrowMigrator is
     }
 
     /// @inheritdoc IEscrowMigrator
-    function toPay(address _account) public view override returns (uint256) {
+    function toPay(address _account) public view returns (uint256) {
         uint256 totalPaymentRequired =
             rewardEscrowV1.totalVestedAccountBalance(_account) - escrowVestedAtStart[_account];
         return totalPaymentRequired - paidSoFar[_account];
@@ -210,7 +201,6 @@ contract EscrowMigrator is
     function getRegisteredVestingEntry(address _account, uint256 _entryID)
         external
         view
-        override
         returns (uint256 escrowAmount, bool migrated)
     {
         VestingEntry storage entry = registeredVestingSchedules[_account][_entryID];
@@ -222,7 +212,6 @@ contract EscrowMigrator is
     function getRegisteredVestingSchedules(address _account, uint256 _index, uint256 _pageSize)
         external
         view
-        override
         returns (VestingEntryWithID[] memory)
     {
         if (_pageSize == 0) {
@@ -273,7 +262,6 @@ contract EscrowMigrator is
     function getRegisteredVestingEntryIDs(address _account, uint256 _index, uint256 _pageSize)
         external
         view
-        override
         returns (uint256[] memory)
     {
         uint256 endIndex = _index + _pageSize;
@@ -315,7 +303,7 @@ contract EscrowMigrator is
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IEscrowMigrator
-    function registerEntries(uint256[] calldata _entryIDs) external override {
+    function registerEntries(uint256[] calldata _entryIDs) external {
         _registerEntries(msg.sender, _entryIDs);
     }
 
@@ -530,12 +518,12 @@ contract EscrowMigrator is
     ///////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IEscrowMigrator
-    function pauseEscrowMigrator() external override onlyOwner {
+    function pauseEscrowMigrator() external onlyOwner {
         _pause();
     }
 
     /// @inheritdoc IEscrowMigrator
-    function unpauseEscrowMigrator() external override onlyOwner {
+    function unpauseEscrowMigrator() external onlyOwner {
         _unpause();
     }
 }
