@@ -40,7 +40,7 @@ contract EscrowMigrator is
                         CONSTANTS/IMMUTABLES
     ///////////////////////////////////////////////////////////////*/
 
-    /// @notice The deadline for migration, set to 2 weeks from when a user initializes
+    /// @inheritdoc IEscrowMigrator
     uint256 public constant MIGRATION_DEADLINE = 2 weeks;
 
     /// @notice Contract for KWENTA ERC20 token
@@ -73,6 +73,8 @@ contract EscrowMigrator is
     uint256 public totalRegistered;
 
     uint256 public totalMigrated;
+
+    uint256 public totalFrozen;
 
     mapping(address => mapping(uint256 => VestingEntry)) public registeredVestingSchedules;
 
@@ -170,12 +172,7 @@ contract EscrowMigrator is
 
     /// @inheritdoc IEscrowMigrator
     /// @dev WARNING: this loop is potentially limitless - could revert with out of gas error if called on-chain
-    function totalEscrowRegistered(address _account)
-        external
-        view
-        override
-        returns (uint256 total)
-    {
+    function totalEscrowRegistered(address _account) public view override returns (uint256 total) {
         uint256[] storage entries = registeredEntryIDs[_account];
         uint256 length = entries.length;
 
@@ -193,7 +190,7 @@ contract EscrowMigrator is
 
     /// @inheritdoc IEscrowMigrator
     /// @dev WARNING: this loop is potentially limitless - could revert with out of gas error if called on-chain
-    function totalEscrowMigrated(address _account) external view override returns (uint256 total) {
+    function totalEscrowMigrated(address _account) public view override returns (uint256 total) {
         uint256[] storage entries = registeredEntryIDs[_account];
         uint256 length = entries.length;
 
@@ -333,11 +330,14 @@ contract EscrowMigrator is
         internal
         whenNotPaused
     {
-        if (initializationTime[_account] == 0) {
+        uint256 initializedAt = initializationTime[_account];
+        if (initializedAt == 0) {
             if (rewardEscrowV1.balanceOf(_account) == 0) revert NoEscrowBalanceToMigrate();
 
             initializationTime[_account] = block.timestamp;
             escrowVestedAtStart[_account] = rewardEscrowV1.totalVestedAccountBalance(_account);
+        } else if (_deadlinePassed(initializedAt)) {
+            revert DeadlinePassed();
         }
 
         uint256[] storage userEntryIDs = registeredEntryIDs[_account];
@@ -441,7 +441,11 @@ contract EscrowMigrator is
     function _checkIfMigrationAllowed(address _account) internal view {
         uint256 initiatedAt = initializationTime[_account];
         if (initiatedAt == 0) revert MustBeInitiated();
-        if (block.timestamp > initiatedAt + MIGRATION_DEADLINE) revert DeadlinePassed();
+        if (_deadlinePassed(initiatedAt)) revert DeadlinePassed();
+    }
+
+    function _deadlinePassed(uint256 _initiatedAt) internal view returns (bool) {
+        return block.timestamp > _initiatedAt + MIGRATION_DEADLINE;
     }
 
     function _payForMigration(address _account) internal {
@@ -493,9 +497,27 @@ contract EscrowMigrator is
         treasuryDAO = _newTreasuryDAO;
     }
 
+    /// @dev warning - may fail due to unbounded loop for certain users
+    function accountForFrozenFunds(address[] memory _expiredMigrators) external {
+        for (uint256 i = 0; i < _expiredMigrators.length;) {
+            accountForFrozenFunds(_expiredMigrators[i]);
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
+    /// @dev warning - may fail due to unbounded loop for certain users
+    function accountForFrozenFunds(address _expiredMigrator) public {
+        if (_deadlinePassed(initializationTime[_expiredMigrator])) {
+            totalFrozen +=
+                totalEscrowRegistered(_expiredMigrator) - totalEscrowMigrated(_expiredMigrator);
+        }
+    }
+
     /// @inheritdoc IEscrowMigrator
     function recoverExcessFunds() external {
-        uint256 leaveInContract = totalRegistered - totalMigrated;
+        uint256 leaveInContract = totalRegistered - totalMigrated - totalFrozen;
         uint256 balance = kwenta.balanceOf(address(this));
         if (balance > leaveInContract) {
             kwenta.transfer(treasuryDAO, balance - leaveInContract);

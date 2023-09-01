@@ -38,6 +38,9 @@ interface IEscrowMigrator {
                                  VIEWS
     //////////////////////////////////////////////////////////////*/
 
+    /// @notice The deadline for migration, set to 2 weeks from when a user initializes
+    function MIGRATION_DEADLINE() external view returns (uint256);
+
     /// @notice Get the total number of registered vesting entries for a given account
     /// @param _account The address of the account to query
     /// @return The number of vesting entries for the given account
