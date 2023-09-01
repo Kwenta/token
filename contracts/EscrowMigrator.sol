@@ -119,7 +119,7 @@ contract EscrowMigrator is
         override
         initializer
     {
-        if (_contractOwner == address(0)) revert ZeroAddress();
+        if (_contractOwner == address(0) || _treasuryDAO == address(0)) revert ZeroAddress();
 
         // Initialize inherited contracts
         __Ownable2Step_init();
