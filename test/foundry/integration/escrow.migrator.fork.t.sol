@@ -58,7 +58,6 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
             _supplySchedule: address(supplySchedule),
             _treasuryDAO: treasury,
             _rewardEscrowV1: address(rewardEscrowV1),
-            _stakingRewardsV1: address(stakingRewardsV1),
             _printLogs: false
         });
 

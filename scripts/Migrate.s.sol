@@ -237,7 +237,6 @@ contract Migrate {
         address _supplySchedule,
         address _treasuryDAO,
         address _rewardEscrowV1,
-        address _stakingRewardsV1,
         bool _printLogs
     )
         public
@@ -394,7 +393,6 @@ contract DeploySetupAndMigrateOptimismGoerli is Script, Migrate {
             OPTIMISM_GOERLI_SUPPLY_SCHEDULE,
             OPTIMISM_GOERLI_TREASURY_DAO,
             OPTIMISM_GOERLI_REWARD_ESCROW_V1,
-            OPTIMISM_GOERLI_STAKING_REWARDS_V1,
             true
         );
 
