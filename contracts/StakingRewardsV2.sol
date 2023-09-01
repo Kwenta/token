@@ -9,7 +9,6 @@ import {Ownable2StepUpgradeable} from
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {IKwenta} from "./interfaces/IKwenta.sol";
 import {IStakingRewardsV2} from "./interfaces/IStakingRewardsV2.sol";
-import {IStakingRewardsIntegrator} from "./interfaces/IStakingRewardsIntegrator.sol";
 import {ISupplySchedule} from "./interfaces/ISupplySchedule.sol";
 import {IRewardEscrowV2} from "./interfaces/IRewardEscrowV2.sol";
 
@@ -359,29 +358,6 @@ contract StakingRewardsV2 is
     function _compound(address _account) internal {
         _getReward(_account);
         _stakeEscrow(_account, unstakedEscrowedBalanceOf(_account));
-    }
-
-    /*//////////////////////////////////////////////////////////////
-                           INTEGRATOR REWARDS
-    //////////////////////////////////////////////////////////////*/
-
-    /// @inheritdoc IStakingRewardsV2
-    function getIntegratorReward(address _integrator) public {
-        address beneficiary = IStakingRewardsIntegrator(_integrator).beneficiary();
-        if (beneficiary != msg.sender) revert NotApproved();
-        _getReward(_integrator, beneficiary);
-    }
-
-    /// @inheritdoc IStakingRewardsV2
-    function getIntegratorAndSenderReward(address _integrator) external {
-        getIntegratorReward(_integrator);
-        _getReward(msg.sender);
-    }
-
-    /// @inheritdoc IStakingRewardsV2
-    function getIntegratorRewardAndCompound(address _integrator) external {
-        getIntegratorReward(_integrator);
-        _compound(msg.sender);
     }
 
     /*///////////////////////////////////////////////////////////////
