@@ -192,4 +192,7 @@ interface IEscrowMigrator {
 
     /// @notice step 2 canont be called until the user has initiated via step 1
     error MustBeInitiated();
+
+    /// @notice a user must complete migrating within the specified time window after initiating
+    error DeadlinePassed();
 }

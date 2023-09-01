@@ -345,12 +345,12 @@ contract EscrowMigrator is
             userEntries[entryID] =
                 VestingEntry({escrowAmount: uint248(escrowAmount), migrated: false});
 
-            /// @dev A counter of numberOfRegisteredEntries would do, but this allows easier inspection
+            /// @dev This list is not needed, but this allows easier on-chain inspection
+            /// Also the limiting factor in terms of gas is more _migrateEntries not this function
             userEntryIDs.push(entryID);
             registeredEscrow += escrowAmount;
         }
 
-        /// @dev Simlarly this value is not needed, but just added for easier on-chain inspection
         totalRegistered += registeredEscrow;
     }
 
@@ -375,12 +375,11 @@ contract EscrowMigrator is
         internal
         whenNotPaused
     {
-        if (initializationTime[_account] == 0) revert MustBeInitiated();
+        _checkIfMigrationAllowed(_account);
         _payForMigration(_account);
 
         uint256 migratedEscrow;
         uint256 cooldown = stakingRewardsV2.cooldownPeriod();
-
         mapping(uint256 => VestingEntry) storage userEntries = registeredVestingSchedules[_account];
 
         for (uint256 i = 0; i < _entryIDs.length; i++) {
@@ -423,8 +422,13 @@ contract EscrowMigrator is
             rewardEscrowV2.importEscrowEntry(_to, entry);
         }
 
-        /// @dev This value is not needed, but just added for easier on-chain inspection
         totalMigrated += migratedEscrow;
+    }
+
+    function _checkIfMigrationAllowed(address _account) internal view {
+        uint256 initiatedAt = initializationTime[_account];
+        if (initiatedAt == 0) revert MustBeInitiated();
+        if (block.timestamp > initiatedAt + 2 weeks) revert DeadlinePassed();
     }
 
     function _payForMigration(address _account) internal {
