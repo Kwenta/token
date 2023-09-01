@@ -1632,6 +1632,21 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         checkStateAfterStepThree(user3, 1, 12);
     }
 
+    function test_User_Regisered_Cannot_Free_Frozen_Funds_If_Deadline_Not_Passed() public {
+        vest(user1);
+        claimAndFullyMigrate(user2);
+        claimAndRegisterEntries(user3);
+
+        address[] memory users = new address[](3);
+        users[0] = user1;
+        users[1] = user2;
+        users[2] = user3;
+
+        escrowMigrator.accountForFrozenFunds(users);
+
+        assertEq(escrowMigrator.totalFrozen(), 0);
+    }
+
     function test_Fund_Recovery_User_Registered_And_Vested() public {
         vm.prank(user1);
         stakingRewardsV1.getReward();
@@ -1693,6 +1708,21 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         checkStateAfterStepThree(user3, 1, 12);
     }
 
+    function test_User_Registered_And_Vested_Cannot_Free_Frozen_Funds_If_Deadline_Not_Passed() public {
+        vest(user1);
+        claimAndFullyMigrate(user2);
+        claimRegisterAndVestEntries(user3);
+
+        address[] memory users = new address[](3);
+        users[0] = user1;
+        users[1] = user2;
+        users[2] = user3;
+
+        escrowMigrator.accountForFrozenFunds(users);
+
+        assertEq(escrowMigrator.totalFrozen(), 0);
+    }
+
     function test_Fund_Recovery_User_Migrated() public {
         uint256 userBalanceBeforeVest = kwenta.balanceOf(user1);
         uint256 escrowMigratorBalanceBeforeVest = kwenta.balanceOf(address(escrowMigrator));
@@ -1728,7 +1758,20 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         checkStateAfterStepThree(user3, 1, 12);
     }
 
-    // TODO: test access control for recoverExcessFunds
+    function test_User_Migrated_Cannot_Free_Frozen_Funds_If_Deadline_Not_Passed() public {
+        vest(user1);
+        claimAndFullyMigrate(user2);
+        claimAndFullyMigrate(user3);
+
+        address[] memory users = new address[](3);
+        users[0] = user1;
+        users[1] = user2;
+        users[2] = user3;
+
+        escrowMigrator.accountForFrozenFunds(users);
+
+        assertEq(escrowMigrator.totalFrozen(), 0);
+    }
 
     /*//////////////////////////////////////////////////////////////
                                GAS TESTS
