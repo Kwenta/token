@@ -39,7 +39,6 @@ contract NotifiableRewardAccumulator {
         if (msg.sender != address(supplySchedule)) revert OnlySupplySchedule();
     }
 
-    //todo: add access control modifier for stakingRewardsV2
     function setStakingRewardsV2(address _stakingRewardsV2) external {
         if (_stakingRewardsV2 == address(0)) revert InputAddress0();
         if (stakingRewardsV2IsSet) revert StakingRewardsV2IsSet();
