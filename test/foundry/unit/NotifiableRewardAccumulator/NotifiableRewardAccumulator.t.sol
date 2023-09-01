@@ -19,6 +19,11 @@ contract NotifiableRewardAccumulatorTest is StakingV2Setup {
         supplySchedule.setStakingRewards(address(notifiableRewardAccumulator));
     }
 
+    function testNotifiableRewardAccumulatorCannotSetStakingV2Again() public {
+        vm.expectRevert(NotifiableRewardAccumulator.StakingRewardsV2IsSet.selector);
+        notifiableRewardAccumulator.setStakingRewardsV2(address(stakingRewardsV2));
+    }
+
     function testNotifiableRewardAccumulatorMintSuccess() public {
         uint256 balanceBefore = kwenta.balanceOf(address(stakingRewardsV2));
         vm.warp(block.timestamp + 2 weeks);
