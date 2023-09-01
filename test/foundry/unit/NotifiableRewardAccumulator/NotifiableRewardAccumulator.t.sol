@@ -8,17 +8,21 @@ import {DefaultStakingV2Setup} from "../../utils/setup/DefaultStakingV2Setup.t.s
 import {NotifiableRewardAccumulator} from "../../../../contracts/NotifiableRewardAccumulator.sol";
 
 contract NotifiableRewardAccumulatorTest is DefaultStakingV2Setup {
-
     NotifiableRewardAccumulator public notifiableRewardAccumulator;
 
     function setUp() public override {
         super.setUp();
+        notifiableRewardAccumulator = new NotifiableRewardAccumulator(
+            address(kwenta),
+            address(stakingRewardsV2),
+            address(supplySchedule)
+        );
         vm.prank(treasury);
         kwenta.transfer(address(this), 100_000 ether);
+        supplySchedule.setStakingRewards(address(notifiableRewardAccumulator));
     }
 
     function testExample() public {
         // do something
     }
-
 }
