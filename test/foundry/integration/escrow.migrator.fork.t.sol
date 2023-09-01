@@ -51,9 +51,8 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         // set owners address code to trick the test into allowing onlyOwner functions to be called via script
         vm.etch(owner, address(new Migrate()).code);
 
-        (rewardEscrowV2, stakingRewardsV2, escrowMigrator, earlyVestFeeDistributor) = Migrate(
-            owner
-        ).runCompleteMigrationProcess({
+        (rewardEscrowV2, stakingRewardsV2, escrowMigrator, earlyVestFeeDistributor) = Migrate(owner)
+            .runCompleteMigrationProcess({
             _owner: owner,
             _kwenta: address(kwenta),
             _supplySchedule: address(supplySchedule),
@@ -413,7 +412,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 
         // attempt to register further entries after the deadline
         vm.warp(block.timestamp + escrowMigrator.MIGRATION_DEADLINE() + 1);
-        uint256[] memory extraEntryIDs = getEntryIDs(user1, 5, 10); 
+        uint256[] memory extraEntryIDs = getEntryIDs(user1, 5, 10);
         vm.prank(user1);
         vm.expectRevert(IEscrowMigrator.DeadlinePassed.selector);
         escrowMigrator.registerEntries(extraEntryIDs);
@@ -1571,7 +1570,6 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 
         // Check that the treasury DAO address has been updated
         assertEq(escrowMigrator.treasuryDAO(), treasury);
-        
     }
 
     function test_Fund_Recovery_User_Regisered() public {
@@ -1647,6 +1645,66 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         assertEq(escrowMigrator.totalFrozen(), 0);
     }
 
+    function test_User_Regisered_Free_Frozen_Funds() public {
+        vm.prank(user1);
+        stakingRewardsV1.getReward();
+        vm.prank(user2);
+        stakingRewardsV1.getReward();
+        vm.prank(user3);
+        stakingRewardsV1.getReward();
+
+        (, uint256 user1Fee) = rewardEscrowV1.getVestingQuantity(user1, getEntryIDs(user1));
+        (uint256 user3Total, uint256 user3Fee) =
+            rewardEscrowV1.getVestingQuantity(user3, getEntryIDs(user3));
+
+        vest(user1);
+        claimAndFullyMigrate(user2);
+        claimAndRegisterEntries(user3);
+
+        vm.warp(block.timestamp + escrowMigrator.MIGRATION_DEADLINE() + 1);
+
+        address[] memory users = new address[](3);
+        users[0] = user1;
+        users[1] = user2;
+        users[2] = user3;
+
+        escrowMigrator.accountForFrozenFunds(users);
+        assertEq(escrowMigrator.totalFrozen(), escrowMigrator.totalEscrowRegistered(user3));
+
+        uint256 balanceBefore = kwenta.balanceOf(treasury);
+
+        // recover the funds
+        escrowMigrator.recoverExcessFunds();
+
+        uint256 balanceAfter = kwenta.balanceOf(treasury);
+        uint256 recoveredFunds = balanceAfter - balanceBefore;
+        assertEq(recoveredFunds, user1Fee - user3Total - user3Fee + escrowMigrator.totalFrozen());
+        assertEq(kwenta.balanceOf(address(escrowMigrator)), 0);
+
+        // does not allow further withdrawal of funds
+        escrowMigrator.recoverExcessFunds();
+        assertEq(kwenta.balanceOf(treasury), balanceAfter);
+    }
+
+    function test_User_Regisered_Free_Frozen_Funds_No_List() public {
+        claimAndRegisterEntries(user1);
+        claimAndRegisterEntries(user2);
+        claimAndRegisterEntries(user3);
+
+        vm.warp(block.timestamp + escrowMigrator.MIGRATION_DEADLINE() + 1);
+
+        address[] memory users = new address[](3);
+        users[0] = user1;
+        users[1] = user2;
+        users[2] = user3;
+
+        escrowMigrator.accountForFrozenFunds(user1);
+        escrowMigrator.accountForFrozenFunds(user2);
+        escrowMigrator.accountForFrozenFunds(user3);
+
+        assertEq(escrowMigrator.totalFrozen(), escrowMigrator.totalRegistered());
+    }
+
     function test_Fund_Recovery_User_Registered_And_Vested() public {
         vm.prank(user1);
         stakingRewardsV1.getReward();
@@ -1708,7 +1766,9 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         checkStateAfterStepThree(user3, 1, 12);
     }
 
-    function test_User_Registered_And_Vested_Cannot_Free_Frozen_Funds_If_Deadline_Not_Passed() public {
+    function test_User_Registered_And_Vested_Cannot_Free_Frozen_Funds_If_Deadline_Not_Passed()
+        public
+    {
         vest(user1);
         claimAndFullyMigrate(user2);
         claimRegisterAndVestEntries(user3);
@@ -1721,6 +1781,47 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         escrowMigrator.accountForFrozenFunds(users);
 
         assertEq(escrowMigrator.totalFrozen(), 0);
+    }
+
+    function test_User_Regisered_And_Vested_Free_Frozen_Funds() public {
+        vm.prank(user1);
+        stakingRewardsV1.getReward();
+        vm.prank(user2);
+        stakingRewardsV1.getReward();
+        vm.prank(user3);
+        stakingRewardsV1.getReward();
+
+        (, uint256 user1Fee) = rewardEscrowV1.getVestingQuantity(user1, getEntryIDs(user1));
+        (uint256 user3Total,) = rewardEscrowV1.getVestingQuantity(user3, getEntryIDs(user3));
+
+        vest(user1);
+        claimAndFullyMigrate(user2);
+        claimRegisterAndVestEntries(user3);
+
+        vm.warp(block.timestamp + escrowMigrator.MIGRATION_DEADLINE() + 1);
+
+        address[] memory users = new address[](3);
+        users[0] = user1;
+        users[1] = user2;
+        users[2] = user3;
+
+        escrowMigrator.accountForFrozenFunds(users);
+        assertEq(escrowMigrator.totalFrozen(), escrowMigrator.totalEscrowRegistered(user3));
+
+        uint256 balanceBefore = kwenta.balanceOf(treasury);
+
+        // recover the funds
+        escrowMigrator.recoverExcessFunds();
+
+        uint256 balanceAfter = kwenta.balanceOf(treasury);
+        uint256 recoveredFunds = balanceAfter - balanceBefore;
+
+        assertEq(recoveredFunds, user1Fee - user3Total + escrowMigrator.totalFrozen());
+        assertEq(kwenta.balanceOf(address(escrowMigrator)), 0);
+
+        // does not allow further withdrawal of funds
+        escrowMigrator.recoverExcessFunds();
+        assertEq(kwenta.balanceOf(treasury), balanceAfter);
     }
 
     function test_Fund_Recovery_User_Migrated() public {
@@ -1771,6 +1872,46 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         escrowMigrator.accountForFrozenFunds(users);
 
         assertEq(escrowMigrator.totalFrozen(), 0);
+    }
+
+    function test_User_Migrated_Free_Frozen_Funds() public {
+        vm.prank(user1);
+        stakingRewardsV1.getReward();
+        vm.prank(user2);
+        stakingRewardsV1.getReward();
+        vm.prank(user3);
+        stakingRewardsV1.getReward();
+
+        (, uint256 user1Fee) = rewardEscrowV1.getVestingQuantity(user1, getEntryIDs(user1));
+
+        vest(user1);
+        claimAndFullyMigrate(user2);
+        claimAndFullyMigrate(user3);
+
+        vm.warp(block.timestamp + escrowMigrator.MIGRATION_DEADLINE() + 1);
+
+        address[] memory users = new address[](3);
+        users[0] = user1;
+        users[1] = user2;
+        users[2] = user3;
+
+        escrowMigrator.accountForFrozenFunds(users);
+        assertEq(escrowMigrator.totalFrozen(), escrowMigrator.totalEscrowRegistered(user3));
+
+        uint256 balanceBefore = kwenta.balanceOf(treasury);
+
+        // recover the funds
+        escrowMigrator.recoverExcessFunds();
+
+        uint256 balanceAfter = kwenta.balanceOf(treasury);
+        uint256 recoveredFunds = balanceAfter - balanceBefore;
+
+        assertEq(recoveredFunds, user1Fee + escrowMigrator.totalFrozen());
+        assertEq(kwenta.balanceOf(address(escrowMigrator)), 0);
+
+        // does not allow further withdrawal of funds
+        escrowMigrator.recoverExcessFunds();
+        assertEq(kwenta.balanceOf(treasury), balanceAfter);
     }
 
     /*//////////////////////////////////////////////////////////////
