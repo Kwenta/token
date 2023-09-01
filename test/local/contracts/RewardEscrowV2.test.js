@@ -99,9 +99,9 @@ const deployEscrowMigrator = async (
     token,
     rewardEscrowV1,
     rewardEscrowV2,
-    stakingRewardsV1,
     stakingRewardsV2,
-    owner
+    owner,
+    treasuryDAO
 ) => {
     const EscrowMigratorFactory = await ethers.getContractFactory(
         "EscrowMigrator"
@@ -109,14 +109,13 @@ const deployEscrowMigrator = async (
 
     const escrowMigrator = await upgrades.deployProxy(
         EscrowMigratorFactory,
-        [owner],
+        [owner, treasuryDAO],
         {
             kind: "uups",
             constructorArgs: [
                 token,
                 rewardEscrowV1,
                 rewardEscrowV2,
-                stakingRewardsV1,
                 stakingRewardsV2,
             ],
         }
@@ -178,9 +177,9 @@ contract("RewardEscrowV2 KWENTA", ([owner, staker1, staker2, treasuryDAO]) => {
             stakingToken.address,
             rewardEscrowV1.address,
             rewardEscrowV2.address,
-            stakingRewards.address,
             stakingRewardsV2.address,
-            owner
+            owner,
+            treasuryDAO
         );
 
         await hre.network.provider.request({
