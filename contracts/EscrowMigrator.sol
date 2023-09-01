@@ -70,7 +70,7 @@ contract EscrowMigrator is
 
     mapping(address => mapping(uint256 => VestingEntry)) public registeredVestingSchedules;
 
-    mapping(address => bool) public initiated;
+    mapping(address => uint256) public initializationTime;
 
     mapping(address => uint256) public escrowVestedAtStart;
 
@@ -320,10 +320,10 @@ contract EscrowMigrator is
         internal
         whenNotPaused
     {
-        if (!initiated[_account]) {
+        if (initializationTime[_account] == 0) {
             if (rewardEscrowV1.balanceOf(_account) == 0) revert NoEscrowBalanceToMigrate();
 
-            initiated[_account] = true;
+            initializationTime[_account] = block.timestamp;
             escrowVestedAtStart[_account] = rewardEscrowV1.totalVestedAccountBalance(_account);
         }
 
@@ -375,7 +375,7 @@ contract EscrowMigrator is
         internal
         whenNotPaused
     {
-        if (!initiated[_account]) revert MustBeInitiated();
+        if (initializationTime[_account] == 0) revert MustBeInitiated();
         _payForMigration(_account);
 
         uint256 migratedEscrow;

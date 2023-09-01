@@ -290,7 +290,7 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         _entryIDs = rewardEscrowV1.getAccountVestingEntryIDs(account, 0, numVestingEntries);
         assertEq(_entryIDs.length, numVestingEntries);
 
-        assertEq(escrowMigrator.initiated(account), false);
+        assertEq(escrowMigrator.initializationTime(account), 0);
         assertEq(escrowMigrator.escrowVestedAtStart(account), 0);
         assertEq(escrowMigrator.numberOfMigratedEntries(account), 0);
         assertEq(escrowMigrator.totalEscrowRegistered(account), 0);
@@ -320,7 +320,7 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
     function checkStateAfterStepOne(address account, uint256[] memory _entryIDs, bool didInitiate)
         internal
     {
-        assertEq(escrowMigrator.initiated(account), didInitiate);
+        assertEq(escrowMigrator.initializationTime(account) > 0, didInitiate);
 
         assertEq(
             escrowMigrator.escrowVestedAtStart(account),
@@ -532,7 +532,7 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         uint256[] memory _entryIDs,
         uint256 totalEscrowMigrated
     ) internal {
-        assertEq(escrowMigrator.initiated(account), true);
+        assertGt(escrowMigrator.initializationTime(account), 0);
         assertEq(rewardEscrowV2.totalEscrowedAccountBalance(to), totalEscrowMigrated);
         assertEq(escrowMigrator.totalEscrowMigrated(account), totalEscrowMigrated);
         assertLe(_entryIDs.length, escrowMigrator.numberOfRegisteredEntries(account));

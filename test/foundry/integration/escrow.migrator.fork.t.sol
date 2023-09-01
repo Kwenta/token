@@ -785,7 +785,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         (uint256[] memory _entryIDs,) = claimAndCheckInitialState(user1);
 
         // attempt in non initiated state
-        assertEq(escrowMigrator.initiated(user1), false);
+        assertEq(escrowMigrator.initializationTime(user1), 0);
 
         // step 2 - migrate entries
         vm.prank(user1);
