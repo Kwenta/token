@@ -106,7 +106,7 @@ interface IStakingRewardsV2 {
     /// @param _account: address of account to check
     /// @param _timestamp: timestamp to check
     /// @return escrowed balance at given timestamp
-    function escrowedbalanceAtTime(address _account, uint256 _timestamp)
+    function escrowedBalanceAtTime(address _account, uint256 _timestamp)
         external
         view
         returns (uint256);

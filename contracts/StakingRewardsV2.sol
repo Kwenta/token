@@ -506,7 +506,7 @@ contract StakingRewardsV2 is
     }
 
     /// @inheritdoc IStakingRewardsV2
-    function escrowedbalanceAtTime(address _account, uint256 _timestamp)
+    function escrowedBalanceAtTime(address _account, uint256 _timestamp)
         external
         view
         returns (uint256)
