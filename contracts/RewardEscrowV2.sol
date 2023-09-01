@@ -363,6 +363,7 @@ contract RewardEscrowV2 is
             (uint256 quantity, uint256 fee) = _claimableAmount(entry);
 
             // update entry to remove escrowAmount
+            entry.escrowAmount = 0;
             _burn(_entryIDs[i]);
 
             // add quantity to total
