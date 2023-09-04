@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.19;
 
-import {console} from "../../../../lib/forge-std/src/console.sol";
+import {DefaultStakingV2Setup} from "../../utils/setup/DefaultStakingV2Setup.t.sol";
+import {IStakingRewardsNotifier} from "../../../../contracts/interfaces/IStakingRewardsNotifier.sol";
 import {Kwenta} from "../../../../contracts/Kwenta.sol";
 import {RewardEscrowV2} from "../../../../contracts/RewardEscrowV2.sol";
-import {StakingRewardsV2} from "../../../../contracts/StakingRewardsV2.sol";
-import {DefaultStakingV2Setup} from "../../utils/setup/DefaultStakingV2Setup.t.sol";
 import {StakingRewardsNotifier} from "../../../../contracts/StakingRewardsNotifier.sol";
-import {IStakingRewardsNotifier} from "../../../../contracts/interfaces/IStakingRewardsNotifier.sol";
+import {StakingRewardsV2} from "../../../../contracts/StakingRewardsV2.sol";
 import {StakingV2Setup} from "./StakingV2SetupWithAccumulator.t.sol";
 
 contract StakingRewardsNotifierTest is StakingV2Setup {

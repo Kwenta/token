@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.19;
 
+import {IStakingRewardsNotifier} from "./interfaces/IStakingRewardsNotifier.sol";
 import {IKwenta} from "./interfaces/IKwenta.sol";
+import {IRewardEscrowV2} from "./interfaces/IRewardEscrowV2.sol";
 import {IStakingRewardsV2} from "./interfaces/IStakingRewardsV2.sol";
 import {ISupplySchedule} from "./interfaces/ISupplySchedule.sol";
-import {IRewardEscrowV2} from "./interfaces/IRewardEscrowV2.sol";
-import {IStakingRewardsNotifier} from "./interfaces/IStakingRewardsNotifier.sol";
 
 contract StakingRewardsNotifier is IStakingRewardsNotifier {
 
