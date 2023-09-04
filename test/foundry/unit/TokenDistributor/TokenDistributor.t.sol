@@ -13,6 +13,7 @@ contract TokenDistributorTest is DefaultStakingV2Setup {
     event CheckpointToken(uint time, uint tokens);
     event EpochClaim(address user, uint epoch, uint tokens);
     uint256 startTime;
+    TokenDistributor tokenDistributor;
 
     function setUp() public override {
         /// @dev starts after a week so the startTime is != 0
@@ -21,6 +22,12 @@ contract TokenDistributorTest is DefaultStakingV2Setup {
         startTime = block.timestamp / 1 weeks * 1 weeks;
         vm.warp(startTime);
         super.setUp();
+        tokenDistributor = new TokenDistributor({
+            _kwenta: address(kwenta),
+            _stakingRewardsV2: address(stakingRewardsV2),
+            _rewardEscrowV2: address(rewardEscrowV2),
+            daysToOffsetBy: 0
+        });
         vm.prank(treasury);
         kwenta.transfer(address(this), 100_000 ether);
     }

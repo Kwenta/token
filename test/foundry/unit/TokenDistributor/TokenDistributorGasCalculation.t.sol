@@ -12,10 +12,17 @@ import {TokenDistributor} from "../../../../contracts/TokenDistributor.sol";
 /// @notice test how many weeks we can go without checkpointing
 /// and how much gas will it cost
 contract TokenDistributorGasCalculation is DefaultStakingV2Setup {
+    TokenDistributor tokenDistributor;
     function setUp() public override {
         /// @dev starts after a week so the startTime is != 0
         goForward(1 weeks + 1);
         super.setUp();
+        tokenDistributor = new TokenDistributor({
+            _kwenta: address(kwenta),
+            _stakingRewardsV2: address(stakingRewardsV2),
+            _rewardEscrowV2: address(rewardEscrowV2),
+            daysToOffsetBy: 0
+        });
         vm.prank(treasury);
         kwenta.transfer(address(this), 100_000 ether);
     }
