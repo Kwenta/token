@@ -29,9 +29,6 @@ contract StakingRewardsNotifier {
     /// @notice StakingRewardsV2 is already set
     error StakingRewardsV2IsSet();
 
-    /// @notice AccumulatorRewardForwarded
-    event AccumulatorRewardForwarded(uint currentBalance);
-
     /// @notice access control modifier for supplySchedule
     modifier onlySupplySchedule() {
         _onlySupplySchedule();
