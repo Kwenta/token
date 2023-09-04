@@ -124,7 +124,6 @@ contract EscrowMigrator is
     }
 
     /// @inheritdoc IEscrowMigrator
-
     function initialize(address _contractOwner, address _treasuryDAO) external initializer {
         if (_contractOwner == address(0) || _treasuryDAO == address(0)) revert ZeroAddress();
 
@@ -374,8 +373,6 @@ contract EscrowMigrator is
             userEntries[entryID] =
                 VestingEntry({escrowAmount: uint248(escrowAmount), migrated: false});
 
-            /// @dev This list is not needed, but this allows easier on-chain inspection
-            /// Also the limiting factor in terms of gas is more _migrateEntries not this function
             userEntryIDs.push(entryID);
             registeredEscrow += escrowAmount;
         }
