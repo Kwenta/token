@@ -56,10 +56,10 @@ interface IRewardEscrowV2 {
     /// @dev This function can only be called multiple times
     function setTreasuryDAO(address _treasuryDAO) external;
 
-    /// @notice Function used to define the TokenDistributor address to use
-    /// @param _tokenDistributor The address of the TokenDistributor
-    /// @dev This function can only be called multiple times
-    function setTokenDistributor(address _tokenDistributor) external;
+    /// @notice Function used to define the StakingRewardsNotifier address to use
+    /// @param _rewardsNotifier The address of the rewards notifeir
+    /// @dev This function can be called multiple times
+    function setRewardsNotifier(address _rewardsNotifier) external;
 
     /*///////////////////////////////////////////////////////////////
                                 VIEWS
@@ -219,17 +219,17 @@ interface IRewardEscrowV2 {
     /// @param treasuryDAO The address of the treasury DAO
     event TreasuryDAOSet(address treasuryDAO);
 
-    /// @notice emitted when the TokenDistributor is set
-    /// @param earlyVestFeeDistributor The address of the token distributor
-    event TokenDistributorSet(address earlyVestFeeDistributor);
+    /// @notice emitted when the StakingRewardsNotifier is set
+    /// @param rewardsNotifier The address of the rewards notifier
+    event RewardsNotifierSet(address rewardsNotifier);
 
     /// @notice emitted when the early vest fee is sent to the treasury
     /// @param amount The amount of KWENTA sent to the treasury
     event EarlyVestFeeSentToTreasury(uint256 amount);
 
-    /// @notice emitted when the early vest fee is sent to the distributor
-    /// @param amount The amount of KWENTA sent to the distributor
-    event EarlyVestFeeSentToDistributor(uint256 amount);
+    /// @notice emitted when the early vest fee is sent to the notifier
+    /// @param amount The amount of KWENTA sent to the notifier
+    event EarlyVestFeeSentToNotifier(uint256 amount);
 
     /*//////////////////////////////////////////////////////////////
                                 ERRORS

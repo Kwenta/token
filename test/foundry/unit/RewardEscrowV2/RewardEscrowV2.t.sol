@@ -46,25 +46,25 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     }
 
     function test_Should_Set_Token_Distributor() public {
-        rewardEscrowV2.setTokenDistributor(address(this));
-        assertEq(address(rewardEscrowV2.tokenDistributor()), address(this));
+        rewardEscrowV2.setRewardsNotifier(address(this));
+        assertEq(address(rewardEscrowV2.rewardsNotifier()), address(this));
     }
 
     function test_Should_Not_Allow_Token_Distributor_To_Be_Set_To_Zero_Address() public {
         vm.expectRevert(IRewardEscrowV2.ZeroAddress.selector);
-        rewardEscrowV2.setTokenDistributor(address(0));
+        rewardEscrowV2.setRewardsNotifier(address(0));
     }
 
     function test_Setting_Token_Distributor_Should_Emit_Event() public {
         vm.expectEmit(true, true, true, true);
-        emit TokenDistributorSet(address(this));
-        rewardEscrowV2.setTokenDistributor(address(this));
+        emit RewardsNotifierSet(address(this));
+        rewardEscrowV2.setRewardsNotifier(address(this));
     }
 
     function test_Should_Not_Allow_Non_Owner_To_Set_Token_Distributor() public {
         vm.prank(user1);
         vm.expectRevert("Ownable: caller is not the owner");
-        rewardEscrowV2.setTokenDistributor(address(user1));
+        rewardEscrowV2.setRewardsNotifier(address(user1));
     }
 
     function test_Should_Not_Allow_StakingRewards_To_Be_Set_Twice() public {
@@ -564,7 +564,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     }
 
     function test_vest_Should_Properly_Distribute_Escrow_With_Distributor() public {
-        rewardEscrowV2.setTokenDistributor(address(tokenDistributor));
+        rewardEscrowV2.setRewardsNotifier(address(rewardsNotifier));
         appendRewardEscrowEntryV2(address(this), 1000 ether);
         vm.warp(block.timestamp + 26 weeks);
 
@@ -588,7 +588,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         assertEq(treasuryReceived, 225 ether);
 
         // 22.5% should go to EarlyVestFeeDistributor
-        assertEq(kwenta.balanceOf(address(tokenDistributor)), 225 ether);
+        assertEq(kwenta.balanceOf(address(rewardsNotifier)), 225 ether);
 
         // 55% should go to the staker
         assertEq(rewardEscrowV2.totalVestedAccountBalance(address(this)), 550 ether);
@@ -633,7 +633,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     }
 
     function test_vest_Should_Properly_Emit_Event_With_Distributor() public {
-        rewardEscrowV2.setTokenDistributor(address(tokenDistributor));
+        rewardEscrowV2.setRewardsNotifier(address(rewardsNotifier));
         appendRewardEscrowEntryV2(address(this), 1000 ether);
         vm.warp(block.timestamp + 26 weeks);
 
@@ -648,7 +648,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         vm.expectEmit(true, true, true, true);
         emit EarlyVestFeeSentToTreasury(225 ether);
         vm.expectEmit(true, true, true, true);
-        emit EarlyVestFeeSentToDistributor(225 ether);
+        emit EarlyVestFeeSentToNotifier(225 ether);
         entryIDs.push(1);
         rewardEscrowV2.vest(entryIDs);
     }

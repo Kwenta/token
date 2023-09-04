@@ -278,8 +278,8 @@ interface IStakingRewardsV2 {
     /// @notice error someone other than reward escrow calls an onlyRewardEscrow function
     error OnlyRewardEscrow();
 
-    /// @notice error someone other than the supply schedule calls an onlySupplySchedule function
-    error OnlySupplySchedule();
+    /// @notice error someone other than the rewards notifier calls an onlyRewardsNotifier function
+    error OnlyRewardsNotifier();
 
     /// @notice cannot set this value to the zero address
     error ZeroAddress();

@@ -158,7 +158,7 @@ contract RewardEscrowV2VestingChangesTests is DefaultStakingV2Setup {
     }
 
     function test_Fees_Are_Correctly_Distributed_At_Max_Early_Vesting_Fee_With_Distributor() public {
-        rewardEscrowV2.setTokenDistributor(address(tokenDistributor));
+        rewardEscrowV2.setRewardsNotifier(address(rewardsNotifier));
         uint256 escrowAmount = 1 ether;
         uint256 duration = 52 weeks;
         uint8 earlyVestingFee = 100;
@@ -178,7 +178,7 @@ contract RewardEscrowV2VestingChangesTests is DefaultStakingV2Setup {
         assertEq(balanceAfter, userBalanceBefore);
         uint256 treasuryBalanceAfter = kwenta.balanceOf(treasury);
         assertEq(treasuryBalanceAfter, treasuryBalanceBefore + escrowAmount * 50 / 100);
-        uint256 earlyVestFeeDistributorBalanceAfter = kwenta.balanceOf(address(tokenDistributor));
+        uint256 earlyVestFeeDistributorBalanceAfter = kwenta.balanceOf(address(rewardsNotifier));
         assertEq(earlyVestFeeDistributorBalanceAfter, escrowAmount * 50 / 100);
     }
 

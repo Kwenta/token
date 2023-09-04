@@ -8,7 +8,6 @@ import {IStakingRewardsV2} from "./interfaces/IStakingRewardsV2.sol";
 import {ISupplySchedule} from "./interfaces/ISupplySchedule.sol";
 
 contract StakingRewardsNotifier is IStakingRewardsNotifier {
-
     /// @notice kwenta interface
     IKwenta internal immutable kwenta;
 
@@ -20,6 +19,14 @@ contract StakingRewardsNotifier is IStakingRewardsNotifier {
 
     /// @notice one time setter boolean
     bool public stakingRewardsV2IsSet;
+
+    constructor(address _kwenta, address _supplySchedule) {
+        if (_kwenta == address(0) || _supplySchedule == address(0)) {
+            revert InputAddress0();
+        }
+        kwenta = IKwenta(_kwenta);
+        supplySchedule = ISupplySchedule(_supplySchedule);
+    }
 
     /// @notice access control modifier for supplySchedule
     modifier onlySupplySchedule() {
@@ -38,21 +45,12 @@ contract StakingRewardsNotifier is IStakingRewardsNotifier {
         stakingRewardsV2 = IStakingRewardsV2(_stakingRewardsV2);
     }
 
-    constructor(address _kwenta, address _supplySchedule) {
-        if (_kwenta == address(0) || _supplySchedule == address(0)) {
-            revert InputAddress0();
-        }
-        kwenta = IKwenta(_kwenta);
-        supplySchedule = ISupplySchedule(_supplySchedule);
-    }
-
-    function notifyRewardAmount(uint mintedAmount) external override onlySupplySchedule {
+    function notifyRewardAmount(uint256 mintedAmount) external override onlySupplySchedule {
         /// @dev delete because it is not used
         /// instead currentBalance is used
         delete mintedAmount;
-        uint currentBalance = kwenta.balanceOf(address(this));
+        uint256 currentBalance = kwenta.balanceOf(address(this));
         kwenta.transfer(address(stakingRewardsV2), currentBalance);
         stakingRewardsV2.notifyRewardAmount(currentBalance);
-        }
-    
+    }
 }

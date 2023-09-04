@@ -167,7 +167,7 @@ contract StakingTestHelpers is StakingV2Setup {
     function addNewRewardsToStakingRewardsV2(uint256 _reward) internal {
         vm.prank(treasury);
         kwenta.transfer(address(stakingRewardsV2), _reward);
-        vm.prank(address(supplySchedule));
+        vm.prank(address(rewardsNotifier));
         stakingRewardsV2.notifyRewardAmount(_reward);
     }
 

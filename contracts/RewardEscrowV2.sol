@@ -82,8 +82,8 @@ contract RewardEscrowV2 is
     /// @notice The total remaining escrowed balance, for verifying the actual KWENTA balance of this contract against
     uint256 public totalEscrowedBalance;
 
-    /// @notice TokenDistributor address
-    address public tokenDistributor;
+    /// @notice RewardsNotifier address
+    address public rewardsNotifier;
 
     /*///////////////////////////////////////////////////////////////
                                 AUTH
@@ -166,14 +166,15 @@ contract RewardEscrowV2 is
         emit TreasuryDAOSet(treasuryDAO);
     }
 
+    // TODO: check if this can be set in the constructor
     /// @inheritdoc IRewardEscrowV2
-    function setTokenDistributor(address _tokenDistributor)
+    function setRewardsNotifier(address _rewardsNotifier)
         external
         onlyOwner
     {
-        if (_tokenDistributor == address(0)) revert ZeroAddress();
-        tokenDistributor = _tokenDistributor;
-        emit TokenDistributorSet(tokenDistributor);
+        if (_rewardsNotifier == address(0)) revert ZeroAddress();
+        rewardsNotifier = _rewardsNotifier;
+        emit RewardsNotifierSet(rewardsNotifier);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -393,11 +394,11 @@ contract RewardEscrowV2 is
             totalVestedAccountBalance[msg.sender] += total;
 
             // Send 50% any fee to Treasury and
-            // 50% to TokenDistributor
+            // 50% to RewardsNotifier
             // UNLESS Distributor isn't set
             // then send all funds to Treasury
             if (totalFee != 0) {
-                if (tokenDistributor == address(0)) {
+                if (rewardsNotifier == address(0)) {
                     kwenta.transfer(treasuryDAO, totalFee);
                     emit EarlyVestFeeSentToTreasury(totalFee);
                 } else {
@@ -405,10 +406,10 @@ contract RewardEscrowV2 is
                     uint256 proportionalFee = totalFee / 2;
                     uint256 proportionaFeeWithDust = totalFee - proportionalFee;
                     kwenta.transfer(treasuryDAO, proportionalFee);
-                    kwenta.transfer(tokenDistributor, proportionaFeeWithDust);
+                    kwenta.transfer(rewardsNotifier, proportionaFeeWithDust);
                     // TODO: consolidate these events into one
                     emit EarlyVestFeeSentToTreasury(proportionalFee);
-                    emit EarlyVestFeeSentToDistributor(proportionaFeeWithDust);
+                    emit EarlyVestFeeSentToNotifier(proportionaFeeWithDust);
                 }
             }
 
