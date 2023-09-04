@@ -390,13 +390,11 @@ contract RewardEscrowV2 is
             // then send all funds to Treasury
             if (totalFee != 0) {
                 /// @dev this will revert if the kwenta token transfer fails
-                uint256 proportionalFee = totalFee / 2;
-                uint256 proportionaFeeWithDust = totalFee - proportionalFee;
-                kwenta.transfer(treasuryDAO, proportionalFee);
-                kwenta.transfer(rewardsNotifier, proportionaFeeWithDust);
-                // TODO: consolidate these events into one
-                emit EarlyVestFeeSentToTreasury(proportionalFee);
-                emit EarlyVestFeeSentToNotifier(proportionaFeeWithDust);
+                uint256 amountToTreasury = totalFee / 2;
+                uint256 amountToNotifier = totalFee - amountToTreasury;
+                kwenta.transfer(treasuryDAO, amountToTreasury);
+                kwenta.transfer(rewardsNotifier, amountToNotifier);
+                emit EarlyVestFeeSent(amountToTreasury, amountToNotifier);
             }
 
             if (total != 0) {

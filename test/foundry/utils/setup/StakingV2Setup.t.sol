@@ -33,8 +33,7 @@ contract StakingV2Setup is StakingV1Setup {
     event TreasuryDAOSet(address treasuryDAO);
     event RewardsNotifierSet(address rewardsNotifier);
     event StakingRewardsSet(address stakingRewards);
-    event EarlyVestFeeSentToTreasury(uint256 amount);
-    event EarlyVestFeeSentToNotifier(uint256 amount);
+    event EarlyVestFeeSent(uint256 amountToTreasury, uint256 amountToNotifier);
     event EscrowMigratorSet(address escrowMigrator);
 
     /*//////////////////////////////////////////////////////////////
