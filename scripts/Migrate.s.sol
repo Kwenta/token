@@ -59,7 +59,8 @@ contract Migrate {
         }
 
         // Deploy RewardEscrowV2
-        rewardEscrowV2Implementation = address(new RewardEscrowV2(_kwenta));
+        rewardEscrowV2Implementation =
+            address(new RewardEscrowV2(_kwenta, address(rewardsNotifier)));
         rewardEscrowV2 = RewardEscrowV2(
             address(
                 new ERC1967Proxy(

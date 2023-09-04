@@ -6,7 +6,9 @@ import {RewardEscrowV2} from "../../../../contracts/RewardEscrowV2.sol";
 contract MockRewardEscrowV3 is RewardEscrowV2 {
     uint256 public newNum;
 
-    constructor(address _kwenta) RewardEscrowV2(_kwenta) {}
+    constructor(address _kwenta, address _rewardsNotifier)
+        RewardEscrowV2(_kwenta, _rewardsNotifier)
+    {}
 
     function setNewNum(uint256 _newNum) external {
         newNum = _newNum;

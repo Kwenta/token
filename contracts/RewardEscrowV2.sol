@@ -52,7 +52,11 @@ contract RewardEscrowV2 is
 
     /// @notice Contract for KWENTA ERC20 token
     /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
-    IKwenta internal immutable kwenta;
+    IKwenta public immutable kwenta;
+
+    /// @notice RewardsNotifier address
+    /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
+    address public immutable rewardsNotifier;
 
     /*///////////////////////////////////////////////////////////////
                                 STATE
@@ -82,9 +86,6 @@ contract RewardEscrowV2 is
     /// @notice The total remaining escrowed balance, for verifying the actual KWENTA balance of this contract against
     uint256 public totalEscrowedBalance;
 
-    /// @notice RewardsNotifier address
-    address public rewardsNotifier;
-
     /*///////////////////////////////////////////////////////////////
                                 AUTH
     ///////////////////////////////////////////////////////////////*/
@@ -113,10 +114,11 @@ contract RewardEscrowV2 is
     /// Actual contract construction will take place in the initialize function via proxy
     /// @custom:oz-upgrades-unsafe-allow constructor
     /// @param _kwenta The address for the KWENTA ERC20 token
-    constructor(address _kwenta) {
-        if (_kwenta == address(0)) revert ZeroAddress();
+    constructor(address _kwenta, address _rewardsNotifier) {
+        if (_kwenta == address(0) || _rewardsNotifier == address(0)) revert ZeroAddress();
 
         kwenta = IKwenta(_kwenta);
+        rewardsNotifier = _rewardsNotifier;
 
         _disableInitializers();
     }
@@ -164,17 +166,6 @@ contract RewardEscrowV2 is
         if (_treasuryDAO == address(0)) revert ZeroAddress();
         treasuryDAO = _treasuryDAO;
         emit TreasuryDAOSet(treasuryDAO);
-    }
-
-    // TODO: check if this can be set in the constructor
-    /// @inheritdoc IRewardEscrowV2
-    function setRewardsNotifier(address _rewardsNotifier)
-        external
-        onlyOwner
-    {
-        if (_rewardsNotifier == address(0)) revert ZeroAddress();
-        rewardsNotifier = _rewardsNotifier;
-        emit RewardsNotifierSet(rewardsNotifier);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -398,19 +389,14 @@ contract RewardEscrowV2 is
             // UNLESS Distributor isn't set
             // then send all funds to Treasury
             if (totalFee != 0) {
-                if (rewardsNotifier == address(0)) {
-                    kwenta.transfer(treasuryDAO, totalFee);
-                    emit EarlyVestFeeSentToTreasury(totalFee);
-                } else {
-                    /// @dev this will revert if the kwenta token transfer fails
-                    uint256 proportionalFee = totalFee / 2;
-                    uint256 proportionaFeeWithDust = totalFee - proportionalFee;
-                    kwenta.transfer(treasuryDAO, proportionalFee);
-                    kwenta.transfer(rewardsNotifier, proportionaFeeWithDust);
-                    // TODO: consolidate these events into one
-                    emit EarlyVestFeeSentToTreasury(proportionalFee);
-                    emit EarlyVestFeeSentToNotifier(proportionaFeeWithDust);
-                }
+                /// @dev this will revert if the kwenta token transfer fails
+                uint256 proportionalFee = totalFee / 2;
+                uint256 proportionaFeeWithDust = totalFee - proportionalFee;
+                kwenta.transfer(treasuryDAO, proportionalFee);
+                kwenta.transfer(rewardsNotifier, proportionaFeeWithDust);
+                // TODO: consolidate these events into one
+                emit EarlyVestFeeSentToTreasury(proportionalFee);
+                emit EarlyVestFeeSentToNotifier(proportionaFeeWithDust);
             }
 
             if (total != 0) {

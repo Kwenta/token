@@ -45,6 +45,7 @@ const TokenContract = artifacts.require("Kwenta");
 const RewardEscrowV1 = artifacts.require("RewardEscrow");
 const RewardEscrowV2 = artifacts.require("RewardEscrowV2");
 const EscrowMigrator = artifacts.require("EscrowMigrator");
+const StakingRewardsNotifier = artifacts.require("StakingRewardsNotifier");
 
 const NAME = "Kwenta";
 const SYMBOL = "KWENTA";
@@ -56,7 +57,7 @@ const toUnit = (amount) => toBN(toWei(amount.toString(), "ether"));
 
 assert.revert = assertRevert;
 
-const deployRewardEscrowV2 = async (owner, kwenta) => {
+const deployRewardEscrowV2 = async (owner, kwenta, rewardsNotifier) => {
     const RewardEscrowV2Factory = await ethers.getContractFactory(
         "RewardEscrowV2"
     );
@@ -65,7 +66,7 @@ const deployRewardEscrowV2 = async (owner, kwenta) => {
         [owner],
         {
             kind: "uups",
-            constructorArgs: [kwenta],
+            constructorArgs: [kwenta, rewardsNotifier],
         }
     );
     await rewardEscrowV2.deployed();
@@ -125,6 +126,20 @@ const deployEscrowMigrator = async (
     return await EscrowMigrator.at(escrowMigrator.address);
 };
 
+const deployRewardsNotifier = async (token, supplySchedule) => {
+    const StakingRewardsNotifierFactory = await ethers.getContractFactory(
+        "StakingRewardsNotifier"
+    );
+
+    const rewardsNotifier = await StakingRewardsNotifierFactory.deploy(
+        token,
+        supplySchedule
+    );
+    await rewardsNotifier.deployed();
+    // convert from hardhat to truffle contract
+    return await StakingRewardsNotifier.at(rewardsNotifier.address);
+};
+
 contract("RewardEscrowV2 KWENTA", ([owner, staker1, staker2, treasuryDAO]) => {
     console.log("Start tests");
     let stakingRewards;
@@ -134,6 +149,7 @@ contract("RewardEscrowV2 KWENTA", ([owner, staker1, staker2, treasuryDAO]) => {
     let rewardEscrowV2;
     let escrowMigrator;
     let supplySchedule;
+    let rewardsNotifier;
 
     before(async () => {
         supplySchedule = await smock.fake("SupplySchedule");
@@ -148,9 +164,15 @@ contract("RewardEscrowV2 KWENTA", ([owner, staker1, staker2, treasuryDAO]) => {
 
         rewardEscrowV1 = await RewardEscrowV1.new(owner, stakingToken.address);
 
+        rewardsNotifier = await deployRewardsNotifier(
+            stakingToken.address,
+            supplySchedule.address
+        );
+
         rewardEscrowV2 = await deployRewardEscrowV2(
             owner,
-            stakingToken.address
+            stakingToken.address,
+            rewardsNotifier.address
         );
 
         stakingRewards = await StakingRewards.new(

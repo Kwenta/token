@@ -56,11 +56,6 @@ interface IRewardEscrowV2 {
     /// @dev This function can only be called multiple times
     function setTreasuryDAO(address _treasuryDAO) external;
 
-    /// @notice Function used to define the StakingRewardsNotifier address to use
-    /// @param _rewardsNotifier The address of the rewards notifeir
-    /// @dev This function can be called multiple times
-    function setRewardsNotifier(address _rewardsNotifier) external;
-
     /*///////////////////////////////////////////////////////////////
                                 VIEWS
     ///////////////////////////////////////////////////////////////*/

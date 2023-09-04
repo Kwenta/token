@@ -26,7 +26,8 @@ contract StakingV2SetupTests is StakingV1Setup {
     function setUp() public virtual override {
         super.setUp();
 
-        rewardEscrowV2Implementation = address(new RewardEscrowV2(address(kwenta)));
+        rewardEscrowV2Implementation =
+            address(new RewardEscrowV2(address(kwenta), address(0x1)));
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -119,7 +120,12 @@ contract StakingV2SetupTests is StakingV1Setup {
 
     function test_Cannot_Setup_RewardEscrowV2_With_Kwenta_Zero_Address() public {
         vm.expectRevert(IRewardEscrowV2.ZeroAddress.selector);
-        rewardEscrowV2Implementation = address(new RewardEscrowV2(address(0)));
+        rewardEscrowV2Implementation = address(new RewardEscrowV2(address(0), address(0x1)));
+    }
+
+    function test_Cannot_Setup_RewardEscrowV2_With_RewardsNotifier_Zero_Address() public {
+        vm.expectRevert(IRewardEscrowV2.ZeroAddress.selector);
+        rewardEscrowV2Implementation = address(new RewardEscrowV2(address(0x1), address(0)));
     }
 
     /*//////////////////////////////////////////////////////////////
