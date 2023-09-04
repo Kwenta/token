@@ -56,9 +56,12 @@ contract NotifiableRewardAccumulatorTest is StakingV2Setup {
         assertEq(balanceAfter - balanceBefore, 1000 ether + mintAmount);
     }
 
-    //todo: fuzz test multiple times kwenta sent
+    function testNotifiableRewardAccumulatorOnlySupplySchedule() public {
+        vm.expectRevert(NotifiableRewardAccumulator.OnlySupplySchedule.selector);
+        notifiableRewardAccumulator.notifyRewardAmount(1000 ether);
+    }
 
-    //todo: test without the access control
+    //todo: fuzz test multiple times kwenta sent
 
     //todo: change new migrate.s.sol
 
