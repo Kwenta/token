@@ -6,7 +6,7 @@ import {IStakingRewardsV2} from "./interfaces/IStakingRewardsV2.sol";
 import {ISupplySchedule} from "./interfaces/ISupplySchedule.sol";
 import {IRewardEscrowV2} from "./interfaces/IRewardEscrowV2.sol";
 
-contract NotifiableRewardAccumulator {
+contract StakingRewardsNotifier {
 
     /// @notice kwenta interface
     IKwenta internal immutable kwenta;

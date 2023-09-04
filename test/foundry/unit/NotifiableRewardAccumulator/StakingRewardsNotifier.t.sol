@@ -6,29 +6,29 @@ import {Kwenta} from "../../../../contracts/Kwenta.sol";
 import {RewardEscrowV2} from "../../../../contracts/RewardEscrowV2.sol";
 import {StakingRewardsV2} from "../../../../contracts/StakingRewardsV2.sol";
 import {DefaultStakingV2Setup} from "../../utils/setup/DefaultStakingV2Setup.t.sol";
-import {NotifiableRewardAccumulator} from "../../../../contracts/NotifiableRewardAccumulator.sol";
+import {StakingRewardsNotifier} from "../../../../contracts/StakingRewardsNotifier.sol";
 import {StakingV2Setup} from "./StakingV2SetupWithAccumulator.t.sol";
 
-contract NotifiableRewardAccumulatorTest is StakingV2Setup {
+contract StakingRewardsNotifierTest is StakingV2Setup {
 
     event RewardAdded(uint256 reward);
 
     function setUp() public override {
         super.setUp();
-        notifiableRewardAccumulator.setStakingRewardsV2(address(stakingRewardsV2));
+        stakingRewardsNotifier.setStakingRewardsV2(address(stakingRewardsV2));
         vm.prank(treasury);
         kwenta.transfer(address(this), 100_000 ether);
-        supplySchedule.setStakingRewards(address(notifiableRewardAccumulator));
+        supplySchedule.setStakingRewards(address(stakingRewardsNotifier));
     }
 
     function testNotifiableRewardAccumulatorCannotSetStakingV2Again() public {
-        vm.expectRevert(NotifiableRewardAccumulator.StakingRewardsV2IsSet.selector);
-        notifiableRewardAccumulator.setStakingRewardsV2(address(stakingRewardsV2));
+        vm.expectRevert(StakingRewardsNotifier.StakingRewardsV2IsSet.selector);
+        stakingRewardsNotifier.setStakingRewardsV2(address(stakingRewardsV2));
     }
 
     function testNotifiableRewardAccumulatorCannotSetStakingV2To0() public {
-        vm.expectRevert(NotifiableRewardAccumulator.InputAddress0.selector);
-        notifiableRewardAccumulator.setStakingRewardsV2(address(0));
+        vm.expectRevert(StakingRewardsNotifier.InputAddress0.selector);
+        stakingRewardsNotifier.setStakingRewardsV2(address(0));
     }
 
     function testNotifiableRewardAccumulatorMintSuccess() public {
@@ -45,7 +45,7 @@ contract NotifiableRewardAccumulatorTest is StakingV2Setup {
     function testNotifiableRewardAccumulatorRetroactiveFundsSuccess() public {
         uint256 mintAmount = 17177543635384615384614;
         vm.warp(block.timestamp + 1 weeks);
-        kwenta.transfer(address(notifiableRewardAccumulator), 1000 ether);
+        kwenta.transfer(address(stakingRewardsNotifier), 1000 ether);
         vm.warp(block.timestamp + 1 weeks);
         uint256 balanceBefore = kwenta.balanceOf(address(stakingRewardsV2));
         vm.expectEmit(true, true, true, true);
@@ -57,8 +57,8 @@ contract NotifiableRewardAccumulatorTest is StakingV2Setup {
     }
 
     function testNotifiableRewardAccumulatorOnlySupplySchedule() public {
-        vm.expectRevert(NotifiableRewardAccumulator.OnlySupplySchedule.selector);
-        notifiableRewardAccumulator.notifyRewardAmount(1000 ether);
+        vm.expectRevert(StakingRewardsNotifier.OnlySupplySchedule.selector);
+        stakingRewardsNotifier.notifyRewardAmount(1000 ether);
     }
 
     function testFuzzNotifiableRewardAccumulatorAddFunds(uint256 retroactive1, uint256 retroactive2, uint256 retroactive3) public {
@@ -68,11 +68,11 @@ contract NotifiableRewardAccumulatorTest is StakingV2Setup {
         vm.assume(retroactive3 < 30_000 ether);
         
         uint256 mintAmount = 17177543635384615384614;
-        kwenta.transfer(address(notifiableRewardAccumulator), retroactive1);
+        kwenta.transfer(address(stakingRewardsNotifier), retroactive1);
         vm.warp(block.timestamp + 1 weeks);
-        kwenta.transfer(address(notifiableRewardAccumulator), retroactive2);
+        kwenta.transfer(address(stakingRewardsNotifier), retroactive2);
         vm.warp(block.timestamp + 1 weeks);
-        kwenta.transfer(address(notifiableRewardAccumulator), retroactive3);
+        kwenta.transfer(address(stakingRewardsNotifier), retroactive3);
         uint256 balanceBefore = kwenta.balanceOf(address(stakingRewardsV2));
         vm.expectEmit(true, true, true, true);
         emit RewardAdded(mintAmount + retroactive1 + retroactive2 + retroactive3);
@@ -84,12 +84,5 @@ contract NotifiableRewardAccumulatorTest is StakingV2Setup {
     }
 
     //todo: change new migrate.s.sol
-
-    //todo: do all the name changes: StakingRewardsNotifier
-
-    //todo: do audit changes and write comments for tom
-
-    //git pull
-    //git merge migration-script-readme
 
 }

@@ -8,7 +8,7 @@ import {RewardEscrowV2} from "../../../../contracts/RewardEscrowV2.sol";
 import {EscrowMigrator} from "../../../../contracts/EscrowMigrator.sol";
 import {StakingRewardsV2} from "../../../../contracts/StakingRewardsV2.sol";
 import {EarlyVestFeeDistributor} from "../../../../contracts/EarlyVestFeeDistributor.sol";
-import {NotifiableRewardAccumulator} from "../../../../contracts/NotifiableRewardAccumulator.sol";
+import {StakingRewardsNotifier} from "../../../../contracts/StakingRewardsNotifier.sol";
 import {IRewardEscrowV2} from "../../../../contracts/interfaces/IRewardEscrowV2.sol";
 import "../../utils/Constants.t.sol";
 
@@ -46,7 +46,7 @@ contract StakingV2Setup is StakingV1Setup {
     StakingRewardsV2 internal stakingRewardsV2;
     EscrowMigrator internal escrowMigrator;
     EarlyVestFeeDistributor internal earlyVestFeeDistributor;
-    NotifiableRewardAccumulator internal notifiableRewardAccumulator;
+    StakingRewardsNotifier internal stakingRewardsNotifier;
     Migrate internal migrate;
 
     address rewardEscrowV2Implementation;
@@ -61,8 +61,8 @@ contract StakingV2Setup is StakingV1Setup {
         // Setup StakingV1
         super.setUp();
 
-        // Deploy NotifiableRewardAccumulator
-        notifiableRewardAccumulator = new NotifiableRewardAccumulator(
+        // Deploy StakingRewardsNotifier
+        stakingRewardsNotifier = new StakingRewardsNotifier(
             address(kwenta),
             address(supplySchedule)
         );
@@ -74,7 +74,7 @@ contract StakingV2Setup is StakingV1Setup {
                 migrate.deploySystem.selector,
                 address(this),
                 address(kwenta),
-                address(notifiableRewardAccumulator),
+                address(stakingRewardsNotifier),
                 address(rewardEscrowV1),
                 address(stakingRewardsV1),
                 0,
