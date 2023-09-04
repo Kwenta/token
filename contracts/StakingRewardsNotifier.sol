@@ -5,8 +5,9 @@ import {IKwenta} from "./interfaces/IKwenta.sol";
 import {IStakingRewardsV2} from "./interfaces/IStakingRewardsV2.sol";
 import {ISupplySchedule} from "./interfaces/ISupplySchedule.sol";
 import {IRewardEscrowV2} from "./interfaces/IRewardEscrowV2.sol";
+import {IStakingRewardsNotifier} from "./interfaces/IStakingRewardsNotifier.sol";
 
-contract StakingRewardsNotifier {
+contract StakingRewardsNotifier is IStakingRewardsNotifier {
 
     /// @notice kwenta interface
     IKwenta internal immutable kwenta;
@@ -20,15 +21,6 @@ contract StakingRewardsNotifier {
     /// @notice one time setter boolean
     bool public stakingRewardsV2IsSet;
 
-    /// @notice Input address is 0
-    error InputAddress0();
-
-    /// @notice OnlySupplySchedule can access this
-    error OnlySupplySchedule();
-
-    /// @notice StakingRewardsV2 is already set
-    error StakingRewardsV2IsSet();
-
     /// @notice access control modifier for supplySchedule
     modifier onlySupplySchedule() {
         _onlySupplySchedule();
@@ -39,7 +31,7 @@ contract StakingRewardsNotifier {
         if (msg.sender != address(supplySchedule)) revert OnlySupplySchedule();
     }
 
-    function setStakingRewardsV2(address _stakingRewardsV2) external {
+    function setStakingRewardsV2(address _stakingRewardsV2) external override {
         if (_stakingRewardsV2 == address(0)) revert InputAddress0();
         if (stakingRewardsV2IsSet) revert StakingRewardsV2IsSet();
         stakingRewardsV2IsSet = true;
@@ -54,7 +46,7 @@ contract StakingRewardsNotifier {
         supplySchedule = ISupplySchedule(_supplySchedule);
     }
 
-    function notifyRewardAmount(uint mintedAmount) external onlySupplySchedule {
+    function notifyRewardAmount(uint mintedAmount) external override onlySupplySchedule {
         /// @dev delete because it is not used
         /// instead currentBalance is used
         delete mintedAmount;

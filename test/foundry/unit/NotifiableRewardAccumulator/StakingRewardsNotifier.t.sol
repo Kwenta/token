@@ -7,6 +7,7 @@ import {RewardEscrowV2} from "../../../../contracts/RewardEscrowV2.sol";
 import {StakingRewardsV2} from "../../../../contracts/StakingRewardsV2.sol";
 import {DefaultStakingV2Setup} from "../../utils/setup/DefaultStakingV2Setup.t.sol";
 import {StakingRewardsNotifier} from "../../../../contracts/StakingRewardsNotifier.sol";
+import {IStakingRewardsNotifier} from "../../../../contracts/interfaces/IStakingRewardsNotifier.sol";
 import {StakingV2Setup} from "./StakingV2SetupWithAccumulator.t.sol";
 
 contract StakingRewardsNotifierTest is StakingV2Setup {
@@ -22,12 +23,12 @@ contract StakingRewardsNotifierTest is StakingV2Setup {
     }
 
     function testNotifiableRewardAccumulatorCannotSetStakingV2Again() public {
-        vm.expectRevert(StakingRewardsNotifier.StakingRewardsV2IsSet.selector);
+        vm.expectRevert(IStakingRewardsNotifier.StakingRewardsV2IsSet.selector);
         stakingRewardsNotifier.setStakingRewardsV2(address(stakingRewardsV2));
     }
 
     function testNotifiableRewardAccumulatorCannotSetStakingV2To0() public {
-        vm.expectRevert(StakingRewardsNotifier.InputAddress0.selector);
+        vm.expectRevert(IStakingRewardsNotifier.InputAddress0.selector);
         stakingRewardsNotifier.setStakingRewardsV2(address(0));
     }
 
@@ -57,7 +58,7 @@ contract StakingRewardsNotifierTest is StakingV2Setup {
     }
 
     function testNotifiableRewardAccumulatorOnlySupplySchedule() public {
-        vm.expectRevert(StakingRewardsNotifier.OnlySupplySchedule.selector);
+        vm.expectRevert(IStakingRewardsNotifier.OnlySupplySchedule.selector);
         stakingRewardsNotifier.notifyRewardAmount(1000 ether);
     }
 
