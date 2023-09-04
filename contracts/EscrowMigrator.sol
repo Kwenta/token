@@ -72,8 +72,8 @@ contract EscrowMigrator is
     /// @notice Total amount of escrow migrated
     uint256 public totalMigrated;
 
-    /// @notice Total amount of escrow frozen
-    uint256 public totalFrozen;
+    /// @notice Total amount of escrow locked due to migration deadline
+    uint256 public totalLocked;
 
     /// @notice Mapping of acount to entryID to registered vesting entry data
     mapping(address => mapping(uint256 => VestingEntry)) public registeredVestingSchedules;
@@ -81,8 +81,8 @@ contract EscrowMigrator is
     /// @notice Mapping of initialization time for each account
     mapping(address => uint256) public initializationTime;
 
-    /// @notice Mapping of whether an account's funds are frozen
-    mapping(address => bool) public fundsFrozen;
+    /// @notice Mapping of whether an account's funds are locked due to migration deadline
+    mapping(address => bool) public fundsLocked;
 
     /// @notice Mapping of escrow already vested at start for each account
     mapping(address => uint256) public escrowVestedAtStart;
@@ -124,7 +124,7 @@ contract EscrowMigrator is
     }
 
     /// @inheritdoc IEscrowMigrator
-    
+
     function initialize(address _contractOwner, address _treasuryDAO) external initializer {
         if (_contractOwner == address(0) || _treasuryDAO == address(0)) revert ZeroAddress();
 
@@ -204,6 +204,25 @@ contract EscrowMigrator is
                 ++i;
             }
         }
+    }
+
+    /// @inheritdoc IEscrowMigrator
+    /// @dev WARNING: this loop is potentially limitless - could revert with out of gas error if called on-chain
+    function totalEscrowLocked(address _account) public view returns (uint256 total) {
+        uint256[] storage entries = registeredEntryIDs[_account];
+        uint256 length = entries.length;
+
+        mapping(uint256 => VestingEntry) storage userEntries = registeredVestingSchedules[_account];
+        for (uint256 i = 0; i < length;) {
+            uint256 entryID = entries[i];
+            VestingEntry storage entry = userEntries[entryID];
+            if (!entry.migrated) total += entry.escrowAmount;
+
+            unchecked {
+                ++i;
+            }
+        }
+        return total;
     }
 
     /// @inheritdoc IEscrowMigrator
@@ -496,9 +515,9 @@ contract EscrowMigrator is
 
     /// @inheritdoc IEscrowMigrator
     /// @dev warning - may fail due to unbounded loop for certain users
-    function freezeFunds(address[] memory _expiredMigrators) external {
+    function updateTotalLocked(address[] memory _expiredMigrators) external {
         for (uint256 i = 0; i < _expiredMigrators.length;) {
-            freezeFunds(_expiredMigrators[i]);
+            updateTotalLocked(_expiredMigrators[i]);
             unchecked {
                 ++i;
             }
@@ -507,17 +526,17 @@ contract EscrowMigrator is
 
     /// @inheritdoc IEscrowMigrator
     /// @dev warning - may fail due to unbounded loop for certain users
-    function freezeFunds(address _expiredMigrator) public {
-        if (!fundsFrozen[_expiredMigrator] && _deadlinePassed(initializationTime[_expiredMigrator])) {
-            fundsFrozen[_expiredMigrator] = true;
-            totalFrozen +=
-                totalEscrowRegistered(_expiredMigrator) - totalEscrowMigrated(_expiredMigrator);
+    function updateTotalLocked(address _expiredMigrator) public {
+        if (!fundsLocked[_expiredMigrator] && _deadlinePassed(initializationTime[_expiredMigrator]))
+        {
+            fundsLocked[_expiredMigrator] = true;
+            totalLocked += totalEscrowLocked(_expiredMigrator);
         }
     }
 
     /// @inheritdoc IEscrowMigrator
     function recoverExcessFunds() external {
-        uint256 leaveInContract = totalRegistered - totalMigrated - totalFrozen;
+        uint256 leaveInContract = totalRegistered - totalMigrated - totalLocked;
         uint256 balance = kwenta.balanceOf(address(this));
         if (balance > leaveInContract) {
             kwenta.transfer(treasuryDAO, balance - leaveInContract);

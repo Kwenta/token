@@ -64,6 +64,12 @@ interface IEscrowMigrator {
     /// @dev WARNING: loop is potentially limitless - could revert with out of gas error if called on-chain
     function totalEscrowMigrated(address _account) external view returns (uint256 total);
 
+    /// @notice Get the total escrow locked for an account
+    /// @param _account The address of the account to query
+    /// @return total the total escrow locked for the given account
+    /// @dev WARNING: loop is potentially limitless - could revert with out of gas error if called on-chain
+    function totalEscrowLocked(address _account) external view returns (uint256 total);
+
     /// @notice the amount a given user needs to pay to migrate all currently vested
     /// registered entries. The user should approve the escrow migrator for at least
     /// this amount before beginning the migration step
@@ -171,15 +177,15 @@ interface IEscrowMigrator {
     /// @param _newTreasuryDAO The address of the new treasury DAO
     function setTreasuryDAO(address _newTreasuryDAO) external;
 
-    /// @notice Account for frozen funds for a list of expired migrators
+    /// @notice Account for locked funds for a list of expired migrators
     /// @param _expiredMigrators The addresses of the expired migrators
     /// @dev warning - may fail due to unbounded loop for certain users
-    function freezeFunds(address[] memory _expiredMigrators) external;
+    function updateTotalLocked(address[] memory _expiredMigrators) external;
 
-    /// @notice Account for frozen funds for a single expired migrator
+    /// @notice Account for locked funds for a single expired migrator
     /// @param _expiredMigrator The address of the expired migrator
     /// @dev warning - may fail due to unbounded loop for certain users
-    function freezeFunds(address _expiredMigrator) external;
+    function updateTotalLocked(address _expiredMigrator) external;
 
     /// @notice Withdraw excess funds from the contract to the treasury
     function recoverExcessFunds() external;
