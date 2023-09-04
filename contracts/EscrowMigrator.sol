@@ -63,23 +63,31 @@ contract EscrowMigrator is
                                  STATE
     //////////////////////////////////////////////////////////////*/
 
-    // TODO: add natspec for these state variables
+    /// @notice Address of the treasury DAO
     address public treasuryDAO;
 
+    /// @notice Total amount of escrow registered
     uint256 public totalRegistered;
 
+    /// @notice Total amount of escrow migrated
     uint256 public totalMigrated;
 
+    /// @notice Total amount of escrow frozen
     uint256 public totalFrozen;
 
+    /// @notice Mapping of acount to entryID to registered vesting entry data
     mapping(address => mapping(uint256 => VestingEntry)) public registeredVestingSchedules;
 
+    /// @notice Mapping of initialization time for each account
     mapping(address => uint256) public initializationTime;
 
+    /// @notice Mapping of escrow already vested at start for each account
     mapping(address => uint256) public escrowVestedAtStart;
 
+    /// @notice Mapping of $KWENTA paid so far for the migration for each account
     mapping(address => uint256) public paidSoFar;
 
+    /// @notice Mapping of registered entry IDs for each account
     mapping(address => uint256[]) public registeredEntryIDs;
 
     /*///////////////////////////////////////////////////////////////
