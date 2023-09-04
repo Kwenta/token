@@ -21,7 +21,7 @@ contract TokenDistributorGasCalculation is TokenDistributorSetup {
     }
 
     function testGas() public {
-        for (int i = 0; i < 52; i++) {
+        for (int256 i = 0; i < 52; i++) {
             vm.prank(address(treasury));
             kwenta.transfer(address(tokenDistributor), 3);
             goForward(1 weeks);
