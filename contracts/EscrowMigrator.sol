@@ -81,6 +81,9 @@ contract EscrowMigrator is
     /// @notice Mapping of initialization time for each account
     mapping(address => uint256) public initializationTime;
 
+    /// @notice Mapping of whether an account's funds are frozen
+    mapping(address => bool) public fundsFrozen;
+
     /// @notice Mapping of escrow already vested at start for each account
     mapping(address => uint256) public escrowVestedAtStart;
 
@@ -493,9 +496,9 @@ contract EscrowMigrator is
 
     /// @inheritdoc IEscrowMigrator
     /// @dev warning - may fail due to unbounded loop for certain users
-    function accountForFrozenFunds(address[] memory _expiredMigrators) external {
+    function freezeFunds(address[] memory _expiredMigrators) external {
         for (uint256 i = 0; i < _expiredMigrators.length;) {
-            accountForFrozenFunds(_expiredMigrators[i]);
+            freezeFunds(_expiredMigrators[i]);
             unchecked {
                 ++i;
             }
@@ -504,8 +507,9 @@ contract EscrowMigrator is
 
     /// @inheritdoc IEscrowMigrator
     /// @dev warning - may fail due to unbounded loop for certain users
-    function accountForFrozenFunds(address _expiredMigrator) public {
-        if (_deadlinePassed(initializationTime[_expiredMigrator])) {
+    function freezeFunds(address _expiredMigrator) public {
+        if (!fundsFrozen[_expiredMigrator] && _deadlinePassed(initializationTime[_expiredMigrator])) {
+            fundsFrozen[_expiredMigrator] = true;
             totalFrozen +=
                 totalEscrowRegistered(_expiredMigrator) - totalEscrowMigrated(_expiredMigrator);
         }
