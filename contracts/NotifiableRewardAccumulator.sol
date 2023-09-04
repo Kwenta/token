@@ -29,6 +29,9 @@ contract NotifiableRewardAccumulator {
     /// @notice StakingRewardsV2 is already set
     error StakingRewardsV2IsSet();
 
+    /// @notice AccumulatorRewardForwarded
+    event AccumulatorRewardForwarded(uint currentBalance);
+
     /// @notice access control modifier for supplySchedule
     modifier onlySupplySchedule() {
         _onlySupplySchedule();
@@ -54,13 +57,13 @@ contract NotifiableRewardAccumulator {
         supplySchedule = ISupplySchedule(_supplySchedule);
     }
 
-    function notifyRewardAmount(uint mintedAmount) external {
+    function notifyRewardAmount(uint mintedAmount) external onlySupplySchedule {
         /// @dev delete because it is not used
         /// instead currentBalance is used
         delete mintedAmount;
         uint currentBalance = kwenta.balanceOf(address(this));
         kwenta.transfer(address(stakingRewardsV2), currentBalance);
-        stakingRewardsV2.notifyRewardAmount(currentBalance); 
+        stakingRewardsV2.notifyRewardAmount(currentBalance);
         }
     
 }

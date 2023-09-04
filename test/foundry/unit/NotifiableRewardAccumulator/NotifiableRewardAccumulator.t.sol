@@ -26,6 +26,11 @@ contract NotifiableRewardAccumulatorTest is StakingV2Setup {
         notifiableRewardAccumulator.setStakingRewardsV2(address(stakingRewardsV2));
     }
 
+    function testNotifiableRewardAccumulatorCannotSetStakingV2To0() public {
+        vm.expectRevert(NotifiableRewardAccumulator.InputAddress0.selector);
+        notifiableRewardAccumulator.setStakingRewardsV2(address(0));
+    }
+
     function testNotifiableRewardAccumulatorMintSuccess() public {
         uint256 mintAmount = 17177543635384615384614;
         uint256 balanceBefore = kwenta.balanceOf(address(stakingRewardsV2));
@@ -50,4 +55,18 @@ contract NotifiableRewardAccumulatorTest is StakingV2Setup {
         assertGt(balanceAfter, balanceBefore);
         assertEq(balanceAfter - balanceBefore, 1000 ether + mintAmount);
     }
+
+    //todo: fuzz test multiple times kwenta sent
+
+    //todo: test without the access control
+
+    //todo: change new migrate.s.sol
+
+    //todo: do all the name changes: StakingRewardsNotifier
+
+    //todo: do audit changes and write comments for tom
+
+    //git pull
+    //git merge migration-script-readme
+
 }
