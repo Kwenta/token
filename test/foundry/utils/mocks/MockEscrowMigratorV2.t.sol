@@ -10,11 +10,8 @@ contract MockEscrowMigratorV2 is EscrowMigrator {
         address _kwenta,
         address _rewardEscrowV1,
         address _rewardEscrowV2,
-        address _stakingRewardsV1,
         address _stakingRewardsV2
-    )
-        EscrowMigrator(_kwenta, _rewardEscrowV1, _rewardEscrowV2, _stakingRewardsV1, _stakingRewardsV2)
-    {}
+    ) EscrowMigrator(_kwenta, _rewardEscrowV1, _rewardEscrowV2, _stakingRewardsV2) {}
 
     function setNewNum(uint256 _newNum) external {
         newNum = _newNum;

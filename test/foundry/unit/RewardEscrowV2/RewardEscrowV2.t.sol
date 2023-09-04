@@ -428,8 +428,10 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         createRewardEscrowEntryV2(user1, 200 ether, 52 weeks);
         createRewardEscrowEntryV2(user1, 200 ether, 52 weeks);
 
-        vm.expectRevert(IRewardEscrowV2.InvalidIndex.selector);
-        rewardEscrowV2.getVestingSchedules(user1, 6, 10);
+        IRewardEscrowV2.VestingEntryWithID[] memory entries =
+            rewardEscrowV2.getVestingSchedules(user1, 6, 10);
+
+        assertEq(entries.length, 0);
     }
 
     function test_getVestingSchedules() public {
@@ -552,10 +554,10 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         vm.expectRevert("ERC721: invalid token ID");
         assertEq(rewardEscrowV2.ownerOf(1), address(0));
 
-        // old vesting entry data still exists
+        // old vesting entry data still exists, except escrow amount
         (uint64 endTime, uint256 escrowAmount, uint256 duration, uint8 earlyVestingFee) =
             rewardEscrowV2.getVestingEntry(1);
-        assertEq(escrowAmount, 1000 ether);
+        assertEq(escrowAmount, 0);
         assertEq(endTime, block.timestamp + 26 weeks);
         assertEq(duration, 52 weeks);
         assertEq(earlyVestingFee, 90);
@@ -603,10 +605,10 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         vm.expectRevert("ERC721: invalid token ID");
         assertEq(rewardEscrowV2.ownerOf(1), address(0));
 
-        // old vesting entry data still exists
+        // old vesting entry data still exists, except escrow amount reduced to 0
         (uint64 endTime, uint256 escrowAmount, uint256 duration, uint8 earlyVestingFee) =
             rewardEscrowV2.getVestingEntry(1);
-        assertEq(escrowAmount, 1000 ether);
+        assertEq(escrowAmount, 0);
         assertEq(endTime, block.timestamp + 26 weeks);
         assertEq(duration, 52 weeks);
         assertEq(earlyVestingFee, 90);
@@ -625,7 +627,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         assertEq(rewardEscrowV2.totalVestedAccountBalance(address(this)), 0);
 
         vm.expectEmit(true, true, true, true);
-        emit EarlyVestFeeSentToDAO(450 ether);
+        emit EarlyVestFeeSentToTreasury(450 ether);
         entryIDs.push(1);
         rewardEscrowV2.vest(entryIDs);
     }
@@ -644,7 +646,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         assertEq(rewardEscrowV2.totalVestedAccountBalance(address(this)), 0);
 
         vm.expectEmit(true, true, true, true);
-        emit EarlyVestFeeSentToDAO(225 ether);
+        emit EarlyVestFeeSentToTreasury(225 ether);
         vm.expectEmit(true, true, true, true);
         emit EarlyVestFeeSentToDistributor(225 ether);
         entryIDs.push(1);

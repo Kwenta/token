@@ -146,7 +146,9 @@ contract EarlyVestFeeDistributor is IEarlyVestFeeDistributor {
         lastTokenBalance -= proportionalFees;
 
         kwenta.approve(address(rewardEscrowV2), proportionalFees);
-        rewardEscrowV2.createEscrowEntry(to, proportionalFees, 52 weeks, 90);
+        rewardEscrowV2.createEscrowEntry(to, proportionalFees,
+        rewardEscrowV2.DEFAULT_DURATION(),
+        rewardEscrowV2.DEFAULT_EARLY_VESTING_FEE());
 
         emit EpochClaim(to, epochNumber, proportionalFees);
     }

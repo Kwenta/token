@@ -9,7 +9,7 @@ interface IEscrowMigrator {
     /// @notice A vesting entry contains the data for each escrow entry
     struct VestingEntry {
         // The amount of KWENTA stored in this vesting entry
-        uint256 escrowAmount;
+        uint248 escrowAmount;
         // Whether the entry has been migrated to v2
         bool migrated;
     }
@@ -30,12 +30,16 @@ interface IEscrowMigrator {
 
     /// @notice Initializes the contract
     /// @param _owner The address of the owner of this contract
+    /// @param _treasuryDAO The address of the treasury DAO
     /// @dev this function should be called via proxy, not via direct contract interaction
-    function initialize(address _owner) external;
+    function initialize(address _owner, address _treasuryDAO) external;
 
     /*//////////////////////////////////////////////////////////////
                                  VIEWS
     //////////////////////////////////////////////////////////////*/
+
+    /// @notice The deadline for migration, set to 2 weeks from when a user initializes
+    function MIGRATION_DEADLINE() external view returns (uint256);
 
     /// @notice Get the total number of registered vesting entries for a given account
     /// @param _account The address of the account to query
@@ -59,6 +63,12 @@ interface IEscrowMigrator {
     /// @return total the total escrow migrated for the given account
     /// @dev WARNING: loop is potentially limitless - could revert with out of gas error if called on-chain
     function totalEscrowMigrated(address _account) external view returns (uint256 total);
+
+    /// @notice Get the total escrow that has been registered but not migrated for a user
+    /// @param _account The address of the account to query
+    /// @return total the total registered but non-migrated escrow for the given account
+    /// @dev WARNING: loop is potentially limitless - could revert with out of gas error if called on-chain
+    function totalUnmigratedEscrow(address _account) external view returns (uint256 total);
 
     /// @notice the amount a given user needs to pay to migrate all currently vested
     /// registered entries. The user should approve the escrow migrator for at least
@@ -98,7 +108,7 @@ interface IEscrowMigrator {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice claim any remaining StakingRewards V1 rewards
-    /// This must be done before the migration process can begin
+    /// This should be done before the migration process can begin
 
     /*//////////////////////////////////////////////////////////////
                                  STEP 1
@@ -146,7 +156,8 @@ interface IEscrowMigrator {
     function registerIntegratorEntries(address _integrator, uint256[] calldata _entryIDs)
         external;
 
-    /// @notice step 2 - vest all registered entries and approve the EscrowMigrator contract
+    /// @notice step 2 - vest all registered entries via the integartor, pulling the early vested KWENTA to the beneficiary's address.
+    /// Then the beneficiary must approve the EscrowMigrator contract for at least the integrators `toPay` amount.
 
     /// @notice step 3 - migrate all registered & vested entries
     /// @param _integrator: The address of the integrator to migrate entries for
@@ -157,6 +168,27 @@ interface IEscrowMigrator {
         address _to,
         uint256[] calldata _entryIDs
     ) external;
+
+    /*//////////////////////////////////////////////////////////////
+                             FUND RECOVERY
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice Allows the owner to change the treasury DAO address
+    /// @param _newTreasuryDAO The address of the new treasury DAO
+    function setTreasuryDAO(address _newTreasuryDAO) external;
+
+    /// @notice Account for locked funds for a list of expired migrators
+    /// @param _expiredMigrators The addresses of the expired migrators
+    /// @dev warning - may fail due to unbounded loop for certain users
+    function updateTotalLocked(address[] memory _expiredMigrators) external;
+
+    /// @notice Account for locked funds for a single expired migrator
+    /// @param _expiredMigrator The address of the expired migrator
+    /// @dev warning - may fail due to unbounded loop for certain users
+    function updateTotalLocked(address _expiredMigrator) external;
+
+    /// @notice Withdraw excess funds from the contract to the treasury
+    function recoverExcessFunds() external;
 
     /*///////////////////////////////////////////////////////////////
                                 PAUSABLE
@@ -178,13 +210,12 @@ interface IEscrowMigrator {
     /// @notice the caller is not approved to take this action
     error NotApproved();
 
-    /// @notice users cannot begin the migration process until they have claimed
-    /// their last v1 staking rewards
-    error MustClaimStakingRewards();
-
     /// @notice the user may not begin the migration process if they have nothing to migrate
     error NoEscrowBalanceToMigrate();
 
     /// @notice step 2 canont be called until the user has initiated via step 1
     error MustBeInitiated();
+
+    /// @notice a user must complete migrating within the specified time window after initiating
+    error DeadlinePassed();
 }

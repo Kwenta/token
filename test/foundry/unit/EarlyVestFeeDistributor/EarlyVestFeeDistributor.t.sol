@@ -127,6 +127,25 @@ contract EarlyVestFeeDistributorTest is DefaultStakingV2Setup {
         earlyVestFeeDistributor.claimEpoch(address(user1), 1);
     }
 
+    /// @notice make sure the proper vesting entry is created
+    /// @dev must be the same as rewardEscrowV2 default constants
+    function testClaimEpochVestingEntry() public {
+        //setup
+        kwenta.transfer(address(user1), 1);
+        vm.startPrank(address(user1));
+        kwenta.approve(address(stakingRewardsV2), 1);
+        stakingRewardsV2.stake(1);
+        vm.stopPrank();
+        goForward(1 weeks);
+
+        kwenta.transfer(address(earlyVestFeeDistributor), 10);
+        goForward(1 weeks);
+
+        vm.expectEmit(true, true, true, true);
+        emit VestingEntryCreated(address(user1), 5, rewardEscrowV2.DEFAULT_DURATION(), 1, rewardEscrowV2.DEFAULT_EARLY_VESTING_FEE());
+        earlyVestFeeDistributor.claimEpoch(address(user1), 1);
+    }
+
     /// @notice claimEpoch happy case for > 1 person
     function testClaimEpoch3People() public {
         //setup

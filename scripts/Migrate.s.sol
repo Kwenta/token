@@ -32,8 +32,7 @@ contract Migrate {
         address _kwenta,
         address _supplySchedule,
         address _rewardEscrowV1,
-        address _stakingRewardsV1,
-        uint256 _daysToOffsetBy,
+        address _treasuryDAO,
         bool _printLogs
     )
         public
@@ -103,7 +102,6 @@ contract Migrate {
                 _kwenta,
                 _rewardEscrowV1,
                 address(rewardEscrowV2),
-                _stakingRewardsV1,
                 address(stakingRewardsV2)
             )
         );
@@ -112,7 +110,7 @@ contract Migrate {
             address(
                 new ERC1967Proxy(
                     escrowMigratorImplementation,
-                    abi.encodeWithSignature("initialize(address)", _owner)
+                    abi.encodeWithSignature("initialize(address,address)", _owner, _treasuryDAO)
                 )
             )
         );
@@ -131,7 +129,7 @@ contract Migrate {
             _kwenta,
             address(stakingRewardsV2),
             address(rewardEscrowV2),
-            _daysToOffsetBy
+            0
         );
 
         if (_printLogs) {
@@ -217,6 +215,14 @@ contract Migrate {
             console.log("Switched RewardEscrow to point to EscrowMigrator at %s", _escrowMigrator);
         }
 
+        // Unpause EscrowMigrator
+        EscrowMigrator escrowMigrator = EscrowMigrator(_escrowMigrator);
+        escrowMigrator.unpauseEscrowMigrator();
+
+        if (_printLogs) {
+            console.log("Unpaused EscrowMigrator at %s", _escrowMigrator);
+        }
+
         if (_printLogs) console.log(unicode"--------- 🎉 MIGRATION COMPLETE 🎉 ---------");
     }
 
@@ -231,8 +237,6 @@ contract Migrate {
         address _supplySchedule,
         address _treasuryDAO,
         address _rewardEscrowV1,
-        address _stakingRewardsV1,
-        uint256 _daysToOffsetBy,
         bool _printLogs
     )
         public
@@ -240,28 +244,17 @@ contract Migrate {
             RewardEscrowV2 rewardEscrowV2,
             StakingRewardsV2 stakingRewardsV2,
             EscrowMigrator escrowMigrator,
-            EarlyVestFeeDistributor earlyVestFeeDistributor,
-            address rewardEscrowV2Implementation,
-            address stakingRewardsV2Implementation,
-            address escrowMigratorImplementation
+            EarlyVestFeeDistributor earlyVestFeeDistributor
         )
     {
         // Step 1: Deploy StakingV2 contracts
-        (
-            rewardEscrowV2,
-            stakingRewardsV2,
-            escrowMigrator,
-            earlyVestFeeDistributor,
-            rewardEscrowV2Implementation,
-            stakingRewardsV2Implementation,
-            escrowMigratorImplementation
-        ) = deploySystem(
+        (rewardEscrowV2, stakingRewardsV2, escrowMigrator, earlyVestFeeDistributor,,,) =
+        deploySystem(
             _owner,
             _kwenta,
             _supplySchedule,
             _rewardEscrowV1,
-            _stakingRewardsV1,
-            _daysToOffsetBy,
+            _treasuryDAO,
             _printLogs
         );
 
@@ -316,8 +309,7 @@ contract DeployAndSetupOptimism is Script, Migrate {
             OPTIMISM_KWENTA_TOKEN,
             OPTIMISM_SUPPLY_SCHEDULE,
             OPTIMISM_REWARD_ESCROW_V1,
-            OPTIMISM_STAKING_REWARDS_V1,
-            0, // TODO: choose correct value for this
+            OPTIMISM_TREASURY_DAO,
             true
         );
 
@@ -366,8 +358,7 @@ contract DeployAndSetupOptimismGoerli is Script, Migrate {
             OPTIMISM_GOERLI_KWENTA_TOKEN,
             OPTIMISM_GOERLI_SUPPLY_SCHEDULE,
             OPTIMISM_GOERLI_REWARD_ESCROW_V1,
-            OPTIMISM_GOERLI_STAKING_REWARDS_V1,
-            0, // TODO: choose correct value for this
+            OPTIMISM_GOERLI_TREASURY_DAO,
             true
         );
 
@@ -402,8 +393,6 @@ contract DeploySetupAndMigrateOptimismGoerli is Script, Migrate {
             OPTIMISM_GOERLI_SUPPLY_SCHEDULE,
             OPTIMISM_GOERLI_TREASURY_DAO,
             OPTIMISM_GOERLI_REWARD_ESCROW_V1,
-            OPTIMISM_GOERLI_STAKING_REWARDS_V1,
-            0, // TODO: choose correct value for this
             true
         );
 
