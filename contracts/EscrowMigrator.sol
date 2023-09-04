@@ -82,7 +82,7 @@ contract EscrowMigrator is
     mapping(address => uint256) public initializationTime;
 
     /// @notice Mapping of whether an account's funds are locked due to migration deadline
-    mapping(address => bool) public fundsLocked;
+    mapping(address => bool) public lockedFundsAccountedFor;
 
     /// @notice Mapping of escrow already vested at start for each account
     mapping(address => uint256) public escrowVestedAtStart;
@@ -527,9 +527,11 @@ contract EscrowMigrator is
     /// @inheritdoc IEscrowMigrator
     /// @dev warning - may fail due to unbounded loop for certain users
     function updateTotalLocked(address _expiredMigrator) public {
-        if (!fundsLocked[_expiredMigrator] && _deadlinePassed(initializationTime[_expiredMigrator]))
-        {
-            fundsLocked[_expiredMigrator] = true;
+        if (
+            !lockedFundsAccountedFor[_expiredMigrator]
+                && _deadlinePassed(initializationTime[_expiredMigrator])
+        ) {
+            lockedFundsAccountedFor[_expiredMigrator] = true;
             totalLocked += totalEscrowLocked(_expiredMigrator);
         }
     }
