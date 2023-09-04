@@ -64,11 +64,11 @@ interface IEscrowMigrator {
     /// @dev WARNING: loop is potentially limitless - could revert with out of gas error if called on-chain
     function totalEscrowMigrated(address _account) external view returns (uint256 total);
 
-    /// @notice Get the total escrow locked for an account
+    /// @notice Get the total escrow that has been registered but not migrated for a user
     /// @param _account The address of the account to query
-    /// @return total the total escrow locked for the given account
+    /// @return total the total registered but non-migrated escrow for the given account
     /// @dev WARNING: loop is potentially limitless - could revert with out of gas error if called on-chain
-    function totalEscrowLocked(address _account) external view returns (uint256 total);
+    function totalUnmigratedEscrow(address _account) external view returns (uint256 total);
 
     /// @notice the amount a given user needs to pay to migrate all currently vested
     /// registered entries. The user should approve the escrow migrator for at least
