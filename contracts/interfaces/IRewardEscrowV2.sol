@@ -71,6 +71,14 @@ interface IRewardEscrowV2 {
     /// via vesting which avoids the unstaking cooldown
     function MINIMUM_EARLY_VESTING_FEE() external view returns (uint8);
 
+    /// @notice Default early vesting fee
+    /// @dev This is the default fee applied for early vesting
+    function DEFAULT_EARLY_VESTING_FEE() external view returns (uint8);
+
+    /// @notice Default escrow duration
+    /// @dev This is the default duration for escrow
+    function DEFAULT_DURATION() external view returns (uint256);
+
     /// @notice helper function to return kwenta address
     function getKwentaAddress() external view returns (address);
 
@@ -215,9 +223,9 @@ interface IRewardEscrowV2 {
     /// @param earlyVestFeeDistributor The address of the token distributor
     event TokenDistributorSet(address earlyVestFeeDistributor);
 
-    /// @notice emitted when the early vest fee is sent to the DAO
-    /// @param amount The amount of KWENTA sent to the DAO
-    event EarlyVestFeeSentToDAO(uint256 amount);
+    /// @notice emitted when the early vest fee is sent to the treasury
+    /// @param amount The amount of KWENTA sent to the treasury
+    event EarlyVestFeeSentToTreasury(uint256 amount);
 
     /// @notice emitted when the early vest fee is sent to the distributor
     /// @param amount The amount of KWENTA sent to the distributor
@@ -229,9 +237,6 @@ interface IRewardEscrowV2 {
 
     /// @notice Thrown when attempting to bulk transfer from and to the same address
     error CannotTransferToSelf();
-
-    /// @notice There are not enough entries to get vesting schedules starting from this index
-    error InvalidIndex();
 
     /// @notice Insufficient unstaked escrow to facilitate transfer
     /// @param escrowAmount the amount of escrow attempted to transfer

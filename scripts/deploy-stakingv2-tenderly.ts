@@ -233,10 +233,9 @@ const deployEscrowMigrator = async (
             OPTIMISM_KWENTA_TOKEN,
             OPTIMISM_REWARD_ESCROW_V1,
             rewardEscrowV2,
-            OPTIMISM_STAKING_REWARDS_V1,
             stakingRewardsV2,
         ],
-        initializerArgs: [owner],
+        initializerArgs: [owner, OPTIMISM_TREASURY_DAO],
     });
 
 /************************************************

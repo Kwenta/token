@@ -33,7 +33,7 @@ contract StakingV2Setup is StakingV1Setup {
     event TreasuryDAOSet(address treasuryDAO);
     event TokenDistributorSet(address tokenDistributor);
     event StakingRewardsSet(address stakingRewards);
-    event EarlyVestFeeSentToDAO(uint256 amount);
+    event EarlyVestFeeSentToTreasury(uint256 amount);
     event EarlyVestFeeSentToDistributor(uint256 amount);
     event EscrowMigratorSet(address escrowMigrator);
 
@@ -68,8 +68,7 @@ contract StakingV2Setup is StakingV1Setup {
                 address(kwenta),
                 address(supplySchedule),
                 address(rewardEscrowV1),
-                address(stakingRewardsV1),
-                0,
+                treasury,
                 false
             )
         );

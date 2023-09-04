@@ -83,7 +83,7 @@ contract StakingV2UpgradeTests is DefaultStakingV2Setup {
 
     function test_EscrowMigrator_Implementation_Cannot_Be_Initialized() public {
         vm.expectRevert("Initializable: contract is already initialized");
-        escrowMigrator.initialize(address(0));
+        escrowMigrator.initialize(address(0x1), treasury);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -182,7 +182,6 @@ contract StakingV2UpgradeTests is DefaultStakingV2Setup {
         testEscrowMigratorStillWorking();
     }
 
-
     /*//////////////////////////////////////////////////////////////
                                 HELPERS
     //////////////////////////////////////////////////////////////*/
@@ -206,7 +205,6 @@ contract StakingV2UpgradeTests is DefaultStakingV2Setup {
                 address(kwenta),
                 address(rewardEscrowV1),
                 address(rewardEscrowV2),
-                address(stakingRewardsV1),
                 address(stakingRewardsV2)
             )
         );
