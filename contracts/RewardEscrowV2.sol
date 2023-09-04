@@ -82,8 +82,8 @@ contract RewardEscrowV2 is
     /// @notice The total remaining escrowed balance, for verifying the actual KWENTA balance of this contract against
     uint256 public totalEscrowedBalance;
 
-    /// @notice EarlyVestFeeDistributor address
-    address public earlyVestFeeDistributor;
+    /// @notice TokenDistributor address
+    address public tokenDistributor;
 
     /*///////////////////////////////////////////////////////////////
                                 AUTH
@@ -166,14 +166,14 @@ contract RewardEscrowV2 is
     }
 
     /// @inheritdoc IRewardEscrowV2
-    function setEarlyVestFeeDistributor(address _earlyVestFeeDistributor)
+    function setTokenDistributor(address _tokenDistributor)
         external
         override
         onlyOwner
     {
-        if (_earlyVestFeeDistributor == address(0)) revert ZeroAddress();
-        earlyVestFeeDistributor = _earlyVestFeeDistributor;
-        emit EarlyVestFeeDistributorSet(earlyVestFeeDistributor);
+        if (_tokenDistributor == address(0)) revert ZeroAddress();
+        tokenDistributor = _tokenDistributor;
+        emit TokenDistributorSet(tokenDistributor);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -397,18 +397,18 @@ contract RewardEscrowV2 is
             totalVestedAccountBalance[msg.sender] += total;
 
             // Send 50% any fee to Treasury and
-            // 50% to EarlyVestFeeDistributor
+            // 50% to TokenDistributor
             // UNLESS Distributor isn't set
             // then send all funds to Treasury
             if (totalFee != 0) {
-                if (earlyVestFeeDistributor == address(0)) {
+                if (tokenDistributor == address(0)) {
                     kwenta.transfer(treasuryDAO, totalFee);
                     emit EarlyVestFeeSentToDAO(totalFee);
                 } else {
                     /// @dev this will revert if the kwenta token transfer fails
                     uint256 proportionalFee = totalFee / 2;
                     kwenta.transfer(treasuryDAO, proportionalFee);
-                    kwenta.transfer(earlyVestFeeDistributor, proportionalFee);
+                    kwenta.transfer(tokenDistributor, proportionalFee);
                     emit EarlyVestFeeSentToDAO(proportionalFee);
                     emit EarlyVestFeeSentToDistributor(proportionalFee);
                 }

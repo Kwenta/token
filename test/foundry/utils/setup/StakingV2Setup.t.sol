@@ -7,7 +7,7 @@ import {StakingV1Setup} from "../../utils/setup/StakingV1Setup.t.sol";
 import {RewardEscrowV2} from "../../../../contracts/RewardEscrowV2.sol";
 import {EscrowMigrator} from "../../../../contracts/EscrowMigrator.sol";
 import {StakingRewardsV2} from "../../../../contracts/StakingRewardsV2.sol";
-import {EarlyVestFeeDistributor} from "../../../../contracts/EarlyVestFeeDistributor.sol";
+import {TokenDistributor} from "../../../../contracts/TokenDistributor.sol";
 import {IRewardEscrowV2} from "../../../../contracts/interfaces/IRewardEscrowV2.sol";
 import "../../utils/Constants.t.sol";
 
@@ -31,7 +31,7 @@ contract StakingV2Setup is StakingV1Setup {
         uint8 earlyVestingFee
     );
     event TreasuryDAOSet(address treasuryDAO);
-    event EarlyVestFeeDistributorSet(address earlyVestFeeDistributor);
+    event TokenDistributorSet(address tokenDistributor);
     event StakingRewardsSet(address stakingRewards);
     event EarlyVestFeeSentToDAO(uint256 amount);
     event EarlyVestFeeSentToDistributor(uint256 amount);
@@ -44,7 +44,7 @@ contract StakingV2Setup is StakingV1Setup {
     RewardEscrowV2 internal rewardEscrowV2;
     StakingRewardsV2 internal stakingRewardsV2;
     EscrowMigrator internal escrowMigrator;
-    EarlyVestFeeDistributor internal earlyVestFeeDistributor;
+    TokenDistributor internal tokenDistributor;
     Migrate internal migrate;
 
     address rewardEscrowV2Implementation;
@@ -78,7 +78,7 @@ contract StakingV2Setup is StakingV1Setup {
             rewardEscrowV2,
             stakingRewardsV2,
             escrowMigrator,
-            earlyVestFeeDistributor,
+            tokenDistributor,
             rewardEscrowV2Implementation,
             stakingRewardsV2Implementation,
             escrowMigratorImplementation
@@ -88,7 +88,7 @@ contract StakingV2Setup is StakingV1Setup {
                 RewardEscrowV2,
                 StakingRewardsV2,
                 EscrowMigrator,
-                EarlyVestFeeDistributor,
+                TokenDistributor,
                 address,
                 address,
                 address

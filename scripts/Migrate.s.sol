@@ -9,7 +9,7 @@ import {RewardEscrow} from "../contracts/RewardEscrow.sol";
 import {RewardEscrowV2} from "../contracts/RewardEscrowV2.sol";
 import {StakingRewardsV2} from "../contracts/StakingRewardsV2.sol";
 import {EscrowMigrator} from "../contracts/EscrowMigrator.sol";
-import {EarlyVestFeeDistributor} from "../contracts/EarlyVestFeeDistributor.sol";
+import {TokenDistributor} from "../contracts/TokenDistributor.sol";
 import "../test/foundry/utils/Constants.t.sol";
 
 // Upgradeability imports
@@ -41,7 +41,7 @@ contract Migrate {
             RewardEscrowV2 rewardEscrowV2,
             StakingRewardsV2 stakingRewardsV2,
             EscrowMigrator escrowMigrator,
-            EarlyVestFeeDistributor earlyVestFeeDistributor,
+            TokenDistributor tokenDistributor,
             address rewardEscrowV2Implementation,
             address stakingRewardsV2Implementation,
             address escrowMigratorImplementation
@@ -126,8 +126,8 @@ contract Migrate {
             console.log("Deployed EscrowMigrator Proxy at %s", address(escrowMigrator));
         }
 
-        // Deploy EarlyVestFeeDistributor
-        earlyVestFeeDistributor = new EarlyVestFeeDistributor(
+        // Deploy TokenDistributor
+        tokenDistributor = new TokenDistributor(
             _kwenta,
             address(stakingRewardsV2),
             address(rewardEscrowV2),
@@ -135,7 +135,7 @@ contract Migrate {
         );
 
         if (_printLogs) {
-            console.log("Deployed EarlyVestFeeDistributor at %s", address(earlyVestFeeDistributor));
+            console.log("Deployed TokenDistributor at %s", address(tokenDistributor));
         }
 
         if (_printLogs) console.log(unicode"--------- 🚀 DEPLOYMENT COMPLETE 🚀 ---------");
@@ -240,7 +240,7 @@ contract Migrate {
             RewardEscrowV2 rewardEscrowV2,
             StakingRewardsV2 stakingRewardsV2,
             EscrowMigrator escrowMigrator,
-            EarlyVestFeeDistributor earlyVestFeeDistributor,
+            TokenDistributor tokenDistributor,
             address rewardEscrowV2Implementation,
             address stakingRewardsV2Implementation,
             address escrowMigratorImplementation
@@ -251,7 +251,7 @@ contract Migrate {
             rewardEscrowV2,
             stakingRewardsV2,
             escrowMigrator,
-            earlyVestFeeDistributor,
+            tokenDistributor,
             rewardEscrowV2Implementation,
             stakingRewardsV2Implementation,
             escrowMigratorImplementation

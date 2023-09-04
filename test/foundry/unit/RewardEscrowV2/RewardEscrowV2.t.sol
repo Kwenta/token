@@ -45,26 +45,26 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         rewardEscrowV2.setTreasuryDAO(address(user1));
     }
 
-    function test_Should_Set_Early_Vest_Fee_Distributor() public {
-        rewardEscrowV2.setEarlyVestFeeDistributor(address(this));
-        assertEq(address(rewardEscrowV2.earlyVestFeeDistributor()), address(this));
+    function test_Should_Set_Token_Distributor() public {
+        rewardEscrowV2.setTokenDistributor(address(this));
+        assertEq(address(rewardEscrowV2.tokenDistributor()), address(this));
     }
 
-    function test_Should_Not_Allow_Early_Vest_Fee_Distributor_To_Be_Set_To_Zero_Address() public {
+    function test_Should_Not_Allow_Token_Distributor_To_Be_Set_To_Zero_Address() public {
         vm.expectRevert(IRewardEscrowV2.ZeroAddress.selector);
-        rewardEscrowV2.setEarlyVestFeeDistributor(address(0));
+        rewardEscrowV2.setTokenDistributor(address(0));
     }
 
-    function test_Setting_Early_Vest_Fee_Distributor_Should_Emit_Event() public {
+    function test_Setting_Token_Distributor_Should_Emit_Event() public {
         vm.expectEmit(true, true, true, true);
-        emit EarlyVestFeeDistributorSet(address(this));
-        rewardEscrowV2.setEarlyVestFeeDistributor(address(this));
+        emit TokenDistributorSet(address(this));
+        rewardEscrowV2.setTokenDistributor(address(this));
     }
 
-    function test_Should_Not_Allow_Non_Owner_To_Set_Early_Vest_Fee_Distributor() public {
+    function test_Should_Not_Allow_Non_Owner_To_Set_Token_Distributor() public {
         vm.prank(user1);
         vm.expectRevert("Ownable: caller is not the owner");
-        rewardEscrowV2.setEarlyVestFeeDistributor(address(user1));
+        rewardEscrowV2.setTokenDistributor(address(user1));
     }
 
     function test_Should_Not_Allow_StakingRewards_To_Be_Set_Twice() public {
@@ -562,7 +562,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     }
 
     function test_vest_Should_Properly_Distribute_Escrow_With_Distributor() public {
-        rewardEscrowV2.setEarlyVestFeeDistributor(address(earlyVestFeeDistributor));
+        rewardEscrowV2.setTokenDistributor(address(tokenDistributor));
         appendRewardEscrowEntryV2(address(this), 1000 ether);
         vm.warp(block.timestamp + 26 weeks);
 
@@ -586,7 +586,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         assertEq(treasuryReceived, 225 ether);
 
         // 22.5% should go to EarlyVestFeeDistributor
-        assertEq(kwenta.balanceOf(address(earlyVestFeeDistributor)), 225 ether);
+        assertEq(kwenta.balanceOf(address(tokenDistributor)), 225 ether);
 
         // 55% should go to the staker
         assertEq(rewardEscrowV2.totalVestedAccountBalance(address(this)), 550 ether);
@@ -631,7 +631,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     }
 
     function test_vest_Should_Properly_Emit_Event_With_Distributor() public {
-        rewardEscrowV2.setEarlyVestFeeDistributor(address(earlyVestFeeDistributor));
+        rewardEscrowV2.setTokenDistributor(address(tokenDistributor));
         appendRewardEscrowEntryV2(address(this), 1000 ether);
         vm.warp(block.timestamp + 26 weeks);
 

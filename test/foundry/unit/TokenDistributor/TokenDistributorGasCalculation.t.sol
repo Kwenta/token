@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.19;
 
-import {IEarlyVestFeeDistributor} from "../../../../contracts/interfaces/IEarlyVestFeeDistributor.sol";
+import {ITokenDistributor} from "../../../../contracts/interfaces/ITokenDistributor.sol";
 import {Kwenta} from "../../../../contracts/Kwenta.sol";
 import {RewardEscrowV2} from "../../../../contracts/RewardEscrowV2.sol";
 import {StakingRewardsV2} from "../../../../contracts/StakingRewardsV2.sol";
 import {DefaultStakingV2Setup} from "../../utils/setup/DefaultStakingV2Setup.t.sol";
-import {EarlyVestFeeDistributorInternals} from "../../utils/EarlyVestFeeDistributorInternals.sol";
-import {EarlyVestFeeDistributor} from "../../../../contracts/EarlyVestFeeDistributor.sol";
+import {TokenDistributorInternals} from "../../utils/TokenDistributorInternals.sol";
+import {TokenDistributor} from "../../../../contracts/TokenDistributor.sol";
 
 /// @notice test how many weeks we can go without checkpointing
 /// and how much gas will it cost
-contract EarlyVestFeeDistributorGasCalculation is DefaultStakingV2Setup {
+contract TokenDistributorGasCalculation is DefaultStakingV2Setup {
     function setUp() public override {
         /// @dev starts after a week so the startTime is != 0
         goForward(1 weeks + 1);
@@ -23,10 +23,10 @@ contract EarlyVestFeeDistributorGasCalculation is DefaultStakingV2Setup {
     function testGas() public {
         for (int i = 0; i < 52; i++) {
             vm.prank(address(treasury));
-            kwenta.transfer(address(earlyVestFeeDistributor), 3);
+            kwenta.transfer(address(tokenDistributor), 3);
             goForward(1 weeks);
         }
 
-        earlyVestFeeDistributor.checkpointToken();
+        tokenDistributor.checkpointToken();
     }
 }
