@@ -24,7 +24,7 @@ contract StakingRewardsNotifierTest is DefaultStakingV2Setup {
     }
 
     function testNotifiableRewardAccumulatorCannotSetStakingV2To0() public {
-        vm.expectRevert(IStakingRewardsNotifier.InputAddress0.selector);
+        vm.expectRevert(IStakingRewardsNotifier.ZeroAddress.selector);
         rewardsNotifier.setStakingRewardsV2(address(0));
     }
 

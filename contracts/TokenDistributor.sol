@@ -57,7 +57,7 @@ contract TokenDistributor is ITokenDistributor {
             _stakingRewardsV2 == address(0) ||
             _rewardEscrowV2 == address(0)
         ) {
-            revert InputAddress0();
+            revert ZeroAddress();
         }
         kwenta = IKwenta(_kwenta);
         stakingRewardsV2 = IStakingRewardsV2(_stakingRewardsV2);

@@ -4,8 +4,8 @@ pragma solidity 0.8.19;
 interface IStakingRewardsNotifier {
     // Errors
 
-    /// @notice Input address is 0
-    error InputAddress0();
+    /// @notice cannot set this value to the zero address
+    error ZeroAddress();
 
     /// @notice OnlySupplySchedule can access this
     error OnlySupplySchedule();

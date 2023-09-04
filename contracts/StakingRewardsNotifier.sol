@@ -22,7 +22,7 @@ contract StakingRewardsNotifier is IStakingRewardsNotifier {
 
     constructor(address _kwenta, address _supplySchedule) {
         if (_kwenta == address(0) || _supplySchedule == address(0)) {
-            revert InputAddress0();
+            revert ZeroAddress();
         }
         kwenta = IKwenta(_kwenta);
         supplySchedule = ISupplySchedule(_supplySchedule);
@@ -39,7 +39,7 @@ contract StakingRewardsNotifier is IStakingRewardsNotifier {
     }
 
     function setStakingRewardsV2(address _stakingRewardsV2) external override {
-        if (_stakingRewardsV2 == address(0)) revert InputAddress0();
+        if (_stakingRewardsV2 == address(0)) revert ZeroAddress();
         if (stakingRewardsV2IsSet) revert StakingRewardsV2IsSet();
         stakingRewardsV2IsSet = true;
         stakingRewardsV2 = IStakingRewardsV2(_stakingRewardsV2);

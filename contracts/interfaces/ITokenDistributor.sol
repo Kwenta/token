@@ -18,7 +18,7 @@ interface ITokenDistributor {
     // Errors
 
     /// @notice error when constructor addresses are 0
-    error InputAddress0();
+    error ZeroAddress();
 
     /// @notice error when offset is more than 7 days
     error OffsetTooBig();

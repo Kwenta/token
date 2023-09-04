@@ -27,22 +27,22 @@ contract TokenDistributorTest is TokenDistributorSetup {
     }
 
     /// @notice constructor fail when input address == 0
-    function testInputAddress0() public {
-        vm.expectRevert(abi.encodeWithSelector(ITokenDistributor.InputAddress0.selector));
+    function testZeroAddress() public {
+        vm.expectRevert(abi.encodeWithSelector(ITokenDistributor.ZeroAddress.selector));
         tokenDistributor = new TokenDistributor(
             address(0),
             address(stakingRewardsV2),
             address(rewardEscrowV2),
             0
         );
-        vm.expectRevert(abi.encodeWithSelector(ITokenDistributor.InputAddress0.selector));
+        vm.expectRevert(abi.encodeWithSelector(ITokenDistributor.ZeroAddress.selector));
         tokenDistributor = new TokenDistributor(
             address(kwenta),
             address(0),
             address(rewardEscrowV2),
             0
         );
-        vm.expectRevert(abi.encodeWithSelector(ITokenDistributor.InputAddress0.selector));
+        vm.expectRevert(abi.encodeWithSelector(ITokenDistributor.ZeroAddress.selector));
         tokenDistributor = new TokenDistributor(
             address(kwenta),
             address(stakingRewardsV2),
