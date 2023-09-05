@@ -517,7 +517,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         // 22.5% should go to the treasury
         assertEq(treasuryReceived, 225 ether);
 
-        // 22.5% should go to EarlyVestFeeDistributor
+        // 22.5% should go to RewardsNotifier
         assertEq(kwenta.balanceOf(address(rewardsNotifier)), 225 ether);
 
         // 55% should go to the staker
