@@ -109,4 +109,53 @@ contract StakingRewardsNotifierTest is DefaultStakingV2Setup {
             balanceAfter - balanceBefore, retroactive1 + retroactive2 + retroactive3 + mintAmount
         );
     }
+
+    function testNotifiableRewardAccumulatorEarlyVest() public {
+        /// @dev this is to remove setup ether
+        kwenta.transfer(address(0x1), 100_000 ether);
+
+        appendRewardEscrowEntryV2(address(this), 1000 ether);
+        vm.warp(block.timestamp + 26 weeks);
+
+        // check initial values
+        (uint256 claimable, uint256 fee) = rewardEscrowV2.getVestingEntryClaimable(1);
+        assertEq(claimable, 550 ether);
+        assertEq(fee, 450 ether);
+        assertEq(rewardEscrowV2.totalEscrowedBalance(), 1000 ether);
+        assertEq(rewardEscrowV2.totalEscrowedAccountBalance(address(this)), 1000 ether);
+        assertEq(rewardEscrowV2.totalVestedAccountBalance(address(this)), 0);
+
+        uint256 treasuryBalanceBefore = kwenta.balanceOf(treasury);
+
+        entryIDs.push(1);
+        rewardEscrowV2.vest(entryIDs);
+
+        uint256 treasuryBalanceAfter = kwenta.balanceOf(treasury);
+        uint256 treasuryReceived = treasuryBalanceAfter - treasuryBalanceBefore;
+
+        // 22.5% should go to the treasury
+        assertEq(treasuryReceived, 225 ether);
+
+        // 22.5% should go to RewardsNotifier
+        assertEq(kwenta.balanceOf(address(rewardsNotifier)), 225 ether);
+
+        // 55% should go to the staker
+        assertEq(rewardEscrowV2.totalVestedAccountBalance(address(this)), 550 ether);
+        assertEq(kwenta.balanceOf(address(this)), 550 ether);
+        assertEq(rewardEscrowV2.totalEscrowedAccountBalance(address(this)), 0);
+
+        // Nothing should be left in reward escrow
+        assertEq(rewardEscrowV2.totalEscrowedBalance(), 0);
+        assertEq(rewardEscrowV2.totalEscrowedAccountBalance(address(this)), 0);
+        assertEq(kwenta.balanceOf(address(rewardEscrowV2)), 0);
+
+        // Mint and the RewardsNotifier should transfer amounts to the staking contract
+        uint256 mintAmount = 176268972686291953380981;
+        uint256 balanceBefore = kwenta.balanceOf(address(stakingRewardsV2));
+        supplySchedule.mint();
+        uint256 balanceAfter = kwenta.balanceOf(address(stakingRewardsV2));
+        assertGt(balanceAfter, balanceBefore);
+        assertEq(balanceAfter - balanceBefore, 225 ether + mintAmount);
+
+    }
 }
