@@ -36,7 +36,7 @@ contract RewardEscrowV2 is
     uint256 public constant MAX_DURATION = 4 * 52 weeks; // Default max 4 years duration
 
     /// @notice Min escrow duration
-    uint40 public constant DEFAULT_DURATION = 52 weeks; // Default 1 year duration
+    uint256 public constant DEFAULT_DURATION = 52 weeks; // Default 1 year duration
 
     /// @notice Default early vesting fee - used for new vesting entries from staking rewards
     uint8 public constant DEFAULT_EARLY_VESTING_FEE = 90; // Default 90 percent
@@ -436,7 +436,7 @@ contract RewardEscrowV2 is
         kwenta.transferFrom(msg.sender, address(this), _deposit);
 
         // Escrow the tokens for duration.
-        uint256 endTime = block.timestamp + _duration;
+        uint256 endTime = block.timestamp + uint256(_duration);
 
         // Append vesting entry for the beneficiary address
         _mint(_beneficiary, uint64(endTime), _deposit, _duration, _earlyVestingFee);
@@ -447,7 +447,7 @@ contract RewardEscrowV2 is
         // Escrow the tokens for duration.
         uint256 endTime = block.timestamp + DEFAULT_DURATION;
 
-        _mint(_account, uint64(endTime), _quantity, DEFAULT_DURATION, DEFAULT_EARLY_VESTING_FEE);
+        _mint(_account, uint64(endTime), _quantity, uint40(DEFAULT_DURATION), DEFAULT_EARLY_VESTING_FEE);
     }
 
     /// @inheritdoc IRewardEscrowV2

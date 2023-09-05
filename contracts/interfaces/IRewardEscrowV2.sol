@@ -72,7 +72,7 @@ interface IRewardEscrowV2 {
 
     /// @notice Default escrow duration
     /// @dev This is the default duration for escrow
-    function DEFAULT_DURATION() external view returns (uint40);
+    function DEFAULT_DURATION() external view returns (uint256);
 
     /// @notice helper function to return kwenta address
     function getKwentaAddress() external view returns (address);
