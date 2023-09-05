@@ -388,7 +388,7 @@ contract TokenDistributorTest is TokenDistributorSetup {
         /// @dev make sure its less than this contract
         /// holds and greater than 10 so the result isn't
         /// 0 after dividing
-        vm.assume(amount < 100_000 ether);
+        vm.assume(amount < 100_000 ether - 3);
         vm.assume(amount > 10);
 
         kwenta.transfer(address(user1), 1);
@@ -421,7 +421,7 @@ contract TokenDistributorTest is TokenDistributorSetup {
         /// @dev make sure its less than this contract
         /// holds and greater than 10 so the result isn't
         /// 0 after dividing
-        vm.assume(amount < 100_000 ether);
+        vm.assume(amount < 100_000 ether - 3);
         vm.assume(amount > 10);
 
         kwenta.transfer(address(user1), 1);
@@ -497,7 +497,7 @@ contract TokenDistributorTest is TokenDistributorSetup {
         /// @dev make sure its less than this contract
         /// holds and greater than 10 so the result isn't
         /// 0 after dividing
-        vm.assume(amount < 100_000 ether);
+        vm.assume(amount < 100_000 ether - 3);
         vm.assume(amount > 10);
 
         vm.assume(time < 1 weeks * 52);
