@@ -9,15 +9,31 @@ import {ISupplySchedule} from "./interfaces/ISupplySchedule.sol";
 import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 
 contract StakingRewardsNotifier is Ownable2Step, IStakingRewardsNotifier {
+    /*//////////////////////////////////////////////////////////////
+                               IMMUTABLES
+    //////////////////////////////////////////////////////////////*/
+
     /// @notice kwenta interface
     IKwenta public immutable kwenta;
 
     /// @notice supply schedule contract
     ISupplySchedule public immutable supplySchedule;
 
+    /*//////////////////////////////////////////////////////////////
+                                 STATE
+    //////////////////////////////////////////////////////////////*/
+
     /// @notice rewards staking contract
     IStakingRewardsV2 public stakingRewardsV2;
 
+    /*//////////////////////////////////////////////////////////////
+                              CONSTRUCTOR
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice Constructor function for StakingRewardsNotifier contract
+    /// @param _contractOwner: address of the contract owner
+    /// @param _kwenta: address of the Kwenta contract
+    /// @param _supplySchedule: address of the SupplySchedule contract
     constructor(address _contractOwner, address _kwenta, address _supplySchedule) {
         if (_contractOwner == address(0) || _kwenta == address(0) || _supplySchedule == address(0))
         {
@@ -30,6 +46,10 @@ contract StakingRewardsNotifier is Ownable2Step, IStakingRewardsNotifier {
         _transferOwnership(_contractOwner);
     }
 
+    /*//////////////////////////////////////////////////////////////
+                               MODIFIERS
+    //////////////////////////////////////////////////////////////*/
+
     /// @notice access control modifier for supplySchedule
     modifier onlySupplySchedule() {
         _onlySupplySchedule();
@@ -40,11 +60,21 @@ contract StakingRewardsNotifier is Ownable2Step, IStakingRewardsNotifier {
         if (msg.sender != address(supplySchedule)) revert OnlySupplySchedule();
     }
 
+    /*//////////////////////////////////////////////////////////////
+                                SETTERS
+    //////////////////////////////////////////////////////////////*/
+
+    /// @inheritdoc IStakingRewardsNotifier
     function setStakingRewardsV2(address _stakingRewardsV2) external override onlyOwner {
         if (_stakingRewardsV2 == address(0)) revert ZeroAddress();
         stakingRewardsV2 = IStakingRewardsV2(_stakingRewardsV2);
     }
 
+    /*//////////////////////////////////////////////////////////////
+                               FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+
+    /// @inheritdoc IStakingRewardsNotifier
     function notifyRewardAmount(uint256 mintedAmount) external override onlySupplySchedule {
         /// @dev delete because it is not used
         /// instead currentBalance is used
