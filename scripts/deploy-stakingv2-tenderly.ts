@@ -5,7 +5,7 @@
 // Runtime Environment's members available in the global scope.
 import { ethers, tenderly } from "hardhat";
 import { Interface } from "@ethersproject/abi";
-import { Contract } from "ethers";
+import { BigNumber, Contract } from "ethers";
 
 const OPTIMISM_KWENTA_TOKEN = "0x920Cf626a271321C151D027030D5d08aF699456b";
 const OPTIMISM_PDAO = "0xe826d43961a87fBE71C91d9B73F7ef9b16721C07";
@@ -14,6 +14,9 @@ const OPTIMISM_STAKING_REWARDS_V1 =
 const OPTIMISM_REWARD_ESCROW_V1 = "0x1066A8eB3d90Af0Ad3F89839b974658577e75BE2";
 const OPTIMISM_SUPPLY_SCHEDULE = "0x3e8b82326Ff5f2f10da8CEa117bD44343ccb9c26";
 const OPTIMISM_TREASURY_DAO = "0x82d2242257115351899894eF384f779b5ba8c695";
+const STAKING_V1_USER = "0x2f31e5e4e0EDfE3f42B910aC7cD5ab25dd130114";
+
+const YEAR_IN_WEEKS = 60 * 60 * 24 * 7 * 52;
 
 const provider = new ethers.providers.JsonRpcProvider(
     process.env.TENDERLY_FORK_URL
@@ -151,7 +154,7 @@ async function main() {
 
         const newTimeNow = await getLatestBlockTimestamp();
         console.log(
-            "time confirmed:                                       ",
+            "time confirmed:                                      ",
             newTimeNow,
             new Date(newTimeNow * 1000)
         );
@@ -160,6 +163,13 @@ async function main() {
     }
 
     console.log("✅ Time updated!");
+
+    // ========== MIGRATE ========== */
+
+    await simulateMigration({
+        escrowMigrator,
+        rewardEscrowV2,
+    });
 }
 
 /************************************************
@@ -271,6 +281,140 @@ const deployEscrowMigrator = async (
         ],
         initializerArgs: [owner, OPTIMISM_TREASURY_DAO],
     });
+
+/************************************************
+ * @simulator
+ ************************************************/
+
+const simulateMigration = async ({
+    escrowMigrator,
+    rewardEscrowV2,
+}: {
+    escrowMigrator: Contract;
+    rewardEscrowV2: Contract;
+}) => {
+    console.log("\n🦅 Migrating entries...");
+
+    const NUM_TO_REGISTER = 556;
+    const NUM_TO_VEST = 556; // estimated max = 3419
+    const NUM_TO_MIGRATE = 182;
+    const NUM_TO_CREATE = Math.max(
+        NUM_TO_REGISTER,
+        NUM_TO_VEST,
+        NUM_TO_MIGRATE
+    );
+
+    const rewardEscrowV1 = await ethers.getContractAt(
+        "RewardEscrow",
+        OPTIMISM_REWARD_ESCROW_V1
+    );
+    const kwenta = await ethers.getContractAt("Kwenta", OPTIMISM_KWENTA_TOKEN);
+
+    const numberOfEntriesAlreadyCreated =
+        await rewardEscrowV1.numVestingEntries(STAKING_V1_USER);
+
+    if (NUM_TO_CREATE > numberOfEntriesAlreadyCreated) {
+        // give deployer NUM_ENTRIES escrow entries
+        await sendTransaction({
+            contractName: "Kwenta",
+            contractAddress: kwenta.address,
+            functionName: "approve",
+            functionArgs: [rewardEscrowV1.address, ethers.constants.MaxUint256],
+            from: OPTIMISM_TREASURY_DAO,
+        });
+
+        for (
+            let i = 0;
+            i < NUM_TO_CREATE - numberOfEntriesAlreadyCreated;
+            i++
+        ) {
+            await sendTransaction({
+                contractName: "RewardEscrow",
+                contractAddress: rewardEscrowV1.address,
+                functionName: "createEscrowEntry",
+                functionArgs: [
+                    STAKING_V1_USER,
+                    ethers.utils.parseEther("1"),
+                    YEAR_IN_WEEKS,
+                ],
+                from: OPTIMISM_TREASURY_DAO,
+            });
+        }
+    }
+
+    const allEntries = await rewardEscrowV1.getAccountVestingEntryIDs(
+        STAKING_V1_USER,
+        0,
+        NUM_TO_CREATE
+    );
+    console.log("All entries: ");
+    printEntries(allEntries);
+
+    // register all entries
+    const entriesToRegister: BigNumber[] =
+        await rewardEscrowV1.getAccountVestingEntryIDs(
+            STAKING_V1_USER,
+            0,
+            NUM_TO_REGISTER
+        );
+    await sendTransaction({
+        contractName: "EscrowMigrator",
+        contractAddress: escrowMigrator.address,
+        functionName: "registerEntries",
+        functionArgs: [entriesToRegister],
+        from: STAKING_V1_USER,
+    });
+
+    // vest all entries
+    const entriesToVest: BigNumber[] =
+        await rewardEscrowV1.getAccountVestingEntryIDs(
+            STAKING_V1_USER,
+            0,
+            NUM_TO_VEST
+        );
+    await sendTransaction({
+        contractName: "RewardEscrow",
+        contractAddress: rewardEscrowV1.address,
+        functionName: "vest",
+        functionArgs: [entriesToVest],
+        from: STAKING_V1_USER,
+    });
+
+    // approve escrow migrator
+    await sendTransaction({
+        contractName: "Kwenta",
+        contractAddress: kwenta.address,
+        functionName: "approve",
+        functionArgs: [escrowMigrator.address, ethers.constants.MaxUint256],
+        from: STAKING_V1_USER,
+    });
+
+    // migrate all entries
+    const entriesToMigrate: BigNumber[] =
+        await rewardEscrowV1.getAccountVestingEntryIDs(
+            STAKING_V1_USER,
+            0,
+            NUM_TO_MIGRATE
+        );
+    await sendTransaction({
+        contractName: "EscrowMigrator",
+        contractAddress: escrowMigrator.address,
+        functionName: "migrateEntries",
+        functionArgs: [STAKING_V1_USER, entriesToMigrate],
+        from: STAKING_V1_USER,
+    });
+
+    // get num of entries in reward escrow v2
+    const numEntriesInRewardEscrowV2: BigNumber =
+        await rewardEscrowV2.balanceOf(STAKING_V1_USER);
+    console.log("StakingV1 user: ", STAKING_V1_USER);
+    console.log(
+        "Num of entries migrated: ",
+        numEntriesInRewardEscrowV2.toString()
+    );
+
+    console.log("✅ Entries migrated!");
+};
 
 /************************************************
  * @helpers
@@ -408,6 +552,20 @@ const logTransaction = (
 const extendLog = (log: string) => {
     while (log.length < 53) log += " ";
     return log;
+};
+
+const printEntries = (entries: BigNumber[]) => {
+    const entryIDs = entries.map((x) => x.toNumber());
+    let list = "[";
+    for (let i = 0; i < entryIDs.length; i++) {
+        if (i == entryIDs.length - 1) {
+            list += `${entryIDs[i]}`;
+        } else {
+            list += `${entryIDs[i]},`;
+        }
+    }
+    list += "]";
+    console.log(list);
 };
 
 const getLatestBlockTimestamp = async (): Promise<number> => {
