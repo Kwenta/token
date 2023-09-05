@@ -10,9 +10,6 @@ interface IStakingRewardsNotifier {
     /// @notice OnlySupplySchedule can access this
     error OnlySupplySchedule();
 
-    /// @notice StakingRewardsV2 is already set
-    error StakingRewardsV2IsSet();
-
     // Mutative Functions
 
     /// @notice set the StakingRewardsV2 contract
