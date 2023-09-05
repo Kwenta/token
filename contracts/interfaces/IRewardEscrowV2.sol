@@ -214,10 +214,6 @@ interface IRewardEscrowV2 {
     /// @param treasuryDAO The address of the treasury DAO
     event TreasuryDAOSet(address treasuryDAO);
 
-    /// @notice emitted when the StakingRewardsNotifier is set
-    /// @param rewardsNotifier The address of the rewards notifier
-    event RewardsNotifierSet(address rewardsNotifier);
-
     /// @notice emitted when the early vest fee is sent to the treasury and notifier
     /// @param amountToTreasury The amount of KWENTA sent to the treasury
     /// @param amountToNotifier The amount of KWENTA sent to the notifier
