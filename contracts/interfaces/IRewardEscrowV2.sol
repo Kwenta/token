@@ -9,9 +9,9 @@ interface IRewardEscrowV2 {
     /// @notice A vesting entry contains the data for each escrow NFT
     struct VestingEntry {
         // The amount of KWENTA stored in this vesting entry
-        uint256 escrowAmount;
+        uint128 escrowAmount;
         // The length of time until the entry is fully matured
-        uint256 duration;
+        uint32 duration;
         // The time at which the entry will be fully matured
         uint64 endTime;
         // The percentage fee for vesting immediately
@@ -72,7 +72,7 @@ interface IRewardEscrowV2 {
 
     /// @notice Default escrow duration
     /// @dev This is the default duration for escrow
-    function DEFAULT_DURATION() external view returns (uint256);
+    function DEFAULT_DURATION() external view returns (uint32);
 
     /// @notice helper function to return kwenta address
     function getKwentaAddress() external view returns (address);
@@ -152,8 +152,8 @@ interface IRewardEscrowV2 {
     /// to spend the the amount being escrowed.
     function createEscrowEntry(
         address _beneficiary,
-        uint256 _deposit,
-        uint256 _duration,
+        uint128 _deposit,
+        uint32 _duration,
         uint8 _earlyVestingFee
     ) external;
 
@@ -164,7 +164,7 @@ interface IRewardEscrowV2 {
     /// The duration defaults to 1 year, and the early vesting fee to 90%
     /// @param _account The account to append a new vesting entry to.
     /// @param _quantity The quantity of KWENTA that will be escrowed.
-    function appendVestingEntry(address _account, uint256 _quantity) external;
+    function appendVestingEntry(address _account, uint128 _quantity) external;
 
     /// @notice Transfer multiple entries from one account to another
     ///  Sufficient escrowed KWENTA must be unstaked for the transfer to succeed

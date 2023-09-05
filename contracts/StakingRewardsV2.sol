@@ -344,7 +344,7 @@ contract StakingRewardsV2 is
             // transfer token from this contract to the rewardEscrow
             // and create a vesting entry at the _to address
             kwenta.transfer(address(rewardEscrow), reward);
-            rewardEscrow.appendVestingEntry(_to, reward);
+            rewardEscrow.appendVestingEntry(_to, uint128(reward));
         }
     }
 

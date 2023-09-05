@@ -414,7 +414,7 @@ contract EscrowMigrator is
             (uint64 endTime, uint256 escrowAmount, uint256 duration) =
                 rewardEscrowV1.getVestingEntry(_account, entryID);
             VestingEntry storage registeredEntry = userEntries[entryID];
-            uint256 originalEscrowAmount = registeredEntry.escrowAmount;
+            uint248 originalEscrowAmount = registeredEntry.escrowAmount;
 
             // if it is not zero, it hasn't been vested
             if (escrowAmount != 0) continue;
@@ -437,8 +437,8 @@ contract EscrowMigrator is
             }
 
             IRewardEscrowV2.VestingEntry memory entry = IRewardEscrowV2.VestingEntry({
-                escrowAmount: originalEscrowAmount,
-                duration: duration,
+                escrowAmount: uint128(originalEscrowAmount),
+                duration: uint32(duration),
                 endTime: endTime,
                 earlyVestingFee: 90
             });
