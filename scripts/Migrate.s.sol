@@ -222,10 +222,10 @@ contract Migrate {
             );
         }
 
-        RewardEscrow rewardEscrow = RewardEscrow(_rewardEscrowV1);
+        RewardEscrow rewardEscrowV1 = RewardEscrow(_rewardEscrowV1);
 
         // Update RewardEscrow to point to EscrowMigrator
-        rewardEscrow.setTreasuryDAO(_escrowMigrator);
+        rewardEscrowV1.setTreasuryDAO(_escrowMigrator);
 
         if (_printLogs) {
             console.log("Switched RewardEscrow to point to EscrowMigrator at %s", _escrowMigrator);
