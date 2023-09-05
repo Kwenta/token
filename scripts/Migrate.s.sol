@@ -340,6 +340,7 @@ contract DeployAndSetupOptimism is Script, Migrate {
         rewardEscrowV2.transferOwnership(OPTIMISM_PDAO);
         stakingRewardsV2.transferOwnership(OPTIMISM_PDAO);
         escrowMigrator.transferOwnership(OPTIMISM_PDAO);
+        rewardsNotifier.transferOwnership(OPTIMISM_PDAO);
 
         vm.stopBroadcast();
     }

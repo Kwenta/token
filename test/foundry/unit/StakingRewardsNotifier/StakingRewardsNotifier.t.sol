@@ -18,9 +18,17 @@ contract StakingRewardsNotifierTest is DefaultStakingV2Setup {
         kwenta.transfer(address(this), 100_000 ether);
     }
 
-    function testNotifiableRewardAccumulatorCannotSetStakingV2Again() public {
-        vm.expectRevert(IStakingRewardsNotifier.StakingRewardsV2IsSet.selector);
+    function testNotifiableRewardAccumulatorSetStakingV2OnlyOwner() public {
+        vm.prank(user1);
+        vm.expectRevert("Ownable: caller is not the owner");
         rewardsNotifier.setStakingRewardsV2(address(stakingRewardsV2));
+    }
+
+    function testNotifiableRewardAccumulatorSetStakingV2Twice() public {
+        rewardsNotifier.setStakingRewardsV2(address(stakingRewardsV1));
+        assertEq(address(rewardsNotifier.stakingRewardsV2()), address(stakingRewardsV1));
+        rewardsNotifier.setStakingRewardsV2(address(stakingRewardsV2));
+        assertEq(address(rewardsNotifier.stakingRewardsV2()), address(stakingRewardsV2));
     }
 
     function testNotifiableRewardAccumulatorCannotSetStakingV2To0() public {
