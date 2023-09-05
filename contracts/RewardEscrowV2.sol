@@ -36,7 +36,7 @@ contract RewardEscrowV2 is
     uint256 public constant MAX_DURATION = 4 * 52 weeks; // Default max 4 years duration
 
     /// @notice Min escrow duration
-    uint256 public constant DEFAULT_DURATION = 52 weeks; // Default 1 year duration
+    uint40 public constant DEFAULT_DURATION = 52 weeks; // Default 1 year duration
 
     /// @notice Default early vesting fee - used for new vesting entries from staking rewards
     uint8 public constant DEFAULT_EARLY_VESTING_FEE = 90; // Default 90 percent
@@ -336,8 +336,8 @@ contract RewardEscrowV2 is
     {
         uint256 timeUntilVest = _entry.endTime - block.timestamp;
         // Fee starts by default at 90% (but could be any percentage) and falls linearly
-        earlyVestFee =
-            (_entry.escrowAmount * _entry.earlyVestingFee * timeUntilVest) / (100 * _entry.duration);
+        earlyVestFee = (uint256(_entry.escrowAmount) * _entry.earlyVestingFee * timeUntilVest)
+            / (100 * uint256(_entry.duration));
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -421,8 +421,8 @@ contract RewardEscrowV2 is
     /// @inheritdoc IRewardEscrowV2
     function createEscrowEntry(
         address _beneficiary,
-        uint256 _deposit,
-        uint256 _duration,
+        uint144 _deposit,
+        uint40 _duration,
         uint8 _earlyVestingFee
     ) external {
         if (_beneficiary == address(0)) revert ZeroAddress();
@@ -443,7 +443,7 @@ contract RewardEscrowV2 is
     }
 
     /// @inheritdoc IRewardEscrowV2
-    function appendVestingEntry(address _account, uint256 _quantity) external onlyStakingRewards {
+    function appendVestingEntry(address _account, uint144 _quantity) external onlyStakingRewards {
         // Escrow the tokens for duration.
         uint256 endTime = block.timestamp + DEFAULT_DURATION;
 
@@ -518,8 +518,8 @@ contract RewardEscrowV2 is
     function _mint(
         address _account,
         uint64 _endTime,
-        uint256 _quantity,
-        uint256 _duration,
+        uint144 _quantity,
+        uint40 _duration,
         uint8 _earlyVestingFee
     ) internal whenNotPaused {
         // There must be enough balance in the contract to provide for the vesting entry.

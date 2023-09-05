@@ -270,11 +270,11 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         kwenta.approve(address(rewardEscrowV2), TEST_VALUE);
         vm.prank(treasury);
         vm.expectRevert(IRewardEscrowV2.InvalidDuration.selector);
-        rewardEscrowV2.createEscrowEntry(address(this), TEST_VALUE, duration - 1, 90);
+        rewardEscrowV2.createEscrowEntry(address(this), TEST_VALUE, uint40(duration - 1), 90);
     }
 
     function test_createEscrowEntry_Should_Not_Append_Entries_With_Bad_Duration_Fuzz(
-        uint256 duration
+        uint40 duration
     ) public {
         uint256 cooldownPeriod = stakingRewardsV2.cooldownPeriod();
 
@@ -306,7 +306,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         kwenta.approve(address(rewardEscrowV2), TEST_VALUE);
         vm.expectRevert(IRewardEscrowV2.InvalidDuration.selector);
         vm.prank(treasury);
-        rewardEscrowV2.createEscrowEntry(address(this), TEST_VALUE, maxDuration + 1, 90);
+        rewardEscrowV2.createEscrowEntry(address(this), TEST_VALUE, uint40(maxDuration + 1), 90);
     }
 
     function test_createEscrowEntry_Should_Revert_If_Beneficiary_Address_Is_Zero() public {
