@@ -151,7 +151,7 @@ async function main() {
 
         const newTimeNow = await getLatestBlockTimestamp();
         console.log(
-            "time confirmed:                              ",
+            "time confirmed:                                       ",
             newTimeNow,
             new Date(newTimeNow * 1000)
         );
