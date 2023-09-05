@@ -30,16 +30,23 @@ async function main() {
     // ========== DEPLOYMENT ========== */
 
     console.log("\n💥 Beginning deployments...");
+    const rewardsNotifier = await deployRewardsNotifier(deployer.address);
     const [rewardEscrowV2, rewardEscrowV2Impl] = await deployRewardEscrowV2(
-        deployer.address
+        deployer.address,
+        rewardsNotifier.address
     );
     const [stakingRewardsV2, stakingRewardsV2Impl] =
-        await deployStakingRewardsV2(deployer.address, rewardEscrowV2.address);
+        await deployStakingRewardsV2(
+            deployer.address,
+            rewardEscrowV2.address,
+            rewardsNotifier.address
+        );
     const [escrowMigrator, escrowMigratorImpl] = await deployEscrowMigrator(
         deployer.address,
         rewardEscrowV2.address,
         stakingRewardsV2.address
     );
+    console.log("StakingRewardsNotifier :", rewardsNotifier.address);
     console.log("RewardEscrowV2 Proxy   :", rewardEscrowV2.address);
     console.log("RewardEscrowV2 Impl    :", rewardEscrowV2Impl.address);
     console.log("StakingRewardsV2 Proxy :", stakingRewardsV2.address);
@@ -72,14 +79,22 @@ async function main() {
         "RewardEscrowV2: escrowMigrator address set to:       ",
         await rewardEscrowV2.escrowMigrator()
     );
+
+    // set staking rewards for rewards notifier
+    await rewardsNotifier.setStakingRewardsV2(stakingRewardsV2.address);
+    console.log(
+        "StakingRewardsNotifier: stakingRewardsV2 address set to:       ",
+        await rewardsNotifier.stakingRewardsV2()
+    );
     console.log("✅ Setters set!");
 
     // ========== MIGRATION ========== */
 
     console.log("\n🔩 Migration setters...");
 
-    await setStakingRewardsOnSupplySchedule(stakingRewardsV2.address);
-    await setTreasuryDAOOnRewardEscrow(escrowMigrator.address);
+    await setStakingRewardsOnSupplySchedule(rewardsNotifier.address);
+    await setTreasuryDAOOnRewardEscrowV1(escrowMigrator.address);
+    await escrowMigrator.unpauseEscrowMigrator();
 
     console.log("✅ Migration setters set!");
 
@@ -94,6 +109,11 @@ async function main() {
         OPTIMISM_PDAO
     );
     await transferOwnership(escrowMigrator, "EscrowMigrator", OPTIMISM_PDAO);
+    await transferOwnership(
+        rewardsNotifier,
+        "StakingRewardsNotifier",
+        OPTIMISM_PDAO
+    );
 
     console.log("✅ Ownership transferred!");
 
@@ -168,10 +188,10 @@ const transferOwnership = async (
  * @setters
  ************************************************/
 
-const setStakingRewardsOnSupplySchedule = async (stakingRewardsV2: string) => {
+const setStakingRewardsOnSupplySchedule = async (rewardsNotifier: string) => {
     const contractName = "SupplySchedule";
     const functionName = "setStakingRewards";
-    const functionArgs = [stakingRewardsV2];
+    const functionArgs = [rewardsNotifier];
 
     await sendTransaction({
         contractName,
@@ -184,7 +204,7 @@ const setStakingRewardsOnSupplySchedule = async (stakingRewardsV2: string) => {
     logTransaction(contractName, functionName, functionArgs);
 };
 
-const setTreasuryDAOOnRewardEscrow = async (escrowMigrator: string) => {
+const setTreasuryDAOOnRewardEscrowV1 = async (escrowMigrator: string) => {
     const contractName = "RewardEscrow";
     const functionName = "setTreasuryDAO";
     const functionArgs = [escrowMigrator];
@@ -204,20 +224,34 @@ const setTreasuryDAOOnRewardEscrow = async (escrowMigrator: string) => {
  * @deployers
  ************************************************/
 
-const deployRewardEscrowV2 = async (owner: string) =>
+const deployRewardsNotifier = async (owner: string) =>
+    await deployContract({
+        contractName: "StakingRewardsNotifier",
+        constructorArgs: [
+            owner,
+            OPTIMISM_KWENTA_TOKEN,
+            OPTIMISM_SUPPLY_SCHEDULE,
+        ],
+    });
+
+const deployRewardEscrowV2 = async (owner: string, rewardsNotifier: string) =>
     await deployUUPSProxy({
         contractName: "RewardEscrowV2",
-        constructorArgs: [OPTIMISM_KWENTA_TOKEN],
+        constructorArgs: [OPTIMISM_KWENTA_TOKEN, rewardsNotifier],
         initializerArgs: [owner],
     });
 
-const deployStakingRewardsV2 = async (owner: string, rewardEscrowV2: string) =>
+const deployStakingRewardsV2 = async (
+    owner: string,
+    rewardEscrowV2: string,
+    rewardsNotifier: string
+) =>
     await deployUUPSProxy({
         contractName: "StakingRewardsV2",
         constructorArgs: [
             OPTIMISM_KWENTA_TOKEN,
             rewardEscrowV2,
-            OPTIMISM_SUPPLY_SCHEDULE,
+            rewardsNotifier,
         ],
         initializerArgs: [owner],
     });
@@ -242,6 +276,7 @@ const deployEscrowMigrator = async (
  * @helpers
  ************************************************/
 
+// TODO: refactor to use deployContract helper
 const deployUUPSProxy = async ({
     contractName,
     constructorArgs,
@@ -283,6 +318,23 @@ const deployUUPSProxy = async ({
         proxy.address
     );
     return [wrappedProxy, implementation];
+};
+
+const deployContract = async ({
+    contractName,
+    constructorArgs,
+}: {
+    contractName: string;
+    constructorArgs: unknown[];
+}) => {
+    const Factory = await ethers.getContractFactory(contractName);
+    const implementation = await Factory.deploy(...constructorArgs);
+    await implementation.deployed();
+    await tenderly.verify({
+        name: contractName,
+        address: implementation.address,
+    });
+    return implementation;
 };
 
 export const getInitializerData = (
