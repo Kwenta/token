@@ -76,7 +76,8 @@ contract StakingRewardsNotifier is Ownable2Step, IStakingRewardsNotifier {
 
     /// @inheritdoc IStakingRewardsNotifier
     function notifyRewardAmount(uint256 mintedAmount) external override onlySupplySchedule {
-        /// @dev delete because it is not used
+        /// @dev delete because it is not used but cannot be removed from the function signature
+        /// as it is called by SupplySchedule which is immutable and expects to pass this value
         /// instead currentBalance is used
         delete mintedAmount;
         uint256 currentBalance = kwenta.balanceOf(address(this));
