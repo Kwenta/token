@@ -212,7 +212,7 @@ contract Migrate {
 
         // Update SupplySchedule to point to StakingV2
         /// @dev note that it is set to rewards notifier and not staking rewards v2
-        /// this is becuase we amalgamate the early vest fees and the staking rewards
+        /// this is because we amalgamate the early vest fees and the staking rewards
         /// together in the rewards notifier contract
         supplySchedule.setStakingRewards(_rewardsNotifier);
 
