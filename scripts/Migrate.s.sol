@@ -50,6 +50,7 @@ contract Migrate {
 
         // Deploy StakingRewardsNotifier
         rewardsNotifier = new StakingRewardsNotifier(
+            _owner,
             _kwenta,
             _supplySchedule
         );

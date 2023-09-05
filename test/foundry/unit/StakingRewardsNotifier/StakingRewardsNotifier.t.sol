@@ -18,6 +18,21 @@ contract StakingRewardsNotifierTest is DefaultStakingV2Setup {
         kwenta.transfer(address(this), 100_000 ether);
     }
 
+    function testCannotDeployWithZeroOwnerAddress() public {
+        vm.expectRevert(IStakingRewardsNotifier.ZeroAddress.selector);
+        new StakingRewardsNotifier(address(0), address(kwenta), address(supplySchedule));
+    }
+
+    function testCannotDeployWithZeroKwentaAddress() public {
+        vm.expectRevert(IStakingRewardsNotifier.ZeroAddress.selector);
+        new StakingRewardsNotifier(address(this), address(0), address(supplySchedule));
+    }
+
+    function testCannotDeployWithZeroSupplyScheduleAddress() public {
+        vm.expectRevert(IStakingRewardsNotifier.ZeroAddress.selector);
+        new StakingRewardsNotifier(address(this), address(kwenta), address(0));
+    }
+
     function testNotifiableRewardAccumulatorSetStakingV2OnlyOwner() public {
         vm.prank(user1);
         vm.expectRevert("Ownable: caller is not the owner");

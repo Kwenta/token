@@ -18,12 +18,16 @@ contract StakingRewardsNotifier is Ownable2Step, IStakingRewardsNotifier {
     /// @notice rewards staking contract
     IStakingRewardsV2 public stakingRewardsV2;
 
-    constructor(address _kwenta, address _supplySchedule) {
-        if (_kwenta == address(0) || _supplySchedule == address(0)) {
+    constructor(address _contractOwner, address _kwenta, address _supplySchedule) {
+        if (_contractOwner == address(0) || _kwenta == address(0) || _supplySchedule == address(0))
+        {
             revert ZeroAddress();
         }
         kwenta = IKwenta(_kwenta);
         supplySchedule = ISupplySchedule(_supplySchedule);
+
+        // transfer ownership
+        _transferOwnership(_contractOwner);
     }
 
     /// @notice access control modifier for supplySchedule
