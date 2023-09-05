@@ -62,28 +62,28 @@ async function main() {
     // set treasuryDAO for reward escrow v2
     await rewardEscrowV2.setTreasuryDAO(OPTIMISM_TREASURY_DAO);
     console.log(
-        "RewardEscrowV2: treasuryDAO address set to:          ",
+        "RewardEscrowV2: treasuryDAO address set to:              ",
         await rewardEscrowV2.treasuryDAO()
     );
 
     // set staking rewards for reward escrow v2
     await rewardEscrowV2.setStakingRewards(stakingRewardsV2.address);
     console.log(
-        "RewardEscrowV2: stakingRewards address set to:       ",
+        "RewardEscrowV2: stakingRewards address set to:           ",
         await rewardEscrowV2.stakingRewards()
     );
 
     // set escrow migrator for reward escrow v2
     await rewardEscrowV2.setEscrowMigrator(escrowMigrator.address);
     console.log(
-        "RewardEscrowV2: escrowMigrator address set to:       ",
+        "RewardEscrowV2: escrowMigrator address set to:           ",
         await rewardEscrowV2.escrowMigrator()
     );
 
     // set staking rewards for rewards notifier
     await rewardsNotifier.setStakingRewardsV2(stakingRewardsV2.address);
     console.log(
-        "StakingRewardsNotifier: stakingRewardsV2 address set to:       ",
+        "StakingRewardsNotifier: stakingRewardsV2 address set to: ",
         await rewardsNotifier.stakingRewardsV2()
     );
     console.log("✅ Setters set!");
