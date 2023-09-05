@@ -1563,6 +1563,11 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         // Check that the treasury DAO address has been updated
         assertEq(escrowMigrator.treasuryDAO(), user1);
 
+        // Owner cannot set treasury address to zero address
+        vm.prank(owner);
+        vm.expectRevert(IEscrowMigrator.ZeroAddress.selector);
+        escrowMigrator.setTreasuryDAO(address(0));
+
         // Owner can set the treasury DAO address back to the original
         vm.prank(owner);
         escrowMigrator.setTreasuryDAO(treasury);
