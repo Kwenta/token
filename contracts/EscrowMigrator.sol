@@ -224,7 +224,6 @@ contract EscrowMigrator is
                 ++i;
             }
         }
-        return total;
     }
 
     /// @inheritdoc IEscrowMigrator
