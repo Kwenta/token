@@ -854,6 +854,22 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
         assertEq(value, expectedValue);
     }
 
+    function test_totalSupplyAtTime_Beyond_Max() public {
+        fundAccountAndStakeV2(address(this), TEST_VALUE);
+        vm.warp(block.timestamp + 1);
+        fundAccountAndStakeV2(address(this), TEST_VALUE);
+        vm.warp(block.timestamp + 1);
+        fundAccountAndStakeV2(address(this), TEST_VALUE);
+        vm.warp(block.timestamp + 1);
+        fundAccountAndStakeV2(address(this), TEST_VALUE);
+        vm.warp(block.timestamp + 1);
+        fundAccountAndStakeV2(address(this), TEST_VALUE);
+        vm.warp(block.timestamp + 1);
+
+        uint256 value = stakingRewardsV2.totalSupplyAtTime(block.timestamp + 100);
+        assertEq(value, TEST_VALUE * 5);
+    }
+
     function test_totalSupplyAtTime_At_Each_Block() public {
         vm.warp(3);
         stakeEscrowedFundsV2(address(this), 1);

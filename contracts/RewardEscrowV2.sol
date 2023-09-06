@@ -52,7 +52,11 @@ contract RewardEscrowV2 is
 
     /// @notice Contract for KWENTA ERC20 token
     /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
-    IKwenta internal immutable kwenta;
+    IKwenta public immutable kwenta;
+
+    /// @notice RewardsNotifier address
+    /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
+    address public immutable rewardsNotifier;
 
     /*///////////////////////////////////////////////////////////////
                                 STATE
@@ -82,9 +86,6 @@ contract RewardEscrowV2 is
     /// @notice The total remaining escrowed balance, for verifying the actual KWENTA balance of this contract against
     uint256 public totalEscrowedBalance;
 
-    /// @notice EarlyVestFeeDistributor address
-    address public earlyVestFeeDistributor;
-
     /*///////////////////////////////////////////////////////////////
                                 AUTH
     ///////////////////////////////////////////////////////////////*/
@@ -113,10 +114,11 @@ contract RewardEscrowV2 is
     /// Actual contract construction will take place in the initialize function via proxy
     /// @custom:oz-upgrades-unsafe-allow constructor
     /// @param _kwenta The address for the KWENTA ERC20 token
-    constructor(address _kwenta) {
-        if (_kwenta == address(0)) revert ZeroAddress();
+    constructor(address _kwenta, address _rewardsNotifier) {
+        if (_kwenta == address(0) || _rewardsNotifier == address(0)) revert ZeroAddress();
 
         kwenta = IKwenta(_kwenta);
+        rewardsNotifier = _rewardsNotifier;
 
         _disableInitializers();
     }
@@ -164,13 +166,6 @@ contract RewardEscrowV2 is
         if (_treasuryDAO == address(0)) revert ZeroAddress();
         treasuryDAO = _treasuryDAO;
         emit TreasuryDAOSet(treasuryDAO);
-    }
-
-    /// @inheritdoc IRewardEscrowV2
-    function setEarlyVestFeeDistributor(address _earlyVestFeeDistributor) external onlyOwner {
-        if (_earlyVestFeeDistributor == address(0)) revert ZeroAddress();
-        earlyVestFeeDistributor = _earlyVestFeeDistributor;
-        emit EarlyVestFeeDistributorSet(earlyVestFeeDistributor);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -341,8 +336,8 @@ contract RewardEscrowV2 is
     {
         uint256 timeUntilVest = _entry.endTime - block.timestamp;
         // Fee starts by default at 90% (but could be any percentage) and falls linearly
-        earlyVestFee =
-            (_entry.escrowAmount * _entry.earlyVestingFee * timeUntilVest) / (100 * _entry.duration);
+        earlyVestFee = (uint256(_entry.escrowAmount) * _entry.earlyVestingFee * timeUntilVest)
+            / (100 * uint256(_entry.duration));
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -390,21 +385,16 @@ contract RewardEscrowV2 is
             totalVestedAccountBalance[msg.sender] += total;
 
             // Send 50% any fee to Treasury and
-            // 50% to EarlyVestFeeDistributor
+            // 50% to RewardsNotifier
             // UNLESS Distributor isn't set
             // then send all funds to Treasury
             if (totalFee != 0) {
-                if (earlyVestFeeDistributor == address(0)) {
-                    kwenta.transfer(treasuryDAO, totalFee);
-                    emit EarlyVestFeeSentToTreasury(totalFee);
-                } else {
-                    /// @dev this will revert if the kwenta token transfer fails
-                    uint256 proportionalFee = totalFee / 2;
-                    kwenta.transfer(treasuryDAO, proportionalFee);
-                    kwenta.transfer(earlyVestFeeDistributor, totalFee - proportionalFee);
-                    emit EarlyVestFeeSentToTreasury(proportionalFee);
-                    emit EarlyVestFeeSentToDistributor(proportionalFee);
-                }
+                /// @dev this will revert if the kwenta token transfer fails
+                uint256 amountToTreasury = totalFee / 2;
+                uint256 amountToNotifier = totalFee - amountToTreasury;
+                kwenta.transfer(treasuryDAO, amountToTreasury);
+                kwenta.transfer(rewardsNotifier, amountToNotifier);
+                emit EarlyVestFeeSent(amountToTreasury, amountToNotifier);
             }
 
             if (total != 0) {
@@ -431,8 +421,8 @@ contract RewardEscrowV2 is
     /// @inheritdoc IRewardEscrowV2
     function createEscrowEntry(
         address _beneficiary,
-        uint256 _deposit,
-        uint256 _duration,
+        uint144 _deposit,
+        uint40 _duration,
         uint8 _earlyVestingFee
     ) external {
         if (_beneficiary == address(0)) revert ZeroAddress();
@@ -446,18 +436,18 @@ contract RewardEscrowV2 is
         kwenta.transferFrom(msg.sender, address(this), _deposit);
 
         // Escrow the tokens for duration.
-        uint256 endTime = block.timestamp + _duration;
+        uint256 endTime = block.timestamp + uint256(_duration);
 
         // Append vesting entry for the beneficiary address
         _mint(_beneficiary, uint64(endTime), _deposit, _duration, _earlyVestingFee);
     }
 
     /// @inheritdoc IRewardEscrowV2
-    function appendVestingEntry(address _account, uint256 _quantity) external onlyStakingRewards {
+    function appendVestingEntry(address _account, uint144 _quantity) external onlyStakingRewards {
         // Escrow the tokens for duration.
         uint256 endTime = block.timestamp + DEFAULT_DURATION;
 
-        _mint(_account, uint64(endTime), _quantity, DEFAULT_DURATION, DEFAULT_EARLY_VESTING_FEE);
+        _mint(_account, uint64(endTime), _quantity, uint40(DEFAULT_DURATION), DEFAULT_EARLY_VESTING_FEE);
     }
 
     /// @inheritdoc IRewardEscrowV2
@@ -528,8 +518,8 @@ contract RewardEscrowV2 is
     function _mint(
         address _account,
         uint64 _endTime,
-        uint256 _quantity,
-        uint256 _duration,
+        uint144 _quantity,
+        uint40 _duration,
         uint8 _earlyVestingFee
     ) internal whenNotPaused {
         // There must be enough balance in the contract to provide for the vesting entry.

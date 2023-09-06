@@ -32,7 +32,8 @@ contract StakingV2UpgradeTests is DefaultStakingV2Setup {
     }
 
     function test_Only_Owner_Can_Upgrade_RewardEscrowV2() public {
-        address rewardEscrowV3Implementation = address(new MockRewardEscrowV3(address(kwenta)));
+        address rewardEscrowV3Implementation =
+            address(new MockRewardEscrowV3(address(kwenta), address(0x1)));
 
         vm.expectRevert("Ownable: caller is not the owner");
         vm.prank(user1);
@@ -40,7 +41,8 @@ contract StakingV2UpgradeTests is DefaultStakingV2Setup {
     }
 
     function test_Only_Owner_Can_Upgrade_And_Call_RewardEscrowV2() public {
-        address rewardEscrowV3Implementation = address(new MockRewardEscrowV3(address(kwenta)));
+        address rewardEscrowV3Implementation =
+            address(new MockRewardEscrowV3(address(kwenta), address(0x1)));
 
         vm.expectRevert("Ownable: caller is not the owner");
         vm.prank(user1);
@@ -123,7 +125,8 @@ contract StakingV2UpgradeTests is DefaultStakingV2Setup {
     //////////////////////////////////////////////////////////////*/
 
     function test_Upgrade_RewardEscrowV2_To_V3() public {
-        address rewardEscrowV3Implementation = address(new MockRewardEscrowV3(address(kwenta)));
+        address rewardEscrowV3Implementation =
+            address(new MockRewardEscrowV3(address(kwenta), address(0x1)));
 
         rewardEscrowV2.upgradeTo(rewardEscrowV3Implementation);
 
@@ -136,7 +139,8 @@ contract StakingV2UpgradeTests is DefaultStakingV2Setup {
     }
 
     function test_Upgrade_And_Call_RewardEscrowV2_To_V3() public {
-        address rewardEscrowV3Implementation = address(new MockRewardEscrowV3(address(kwenta)));
+        address rewardEscrowV3Implementation =
+            address(new MockRewardEscrowV3(address(kwenta), address(0x1)));
 
         rewardEscrowV2.upgradeToAndCall(
             rewardEscrowV3Implementation, abi.encodeWithSignature("setNewNum(uint256)", 5)
@@ -194,7 +198,7 @@ contract StakingV2UpgradeTests is DefaultStakingV2Setup {
             new MockStakingRewardsV3(
                 address(kwenta),
                 address(rewardEscrowV2),
-                address(supplySchedule)
+                address(rewardsNotifier)
             )
         );
     }

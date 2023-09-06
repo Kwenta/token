@@ -9,9 +9,9 @@ interface IRewardEscrowV2 {
     /// @notice A vesting entry contains the data for each escrow NFT
     struct VestingEntry {
         // The amount of KWENTA stored in this vesting entry
-        uint256 escrowAmount;
+        uint144 escrowAmount;
         // The length of time until the entry is fully matured
-        uint256 duration;
+        uint40 duration;
         // The time at which the entry will be fully matured
         uint64 endTime;
         // The percentage fee for vesting immediately
@@ -55,11 +55,6 @@ interface IRewardEscrowV2 {
     /// @param _treasuryDAO The address of the TreasuryDAO
     /// @dev This function can only be called multiple times
     function setTreasuryDAO(address _treasuryDAO) external;
-
-    /// @notice Function used to define the EarlyVestFeeDistributor address to use
-    /// @param _earlyVestFeeDistributor The address of the EarlyVestFeeDistributor
-    /// @dev This function can only be called multiple times
-    function setEarlyVestFeeDistributor(address _earlyVestFeeDistributor) external;
 
     /*///////////////////////////////////////////////////////////////
                                 VIEWS
@@ -157,8 +152,8 @@ interface IRewardEscrowV2 {
     /// to spend the the amount being escrowed.
     function createEscrowEntry(
         address _beneficiary,
-        uint256 _deposit,
-        uint256 _duration,
+        uint144 _deposit,
+        uint40 _duration,
         uint8 _earlyVestingFee
     ) external;
 
@@ -169,7 +164,7 @@ interface IRewardEscrowV2 {
     /// The duration defaults to 1 year, and the early vesting fee to 90%
     /// @param _account The account to append a new vesting entry to.
     /// @param _quantity The quantity of KWENTA that will be escrowed.
-    function appendVestingEntry(address _account, uint256 _quantity) external;
+    function appendVestingEntry(address _account, uint144 _quantity) external;
 
     /// @notice Transfer multiple entries from one account to another
     ///  Sufficient escrowed KWENTA must be unstaked for the transfer to succeed
@@ -219,17 +214,10 @@ interface IRewardEscrowV2 {
     /// @param treasuryDAO The address of the treasury DAO
     event TreasuryDAOSet(address treasuryDAO);
 
-    /// @notice emitted when the EarlyVestFeeDistributor is set
-    /// @param earlyVestFeeDistributor The address of the early vest fee distributor
-    event EarlyVestFeeDistributorSet(address earlyVestFeeDistributor);
-
-    /// @notice emitted when the early vest fee is sent to the treasury
-    /// @param amount The amount of KWENTA sent to the treasury
-    event EarlyVestFeeSentToTreasury(uint256 amount);
-
-    /// @notice emitted when the early vest fee is sent to the distributor
-    /// @param amount The amount of KWENTA sent to the distributor
-    event EarlyVestFeeSentToDistributor(uint256 amount);
+    /// @notice emitted when the early vest fee is sent to the treasury and notifier
+    /// @param amountToTreasury The amount of KWENTA sent to the treasury
+    /// @param amountToNotifier The amount of KWENTA sent to the notifier
+    event EarlyVestFeeSent(uint256 amountToTreasury, uint256 amountToNotifier);
 
     /*//////////////////////////////////////////////////////////////
                                 ERRORS

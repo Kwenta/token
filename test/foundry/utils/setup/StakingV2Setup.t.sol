@@ -7,7 +7,7 @@ import {StakingV1Setup} from "../../utils/setup/StakingV1Setup.t.sol";
 import {RewardEscrowV2} from "../../../../contracts/RewardEscrowV2.sol";
 import {EscrowMigrator} from "../../../../contracts/EscrowMigrator.sol";
 import {StakingRewardsV2} from "../../../../contracts/StakingRewardsV2.sol";
-import {EarlyVestFeeDistributor} from "../../../../contracts/EarlyVestFeeDistributor.sol";
+import {StakingRewardsNotifier} from "../../../../contracts/StakingRewardsNotifier.sol";
 import {IRewardEscrowV2} from "../../../../contracts/interfaces/IRewardEscrowV2.sol";
 import "../../utils/Constants.t.sol";
 
@@ -31,10 +31,8 @@ contract StakingV2Setup is StakingV1Setup {
         uint8 earlyVestingFee
     );
     event TreasuryDAOSet(address treasuryDAO);
-    event EarlyVestFeeDistributorSet(address earlyVestFeeDistributor);
     event StakingRewardsSet(address stakingRewards);
-    event EarlyVestFeeSentToTreasury(uint256 amount);
-    event EarlyVestFeeSentToDistributor(uint256 amount);
+    event EarlyVestFeeSent(uint256 amountToTreasury, uint256 amountToNotifier);
     event EscrowMigratorSet(address escrowMigrator);
 
     /*//////////////////////////////////////////////////////////////
@@ -44,7 +42,7 @@ contract StakingV2Setup is StakingV1Setup {
     RewardEscrowV2 internal rewardEscrowV2;
     StakingRewardsV2 internal stakingRewardsV2;
     EscrowMigrator internal escrowMigrator;
-    EarlyVestFeeDistributor internal earlyVestFeeDistributor;
+    StakingRewardsNotifier internal rewardsNotifier;
     Migrate internal migrate;
 
     address rewardEscrowV2Implementation;
@@ -77,7 +75,7 @@ contract StakingV2Setup is StakingV1Setup {
             rewardEscrowV2,
             stakingRewardsV2,
             escrowMigrator,
-            earlyVestFeeDistributor,
+            rewardsNotifier,
             rewardEscrowV2Implementation,
             stakingRewardsV2Implementation,
             escrowMigratorImplementation
@@ -87,7 +85,7 @@ contract StakingV2Setup is StakingV1Setup {
                 RewardEscrowV2,
                 StakingRewardsV2,
                 EscrowMigrator,
-                EarlyVestFeeDistributor,
+                StakingRewardsNotifier,
                 address,
                 address,
                 address
@@ -123,6 +121,7 @@ contract StakingV2Setup is StakingV1Setup {
                 address(rewardEscrowV2),
                 address(stakingRewardsV2),
                 address(escrowMigrator),
+                address(rewardsNotifier),
                 address(treasury),
                 false
             )
@@ -141,7 +140,7 @@ contract StakingV2Setup is StakingV1Setup {
                 migrate.migrateSystem.selector,
                 address(supplySchedule),
                 address(rewardEscrowV1),
-                address(stakingRewardsV2),
+                address(rewardsNotifier),
                 address(escrowMigrator),
                 false
             )

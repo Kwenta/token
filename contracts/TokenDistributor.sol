@@ -2,12 +2,12 @@
 pragma solidity 0.8.19;
 
 import {IKwenta} from "./interfaces/IKwenta.sol";
-import {IEarlyVestFeeDistributor} from "./interfaces/IEarlyVestFeeDistributor.sol";
+import {ITokenDistributor} from "./interfaces/ITokenDistributor.sol";
 import {IRewardEscrowV2} from "./interfaces/IRewardEscrowV2.sol";
 import {IStakingRewardsV2} from "./interfaces/IStakingRewardsV2.sol";
 
-contract EarlyVestFeeDistributor is IEarlyVestFeeDistributor {
-    /// @inheritdoc IEarlyVestFeeDistributor
+contract TokenDistributor is ITokenDistributor {
+    /// @inheritdoc ITokenDistributor
     mapping(uint => uint) public tokensPerEpoch;
 
     /// @notice represents the status of if a person already
@@ -41,7 +41,7 @@ contract EarlyVestFeeDistributor is IEarlyVestFeeDistributor {
     /// @notice weeks in a year
     uint internal constant WEEKS_IN_YEAR = 52;
 
-    /// @notice constructs the EarlyVestFeeDistributor contract
+    /// @notice constructs the TokenDistributor contract
     /// and sets startTime
     /// @param _kwenta: address of the kwenta contract
     /// @param _stakingRewardsV2: address of the stakingRewardsV2 contract
@@ -57,7 +57,7 @@ contract EarlyVestFeeDistributor is IEarlyVestFeeDistributor {
             _stakingRewardsV2 == address(0) ||
             _rewardEscrowV2 == address(0)
         ) {
-            revert InputAddress0();
+            revert ZeroAddress();
         }
         kwenta = IKwenta(_kwenta);
         stakingRewardsV2 = IStakingRewardsV2(_stakingRewardsV2);
@@ -73,7 +73,7 @@ contract EarlyVestFeeDistributor is IEarlyVestFeeDistributor {
         lastCheckpoint = startOfThisWeek;
     }
 
-    /// @inheritdoc IEarlyVestFeeDistributor
+    /// @inheritdoc ITokenDistributor
     function checkpointToken() public override {
         uint tokenBalance = kwenta.balanceOf(address(this));
         uint toDistribute = tokenBalance - lastTokenBalance;
@@ -122,7 +122,7 @@ contract EarlyVestFeeDistributor is IEarlyVestFeeDistributor {
         emit CheckpointToken(block.timestamp, toDistribute);
     }
 
-    /// @inheritdoc IEarlyVestFeeDistributor
+    /// @inheritdoc ITokenDistributor
     function claimEpoch(address to, uint epochNumber) public override {
         _checkpointWhenReady();
         _claimEpoch(to, epochNumber);
@@ -146,14 +146,14 @@ contract EarlyVestFeeDistributor is IEarlyVestFeeDistributor {
         lastTokenBalance -= proportionalFees;
 
         kwenta.approve(address(rewardEscrowV2), proportionalFees);
-        rewardEscrowV2.createEscrowEntry(to, proportionalFees,
-        rewardEscrowV2.DEFAULT_DURATION(),
+        rewardEscrowV2.createEscrowEntry(to, uint144(proportionalFees),
+        uint40(rewardEscrowV2.DEFAULT_DURATION()),
         rewardEscrowV2.DEFAULT_EARLY_VESTING_FEE());
 
         emit EpochClaim(to, epochNumber, proportionalFees);
     }
 
-    /// @inheritdoc IEarlyVestFeeDistributor
+    /// @inheritdoc ITokenDistributor
     function claimMany(address to, uint[] calldata epochs) public {
         _checkpointWhenReady();
         uint256 length = epochs.length;
@@ -166,7 +166,7 @@ contract EarlyVestFeeDistributor is IEarlyVestFeeDistributor {
         }
     }
 
-    /// @inheritdoc IEarlyVestFeeDistributor
+    /// @inheritdoc ITokenDistributor
     function calculateEpochFees(
         address to,
         uint epochNumber

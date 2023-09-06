@@ -9,7 +9,7 @@ import {RewardEscrow} from "../contracts/RewardEscrow.sol";
 import {RewardEscrowV2} from "../contracts/RewardEscrowV2.sol";
 import {StakingRewardsV2} from "../contracts/StakingRewardsV2.sol";
 import {EscrowMigrator} from "../contracts/EscrowMigrator.sol";
-import {EarlyVestFeeDistributor} from "../contracts/EarlyVestFeeDistributor.sol";
+import {StakingRewardsNotifier} from "../contracts/StakingRewardsNotifier.sol";
 import "../test/foundry/utils/Constants.t.sol";
 
 // Upgradeability imports
@@ -40,7 +40,7 @@ contract Migrate {
             RewardEscrowV2 rewardEscrowV2,
             StakingRewardsV2 stakingRewardsV2,
             EscrowMigrator escrowMigrator,
-            EarlyVestFeeDistributor earlyVestFeeDistributor,
+            StakingRewardsNotifier rewardsNotifier,
             address rewardEscrowV2Implementation,
             address stakingRewardsV2Implementation,
             address escrowMigratorImplementation
@@ -48,8 +48,20 @@ contract Migrate {
     {
         if (_printLogs) console.log("********* 1. DEPLOYMENT STARTING... *********");
 
+        // Deploy StakingRewardsNotifier
+        rewardsNotifier = new StakingRewardsNotifier(
+            _owner,
+            _kwenta,
+            _supplySchedule
+        );
+
+        if (_printLogs) {
+            console.log("Deployed StakingRewardsNotifier at %s", address(rewardsNotifier));
+        }
+
         // Deploy RewardEscrowV2
-        rewardEscrowV2Implementation = address(new RewardEscrowV2(_kwenta));
+        rewardEscrowV2Implementation =
+            address(new RewardEscrowV2(_kwenta, address(rewardsNotifier)));
         rewardEscrowV2 = RewardEscrowV2(
             address(
                 new ERC1967Proxy(
@@ -74,7 +86,7 @@ contract Migrate {
             new StakingRewardsV2(
                 _kwenta,
                 address(rewardEscrowV2),
-                _supplySchedule
+                address(rewardsNotifier)
             )
         );
 
@@ -124,18 +136,6 @@ contract Migrate {
             console.log("Deployed EscrowMigrator Proxy at %s", address(escrowMigrator));
         }
 
-        // Deploy EarlyVestFeeDistributor
-        earlyVestFeeDistributor = new EarlyVestFeeDistributor(
-            _kwenta,
-            address(stakingRewardsV2),
-            address(rewardEscrowV2),
-            0
-        );
-
-        if (_printLogs) {
-            console.log("Deployed EarlyVestFeeDistributor at %s", address(earlyVestFeeDistributor));
-        }
-
         if (_printLogs) console.log(unicode"--------- 🚀 DEPLOYMENT COMPLETE 🚀 ---------");
     }
 
@@ -149,6 +149,7 @@ contract Migrate {
         address _rewardEscrowV2,
         address _stakingRewardsV2,
         address _escrowMigrator,
+        address _rewardsNotifier,
         address _treasuryDAO,
         bool _printLogs
     ) public {
@@ -178,6 +179,18 @@ contract Migrate {
             console.log("Switched RewardEscrowV2 to point to EscrowMigrator at %s", _escrowMigrator);
         }
 
+        StakingRewardsNotifier rewardsNotifier = StakingRewardsNotifier(_rewardsNotifier);
+
+        // Set StakingRewardsV2 in rewardsNotifier
+        rewardsNotifier.setStakingRewardsV2(_stakingRewardsV2);
+
+        if (_printLogs) {
+            console.log(
+                "Switched StakingRewardsNotifier to point to StakingRewardsV2 at %s",
+                _stakingRewardsV2
+            );
+        }
+
         if (_printLogs) console.log(unicode"--------- 🔧 SETUP COMPLETE 🔧 ---------");
     }
 
@@ -190,7 +203,7 @@ contract Migrate {
     function migrateSystem(
         address _supplySchedule,
         address _rewardEscrowV1,
-        address _stakingRewardsV2,
+        address _rewardsNotifier,
         address _escrowMigrator,
         bool _printLogs
     ) public {
@@ -198,18 +211,21 @@ contract Migrate {
         SupplySchedule supplySchedule = SupplySchedule(_supplySchedule);
 
         // Update SupplySchedule to point to StakingV2
-        supplySchedule.setStakingRewards(_stakingRewardsV2);
+        /// @dev note that it is set to rewards notifier and not staking rewards v2
+        /// this is because we amalgamate the early vest fees and the staking rewards
+        /// together in the rewards notifier contract
+        supplySchedule.setStakingRewards(_rewardsNotifier);
 
         if (_printLogs) {
             console.log(
-                "Switched SupplySchedule to point to StakingRewardsV2 at %s", _stakingRewardsV2
+                "Switched SupplySchedule to point to StakingRewardsNotifier at %s", _rewardsNotifier
             );
         }
 
-        RewardEscrow rewardEscrow = RewardEscrow(_rewardEscrowV1);
+        RewardEscrow rewardEscrowV1 = RewardEscrow(_rewardEscrowV1);
 
         // Update RewardEscrow to point to EscrowMigrator
-        rewardEscrow.setTreasuryDAO(_escrowMigrator);
+        rewardEscrowV1.setTreasuryDAO(_escrowMigrator);
 
         if (_printLogs) {
             console.log("Switched RewardEscrow to point to EscrowMigrator at %s", _escrowMigrator);
@@ -244,39 +260,39 @@ contract Migrate {
             RewardEscrowV2 rewardEscrowV2,
             StakingRewardsV2 stakingRewardsV2,
             EscrowMigrator escrowMigrator,
-            EarlyVestFeeDistributor earlyVestFeeDistributor
+            StakingRewardsNotifier rewardsNotifier
         )
     {
         // Step 1: Deploy StakingV2 contracts
-        (rewardEscrowV2, stakingRewardsV2, escrowMigrator, earlyVestFeeDistributor,,,) =
-        deploySystem(
-            _owner,
-            _kwenta,
-            _supplySchedule,
-            _rewardEscrowV1,
-            _treasuryDAO,
-            _printLogs
-        );
+        (rewardEscrowV2, stakingRewardsV2, escrowMigrator, rewardsNotifier,,,) = deploySystem({
+            _owner: _owner,
+            _kwenta: _kwenta,
+            _supplySchedule: _supplySchedule,
+            _rewardEscrowV1: _rewardEscrowV1,
+            _treasuryDAO: _treasuryDAO,
+            _printLogs: _printLogs
+        });
 
         // Step 2: Setup StakingV2 contracts
-        setupSystem(
-            address(rewardEscrowV2),
-            address(stakingRewardsV2),
-            address(escrowMigrator),
-            _treasuryDAO,
-            _printLogs
-        );
+        setupSystem({
+            _rewardEscrowV2: address(rewardEscrowV2),
+            _stakingRewardsV2: address(stakingRewardsV2),
+            _escrowMigrator: address(escrowMigrator),
+            _rewardsNotifier: address(rewardsNotifier),
+            _treasuryDAO: _treasuryDAO,
+            _printLogs: _printLogs
+        });
 
         // Step 3: Migrate SupplySchedule to point at StakingV2 & RewardEscrow to point at EscrowMigrator
         // After this, all new rewards will be distributed via StakingV2, and all vest early penalties
         // will be sent to the EscrowMigrator contract
-        migrateSystem(
-            _supplySchedule,
-            _rewardEscrowV1,
-            address(stakingRewardsV2),
-            address(escrowMigrator),
-            _printLogs
-        );
+        migrateSystem({
+            _supplySchedule: _supplySchedule,
+            _rewardEscrowV1: _rewardEscrowV1,
+            _rewardsNotifier: address(rewardsNotifier),
+            _escrowMigrator: address(escrowMigrator),
+            _printLogs: _printLogs
+        });
     }
 }
 
@@ -301,29 +317,31 @@ contract DeployAndSetupOptimism is Script, Migrate {
             RewardEscrowV2 rewardEscrowV2,
             StakingRewardsV2 stakingRewardsV2,
             EscrowMigrator escrowMigrator,
+            StakingRewardsNotifier rewardsNotifier,
             ,
             ,
-            ,
-        ) = Migrate.deploySystem(
-            deployer,
-            OPTIMISM_KWENTA_TOKEN,
-            OPTIMISM_SUPPLY_SCHEDULE,
-            OPTIMISM_REWARD_ESCROW_V1,
-            OPTIMISM_TREASURY_DAO,
-            true
-        );
+        ) = Migrate.deploySystem({
+            _owner: deployer,
+            _kwenta: OPTIMISM_KWENTA_TOKEN,
+            _supplySchedule: OPTIMISM_SUPPLY_SCHEDULE,
+            _rewardEscrowV1: OPTIMISM_REWARD_ESCROW_V1,
+            _treasuryDAO: OPTIMISM_TREASURY_DAO,
+            _printLogs: true
+        });
 
-        Migrate.setupSystem(
-            address(rewardEscrowV2),
-            address(stakingRewardsV2),
-            address(escrowMigrator),
-            OPTIMISM_TREASURY_DAO,
-            true
-        );
+        Migrate.setupSystem({
+            _rewardEscrowV2: address(rewardEscrowV2),
+            _stakingRewardsV2: address(stakingRewardsV2),
+            _escrowMigrator: address(escrowMigrator),
+            _rewardsNotifier: address(rewardsNotifier),
+            _treasuryDAO: OPTIMISM_TREASURY_DAO,
+            _printLogs: true
+        });
 
         rewardEscrowV2.transferOwnership(OPTIMISM_PDAO);
         stakingRewardsV2.transferOwnership(OPTIMISM_PDAO);
         escrowMigrator.transferOwnership(OPTIMISM_PDAO);
+        rewardsNotifier.transferOwnership(OPTIMISM_PDAO);
 
         vm.stopBroadcast();
     }
@@ -350,25 +368,26 @@ contract DeployAndSetupOptimismGoerli is Script, Migrate {
             RewardEscrowV2 rewardEscrowV2,
             StakingRewardsV2 stakingRewardsV2,
             EscrowMigrator escrowMigrator,
+            StakingRewardsNotifier rewardsNotifier,
             ,
             ,
-            ,
-        ) = Migrate.deploySystem(
-            deployer,
-            OPTIMISM_GOERLI_KWENTA_TOKEN,
-            OPTIMISM_GOERLI_SUPPLY_SCHEDULE,
-            OPTIMISM_GOERLI_REWARD_ESCROW_V1,
-            OPTIMISM_GOERLI_TREASURY_DAO,
-            true
-        );
+        ) = Migrate.deploySystem({
+            _owner: deployer,
+            _kwenta: OPTIMISM_GOERLI_KWENTA_TOKEN,
+            _supplySchedule: OPTIMISM_GOERLI_SUPPLY_SCHEDULE,
+            _rewardEscrowV1: OPTIMISM_GOERLI_REWARD_ESCROW_V1,
+            _treasuryDAO: OPTIMISM_GOERLI_TREASURY_DAO,
+            _printLogs: true
+        });
 
-        Migrate.setupSystem(
-            address(rewardEscrowV2),
-            address(stakingRewardsV2),
-            address(escrowMigrator),
-            OPTIMISM_GOERLI_TREASURY_DAO,
-            true
-        );
+        Migrate.setupSystem({
+            _rewardEscrowV2: address(rewardEscrowV2),
+            _stakingRewardsV2: address(stakingRewardsV2),
+            _escrowMigrator: address(escrowMigrator),
+            _rewardsNotifier: address(rewardsNotifier),
+            _treasuryDAO: OPTIMISM_GOERLI_TREASURY_DAO,
+            _printLogs: true
+        });
 
         vm.stopBroadcast();
     }
@@ -387,14 +406,14 @@ contract DeploySetupAndMigrateOptimismGoerli is Script, Migrate {
         vm.startBroadcast(deployerPrivateKey);
         address deployer = vm.addr(deployerPrivateKey);
 
-        Migrate.runCompleteMigrationProcess(
-            deployer,
-            OPTIMISM_GOERLI_KWENTA_TOKEN,
-            OPTIMISM_GOERLI_SUPPLY_SCHEDULE,
-            OPTIMISM_GOERLI_TREASURY_DAO,
-            OPTIMISM_GOERLI_REWARD_ESCROW_V1,
-            true
-        );
+        Migrate.runCompleteMigrationProcess({
+            _owner: deployer,
+            _kwenta: OPTIMISM_GOERLI_KWENTA_TOKEN,
+            _supplySchedule: OPTIMISM_GOERLI_SUPPLY_SCHEDULE,
+            _treasuryDAO: OPTIMISM_GOERLI_TREASURY_DAO,
+            _rewardEscrowV1: OPTIMISM_GOERLI_REWARD_ESCROW_V1,
+            _printLogs: true
+        });
 
         vm.stopBroadcast();
     }

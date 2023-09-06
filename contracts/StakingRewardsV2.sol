@@ -9,7 +9,7 @@ import {Ownable2StepUpgradeable} from
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {IKwenta} from "./interfaces/IKwenta.sol";
 import {IStakingRewardsV2} from "./interfaces/IStakingRewardsV2.sol";
-import {ISupplySchedule} from "./interfaces/ISupplySchedule.sol";
+import {IStakingRewardsNotifier} from "./interfaces/IStakingRewardsNotifier.sol";
 import {IRewardEscrowV2} from "./interfaces/IRewardEscrowV2.sol";
 
 /// @title KWENTA Staking Rewards V2
@@ -41,7 +41,7 @@ contract StakingRewardsV2 is
 
     /// @notice handles reward token minting logic
     /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
-    ISupplySchedule public immutable supplySchedule;
+    IStakingRewardsNotifier public immutable rewardsNotifier;
 
     /*///////////////////////////////////////////////////////////////
                                 STATE
@@ -103,14 +103,14 @@ contract StakingRewardsV2 is
         if (msg.sender != address(rewardEscrow)) revert OnlyRewardEscrow();
     }
 
-    /// @notice access control modifier for supplySchedule
-    modifier onlySupplySchedule() {
-        _onlySupplySchedule();
+    /// @notice access control modifier for rewardsNotifier
+    modifier onlyRewardsNotifier() {
+        _onlyRewardsNotifier();
         _;
     }
 
-    function _onlySupplySchedule() internal view {
-        if (msg.sender != address(supplySchedule)) revert OnlySupplySchedule();
+    function _onlyRewardsNotifier() internal view {
+        if (msg.sender != address(rewardsNotifier)) revert OnlyRewardsNotifier();
     }
 
     /// @notice only allow execution after the unstaking cooldown period has elapsed
@@ -133,9 +133,9 @@ contract StakingRewardsV2 is
     /// @custom:oz-upgrades-unsafe-allow constructor
     /// @param _kwenta The address for the KWENTA ERC20 token
     /// @param _rewardEscrow The address for the RewardEscrowV2 contract
-    /// @param _supplySchedule The address for the SupplySchedule contract
-    constructor(address _kwenta, address _rewardEscrow, address _supplySchedule) {
-        if (_kwenta == address(0) || _rewardEscrow == address(0) || _supplySchedule == address(0)) {
+    /// @param _rewardsNotifier The address for the StakingRewardsNotifier contract
+    constructor(address _kwenta, address _rewardEscrow, address _rewardsNotifier) {
+        if (_kwenta == address(0) || _rewardEscrow == address(0) || _rewardsNotifier == address(0)) {
             revert ZeroAddress();
         }
 
@@ -146,7 +146,7 @@ contract StakingRewardsV2 is
 
         // define contracts which will interact with StakingRewards
         rewardEscrow = IRewardEscrowV2(_rewardEscrow);
-        supplySchedule = ISupplySchedule(_supplySchedule);
+        rewardsNotifier = IStakingRewardsNotifier(_rewardsNotifier);
     }
 
     /// @inheritdoc IStakingRewardsV2
@@ -344,7 +344,7 @@ contract StakingRewardsV2 is
             // transfer token from this contract to the rewardEscrow
             // and create a vesting entry at the _to address
             kwenta.transfer(address(rewardEscrow), reward);
-            rewardEscrow.appendVestingEntry(_to, reward);
+            rewardEscrow.appendVestingEntry(_to, uint144(reward));
         }
     }
 
@@ -584,7 +584,7 @@ contract StakingRewardsV2 is
     /// @inheritdoc IStakingRewardsV2
     function notifyRewardAmount(uint256 _reward)
         external
-        onlySupplySchedule
+        onlyRewardsNotifier
         updateReward(address(0))
     {
         if (block.timestamp >= periodFinish) {
