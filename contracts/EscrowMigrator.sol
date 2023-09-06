@@ -138,7 +138,10 @@ contract EscrowMigrator is
         // set treasuryDAO
         treasuryDAO = _treasuryDAO;
 
-        // start contract as paused
+        /// @dev Start contract as paused so that users cannot begin migrating funds before
+        /// rewardEscrowV1.setTreasuryDAO(escrowMigrator) and rewardEscrowV2.setEscrowMigrator(escrowMigrator)
+        /// are called, as this could lead to expected early vest fees not being sent to the escrow migrator.
+        /// Once these functions are called, then the escrow migrator can be unpaused.
         _pause();
     }
 
