@@ -1581,6 +1581,14 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         assertFalse(escrowMigrator.lockedFundsAccountedFor(user1));
     }
 
+    function test_OnlyOwner_Can_Recover_Excess_Funds() public {
+        vm.expectRevert("Ownable: caller is not the owner");
+        escrowMigrator.recoverExcessFunds();
+
+        vm.prank(owner);
+        escrowMigrator.recoverExcessFunds();
+    }
+
     function test_Fund_Recovery_User_Regisered() public {
         vm.prank(user1);
         stakingRewardsV1.getReward();
@@ -1742,6 +1750,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         uint256 balanceBefore = kwenta.balanceOf(treasury);
 
         // recover the funds
+        vm.prank(owner);
         escrowMigrator.recoverExcessFunds();
 
         uint256 balanceAfter = kwenta.balanceOf(treasury);
@@ -1753,6 +1762,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         assertEq(escrowMigrator.totalUnmigratedEscrow(user3), escrowMigrator.totalLocked());
 
         // does not allow further withdrawal of funds
+        vm.prank(owner);
         escrowMigrator.recoverExcessFunds();
         assertEq(kwenta.balanceOf(treasury), balanceAfter);
     }
@@ -1788,6 +1798,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         uint256 balanceBefore = kwenta.balanceOf(treasury);
 
         // recover the funds
+        vm.prank(owner);
         escrowMigrator.recoverExcessFunds();
 
         uint256 balanceAfter = kwenta.balanceOf(treasury);
@@ -1796,6 +1807,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         assertEq(kwenta.balanceOf(address(escrowMigrator)), 0);
 
         // does not allow further withdrawal of funds
+        vm.prank(owner);
         escrowMigrator.recoverExcessFunds();
         assertEq(kwenta.balanceOf(treasury), balanceAfter);
     }
@@ -1934,6 +1946,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         uint256 balanceBefore = kwenta.balanceOf(treasury);
 
         // recover the funds
+        vm.prank(owner);
         escrowMigrator.recoverExcessFunds();
 
         uint256 balanceAfter = kwenta.balanceOf(treasury);
@@ -1943,6 +1956,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         assertEq(kwenta.balanceOf(address(escrowMigrator)), 0);
 
         // does not allow further withdrawal of funds
+        vm.prank(owner);
         escrowMigrator.recoverExcessFunds();
         assertEq(kwenta.balanceOf(treasury), balanceAfter);
     }
@@ -2024,6 +2038,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         uint256 balanceBefore = kwenta.balanceOf(treasury);
 
         // recover the funds
+        vm.prank(owner);
         escrowMigrator.recoverExcessFunds();
 
         uint256 balanceAfter = kwenta.balanceOf(treasury);
@@ -2033,6 +2048,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         assertEq(kwenta.balanceOf(address(escrowMigrator)), 0);
 
         // does not allow further withdrawal of funds
+        vm.prank(owner);
         escrowMigrator.recoverExcessFunds();
         assertEq(kwenta.balanceOf(treasury), balanceAfter);
     }
@@ -2068,6 +2084,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         uint256 balanceBefore = kwenta.balanceOf(treasury);
 
         // recover the funds
+        vm.prank(owner);
         escrowMigrator.recoverExcessFunds();
 
         uint256 balanceAfter = kwenta.balanceOf(treasury);
@@ -2077,6 +2094,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         assertEq(kwenta.balanceOf(address(escrowMigrator)), 0);
 
         // does not allow further withdrawal of funds
+        vm.prank(owner);
         escrowMigrator.recoverExcessFunds();
         assertEq(kwenta.balanceOf(treasury), balanceAfter);
     }
@@ -2112,6 +2130,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         uint256 balanceBefore = kwenta.balanceOf(treasury);
 
         // recover the funds
+        vm.prank(owner);
         escrowMigrator.recoverExcessFunds();
 
         uint256 balanceAfter = kwenta.balanceOf(treasury);
@@ -2121,6 +2140,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         assertEq(kwenta.balanceOf(address(escrowMigrator)), 0);
 
         // does not allow further withdrawal of funds
+        vm.prank(owner);
         escrowMigrator.recoverExcessFunds();
         assertEq(kwenta.balanceOf(treasury), balanceAfter);
     }
