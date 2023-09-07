@@ -526,9 +526,10 @@ contract EscrowMigrator is
     /// @inheritdoc IEscrowMigrator
     /// @dev warning - may fail due to unbounded loop for certain users
     function updateTotalLocked(address _expiredMigrator) public {
+        uint256 initiatedAt = initializationTime[_expiredMigrator];
         if (
-            !lockedFundsAccountedFor[_expiredMigrator]
-                && _deadlinePassed(initializationTime[_expiredMigrator])
+            initiatedAt != 0 && !lockedFundsAccountedFor[_expiredMigrator]
+                && _deadlinePassed(initiatedAt)
         ) {
             lockedFundsAccountedFor[_expiredMigrator] = true;
             totalLocked += totalUnmigratedEscrow(_expiredMigrator);

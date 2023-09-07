@@ -1576,6 +1576,11 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         assertEq(escrowMigrator.treasuryDAO(), treasury);
     }
 
+    function test_Cannot_Update_Total_Locked_For_Unregistered_User() public {
+        escrowMigrator.updateTotalLocked(user1);
+        assertFalse(escrowMigrator.lockedFundsAccountedFor(user1));
+    }
+
     function test_Fund_Recovery_User_Regisered() public {
         vm.prank(user1);
         stakingRewardsV1.getReward();
