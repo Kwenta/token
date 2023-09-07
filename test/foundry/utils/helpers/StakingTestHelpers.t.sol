@@ -210,6 +210,15 @@ contract StakingTestHelpers is StakingV2Setup {
         stakingRewardsV2.unstakeEscrowSkipCooldown(_account, _amount);
     }
 
+    function bulkCreateV1EscrowEntries(address _account, uint256 _amount, uint256 num) internal {
+        vm.startPrank(treasury);
+        kwenta.approve(address(rewardEscrowV1), _amount * num);
+        for (uint256 i; i < num; i++) {
+            rewardEscrowV1.createEscrowEntry(_account, _amount, 52 weeks);
+        }
+        vm.stopPrank();
+    }
+
     function createRewardEscrowEntryV2(address _account, uint256 _amount) internal {
         vm.prank(treasury);
         kwenta.approve(address(rewardEscrowV2), _amount);
