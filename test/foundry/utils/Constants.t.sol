@@ -2,7 +2,7 @@
 pragma solidity 0.8.19;
 
 uint256 constant INITIAL_SUPPLY = 313_373 ether;
-uint144 constant TEST_VALUE = 1 ether;
+uint256 constant TEST_VALUE = 1 ether;
 
 /*//////////////////////////////////////////////////////////////
                             FORK CONSTANTS

@@ -39,16 +39,16 @@ contract RewardEscrowV2 is
     uint256 public constant DEFAULT_DURATION = 52 weeks; // Default 1 year duration
 
     /// @notice Default early vesting fee - used for new vesting entries from staking rewards
-    uint8 public constant DEFAULT_EARLY_VESTING_FEE = 90; // Default 90 percent
+    uint256 public constant DEFAULT_EARLY_VESTING_FEE = 90; // Default 90 percent
 
     /// @notice Maximum early vesting fee - cannot be higher than 100%
     /// @dev WARNING: Updating this value to below 90 will be able to be bypassed via importEscrowEntry
     /// through the EscrowMigrator contract
-    uint8 public constant MAXIMUM_EARLY_VESTING_FEE = 100;
+    uint256 public constant MAXIMUM_EARLY_VESTING_FEE = 100;
 
     /// @inheritdoc IRewardEscrowV2
     /// @dev WARNING: see warning in IRewardEscrowV2 if planning on changing this value
-    uint8 public constant MINIMUM_EARLY_VESTING_FEE = 50;
+    uint256 public constant MINIMUM_EARLY_VESTING_FEE = 50;
 
     /// @notice Contract for KWENTA ERC20 token
     /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
@@ -72,7 +72,7 @@ contract RewardEscrowV2 is
     address public treasuryDAO;
 
     ///@notice mapping of entryIDs to vesting entries
-    mapping(uint256 => VestingEntry) public vestingSchedules;
+    mapping(uint256 => VestingEntryPacked) public vestingSchedules;
 
     /// @notice Counter for new vesting entry ids
     uint256 public nextEntryId;
@@ -191,9 +191,9 @@ contract RewardEscrowV2 is
     function getVestingEntry(uint256 _entryID)
         external
         view
-        returns (uint64 endTime, uint256 escrowAmount, uint256 duration, uint8 earlyVestingFee)
+        returns (uint256 endTime, uint256 escrowAmount, uint256 duration, uint256 earlyVestingFee)
     {
-        VestingEntry storage entry = vestingSchedules[_entryID];
+        VestingEntryPacked storage entry = vestingSchedules[_entryID];
         endTime = entry.endTime;
         escrowAmount = entry.escrowAmount;
         duration = entry.duration;
@@ -235,7 +235,7 @@ contract RewardEscrowV2 is
                 entryID = tokenOfOwnerByIndex(_account, i + _index);
             }
 
-            VestingEntry storage entry = vestingSchedules[entryID];
+            VestingEntryPacked storage entry = vestingSchedules[entryID];
 
             vestingEntries[i] = VestingEntryWithID({
                 endTime: entry.endTime,
@@ -289,7 +289,7 @@ contract RewardEscrowV2 is
     {
         uint256 entryIDsLength = _entryIDs.length;
         for (uint256 i = 0; i < entryIDsLength;) {
-            VestingEntry memory entry = vestingSchedules[_entryIDs[i]];
+            VestingEntry memory entry = _getVestingEntryStruct(_entryIDs[i]);
 
             (uint256 quantity, uint256 fee) = _claimableAmount(entry);
 
@@ -309,7 +309,7 @@ contract RewardEscrowV2 is
         view
         returns (uint256 quantity, uint256 fee)
     {
-        VestingEntry memory entry = vestingSchedules[_entryID];
+        VestingEntry memory entry = _getVestingEntryStruct(_entryID);
         (quantity, fee) = _claimableAmount(entry);
     }
 
@@ -336,8 +336,8 @@ contract RewardEscrowV2 is
     {
         uint256 timeUntilVest = _entry.endTime - block.timestamp;
         // Fee starts by default at 90% (but could be any percentage) and falls linearly
-        earlyVestFee = (uint256(_entry.escrowAmount) * _entry.earlyVestingFee * timeUntilVest)
-            / (100 * uint256(_entry.duration));
+        earlyVestFee =
+            (_entry.escrowAmount * _entry.earlyVestingFee * timeUntilVest) / (100 * _entry.duration);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -350,16 +350,16 @@ contract RewardEscrowV2 is
         uint256 totalFee;
         uint256 entryIDsLength = _entryIDs.length;
         for (uint256 i = 0; i < entryIDsLength; ++i) {
-            VestingEntry storage entry = vestingSchedules[_entryIDs[i]];
-            if (_ownerOf(_entryIDs[i]) != msg.sender) {
+            uint256 entryID = _entryIDs[i];
+            if (_ownerOf(entryID) != msg.sender) {
                 continue;
             }
 
-            (uint256 quantity, uint256 fee) = _claimableAmount(entry);
+            (uint256 quantity, uint256 fee) = _claimableAmount(_getVestingEntryStruct(entryID));
 
             // update entry to remove escrowAmount
-            entry.escrowAmount = 0;
-            _burn(_entryIDs[i]);
+            vestingSchedules[entryID].escrowAmount = 0;
+            _burn(entryID);
 
             // add quantity to total
             total += quantity;
@@ -421,9 +421,9 @@ contract RewardEscrowV2 is
     /// @inheritdoc IRewardEscrowV2
     function createEscrowEntry(
         address _beneficiary,
-        uint144 _deposit,
-        uint40 _duration,
-        uint8 _earlyVestingFee
+        uint256 _deposit,
+        uint256 _duration,
+        uint256 _earlyVestingFee
     ) external {
         if (_beneficiary == address(0)) revert ZeroAddress();
         if (_earlyVestingFee > MAXIMUM_EARLY_VESTING_FEE) revert EarlyVestingFeeTooHigh();
@@ -436,18 +436,18 @@ contract RewardEscrowV2 is
         kwenta.transferFrom(msg.sender, address(this), _deposit);
 
         // Escrow the tokens for duration.
-        uint256 endTime = block.timestamp + uint256(_duration);
+        uint256 endTime = block.timestamp + _duration;
 
         // Append vesting entry for the beneficiary address
-        _mint(_beneficiary, uint64(endTime), _deposit, _duration, _earlyVestingFee);
+        _mint(_beneficiary, endTime, _deposit, _duration, _earlyVestingFee);
     }
 
     /// @inheritdoc IRewardEscrowV2
-    function appendVestingEntry(address _account, uint144 _quantity) external onlyStakingRewards {
+    function appendVestingEntry(address _account, uint256 _quantity) external onlyStakingRewards {
         // Escrow the tokens for duration.
         uint256 endTime = block.timestamp + DEFAULT_DURATION;
 
-        _mint(_account, uint64(endTime), _quantity, uint40(DEFAULT_DURATION), DEFAULT_EARLY_VESTING_FEE);
+        _mint(_account, endTime, _quantity, DEFAULT_DURATION, DEFAULT_EARLY_VESTING_FEE);
     }
 
     /// @inheritdoc IRewardEscrowV2
@@ -460,12 +460,13 @@ contract RewardEscrowV2 is
         uint256 totalEscrowTransferred;
         uint256 entryIDsLength = _entryIDs.length;
         for (uint256 i = 0; i < entryIDsLength;) {
+            uint256 entryID = _entryIDs[i];
             // sum totalEscrowTransferred so that _applyTransferBalanceUpdates can be applied only once to save gas
-            totalEscrowTransferred += vestingSchedules[_entryIDs[i]].escrowAmount;
+            totalEscrowTransferred += uint256(vestingSchedules[entryID].escrowAmount);
 
-            _checkApproved(_entryIDs[i]);
+            _checkApproved(entryID);
             // use super._transfer to avoid double updating of balances
-            super._transfer(_from, _to, _entryIDs[i]);
+            super._transfer(_from, _to, entryID);
             unchecked {
                 ++i;
             }
@@ -517,10 +518,10 @@ contract RewardEscrowV2 is
 
     function _mint(
         address _account,
-        uint64 _endTime,
-        uint144 _quantity,
-        uint40 _duration,
-        uint8 _earlyVestingFee
+        uint256 _endTime,
+        uint256 _quantity,
+        uint256 _duration,
+        uint256 _earlyVestingFee
     ) internal whenNotPaused {
         // There must be enough balance in the contract to provide for the vesting entry.
         totalEscrowedBalance += _quantity;
@@ -530,11 +531,11 @@ contract RewardEscrowV2 is
         totalEscrowedAccountBalance[_account] += _quantity;
 
         uint256 entryID = nextEntryId;
-        vestingSchedules[entryID] = VestingEntry({
-            endTime: _endTime,
-            escrowAmount: _quantity,
-            duration: _duration,
-            earlyVestingFee: _earlyVestingFee
+        vestingSchedules[entryID] = VestingEntryPacked({
+            endTime: uint64(_endTime),
+            escrowAmount: uint144(_quantity),
+            duration: uint40(_duration),
+            earlyVestingFee: uint8(_earlyVestingFee)
         });
 
         // Increment the next entry id.
@@ -545,6 +546,20 @@ contract RewardEscrowV2 is
         emit VestingEntryCreated(_account, _quantity, _duration, entryID, _earlyVestingFee);
 
         super._mint(_account, entryID);
+    }
+
+    function _getVestingEntryStruct(uint256 _entryID)
+        internal
+        view
+        returns (VestingEntry memory vestingEntry)
+    {
+        VestingEntryPacked storage entry = vestingSchedules[_entryID];
+        vestingEntry = VestingEntry({
+            endTime: entry.endTime,
+            escrowAmount: entry.escrowAmount,
+            duration: entry.duration,
+            earlyVestingFee: entry.earlyVestingFee
+        });
     }
 
     function _authorizeUpgrade(address _newImplementation) internal override onlyOwner {}

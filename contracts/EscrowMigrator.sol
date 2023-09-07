@@ -182,7 +182,7 @@ contract EscrowMigrator is
         for (uint256 i = 0; i < length;) {
             uint256 entryID = entries[i];
             VestingEntry storage entry = userEntries[entryID];
-            total += entry.escrowAmount;
+            total += uint256(entry.escrowAmount);
 
             unchecked {
                 ++i;
@@ -200,7 +200,7 @@ contract EscrowMigrator is
         for (uint256 i = 0; i < length;) {
             uint256 entryID = entries[i];
             VestingEntry storage entry = userEntries[entryID];
-            if (entry.migrated) total += entry.escrowAmount;
+            if (entry.migrated) total += uint256(entry.escrowAmount);
 
             unchecked {
                 ++i;
@@ -218,7 +218,7 @@ contract EscrowMigrator is
         for (uint256 i = 0; i < length;) {
             uint256 entryID = entries[i];
             VestingEntry storage entry = userEntries[entryID];
-            if (!entry.migrated) total += entry.escrowAmount;
+            if (!entry.migrated) total += uint256(entry.escrowAmount);
 
             unchecked {
                 ++i;
@@ -413,10 +413,10 @@ contract EscrowMigrator is
         for (uint256 i = 0; i < _entryIDs.length; i++) {
             uint256 entryID = _entryIDs[i];
 
-            (uint64 endTime, uint256 escrowAmount, uint256 duration) =
+            (uint256 endTime, uint256 escrowAmount, uint256 duration) =
                 rewardEscrowV1.getVestingEntry(_account, entryID);
             VestingEntry storage registeredEntry = userEntries[entryID];
-            uint248 originalEscrowAmount = registeredEntry.escrowAmount;
+            uint256 originalEscrowAmount = registeredEntry.escrowAmount;
 
             // if it is not zero, it hasn't been vested
             if (escrowAmount != 0) continue;
@@ -435,12 +435,12 @@ contract EscrowMigrator is
             if (duration < cooldown) {
                 uint256 timeCreated = endTime - duration;
                 duration = cooldown;
-                endTime = uint64(timeCreated + cooldown);
+                endTime = timeCreated + cooldown;
             }
 
             IRewardEscrowV2.VestingEntry memory entry = IRewardEscrowV2.VestingEntry({
-                escrowAmount: uint144(originalEscrowAmount),
-                duration: uint40(duration),
+                escrowAmount: originalEscrowAmount,
+                duration: duration,
                 endTime: endTime,
                 earlyVestingFee: 90
             });

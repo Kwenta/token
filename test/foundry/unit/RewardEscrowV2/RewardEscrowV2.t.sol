@@ -167,7 +167,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     function test_Should_Return_Vesting_Entry() public {
         appendRewardEscrowEntryV2(address(this), TEST_VALUE);
 
-        (uint64 endTime, uint256 escrowAmount, uint256 duration, uint8 earlyVestingFee) =
+        (uint256 endTime, uint256 escrowAmount, uint256 duration, uint256 earlyVestingFee) =
             rewardEscrowV2.getVestingEntry(1);
 
         assertEq(endTime, block.timestamp + 52 weeks);
@@ -270,7 +270,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         kwenta.approve(address(rewardEscrowV2), TEST_VALUE);
         vm.prank(treasury);
         vm.expectRevert(IRewardEscrowV2.InvalidDuration.selector);
-        rewardEscrowV2.createEscrowEntry(address(this), TEST_VALUE, uint40(duration - 1), 90);
+        rewardEscrowV2.createEscrowEntry(address(this), TEST_VALUE, duration - 1, 90);
     }
 
     function test_createEscrowEntry_Should_Not_Append_Entries_With_Bad_Duration_Fuzz(
@@ -306,7 +306,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         kwenta.approve(address(rewardEscrowV2), TEST_VALUE);
         vm.expectRevert(IRewardEscrowV2.InvalidDuration.selector);
         vm.prank(treasury);
-        rewardEscrowV2.createEscrowEntry(address(this), TEST_VALUE, uint40(maxDuration + 1), 90);
+        rewardEscrowV2.createEscrowEntry(address(this), TEST_VALUE, maxDuration + 1, 90);
     }
 
     function test_createEscrowEntry_Should_Revert_If_Beneficiary_Address_Is_Zero() public {
@@ -318,7 +318,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     }
 
     function test_createEscrowEntry_Should_Revert_If_Early_Vesting_Fee_Is_Too_Low() public {
-        uint8 earlyVestingFee = rewardEscrowV2.MINIMUM_EARLY_VESTING_FEE() - 1;
+        uint256 earlyVestingFee = rewardEscrowV2.MINIMUM_EARLY_VESTING_FEE() - 1;
         vm.prank(treasury);
         kwenta.approve(address(rewardEscrowV2), TEST_VALUE);
         vm.expectRevert(IRewardEscrowV2.EarlyVestingFeeTooLow.selector);
@@ -352,7 +352,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
     function test_Creates_New_Vesting_Entry() public {
         createRewardEscrowEntryV2(address(this), TEST_VALUE, 52 weeks);
 
-        (uint64 endTime, uint256 escrowAmount, uint256 duration, uint8 earlyVestingFee) =
+        (uint256 endTime, uint256 escrowAmount, uint256 duration, uint256 earlyVestingFee) =
             rewardEscrowV2.getVestingEntry(1);
 
         assertEq(endTime, block.timestamp + 52 weeks);
@@ -536,7 +536,7 @@ contract RewardEscrowV2Tests is DefaultStakingV2Setup {
         assertEq(rewardEscrowV2.ownerOf(1), address(0));
 
         // old vesting entry data still exists, except escrow amount reduced to 0
-        (uint64 endTime, uint256 escrowAmount, uint256 duration, uint8 earlyVestingFee) =
+        (uint256 endTime, uint256 escrowAmount, uint256 duration, uint256 earlyVestingFee) =
             rewardEscrowV2.getVestingEntry(1);
         assertEq(escrowAmount, 0);
         assertEq(endTime, block.timestamp + 26 weeks);

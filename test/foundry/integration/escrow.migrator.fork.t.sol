@@ -803,7 +803,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         uint256[] memory migratedEntryIDs =
             rewardEscrowV2.getAccountVestingEntryIDs(user1, numVestingEntries - 2, 1);
         uint256 maliciousEntryID = migratedEntryIDs[0];
-        (uint64 endTime, uint256 escrowAmount, uint256 duration, uint8 earlyVestingFee) =
+        (uint256 endTime, uint256 escrowAmount, uint256 duration, uint256 earlyVestingFee) =
             rewardEscrowV2.getVestingEntry(maliciousEntryID);
         assertEq(endTime, block.timestamp + stakingRewardsV2.cooldownPeriod());
         assertEq(escrowAmount, 50 ether);

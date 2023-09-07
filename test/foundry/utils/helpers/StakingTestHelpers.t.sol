@@ -195,7 +195,7 @@ contract StakingTestHelpers is StakingV2Setup {
     }
 
     function stakeEscrowedFundsV2(address _account, uint256 _amount) internal {
-        if (_amount != 0) createRewardEscrowEntryV2(_account, uint144(_amount), 52 weeks);
+        if (_amount != 0) createRewardEscrowEntryV2(_account, _amount, 52 weeks);
         vm.prank(_account);
         stakingRewardsV2.stakeEscrow(_amount);
     }
@@ -223,7 +223,7 @@ contract StakingTestHelpers is StakingV2Setup {
         vm.prank(treasury);
         kwenta.approve(address(rewardEscrowV2), _amount);
         vm.prank(treasury);
-        rewardEscrowV2.createEscrowEntry(_account, uint144(_amount), 52 weeks, 90);
+        rewardEscrowV2.createEscrowEntry(_account, _amount, 52 weeks, 90);
     }
 
     function createRewardEscrowEntryV2(address _account, uint256 _amount, uint256 _duration)
@@ -232,7 +232,7 @@ contract StakingTestHelpers is StakingV2Setup {
         vm.prank(treasury);
         kwenta.approve(address(rewardEscrowV2), _amount);
         vm.prank(treasury);
-        rewardEscrowV2.createEscrowEntry(_account, uint144(_amount), uint40(_duration), 90);
+        rewardEscrowV2.createEscrowEntry(_account, _amount, _duration, 90);
     }
 
     function createRewardEscrowEntryV2(
@@ -245,7 +245,7 @@ contract StakingTestHelpers is StakingV2Setup {
         kwenta.approve(address(rewardEscrowV2), _amount);
         vm.prank(treasury);
         rewardEscrowV2.createEscrowEntry(
-            _account, uint144(_amount), uint40(_duration), _earlyVestingFee
+            _account, _amount, _duration, _earlyVestingFee
         );
     }
 
@@ -253,7 +253,7 @@ contract StakingTestHelpers is StakingV2Setup {
         vm.prank(treasury);
         kwenta.transfer(address(rewardEscrowV2), _amount);
         vm.prank(address(stakingRewardsV2));
-        rewardEscrowV2.appendVestingEntry(_account, uint144(_amount));
+        rewardEscrowV2.appendVestingEntry(_account, _amount);
     }
 
     function getStakingRewardsV2(address _account) internal {

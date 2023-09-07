@@ -146,8 +146,8 @@ contract TokenDistributor is ITokenDistributor {
         lastTokenBalance -= proportionalFees;
 
         kwenta.approve(address(rewardEscrowV2), proportionalFees);
-        rewardEscrowV2.createEscrowEntry(to, uint144(proportionalFees),
-        uint40(rewardEscrowV2.DEFAULT_DURATION()),
+        rewardEscrowV2.createEscrowEntry(to, proportionalFees,
+        rewardEscrowV2.DEFAULT_DURATION(),
         rewardEscrowV2.DEFAULT_EARLY_VESTING_FEE());
 
         emit EpochClaim(to, epochNumber, proportionalFees);

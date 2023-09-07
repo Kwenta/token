@@ -98,7 +98,7 @@ contract RewardEscrowV2PausabilityTests is DefaultStakingV2Setup {
             address(this),
             IRewardEscrowV2.VestingEntry({
                 endTime: uint64(block.timestamp + 52 weeks),
-                escrowAmount: TEST_VALUE,
+                escrowAmount: uint144(TEST_VALUE),
                 duration: 52 weeks,
                 earlyVestingFee: 90
             })
@@ -113,7 +113,7 @@ contract RewardEscrowV2PausabilityTests is DefaultStakingV2Setup {
             address(this),
             IRewardEscrowV2.VestingEntry({
                 endTime: uint64(block.timestamp + 52 weeks),
-                escrowAmount: TEST_VALUE,
+                escrowAmount: uint144(TEST_VALUE),
                 duration: 52 weeks,
                 earlyVestingFee: 90
             })

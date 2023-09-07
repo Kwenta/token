@@ -493,7 +493,7 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
         uint256 newEntryID,
         uint256 oldEntryID
     ) internal {
-        (uint64 endTime, uint256 escrowAmount, uint256 duration, uint8 earlyVestingFee) =
+        (uint256 endTime, uint256 escrowAmount, uint256 duration, uint256 earlyVestingFee) =
             rewardEscrowV2.getVestingEntry(newEntryID);
 
         (uint64 registeredEndTime,, uint256 registeredDuration) =

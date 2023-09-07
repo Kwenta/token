@@ -17,7 +17,7 @@ contract RewardEscrowV2VestingChangesTests is DefaultStakingV2Setup {
 
     function test_Default_Early_Vest_Fee_Is_90_Percent() public {
         appendRewardEscrowEntryV2(user1, 1 ether);
-        (,,, uint8 earlyVestingFee) = rewardEscrowV2.getVestingEntry(1);
+        (,,, uint256 earlyVestingFee) = rewardEscrowV2.getVestingEntry(1);
 
         assertEq(rewardEscrowV2.DEFAULT_EARLY_VESTING_FEE(), 90);
         assertEq(earlyVestingFee, rewardEscrowV2.DEFAULT_EARLY_VESTING_FEE());
@@ -27,7 +27,7 @@ contract RewardEscrowV2VestingChangesTests is DefaultStakingV2Setup {
         vm.assume(escrowAmount > 0);
 
         appendRewardEscrowEntryV2(user1, escrowAmount);
-        (,,, uint8 earlyVestingFee) = rewardEscrowV2.getVestingEntry(1);
+        (,,, uint256 earlyVestingFee) = rewardEscrowV2.getVestingEntry(1);
 
         assertEq(rewardEscrowV2.DEFAULT_EARLY_VESTING_FEE(), 90);
         assertEq(earlyVestingFee, rewardEscrowV2.DEFAULT_EARLY_VESTING_FEE());
@@ -37,7 +37,7 @@ contract RewardEscrowV2VestingChangesTests is DefaultStakingV2Setup {
         uint8 earlyVestingFee = 50;
 
         createRewardEscrowEntryV2(user1, 1 ether, 52 weeks, earlyVestingFee);
-        (,,, uint8 earlyVestingFeeAfter) = rewardEscrowV2.getVestingEntry(1);
+        (,,, uint256 earlyVestingFeeAfter) = rewardEscrowV2.getVestingEntry(1);
 
         assertEq(earlyVestingFeeAfter, earlyVestingFee);
     }
@@ -53,7 +53,7 @@ contract RewardEscrowV2VestingChangesTests is DefaultStakingV2Setup {
         vm.assume(earlyVestingFee > rewardEscrowV2.MINIMUM_EARLY_VESTING_FEE());
 
         createRewardEscrowEntryV2(user1, escrowAmount, duration, earlyVestingFee);
-        (,,, uint8 earlyVestingFeeAfter) = rewardEscrowV2.getVestingEntry(1);
+        (,,, uint256 earlyVestingFeeAfter) = rewardEscrowV2.getVestingEntry(1);
 
         assertEq(earlyVestingFeeAfter, earlyVestingFee);
     }

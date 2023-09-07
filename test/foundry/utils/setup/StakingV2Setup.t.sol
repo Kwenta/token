@@ -28,7 +28,7 @@ contract StakingV2Setup is StakingV1Setup {
         uint256 value,
         uint256 duration,
         uint256 entryID,
-        uint8 earlyVestingFee
+        uint256 earlyVestingFee
     );
     event TreasuryDAOSet(address treasuryDAO);
     event StakingRewardsSet(address stakingRewards);
