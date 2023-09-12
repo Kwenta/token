@@ -227,6 +227,7 @@ contract EscrowMigratorHandler is EscrowMigratorTestHelpers {
     }
 
     function recoverExcessFunds() public {
+        vm.prank(owner);
         escrowMigrator.recoverExcessFunds();
     }
 
