@@ -90,6 +90,7 @@ contract EscrowMigratorInvariantTests is StakingV2Setup {
     }
 
     function invariant_Recover_Always_Any_Excess_Funds() public {
+        vm.prank(owner);
         handler.recoverExcessFunds();
         assertLe(
             kwenta.balanceOf(address(escrowMigrator)),
