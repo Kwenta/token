@@ -114,6 +114,7 @@ contract RewardEscrowV2 is
     /// Actual contract construction will take place in the initialize function via proxy
     /// @custom:oz-upgrades-unsafe-allow constructor
     /// @param _kwenta The address for the KWENTA ERC20 token
+    /// @param _rewardsNotifier The address for the StakingRewardsNotifier contract
     constructor(address _kwenta, address _rewardsNotifier) {
         if (_kwenta == address(0) || _rewardsNotifier == address(0)) revert ZeroAddress();
 
