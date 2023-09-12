@@ -103,7 +103,7 @@ contract EscrowMigratorInvariantTests is StakingV2Setup {
             address migrator = migrators[i];
             assertEq(
                 escrowMigrator.totalEscrowRegistered(migrator),
-                escrowMigrator.totalUnmigratedEscrow(migrator)
+                escrowMigrator.totalEscrowUnmigrated(migrator)
                     + escrowMigrator.totalEscrowMigrated(migrator)
             );
         }

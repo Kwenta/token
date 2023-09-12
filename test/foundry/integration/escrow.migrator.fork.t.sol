@@ -1714,10 +1714,10 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         escrowMigrator.updateTotalLocked(users);
 
         assertEq(escrowMigrator.totalLocked(), 0);
-        assertEq(escrowMigrator.totalUnmigratedEscrow(user1), 0);
-        assertEq(escrowMigrator.totalUnmigratedEscrow(user2), 0);
+        assertEq(escrowMigrator.totalEscrowUnmigrated(user1), 0);
+        assertEq(escrowMigrator.totalEscrowUnmigrated(user2), 0);
         assertEq(
-            escrowMigrator.totalUnmigratedEscrow(user3), escrowMigrator.totalEscrowRegistered(user3)
+            escrowMigrator.totalEscrowUnmigrated(user3), escrowMigrator.totalEscrowRegistered(user3)
         );
     }
 
@@ -1757,9 +1757,9 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         uint256 recoveredFunds = balanceAfter - balanceBefore;
         assertEq(recoveredFunds, user1Fee - user3Total - user3Fee + escrowMigrator.totalLocked());
         assertEq(kwenta.balanceOf(address(escrowMigrator)), 0);
-        assertEq(escrowMigrator.totalUnmigratedEscrow(user1), 0);
-        assertEq(escrowMigrator.totalUnmigratedEscrow(user2), 0);
-        assertEq(escrowMigrator.totalUnmigratedEscrow(user3), escrowMigrator.totalLocked());
+        assertEq(escrowMigrator.totalEscrowUnmigrated(user1), 0);
+        assertEq(escrowMigrator.totalEscrowUnmigrated(user2), 0);
+        assertEq(escrowMigrator.totalEscrowUnmigrated(user3), escrowMigrator.totalLocked());
 
         // does not allow further withdrawal of funds
         vm.prank(owner);
@@ -1830,13 +1830,13 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 
         assertEq(escrowMigrator.totalLocked(), escrowMigrator.totalRegistered());
         assertEq(
-            escrowMigrator.totalUnmigratedEscrow(user1), escrowMigrator.totalEscrowRegistered(user1)
+            escrowMigrator.totalEscrowUnmigrated(user1), escrowMigrator.totalEscrowRegistered(user1)
         );
         assertEq(
-            escrowMigrator.totalUnmigratedEscrow(user2), escrowMigrator.totalEscrowRegistered(user2)
+            escrowMigrator.totalEscrowUnmigrated(user2), escrowMigrator.totalEscrowRegistered(user2)
         );
         assertEq(
-            escrowMigrator.totalUnmigratedEscrow(user3), escrowMigrator.totalEscrowRegistered(user3)
+            escrowMigrator.totalEscrowUnmigrated(user3), escrowMigrator.totalEscrowRegistered(user3)
         );
     }
 

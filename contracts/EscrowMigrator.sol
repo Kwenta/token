@@ -210,7 +210,7 @@ contract EscrowMigrator is
 
     /// @inheritdoc IEscrowMigrator
     /// @dev WARNING: this loop is potentially limitless - could revert with out of gas error if called on-chain
-    function totalUnmigratedEscrow(address _account) public view returns (uint256 total) {
+    function totalEscrowUnmigrated(address _account) public view returns (uint256 total) {
         uint256[] storage entries = registeredEntryIDs[_account];
         uint256 length = entries.length;
 
@@ -532,7 +532,7 @@ contract EscrowMigrator is
                 && _deadlinePassed(initiatedAt)
         ) {
             lockedFundsAccountedFor[_expiredMigrator] = true;
-            totalLocked += totalUnmigratedEscrow(_expiredMigrator);
+            totalLocked += totalEscrowUnmigrated(_expiredMigrator);
         }
     }
 
