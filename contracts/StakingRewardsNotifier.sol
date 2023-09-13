@@ -65,7 +65,7 @@ contract StakingRewardsNotifier is Ownable2Step, IStakingRewardsNotifier {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IStakingRewardsNotifier
-    function setStakingRewardsV2(address _stakingRewardsV2) external override onlyOwner {
+    function setStakingRewardsV2(address _stakingRewardsV2) external onlyOwner {
         if (_stakingRewardsV2 == address(0)) revert ZeroAddress();
         stakingRewardsV2 = IStakingRewardsV2(_stakingRewardsV2);
     }
@@ -75,7 +75,7 @@ contract StakingRewardsNotifier is Ownable2Step, IStakingRewardsNotifier {
     //////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IStakingRewardsNotifier
-    function notifyRewardAmount(uint256 mintedAmount) external override onlySupplySchedule {
+    function notifyRewardAmount(uint256 mintedAmount) external onlySupplySchedule {
         /// @dev delete mintedAmount because it is not used but cannot be removed from the function signature
         /// as it is called by SupplySchedule which is immutable and expects to pass this value
         /// instead currentBalance is used
