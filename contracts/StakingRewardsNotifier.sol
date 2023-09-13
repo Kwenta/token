@@ -67,6 +67,7 @@ contract StakingRewardsNotifier is Ownable2Step, IStakingRewardsNotifier {
     /// @inheritdoc IStakingRewardsNotifier
     function setStakingRewardsV2(address _stakingRewardsV2) external onlyOwner {
         if (_stakingRewardsV2 == address(0)) revert ZeroAddress();
+        if (address(stakingRewardsV2) != address(0)) revert AlreadySet();
         stakingRewardsV2 = IStakingRewardsV2(_stakingRewardsV2);
     }
 
