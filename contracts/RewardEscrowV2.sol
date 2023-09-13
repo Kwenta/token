@@ -292,7 +292,7 @@ contract RewardEscrowV2 is
     {
         uint256 entryIDsLength = _entryIDs.length;
         for (uint256 i = 0; i < entryIDsLength;) {
-            VestingEntry memory entry = _getVestingEntryStruct(_entryIDs[i]);
+            VestingEntry memory entry = _unpackVestingEntryStruct(_entryIDs[i]);
 
             (uint256 quantity, uint256 fee) = _claimableAmount(entry);
 
@@ -312,7 +312,7 @@ contract RewardEscrowV2 is
         view
         returns (uint256 quantity, uint256 fee)
     {
-        VestingEntry memory entry = _getVestingEntryStruct(_entryID);
+        VestingEntry memory entry = _unpackVestingEntryStruct(_entryID);
         (quantity, fee) = _claimableAmount(entry);
     }
 
@@ -358,7 +358,7 @@ contract RewardEscrowV2 is
                 continue;
             }
 
-            (uint256 quantity, uint256 fee) = _claimableAmount(_getVestingEntryStruct(entryID));
+            (uint256 quantity, uint256 fee) = _claimableAmount(_unpackVestingEntryStruct(entryID));
 
             // update entry to remove escrowAmount
             vestingSchedules[entryID].escrowAmount = 0;
@@ -551,7 +551,7 @@ contract RewardEscrowV2 is
         super._mint(_account, entryID);
     }
 
-    function _getVestingEntryStruct(uint256 _entryID)
+    function _unpackVestingEntryStruct(uint256 _entryID)
         internal
         view
         returns (VestingEntry memory vestingEntry)
