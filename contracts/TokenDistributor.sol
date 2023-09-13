@@ -125,11 +125,11 @@ contract TokenDistributor is ITokenDistributor {
     /// @inheritdoc ITokenDistributor
     function claimEpoch(address to, uint epochNumber) public override {
         _checkpointWhenReady();
-        _claimEpoch(to, epochNumber);
+        _claimEpoch(to, epochNumber, rewardEscrowV2.DEFAULT_DURATION(), rewardEscrowV2.DEFAULT_EARLY_VESTING_FEE());
     }
 
     /// @notice internal claimEpoch function
-    function _claimEpoch(address to, uint epochNumber) internal {
+    function _claimEpoch(address to, uint epochNumber, uint duration, uint earlyVestFee) internal {
         _isEpochReady(epochNumber);
         mapping(uint256 => bool) storage claimedEpochsTo = claimedEpochs[to];
         if (claimedEpochsTo[epochNumber]) {
@@ -146,9 +146,7 @@ contract TokenDistributor is ITokenDistributor {
         lastTokenBalance -= proportionalFees;
 
         kwenta.approve(address(rewardEscrowV2), proportionalFees);
-        rewardEscrowV2.createEscrowEntry(to, proportionalFees,
-        rewardEscrowV2.DEFAULT_DURATION(),
-        rewardEscrowV2.DEFAULT_EARLY_VESTING_FEE());
+        rewardEscrowV2.createEscrowEntry(to, proportionalFees, duration, earlyVestFee);
 
         emit EpochClaim(to, epochNumber, proportionalFees);
     }
@@ -156,10 +154,12 @@ contract TokenDistributor is ITokenDistributor {
     /// @inheritdoc ITokenDistributor
     function claimMany(address to, uint[] calldata epochs) public {
         _checkpointWhenReady();
+        uint256 duration = rewardEscrowV2.DEFAULT_DURATION();
+        uint256 earlyVestFee = rewardEscrowV2.DEFAULT_EARLY_VESTING_FEE();
         uint256 length = epochs.length;
         for (uint i = 0; i < length; ) {
             uint epochNumber = epochs[i];
-            _claimEpoch(to, epochNumber);
+            _claimEpoch(to, epochNumber, duration, earlyVestFee);
             unchecked {
                 ++i;
             }
