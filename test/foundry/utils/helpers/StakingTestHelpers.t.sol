@@ -79,9 +79,7 @@ contract StakingTestHelpers is StakingV2Setup {
                             V1 Helper Functions
     //////////////////////////////////////////////////////////////*/
 
-    function createRewardEscrowEntryV1(address _account, uint256 _amount)
-        internal
-    {
+    function createRewardEscrowEntryV1(address _account, uint256 _amount) internal {
         vm.prank(treasury);
         kwenta.approve(address(rewardEscrowV1), _amount);
         vm.prank(treasury);
@@ -167,7 +165,7 @@ contract StakingTestHelpers is StakingV2Setup {
     function addNewRewardsToStakingRewardsV2(uint256 _reward) internal {
         vm.prank(treasury);
         kwenta.transfer(address(stakingRewardsV2), _reward);
-        vm.prank(address(supplySchedule));
+        vm.prank(address(rewardsNotifier));
         stakingRewardsV2.notifyRewardAmount(_reward);
     }
 
@@ -212,9 +210,16 @@ contract StakingTestHelpers is StakingV2Setup {
         stakingRewardsV2.unstakeEscrowSkipCooldown(_account, _amount);
     }
 
-    function createRewardEscrowEntryV2(address _account, uint256 _amount)
-        internal
-    {
+    function bulkCreateV1EscrowEntries(address _account, uint256 _amount, uint256 num) internal {
+        vm.startPrank(treasury);
+        kwenta.approve(address(rewardEscrowV1), _amount * num);
+        for (uint256 i; i < num; i++) {
+            rewardEscrowV1.createEscrowEntry(_account, _amount, 52 weeks);
+        }
+        vm.stopPrank();
+    }
+
+    function createRewardEscrowEntryV2(address _account, uint256 _amount) internal {
         vm.prank(treasury);
         kwenta.approve(address(rewardEscrowV2), _amount);
         vm.prank(treasury);
@@ -239,7 +244,9 @@ contract StakingTestHelpers is StakingV2Setup {
         vm.prank(treasury);
         kwenta.approve(address(rewardEscrowV2), _amount);
         vm.prank(treasury);
-        rewardEscrowV2.createEscrowEntry(_account, _amount, _duration, _earlyVestingFee);
+        rewardEscrowV2.createEscrowEntry(
+            _account, _amount, _duration, _earlyVestingFee
+        );
     }
 
     function appendRewardEscrowEntryV2(address _account, uint256 _amount) internal {

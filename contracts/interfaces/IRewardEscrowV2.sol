@@ -13,9 +13,17 @@ interface IRewardEscrowV2 {
         // The length of time until the entry is fully matured
         uint256 duration;
         // The time at which the entry will be fully matured
-        uint64 endTime;
+        uint256 endTime;
         // The percentage fee for vesting immediately
         // The actual penalty decreases linearly with time until it reaches 0 at block.timestamp=endTime
+        uint256 earlyVestingFee;
+    }
+
+    /// @notice The same as VestingEntry but packed to fit in a single slot
+    struct VestingEntryPacked {
+        uint144 escrowAmount;
+        uint40 duration;
+        uint64 endTime;
         uint8 earlyVestingFee;
     }
 
@@ -26,7 +34,7 @@ interface IRewardEscrowV2 {
         // The unique ID of this escrow entry NFT
         uint256 entryID;
         // The time at which the entry will be fully matured
-        uint64 endTime;
+        uint256 endTime;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -56,11 +64,6 @@ interface IRewardEscrowV2 {
     /// @dev This function can only be called multiple times
     function setTreasuryDAO(address _treasuryDAO) external;
 
-    /// @notice Function used to define the EarlyVestFeeDistributor address to use
-    /// @param _earlyVestFeeDistributor The address of the EarlyVestFeeDistributor
-    /// @dev This function can only be called multiple times
-    function setEarlyVestFeeDistributor(address _earlyVestFeeDistributor) external;
-
     /*///////////////////////////////////////////////////////////////
                                 VIEWS
     ///////////////////////////////////////////////////////////////*/
@@ -69,7 +72,15 @@ interface IRewardEscrowV2 {
     /// @dev this must be high enought to prevent governance attacks where the user
     /// can set the early vesting fee to a very low number, stake, vote, then withdraw
     /// via vesting which avoids the unstaking cooldown
-    function MINIMUM_EARLY_VESTING_FEE() external view returns (uint8);
+    function MINIMUM_EARLY_VESTING_FEE() external view returns (uint256);
+
+    /// @notice Default early vesting fee
+    /// @dev This is the default fee applied for early vesting
+    function DEFAULT_EARLY_VESTING_FEE() external view returns (uint256);
+
+    /// @notice Default escrow duration
+    /// @dev This is the default duration for escrow
+    function DEFAULT_DURATION() external view returns (uint256);
 
     /// @notice helper function to return kwenta address
     function getKwentaAddress() external view returns (address);
@@ -89,7 +100,7 @@ interface IRewardEscrowV2 {
     function getVestingEntry(uint256 _entryID)
         external
         view
-        returns (uint64, uint256, uint256, uint8);
+        returns (uint256, uint256, uint256, uint256);
 
     /// @notice Get the vesting entries for a given account
     /// @param _account The account to get the vesting entries for
@@ -151,7 +162,7 @@ interface IRewardEscrowV2 {
         address _beneficiary,
         uint256 _deposit,
         uint256 _duration,
-        uint8 _earlyVestingFee
+        uint256 _earlyVestingFee
     ) external;
 
     /// @notice Add a new vesting entry at a given time and quantity to an account's schedule.
@@ -196,7 +207,7 @@ interface IRewardEscrowV2 {
         uint256 value,
         uint256 duration,
         uint256 entryID,
-        uint8 earlyVestingFee
+        uint256 earlyVestingFee
     );
 
     /// @notice emitted when the staking rewards contract is set
@@ -211,17 +222,10 @@ interface IRewardEscrowV2 {
     /// @param treasuryDAO The address of the treasury DAO
     event TreasuryDAOSet(address treasuryDAO);
 
-    /// @notice emitted when the EarlyVestFeeDistributor is set
-    /// @param earlyVestFeeDistributor The address of the early vest fee distributor
-    event EarlyVestFeeDistributorSet(address earlyVestFeeDistributor);
-
-    /// @notice emitted when the early vest fee is sent to the treasury
-    /// @param amount The amount of KWENTA sent to the treasury
-    event EarlyVestFeeSentToTreasury(uint256 amount);
-
-    /// @notice emitted when the early vest fee is sent to the distributor
-    /// @param amount The amount of KWENTA sent to the distributor
-    event EarlyVestFeeSentToDistributor(uint256 amount);
+    /// @notice emitted when the early vest fee is sent to the treasury and notifier
+    /// @param amountToTreasury The amount of KWENTA sent to the treasury
+    /// @param amountToNotifier The amount of KWENTA sent to the notifier
+    event EarlyVestFeeSent(uint256 amountToTreasury, uint256 amountToNotifier);
 
     /*//////////////////////////////////////////////////////////////
                                 ERRORS
@@ -229,9 +233,6 @@ interface IRewardEscrowV2 {
 
     /// @notice Thrown when attempting to bulk transfer from and to the same address
     error CannotTransferToSelf();
-
-    /// @notice There are not enough entries to get vesting schedules starting from this index
-    error InvalidIndex();
 
     /// @notice Insufficient unstaked escrow to facilitate transfer
     /// @param escrowAmount the amount of escrow attempted to transfer

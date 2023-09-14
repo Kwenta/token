@@ -5,7 +5,6 @@ import {console} from "forge-std/Test.sol";
 import {StakingV2Setup} from "../utils/setup/StakingV2Setup.t.sol";
 import {EscrowMigratorHandler} from "../handlers/EscrowMigratorHandler.t.sol";
 
-
 contract EscrowMigratorInvariantTests is StakingV2Setup {
     /*//////////////////////////////////////////////////////////////
                                  STATE
@@ -73,7 +72,46 @@ contract EscrowMigratorInvariantTests is StakingV2Setup {
         }
     }
 
-    function invariant_Escrow_Vested_At_Start_Cannot_Be_Greater_Than_Vested_Account_Balance() public {
+    function invariant_Cannot_Migrate_More_Entries_Than_Registerd() public {
+        for (uint256 i = 0; i < migrators.length; i++) {
+            address migrator = migrators[i];
+            assertGe(
+                escrowMigrator.numberOfRegisteredEntries(migrator),
+                escrowMigrator.numberOfMigratedEntries(migrator)
+            );
+        }
+    }
+
+    function invariant_Cannot_Have_More_Migrated_And_Locked_Than_Registered() public {
+        assertGe(
+            escrowMigrator.totalRegistered(),
+            escrowMigrator.totalLocked() + escrowMigrator.totalMigrated()
+        );
+    }
+
+    function invariant_Recover_Always_Any_Excess_Funds() public {
+        handler.recoverExcessFunds();
+        assertLe(
+            kwenta.balanceOf(address(escrowMigrator)),
+            escrowMigrator.totalRegistered() - escrowMigrator.totalLocked()
+                - escrowMigrator.totalMigrated()
+        );
+    }
+
+    function invariant_Registered_Equals_Migrated_Plus_Unmigrated() public {
+        for (uint256 i = 0; i < migrators.length; i++) {
+            address migrator = migrators[i];
+            assertEq(
+                escrowMigrator.totalEscrowRegistered(migrator),
+                escrowMigrator.totalEscrowUnmigrated(migrator)
+                    + escrowMigrator.totalEscrowMigrated(migrator)
+            );
+        }
+    }
+
+    function invariant_Escrow_Vested_At_Start_Cannot_Be_Greater_Than_Vested_Account_Balance()
+        public
+    {
         for (uint256 i = 0; i < migrators.length; i++) {
             address migrator = migrators[i];
             assertGe(

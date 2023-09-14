@@ -161,10 +161,10 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
         uint256 escrowAmount = 1 ether;
         (
             uint256 user1EntryID,
-            uint64 initialEndTime,
+            uint256 initialEndTime,
             uint256 initialEscrowAmount,
             uint256 initialDuration,
-            uint8 initialEarlyVestingFee
+            uint256 initialEarlyVestingFee
         ) = setupAndGetInitialValues(user1, user2, escrowAmount, 52 weeks);
 
         transferEscrow(user1, user2, user1EntryID);
@@ -185,10 +185,10 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
         uint256 escrowAmount = 1 ether;
         (
             uint256 user1EntryID,
-            uint64 initialEndTime,
+            uint256 initialEndTime,
             uint256 initialEscrowAmount,
             uint256 initialDuration,
-            uint8 initialEarlyVestingFee
+            uint256 initialEarlyVestingFee
         ) = setupAndGetInitialValues(user1, user2, escrowAmount, 52 weeks);
 
         vm.prank(user1);
@@ -212,10 +212,10 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
         uint256 escrowAmount = 1 ether;
         (
             uint256 user1EntryID,
-            uint64 initialEndTime,
+            uint256 initialEndTime,
             uint256 initialEscrowAmount,
             uint256 initialDuration,
-            uint8 initialEarlyVestingFee
+            uint256 initialEarlyVestingFee
         ) = setupAndGetInitialValues(user1, user2, escrowAmount, 52 weeks);
 
         vm.prank(user1);
@@ -313,10 +313,10 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
         uint256 escrowAmount = 1 ether;
         (
             uint256 user1EntryID,
-            uint64 initialEndTime,
+            uint256 initialEndTime,
             uint256 initialEscrowAmount,
             uint256 initialDuration,
-            uint8 initialEarlyVestingFee
+            uint256 initialEarlyVestingFee
         ) = setupAndGetInitialValues(user1, user2, escrowAmount, 52 weeks);
 
         transferEscrow(user1, user1, user1EntryID);
@@ -353,10 +353,10 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
         uint256 escrowAmount = 1 ether;
         (
             uint256 user1EntryID,
-            uint64 initialEndTime,
+            uint256 initialEndTime,
             uint256 initialEscrowAmount,
             uint256 initialDuration,
-            uint8 initialEarlyVestingFee
+            uint256 initialEarlyVestingFee
         ) = setupAndGetInitialValues(user1, user2, escrowAmount, 52 weeks);
 
         safeTransferEscrow(user1, user2, user1EntryID);
@@ -451,10 +451,10 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
         uint256 escrowAmount = 1 ether;
         (
             uint256 user1EntryID,
-            uint64 initialEndTime,
+            uint256 initialEndTime,
             uint256 initialEscrowAmount,
             uint256 initialDuration,
-            uint8 initialEarlyVestingFee
+            uint256 initialEarlyVestingFee
         ) = setupAndGetInitialValues(user1, user2, escrowAmount, 52 weeks);
 
         safeTransferEscrow(user1, user1, user1EntryID);
@@ -491,10 +491,10 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
         uint256 escrowAmount = 1 ether;
         (
             uint256 user1EntryID,
-            uint64 initialEndTime,
+            uint256 initialEndTime,
             uint256 initialEscrowAmount,
             uint256 initialDuration,
-            uint8 initialEarlyVestingFee
+            uint256 initialEarlyVestingFee
         ) = setupAndGetInitialValues(user1, user2, escrowAmount, 52 weeks);
 
         // transfer vesting entry from user1 to user2
@@ -814,10 +814,10 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
         internal
         returns (
             uint256 account1EntryID,
-            uint64 initialEndTime,
+            uint256 initialEndTime,
             uint256 initialEscrowAmount,
             uint256 initialDuration,
-            uint8 initialEarlyVestingFee
+            uint256 initialEarlyVestingFee
         )
     {
         // create the escrow entry
@@ -869,10 +869,10 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
         address account2,
         uint256 escrowAmount,
         uint256 account1EntryID,
-        uint64 initialEndTime,
+        uint256 initialEndTime,
         uint256 initialEscrowAmount,
         uint256 initialDuration,
-        uint8 initialEarlyVestingFee
+        uint256 initialEarlyVestingFee
     ) internal {
         // assert that the entry has been passed over to account2
         assertEq(rewardEscrowV2.balanceOf(account1), 0);
@@ -888,10 +888,10 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
 
         // check vestingSchedules updated
         (
-            uint64 finalEndTime,
+            uint256 finalEndTime,
             uint256 finalEscrowAmount,
             uint256 finalDuration,
-            uint8 finalEarlyVestingFee
+            uint256 finalEarlyVestingFee
         ) = rewardEscrowV2.getVestingEntry(account2EntryID);
 
         assertEq(finalEndTime, initialEndTime);
@@ -916,10 +916,10 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
         address account1,
         uint256 escrowAmount,
         uint256 account1EntryID,
-        uint64 initialEndTime,
+        uint256 initialEndTime,
         uint256 initialEscrowAmount,
         uint256 initialDuration,
-        uint8 initialEarlyVestingFee
+        uint256 initialEarlyVestingFee
     ) internal {
         // assert that the entry is still owned by user1
         assertEq(rewardEscrowV2.balanceOf(account1), 1);
@@ -933,10 +933,10 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
 
         // check vestingSchedules unchanged
         (
-            uint64 finalEndTime,
+            uint256 finalEndTime,
             uint256 finalEscrowAmount,
             uint256 finalDuration,
-            uint8 finalEarlyVestingFee
+            uint256 finalEarlyVestingFee
         ) = rewardEscrowV2.getVestingEntry(account1EntryID);
 
         assertEq(finalEndTime, initialEndTime);

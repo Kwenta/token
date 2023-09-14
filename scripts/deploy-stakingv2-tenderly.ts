@@ -5,7 +5,7 @@
 // Runtime Environment's members available in the global scope.
 import { ethers, tenderly } from "hardhat";
 import { Interface } from "@ethersproject/abi";
-import { Contract } from "ethers";
+import { BigNumber, Contract } from "ethers";
 
 const OPTIMISM_KWENTA_TOKEN = "0x920Cf626a271321C151D027030D5d08aF699456b";
 const OPTIMISM_PDAO = "0xe826d43961a87fBE71C91d9B73F7ef9b16721C07";
@@ -14,6 +14,9 @@ const OPTIMISM_STAKING_REWARDS_V1 =
 const OPTIMISM_REWARD_ESCROW_V1 = "0x1066A8eB3d90Af0Ad3F89839b974658577e75BE2";
 const OPTIMISM_SUPPLY_SCHEDULE = "0x3e8b82326Ff5f2f10da8CEa117bD44343ccb9c26";
 const OPTIMISM_TREASURY_DAO = "0x82d2242257115351899894eF384f779b5ba8c695";
+const STAKING_V1_USER = "0x2f31e5e4e0EDfE3f42B910aC7cD5ab25dd130114";
+
+const YEAR_IN_WEEKS = 60 * 60 * 24 * 7 * 52;
 
 const provider = new ethers.providers.JsonRpcProvider(
     process.env.TENDERLY_FORK_URL
@@ -30,16 +33,23 @@ async function main() {
     // ========== DEPLOYMENT ========== */
 
     console.log("\n💥 Beginning deployments...");
+    const rewardsNotifier = await deployRewardsNotifier(deployer.address);
     const [rewardEscrowV2, rewardEscrowV2Impl] = await deployRewardEscrowV2(
-        deployer.address
+        deployer.address,
+        rewardsNotifier.address
     );
     const [stakingRewardsV2, stakingRewardsV2Impl] =
-        await deployStakingRewardsV2(deployer.address, rewardEscrowV2.address);
+        await deployStakingRewardsV2(
+            deployer.address,
+            rewardEscrowV2.address,
+            rewardsNotifier.address
+        );
     const [escrowMigrator, escrowMigratorImpl] = await deployEscrowMigrator(
         deployer.address,
         rewardEscrowV2.address,
         stakingRewardsV2.address
     );
+    console.log("StakingRewardsNotifier :", rewardsNotifier.address);
     console.log("RewardEscrowV2 Proxy   :", rewardEscrowV2.address);
     console.log("RewardEscrowV2 Impl    :", rewardEscrowV2Impl.address);
     console.log("StakingRewardsV2 Proxy :", stakingRewardsV2.address);
@@ -55,31 +65,44 @@ async function main() {
     // set treasuryDAO for reward escrow v2
     await rewardEscrowV2.setTreasuryDAO(OPTIMISM_TREASURY_DAO);
     console.log(
-        "RewardEscrowV2: treasuryDAO address set to:          ",
+        "RewardEscrowV2: treasuryDAO address set to:              ",
         await rewardEscrowV2.treasuryDAO()
     );
 
     // set staking rewards for reward escrow v2
     await rewardEscrowV2.setStakingRewards(stakingRewardsV2.address);
     console.log(
-        "RewardEscrowV2: stakingRewards address set to:       ",
+        "RewardEscrowV2: stakingRewards address set to:           ",
         await rewardEscrowV2.stakingRewards()
     );
 
     // set escrow migrator for reward escrow v2
     await rewardEscrowV2.setEscrowMigrator(escrowMigrator.address);
     console.log(
-        "RewardEscrowV2: escrowMigrator address set to:       ",
+        "RewardEscrowV2: escrowMigrator address set to:           ",
         await rewardEscrowV2.escrowMigrator()
     );
+
+    // set staking rewards for rewards notifier
+    await rewardsNotifier.setStakingRewardsV2(stakingRewardsV2.address);
+    console.log(
+        "StakingRewardsNotifier: stakingRewardsV2 address set to: ",
+        await rewardsNotifier.stakingRewardsV2()
+    );
+
+    // Give up rewards notifier ownership now that StakingRewardsV2 is set
+    await rewardsNotifier.renounceOwnership();
+    console.log("Renounced StakingRewardsNotifier ownership");
+
     console.log("✅ Setters set!");
 
     // ========== MIGRATION ========== */
 
     console.log("\n🔩 Migration setters...");
 
-    await setStakingRewardsOnSupplySchedule(stakingRewardsV2.address);
-    await setTreasuryDAOOnRewardEscrow(escrowMigrator.address);
+    await setStakingRewardsOnSupplySchedule(rewardsNotifier.address);
+    await setTreasuryDAOOnRewardEscrowV1(escrowMigrator.address);
+    await escrowMigrator.unpauseEscrowMigrator();
 
     console.log("✅ Migration setters set!");
 
@@ -94,6 +117,11 @@ async function main() {
         OPTIMISM_PDAO
     );
     await transferOwnership(escrowMigrator, "EscrowMigrator", OPTIMISM_PDAO);
+    await transferOwnership(
+        rewardsNotifier,
+        "StakingRewardsNotifier",
+        OPTIMISM_PDAO
+    );
 
     console.log("✅ Ownership transferred!");
 
@@ -131,7 +159,7 @@ async function main() {
 
         const newTimeNow = await getLatestBlockTimestamp();
         console.log(
-            "time confirmed:                              ",
+            "time confirmed:                                      ",
             newTimeNow,
             new Date(newTimeNow * 1000)
         );
@@ -140,6 +168,13 @@ async function main() {
     }
 
     console.log("✅ Time updated!");
+
+    // ========== MIGRATE ========== */
+
+    // await simulateMigration({
+    //     escrowMigrator,
+    //     rewardEscrowV2,
+    // });
 }
 
 /************************************************
@@ -168,10 +203,10 @@ const transferOwnership = async (
  * @setters
  ************************************************/
 
-const setStakingRewardsOnSupplySchedule = async (stakingRewardsV2: string) => {
+const setStakingRewardsOnSupplySchedule = async (rewardsNotifier: string) => {
     const contractName = "SupplySchedule";
     const functionName = "setStakingRewards";
-    const functionArgs = [stakingRewardsV2];
+    const functionArgs = [rewardsNotifier];
 
     await sendTransaction({
         contractName,
@@ -184,7 +219,7 @@ const setStakingRewardsOnSupplySchedule = async (stakingRewardsV2: string) => {
     logTransaction(contractName, functionName, functionArgs);
 };
 
-const setTreasuryDAOOnRewardEscrow = async (escrowMigrator: string) => {
+const setTreasuryDAOOnRewardEscrowV1 = async (escrowMigrator: string) => {
     const contractName = "RewardEscrow";
     const functionName = "setTreasuryDAO";
     const functionArgs = [escrowMigrator];
@@ -204,20 +239,34 @@ const setTreasuryDAOOnRewardEscrow = async (escrowMigrator: string) => {
  * @deployers
  ************************************************/
 
-const deployRewardEscrowV2 = async (owner: string) =>
+const deployRewardsNotifier = async (owner: string) =>
+    await deployContract({
+        contractName: "StakingRewardsNotifier",
+        constructorArgs: [
+            owner,
+            OPTIMISM_KWENTA_TOKEN,
+            OPTIMISM_SUPPLY_SCHEDULE,
+        ],
+    });
+
+const deployRewardEscrowV2 = async (owner: string, rewardsNotifier: string) =>
     await deployUUPSProxy({
         contractName: "RewardEscrowV2",
-        constructorArgs: [OPTIMISM_KWENTA_TOKEN],
+        constructorArgs: [OPTIMISM_KWENTA_TOKEN, rewardsNotifier],
         initializerArgs: [owner],
     });
 
-const deployStakingRewardsV2 = async (owner: string, rewardEscrowV2: string) =>
+const deployStakingRewardsV2 = async (
+    owner: string,
+    rewardEscrowV2: string,
+    rewardsNotifier: string
+) =>
     await deployUUPSProxy({
         contractName: "StakingRewardsV2",
         constructorArgs: [
             OPTIMISM_KWENTA_TOKEN,
             rewardEscrowV2,
-            OPTIMISM_SUPPLY_SCHEDULE,
+            rewardsNotifier,
         ],
         initializerArgs: [owner],
     });
@@ -233,16 +282,150 @@ const deployEscrowMigrator = async (
             OPTIMISM_KWENTA_TOKEN,
             OPTIMISM_REWARD_ESCROW_V1,
             rewardEscrowV2,
-            OPTIMISM_STAKING_REWARDS_V1,
             stakingRewardsV2,
         ],
-        initializerArgs: [owner],
+        initializerArgs: [owner, OPTIMISM_TREASURY_DAO],
     });
+
+/************************************************
+ * @simulator
+ ************************************************/
+
+const simulateMigration = async ({
+    escrowMigrator,
+    rewardEscrowV2,
+}: {
+    escrowMigrator: Contract;
+    rewardEscrowV2: Contract;
+}) => {
+    console.log("\n🦅 Migrating entries...");
+
+    const NUM_TO_REGISTER = 556; // estimated max = 556 (haven't tried 557)
+    const NUM_TO_VEST = 556; // estimated max = 3419 (most I have tried is 1825)
+    const NUM_TO_MIGRATE = 182; // last tested max = 182 (have tried 183)
+    const NUM_TO_CREATE = Math.max(
+        NUM_TO_REGISTER,
+        NUM_TO_VEST,
+        NUM_TO_MIGRATE
+    );
+
+    const rewardEscrowV1 = await ethers.getContractAt(
+        "RewardEscrow",
+        OPTIMISM_REWARD_ESCROW_V1
+    );
+    const kwenta = await ethers.getContractAt("Kwenta", OPTIMISM_KWENTA_TOKEN);
+
+    const numberOfEntriesAlreadyCreated =
+        await rewardEscrowV1.numVestingEntries(STAKING_V1_USER);
+
+    if (NUM_TO_CREATE > numberOfEntriesAlreadyCreated) {
+        // give deployer NUM_ENTRIES escrow entries
+        await sendTransaction({
+            contractName: "Kwenta",
+            contractAddress: kwenta.address,
+            functionName: "approve",
+            functionArgs: [rewardEscrowV1.address, ethers.constants.MaxUint256],
+            from: OPTIMISM_TREASURY_DAO,
+        });
+
+        for (
+            let i = 0;
+            i < NUM_TO_CREATE - numberOfEntriesAlreadyCreated;
+            i++
+        ) {
+            await sendTransaction({
+                contractName: "RewardEscrow",
+                contractAddress: rewardEscrowV1.address,
+                functionName: "createEscrowEntry",
+                functionArgs: [
+                    STAKING_V1_USER,
+                    ethers.utils.parseEther("1"),
+                    YEAR_IN_WEEKS,
+                ],
+                from: OPTIMISM_TREASURY_DAO,
+            });
+        }
+    }
+
+    const allEntries = await rewardEscrowV1.getAccountVestingEntryIDs(
+        STAKING_V1_USER,
+        0,
+        NUM_TO_CREATE
+    );
+    console.log("All entries: ");
+    printEntries(allEntries);
+
+    // register all entries
+    const entriesToRegister: BigNumber[] =
+        await rewardEscrowV1.getAccountVestingEntryIDs(
+            STAKING_V1_USER,
+            0,
+            NUM_TO_REGISTER
+        );
+    await sendTransaction({
+        contractName: "EscrowMigrator",
+        contractAddress: escrowMigrator.address,
+        functionName: "registerEntries",
+        functionArgs: [entriesToRegister],
+        from: STAKING_V1_USER,
+    });
+
+    // vest all entries
+    const entriesToVest: BigNumber[] =
+        await rewardEscrowV1.getAccountVestingEntryIDs(
+            STAKING_V1_USER,
+            0,
+            NUM_TO_VEST
+        );
+    await sendTransaction({
+        contractName: "RewardEscrow",
+        contractAddress: rewardEscrowV1.address,
+        functionName: "vest",
+        functionArgs: [entriesToVest],
+        from: STAKING_V1_USER,
+    });
+
+    // approve escrow migrator
+    await sendTransaction({
+        contractName: "Kwenta",
+        contractAddress: kwenta.address,
+        functionName: "approve",
+        functionArgs: [escrowMigrator.address, ethers.constants.MaxUint256],
+        from: STAKING_V1_USER,
+    });
+
+    // migrate all entries
+    const entriesToMigrate: BigNumber[] =
+        await rewardEscrowV1.getAccountVestingEntryIDs(
+            STAKING_V1_USER,
+            0,
+            NUM_TO_MIGRATE
+        );
+    await sendTransaction({
+        contractName: "EscrowMigrator",
+        contractAddress: escrowMigrator.address,
+        functionName: "migrateEntries",
+        functionArgs: [STAKING_V1_USER, entriesToMigrate],
+        from: STAKING_V1_USER,
+    });
+
+    // get num of entries in reward escrow v2
+    const numEntriesInRewardEscrowV2: BigNumber =
+        await rewardEscrowV2.balanceOf(STAKING_V1_USER);
+    console.log("StakingV1 user: ", STAKING_V1_USER);
+    console.log(
+        "Num of entries migrated: ",
+        numEntriesInRewardEscrowV2.toString()
+    );
+
+    console.log("✅ Entries migrated!");
+};
 
 /************************************************
  * @helpers
  ************************************************/
 
+// TODO: refactor to use deployContract helper
 const deployUUPSProxy = async ({
     contractName,
     constructorArgs,
@@ -284,6 +467,23 @@ const deployUUPSProxy = async ({
         proxy.address
     );
     return [wrappedProxy, implementation];
+};
+
+const deployContract = async ({
+    contractName,
+    constructorArgs,
+}: {
+    contractName: string;
+    constructorArgs: unknown[];
+}) => {
+    const Factory = await ethers.getContractFactory(contractName);
+    const implementation = await Factory.deploy(...constructorArgs);
+    await implementation.deployed();
+    await tenderly.verify({
+        name: contractName,
+        address: implementation.address,
+    });
+    return implementation;
 };
 
 export const getInitializerData = (
@@ -357,6 +557,20 @@ const logTransaction = (
 const extendLog = (log: string) => {
     while (log.length < 53) log += " ";
     return log;
+};
+
+const printEntries = (entries: BigNumber[]) => {
+    const entryIDs = entries.map((x) => x.toNumber());
+    let list = "[";
+    for (let i = 0; i < entryIDs.length; i++) {
+        if (i == entryIDs.length - 1) {
+            list += `${entryIDs[i]}`;
+        } else {
+            list += `${entryIDs[i]},`;
+        }
+    }
+    list += "]";
+    console.log(list);
 };
 
 const getLatestBlockTimestamp = async (): Promise<number> => {

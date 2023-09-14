@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.19;
 
-interface IEarlyVestFeeDistributor {
+interface ITokenDistributor {
     // Events
 
     /// @notice event for a new checkpoint
@@ -18,7 +18,7 @@ interface IEarlyVestFeeDistributor {
     // Errors
 
     /// @notice error when constructor addresses are 0
-    error InputAddress0();
+    error ZeroAddress();
 
     /// @notice error when offset is more than 7 days
     error OffsetTooBig();

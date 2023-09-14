@@ -39,17 +39,17 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         assertEq(rewardEscrowV2Address, address(rewardEscrowV2));
     }
 
-    function test_SupplySchedule_Set() public {
-        address supplyScheduleAddress = address(stakingRewardsV2.supplySchedule());
-        assertEq(supplyScheduleAddress, address(supplySchedule));
+    function test_StakingRewardsNotifier_Set() public {
+        address rewardsNotifierAddress = address(stakingRewardsV2.rewardsNotifier());
+        assertEq(rewardsNotifierAddress, address(rewardsNotifier));
     }
 
     /*//////////////////////////////////////////////////////////////
                         Function Permissions
     //////////////////////////////////////////////////////////////*/
 
-    function test_Only_SupplySchedule_Can_Call_notifyRewardAmount() public {
-        vm.expectRevert(IStakingRewardsV2.OnlySupplySchedule.selector);
+    function test_Only_RewardsNotifier_Can_Call_notifyRewardAmount() public {
+        vm.expectRevert(IStakingRewardsV2.OnlyRewardsNotifier.selector);
         stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
     }
 
@@ -262,7 +262,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         stakingRewardsV2.stake(TEST_VALUE);
 
         // configure reward rate
-        vm.prank(address(supplySchedule));
+        vm.prank(address(rewardsNotifier));
         stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
 
         // fast forward 2 weeks
@@ -291,7 +291,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         stakingRewardsV2.stake(TEST_VALUE);
 
         // configure reward rate
-        vm.prank(address(supplySchedule));
+        vm.prank(address(rewardsNotifier));
         stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
 
         // fast forward 2 weeks
@@ -319,7 +319,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         stakingRewardsV2.stake(TEST_VALUE);
 
         // configure reward rate
-        vm.prank(address(supplySchedule));
+        vm.prank(address(rewardsNotifier));
         stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
 
         // fast forward 2 weeks
@@ -348,7 +348,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         stakingRewardsV2.stake(TEST_VALUE);
 
         // configure reward rate
-        vm.prank(address(supplySchedule));
+        vm.prank(address(rewardsNotifier));
         stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
 
         // fast forward 2 weeks
@@ -411,7 +411,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         assertEq(stakingRewardsV2.lastTimeRewardApplicable(), 0);
 
         // update reward amount
-        vm.prank(address(supplySchedule));
+        vm.prank(address(rewardsNotifier));
         stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
 
         // check last time reward applicable updated
@@ -436,7 +436,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
 
         // set rewards
         uint256 reward = stakedAmount;
-        vm.prank(address(supplySchedule));
+        vm.prank(address(rewardsNotifier));
         stakingRewardsV2.notifyRewardAmount(reward);
 
         // ff to end of period
@@ -669,7 +669,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         stakingRewardsV2.stake(TEST_VALUE);
 
         // configure reward rate
-        vm.prank(address(supplySchedule));
+        vm.prank(address(rewardsNotifier));
         stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
 
         // fast forward 2 weeks
@@ -692,7 +692,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         kwenta.transfer(address(stakingRewardsV2), totalToDistribute);
 
         // configure reward rate
-        vm.prank(address(supplySchedule));
+        vm.prank(address(rewardsNotifier));
         stakingRewardsV2.notifyRewardAmount(totalToDistribute);
 
         uint256 initialRewardRate = stakingRewardsV2.rewardRate();
@@ -701,7 +701,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         kwenta.transfer(address(stakingRewardsV2), totalToDistribute);
 
         // increase reward rate further
-        vm.prank(address(supplySchedule));
+        vm.prank(address(rewardsNotifier));
         stakingRewardsV2.notifyRewardAmount(totalToDistribute);
 
         uint256 finalRewardRate = stakingRewardsV2.rewardRate();
@@ -716,7 +716,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         stakingRewardsV2.stake(1 weeks);
 
         // configure reward rate
-        vm.prank(address(supplySchedule));
+        vm.prank(address(rewardsNotifier));
         stakingRewardsV2.notifyRewardAmount(1 weeks);
 
         // fast forward 1 weeks
@@ -724,7 +724,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         uint256 initialEarnings = stakingRewardsV2.earned(address(this));
 
         // configure same reward week for the following period
-        vm.prank(address(supplySchedule));
+        vm.prank(address(rewardsNotifier));
         stakingRewardsV2.notifyRewardAmount(1 weeks);
 
         vm.warp(block.timestamp + 2 weeks);
@@ -747,7 +747,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         stakingRewardsV2.stake(TEST_VALUE);
 
         // configure reward rate
-        vm.prank(address(supplySchedule));
+        vm.prank(address(rewardsNotifier));
         stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
 
         // fast forward 2 weeks
@@ -771,7 +771,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         stakingRewardsV2.stake(TEST_VALUE);
 
         // configure reward rate
-        vm.prank(address(supplySchedule));
+        vm.prank(address(rewardsNotifier));
         stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
 
         // fast forward 3 weeks
@@ -796,7 +796,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         stakingRewardsV2.stake(TEST_VALUE);
 
         // configure reward rate
-        vm.prank(address(supplySchedule));
+        vm.prank(address(rewardsNotifier));
         stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
 
         // fast forward 3 weeks
@@ -821,7 +821,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         stakingRewardsV2.stake(TEST_VALUE);
 
         // configure reward rate
-        vm.prank(address(supplySchedule));
+        vm.prank(address(rewardsNotifier));
         stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
 
         // fast forward 3 weeks
@@ -847,7 +847,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         stakeEscrowedFundsV2(address(this), 1000);
 
         // configure reward rate
-        vm.prank(address(supplySchedule));
+        vm.prank(address(rewardsNotifier));
         stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
 
         // fast forward 3 weeks
@@ -890,7 +890,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         stakingRewardsV2.stake(TEST_VALUE);
 
         // configure reward rate
-        vm.prank(address(supplySchedule));
+        vm.prank(address(rewardsNotifier));
         stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
 
         // fast 1 day
@@ -908,7 +908,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         stakingRewardsV2.stake(TEST_VALUE);
 
         // configure reward rate
-        vm.prank(address(supplySchedule));
+        vm.prank(address(rewardsNotifier));
         stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
 
         // fast forward 2 weeks
@@ -921,7 +921,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
 
         assertEq(stakingRewardsV2.rewardsDuration(), 30 days);
 
-        vm.prank(address(supplySchedule));
+        vm.prank(address(rewardsNotifier));
         stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
     }
 
@@ -932,7 +932,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         stakingRewardsV2.stake(TEST_VALUE);
 
         // configure reward rate
-        vm.prank(address(supplySchedule));
+        vm.prank(address(rewardsNotifier));
         stakingRewardsV2.notifyRewardAmount(30 days);
 
         // fast forward 2 weeks
@@ -959,7 +959,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         vm.prank(treasury);
         kwenta.transfer(address(stakingRewardsV2), TEST_VALUE);
 
-        vm.prank(address(supplySchedule));
+        vm.prank(address(rewardsNotifier));
         stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
 
         uint256 rewardForDuration = stakingRewardsV2.getRewardForDuration();
@@ -1201,7 +1201,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         fundAndApproveAccountV2(address(this), TEST_VALUE);
         stakingRewardsV2.stake(TEST_VALUE);
 
-        vm.prank(address(supplySchedule));
+        vm.prank(address(rewardsNotifier));
         stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
 
         vm.warp(block.timestamp + 2 weeks);

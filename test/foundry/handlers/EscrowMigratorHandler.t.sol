@@ -222,6 +222,15 @@ contract EscrowMigratorHandler is EscrowMigratorTestHelpers {
         fullyMigrate(currentMigrator);
     }
 
+    function updateTotalLocked(uint256 _seed) public useMigrator(_seed) {
+        escrowMigrator.updateTotalLocked(currentMigrator);
+    }
+
+    function recoverExcessFunds() public {
+        vm.prank(owner);
+        escrowMigrator.recoverExcessFunds();
+    }
+
     /*//////////////////////////////////////////////////////////////
                            STAKING REWARDS V1
     //////////////////////////////////////////////////////////////*/

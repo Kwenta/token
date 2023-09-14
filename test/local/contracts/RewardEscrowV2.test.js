@@ -45,6 +45,7 @@ const TokenContract = artifacts.require("Kwenta");
 const RewardEscrowV1 = artifacts.require("RewardEscrow");
 const RewardEscrowV2 = artifacts.require("RewardEscrowV2");
 const EscrowMigrator = artifacts.require("EscrowMigrator");
+const StakingRewardsNotifier = artifacts.require("StakingRewardsNotifier");
 
 const NAME = "Kwenta";
 const SYMBOL = "KWENTA";
@@ -56,7 +57,7 @@ const toUnit = (amount) => toBN(toWei(amount.toString(), "ether"));
 
 assert.revert = assertRevert;
 
-const deployRewardEscrowV2 = async (owner, kwenta) => {
+const deployRewardEscrowV2 = async (owner, kwenta, rewardsNotifier) => {
     const RewardEscrowV2Factory = await ethers.getContractFactory(
         "RewardEscrowV2"
     );
@@ -65,7 +66,7 @@ const deployRewardEscrowV2 = async (owner, kwenta) => {
         [owner],
         {
             kind: "uups",
-            constructorArgs: [kwenta],
+            constructorArgs: [kwenta, rewardsNotifier],
         }
     );
     await rewardEscrowV2.deployed();
@@ -99,9 +100,9 @@ const deployEscrowMigrator = async (
     token,
     rewardEscrowV1,
     rewardEscrowV2,
-    stakingRewardsV1,
     stakingRewardsV2,
-    owner
+    owner,
+    treasuryDAO
 ) => {
     const EscrowMigratorFactory = await ethers.getContractFactory(
         "EscrowMigrator"
@@ -109,14 +110,13 @@ const deployEscrowMigrator = async (
 
     const escrowMigrator = await upgrades.deployProxy(
         EscrowMigratorFactory,
-        [owner],
+        [owner, treasuryDAO],
         {
             kind: "uups",
             constructorArgs: [
                 token,
                 rewardEscrowV1,
                 rewardEscrowV2,
-                stakingRewardsV1,
                 stakingRewardsV2,
             ],
         }
@@ -124,6 +124,21 @@ const deployEscrowMigrator = async (
     await escrowMigrator.deployed();
     // convert from hardhat to truffle contract
     return await EscrowMigrator.at(escrowMigrator.address);
+};
+
+const deployRewardsNotifier = async (owner, token, supplySchedule) => {
+    const StakingRewardsNotifierFactory = await ethers.getContractFactory(
+        "StakingRewardsNotifier"
+    );
+
+    const rewardsNotifier = await StakingRewardsNotifierFactory.deploy(
+        owner,
+        token,
+        supplySchedule
+    );
+    await rewardsNotifier.deployed();
+    // convert from hardhat to truffle contract
+    return await StakingRewardsNotifier.at(rewardsNotifier.address);
 };
 
 contract("RewardEscrowV2 KWENTA", ([owner, staker1, staker2, treasuryDAO]) => {
@@ -135,6 +150,7 @@ contract("RewardEscrowV2 KWENTA", ([owner, staker1, staker2, treasuryDAO]) => {
     let rewardEscrowV2;
     let escrowMigrator;
     let supplySchedule;
+    let rewardsNotifier;
 
     before(async () => {
         supplySchedule = await smock.fake("SupplySchedule");
@@ -149,9 +165,16 @@ contract("RewardEscrowV2 KWENTA", ([owner, staker1, staker2, treasuryDAO]) => {
 
         rewardEscrowV1 = await RewardEscrowV1.new(owner, stakingToken.address);
 
+        rewardsNotifier = await deployRewardsNotifier(
+            owner,
+            stakingToken.address,
+            supplySchedule.address
+        );
+
         rewardEscrowV2 = await deployRewardEscrowV2(
             owner,
-            stakingToken.address
+            stakingToken.address,
+            rewardsNotifier.address
         );
 
         stakingRewards = await StakingRewards.new(
@@ -170,7 +193,7 @@ contract("RewardEscrowV2 KWENTA", ([owner, staker1, staker2, treasuryDAO]) => {
         stakingRewardsV2 = await deployStakingRewardsV2(
             stakingToken.address,
             rewardEscrowV2.address,
-            supplySchedule.address,
+            rewardsNotifier.address,
             owner
         );
 
@@ -178,9 +201,9 @@ contract("RewardEscrowV2 KWENTA", ([owner, staker1, staker2, treasuryDAO]) => {
             stakingToken.address,
             rewardEscrowV1.address,
             rewardEscrowV2.address,
-            stakingRewards.address,
             stakingRewardsV2.address,
-            owner
+            owner,
+            treasuryDAO
         );
 
         await hre.network.provider.request({
@@ -205,11 +228,23 @@ contract("RewardEscrowV2 KWENTA", ([owner, staker1, staker2, treasuryDAO]) => {
             from: owner,
         });
 
+        await rewardsNotifier.setStakingRewardsV2(stakingRewardsV2.address, {
+            from: owner,
+        });
+
+        await rewardsNotifier.renounceOwnership({
+            from: owner,
+        });
+
         await rewardEscrowV1.setTreasuryDAO(escrowMigrator.address, {
             from: owner,
         });
 
         await rewardEscrowV2.setTreasuryDAO(treasuryDAO, {
+            from: owner,
+        });
+
+        await escrowMigrator.unpauseEscrowMigrator({
             from: owner,
         });
 
