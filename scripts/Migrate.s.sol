@@ -396,6 +396,11 @@ contract DeployAndSetupOptimismGoerli is Script, Migrate {
             _printLogs: true
         });
 
+        rewardEscrowV2.transferOwnership(OPTIMISM_GOERLI_TREASURY_DAO);
+        stakingRewardsV2.transferOwnership(OPTIMISM_GOERLI_TREASURY_DAO);
+        escrowMigrator.transferOwnership(OPTIMISM_GOERLI_TREASURY_DAO);
+        rewardsNotifier.transferOwnership(OPTIMISM_GOERLI_TREASURY_DAO);
+
         vm.stopBroadcast();
     }
 }
