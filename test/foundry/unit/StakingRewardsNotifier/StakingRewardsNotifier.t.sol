@@ -44,11 +44,13 @@ contract StakingRewardsNotifierTest is DefaultStakingV2Setup {
     }
 
     function testNotifiableRewardAccumulatorCannotSetStakingV2Twice() public {
+        vm.prank(address(0));
         vm.expectRevert(IStakingRewardsNotifier.AlreadySet.selector);
         rewardsNotifier.setStakingRewardsV2(address(stakingRewardsV1));
     }
 
     function testNotifiableRewardAccumulatorCannotSetStakingV2To0() public {
+        vm.prank(address(0));
         vm.expectRevert(IStakingRewardsNotifier.ZeroAddress.selector);
         rewardsNotifier.setStakingRewardsV2(address(0));
     }

@@ -89,6 +89,11 @@ async function main() {
         "StakingRewardsNotifier: stakingRewardsV2 address set to: ",
         await rewardsNotifier.stakingRewardsV2()
     );
+
+    // Give up rewards notifier ownership now that StakingRewardsV2 is set
+    await rewardsNotifier.renounceOwnership();
+    console.log("Renounced StakingRewardsNotifier ownership");
+
     console.log("✅ Setters set!");
 
     // ========== MIGRATION ========== */

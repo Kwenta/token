@@ -191,6 +191,13 @@ contract Migrate {
             );
         }
 
+        // Give up rewards notifier ownership now that StakingRewardsV2 is set
+        rewardsNotifier.renounceOwnership();
+
+        if (_printLogs) {
+            console.log("Renounced StakingRewardsNotifier ownership");
+        }
+
         if (_printLogs) console.log(unicode"--------- 🔧 SETUP COMPLETE 🔧 ---------");
     }
 

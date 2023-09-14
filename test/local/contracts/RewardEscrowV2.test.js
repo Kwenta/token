@@ -228,6 +228,14 @@ contract("RewardEscrowV2 KWENTA", ([owner, staker1, staker2, treasuryDAO]) => {
             from: owner,
         });
 
+        await rewardsNotifier.setStakingRewardsV2(stakingRewardsV2.address, {
+            from: owner,
+        });
+
+        await rewardsNotifier.renounceOwnership({
+            from: owner,
+        });
+
         await rewardEscrowV1.setTreasuryDAO(escrowMigrator.address, {
             from: owner,
         });
