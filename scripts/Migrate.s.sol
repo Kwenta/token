@@ -348,7 +348,6 @@ contract DeployAndSetupOptimism is Script, Migrate {
         rewardEscrowV2.transferOwnership(OPTIMISM_PDAO);
         stakingRewardsV2.transferOwnership(OPTIMISM_PDAO);
         escrowMigrator.transferOwnership(OPTIMISM_PDAO);
-        rewardsNotifier.transferOwnership(OPTIMISM_PDAO);
 
         vm.stopBroadcast();
     }
@@ -399,7 +398,6 @@ contract DeployAndSetupOptimismGoerli is Script, Migrate {
         rewardEscrowV2.transferOwnership(OPTIMISM_GOERLI_TREASURY_DAO);
         stakingRewardsV2.transferOwnership(OPTIMISM_GOERLI_TREASURY_DAO);
         escrowMigrator.transferOwnership(OPTIMISM_GOERLI_TREASURY_DAO);
-        rewardsNotifier.transferOwnership(OPTIMISM_GOERLI_TREASURY_DAO);
 
         vm.stopBroadcast();
     }
