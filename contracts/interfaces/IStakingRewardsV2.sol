@@ -13,6 +13,8 @@ interface IStakingRewardsV2 {
         // The block number when the value was generated
         uint64 blk;
         // The value of the checkpoint
+        /// @dev will not overflow unless it value reaches 340 quintillion
+        /// This number should be impossible to reach with the total supply of $KWENTA
         uint128 value;
     }
 
