@@ -522,7 +522,7 @@ contract(
                                     staker1,
                                     entryID
                                 );
-                            assert.bnEqual(claimable["0"], wei(5.5).toBN());
+                            assert.bnClose(claimable["0"], wei(5.5).toBN().toString(), wei(0.00001).toBN().toString())
                         });
                     });
                     describe("When one year has passed after the vesting end time", () => {

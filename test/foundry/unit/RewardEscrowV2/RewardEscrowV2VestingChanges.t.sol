@@ -17,7 +17,7 @@ contract RewardEscrowV2VestingChangesTests is DefaultStakingV2Setup {
 
     function test_Default_Early_Vest_Fee_Is_90_Percent() public {
         appendRewardEscrowEntryV2(user1, 1 ether);
-        (,,, uint8 earlyVestingFee) = rewardEscrowV2.getVestingEntry(1);
+        (,,, uint256 earlyVestingFee) = rewardEscrowV2.getVestingEntry(1);
 
         assertEq(rewardEscrowV2.DEFAULT_EARLY_VESTING_FEE(), 90);
         assertEq(earlyVestingFee, rewardEscrowV2.DEFAULT_EARLY_VESTING_FEE());
@@ -27,7 +27,7 @@ contract RewardEscrowV2VestingChangesTests is DefaultStakingV2Setup {
         vm.assume(escrowAmount > 0);
 
         appendRewardEscrowEntryV2(user1, escrowAmount);
-        (,,, uint8 earlyVestingFee) = rewardEscrowV2.getVestingEntry(1);
+        (,,, uint256 earlyVestingFee) = rewardEscrowV2.getVestingEntry(1);
 
         assertEq(rewardEscrowV2.DEFAULT_EARLY_VESTING_FEE(), 90);
         assertEq(earlyVestingFee, rewardEscrowV2.DEFAULT_EARLY_VESTING_FEE());
@@ -37,7 +37,7 @@ contract RewardEscrowV2VestingChangesTests is DefaultStakingV2Setup {
         uint8 earlyVestingFee = 50;
 
         createRewardEscrowEntryV2(user1, 1 ether, 52 weeks, earlyVestingFee);
-        (,,, uint8 earlyVestingFeeAfter) = rewardEscrowV2.getVestingEntry(1);
+        (,,, uint256 earlyVestingFeeAfter) = rewardEscrowV2.getVestingEntry(1);
 
         assertEq(earlyVestingFeeAfter, earlyVestingFee);
     }
@@ -48,12 +48,12 @@ contract RewardEscrowV2VestingChangesTests is DefaultStakingV2Setup {
         uint8 earlyVestingFee
     ) public {
         vm.assume(escrowAmount > 0);
-        vm.assume(duration > 0);
+        vm.assume(duration >= stakingRewardsV2.cooldownPeriod());
         vm.assume(earlyVestingFee <= 100);
         vm.assume(earlyVestingFee > rewardEscrowV2.MINIMUM_EARLY_VESTING_FEE());
 
         createRewardEscrowEntryV2(user1, escrowAmount, duration, earlyVestingFee);
-        (,,, uint8 earlyVestingFeeAfter) = rewardEscrowV2.getVestingEntry(1);
+        (,,, uint256 earlyVestingFeeAfter) = rewardEscrowV2.getVestingEntry(1);
 
         assertEq(earlyVestingFeeAfter, earlyVestingFee);
     }
@@ -116,7 +116,7 @@ contract RewardEscrowV2VestingChangesTests is DefaultStakingV2Setup {
         uint8 earlyVestingFee = _earlyVestingFee;
 
         vm.assume(escrowAmount > 0);
-        vm.assume(duration > 0);
+        vm.assume(duration >= stakingRewardsV2.cooldownPeriod());
         vm.assume(earlyVestingFee <= 100);
         vm.assume(earlyVestingFee > rewardEscrowV2.MINIMUM_EARLY_VESTING_FEE());
 
@@ -135,7 +135,7 @@ contract RewardEscrowV2VestingChangesTests is DefaultStakingV2Setup {
         assertEq(balanceAfter, balanceBefore + amountVestedAfterFee);
     }
 
-    function test_Fees_Are_Correctly_Distributed_At_Max_Early_Vesting_Fee() public {
+    function test_Fees_Are_Correctly_Distributed_At_Max_Early_Vesting_Fee_With_Distributor() public {
         uint256 escrowAmount = 1 ether;
         uint256 duration = 52 weeks;
         uint8 earlyVestingFee = 100;
@@ -154,7 +154,9 @@ contract RewardEscrowV2VestingChangesTests is DefaultStakingV2Setup {
         uint256 balanceAfter = kwenta.balanceOf(user1);
         assertEq(balanceAfter, userBalanceBefore);
         uint256 treasuryBalanceAfter = kwenta.balanceOf(treasury);
-        assertEq(treasuryBalanceAfter, treasuryBalanceBefore + escrowAmount);
+        assertEq(treasuryBalanceAfter, treasuryBalanceBefore + escrowAmount * 50 / 100);
+        uint256 earlyVestFeeDistributorBalanceAfter = kwenta.balanceOf(address(rewardsNotifier));
+        assertEq(earlyVestFeeDistributorBalanceAfter, escrowAmount * 50 / 100);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -199,7 +201,7 @@ contract RewardEscrowV2VestingChangesTests is DefaultStakingV2Setup {
         vm.assume(escrowAmount > 0);
         vm.assume(stakingAmount > 0);
         vm.assume(stakingAmount <= escrowAmount);
-        vm.assume(duration > 0);
+        vm.assume(duration >= stakingRewardsV2.cooldownPeriod());
         vm.assume(earlyVestingFee <= 100);
         vm.assume(earlyVestingFee > rewardEscrowV2.MINIMUM_EARLY_VESTING_FEE());
 

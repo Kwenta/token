@@ -9,11 +9,13 @@ interface IStakingRewardsV2 {
     /// @notice A checkpoint for tracking values at a given timestamp
     struct Checkpoint {
         // The timestamp when the value was generated
-        uint256 ts;
+        uint64 ts;
         // The block number when the value was generated
-        uint256 blk;
+        uint64 blk;
         // The value of the checkpoint
-        uint256 value;
+        /// @dev will not overflow unless it value reaches 340 quintillion
+        /// This number should be impossible to reach with the total supply of $KWENTA
+        uint128 value;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -35,10 +37,6 @@ interface IStakingRewardsV2 {
     /// @return total amount of tokens that are being staked
     function totalSupply() external view returns (uint256);
 
-    /// @notice Getter function for the total number of v1 staked tokens
-    /// @return amount of tokens staked in v1
-    function v1TotalSupply() external view returns (uint256);
-
     // staking state
 
     /// @notice Returns the total number of staked tokens for a user
@@ -46,11 +44,6 @@ interface IStakingRewardsV2 {
     /// @param _account: address of potential staker
     /// @return amount of tokens staked by account
     function balanceOf(address _account) external view returns (uint256);
-
-    /// @notice Getter function for the number of v1 staked tokens
-    /// @param _account address to check the tokens staked
-    /// @return amount of tokens staked
-    function v1BalanceOf(address _account) external view returns (uint256);
 
     /// @notice Getter function for number of staked escrow tokens
     /// @param _account address to check the escrowed tokens staked
@@ -66,6 +59,9 @@ interface IStakingRewardsV2 {
     /// @param _account: address to check
     /// @return amount of tokens escrowed but not staked
     function unstakedEscrowedBalanceOf(address _account) external view returns (uint256);
+
+    /// @notice the period of time a user has to wait after staking to unstake
+    function cooldownPeriod() external view returns (uint256);
 
     // rewards
 
@@ -106,13 +102,17 @@ interface IStakingRewardsV2 {
     /// @param _account: address of account to check
     /// @param _timestamp: timestamp to check
     /// @return balance at given timestamp
+    /// @dev if called with a timestamp that equals the current block timestamp, then the function might return inconsistent
+    /// values as further transactions changing the balances can still occur within the same block. 
     function balanceAtTime(address _account, uint256 _timestamp) external view returns (uint256);
 
     /// @notice get a users escrowed balance at a given timestamp
     /// @param _account: address of account to check
     /// @param _timestamp: timestamp to check
     /// @return escrowed balance at given timestamp
-    function escrowedbalanceAtTime(address _account, uint256 _timestamp)
+    /// @dev if called with a timestamp that equals the current block timestamp, then the function might return inconsistent
+    /// values as further transactions changing the balances can still occur within the same block. 
+    function escrowedBalanceAtTime(address _account, uint256 _timestamp)
         external
         view
         returns (uint256);
@@ -120,6 +120,8 @@ interface IStakingRewardsV2 {
     /// @notice get the total supply at a given timestamp
     /// @param _timestamp: timestamp to check
     /// @return total supply at given timestamp
+    /// @dev if called with a timestamp that equals the current block timestamp, then the function might return inconsistent
+    /// values as further transactions changing the balances can still occur within the same block. 
     function totalSupplyAtTime(uint256 _timestamp) external view returns (uint256);
 
     /*//////////////////////////////////////////////////////////////
@@ -166,23 +168,6 @@ interface IStakingRewardsV2 {
 
     /// @notice claim rewards for an account and stake them
     function compound() external;
-
-    // claim integrator rewards
-
-    /// @notice claim rewards for an integrator contract
-    /// Note: the funds will be sent to the msg.sender
-    /// @param _integrator: address of integrator contract to claim rewards for
-    function getIntegratorReward(address _integrator) external;
-
-    /// @notice claim rewards for an integrator contract and msg.sender
-    /// Note: the funds will be sent to the msg.sender
-    /// @param _integrator: address of integrator contract to claim rewards for
-    function getIntegratorAndSenderReward(address _integrator) external;
-
-    /// @notice claim rewards for an integrator contract and compound them
-    /// Note: the funds will be sent to the msg.sender
-    /// @param _integrator: address of integrator contract to claim rewards for
-    function getIntegratorRewardAndCompound(address _integrator) external;
 
     // delegation
 
@@ -295,8 +280,8 @@ interface IStakingRewardsV2 {
     /// @notice error someone other than reward escrow calls an onlyRewardEscrow function
     error OnlyRewardEscrow();
 
-    /// @notice error someone other than the supply schedule calls an onlySupplySchedule function
-    error OnlySupplySchedule();
+    /// @notice error someone other than the rewards notifier calls an onlyRewardsNotifier function
+    error OnlyRewardsNotifier();
 
     /// @notice cannot set this value to the zero address
     error ZeroAddress();

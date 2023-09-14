@@ -5,7 +5,9 @@ import {console} from "forge-std/Test.sol";
 import {Migrate} from "../../../../scripts/Migrate.s.sol";
 import {StakingV1Setup} from "../../utils/setup/StakingV1Setup.t.sol";
 import {RewardEscrowV2} from "../../../../contracts/RewardEscrowV2.sol";
+import {EscrowMigrator} from "../../../../contracts/EscrowMigrator.sol";
 import {StakingRewardsV2} from "../../../../contracts/StakingRewardsV2.sol";
+import {StakingRewardsNotifier} from "../../../../contracts/StakingRewardsNotifier.sol";
 import {IRewardEscrowV2} from "../../../../contracts/interfaces/IRewardEscrowV2.sol";
 import "../../utils/Constants.t.sol";
 
@@ -26,21 +28,26 @@ contract StakingV2Setup is StakingV1Setup {
         uint256 value,
         uint256 duration,
         uint256 entryID,
-        uint8 earlyVestingFee
+        uint256 earlyVestingFee
     );
     event TreasuryDAOSet(address treasuryDAO);
     event StakingRewardsSet(address stakingRewards);
+    event EarlyVestFeeSent(uint256 amountToTreasury, uint256 amountToNotifier);
+    event EscrowMigratorSet(address escrowMigrator);
 
     /*//////////////////////////////////////////////////////////////
                                 State
     //////////////////////////////////////////////////////////////*/
 
-    RewardEscrowV2 public rewardEscrowV2;
-    StakingRewardsV2 public stakingRewardsV2;
-    Migrate public migrate;
+    RewardEscrowV2 internal rewardEscrowV2;
+    StakingRewardsV2 internal stakingRewardsV2;
+    EscrowMigrator internal escrowMigrator;
+    StakingRewardsNotifier internal rewardsNotifier;
+    Migrate internal migrate;
 
     address rewardEscrowV2Implementation;
     address stakingRewardsV2Implementation;
+    address escrowMigratorImplementation;
 
     /*//////////////////////////////////////////////////////////////
                                 Setup
@@ -58,7 +65,8 @@ contract StakingV2Setup is StakingV1Setup {
                 address(this),
                 address(kwenta),
                 address(supplySchedule),
-                address(stakingRewardsV1),
+                address(rewardEscrowV1),
+                treasury,
                 false
             )
         );
@@ -66,9 +74,23 @@ contract StakingV2Setup is StakingV1Setup {
         (
             rewardEscrowV2,
             stakingRewardsV2,
+            escrowMigrator,
+            rewardsNotifier,
             rewardEscrowV2Implementation,
-            stakingRewardsV2Implementation
-        ) = abi.decode(deploymentData, (RewardEscrowV2, StakingRewardsV2, address, address));
+            stakingRewardsV2Implementation,
+            escrowMigratorImplementation
+        ) = abi.decode(
+            deploymentData,
+            (
+                RewardEscrowV2,
+                StakingRewardsV2,
+                EscrowMigrator,
+                StakingRewardsNotifier,
+                address,
+                address,
+                address
+            )
+        );
 
         // check staking rewards cannot be set to 0
         vm.expectRevert(IRewardEscrowV2.ZeroAddress.selector);
@@ -79,14 +101,27 @@ contract StakingV2Setup is StakingV1Setup {
         vm.expectRevert("Ownable: caller is not the owner");
         rewardEscrowV2.setStakingRewards(address(stakingRewardsV2));
 
+        // check escrow migrator cannot be set to 0
+        vm.expectRevert(IRewardEscrowV2.ZeroAddress.selector);
+        rewardEscrowV2.setEscrowMigrator(address(0));
+
+        // check escrow migrator can only be set by owner
+        vm.prank(user1);
+        vm.expectRevert("Ownable: caller is not the owner");
+        rewardEscrowV2.setEscrowMigrator(address(escrowMigrator));
+
         // Setup StakingV2
         vm.expectEmit(true, true, true, true);
         emit StakingRewardsSet(address(stakingRewardsV2));
+        vm.expectEmit(true, true, true, true);
+        emit EscrowMigratorSet(address(escrowMigrator));
         (bool setupSuccess,) = address(migrate).delegatecall(
             abi.encodeWithSelector(
                 migrate.setupSystem.selector,
                 address(rewardEscrowV2),
                 address(stakingRewardsV2),
+                address(escrowMigrator),
+                address(rewardsNotifier),
                 address(treasury),
                 false
             )
@@ -98,13 +133,15 @@ contract StakingV2Setup is StakingV1Setup {
                             Migration Helpers
     //////////////////////////////////////////////////////////////*/
 
-    function switchToStakingV2() public {
+    function switchToStakingV2() internal {
         // Update SupplySchedule to point to StakingV2
         (bool migrationSuccess,) = address(migrate).delegatecall(
             abi.encodeWithSelector(
                 migrate.migrateSystem.selector,
                 address(supplySchedule),
-                address(stakingRewardsV2),
+                address(rewardEscrowV1),
+                address(rewardsNotifier),
+                address(escrowMigrator),
                 false
             )
         );

@@ -22,7 +22,7 @@ contract StakingRewardsV2CompoundTests is DefaultStakingV2Setup {
         addNewRewardsToStakingRewardsV2(TEST_VALUE);
 
         // fast forward 2 weeks
-        vm.warp(2 weeks);
+        vm.warp(block.timestamp + 2 weeks);
 
         // compound rewards
         stakingRewardsV2.compound();
@@ -54,7 +54,7 @@ contract StakingRewardsV2CompoundTests is DefaultStakingV2Setup {
         addNewRewardsToStakingRewardsV2(newRewards);
 
         // fast forward 2 weeks
-        vm.warp(2 weeks);
+        vm.warp(block.timestamp + 2 weeks);
 
         // compound rewards
         stakingRewardsV2.compound();
@@ -84,7 +84,7 @@ contract StakingRewardsV2CompoundTests is DefaultStakingV2Setup {
         addNewRewardsToStakingRewardsV2(TEST_VALUE);
 
         // fast forward 2 weeks
-        vm.warp(2 weeks);
+        vm.warp(block.timestamp + 2 weeks);
 
         // compound rewards from another account
         vm.expectRevert(IStakingRewardsV2.AmountZero.selector);
@@ -106,7 +106,7 @@ contract StakingRewardsV2CompoundTests is DefaultStakingV2Setup {
         addNewRewardsToStakingRewardsV2(1 weeks);
 
         // fast forward 2 weeks
-        vm.warp(2 weeks);
+        vm.warp(block.timestamp + 2 weeks);
 
         // expect events
         vm.expectEmit(true, true, false, true);
