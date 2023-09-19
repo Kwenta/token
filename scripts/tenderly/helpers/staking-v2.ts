@@ -51,7 +51,6 @@ export const createV1EscrowEntries = async ({
     numToCreate: number;
     recipientAddress: string;
 }) => {
-    // give deployer NUM_ENTRIES escrow entries
     await sendTransaction({
         contractName: "Kwenta",
         contractAddress: OPTIMISM_KWENTA_TOKEN,
