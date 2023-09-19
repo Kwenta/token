@@ -1,0 +1,19 @@
+import { ethers } from "hardhat";
+
+export const OPTIMISM_KWENTA_TOKEN =
+    "0x920Cf626a271321C151D027030D5d08aF699456b";
+export const OPTIMISM_PDAO = "0xe826d43961a87fBE71C91d9B73F7ef9b16721C07";
+export const OPTIMISM_STAKING_REWARDS_V1 =
+    "0x6e56A5D49F775BA08041e28030bc7826b13489e0";
+export const OPTIMISM_REWARD_ESCROW_V1 =
+    "0x1066A8eB3d90Af0Ad3F89839b974658577e75BE2";
+export const OPTIMISM_SUPPLY_SCHEDULE =
+    "0x3e8b82326Ff5f2f10da8CEa117bD44343ccb9c26";
+export const OPTIMISM_TREASURY_DAO =
+    "0x82d2242257115351899894eF384f779b5ba8c695";
+export const STAKING_V1_USER = "0x2f31e5e4e0EDfE3f42B910aC7cD5ab25dd130114";
+export const YEAR_IN_WEEKS = 60 * 60 * 24 * 7 * 52;
+
+export const provider = new ethers.providers.JsonRpcProvider(
+    process.env.TENDERLY_FORK_URL
+);
