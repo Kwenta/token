@@ -10,7 +10,7 @@ import { createV1EscrowEntries } from "./helpers/staking-v2";
  ************************************************/
 
 async function main() {
-    const numToCreate = 10;
+    const numToCreate = 5;
     const recipientAddress = "0x8E2f228c0322F872efAF253eF25d7F5A78d5851D";
 
     await createV1EscrowEntries({
