@@ -53,15 +53,17 @@ Staking was upgraded to V2 on the 11th of July 2023. This introduces changes des
 - [KIP-62: transferable escrow entries](https://github.com/Kwenta/kwenta-state-log/blob/master/kips/kip-062.md)
 - [KIP-77: upgradeable staking contracts](https://github.com/Kwenta/kwenta-state-log/blob/master/kips/kip-077.md)
 - [KIP-86: support for staking integrators](https://github.com/Kwenta/kwenta-state-log/blob/master/kips/kip-086.md)
-
-Intended to be added in future upgrades:
 - [KIP-75: 50% of early vest fees distributed to stakers](https://github.com/Kwenta/kwenta-state-log/blob/master/kips/kip-075.md)
 
-Two main new contracts were deployed:
+Three main new contracts were deployed:
 - `RewardEscrowV2.sol`
 - `StakingRewardsV2.sol`
+- `EscrowMigrator.sol`
 
-Both of these contracts are upgradeable following the UUPS standard.
+All of these contracts are upgradeable following the UUPS standard.
+
+Also the following simple non-upgradeable contract was added to help enact `KIP-75`:
+- `StakingRewardsNotifier.sol`
 
 ## Testing
 
