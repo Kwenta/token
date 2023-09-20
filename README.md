@@ -62,6 +62,8 @@ Three main new contracts were deployed:
 
 All of these contracts are upgradeable following the UUPS standard.
 
+The `EscrowMigrator` was developed to allow for the migration of escrow entries from the old `RewardEscrow` to the new `RewardEscrowV2`. You can read in detail about that migration process [here](https://github.com/tommyrharper/shared-notes/blob/main/stakingv2/migration-v2/migration-v2.md).
+
 Also the following simple non-upgradeable contract was added to help enact `KIP-75`:
 - `StakingRewardsNotifier.sol`
 
@@ -115,6 +117,8 @@ You can also follow the pattern in [`deploy-stakingv2-tenderly.ts`](./scripts/de
 Or another example of a tenderly script is [`get-tenderly-time.ts`](./scripts/get-tenderly-time.ts).
 
 ## Deployments
+
+Note: for contracts with both an implementation and proxy, when interaction with the contract is required, the proxy address should be used.
 
 | Contract                        | Address                                                                                                                            |
 | ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
