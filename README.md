@@ -141,6 +141,14 @@ Note: for contracts with both an implementation and proxy, when interaction with
 | vKWENTA                         | [`0x6789D8a7a7871923Fc6430432A602879eCB6520a`](https://optimistic.etherscan.io/token/0x6789d8a7a7871923fc6430432a602879ecb6520a)   |
 | vKWENTARedeemer                 | [`0x8132EE584bCD6f8Eb1bea141DB7a7AC1E72917b9`](https://optimistic.etherscan.io/address/0x8132EE584bCD6f8Eb1bea141DB7a7AC1E72917b9) |
 
+## Staking V2 Audits
+
+- [Final Audit Report By Guhu](https://gist.github.com/guhu95/3330fad8e6417b567a3787f86392ae32)
+
+Other audit reports to add:
+- Final Audit Report by Macro
+- Final Audit Report by Omniscia
+
 ---
 
 > ok I need KWENTA TOKEN TO GO LIVE. like VERY SOON. I cant take this anymore. every day I am checking discord and still no token. every day, check discord, no token. I cant take this anymore, I have under invested, by a lot. it is what it is. but I need the token to GO LIVE ALREADY. can devs DO SOMETHING??
