@@ -41,7 +41,7 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
 
     function test_Cannot_Steal_Other_Users_Entries_Fuzz(uint32 amount, uint24 duration) public {
         vm.assume(amount > 0);
-        vm.assume(duration > 0);
+        vm.assume(duration >= stakingRewardsV2.cooldownPeriod());
 
         // create the escrow entry
         createRewardEscrowEntryV2(user1, amount, duration);
@@ -61,7 +61,7 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
         uint24 duration
     ) public {
         vm.assume(amount > 0);
-        vm.assume(duration > 0);
+        vm.assume(duration >= stakingRewardsV2.cooldownPeriod());
 
         // create the escrow entry
         createRewardEscrowEntryV2(user1, amount, duration);
@@ -95,7 +95,7 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
         public
     {
         vm.assume(amount > 0);
-        vm.assume(duration > 0);
+        vm.assume(duration >= stakingRewardsV2.cooldownPeriod());
 
         // create the escrow entry
         createRewardEscrowEntryV2(user1, amount, duration);
@@ -108,6 +108,37 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
         uint256 user1EntryID = rewardEscrowV2.getAccountVestingEntryIDs(user1, 0, 1)[0];
         vm.expectRevert("ERC721: caller is not token owner or approved");
         entryIDs.push(user1EntryID);
+        rewardEscrowV2.bulkTransferFrom(user1, user2, entryIDs);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                              PAUSABILLITY
+    //////////////////////////////////////////////////////////////*/
+
+    function test_Cannot_Transfer_When_Paused() public {
+        // create the escrow entry
+        createRewardEscrowEntryV2(user1, 1 ether);
+
+        rewardEscrowV2.pauseRewardEscrow();
+
+        vm.prank(user1);
+        vm.expectRevert("Pausable: paused");
+        rewardEscrowV2.transferFrom(user1, user2, 1);
+        vm.prank(user1);
+        vm.expectRevert("Pausable: paused");
+        rewardEscrowV2.safeTransferFrom(user1, user2, 1);
+    }
+
+    function test_Cannot_Bulk_Transfer_When_Paused() public {
+        // create the escrow entry
+        createRewardEscrowEntryV2(user1, 1 ether);
+
+        rewardEscrowV2.pauseRewardEscrow();
+
+        entryIDs.push(1);
+
+        vm.prank(user1);
+        vm.expectRevert("Pausable: paused");
         rewardEscrowV2.bulkTransferFrom(user1, user2, entryIDs);
     }
 
@@ -130,10 +161,10 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
         uint256 escrowAmount = 1 ether;
         (
             uint256 user1EntryID,
-            uint64 initialEndTime,
+            uint256 initialEndTime,
             uint256 initialEscrowAmount,
             uint256 initialDuration,
-            uint8 initialEarlyVestingFee
+            uint256 initialEarlyVestingFee
         ) = setupAndGetInitialValues(user1, user2, escrowAmount, 52 weeks);
 
         transferEscrow(user1, user2, user1EntryID);
@@ -154,10 +185,10 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
         uint256 escrowAmount = 1 ether;
         (
             uint256 user1EntryID,
-            uint64 initialEndTime,
+            uint256 initialEndTime,
             uint256 initialEscrowAmount,
             uint256 initialDuration,
-            uint8 initialEarlyVestingFee
+            uint256 initialEarlyVestingFee
         ) = setupAndGetInitialValues(user1, user2, escrowAmount, 52 weeks);
 
         vm.prank(user1);
@@ -181,10 +212,10 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
         uint256 escrowAmount = 1 ether;
         (
             uint256 user1EntryID,
-            uint64 initialEndTime,
+            uint256 initialEndTime,
             uint256 initialEscrowAmount,
             uint256 initialDuration,
-            uint8 initialEarlyVestingFee
+            uint256 initialEarlyVestingFee
         ) = setupAndGetInitialValues(user1, user2, escrowAmount, 52 weeks);
 
         vm.prank(user1);
@@ -210,7 +241,7 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
         uint8 numberOfEntries
     ) public {
         vm.assume(escrowAmount > 0);
-        vm.assume(duration > 0);
+        vm.assume(duration >= stakingRewardsV2.cooldownPeriod());
         vm.assume(numberOfEntries > 0);
 
         (uint256 totalEscrowedAmount, uint256 user1EntryID) =
@@ -254,7 +285,7 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
     ) public {
         vm.assume(escrowAmount > 0);
         vm.assume(stakedAmount > 0);
-        vm.assume(duration > 0);
+        vm.assume(duration >= stakingRewardsV2.cooldownPeriod());
         vm.assume(escrowAmount >= stakedAmount);
 
         // create the escrow entry
@@ -282,10 +313,10 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
         uint256 escrowAmount = 1 ether;
         (
             uint256 user1EntryID,
-            uint64 initialEndTime,
+            uint256 initialEndTime,
             uint256 initialEscrowAmount,
             uint256 initialDuration,
-            uint8 initialEarlyVestingFee
+            uint256 initialEarlyVestingFee
         ) = setupAndGetInitialValues(user1, user2, escrowAmount, 52 weeks);
 
         transferEscrow(user1, user1, user1EntryID);
@@ -322,10 +353,10 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
         uint256 escrowAmount = 1 ether;
         (
             uint256 user1EntryID,
-            uint64 initialEndTime,
+            uint256 initialEndTime,
             uint256 initialEscrowAmount,
             uint256 initialDuration,
-            uint8 initialEarlyVestingFee
+            uint256 initialEarlyVestingFee
         ) = setupAndGetInitialValues(user1, user2, escrowAmount, 52 weeks);
 
         safeTransferEscrow(user1, user2, user1EntryID);
@@ -348,7 +379,7 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
         uint8 numberOfEntries
     ) public {
         vm.assume(escrowAmount > 0);
-        vm.assume(duration > 0);
+        vm.assume(duration >= stakingRewardsV2.cooldownPeriod());
         vm.assume(numberOfEntries > 0);
 
         (uint256 totalEscrowedAmount, uint256 user1EntryID) =
@@ -392,7 +423,7 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
     ) public {
         vm.assume(escrowAmount > 0);
         vm.assume(stakedAmount > 0);
-        vm.assume(duration > 0);
+        vm.assume(duration >= stakingRewardsV2.cooldownPeriod());
         vm.assume(escrowAmount >= stakedAmount);
 
         // create the escrow entry
@@ -420,10 +451,10 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
         uint256 escrowAmount = 1 ether;
         (
             uint256 user1EntryID,
-            uint64 initialEndTime,
+            uint256 initialEndTime,
             uint256 initialEscrowAmount,
             uint256 initialDuration,
-            uint8 initialEarlyVestingFee
+            uint256 initialEarlyVestingFee
         ) = setupAndGetInitialValues(user1, user2, escrowAmount, 52 weeks);
 
         safeTransferEscrow(user1, user1, user1EntryID);
@@ -460,10 +491,10 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
         uint256 escrowAmount = 1 ether;
         (
             uint256 user1EntryID,
-            uint64 initialEndTime,
+            uint256 initialEndTime,
             uint256 initialEscrowAmount,
             uint256 initialDuration,
-            uint8 initialEarlyVestingFee
+            uint256 initialEarlyVestingFee
         ) = setupAndGetInitialValues(user1, user2, escrowAmount, 52 weeks);
 
         // transfer vesting entry from user1 to user2
@@ -489,7 +520,7 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
         uint8 numberOfEntries
     ) public {
         vm.assume(escrowAmount > 0);
-        vm.assume(duration > 0);
+        vm.assume(duration >= stakingRewardsV2.cooldownPeriod());
         vm.assume(numberOfEntries > 0);
 
         uint256 startingEntryToTransferIndex =
@@ -551,7 +582,7 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
         uint8 numberOfEntries
     ) public {
         vm.assume(escrowAmount > 0);
-        vm.assume(duration > 0);
+        vm.assume(duration >= stakingRewardsV2.cooldownPeriod());
         vm.assume(numberOfEntries > 0);
 
         // create the escrow entry
@@ -642,7 +673,7 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
 
         vm.assume(escrowAmount > 0);
         vm.assume(stakedAmount > 0);
-        vm.assume(duration > 0);
+        vm.assume(duration >= stakingRewardsV2.cooldownPeriod());
         vm.assume(numberOfEntries > 0);
         vm.assume(escrowAmount * numberOfEntries >= stakedAmount);
 
@@ -715,7 +746,7 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
         uint8 numberOfEntries
     ) public {
         vm.assume(escrowAmount > 0);
-        vm.assume(duration > 0);
+        vm.assume(duration >= stakingRewardsV2.cooldownPeriod());
         vm.assume(numberOfEntries > 0);
 
         // create the escrow entries
@@ -752,7 +783,7 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
         uint8 numberOfEntries
     ) public {
         vm.assume(escrowAmount > 0);
-        vm.assume(duration > 0);
+        vm.assume(duration >= stakingRewardsV2.cooldownPeriod());
         vm.assume(numberOfEntries > 0);
 
         // create the escrow entries
@@ -783,10 +814,10 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
         internal
         returns (
             uint256 account1EntryID,
-            uint64 initialEndTime,
+            uint256 initialEndTime,
             uint256 initialEscrowAmount,
             uint256 initialDuration,
-            uint8 initialEarlyVestingFee
+            uint256 initialEarlyVestingFee
         )
     {
         // create the escrow entry
@@ -838,10 +869,10 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
         address account2,
         uint256 escrowAmount,
         uint256 account1EntryID,
-        uint64 initialEndTime,
+        uint256 initialEndTime,
         uint256 initialEscrowAmount,
         uint256 initialDuration,
-        uint8 initialEarlyVestingFee
+        uint256 initialEarlyVestingFee
     ) internal {
         // assert that the entry has been passed over to account2
         assertEq(rewardEscrowV2.balanceOf(account1), 0);
@@ -857,10 +888,10 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
 
         // check vestingSchedules updated
         (
-            uint64 finalEndTime,
+            uint256 finalEndTime,
             uint256 finalEscrowAmount,
             uint256 finalDuration,
-            uint8 finalEarlyVestingFee
+            uint256 finalEarlyVestingFee
         ) = rewardEscrowV2.getVestingEntry(account2EntryID);
 
         assertEq(finalEndTime, initialEndTime);
@@ -885,10 +916,10 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
         address account1,
         uint256 escrowAmount,
         uint256 account1EntryID,
-        uint64 initialEndTime,
+        uint256 initialEndTime,
         uint256 initialEscrowAmount,
         uint256 initialDuration,
-        uint8 initialEarlyVestingFee
+        uint256 initialEarlyVestingFee
     ) internal {
         // assert that the entry is still owned by user1
         assertEq(rewardEscrowV2.balanceOf(account1), 1);
@@ -902,10 +933,10 @@ contract RewardEscrowV2TransferabilityTests is DefaultStakingV2Setup {
 
         // check vestingSchedules unchanged
         (
-            uint64 finalEndTime,
+            uint256 finalEndTime,
             uint256 finalEscrowAmount,
             uint256 finalDuration,
-            uint8 finalEarlyVestingFee
+            uint256 finalEarlyVestingFee
         ) = rewardEscrowV2.getVestingEntry(account1EntryID);
 
         assertEq(finalEndTime, initialEndTime);

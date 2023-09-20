@@ -13,9 +13,17 @@ interface IRewardEscrowV2 {
         // The length of time until the entry is fully matured
         uint256 duration;
         // The time at which the entry will be fully matured
-        uint64 endTime;
+        uint256 endTime;
         // The percentage fee for vesting immediately
         // The actual penalty decreases linearly with time until it reaches 0 at block.timestamp=endTime
+        uint256 earlyVestingFee;
+    }
+
+    /// @notice The same as VestingEntry but packed to fit in a single slot
+    struct VestingEntryPacked {
+        uint144 escrowAmount;
+        uint40 duration;
+        uint64 endTime;
         uint8 earlyVestingFee;
     }
 
@@ -26,7 +34,7 @@ interface IRewardEscrowV2 {
         // The unique ID of this escrow entry NFT
         uint256 entryID;
         // The time at which the entry will be fully matured
-        uint64 endTime;
+        uint256 endTime;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -47,6 +55,10 @@ interface IRewardEscrowV2 {
     /// @dev This function can only be called once
     function setStakingRewards(address _stakingRewards) external;
 
+    /// @notice Function used to define the EscrowMigrator contract address to use
+    /// @param _escrowMigrator The address of the EscrowMigrator contract
+    function setEscrowMigrator(address _escrowMigrator) external;
+
     /// @notice Function used to define the TreasuryDAO address to use
     /// @param _treasuryDAO The address of the TreasuryDAO
     /// @dev This function can only be called multiple times
@@ -55,6 +67,20 @@ interface IRewardEscrowV2 {
     /*///////////////////////////////////////////////////////////////
                                 VIEWS
     ///////////////////////////////////////////////////////////////*/
+
+    /// @notice Minimum early vesting fee
+    /// @dev this must be high enought to prevent governance attacks where the user
+    /// can set the early vesting fee to a very low number, stake, vote, then withdraw
+    /// via vesting which avoids the unstaking cooldown
+    function MINIMUM_EARLY_VESTING_FEE() external view returns (uint256);
+
+    /// @notice Default early vesting fee
+    /// @dev This is the default fee applied for early vesting
+    function DEFAULT_EARLY_VESTING_FEE() external view returns (uint256);
+
+    /// @notice Default escrow duration
+    /// @dev This is the default duration for escrow
+    function DEFAULT_DURATION() external view returns (uint256);
 
     /// @notice helper function to return kwenta address
     function getKwentaAddress() external view returns (address);
@@ -74,7 +100,7 @@ interface IRewardEscrowV2 {
     function getVestingEntry(uint256 _entryID)
         external
         view
-        returns (uint64, uint256, uint256, uint8);
+        returns (uint256, uint256, uint256, uint256);
 
     /// @notice Get the vesting entries for a given account
     /// @param _account The account to get the vesting entries for
@@ -119,6 +145,11 @@ interface IRewardEscrowV2 {
     /// @param _entryIDs The ids of the vesting entries to vest
     function vest(uint256[] calldata _entryIDs) external;
 
+    /// @notice Utilized by the escrow migrator contract to transfer V1 escrow
+    /// @param _account The account to import the escrow entry to
+    /// @param entryToImport The vesting entry to import
+    function importEscrowEntry(address _account, VestingEntry memory entryToImport) external;
+
     /// @notice Create an escrow entry to lock KWENTA for a given duration in seconds
     /// @param _beneficiary The account that will be able to withdraw the escrowed amount
     /// @param _deposit The amount of KWENTA to escrow
@@ -131,7 +162,7 @@ interface IRewardEscrowV2 {
         address _beneficiary,
         uint256 _deposit,
         uint256 _duration,
-        uint8 _earlyVestingFee
+        uint256 _earlyVestingFee
     ) external;
 
     /// @notice Add a new vesting entry at a given time and quantity to an account's schedule.
@@ -176,16 +207,25 @@ interface IRewardEscrowV2 {
         uint256 value,
         uint256 duration,
         uint256 entryID,
-        uint8 earlyVestingFee
+        uint256 earlyVestingFee
     );
 
-    /// @notice emitted the staking rewards contract is set
+    /// @notice emitted when the staking rewards contract is set
     /// @param stakingRewards The address of the staking rewards contract
     event StakingRewardsSet(address stakingRewards);
+
+    /// @notice emitted when the escrow migrator contract is set
+    /// @param escrowMigrator The address of the escrow migrator contract
+    event EscrowMigratorSet(address escrowMigrator);
 
     /// @notice emitted when the treasury DAO is set
     /// @param treasuryDAO The address of the treasury DAO
     event TreasuryDAOSet(address treasuryDAO);
+
+    /// @notice emitted when the early vest fee is sent to the treasury and notifier
+    /// @param amountToTreasury The amount of KWENTA sent to the treasury
+    /// @param amountToNotifier The amount of KWENTA sent to the notifier
+    event EarlyVestFeeSent(uint256 amountToTreasury, uint256 amountToNotifier);
 
     /*//////////////////////////////////////////////////////////////
                                 ERRORS
@@ -193,9 +233,6 @@ interface IRewardEscrowV2 {
 
     /// @notice Thrown when attempting to bulk transfer from and to the same address
     error CannotTransferToSelf();
-
-    /// @notice There are not enough entries to get vesting schedules starting from this index
-    error InvalidIndex();
 
     /// @notice Insufficient unstaked escrow to facilitate transfer
     /// @param escrowAmount the amount of escrow attempted to transfer
@@ -210,6 +247,9 @@ interface IRewardEscrowV2 {
 
     /// @notice error someone other than staking rewards calls an onlyStakingRewards function
     error OnlyStakingRewards();
+
+    /// @notice error someone other than escrow migrator calls an onlyEscrowMigrator function
+    error OnlyEscrowMigrator();
 
     /// @notice staking rewards is only allowed to be set once
     error StakingRewardsAlreadySet();

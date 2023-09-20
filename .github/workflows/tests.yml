@@ -3,7 +3,7 @@ on: [push]
 env:
   NODE_OPTIONS: --max-old-space-size=5120
 jobs:
-  Contract:
+  Hardhat_Contract_Tests:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository code
@@ -24,7 +24,7 @@ jobs:
         run: npm run compile
       - name: Execute contract tests
         run: npm run test:contracts
-  Integration:
+  Hardhat_Integration_Tests:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository code
@@ -45,7 +45,7 @@ jobs:
         run: npm run compile
       - name: Execute integration tests
         run: npm run test:integration
-  Fork:
+  Hardhat_Fork_Tests:
     runs-on: ubuntu-latest
     env:
       ARCHIVE_NODE_URL: ${{ secrets.ARCHIVE_NODE_URL }}
@@ -68,10 +68,11 @@ jobs:
         run: npm run compile
       - name: Execute fork tests
         run: npm run test:fork
-  Foundry_Unit_Tests:
+  Foundry_Fork_Tests:
     runs-on: ubuntu-latest
     env:
       ARCHIVE_NODE_URL: ${{ secrets.ARCHIVE_NODE_URL }}
+      ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
     steps:
       - name: Check out repository code
         uses: actions/checkout@v2
@@ -94,4 +95,87 @@ jobs:
         with:
             version: nightly
       - name: Run Foundry Unit Tests
+        run: forge test --match-contract StakingV2MigrationForkTests --fork-url ${{ secrets.ARCHIVE_NODE_URL }} --etherscan-api-key ${{ secrets.ETHERSCAN_API_KEY }} -vv
+  Foundry_Unit_Tests:
+    runs-on: ubuntu-latest
+    env:
+      ARCHIVE_NODE_URL: ${{ secrets.ARCHIVE_NODE_URL }}
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Building on Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14.17.1'
+      - name: Update NPM
+        run: npm install -g npm@7.18.1
+      - uses: actions/cache@v2
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/package-lock.json') }}
+      - name: Install dependencies
+        run: npm i --no-audit
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+            version: nightly
+      - name: Run Foundry Unit Tests
         run: npm run f-test
+  Foundry_Invariant_Tests:
+    runs-on: ubuntu-latest
+    env:
+      ARCHIVE_NODE_URL: ${{ secrets.ARCHIVE_NODE_URL }}
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Building on Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14.17.1'
+      - name: Update NPM
+        run: npm install -g npm@7.18.1
+      - uses: actions/cache@v2
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/package-lock.json') }}
+      - name: Install dependencies
+        run: npm i --no-audit
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+            version: nightly
+      - name: Run Foundry Unit Tests
+        run: npm run f-test:invariant
+  Foundry_Code_Coverage:
+    runs-on: ubuntu-latest
+    env:
+      ARCHIVE_NODE_URL: ${{ secrets.ARCHIVE_NODE_URL }}
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Building on Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14.17.1'
+      - name: Update NPM
+        run: npm install -g npm@7.18.1
+      - uses: actions/cache@v2
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/package-lock.json') }}
+      - name: Install dependencies
+        run: npm i --no-audit
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+            version: nightly
+      - name: Run forge coverage
+        run: forge coverage --fork-url ${{ secrets.ARCHIVE_NODE_URL }} -vv --no-match-test invariant --report lcov
+
+      - name: Upload Coverage Report
+        uses: codecov/codecov-action@v3
+        with:
+            files: ./lcov.info
+            name: codecov-unit
+            fail_ci_if_error: true
+            verbose: true

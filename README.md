@@ -92,19 +92,44 @@ Run the interact tool
 ```
 npm run interact:local
 ```
+
+## Scripting with Tenderly
+
+You can use scripts such as `npm run deploy:stakingv2-tenderly` to deploy and verify contracts on a Tenderly fork.
+
+In order for the verification to work, you must:
+- [Install `tenderly-cli`](https://github.com/Tenderly/tenderly-cli)
+  - `brew install tenderly`
+- [Create a Tenderly API Access Token](https://docs.tenderly.co/other/platform-access/how-to-generate-api-access-tokens)
+- [Log in to tenderly via the CLI](https://github.com/Tenderly/tenderly-cli#login)
+  - `tenderly login --access-key <KEY>`
+- Set the tenderly fork URL in your `.env`
+  - `TENDERLY_FORK_URL=https://rpc.tenderly.co/fork/<KEY>`
+
+Now you can run `npm run deploy:stakingv2-tenderly` and it will deploy and verify the contracts on Tenderly.
+
+You can also follow the pattern in [`deploy-stakingv2-tenderly.ts`](./scripts/deploy-stakingv2-tenderly.ts) to deploy and verify other contracts.
+
+Or another example of a tenderly script is [`get-tenderly-time.ts`](./scripts/get-tenderly-time.ts).
+
 ## Deployments
 
-| Contract | Address |
-| --- | --- |
-|Kwenta | [`0x920Cf626a271321C151D027030D5d08aF699456b`](https://optimistic.etherscan.io/token/0x920Cf626a271321C151D027030D5d08aF699456b) |
-|SupplySchedule | [`0x3e8b82326Ff5f2f10da8CEa117bD44343ccb9c26`](https://optimistic.etherscan.io/address/0x3e8b82326Ff5f2f10da8CEa117bD44343ccb9c26) |
-|StakingRewards | [`0x6e56A5D49F775BA08041e28030bc7826b13489e0`](https://optimistic.etherscan.io/address/0x6e56A5D49F775BA08041e28030bc7826b13489e0) |
-|RewardEscrow | [`0x1066A8eB3d90Af0Ad3F89839b974658577e75BE2`](https://optimistic.etherscan.io/address/0x1066A8eB3d90Af0Ad3F89839b974658577e75BE2) |
-|StakingRewardsV2 | [`0xe5bB889B1f0B6B4B7384Bd19cbb37adBDDa941a6`](https://optimistic.etherscan.io/address/0xe5bB889B1f0B6B4B7384Bd19cbb37adBDDa941a6) |
-|RewardEscrowV2 | [`0xd5fE5beAa04270B32f81Bf161768c44DF9880D11`](https://optimistic.etherscan.io/address/0xd5fE5beAa04270B32f81Bf161768c44DF9880D11) |
-|MultipleMerkleDistributor | [`0xf486A72E8c8143ACd9F65A104A16990fDb38be14`](https://optimistic.etherscan.io/address/0xf486A72E8c8143ACd9F65A104A16990fDb38be14) |
-|vKWENTA | [`0x6789D8a7a7871923Fc6430432A602879eCB6520a`](https://optimistic.etherscan.io/token/0x6789d8a7a7871923fc6430432a602879ecb6520a) |
-|vKWENTARedeemer | [`0x8132EE584bCD6f8Eb1bea141DB7a7AC1E72917b9`](https://optimistic.etherscan.io/address/0x8132EE584bCD6f8Eb1bea141DB7a7AC1E72917b9) |
+| Contract                        | Address                                                                                                                            |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Kwenta                          | [`0x920Cf626a271321C151D027030D5d08aF699456b`](https://optimistic.etherscan.io/token/0x920Cf626a271321C151D027030D5d08aF699456b)   |
+| SupplySchedule                  | [`0x3e8b82326Ff5f2f10da8CEa117bD44343ccb9c26`](https://optimistic.etherscan.io/address/0x3e8b82326Ff5f2f10da8CEa117bD44343ccb9c26) |
+| StakingRewards                  | [`0x6e56A5D49F775BA08041e28030bc7826b13489e0`](https://optimistic.etherscan.io/address/0x6e56A5D49F775BA08041e28030bc7826b13489e0) |
+| RewardEscrow                    | [`0x1066A8eB3d90Af0Ad3F89839b974658577e75BE2`](https://optimistic.etherscan.io/address/0x1066A8eB3d90Af0Ad3F89839b974658577e75BE2) |
+| StakingRewardsNotifier          | [`0x03f6dC6e616AB3a367a1F2C26B8Bc146f632b451`](https://optimistic.etherscan.io/address/0x03f6dC6e616AB3a367a1F2C26B8Bc146f632b451) |
+| StakingRewardsV2 Proxy          | [`0x61294940CE7cD1BDA10e349adC5B538B722CeB88`](https://optimistic.etherscan.io/address/0x61294940CE7cD1BDA10e349adC5B538B722CeB88) |
+| StakingRewardsV2 Implementation | [`0x626e666c95f4a31439A9cA2d5ef757EA3d72A2fd`](https://optimistic.etherscan.io/address/0x626e666c95f4a31439A9cA2d5ef757EA3d72A2fd) |
+| RewardEscrowV2 Proxy            | [`0xb2a20fCdc506a685122847b21E34536359E94C56`](https://optimistic.etherscan.io/address/0xb2a20fCdc506a685122847b21E34536359E94C56) |
+| RewardEscrowV2 Implementation   | [`0x15725a8159629ca9763deC4211e309c94d9f5CB0`](https://optimistic.etherscan.io/address/0x15725a8159629ca9763deC4211e309c94d9f5CB0) |
+| EscrowMigrator Proxy            | [`0xC9aF789Ae606F69cF8Ed073A04eC92f2354b027d`](https://optimistic.etherscan.io/address/0xC9aF789Ae606F69cF8Ed073A04eC92f2354b027d) |
+| EscrowMigrator Implementation   | [`0x10B04483d762Bd4F193F35600112ad52391004A7`](https://optimistic.etherscan.io/address/0x10B04483d762Bd4F193F35600112ad52391004A7) |
+| MultipleMerkleDistributor       | [`0xf486A72E8c8143ACd9F65A104A16990fDb38be14`](https://optimistic.etherscan.io/address/0xf486A72E8c8143ACd9F65A104A16990fDb38be14) |
+| vKWENTA                         | [`0x6789D8a7a7871923Fc6430432A602879eCB6520a`](https://optimistic.etherscan.io/token/0x6789d8a7a7871923fc6430432a602879ecb6520a)   |
+| vKWENTARedeemer                 | [`0x8132EE584bCD6f8Eb1bea141DB7a7AC1E72917b9`](https://optimistic.etherscan.io/address/0x8132EE584bCD6f8Eb1bea141DB7a7AC1E72917b9) |
 
 ---
 
