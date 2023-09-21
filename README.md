@@ -144,9 +144,9 @@ Note: for contracts with both an implementation and proxy, when interaction with
 ## Staking V2 Audits
 
 - [Final Audit Report By Guhu](https://gist.github.com/guhu95/3330fad8e6417b567a3787f86392ae32)
+- [Final Audit Report by Macro](https://0xmacro.com/library/audits/kwenta-7.html)
 
 Other audit reports to add:
-- Final Audit Report by Macro
 - Final Audit Report by Omniscia
 
 ---
