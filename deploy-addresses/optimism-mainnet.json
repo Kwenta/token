@@ -1,0 +1,9 @@
+{
+    "RewardEscrowV2 Implementation": "0xF877315CfC91E69e7f4c308ec312cf91D66a095F",
+    "RewardEscrowV2 Proxy": "0xd5fE5beAa04270B32f81Bf161768c44DF9880D11",
+    "StakingRewardsV2 Implementation": "0x33B725a1B2dE9178121D423D2A1c062C5452f310",
+    "StakingRewardsV2 Proxy": "0xe5bB889B1f0B6B4B7384Bd19cbb37adBDDa941a6",
+    "EscrowMigrator Implementation": "0x10B04483d762Bd4F193F35600112ad52391004A7",
+    "EscrowMigrator Proxy": "0xC9aF789Ae606F69cF8Ed073A04eC92f2354b027d",
+    "StakingRewardsNotifier": "0x03f6dC6e616AB3a367a1F2C26B8Bc146f632b451"
+}
