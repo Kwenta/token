@@ -19,6 +19,7 @@ import {
     setStakingRewardsOnSupplySchedule,
     setTreasuryDAOOnRewardEscrowV1,
     transferOwnership,
+    advanceToNextRewardsEmission,
 } from "./helpers/staking-v2";
 
 /************************************************
@@ -121,47 +122,7 @@ async function main() {
 
     // ========== ADVANCE TIME ========== */
 
-    console.log("\n🕣 Update time...");
-
-    const supplySchedule = await ethers.getContractAt(
-        "SupplySchedule",
-        OPTIMISM_SUPPLY_SCHEDULE
-    );
-
-    const timeNow = await getLatestBlockTimestamp();
-    const timeOfLastMint = (await supplySchedule.lastMintEvent()).toNumber();
-    const mintPeriodDuration = (
-        await supplySchedule.MINT_PERIOD_DURATION()
-    ).toNumber();
-    const timeOfNextMint = timeOfLastMint + mintPeriodDuration;
-    const timeToNextMint = timeOfNextMint - timeNow;
-
-    if (timeToNextMint > 0) {
-        const params = [
-            ethers.utils.hexValue(timeToNextMint + 1), // hex encoded number of seconds
-        ];
-        await provider.send("evm_increaseTime", params);
-        console.log(
-            "Days fast forwarded:                                 ",
-            timeToNextMint / 60 / 60 / 24
-        );
-        console.log(
-            "Updated time to:                                     ",
-            timeOfNextMint,
-            new Date(timeOfNextMint * 1000)
-        );
-
-        const newTimeNow = await getLatestBlockTimestamp();
-        console.log(
-            "time confirmed:                                      ",
-            newTimeNow,
-            new Date(newTimeNow * 1000)
-        );
-
-        console.log("✅ Time updated!");
-    } else {
-        console.log("Time not updated");
-    }
+    await advanceToNextRewardsEmission();
 
     // ========== MIGRATE ========== */
 
