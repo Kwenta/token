@@ -116,11 +116,6 @@ async function main() {
         OPTIMISM_PDAO
     );
     await transferOwnership(escrowMigrator, "EscrowMigrator", OPTIMISM_PDAO);
-    await transferOwnership(
-        rewardsNotifier,
-        "StakingRewardsNotifier",
-        OPTIMISM_PDAO
-    );
 
     console.log("✅ Ownership transferred!");
 
