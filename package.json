@@ -24,6 +24,7 @@
     "deploy:escrow-distributor:testnet": "npx hardhat run --network optimistic-goerli scripts/deploy-escrow-distributor.ts",
     "tenderly:deploy-staking-v2": "npx hardhat run --network tenderly scripts/tenderly/deploy-staking-v2.ts",
     "tenderly:create-escrow-entries": "npx hardhat run --network tenderly scripts/tenderly/create-escrow-entries.ts",
+    "tenderly:migrate": "npx hardhat run --network tenderly scripts/tenderly/apply-migration.ts",
     "tenderly:time": "npx hardhat run --network tenderly scripts/tenderly/get-time.ts",
     "interact:local": "npx hardhat interact --network localhost",
     "gas-snapshot": "forge snapshot"
