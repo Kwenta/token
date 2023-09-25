@@ -627,7 +627,7 @@ contract(
                         }
                     );
 
-                    // retrieve the vesting entryID from account 1's list of account vesting entrys
+                    // retrieve the vesting entryID from account 1's list of account vesting entries
                     entryID = await rewardsEscrow.accountVestingEntryIDs(
                         staker1,
                         0
@@ -1473,7 +1473,7 @@ contract(
                     });
                 });
 
-                describe("when the first two entrys are vestable and third is partially vestable", () => {
+                describe("when the first two entries are vestable and third is partially vestable", () => {
                     beforeEach(async () => {
                         // Need to go into the future to vest first two entries
                         await fastForward(duration + WEEK * 2);
