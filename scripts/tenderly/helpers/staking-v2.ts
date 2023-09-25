@@ -228,9 +228,9 @@ export const simulateMigration = async ({
 }) => {
     console.log("\n🦅 Migrating entries...");
 
-    const NUM_TO_REGISTER = 556; // estimated max = 556 (haven't tried 557)
-    const NUM_TO_VEST = 556; // estimated max = 3419 (most I have tried is 1825)
-    const NUM_TO_MIGRATE = 182; // last tested max = 182 (have tried 183)
+    const NUM_TO_REGISTER = 5; // estimated max = 556 (haven't tried 557)
+    const NUM_TO_VEST = 5; // estimated max = 3419 (most I have tried is 1825)
+    const NUM_TO_MIGRATE = 5; // last tested max = 182 (have tried 183)
     const NUM_TO_CREATE = Math.max(
         NUM_TO_REGISTER,
         NUM_TO_VEST,
