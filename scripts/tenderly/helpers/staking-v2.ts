@@ -12,6 +12,7 @@ import {
     OPTIMISM_TREASURY_DAO,
     STAKING_V1_USER,
     YEAR_IN_WEEKS,
+    provider,
 } from "./constants";
 import {
     extendLog,
@@ -20,6 +21,7 @@ import {
     deployUUPSProxy,
     deployContract,
     printEntries,
+    getLatestBlockTimestamp,
 } from "./helpers";
 
 /************************************************
@@ -173,6 +175,50 @@ export const deployEscrowMigrator = async (
  * @simulator
  ************************************************/
 
+export const advanceToNextRewardsEmission = async () => {
+    console.log("\n🕣 Update time...");
+
+    const supplySchedule = await ethers.getContractAt(
+        "SupplySchedule",
+        OPTIMISM_SUPPLY_SCHEDULE
+    );
+
+    const timeNow = await getLatestBlockTimestamp();
+    const timeOfLastMint = (await supplySchedule.lastMintEvent()).toNumber();
+    const mintPeriodDuration = (
+        await supplySchedule.MINT_PERIOD_DURATION()
+    ).toNumber();
+    const timeOfNextMint = timeOfLastMint + mintPeriodDuration;
+    const timeToNextMint = timeOfNextMint - timeNow;
+
+    if (timeToNextMint > 0) {
+        const params = [
+            ethers.utils.hexValue(timeToNextMint + 1), // hex encoded number of seconds
+        ];
+        await provider.send("evm_increaseTime", params);
+        console.log(
+            "Days fast forwarded:                                 ",
+            timeToNextMint / 60 / 60 / 24
+        );
+        console.log(
+            "Updated time to:                                     ",
+            timeOfNextMint,
+            new Date(timeOfNextMint * 1000)
+        );
+
+        const newTimeNow = await getLatestBlockTimestamp();
+        console.log(
+            "time confirmed:                                      ",
+            newTimeNow,
+            new Date(newTimeNow * 1000)
+        );
+
+        console.log("✅ Time updated!");
+    } else {
+        console.log("Time not updated");
+    }
+};
+
 export const simulateMigration = async ({
     escrowMigrator,
     rewardEscrowV2,
@@ -182,9 +228,9 @@ export const simulateMigration = async ({
 }) => {
     console.log("\n🦅 Migrating entries...");
 
-    const NUM_TO_REGISTER = 556; // estimated max = 556 (haven't tried 557)
-    const NUM_TO_VEST = 556; // estimated max = 3419 (most I have tried is 1825)
-    const NUM_TO_MIGRATE = 182; // last tested max = 182 (have tried 183)
+    const NUM_TO_REGISTER = 5; // estimated max = 556 (haven't tried 557)
+    const NUM_TO_VEST = 5; // estimated max = 3419 (most I have tried is 1825)
+    const NUM_TO_MIGRATE = 5; // last tested max = 182 (have tried 183)
     const NUM_TO_CREATE = Math.max(
         NUM_TO_REGISTER,
         NUM_TO_VEST,

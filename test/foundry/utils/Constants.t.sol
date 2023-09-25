@@ -25,6 +25,17 @@ address constant OPTIMISM_STAKING_V1_INTEGRATOR_1 = 0x9F39AF3e71ac27aCf01E1662a4
 address constant OPTIMISM_STAKING_V1_INTEGRATOR_2 = 0x9A2a4f88Fa2B4509c348905F667A5fbbc1fb0FFf;
 
 /*//////////////////////////////////////////////////////////////
+                    STAKING V2 FORK CONSTANTS
+//////////////////////////////////////////////////////////////*/
+
+address constant OPTIMISM_STAKING_REWARDS_V2 = 0x61294940CE7cD1BDA10e349adC5B538B722CeB88;
+address constant OPTIMISM_REWARD_ESCROW_V2 = 0xb2a20fCdc506a685122847b21E34536359E94C56;
+address constant OPTIMISM_ESCROW_MIGRATOR = 0xC9aF789Ae606F69cF8Ed073A04eC92f2354b027d;
+address constant OPTIMISM_STAKING_REWARDS_NOTIFIER = 0x03f6dC6e616AB3a367a1F2C26B8Bc146f632b451;
+uint256 constant OPTIMISM_STAKING_V2_FIRST_REWADRS_EMISSION_BLOCK = 109865536;
+uint256 constant OPTIMISM_STAKING_V2_FIRST_REWADRS_EMISSION_TIMESTAMP = 1695329849;
+
+/*//////////////////////////////////////////////////////////////
                         GOERLI ADDRESSES
 //////////////////////////////////////////////////////////////*/
 
