@@ -41,22 +41,19 @@ contract EscrowedMultipleMerkleDistributor is
     }
 
     /// @inheritdoc IEscrowedMultipleMerkleDistributor
-    function setMerkleRootForEpoch(bytes32 merkleRoot, uint256 epoch)
-        external
-        override
-        onlyOwner
-    {
+    function setMerkleRootForEpoch(
+        bytes32 merkleRoot,
+        uint256 epoch
+    ) external override onlyOwner {
         merkleRoots[epoch] = merkleRoot;
         emit MerkleRootModified(epoch);
     }
 
     /// @inheritdoc IEscrowedMultipleMerkleDistributor
-    function isClaimed(uint256 index, uint256 epoch)
-        public
-        view
-        override
-        returns (bool)
-    {
+    function isClaimed(
+        uint256 index,
+        uint256 epoch
+    ) public view override returns (bool) {
         uint256 claimedWordIndex = index / 256;
         uint256 claimedBitIndex = index % 256;
         uint256 claimedWord = claimedBitMaps[epoch][claimedWordIndex];
@@ -101,8 +98,8 @@ contract EscrowedMultipleMerkleDistributor is
         IRewardEscrowV2(rewardEscrow).createEscrowEntry(
             account,
             amount,
-            52 weeks,
-            90
+            IRewardEscrowV2(rewardEscrow).DEFAULT_DURATION(),
+            IRewardEscrowV2(rewardEscrow).DEFAULT_EARLY_VESTING_FEE()
         );
 
         emit Claimed(index, account, amount, epoch);

@@ -21,6 +21,7 @@ const ZERO_BYTES32 =
     "0x0000000000000000000000000000000000000000000000000000000000000000";
 const EPOCH_ZERO = 0;
 const EPOCH_ONE = 1;
+const YEAR = 31449600;
 
 // test accounts
 let owner: SignerWithAddress;
@@ -368,9 +369,13 @@ describe("EscrowedMultipleMerkleDistributor", () => {
                     .to.emit(distributor, "Claimed")
                     .withArgs(0, addr0.address, 100, EPOCH_ZERO);
 
-                expect(
-                    await rewardEscrow.escrowedBalanceOf(addr0.address)
-                ).to.equal(100);
+                const vestingEntry1 = (await rewardEscrow.getVestingEntry(1))
+                    .slice(1, 4)
+                    .map((bn: BigNumber) => bn.toNumber());
+
+                expect(vestingEntry1[0]).to.equal(100);
+                expect(vestingEntry1[1]).to.equal(YEAR);
+                expect(vestingEntry1[2]).to.equal(90);
 
                 const proof1 = tree.getProof(
                     1,
@@ -384,9 +389,13 @@ describe("EscrowedMultipleMerkleDistributor", () => {
                     .to.emit(distributor, "Claimed")
                     .withArgs(1, addr1.address, 101, EPOCH_ZERO);
 
-                expect(
-                    await rewardEscrow.escrowedBalanceOf(addr1.address)
-                ).to.equal(101);
+                const vestingEntry2 = (await rewardEscrow.getVestingEntry(2))
+                    .slice(1, 4)
+                    .map((bn: BigNumber) => bn.toNumber());
+
+                expect(vestingEntry2[0]).to.equal(101);
+                expect(vestingEntry2[1]).to.equal(YEAR);
+                expect(vestingEntry2[2]).to.equal(90);
 
                 expect(await kwenta.balanceOf(distributor.address)).to.equal(0);
             });
