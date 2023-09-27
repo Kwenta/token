@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "./utils/Owned.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
-import "./interfaces/IRewardEscrow.sol";
+import "./interfaces/IRewardEscrowV2.sol";
 import "./interfaces/IEscrowedMultipleMerkleDistributor.sol";
 
 /// @title Kwenta EscrowedMultipleMerkleDistributor
@@ -98,10 +98,11 @@ contract EscrowedMultipleMerkleDistributor is
         // mark it claimed and send the token to RewardEscrow
         _setClaimed(index, epoch);
         IERC20(token).approve(rewardEscrow, amount);
-        IRewardEscrow(rewardEscrow).createEscrowEntry(
+        IRewardEscrowV2(rewardEscrow).createEscrowEntry(
             account,
             amount,
-            52 weeks
+            52 weeks,
+            90
         );
 
         emit Claimed(index, account, amount, epoch);

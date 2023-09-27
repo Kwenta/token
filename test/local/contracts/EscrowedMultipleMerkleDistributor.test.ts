@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { ethers } from "hardhat";
+import { ethers, upgrades } from "hardhat";
 import { Contract, BigNumber } from "ethers";
 import { smock } from "@defi-wonderland/smock";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
@@ -46,7 +46,36 @@ const loadSetup = () => {
             TREASURY_DAO
         );
         kwenta = deployments.kwenta;
-        rewardEscrow = deployments.rewardEscrow;
+
+        const RewardEscrowV2 = await ethers.getContractFactory(
+            "RewardEscrowV2"
+        );
+        rewardEscrow = await upgrades.deployProxy(
+            RewardEscrowV2,
+            [owner.address],
+            {
+                constructorArgs: [kwenta.address, TREASURY_DAO.address],
+            }
+        );
+        await rewardEscrow.deployed();
+
+        const StakingRewardsV2 = await ethers.getContractFactory(
+            "StakingRewardsV2"
+        );
+        const stakingRewards = await upgrades.deployProxy(
+            StakingRewardsV2,
+            [owner.address],
+            {
+                constructorArgs: [
+                    kwenta.address,
+                    rewardEscrow.address,
+                    TREASURY_DAO.address,
+                ],
+            }
+        );
+        await stakingRewards.deployed();
+
+        await rewardEscrow.setStakingRewards(stakingRewards.address);
     });
 };
 
@@ -339,9 +368,9 @@ describe("EscrowedMultipleMerkleDistributor", () => {
                     .to.emit(distributor, "Claimed")
                     .withArgs(0, addr0.address, 100, EPOCH_ZERO);
 
-                expect(await rewardEscrow.balanceOf(addr0.address)).to.equal(
-                    100
-                );
+                expect(
+                    await rewardEscrow.escrowedBalanceOf(addr0.address)
+                ).to.equal(100);
 
                 const proof1 = tree.getProof(
                     1,
@@ -355,9 +384,9 @@ describe("EscrowedMultipleMerkleDistributor", () => {
                     .to.emit(distributor, "Claimed")
                     .withArgs(1, addr1.address, 101, EPOCH_ZERO);
 
-                expect(await rewardEscrow.balanceOf(addr1.address)).to.equal(
-                    101
-                );
+                expect(
+                    await rewardEscrow.escrowedBalanceOf(addr1.address)
+                ).to.equal(101);
 
                 expect(await kwenta.balanceOf(distributor.address)).to.equal(0);
             });
