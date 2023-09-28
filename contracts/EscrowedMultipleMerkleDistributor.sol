@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "./utils/Owned.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
-import "./interfaces/IRewardEscrow.sol";
+import "./interfaces/IRewardEscrowV2.sol";
 import "./interfaces/IEscrowedMultipleMerkleDistributor.sol";
 
 /// @title Kwenta EscrowedMultipleMerkleDistributor
@@ -41,22 +41,19 @@ contract EscrowedMultipleMerkleDistributor is
     }
 
     /// @inheritdoc IEscrowedMultipleMerkleDistributor
-    function setMerkleRootForEpoch(bytes32 merkleRoot, uint256 epoch)
-        external
-        override
-        onlyOwner
-    {
+    function setMerkleRootForEpoch(
+        bytes32 merkleRoot,
+        uint256 epoch
+    ) external override onlyOwner {
         merkleRoots[epoch] = merkleRoot;
         emit MerkleRootModified(epoch);
     }
 
     /// @inheritdoc IEscrowedMultipleMerkleDistributor
-    function isClaimed(uint256 index, uint256 epoch)
-        public
-        view
-        override
-        returns (bool)
-    {
+    function isClaimed(
+        uint256 index,
+        uint256 epoch
+    ) public view override returns (bool) {
         uint256 claimedWordIndex = index / 256;
         uint256 claimedBitIndex = index % 256;
         uint256 claimedWord = claimedBitMaps[epoch][claimedWordIndex];
@@ -98,10 +95,11 @@ contract EscrowedMultipleMerkleDistributor is
         // mark it claimed and send the token to RewardEscrow
         _setClaimed(index, epoch);
         IERC20(token).approve(rewardEscrow, amount);
-        IRewardEscrow(rewardEscrow).createEscrowEntry(
+        IRewardEscrowV2(rewardEscrow).createEscrowEntry(
             account,
             amount,
-            52 weeks
+            IRewardEscrowV2(rewardEscrow).DEFAULT_DURATION(),
+            IRewardEscrowV2(rewardEscrow).DEFAULT_EARLY_VESTING_FEE()
         );
 
         emit Claimed(index, account, amount, epoch);

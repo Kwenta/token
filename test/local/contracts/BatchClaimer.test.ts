@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { ethers } from "hardhat";
+import { ethers, upgrades } from "hardhat";
 import { Contract, BigNumber } from "ethers";
 import { smock } from "@defi-wonderland/smock";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
@@ -42,7 +42,36 @@ const loadSetup = () => {
             TREASURY_DAO
         );
         kwenta = deployments.kwenta;
-        rewardEscrow = deployments.rewardEscrow;
+
+        const RewardEscrowV2 = await ethers.getContractFactory(
+            "RewardEscrowV2"
+        );
+        rewardEscrow = await upgrades.deployProxy(
+            RewardEscrowV2,
+            [owner.address],
+            {
+                constructorArgs: [kwenta.address, TREASURY_DAO.address],
+            }
+        );
+        await rewardEscrow.deployed();
+
+        const StakingRewardsV2 = await ethers.getContractFactory(
+            "StakingRewardsV2"
+        );
+        const stakingRewards = await upgrades.deployProxy(
+            StakingRewardsV2,
+            [owner.address],
+            {
+                constructorArgs: [
+                    kwenta.address,
+                    rewardEscrow.address,
+                    TREASURY_DAO.address,
+                ],
+            }
+        );
+        await stakingRewards.deployed();
+
+        await rewardEscrow.setStakingRewards(stakingRewards.address);
     });
 };
 
@@ -187,7 +216,9 @@ describe("BatchClaimer", () => {
                 .to.emit(distributor2, "Claimed")
                 .withArgs(0, addr0.address, 1100, EPOCH_ZERO);
 
-            expect(await rewardEscrow.balanceOf(addr0.address)).to.equal(1200);
+            expect(
+                await rewardEscrow.escrowedBalanceOf(addr0.address)
+            ).to.equal(1200);
         });
 
         it("can claim multiple epochs across distribution contracts", async () => {
@@ -229,7 +260,9 @@ describe("BatchClaimer", () => {
                 .withArgs(0, addr0.address, 1100, EPOCH_ONE)
                 .to.emit(distributor2, "Claimed")
                 .withArgs(0, addr0.address, 1100, EPOCH_ZERO);
-            expect(await rewardEscrow.balanceOf(addr0.address)).to.equal(2300);
+            expect(
+                await rewardEscrow.escrowedBalanceOf(addr0.address)
+            ).to.equal(2300);
         });
     });
 });

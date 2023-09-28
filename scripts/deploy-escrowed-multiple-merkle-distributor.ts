@@ -2,9 +2,9 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ethers } from "hardhat";
 import { saveDeployments, verify } from "./utils";
 import { address as KWENTA_ADDRESS } from "../deployments/optimistic-mainnet/Kwenta.json";
-import { address as REWARD_ESCROW_ADDRESS } from "../deployments/optimistic-mainnet/RewardEscrow.json";
 
 const REWARD_DISTRIBUTOR = "0x246100EC9dfCF22194316A187B38905906539B41";
+const REWARD_ESCROW_ADDRESS = "0xb2a20fCdc506a685122847b21E34536359E94C56";
 
 async function main() {
     const [deployer] = await ethers.getSigners();
