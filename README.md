@@ -147,7 +147,7 @@ Note: for contracts with both an implementation and proxy, when interaction with
 - [Final Audit Report by Macro](https://0xmacro.com/library/audits/kwenta-7.html)
 
 Other audit reports to add:
-- Final Audit Report by Omniscia
+- [Final Audit Report by Omniscia](https://omniscia.io/reports/kwenta-staking-v2-w-migrators-64e48aba18c4480014cf4897/)
 
 ---
 
