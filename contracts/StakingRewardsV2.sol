@@ -174,27 +174,27 @@ contract StakingRewardsV2 is
 
     /// @inheritdoc IStakingRewardsV2
     function totalSupply() public view returns (uint256) {
-        uint256 length = totalSupplyCheckpoints.length;
-        unchecked {
-            return length == 0 ? 0 : totalSupplyCheckpoints[length - 1].value;
-        }
+        return _getLatestValueFromCheckpoints(totalSupplyCheckpoints);
     }
 
     /// @inheritdoc IStakingRewardsV2
     function balanceOf(address _account) public view returns (uint256) {
-        Checkpoint[] storage checkpoints = balancesCheckpoints[_account];
-        uint256 length = checkpoints.length;
-        unchecked {
-            return length == 0 ? 0 : checkpoints[length - 1].value;
-        }
+        return _getLatestValueFromCheckpoints(balancesCheckpoints[_account]);
     }
 
     /// @inheritdoc IStakingRewardsV2
     function escrowedBalanceOf(address _account) public view returns (uint256) {
-        Checkpoint[] storage checkpoints = escrowedBalancesCheckpoints[_account];
-        uint256 length = checkpoints.length;
+        return _getLatestValueFromCheckpoints(escrowedBalancesCheckpoints[_account]);
+    }
+
+    function _getLatestValueFromCheckpoints(Checkpoint[] storage _checkpoints)
+        internal
+        view
+        returns (uint256)
+    {
+        uint256 length = _checkpoints.length;
         unchecked {
-            return length == 0 ? 0 : checkpoints[length - 1].value;
+            return length == 0 ? 0 : _checkpoints[length - 1].value;
         }
     }
 
