@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.8.19;
 
-import {IKwenta} from "./interfaces/IKwenta.sol";
 import {ITokenDistributor} from "./interfaces/ITokenDistributor.sol";
-import {IRewardEscrowV2} from "./interfaces/IRewardEscrowV2.sol";
 import {IStakingRewardsV2} from "./interfaces/IStakingRewardsV2.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract TokenDistributor is ITokenDistributor {
     /// @inheritdoc ITokenDistributor
@@ -12,62 +11,56 @@ contract TokenDistributor is ITokenDistributor {
 
     /// @notice represents the status of if a person already
     /// claimed their epoch
-    mapping(address => mapping(uint => bool)) internal claimedEpochs;
+    mapping(address => mapping(uint => bool)) public claimedEpochs;
 
-    /// @notice kwenta interface
-    IKwenta internal immutable kwenta;
+    /// @notice token to distribute
+    IERC20 public immutable rewardsToken;
 
     /// @notice rewards staking contract
-    IStakingRewardsV2 internal immutable stakingRewardsV2;
+    IStakingRewardsV2 public immutable stakingRewardsV2;
 
-    /// @notice escrow contract which holds (and may stake) reward tokens
-    IRewardEscrowV2 internal immutable rewardEscrowV2;
-
-    /// @notice last recorded balance of KWENTA in contract
-    uint internal lastTokenBalance;
+    /// @notice last recorded balance of rewards tokens in contract
+    uint public lastTokenBalance;
 
     /// @notice last checkpoint time
-    uint internal lastCheckpoint;
+    uint public lastCheckpoint;
 
     /// @notice starting week of deployment
-    uint internal immutable startTime;
+    uint public immutable startTime;
 
     /// @notice the week offset in seconds
-    uint internal immutable offset;
+    uint public immutable offset;
 
     /// @notice max amount of days the epoch can be offset by
-    uint internal constant MAX_OFFSET_DAYS = 6;
+    uint public constant MAX_OFFSET_DAYS = 6;
 
     /// @notice weeks in a year
-    uint internal constant WEEKS_IN_YEAR = 52;
+    uint public constant WEEKS_IN_YEAR = 52;
 
     /// @notice constructs the TokenDistributor contract
     /// and sets startTime
-    /// @param _kwenta: address of the kwenta contract
+    /// @param _rewardsToken: address of the rewards token contract
     /// @param _stakingRewardsV2: address of the stakingRewardsV2 contract
-    /// @param _rewardEscrowV2: address of the rewardEscrowV2 contract
+    /// @param _daysToOffsetBy: the number of days to offset the epoch by
     constructor(
-        address _kwenta,
+        address _rewardsToken,
         address _stakingRewardsV2,
-        address _rewardEscrowV2,
-        uint daysToOffsetBy
+        uint _daysToOffsetBy
     ) {
         if (
-            _kwenta == address(0) ||
-            _stakingRewardsV2 == address(0) ||
-            _rewardEscrowV2 == address(0)
+            _rewardsToken == address(0) ||
+            _stakingRewardsV2 == address(0)
         ) {
             revert ZeroAddress();
         }
-        kwenta = IKwenta(_kwenta);
+        rewardsToken = IERC20(_rewardsToken);
         stakingRewardsV2 = IStakingRewardsV2(_stakingRewardsV2);
-        rewardEscrowV2 = IRewardEscrowV2(_rewardEscrowV2);
 
         /// @notice custom start day (startTime + daysToOffsetBy)
-        if (daysToOffsetBy > MAX_OFFSET_DAYS) {
+        if (_daysToOffsetBy > MAX_OFFSET_DAYS) {
             revert OffsetTooBig();
         }
-        offset = daysToOffsetBy * 1 days;
+        offset = _daysToOffsetBy * 1 days;
         uint startOfThisWeek = _startOfWeek(block.timestamp);
         startTime = startOfThisWeek;
         lastCheckpoint = startOfThisWeek;
@@ -75,7 +68,7 @@ contract TokenDistributor is ITokenDistributor {
 
     /// @inheritdoc ITokenDistributor
     function checkpointToken() public override {
-        uint tokenBalance = kwenta.balanceOf(address(this));
+        uint tokenBalance = rewardsToken.balanceOf(address(this));
         uint toDistribute = tokenBalance - lastTokenBalance;
         lastTokenBalance = tokenBalance;
 
@@ -125,11 +118,11 @@ contract TokenDistributor is ITokenDistributor {
     /// @inheritdoc ITokenDistributor
     function claimEpoch(address to, uint epochNumber) public override {
         _checkpointWhenReady();
-        _claimEpoch(to, epochNumber, rewardEscrowV2.DEFAULT_DURATION(), rewardEscrowV2.DEFAULT_EARLY_VESTING_FEE());
+        _claimEpoch(to, epochNumber);
     }
 
     /// @notice internal claimEpoch function
-    function _claimEpoch(address to, uint epochNumber, uint duration, uint earlyVestFee) internal {
+    function _claimEpoch(address to, uint epochNumber) internal {
         _isEpochReady(epochNumber);
         mapping(uint256 => bool) storage claimedEpochsTo = claimedEpochs[to];
         if (claimedEpochsTo[epochNumber]) {
@@ -145,8 +138,7 @@ contract TokenDistributor is ITokenDistributor {
 
         lastTokenBalance -= proportionalFees;
 
-        kwenta.approve(address(rewardEscrowV2), proportionalFees);
-        rewardEscrowV2.createEscrowEntry(to, proportionalFees, duration, earlyVestFee);
+        rewardsToken.transfer(to, proportionalFees);
 
         emit EpochClaim(to, epochNumber, proportionalFees);
     }
@@ -154,12 +146,10 @@ contract TokenDistributor is ITokenDistributor {
     /// @inheritdoc ITokenDistributor
     function claimMany(address to, uint[] calldata epochs) public {
         _checkpointWhenReady();
-        uint256 duration = rewardEscrowV2.DEFAULT_DURATION();
-        uint256 earlyVestFee = rewardEscrowV2.DEFAULT_EARLY_VESTING_FEE();
         uint256 length = epochs.length;
         for (uint i = 0; i < length; ) {
             uint epochNumber = epochs[i];
-            _claimEpoch(to, epochNumber, duration, earlyVestFee);
+            _claimEpoch(to, epochNumber);
             unchecked {
                 ++i;
             }
