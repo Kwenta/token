@@ -55,6 +55,12 @@ interface ITokenDistributor {
         uint epochNumber
     ) external view returns (uint256);
 
+    /// @notice represents the status of if a user already claimed their epoch
+    /// @param to: the address being checked
+    /// @param epochNumber: the epoch being checked
+    /// @return true if the epoch has been claimed, false otherwise
+    function claimedEpochs(address to, uint epochNumber) external view returns (bool);
+
     // Mutative Functions
 
     /// @notice checkpointing system for determining tokens per epoch

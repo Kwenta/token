@@ -4,14 +4,16 @@ pragma solidity 0.8.19;
 import {ITokenDistributor} from "./interfaces/ITokenDistributor.sol";
 import {IStakingRewardsV2} from "./interfaces/IStakingRewardsV2.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {BitMaps} from "@openzeppelin/contracts/utils/structs/BitMaps.sol";
 
 contract TokenDistributor is ITokenDistributor {
+    using BitMaps for BitMaps.BitMap;
+
+    /// @dev BitMap for storing claimed epochs
+    mapping(address to => BitMaps.BitMap claimedEpochs) private _claimedEpochsBitMap;  
+
     /// @inheritdoc ITokenDistributor
     mapping(uint => uint) public tokensPerEpoch;
-
-    /// @notice represents the status of if a person already
-    /// claimed their epoch
-    mapping(address => mapping(uint => bool)) public claimedEpochs;
 
     /// @notice token to distribute
     IERC20 public immutable rewardsToken;
@@ -124,11 +126,10 @@ contract TokenDistributor is ITokenDistributor {
     /// @notice internal claimEpoch function
     function _claimEpoch(address to, uint epochNumber) internal {
         _isEpochReady(epochNumber);
-        mapping(uint256 => bool) storage claimedEpochsTo = claimedEpochs[to];
-        if (claimedEpochsTo[epochNumber]) {
+        if (_claimedEpochsBitMap[to].get(epochNumber)) {
             revert CannotClaimTwice();
         }
-        claimedEpochsTo[epochNumber] = true;
+        _claimedEpochsBitMap[to].set(epochNumber);
 
         uint256 proportionalFees = calculateEpochFees(to, epochNumber);
 
@@ -171,6 +172,11 @@ contract TokenDistributor is ITokenDistributor {
             totalStaked;
 
         return proportionalFees;
+    }
+
+    /// @inheritdoc ITokenDistributor
+    function claimedEpochs(address to, uint epochNumber) public view override returns (bool) {
+        return _claimedEpochsBitMap[to].get(epochNumber);
     }
 
     /// @notice function for calculating the start of a week with an offset
