@@ -120,7 +120,11 @@ contract TokenDistributor is ITokenDistributor {
     /// @inheritdoc ITokenDistributor
     function claimEpoch(address to, uint epochNumber) public override {
         _checkpointWhenReady();
-        _claimEpoch(to, epochNumber);
+        uint256 proportionalFees = _claimEpoch(to, epochNumber);
+
+        lastTokenBalance -= proportionalFees;
+
+        rewardsToken.transfer(to, proportionalFees);
     }
 
     /// @notice internal claimEpoch function
