@@ -124,22 +124,18 @@ contract TokenDistributor is ITokenDistributor {
     }
 
     /// @notice internal claimEpoch function
-    function _claimEpoch(address to, uint epochNumber) internal {
+    function _claimEpoch(address to, uint epochNumber) internal returns (uint256 proportionalFees) {
         _isEpochReady(epochNumber);
         if (_claimedEpochsBitMap[to].get(epochNumber)) {
             revert CannotClaimTwice();
         }
         _claimedEpochsBitMap[to].set(epochNumber);
 
-        uint256 proportionalFees = calculateEpochFees(to, epochNumber);
+        proportionalFees = calculateEpochFees(to, epochNumber);
 
         if (proportionalFees == 0) {
             revert CannotClaim0Fees();
         }
-
-        lastTokenBalance -= proportionalFees;
-
-        rewardsToken.transfer(to, proportionalFees);
 
         emit EpochClaim(to, epochNumber, proportionalFees);
     }
@@ -148,13 +144,20 @@ contract TokenDistributor is ITokenDistributor {
     function claimMany(address to, uint[] calldata epochs) public {
         _checkpointWhenReady();
         uint256 length = epochs.length;
-        for (uint i = 0; i < length; ) {
+        uint256 totalProportionalFees;
+        for (uint i; i < length; ) {
             uint epochNumber = epochs[i];
-            _claimEpoch(to, epochNumber);
+            // TODO: possible optimization by placing the line below in unchecked block
+            // if we can guarantee `totalProportionalFees` will never overflow
+            totalProportionalFees += _claimEpoch(to, epochNumber);
             unchecked {
                 ++i;
             }
         }
+
+        lastTokenBalance -= totalProportionalFees;
+
+        rewardsToken.transfer(to, totalProportionalFees);
     }
 
     /// @inheritdoc ITokenDistributor
