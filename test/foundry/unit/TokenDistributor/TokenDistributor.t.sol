@@ -514,7 +514,7 @@ contract TokenDistributorTest is TokenDistributorSetup {
     /// @notice claimEpoch happy case with partial claims
     /// in earlier epochs 2 complete epochs with differing fees
     /// @dev also an integration test with RewardEscrowV2
-    function testClaimMultipleClaims() public {
+    function testClaimFourIndividualClaims() public {
         /// @dev user1 has 1/3 total staking and user2 has 2/3
         kwenta.transfer(address(user1), 1);
         kwenta.transfer(address(user2), 2);
@@ -562,7 +562,7 @@ contract TokenDistributorTest is TokenDistributorSetup {
     }
 
     /// @notice test claimMany
-    function testClaimMany() public {
+    function testClaimManyOnce() public {
         kwenta.transfer(address(user1), 1);
         vm.startPrank(address(user1));
         kwenta.approve(address(stakingRewardsV2), 1);

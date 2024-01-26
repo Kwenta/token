@@ -59,7 +59,7 @@ interface ITokenDistributor {
     /// @param to: the address being checked
     /// @param epochNumber: the epoch being checked
     /// @return true if the epoch has been claimed, false otherwise
-    function claimedEpochs(address to, uint epochNumber) external view returns (bool);
+    function claimedEpoch(address to, uint epochNumber) external view returns (bool);
 
     // Mutative Functions
 
