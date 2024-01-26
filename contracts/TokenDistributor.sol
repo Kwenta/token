@@ -10,7 +10,7 @@ contract TokenDistributor is ITokenDistributor {
     using BitMaps for BitMaps.BitMap;
 
     /// @dev BitMap for storing claimed epochs
-    mapping(address to => BitMaps.BitMap claimedEpochs) private _claimedEpochsBitMap;  
+    mapping(address to => BitMaps.BitMap claimedEpochs) internal _claimedEpochsBitMap;  
 
     /// @inheritdoc ITokenDistributor
     mapping(uint => uint) public tokensPerEpoch;
