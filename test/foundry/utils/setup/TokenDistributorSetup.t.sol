@@ -21,10 +21,9 @@ contract TokenDistributorSetup is EscrowMigratorTestHelpers {
         super.setUp();
         switchToStakingV2();
         tokenDistributor = new TokenDistributor({
-            _kwenta: address(kwenta),
+            _rewardsToken: address(kwenta),
             _stakingRewardsV2: address(stakingRewardsV2),
-            _rewardEscrowV2: address(rewardEscrowV2),
-            daysToOffsetBy: 0
+            _daysToOffsetBy: 0
         });
     }
 }
