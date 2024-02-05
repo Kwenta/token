@@ -511,10 +511,32 @@ contract TokenDistributorTest is TokenDistributorSetup {
         assertEq(result, 0);
     }
 
+    /// @notice test claimedEpoch with epoch not claimed
+    function testClaimedEpochNotClaimYet() public {
+        assertEq(tokenDistributor.claimedEpoch(address(user1), 0), false);
+    }
+
+    /// @notice test claimedEpoch happy case
+    function testClaimedEpoch() public {
+        //setup
+        kwenta.transfer(address(user1), 1);
+        vm.startPrank(address(user1));
+        kwenta.approve(address(stakingRewardsV2), 1);
+        stakingRewardsV2.stake(1);
+        vm.stopPrank();
+        goForward(1 weeks);
+        kwenta.transfer(address(tokenDistributor), 10);
+        goForward(1 weeks);
+
+        tokenDistributor.claimEpoch(address(user1), 1);
+
+        assertEq(tokenDistributor.claimedEpoch(address(user1), 1), true);
+    }
+
     /// @notice claimEpoch happy case with partial claims
     /// in earlier epochs 2 complete epochs with differing fees
     /// @dev also an integration test with RewardEscrowV2
-    function testClaimMultipleClaims() public {
+    function testClaimFourIndividualClaims() public {
         /// @dev user1 has 1/3 total staking and user2 has 2/3
         kwenta.transfer(address(user1), 1);
         kwenta.transfer(address(user2), 2);
@@ -562,7 +584,7 @@ contract TokenDistributorTest is TokenDistributorSetup {
     }
 
     /// @notice test claimMany
-    function testClaimMany() public {
+    function testClaimManyOnce() public {
         kwenta.transfer(address(user1), 1);
         vm.startPrank(address(user1));
         kwenta.approve(address(stakingRewardsV2), 1);
@@ -580,7 +602,11 @@ contract TokenDistributorTest is TokenDistributorSetup {
         uint256[] memory epochs = new uint[](2);
         epochs[0] = 1;
         epochs[1] = 2;
+        assertEq(kwenta.balanceOf(address(user1)), 0);
+        assertEq(kwenta.balanceOf(address(tokenDistributor)), 6000);
         tokenDistributor.claimMany(address(user1), epochs);
+        assertEq(kwenta.balanceOf(address(user1)), 4083);
+        assertEq(kwenta.balanceOf(address(tokenDistributor)), 1917);
     }
 
     /// @notice test claimMany fail (one epoch cant be claimed)
