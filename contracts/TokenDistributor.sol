@@ -4,14 +4,16 @@ pragma solidity 0.8.19;
 import {ITokenDistributor} from "./interfaces/ITokenDistributor.sol";
 import {IStakingRewardsV2} from "./interfaces/IStakingRewardsV2.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {BitMaps} from "@openzeppelin/contracts/utils/structs/BitMaps.sol";
 
 contract TokenDistributor is ITokenDistributor {
+    using BitMaps for BitMaps.BitMap;
+
+    /// @dev BitMap for storing claimed epochs
+    mapping(address to => BitMaps.BitMap claimedEpochs) internal _claimedEpochsBitMap;  
+
     /// @inheritdoc ITokenDistributor
     mapping(uint => uint) public tokensPerEpoch;
-
-    /// @notice represents the status of if a person already
-    /// claimed their epoch
-    mapping(address => mapping(uint => bool)) public claimedEpochs;
 
     /// @notice token to distribute
     IERC20 public immutable rewardsToken;
@@ -118,27 +120,26 @@ contract TokenDistributor is ITokenDistributor {
     /// @inheritdoc ITokenDistributor
     function claimEpoch(address to, uint epochNumber) public override {
         _checkpointWhenReady();
-        _claimEpoch(to, epochNumber);
-    }
-
-    /// @notice internal claimEpoch function
-    function _claimEpoch(address to, uint epochNumber) internal {
-        _isEpochReady(epochNumber);
-        mapping(uint256 => bool) storage claimedEpochsTo = claimedEpochs[to];
-        if (claimedEpochsTo[epochNumber]) {
-            revert CannotClaimTwice();
-        }
-        claimedEpochsTo[epochNumber] = true;
-
-        uint256 proportionalFees = calculateEpochFees(to, epochNumber);
-
-        if (proportionalFees == 0) {
-            revert CannotClaim0Fees();
-        }
+        uint256 proportionalFees = _claimEpoch(to, epochNumber);
 
         lastTokenBalance -= proportionalFees;
 
         rewardsToken.transfer(to, proportionalFees);
+    }
+
+    /// @notice internal claimEpoch function
+    function _claimEpoch(address to, uint epochNumber) internal returns (uint256 proportionalFees) {
+        _isEpochReady(epochNumber);
+        if (claimedEpoch(to, epochNumber)) {
+            revert CannotClaimTwice();
+        }
+        _claimedEpochsBitMap[to].set(epochNumber);
+
+        proportionalFees = calculateEpochFees(to, epochNumber);
+
+        if (proportionalFees == 0) {
+            revert CannotClaim0Fees();
+        }
 
         emit EpochClaim(to, epochNumber, proportionalFees);
     }
@@ -147,13 +148,18 @@ contract TokenDistributor is ITokenDistributor {
     function claimMany(address to, uint[] calldata epochs) public {
         _checkpointWhenReady();
         uint256 length = epochs.length;
-        for (uint i = 0; i < length; ) {
+        uint256 totalProportionalFees;
+        for (uint i; i < length; ) {
             uint epochNumber = epochs[i];
-            _claimEpoch(to, epochNumber);
+            totalProportionalFees += _claimEpoch(to, epochNumber);
             unchecked {
                 ++i;
             }
         }
+
+        lastTokenBalance -= totalProportionalFees;
+
+        rewardsToken.transfer(to, totalProportionalFees);
     }
 
     /// @inheritdoc ITokenDistributor
@@ -171,6 +177,11 @@ contract TokenDistributor is ITokenDistributor {
             totalStaked;
 
         return proportionalFees;
+    }
+
+    /// @inheritdoc ITokenDistributor
+    function claimedEpoch(address to, uint epochNumber) public view override returns (bool) {
+        return _claimedEpochsBitMap[to].get(epochNumber);
     }
 
     /// @notice function for calculating the start of a week with an offset
