@@ -138,6 +138,7 @@ Note: for contracts with both an implementation and proxy, when interaction with
 | EscrowMigrator Proxy            | [`0xC9aF789Ae606F69cF8Ed073A04eC92f2354b027d`](https://optimistic.etherscan.io/address/0xC9aF789Ae606F69cF8Ed073A04eC92f2354b027d) |
 | EscrowMigrator Implementation   | [`0x10B04483d762Bd4F193F35600112ad52391004A7`](https://optimistic.etherscan.io/address/0x10B04483d762Bd4F193F35600112ad52391004A7) |
 | MultipleMerkleDistributor       | [`0xf486A72E8c8143ACd9F65A104A16990fDb38be14`](https://optimistic.etherscan.io/address/0xf486A72E8c8143ACd9F65A104A16990fDb38be14) |
+| MultipleMerkleDistributor (ARB) | [`0x5733Ef72c134E7A276029CB4ba07Bff8b1163086`](https://arbiscan.io/address/0x5733Ef72c134E7A276029CB4ba07Bff8b1163086) |
 | vKWENTA                         | [`0x6789D8a7a7871923Fc6430432A602879eCB6520a`](https://optimistic.etherscan.io/token/0x6789d8a7a7871923fc6430432a602879ecb6520a)   |
 | vKWENTARedeemer                 | [`0x8132EE584bCD6f8Eb1bea141DB7a7AC1E72917b9`](https://optimistic.etherscan.io/address/0x8132EE584bCD6f8Eb1bea141DB7a7AC1E72917b9) |
 

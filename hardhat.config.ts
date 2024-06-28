@@ -116,6 +116,10 @@ export default {
       url: `https://opt-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
       accounts: process.env.DEPLOYER_PRIVATE_KEY ? [process.env.DEPLOYER_PRIVATE_KEY] : undefined,
     },
+    "arbitrum-mainnet": {
+      url: `https://arb-mainnet.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`,
+      accounts: process.env.DEPLOYER_PRIVATE_KEY ? [process.env.DEPLOYER_PRIVATE_KEY] : undefined,
+    },
     tenderly: {
       url: process.env.TENDERLY_FORK_URL ?? ""
     }
@@ -139,6 +143,6 @@ export default {
     ]
   },
   exposed: {
-    exclude: ["**/libraries/SafeDecimalMath.sol", "**/misc/LPRewards.sol"]
+    exclude: ["**/libraries/SafeDecimalMath.sol", "**/misc/LPRewards.sol", "**/TokenDistributor.sol"]
   },
 };
