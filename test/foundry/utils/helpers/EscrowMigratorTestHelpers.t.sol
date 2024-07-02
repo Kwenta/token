@@ -504,14 +504,9 @@ contract EscrowMigratorTestHelpers is StakingTestHelpers {
 
         assertEq(earlyVestingFee, 90);
         assertEq(escrowAmount, registeredEscrowAmount);
-        uint256 cooldown = stakingRewardsV2.cooldownPeriod();
-        if (registeredDuration < cooldown) {
-            assertEq(duration, cooldown);
-            assertEq(endTime, registeredEndTime - registeredDuration + cooldown);
-        } else {
-            assertEq(duration, registeredDuration);
-            assertEq(endTime, registeredEndTime);
-        }
+        assertEq(duration, registeredDuration);
+        assertEq(endTime, registeredEndTime);
+
     }
 
     function checkEntryAfterStepThree(address account, uint256 i, uint256 entryID)
