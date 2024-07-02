@@ -27,12 +27,6 @@ contract StakingRewardsV2 is
                         CONSTANTS/IMMUTABLES
     ///////////////////////////////////////////////////////////////*/
 
-    /// @notice minimum time length of the unstaking cooldown period
-    uint256 public constant MIN_COOLDOWN_PERIOD = 1 weeks;
-
-    /// @notice maximum time length of the unstaking cooldown period
-    uint256 public constant MAX_COOLDOWN_PERIOD = 52 weeks;
-
     /// @notice Contract for KWENTA ERC20 token - used for BOTH staking and rewards
     /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
     IKwenta public immutable kwenta;
@@ -74,9 +68,6 @@ contract StakingRewardsV2 is
     /// @notice summation of rewardRate divided by total staked tokens
     uint256 public rewardPerTokenStored;
 
-    /// @inheritdoc IStakingRewardsV2
-    uint256 public cooldownPeriod;
-
     /// @notice represents the rewardPerToken
     /// value the last time the staker calculated earned() rewards
     mapping(address => uint256) public userRewardPerTokenPaid;
@@ -113,17 +104,6 @@ contract StakingRewardsV2 is
 
     function _onlyRewardsNotifier() internal view {
         if (msg.sender != address(rewardsNotifier)) revert OnlyRewardsNotifier();
-    }
-
-    /// @notice only allow execution after the unstaking cooldown period has elapsed
-    modifier afterCooldown(address _account) {
-        _afterCooldown(_account);
-        _;
-    }
-
-    function _afterCooldown(address _account) internal view {
-        uint256 canUnstakeAt = userLastStakeTime[_account] + cooldownPeriod;
-        if (canUnstakeAt > block.timestamp) revert MustWaitForUnlock(canUnstakeAt);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -165,7 +145,6 @@ contract StakingRewardsV2 is
 
         // define values
         rewardsDuration = 1 weeks;
-        cooldownPeriod = 2 weeks;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -233,7 +212,6 @@ contract StakingRewardsV2 is
         public
         whenNotPaused
         updateReward(msg.sender)
-        afterCooldown(msg.sender)
     {
         if (_amount == 0) revert AmountZero();
         uint256 nonEscrowedBalance = nonEscrowedBalanceOf(msg.sender);
@@ -278,12 +256,12 @@ contract StakingRewardsV2 is
     }
 
     /// @inheritdoc IStakingRewardsV2
-    function unstakeEscrow(uint256 _amount) external afterCooldown(msg.sender) {
+    function unstakeEscrow(uint256 _amount) external {
         _unstakeEscrow(msg.sender, _amount);
     }
 
     /// @inheritdoc IStakingRewardsV2
-    function unstakeEscrowSkipCooldown(address _account, uint256 _amount)
+    function unstakeEscrowAdmin(address _account, uint256 _amount)
         external
         onlyRewardEscrow
     {
@@ -609,17 +587,6 @@ contract StakingRewardsV2 is
 
         rewardsDuration = _rewardsDuration;
         emit RewardsDurationUpdated(rewardsDuration);
-    }
-
-    /// @inheritdoc IStakingRewardsV2
-    function setCooldownPeriod(uint256 _cooldownPeriod) external onlyOwner {
-        if (_cooldownPeriod < MIN_COOLDOWN_PERIOD) revert CooldownPeriodTooLow(MIN_COOLDOWN_PERIOD);
-        if (_cooldownPeriod > MAX_COOLDOWN_PERIOD) {
-            revert CooldownPeriodTooHigh(MAX_COOLDOWN_PERIOD);
-        }
-
-        cooldownPeriod = _cooldownPeriod;
-        emit CooldownPeriodUpdated(cooldownPeriod);
     }
 
     /*///////////////////////////////////////////////////////////////
