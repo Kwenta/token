@@ -791,26 +791,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
         // check final state - user2 didn't manage to migrate any entries
         checkStateAfterStepThree(user1, 0, 0);
     }
-
-    function test_Cannot_Bypass_Unstaking_Cooldown_Lock() public {
-        // this is the malicious entry - the duration is set to 1
-        createRewardEscrowEntryV1(user1, 50 ether, 1);
-
-        (uint256[] memory _entryIDs, uint256 numVestingEntries,) = claimAndFullyMigrate(user1);
-        checkStateAfterStepThree(user1, _entryIDs);
-
-        // specifically
-        uint256[] memory migratedEntryIDs =
-            rewardEscrowV2.getAccountVestingEntryIDs(user1, numVestingEntries - 2, 1);
-        uint256 maliciousEntryID = migratedEntryIDs[0];
-        (uint256 endTime, uint256 escrowAmount, uint256 duration, uint256 earlyVestingFee) =
-            rewardEscrowV2.getVestingEntry(maliciousEntryID);
-        assertEq(endTime, block.timestamp + stakingRewardsV2.cooldownPeriod());
-        assertEq(escrowAmount, 50 ether);
-        assertEq(duration, stakingRewardsV2.cooldownPeriod());
-        assertEq(earlyVestingFee, 90);
-    }
-
+    
     function test_Cannot_Migrate_In_Non_Initiated_State() public {
         (uint256[] memory _entryIDs,) = claimAndCheckInitialState(user1);
 
