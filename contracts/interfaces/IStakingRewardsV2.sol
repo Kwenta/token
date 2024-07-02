@@ -146,7 +146,7 @@ interface IStakingRewardsV2 {
     /// @dev updateReward() called prior to function logic
     function unstakeEscrow(uint256 _amount) external;
 
-    /// @notice unstake escrowed token skipping the cooldown wait period
+    /// @notice unstake escrowed token on behalf of another account
     /// @param _account: address of account to unstake from
     /// @param _amount: amount to unstake
     /// @dev this function is used to allow tokens to be vested at any time by RewardEscrowV2
