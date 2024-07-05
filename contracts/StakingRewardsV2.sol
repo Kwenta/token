@@ -137,7 +137,8 @@ contract StakingRewardsV2 is
     /// @param _rewardEscrow The address for the RewardEscrowV2 contract
     /// @param _rewardsNotifier The address for the StakingRewardsNotifier contract
     constructor(address _kwenta, address _rewardEscrow, address _rewardsNotifier) {
-        if (_kwenta == address(0) || _rewardEscrow == address(0) || _rewardsNotifier == address(0)) {
+        if (_kwenta == address(0) || _rewardEscrow == address(0) || _rewardsNotifier == address(0))
+        {
             revert ZeroAddress();
         }
 
@@ -343,10 +344,9 @@ contract StakingRewardsV2 is
             // emit reward claimed event and index account
             emit RewardPaid(_account, reward);
 
-            // transfer token from this contract to the rewardEscrow
-            // and create a vesting entry at the _to address
-            kwenta.transfer(address(rewardEscrow), reward);
-            rewardEscrow.appendVestingEntry(_to, reward);
+            // transfer token from this contract to the account
+            // as newly issued rewards from inflation are now issued as non-escrowed
+            kwenta.transfer(_to, reward);
         }
     }
 
@@ -502,7 +502,7 @@ contract StakingRewardsV2 is
     /// @param _timestamp: timestamp to check
     /// @dev returns 0 if no checkpoints exist, uses iterative binary search
     /// @dev if called with a timestamp that equals the current block timestamp, then the function might return inconsistent
-    /// values as further transactions changing the balances can still occur within the same block. 
+    /// values as further transactions changing the balances can still occur within the same block.
     function _checkpointBinarySearch(Checkpoint[] storage _checkpoints, uint256 _timestamp)
         internal
         view
