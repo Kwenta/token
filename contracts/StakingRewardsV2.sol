@@ -214,7 +214,14 @@ contract StakingRewardsV2 is
     ///////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IStakingRewardsV2
-    function stake(uint256 _amount) external whenNotPaused updateReward(msg.sender) {
+    function stake(uint256 _amount) external whenNotPaused {
+        _stake(_amount);
+
+        // transfer token to this contract from the caller
+        kwenta.transferFrom(msg.sender, address(this), _amount);
+    }
+
+    function _stake(uint256 _amount) external whenNotPaused updateReward(msg.sender) {
         if (_amount == 0) revert AmountZero();
 
         // update state
@@ -224,9 +231,6 @@ contract StakingRewardsV2 is
 
         // emit staking event and index msg.sender
         emit Staked(msg.sender, _amount);
-
-        // transfer token to this contract from the caller
-        kwenta.transferFrom(msg.sender, address(this), _amount);
     }
 
     /// @inheritdoc IStakingRewardsV2
@@ -350,6 +354,22 @@ contract StakingRewardsV2 is
         }
     }
 
+    function _getRewardCompounding(address _account)
+        internal
+        whenNotPaused
+        updateReward(_account)
+        returns (uint256 reward)
+    {
+        uint256 reward = rewards[_account];
+        if (reward > 0) {
+            // update state (first)
+            rewards[_account] = 0;
+
+            // emit reward claimed event and index account
+            emit RewardPaid(_account, reward);
+        }
+    }
+
     /// @inheritdoc IStakingRewardsV2
     function compound() external {
         _compound(msg.sender);
@@ -358,8 +378,8 @@ contract StakingRewardsV2 is
     /// @dev internal helper to compound for a given account
     /// @param _account the account to compound for
     function _compound(address _account) internal {
-        _getReward(_account);
-        _stakeEscrow(_account, unstakedEscrowedBalanceOf(_account));
+        uint256 reward = _getRewardCompounding(_account);
+        _stake(reward);
     }
 
     /*///////////////////////////////////////////////////////////////
