@@ -11,6 +11,7 @@ contract StakingRewardsV2CompoundTests is DefaultStakingV2Setup {
                             Compound Function
     //////////////////////////////////////////////////////////////*/
 
+    // custom:todo FAIL. Reason: AmountZero()
     function test_compound() public {
         fundAndApproveAccountV2(address(this), TEST_VALUE);
         uint256 initialEscrowBalance = rewardEscrowV2.escrowedBalanceOf(address(this));
@@ -38,6 +39,7 @@ contract StakingRewardsV2CompoundTests is DefaultStakingV2Setup {
         assertEq(rewardEscrowV2.unstakedEscrowedBalanceOf(address(this)), 0);
     }
 
+    // custom:todo FAIL. Reason: AmountZero()
     function test_compound_Fuzz(uint32 initialStake, uint32 newRewards) public {
         vm.assume(initialStake > 0);
         // need reward to be greater than duration so that reward rate is above 0
@@ -96,6 +98,7 @@ contract StakingRewardsV2CompoundTests is DefaultStakingV2Setup {
                             Events
     //////////////////////////////////////////////////////////////*/
 
+    // custom:todo FAIL. Reason: log != expected log
     function test_compound_Events() public {
         fundAndApproveAccountV2(address(this), TEST_VALUE);
 

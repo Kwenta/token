@@ -10,6 +10,7 @@ contract StakingV2MigrationTests is StakingTestHelpers {
                             Migration Tests
     //////////////////////////////////////////////////////////////*/
 
+    // @custom:todo FAIL. Reason: AmountZero()
     function test_Migrate_Then_Move_Funds_From_V1_To_V2_And_Generate_New_Rewards() public {
         // Stake tokens in StakingV1
         fundAccountAndStakeV1(user1, 10 ether);
@@ -151,6 +152,7 @@ contract StakingV2MigrationTests is StakingTestHelpers {
         assertEq(rewardEscrowV2.escrowedBalanceOf(user3), user3EscrowStakedV2);
     }
 
+    // @custom:todo FAIL. Reason: AmountZero()
     function test_Migrate_Then_Move_Funds_From_V1_To_V2_And_Generate_New_Rewards_Fuzz(
         uint32 maxFundingAmount,
         uint8 numberOfStakers

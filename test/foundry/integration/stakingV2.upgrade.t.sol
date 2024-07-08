@@ -92,6 +92,7 @@ contract StakingV2UpgradeTests is DefaultStakingV2Setup {
                         Upgrade StakingRewardsV2
     //////////////////////////////////////////////////////////////*/
 
+    // @custom:todo FAIL. Reason: assertion failed
     function test_Upgrade_StakingRewardsV2_To_V3() public {
         address stakingRewardsV3Implementation = deployStakingRewardsV3Implementation();
 
@@ -105,6 +106,7 @@ contract StakingV2UpgradeTests is DefaultStakingV2Setup {
         testStakingV2StillWorking();
     }
 
+    // @custom:todo FAIL. Reason: assertion failed
     function test_Upgrade_And_Call_StakingRewardsV2_To_V3() public {
         address stakingRewardsV3Implementation = deployStakingRewardsV3Implementation();
 
@@ -124,6 +126,7 @@ contract StakingV2UpgradeTests is DefaultStakingV2Setup {
                         Upgrade RewardEscrowV2
     //////////////////////////////////////////////////////////////*/
 
+    // @custom:todo FAIL. Reason: assertion failed
     function test_Upgrade_RewardEscrowV2_To_V3() public {
         address rewardEscrowV3Implementation =
             address(new MockRewardEscrowV3(address(kwenta), address(0x1)));
@@ -138,6 +141,7 @@ contract StakingV2UpgradeTests is DefaultStakingV2Setup {
         testStakingV2StillWorking();
     }
 
+    // @custom:todo FAIL. Reason: assertion failed
     function test_Upgrade_And_Call_RewardEscrowV2_To_V3() public {
         address rewardEscrowV3Implementation =
             address(new MockRewardEscrowV3(address(kwenta), address(0x1)));
@@ -158,6 +162,7 @@ contract StakingV2UpgradeTests is DefaultStakingV2Setup {
                         UPGRADE ESCROW MIGRATOR
     //////////////////////////////////////////////////////////////*/
 
+    // @custom:todo FAIL. Reason: assertion failed
     function test_Upgrade_EscrowMigrator_To_V2() public {
         address escrowMigratorV2Impl = deployEscrowMigratorImpl();
 

@@ -313,6 +313,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         stakingRewardsV2.getRewardOnBehalf(address(this));
     }
 
+    // @custom:todo FAIL. Reason: AmountZero()
     function test_Cannot_Compound_When_Paused() public {
         // fund and stake
         fundAndApproveAccountV2(address(this), TEST_VALUE);
@@ -339,6 +340,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         stakingRewardsV2.compound();
     }
 
+    // @custom:todo FAIL. Reason: AmountZero()
     function test_Cannot_Compound_On_Behalf_When_Paused() public {
         // approve operator
         stakingRewardsV2.approveOperator(user1, true);
@@ -738,6 +740,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
                                 getReward
     //////////////////////////////////////////////////////////////*/
 
+    // @custom:todo FAIL; Reason: assertion failed
     function test_getReward_Increases_Balance_In_Escrow() public {
         fundAndApproveAccountV2(address(this), TEST_VALUE);
 

@@ -204,6 +204,7 @@ contract StakingRewardsV2OnBehalfActionsTests is DefaultStakingV2Setup {
         assertEq(rewardEscrowV2.escrowedBalanceOf(user1), 0);
     }
 
+    // @custom:todo FAIL. Reason: Assertion failed
     function test_getRewardOnBehalf_Fuzz(
         uint32 fundingAmount,
         uint32 newRewards,
@@ -355,6 +356,7 @@ contract StakingRewardsV2OnBehalfActionsTests is DefaultStakingV2Setup {
                     Get Reward And Stake On Behalf
     //////////////////////////////////////////////////////////////*/
 
+    // @custom:todo FAIL. Reason: InsufficientUnstakedEscrow(0)
     function test_Get_Reward_And_Stake_On_Behalf() public {
         fundAccountAndStakeV2(address(this), TEST_VALUE);
 
@@ -388,6 +390,7 @@ contract StakingRewardsV2OnBehalfActionsTests is DefaultStakingV2Setup {
         assertEq(stakingRewardsV2.escrowedBalanceOf(user1), 0);
     }
 
+    // @custom:todo FAIL. Reason: AmountZero()
     function test_Get_Reward_And_Stake_On_Behalf_Fuzz(
         uint32 fundingAmount,
         uint32 newRewards,
@@ -438,6 +441,7 @@ contract StakingRewardsV2OnBehalfActionsTests is DefaultStakingV2Setup {
                             Compound On Behalf
     //////////////////////////////////////////////////////////////*/
 
+    // @custom:todo FAIL. Reason: AmountZero()
     function test_compoundOnBehalf() public {
         fundAndApproveAccountV2(address(this), TEST_VALUE);
         uint256 initialEscrowBalance = rewardEscrowV2.escrowedBalanceOf(address(this));
@@ -469,6 +473,7 @@ contract StakingRewardsV2OnBehalfActionsTests is DefaultStakingV2Setup {
         assertEq(rewardEscrowV2.unstakedEscrowedBalanceOf(address(this)), 0);
     }
 
+    // @custom:todo FAIL. Reason: AmountZero()
     function test_compoundOnBehalf_Fuzz(
         uint32 initialStake,
         uint32 newRewards,
@@ -538,6 +543,7 @@ contract StakingRewardsV2OnBehalfActionsTests is DefaultStakingV2Setup {
         stakingRewardsV2.approveOperator(operator, approved);
     }
 
+    // @custom:todo FAIL. Reason: Assertion failed
     function test_getRewardOnBehalf_Emits_Event() public {
         fundAccountAndStakeV2(address(this), TEST_VALUE);
         addNewRewardsToStakingRewardsV2(1 weeks);

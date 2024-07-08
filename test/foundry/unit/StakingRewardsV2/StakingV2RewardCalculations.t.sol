@@ -66,6 +66,7 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         assertEq(rewards, expectedRewards * numberOfPeriods);
     }
 
+    // @custom:todo FAIL. Reason: assertion failed
     function test_Staking_Rewards_One_Staker_In_Single_Reward_Period_Fuzz(
         uint64 _initialStake,
         uint64 _reward,
@@ -119,6 +120,7 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         assertEq(rewards, expectedRewards);
     }
 
+    // @custom:todo FAIL. Reason: assertion failed
     function test_Staking_Rewards_Multiple_Stakers_In_Single_Reward_Period_Fuzz(
         uint64 _initialStake,
         uint64 _reward,
@@ -178,6 +180,7 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         assertEq(rewards, expectedRewards);
     }
 
+    // @custom:todo FAIL. Reason: assertion failed
     function test_Staking_Rewards_One_Staker_Two_Reward_Periods_Fuzz(
         uint64 _initialStake,
         uint64 _reward,
@@ -234,6 +237,7 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         assertEq(rewards, expectedRewards);
     }
 
+    // @custom:todo FAIL. Reason: assertion failed
     function test_Staking_Rewards_Three_Rounds_Fuzz(
         uint64 _initialStake,
         uint64 _reward,
@@ -310,6 +314,7 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         assertEq(rewards, expectedRewards);
     }
 
+    // @custom:todo FAIL. Reason: assertion failed
     function test_Staking_Rewards_Multiple_Rounds_Fuzz(
         uint64 _initialStake,
         uint64 _reward,
@@ -370,6 +375,7 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         }
     }
 
+    // @custom:todo FAIL. Reason: assertion failed
     function test_Staking_Rewards_Multiple_Rounds_And_Stakers_Fuzz(
         uint64 _initialStake,
         uint64 _reward,
