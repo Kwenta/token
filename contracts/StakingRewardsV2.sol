@@ -215,22 +215,26 @@ contract StakingRewardsV2 is
 
     /// @inheritdoc IStakingRewardsV2
     function stake(uint256 _amount) external whenNotPaused {
-        _stake(_amount);
+        _stake(msg.sender, _amount);
 
         // transfer token to this contract from the caller
         kwenta.transferFrom(msg.sender, address(this), _amount);
     }
 
-    function _stake(uint256 _amount) external whenNotPaused updateReward(msg.sender) {
+    function _stake(address _account, uint256 _amount)
+        internal
+        whenNotPaused
+        updateReward(msg.sender)
+    {
         if (_amount == 0) revert AmountZero();
 
         // update state
-        userLastStakeTime[msg.sender] = block.timestamp;
+        userLastStakeTime[_account] = block.timestamp;
         _addTotalSupplyCheckpoint(totalSupply() + _amount);
-        _addBalancesCheckpoint(msg.sender, balanceOf(msg.sender) + _amount);
+        _addBalancesCheckpoint(_account, balanceOf(_account) + _amount);
 
-        // emit staking event and index msg.sender
-        emit Staked(msg.sender, _amount);
+        // emit staking event and index _account
+        emit Staked(_account, _amount);
     }
 
     /// @inheritdoc IStakingRewardsV2
@@ -360,7 +364,7 @@ contract StakingRewardsV2 is
         updateReward(_account)
         returns (uint256 reward)
     {
-        uint256 reward = rewards[_account];
+        reward = rewards[_account];
         if (reward > 0) {
             // update state (first)
             rewards[_account] = 0;
@@ -379,7 +383,7 @@ contract StakingRewardsV2 is
     /// @param _account the account to compound for
     function _compound(address _account) internal {
         uint256 reward = _getRewardCompounding(_account);
-        _stake(reward);
+        _stake(_account, reward);
     }
 
     /*///////////////////////////////////////////////////////////////
