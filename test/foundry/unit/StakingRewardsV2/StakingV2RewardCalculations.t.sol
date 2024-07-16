@@ -19,10 +19,10 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         // user1 earns 100% of rewards
         fundAccountAndStakeV2(user1, initialStake);
 
-        // get initial rewards
-        uint256 rewards = rewardEscrowV2.escrowedBalanceOf(user1);
-        // assert initial rewards are 0
-        assertEq(rewards, 0);
+        // get initial balance
+        uint256 balance = kwenta.balanceOf(user1);
+        // assert initial balance is 0 (everything is staked and rewards are 0)
+        assertEq(balance, 0);
 
         // send in 604800 (1 week) of rewards - (using 1 week for round numbers)
         addNewRewardsToStakingRewardsV2(1 weeks);
@@ -47,8 +47,8 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         uint256 expectedRewards = 1 weeks;
 
         // check rewards
-        rewards = rewardEscrowV2.escrowedBalanceOf(user1);
-        assertEq(rewards, expectedRewards);
+        balance = kwenta.balanceOf(user1);
+        assertEq(balance, expectedRewards);
 
         // send in another 604800 (1 week) of rewards
         addNewRewardsToStakingRewardsV2(1 weeks);
@@ -60,13 +60,12 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.escrowedBalanceOf(user1);
+        balance = kwenta.balanceOf(user1);
         // we exect the same amount of rewards again as this week was exactly the same as the previous one
         uint256 numberOfPeriods = 2;
-        assertEq(rewards, expectedRewards * numberOfPeriods);
+        assertEq(balance, expectedRewards * numberOfPeriods);
     }
 
-    // @custom:todo FAIL. Reason: assertion failed
     function test_Staking_Rewards_One_Staker_In_Single_Reward_Period_Fuzz(
         uint64 _initialStake,
         uint64 _reward,
@@ -84,10 +83,10 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         // user1 earns 100% of rewards
         fundAccountAndStakeV2(user1, initialStake);
 
-        // get initial rewards
-        uint256 rewards = rewardEscrowV2.escrowedBalanceOf(user1);
-        // assert initial rewards are 0
-        assertEq(rewards, 0);
+        // get initial balance
+        uint256 balance = kwenta.balanceOf(user1);
+        // assert initial balance is 0 (everything is staked and rewards are 0)
+        assertEq(balance, 0);
 
         // calculate expected reward
         uint256 expectedRewards = getExpectedRewardV2(reward, waitTime, user1);
@@ -102,8 +101,8 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.escrowedBalanceOf(user1);
-        assertEq(rewards, expectedRewards);
+        balance = kwenta.balanceOf(user1);
+        assertEq(balance, expectedRewards);
 
         // move forward to the end of the rewards period
         jumpToEndOfRewardsPeriod(waitTime);
@@ -116,11 +115,10 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.escrowedBalanceOf(user1);
-        assertEq(rewards, expectedRewards);
+        balance = kwenta.balanceOf(user1);
+        assertEq(balance, expectedRewards);
     }
 
-    // @custom:todo FAIL. Reason: assertion failed
     function test_Staking_Rewards_Multiple_Stakers_In_Single_Reward_Period_Fuzz(
         uint64 _initialStake,
         uint64 _reward,
@@ -144,10 +142,10 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         // user1 earns 100% of rewards
         fundAccountAndStakeV2(user1, initialStake);
 
-        // get initial rewards
-        uint256 rewards = rewardEscrowV2.escrowedBalanceOf(user1);
-        // assert initial rewards are 0
-        assertEq(rewards, 0);
+        // get initial balance
+        uint256 balance = kwenta.balanceOf(user1);
+        // assert initial balance is 0 (everything is staked and rewards are 0)
+        assertEq(balance, 0);
 
         // calculate expected reward
         uint256 expectedRewards = getExpectedRewardV2(reward, waitTime, user1);
@@ -162,8 +160,8 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.escrowedBalanceOf(user1);
-        assertEq(rewards, expectedRewards);
+        balance = kwenta.balanceOf(user1);
+        assertEq(balance, expectedRewards);
 
         // move forward to the end of the rewards period
         jumpToEndOfRewardsPeriod(waitTime);
@@ -176,11 +174,10 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.escrowedBalanceOf(user1);
-        assertEq(rewards, expectedRewards);
+        balance = kwenta.balanceOf(user1);
+        assertEq(balance, expectedRewards);
     }
 
-    // @custom:todo FAIL. Reason: assertion failed
     function test_Staking_Rewards_One_Staker_Two_Reward_Periods_Fuzz(
         uint64 _initialStake,
         uint64 _reward,
@@ -195,10 +192,10 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         // user1 earns 100% of rewards
         fundAccountAndStakeV2(user1, initialStake);
 
-        // get initial rewards
-        uint256 rewards = rewardEscrowV2.escrowedBalanceOf(user1);
-        // assert initial rewards are 0
-        assertEq(rewards, 0);
+        // get initial balance
+        uint256 balance = kwenta.balanceOf(user1);
+        // assert initial balance is 0 (everything is staked and rewards are 0)
+        assertEq(balance, 0);
 
         // calculate expected reward
         uint256 expectedRewards = getExpectedRewardV2(reward, waitTime, user1);
@@ -213,8 +210,8 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.escrowedBalanceOf(user1);
-        assertEq(rewards, expectedRewards);
+        balance = kwenta.balanceOf(user1);
+        assertEq(balance, expectedRewards);
 
         // move forward to the end of the rewards period
         jumpToEndOfRewardsPeriod(waitTime);
@@ -233,11 +230,10 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.escrowedBalanceOf(user1);
-        assertEq(rewards, expectedRewards);
+        balance = kwenta.balanceOf(user1);
+        assertEq(balance, expectedRewards);
     }
 
-    // @custom:todo FAIL. Reason: assertion failed
     function test_Staking_Rewards_Three_Rounds_Fuzz(
         uint64 _initialStake,
         uint64 _reward,
@@ -252,10 +248,10 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         // user1 earns 100% of rewards
         fundAccountAndStakeV2(user1, initialStake);
 
-        // get initial rewards
-        uint256 rewards = rewardEscrowV2.escrowedBalanceOf(user1);
-        // assert initial rewards are 0
-        assertEq(rewards, 0);
+        // get initial balance
+        uint256 balance = kwenta.balanceOf(user1);
+        // assert initial balance is 0 (everything is staked and rewards are 0)
+        assertEq(balance, 0);
 
         // calculate expected reward
         uint256 expectedRewards = getExpectedRewardV2(reward, waitTime, user1);
@@ -270,8 +266,8 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.escrowedBalanceOf(user1);
-        assertEq(rewards, expectedRewards);
+        balance = kwenta.balanceOf(user1);
+        assertEq(balance, expectedRewards);
 
         // move forward to the end of the rewards period
         jumpToEndOfRewardsPeriod(waitTime);
@@ -290,8 +286,8 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.escrowedBalanceOf(user1);
-        assertEq(rewards, expectedRewards);
+        balance = kwenta.balanceOf(user1);
+        assertEq(balance, expectedRewards);
 
         // move forward to the end of the rewards period
         jumpToEndOfRewardsPeriod(waitTime);
@@ -310,11 +306,10 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.escrowedBalanceOf(user1);
-        assertEq(rewards, expectedRewards);
+        balance = kwenta.balanceOf(user1);
+        assertEq(balance, expectedRewards);
     }
 
-    // @custom:todo FAIL. Reason: assertion failed
     function test_Staking_Rewards_Multiple_Rounds_Fuzz(
         uint64 _initialStake,
         uint64 _reward,
@@ -331,10 +326,10 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         // user1 earns 100% of rewards
         fundAccountAndStakeV2(user1, initialStake);
 
-        // get initial rewards
-        uint256 rewards = rewardEscrowV2.escrowedBalanceOf(user1);
-        // assert initial rewards are 0
-        assertEq(rewards, 0);
+        // get initial balance
+        uint256 balance = kwenta.balanceOf(user1);
+        // assert initial balance is 0 (everything is staked and rewards are 0)
+        assertEq(balance, 0);
 
         // calculate expected reward
         uint256 expectedRewards = getExpectedRewardV2(reward, waitTime, user1);
@@ -349,8 +344,8 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.escrowedBalanceOf(user1);
-        assertEq(rewards, expectedRewards);
+        balance = kwenta.balanceOf(user1);
+        assertEq(balance, expectedRewards);
 
         for (uint256 i = 0; i < numberOfRounds; i++) {
             // move forward to the end of the rewards period
@@ -370,12 +365,11 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
             getStakingRewardsV2(user1);
 
             // check rewards
-            rewards = rewardEscrowV2.escrowedBalanceOf(user1);
-            assertEq(rewards, expectedRewards);
+            balance = kwenta.balanceOf(user1);
+            assertEq(balance, expectedRewards);
         }
     }
 
-    // @custom:todo FAIL. Reason: assertion failed
     function test_Staking_Rewards_Multiple_Rounds_And_Stakers_Fuzz(
         uint64 _initialStake,
         uint64 _reward,
@@ -400,10 +394,10 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         // user1 earns 100% of rewards
         fundAccountAndStakeV2(user1, initialStake);
 
-        // get initial rewards
-        uint256 rewards = rewardEscrowV2.escrowedBalanceOf(user1);
-        // assert initial rewards are 0
-        assertEq(rewards, 0);
+        // get initial balance
+        uint256 balance = kwenta.balanceOf(user1);
+        // assert initial balance is 0 (everything is staked and rewards are 0)
+        assertEq(balance, 0);
 
         // calculate expected reward
         uint256 expectedRewards = getExpectedRewardV2(reward, waitTime, user1);
@@ -418,8 +412,8 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.escrowedBalanceOf(user1);
-        assertEq(rewards, expectedRewards);
+        balance = kwenta.balanceOf(user1);
+        assertEq(balance, expectedRewards);
 
         for (uint256 i = 0; i < numberOfRounds; i++) {
             // add another staker
@@ -443,8 +437,8 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
             getStakingRewardsV2(user1);
 
             // check rewards
-            rewards = rewardEscrowV2.escrowedBalanceOf(user1);
-            assertEq(rewards, expectedRewards);
+            balance = kwenta.balanceOf(user1);
+            assertEq(balance, expectedRewards);
         }
     }
 
@@ -457,10 +451,10 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         // user1 earns 100% of rewards
         fundAccountAndStakeV2(user1, initialStake);
 
-        // get initial rewards
-        uint256 rewards = rewardEscrowV2.escrowedBalanceOf(user1);
-        // assert initial rewards are 0
-        assertEq(rewards, 0);
+        // get initial balance
+        uint256 balance = kwenta.balanceOf(user1);
+        // assert initial balance is 0 (everything is staked and rewards are 0)
+        assertEq(balance, 0);
 
         // send in 604800 (1 week) of rewards - (using 1 week for round numbers)
         addNewRewardsToStakingRewardsV2(1 weeks);
@@ -485,8 +479,8 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         uint256 expectedRewards = 1 weeks / 2;
 
         // check rewards
-        rewards = rewardEscrowV2.escrowedBalanceOf(user1);
-        assertEq(rewards, expectedRewards);
+        balance = kwenta.balanceOf(user1);
+        assertEq(balance, expectedRewards);
 
         // fast forward 0.5 weeks - to the end of this period
         vm.warp(block.timestamp + lengthOfPeriod / 2);
@@ -495,8 +489,8 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.escrowedBalanceOf(user1);
+        balance = kwenta.balanceOf(user1);
         // we exect to claim the other half of this weeks rewards
-        assertEq(rewards, expectedRewards * 2);
+        assertEq(balance, expectedRewards * 2);
     }
 }

@@ -21,6 +21,7 @@ contract StakingV2Setup is StakingV1Setup {
     event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
     event OperatorApproved(address owner, address operator, bool approved);
     event RewardPaid(address indexed account, uint256 reward);
+    event Staked(address indexed user, uint256 amount);
     event EscrowStaked(address indexed user, uint256 amount);
     event Vested(address indexed beneficiary, uint256 value);
     event VestingEntryCreated(

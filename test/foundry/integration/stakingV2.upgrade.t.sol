@@ -92,7 +92,6 @@ contract StakingV2UpgradeTests is DefaultStakingV2Setup {
                         Upgrade StakingRewardsV2
     //////////////////////////////////////////////////////////////*/
 
-    // @custom:todo FAIL. Reason: assertion failed
     function test_Upgrade_StakingRewardsV2_To_V3() public {
         address stakingRewardsV3Implementation = deployStakingRewardsV3Implementation();
 
@@ -106,7 +105,6 @@ contract StakingV2UpgradeTests is DefaultStakingV2Setup {
         testStakingV2StillWorking();
     }
 
-    // @custom:todo FAIL. Reason: assertion failed
     function test_Upgrade_And_Call_StakingRewardsV2_To_V3() public {
         address stakingRewardsV3Implementation = deployStakingRewardsV3Implementation();
 
@@ -126,7 +124,6 @@ contract StakingV2UpgradeTests is DefaultStakingV2Setup {
                         Upgrade RewardEscrowV2
     //////////////////////////////////////////////////////////////*/
 
-    // @custom:todo FAIL. Reason: assertion failed
     function test_Upgrade_RewardEscrowV2_To_V3() public {
         address rewardEscrowV3Implementation =
             address(new MockRewardEscrowV3(address(kwenta), address(0x1)));
@@ -141,7 +138,6 @@ contract StakingV2UpgradeTests is DefaultStakingV2Setup {
         testStakingV2StillWorking();
     }
 
-    // @custom:todo FAIL. Reason: assertion failed
     function test_Upgrade_And_Call_RewardEscrowV2_To_V3() public {
         address rewardEscrowV3Implementation =
             address(new MockRewardEscrowV3(address(kwenta), address(0x1)));
@@ -162,7 +158,6 @@ contract StakingV2UpgradeTests is DefaultStakingV2Setup {
                         UPGRADE ESCROW MIGRATOR
     //////////////////////////////////////////////////////////////*/
 
-    // @custom:todo FAIL. Reason: assertion failed
     function test_Upgrade_EscrowMigrator_To_V2() public {
         address escrowMigratorV2Impl = deployEscrowMigratorImpl();
 
@@ -201,9 +196,7 @@ contract StakingV2UpgradeTests is DefaultStakingV2Setup {
     {
         stakingRewardsV3Implementation = address(
             new MockStakingRewardsV3(
-                address(kwenta),
-                address(rewardEscrowV2),
-                address(rewardsNotifier)
+                address(kwenta), address(rewardEscrowV2), address(rewardsNotifier)
             )
         );
     }
@@ -239,14 +232,16 @@ contract StakingV2UpgradeTests is DefaultStakingV2Setup {
         // claim the rewards
         getStakingRewardsV2(user1);
         assertEq(1 ether, stakingRewardsV2.balanceOf(user1));
-        assertEq(2, rewardEscrowV2.balanceOf(user1));
-        assertEq(1 ether + 1 weeks, rewardEscrowV2.escrowedBalanceOf(user1));
-        assertEq(1 ether + 1 weeks, rewardEscrowV2.unstakedEscrowedBalanceOf(user1));
+        assertEq(1 weeks, kwenta.balanceOf(user1));
+        assertEq(1, rewardEscrowV2.balanceOf(user1));
+        assertEq(1 ether, rewardEscrowV2.escrowedBalanceOf(user1));
+        assertEq(1 ether, rewardEscrowV2.unstakedEscrowedBalanceOf(user1));
 
         // stake the rewards
         stakeAllUnstakedEscrowV2(user1);
+        stakeFundsV2(user1, 1 weeks);
         assertEq(2 ether + 1 weeks, stakingRewardsV2.balanceOf(user1));
-        assertEq(1 ether + 1 weeks, stakingRewardsV2.escrowedBalanceOf(user1));
+        assertEq(1 ether, stakingRewardsV2.escrowedBalanceOf(user1));
         assertEq(0, rewardEscrowV2.unstakedEscrowedBalanceOf(user1));
     }
 

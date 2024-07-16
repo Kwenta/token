@@ -313,7 +313,6 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         stakingRewardsV2.getRewardOnBehalf(address(this));
     }
 
-    // @custom:todo FAIL. Reason: AmountZero()
     function test_Cannot_Compound_When_Paused() public {
         // fund and stake
         fundAndApproveAccountV2(address(this), TEST_VALUE);
@@ -340,7 +339,6 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         stakingRewardsV2.compound();
     }
 
-    // @custom:todo FAIL. Reason: AmountZero()
     function test_Cannot_Compound_On_Behalf_When_Paused() public {
         // approve operator
         stakingRewardsV2.approveOperator(user1, true);
@@ -383,13 +381,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
 
     function test_Can_Recover_Non_Staking_Token() public {
         // create mockToken
-        IERC20 mockToken = new Kwenta(
-            "Mock",
-            "MOCK",
-            INITIAL_SUPPLY,
-            address(this),
-            treasury
-        );
+        IERC20 mockToken = new Kwenta("Mock", "MOCK", INITIAL_SUPPLY, address(this), treasury);
 
         // transfer in non staking tokens
         vm.prank(treasury);
@@ -740,14 +732,13 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
                                 getReward
     //////////////////////////////////////////////////////////////*/
 
-    // @custom:todo FAIL; Reason: assertion failed
-    function test_getReward_Increases_Balance_In_Escrow() public {
+    function test_getReward_Increases_Balance() public {
         fundAndApproveAccountV2(address(this), TEST_VALUE);
-
-        uint256 initialEscrowBalance = rewardEscrowV2.escrowedBalanceOf(address(this));
 
         // stake
         stakingRewardsV2.stake(TEST_VALUE);
+
+        uint256 initialBalance = kwenta.balanceOf(address(this));
 
         // configure reward rate
         vm.prank(address(rewardsNotifier));
@@ -759,8 +750,8 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         // get reward
         stakingRewardsV2.getReward();
 
-        // check reward escrow balance increased
-        assertGt(rewardEscrowV2.escrowedBalanceOf(address(this)), initialEscrowBalance);
+        // check reward balance increased
+        assertGt(kwenta.balanceOf(address(this)), initialBalance);
     }
 
     /*//////////////////////////////////////////////////////////////
