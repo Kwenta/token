@@ -538,14 +538,14 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
     }
 
     function test_balanceAtTime_With_Unstake_Before_Block() public {
-        uint256 timestampToFind = xCooldownPeriods(4);
+        uint256 timestampToFind = xPeriods(4);
         uint256 expectedValue;
         uint256 totalStaked;
 
         for (uint256 i = 0; i < 10; i++) {
             uint256 amount = TEST_VALUE;
             totalStaked += amount;
-            if (block.timestamp == xCooldownPeriods(2)) {
+            if (block.timestamp == xPeriods(2)) {
                 stakingRewardsV2.unstake(amount);
                 totalStaked -= amount;
             }
@@ -562,14 +562,14 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
     }
 
     function test_balanceAtTime_With_Unstake_After_Block() public {
-        uint256 timestampToFind = xCooldownPeriods(4);
+        uint256 timestampToFind = xPeriods(4);
         uint256 expectedValue;
         uint256 totalStaked;
 
         for (uint256 i = 0; i < 10; i++) {
             uint256 amount = TEST_VALUE;
             totalStaked += amount;
-            if (block.timestamp == xCooldownPeriods(5)) {
+            if (block.timestamp == xPeriods(5)) {
                 stakingRewardsV2.unstake(amount);
                 totalStaked -= amount;
             }
@@ -586,7 +586,7 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
     }
 
     function test_balanceAtTime_With_Unstake_Before_And_After_Block() public {
-        uint256 timestampToFind = xCooldownPeriods(4);
+        uint256 timestampToFind = xPeriods(4);
         uint256 expectedValue;
         uint256 totalStaked;
 
@@ -594,14 +594,14 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
             uint256 amount = TEST_VALUE;
             totalStaked += amount;
             fundAccountAndStakeV2(address(this), amount);
-            if (block.timestamp == xCooldownPeriods(2)) {
+            if (block.timestamp == xPeriods(2)) {
                 vm.warp(block.timestamp + 1);
                 stakingRewardsV2.unstake(amount);
                 stakingRewardsV2.unstake(amount);
                 totalStaked -= amount;
                 totalStaked -= amount;
             }
-            if (block.timestamp == xCooldownPeriods(5)) {
+            if (block.timestamp == xPeriods(5)) {
                 vm.warp(block.timestamp + 1);
                 stakingRewardsV2.unstake(amount);
                 stakingRewardsV2.unstake(amount);
@@ -930,7 +930,7 @@ contract StakingV2CheckpointingTests is DefaultStakingV2Setup {
                                 Helpers
     //////////////////////////////////////////////////////////////*/
 
-    function xCooldownPeriods(uint256 numCooldowns) public pure returns (uint256) {
+    function xPeriods(uint256 numCooldowns) public pure returns (uint256) {
         return 1 + (numCooldowns * 1);
     }
 }
