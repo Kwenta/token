@@ -65,6 +65,13 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         stakingRewardsV2.recoverERC20(address(kwenta), 0);
     }
 
+    function test_Only_RewardEscrow_Can_Call_unstakeEscrowAdmin() public {
+        stakeEscrowedFundsV2(address(this), TEST_VALUE);
+        vm.warp(block.timestamp + 2 weeks);
+        vm.expectRevert(IStakingRewardsV2.OnlyRewardEscrow.selector);
+        stakingRewardsV2.unstakeEscrowAdmin(address(this), TEST_VALUE);
+    }
+
     function test_Cannot_unstakeEscrow_Invalid_Amount() public {
         vm.expectRevert(abi.encodeWithSelector(IStakingRewardsV2.InsufficientBalance.selector, 0));
         unstakeEscrowedFundsV2(address(this), TEST_VALUE);
@@ -1009,6 +1016,24 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         assertEq(initialEscrowTokenBalance, finalEscrowTokenBalance);
     }
 
+    function test_unstakeEscrowAdmin_Does_Not_Change_Token_Balances() public {
+        // stake escrow
+        stakeEscrowedFundsV2(address(this), 1 weeks);
+
+        uint256 initialTokenBalance = kwenta.balanceOf(address(this));
+        uint256 initialEscrowTokenBalance = kwenta.balanceOf(address(rewardEscrowV2));
+
+        // unstake escrow admin
+        unstakeEscrowedFundsAdminV2(address(this), 1 weeks);
+
+        uint256 finalTokenBalance = kwenta.balanceOf(address(this));
+        uint256 finalEscrowTokenBalance = kwenta.balanceOf(address(rewardEscrowV2));
+
+        // check both values unchanged
+        assertEq(initialTokenBalance, finalTokenBalance);
+        assertEq(initialEscrowTokenBalance, finalEscrowTokenBalance);
+    }
+
     function test_unstakeEscrow_Does_Change_totalSupply() public {
         // stake escrow
         stakeEscrowedFundsV2(address(this), 1 weeks);
@@ -1017,6 +1042,21 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
 
         // unstake escrow
         unstakeEscrowedFundsV2(address(this), 1 weeks);
+
+        uint256 finalTotalSupply = stakingRewardsV2.totalSupply();
+
+        // check total supply decreased
+        assertEq(initialTotalSupply - 1 weeks, finalTotalSupply);
+    }
+
+    function test_unstakeEscrowAdmin_Does_Change_totalSupply() public {
+        // stake escrow
+        stakeEscrowedFundsV2(address(this), 1 weeks);
+
+        uint256 initialTotalSupply = stakingRewardsV2.totalSupply();
+
+        // unstake escrow admin
+        unstakeEscrowedFundsAdminV2(address(this), 1 weeks);
 
         uint256 finalTotalSupply = stakingRewardsV2.totalSupply();
 
@@ -1039,6 +1079,21 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         assertEq(initialBalance - 1 weeks, finalBalance);
     }
 
+    function test_unstakeEscrowAdmin_Does_Change_Balances_Mapping() public {
+        // stake escrow
+        stakeEscrowedFundsV2(address(this), 1 weeks);
+
+        uint256 initialBalance = stakingRewardsV2.balanceOf(address(this));
+
+        // unstake escrow admin
+        unstakeEscrowedFundsAdminV2(address(this), 1 weeks);
+
+        uint256 finalBalance = stakingRewardsV2.balanceOf(address(this));
+
+        // check balance decreased
+        assertEq(initialBalance - 1 weeks, finalBalance);
+    }
+
     function test_unstakeEscrow_Does_Change_Escrowed_Balances_Mapping() public {
         // stake escrow
         stakeEscrowedFundsV2(address(this), 1 weeks);
@@ -1047,6 +1102,21 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
 
         // unstake escrow
         unstakeEscrowedFundsV2(address(this), 1 weeks);
+
+        uint256 finalEscrowBalance = stakingRewardsV2.escrowedBalanceOf(address(this));
+
+        // check balance decreased
+        assertEq(initialEscrowBalance - 1 weeks, finalEscrowBalance);
+    }
+
+    function test_unstakeEscrowAdmin_Does_Change_Escrowed_Balances_Mapping() public {
+        // stake escrow
+        stakeEscrowedFundsV2(address(this), 1 weeks);
+
+        uint256 initialEscrowBalance = stakingRewardsV2.escrowedBalanceOf(address(this));
+
+        // unstake escrow admin
+        unstakeEscrowedFundsAdminV2(address(this), 1 weeks);
 
         uint256 finalEscrowBalance = stakingRewardsV2.escrowedBalanceOf(address(this));
 
