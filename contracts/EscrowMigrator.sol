@@ -33,6 +33,7 @@ import {IStakingRewardsIntegrator} from "./interfaces/IStakingRewardsIntegrator.
 /// @title KWENTA Escrow Migrator
 /// Used to migrate escrow entries from RewardEscrowV1 to RewardEscrowV2
 /// @author tommyrharper (tom@zkconsulting.xyz)
+/// @author Flocqst (florian@kwenta.io)
 contract EscrowMigrator is
     IEscrowMigrator,
     Ownable2StepUpgradeable,

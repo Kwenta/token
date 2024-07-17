@@ -19,7 +19,7 @@ import {IEscrowMigrator} from "./interfaces/IEscrowMigrator.sol";
 /// @title KWENTA Reward Escrow V2
 /// @author Originally inspired by SYNTHETIX RewardEscrow
 /// @author Kwenta's RewardEscrow V1 by JaredBorders (jaredborders@proton.me), JChiaramonte7 (jeremy@bytecode.llc)
-/// @author RewardEscrowV2 by tommyrharper (tom@zkconsulting.xyz)
+/// @author RewardEscrowV2 by tommyrharper (tom@zkconsulting.xyz), Flocqst (florian@kwenta.io)
 /// @notice Updated version of Synthetix's RewardEscrow with new features specific to Kwenta
 contract RewardEscrowV2 is
     IRewardEscrowV2,

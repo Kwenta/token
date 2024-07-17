@@ -15,7 +15,7 @@ import {IRewardEscrowV2} from "./interfaces/IRewardEscrowV2.sol";
 /// @title KWENTA Staking Rewards V2
 /// @author Originally inspired by SYNTHETIX StakingRewards
 /// @author Kwenta's StakingRewards V1 by JaredBorders (jaredborders@proton.me), JChiaramonte7 (jeremy@bytecode.llc)
-/// @author StakingRewardsV2 (this) by tommyrharper (tom@zkconsulting.xyz)
+/// @author StakingRewardsV2 (this) by tommyrharper (tom@zkconsulting.xyz), Flocqst (florian@kwenta.io)
 /// @notice Updated version of Synthetix's StakingRewards with new features specific to Kwenta
 contract StakingRewardsV2 is
     IStakingRewardsV2,
