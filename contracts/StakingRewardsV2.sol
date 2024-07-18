@@ -91,6 +91,24 @@ contract StakingRewardsV2 is
     /// @notice tracks all addresses approved to take actions on behalf of a given account
     mapping(address => mapping(address => bool)) public operatorApprovals;
 
+    /// @notice Contract for USDC ERC20 token - used for rewards
+    /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
+    IERC20 public immutable usdc;
+
+    /// @notice amount of tokens minted per second
+    uint256 public rewardRateUSDC;
+
+    /// @notice summation of rewardRate divided by total staked tokens
+    uint256 public rewardPerTokenStoredUSDC;
+
+    /// @notice represents the rewardPerToken for USDC rewards
+    /// value the last time the staker calculated earned() rewards
+    mapping(address => uint256) public userRewardPerTokenPaidUSDC;
+
+    /// @notice track USDC rewards for a given user which changes when
+    /// a user stakes, unstakes, or claims rewards
+    mapping(address => uint256) public rewardsUSDC;
+
     /*///////////////////////////////////////////////////////////////
                                 AUTH
     ///////////////////////////////////////////////////////////////*/
@@ -136,7 +154,7 @@ contract StakingRewardsV2 is
     /// @param _kwenta The address for the KWENTA ERC20 token
     /// @param _rewardEscrow The address for the RewardEscrowV2 contract
     /// @param _rewardsNotifier The address for the StakingRewardsNotifier contract
-    constructor(address _kwenta, address _rewardEscrow, address _rewardsNotifier) {
+    constructor(address _kwenta, address _usdc, address _rewardEscrow, address _rewardsNotifier) {
         if (_kwenta == address(0) || _rewardEscrow == address(0) || _rewardsNotifier == address(0)) {
             revert ZeroAddress();
         }
@@ -145,6 +163,7 @@ contract StakingRewardsV2 is
 
         // define reward/staking token
         kwenta = IKwenta(_kwenta);
+        usdc = IERC20(_usdc);
 
         // define contracts which will interact with StakingRewards
         rewardEscrow = IRewardEscrowV2(_rewardEscrow);
@@ -348,6 +367,19 @@ contract StakingRewardsV2 is
             kwenta.transfer(address(rewardEscrow), reward);
             rewardEscrow.appendVestingEntry(_to, reward);
         }
+
+        uint256 rewardUSDC = rewardsUSDC[_account];
+        if (rewardUSDC > 0) {
+            // update state (first)
+            rewardsUSDC[_account] = 0;
+
+            // emit reward claimed event and index account
+            emit RewardPaidUSDC(_account, rewardUSDC);
+
+            // transfer token from this contract to the account
+            // as newly issued rewards from inflation are now issued as non-escrowed
+            usdc.transfer(_to, rewardUSDC);
+        }
     }
 
     /// @inheritdoc IStakingRewardsV2
@@ -377,6 +409,7 @@ contract StakingRewardsV2 is
     function _updateReward(address _account) internal {
         rewardPerTokenStored = rewardPerToken();
         lastUpdateTime = lastTimeRewardApplicable();
+        rewardPerTokenStoredUSDC = rewardPerTokenUSDC();
 
         if (_account != address(0)) {
             // update amount of rewards a user can claim
@@ -385,6 +418,10 @@ contract StakingRewardsV2 is
             // update reward per token staked AT this given time
             // (i.e. when this user is interacting with StakingRewards)
             userRewardPerTokenPaid[_account] = rewardPerTokenStored;
+
+            rewardsUSDC[_account] = earnedUSDC(_account);
+
+            userRewardPerTokenPaidUSDC[_account] = rewardPerTokenStoredUSDC;
         }
     }
 
@@ -406,6 +443,18 @@ contract StakingRewardsV2 is
     }
 
     /// @inheritdoc IStakingRewardsV2
+    function rewardPerTokenUSDC() public view returns (uint256) {
+        uint256 allTokensStaked = totalSupply();
+
+        if (allTokensStaked == 0) {
+            return rewardPerTokenStoredUSDC;
+        }
+
+        return rewardPerTokenStoredUSDC
+            + (((lastTimeRewardApplicable() - lastUpdateTime) * rewardRateUSDC * 1e18) / allTokensStaked);
+    }
+
+    /// @inheritdoc IStakingRewardsV2
     function lastTimeRewardApplicable() public view returns (uint256) {
         return block.timestamp < periodFinish ? block.timestamp : periodFinish;
     }
@@ -416,6 +465,14 @@ contract StakingRewardsV2 is
 
         return ((totalBalance * (rewardPerToken() - userRewardPerTokenPaid[_account])) / 1e18)
             + rewards[_account];
+    }
+
+    /// @inheritdoc IStakingRewardsV2
+    function earnedUSDC(address _account) public view returns (uint256) {
+        uint256 totalBalance = balanceOf(_account);
+
+        return ((totalBalance * (rewardPerTokenUSDC() - userRewardPerTokenPaidUSDC[_account])) / 1e18)
+            + rewardsUSDC[_account];
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -600,6 +657,25 @@ contract StakingRewardsV2 is
         lastUpdateTime = block.timestamp;
         periodFinish = block.timestamp + rewardsDuration;
         emit RewardAdded(_reward);
+    }
+
+    /// @inheritdoc IStakingRewardsV2
+    function notifyUsdcRewardAmount(uint256 _reward)
+        external
+        onlyRewardsNotifier
+        updateReward(address(0))
+    {
+        if (block.timestamp >= periodFinish) {
+            rewardRate = _reward / rewardsDuration;
+        } else {
+            uint256 remaining = periodFinish - block.timestamp;
+            uint256 leftover = remaining * rewardRate;
+            rewardRate = (_reward + leftover) / rewardsDuration;
+        }
+
+        lastUpdateTime = block.timestamp;
+        periodFinish = block.timestamp + rewardsDuration;
+        emit UsdcRewardAdded(_reward);
     }
 
     /// @inheritdoc IStakingRewardsV2
