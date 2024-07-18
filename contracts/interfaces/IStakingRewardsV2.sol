@@ -74,9 +74,18 @@ interface IStakingRewardsV2 {
     /// @return running sum of reward per total tokens staked
     function rewardPerToken() external view returns (uint256);
 
+    /// @notice calculate running sum of USDC reward per total tokens staked
+    /// at this specific time
+    /// @return running sum of USDC reward per total tokens staked
+    function rewardPerTokenUSDC() external view returns (uint256);
+
     /// @notice get the last time a reward is applicable for a given user
     /// @return timestamp of the last time rewards are applicable
     function lastTimeRewardApplicable() external view returns (uint256);
+
+    /// @notice determine how much USDC reward an account has earned thus far
+    /// @param _account: address of account earned amount is being calculated for
+    function earnedUSDC(address _account) external view returns (uint256);
 
     /// @notice determine how much reward token an account has earned thus far
     /// @param _account: address of account earned amount is being calculated for
@@ -197,6 +206,11 @@ interface IStakingRewardsV2 {
     /// @dev updateReward() called prior to function logic (with zero address)
     function notifyRewardAmount(uint256 _reward) external;
 
+    /// @notice configure usdc reward rate
+    /// @param _reward: amount of usdc to be distributed over a period
+    /// @dev updateReward() called prior to function logic (with zero address)
+    function notifyUsdcRewardAmount(uint256 _reward) external;
+
     /// @notice set rewards duration
     /// @param _rewardsDuration: denoted in seconds
     function setRewardsDuration(uint256 _rewardsDuration) external;
@@ -229,6 +243,10 @@ interface IStakingRewardsV2 {
     /// @param reward: amount to be distributed over applicable rewards duration
     event RewardAdded(uint256 reward);
 
+    /// @notice update reward rate
+    /// @param reward: amount to be distributed over applicable rewards duration
+    event UsdcRewardAdded(uint256 reward);
+
     /// @notice emitted when user stakes tokens
     /// @param user: staker address
     /// @param amount: amount staked
@@ -249,10 +267,15 @@ interface IStakingRewardsV2 {
     /// @param amount: amount unstaked
     event EscrowUnstaked(address user, uint256 amount);
 
-    /// @notice emitted when user claims rewards
+    /// @notice emitted when user claims KWENTA rewards
     /// @param user: address of user claiming rewards
     /// @param reward: amount of reward token claimed
     event RewardPaid(address indexed user, uint256 reward);
+
+    /// @notice emitted when user claims USDC rewards
+    /// @param user: address of user claiming rewards
+    /// @param reward: amount of USDC token claimed
+    event RewardPaidUSDC(address indexed user, uint256 reward);
 
     /// @notice emitted when rewards duration changes
     /// @param newDuration: denoted in seconds
