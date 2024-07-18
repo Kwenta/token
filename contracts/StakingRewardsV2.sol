@@ -152,6 +152,7 @@ contract StakingRewardsV2 is
     /// Actual contract construction will take place in the initialize function via proxy
     /// @custom:oz-upgrades-unsafe-allow constructor
     /// @param _kwenta The address for the KWENTA ERC20 token
+    /// @param _usdc The address for the USDC ERC20 token
     /// @param _rewardEscrow The address for the RewardEscrowV2 contract
     /// @param _rewardsNotifier The address for the StakingRewardsNotifier contract
     constructor(address _kwenta, address _usdc, address _rewardEscrow, address _rewardsNotifier) {
