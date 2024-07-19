@@ -156,7 +156,7 @@ contract StakingRewardsV2 is
     /// @param _rewardEscrow The address for the RewardEscrowV2 contract
     /// @param _rewardsNotifier The address for the StakingRewardsNotifier contract
     constructor(address _kwenta, address _usdc, address _rewardEscrow, address _rewardsNotifier) {
-        if (_kwenta == address(0) || _rewardEscrow == address(0) || _rewardsNotifier == address(0)) {
+        if (_kwenta == address(0) || _usdc == address(0) || _rewardEscrow == address(0) || _rewardsNotifier == address(0)) {
             revert ZeroAddress();
         }
 
