@@ -162,11 +162,13 @@ contract StakingTestHelpers is StakingV2Setup {
                             V2 Helper Functions
     //////////////////////////////////////////////////////////////*/
 
-    function addNewRewardsToStakingRewardsV2(uint256 _reward) internal {
-        vm.prank(treasury);
+    function addNewRewardsToStakingRewardsV2(uint256 _reward, uint256 _rewardUsdc) internal {
+        vm.startPrank(treasury);
         kwenta.transfer(address(stakingRewardsV2), _reward);
+        usdc.transfer(address(stakingRewardsV2), _rewardUsdc);
+        vm.stopPrank();
         vm.prank(address(rewardsNotifier));
-        stakingRewardsV2.notifyRewardAmount(_reward);
+        stakingRewardsV2.notifyRewardAmount(_reward, _rewardUsdc);
     }
 
     function fundAndApproveAccountV2(address _account, uint256 _amount) internal {

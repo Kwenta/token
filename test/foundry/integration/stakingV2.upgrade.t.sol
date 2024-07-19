@@ -229,7 +229,7 @@ contract StakingV2UpgradeTests is DefaultStakingV2Setup {
         assertEq(1 ether, rewardEscrowV2.escrowedBalanceOf(user1));
 
         // add new rewards
-        addNewRewardsToStakingRewardsV2(1 weeks);
+        addNewRewardsToStakingRewardsV2(1 weeks, 0);
         vm.warp(block.timestamp + stakingRewardsV2.rewardsDuration());
 
         // claim the rewards

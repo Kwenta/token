@@ -4,7 +4,7 @@ pragma solidity ^0.8.13;
 import {console} from "forge-std/Test.sol";
 import {TestHelpers} from "../../utils/helpers/TestHelpers.t.sol";
 import {Kwenta} from "../../../../contracts/Kwenta.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {MockERC20} from "../mocks/MockERC20.sol";
 import {RewardEscrow} from "../../../../contracts/RewardEscrow.sol";
 import {SupplySchedule} from "../../../../contracts/SupplySchedule.sol";
 import {StakingRewards} from "../../../../contracts/StakingRewards.sol";
@@ -24,7 +24,7 @@ contract StakingV1Setup is TestHelpers {
     address internal user4;
     address internal user5;
 
-    IERC20 internal usdc;
+    MockERC20 internal usdc;
     Kwenta internal kwenta;
     RewardEscrow internal rewardEscrowV1;
     SupplySchedule internal supplySchedule;
@@ -53,7 +53,7 @@ contract StakingV1Setup is TestHelpers {
             address(this),
             treasury
         );
-        usdc = IERC20(OPTIMISM_USDC_TOKEN);
+        usdc = new MockERC20("Mock USDC", "USDC", INITIAL_SUPPLY, treasury);
         rewardEscrowV1 = new RewardEscrow(address(this), address(kwenta));
         supplySchedule = new SupplySchedule(address(this), treasury);
         supplySchedule.setKwenta(kwenta);

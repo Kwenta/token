@@ -145,6 +145,19 @@ contract StakingV2SetupTests is StakingV1Setup {
         );
     }
 
+    function test_Cannot_Setup_StakingRewardsV2_With_Usdc_Zero_Address() public {
+        address rewardEscrowV2 = deployRewardEscrowV2(address(this));
+        vm.expectRevert(IStakingRewardsV2.ZeroAddress.selector);
+        stakingRewardsV2Implementation = address(
+            new StakingRewardsV2(
+                address(kwenta),
+                address(0),
+                rewardEscrowV2,
+                address(supplySchedule)
+            )
+        );
+    }
+
     function test_Cannot_Setup_StakingRewardsV2_With_RewardEscrowV2_Zero_Address() public {
         vm.expectRevert(IStakingRewardsV2.ZeroAddress.selector);
         stakingRewardsV2Implementation = address(
