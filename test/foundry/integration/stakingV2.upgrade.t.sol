@@ -197,6 +197,7 @@ contract StakingV2UpgradeTests is DefaultStakingV2Setup {
         stakingRewardsV3Implementation = address(
             new MockStakingRewardsV3(
                 address(kwenta),
+                address(usdc),
                 address(rewardEscrowV2),
                 address(rewardsNotifier)
             )

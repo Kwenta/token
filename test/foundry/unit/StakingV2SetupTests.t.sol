@@ -138,6 +138,7 @@ contract StakingV2SetupTests is StakingV1Setup {
         stakingRewardsV2Implementation = address(
             new StakingRewardsV2(
                 address(0),
+                address(usdc),
                 rewardEscrowV2,
                 address(supplySchedule)
             )
@@ -149,6 +150,7 @@ contract StakingV2SetupTests is StakingV1Setup {
         stakingRewardsV2Implementation = address(
             new StakingRewardsV2(
                 address(kwenta),
+                address(usdc),
                 address(0),
                 address(supplySchedule)
             )
@@ -161,6 +163,7 @@ contract StakingV2SetupTests is StakingV1Setup {
         stakingRewardsV2Implementation = address(
             new StakingRewardsV2(
                 address(kwenta),
+                address(usdc),
                 rewardEscrowV2,
                 address(0)
             )
@@ -172,6 +175,7 @@ contract StakingV2SetupTests is StakingV1Setup {
         stakingRewardsV2Implementation = address(
             new StakingRewardsV2(
                 address(kwenta),
+                address(usdc),
                 rewardEscrowV2,
                 address(supplySchedule)
             )
@@ -193,6 +197,7 @@ contract StakingV2SetupTests is StakingV1Setup {
         stakingRewardsV2Implementation = address(
             new StakingRewardsV2(
                 address(kwenta),
+                address(usdc),
                 rewardEscrowV2,
                 address(supplySchedule)
             )

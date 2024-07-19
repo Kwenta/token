@@ -55,6 +55,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
             .runCompleteMigrationProcess({
             _owner: owner,
             _kwenta: address(kwenta),
+            _usdc: address(usdc),
             _supplySchedule: address(supplySchedule),
             _treasuryDAO: treasury,
             _rewardEscrowV1: address(rewardEscrowV1),
