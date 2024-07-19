@@ -409,8 +409,8 @@ contract StakingRewardsV2 is
 
     function _updateReward(address _account) internal {
         rewardPerTokenStored = rewardPerToken();
-        lastUpdateTime = lastTimeRewardApplicable();
         rewardPerTokenStoredUSDC = rewardPerTokenUSDC();
+        lastUpdateTime = lastTimeRewardApplicable();
 
         if (_account != address(0)) {
             // update amount of rewards a user can claim
@@ -642,41 +642,27 @@ contract StakingRewardsV2 is
     ///////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IStakingRewardsV2
-    function notifyRewardAmount(uint256 _reward)
+    function notifyRewardAmount(uint256 _reward, uint256 _rewardUsdc)
         external
         onlyRewardsNotifier
         updateReward(address(0))
     {
         if (block.timestamp >= periodFinish) {
             rewardRate = _reward / rewardsDuration;
+            rewardRateUSDC = _rewardUsdc / rewardsDuration;
         } else {
             uint256 remaining = periodFinish - block.timestamp;
+
             uint256 leftover = remaining * rewardRate;
             rewardRate = (_reward + leftover) / rewardsDuration;
+
+            uint256 leftoverUsdc = remaining * rewardRateUSDC;
+            rewardRateUSDC = (_rewardUsdc + leftoverUsdc) / rewardsDuration;
         }
 
         lastUpdateTime = block.timestamp;
         periodFinish = block.timestamp + rewardsDuration;
         emit RewardAdded(_reward);
-    }
-
-    /// @inheritdoc IStakingRewardsV2
-    function notifyUsdcRewardAmount(uint256 _reward)
-        external
-        onlyRewardsNotifier
-        updateReward(address(0))
-    {
-        if (block.timestamp >= periodFinish) {
-            rewardRate = _reward / rewardsDuration;
-        } else {
-            uint256 remaining = periodFinish - block.timestamp;
-            uint256 leftover = remaining * rewardRate;
-            rewardRate = (_reward + leftover) / rewardsDuration;
-        }
-
-        lastUpdateTime = block.timestamp;
-        periodFinish = block.timestamp + rewardsDuration;
-        emit UsdcRewardAdded(_reward);
     }
 
     /// @inheritdoc IStakingRewardsV2

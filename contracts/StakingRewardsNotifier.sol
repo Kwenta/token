@@ -83,6 +83,6 @@ contract StakingRewardsNotifier is Ownable2Step, IStakingRewardsNotifier {
         delete mintedAmount;
         uint256 currentBalance = kwenta.balanceOf(address(this));
         kwenta.transfer(address(stakingRewardsV2), currentBalance);
-        stakingRewardsV2.notifyRewardAmount(currentBalance);
+        stakingRewardsV2.notifyRewardAmount(currentBalance, 0);
     }
 }

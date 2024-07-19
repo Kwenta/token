@@ -203,13 +203,9 @@ interface IStakingRewardsV2 {
 
     /// @notice configure reward rate
     /// @param _reward: amount of token to be distributed over a period
-    /// @dev updateReward() called prior to function logic (with zero address)
-    function notifyRewardAmount(uint256 _reward) external;
-
-    /// @notice configure usdc reward rate
     /// @param _reward: amount of usdc to be distributed over a period
     /// @dev updateReward() called prior to function logic (with zero address)
-    function notifyUsdcRewardAmount(uint256 _reward) external;
+    function notifyRewardAmount(uint256 _reward, uint256 _rewardUsdc) external;
 
     /// @notice set rewards duration
     /// @param _rewardsDuration: denoted in seconds
