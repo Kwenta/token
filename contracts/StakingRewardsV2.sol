@@ -214,7 +214,7 @@ contract StakingRewardsV2 is
     ///////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IStakingRewardsV2
-    function stake(uint256 _amount) external whenNotPaused {
+    function stake(uint256 _amount) external {
         _stake(msg.sender, _amount);
 
         // transfer token to this contract from the caller
@@ -224,7 +224,7 @@ contract StakingRewardsV2 is
     function _stake(address _account, uint256 _amount)
         internal
         whenNotPaused
-        updateReward(msg.sender)
+        updateReward(_account)
     {
         if (_amount == 0) revert AmountZero();
 
@@ -358,6 +358,8 @@ contract StakingRewardsV2 is
         }
     }
 
+    /// @notice Get the reward of the given account for compounding.
+    /// @dev Retrieves the reward without transferring it, as it will be staked immediately after.
     function _getRewardCompounding(address _account)
         internal
         whenNotPaused
