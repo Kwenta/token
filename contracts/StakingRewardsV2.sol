@@ -45,6 +45,10 @@ contract StakingRewardsV2 is
     /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
     IStakingRewardsNotifier public immutable rewardsNotifier;
 
+    /// @notice Contract for USDC ERC20 token - used for rewards
+    /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
+    IERC20 public immutable usdc;
+
     /*///////////////////////////////////////////////////////////////
                                 STATE
     ///////////////////////////////////////////////////////////////*/
@@ -90,10 +94,6 @@ contract StakingRewardsV2 is
 
     /// @notice tracks all addresses approved to take actions on behalf of a given account
     mapping(address => mapping(address => bool)) public operatorApprovals;
-
-    /// @notice Contract for USDC ERC20 token - used for rewards
-    /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
-    IERC20 public immutable usdc;
 
     /// @notice amount of tokens minted per second
     uint256 public rewardRateUSDC;
