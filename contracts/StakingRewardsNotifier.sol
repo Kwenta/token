@@ -8,6 +8,9 @@ import {IStakingRewardsV2} from "./interfaces/IStakingRewardsV2.sol";
 import {ISupplySchedule} from "./interfaces/ISupplySchedule.sol";
 import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 
+/// @title StakingRewardsNotifier
+/// @notice This contract is responsible for notifying the staking rewards contract about the reward amounts.
+/// @dev The rewards notification can only be triggered by the supply schedule contract, which is called weekly.
 contract StakingRewardsNotifier is Ownable2Step, IStakingRewardsNotifier {
     /*//////////////////////////////////////////////////////////////
                                IMMUTABLES

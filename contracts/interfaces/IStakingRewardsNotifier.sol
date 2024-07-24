@@ -21,5 +21,6 @@ interface IStakingRewardsNotifier {
 
     /// @notice notify the StakingRewardsV2 contract of the reward amount
     /// @param mintedAmount: amount of rewards minted
+    /// @dev This function will be called on a periodic basis by the SupplySchedule contract
     function notifyRewardAmount(uint256 mintedAmount) external;
 }
