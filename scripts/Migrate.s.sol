@@ -53,6 +53,7 @@ contract Migrate {
         rewardsNotifier = new StakingRewardsNotifier(
             _owner,
             _kwenta,
+            _usdc,
             _supplySchedule
         );
 
