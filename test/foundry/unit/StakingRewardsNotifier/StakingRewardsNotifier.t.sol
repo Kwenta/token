@@ -20,17 +20,22 @@ contract StakingRewardsNotifierTest is DefaultStakingV2Setup {
 
     function testCannotDeployWithZeroOwnerAddress() public {
         vm.expectRevert(IStakingRewardsNotifier.ZeroAddress.selector);
-        new StakingRewardsNotifier(address(0), address(kwenta), address(supplySchedule));
+        new StakingRewardsNotifier(address(0), address(kwenta), address(usdc), address(supplySchedule));
     }
 
     function testCannotDeployWithZeroKwentaAddress() public {
         vm.expectRevert(IStakingRewardsNotifier.ZeroAddress.selector);
-        new StakingRewardsNotifier(address(this), address(0), address(supplySchedule));
+        new StakingRewardsNotifier(address(this), address(0), address(usdc), address(supplySchedule));
+    }
+
+    function testCannotDeployWithZeroUsdcAddress() public {
+        vm.expectRevert(IStakingRewardsNotifier.ZeroAddress.selector);
+        new StakingRewardsNotifier(address(this), address(kwenta), address(0), address(supplySchedule));
     }
 
     function testCannotDeployWithZeroSupplyScheduleAddress() public {
         vm.expectRevert(IStakingRewardsNotifier.ZeroAddress.selector);
-        new StakingRewardsNotifier(address(this), address(kwenta), address(0));
+        new StakingRewardsNotifier(address(this), address(kwenta), address(usdc), address(0));
     }
 
     function testNotifiableRewardAccumulatorSetStakingV2OnlyOwner() public {
