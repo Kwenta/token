@@ -662,7 +662,7 @@ contract StakingRewardsV2 is
 
         lastUpdateTime = block.timestamp;
         periodFinish = block.timestamp + rewardsDuration;
-        emit RewardAdded(_reward);
+        emit RewardAdded(_reward, _rewardUsdc);
     }
 
     /// @inheritdoc IStakingRewardsV2

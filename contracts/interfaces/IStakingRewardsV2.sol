@@ -236,12 +236,9 @@ interface IStakingRewardsV2 {
     ///////////////////////////////////////////////////////////////*/
 
     /// @notice update reward rate
-    /// @param reward: amount to be distributed over applicable rewards duration
-    event RewardAdded(uint256 reward);
-
-    /// @notice update reward rate
-    /// @param reward: amount to be distributed over applicable rewards duration
-    event UsdcRewardAdded(uint256 reward);
+    /// @param reward: kwenta amount to be distributed over applicable rewards duration
+    /// @param rewardUsdc: usdc amount to be distributed over applicable rewards duration
+    event RewardAdded(uint256 reward, uint256 rewardUsdc);
 
     /// @notice emitted when user stakes tokens
     /// @param user: staker address
