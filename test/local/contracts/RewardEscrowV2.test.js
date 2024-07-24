@@ -52,6 +52,7 @@ const SYMBOL = "KWENTA";
 const INITIAL_SUPPLY = hre.ethers.utils.parseUnits("313373");
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 const YEAR = 31556926;
+const USDC_ADDRESS = "0x0b2c639c533813f4aa9d7837caf62653d097ff85";
 
 const toUnit = (amount) => toBN(toWei(amount.toString(), "ether"));
 
@@ -76,6 +77,7 @@ const deployRewardEscrowV2 = async (owner, kwenta, rewardsNotifier) => {
 
 const deployStakingRewardsV2 = async (
     token,
+    usdc,
     rewardEscrow,
     supplySchedule,
     owner
@@ -88,7 +90,7 @@ const deployStakingRewardsV2 = async (
         [owner],
         {
             kind: "uups",
-            constructorArgs: [token, rewardEscrow, supplySchedule],
+            constructorArgs: [token, usdc, rewardEscrow, supplySchedule],
         }
     );
     await stakingRewardsV2.deployed();
@@ -192,6 +194,7 @@ contract("RewardEscrowV2 KWENTA", ([owner, staker1, staker2, treasuryDAO]) => {
 
         stakingRewardsV2 = await deployStakingRewardsV2(
             stakingToken.address,
+            USDC_ADDRESS,
             rewardEscrowV2.address,
             rewardsNotifier.address,
             owner
