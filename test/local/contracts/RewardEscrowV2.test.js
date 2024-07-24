@@ -128,7 +128,7 @@ const deployEscrowMigrator = async (
     return await EscrowMigrator.at(escrowMigrator.address);
 };
 
-const deployRewardsNotifier = async (owner, token, supplySchedule) => {
+const deployRewardsNotifier = async (owner, token, usdc, supplySchedule) => {
     const StakingRewardsNotifierFactory = await ethers.getContractFactory(
         "StakingRewardsNotifier"
     );
@@ -136,6 +136,7 @@ const deployRewardsNotifier = async (owner, token, supplySchedule) => {
     const rewardsNotifier = await StakingRewardsNotifierFactory.deploy(
         owner,
         token,
+        usdc,
         supplySchedule
     );
     await rewardsNotifier.deployed();
@@ -170,6 +171,7 @@ contract("RewardEscrowV2 KWENTA", ([owner, staker1, staker2, treasuryDAO]) => {
         rewardsNotifier = await deployRewardsNotifier(
             owner,
             stakingToken.address,
+            USDC_ADDRESS,
             supplySchedule.address
         );
 
