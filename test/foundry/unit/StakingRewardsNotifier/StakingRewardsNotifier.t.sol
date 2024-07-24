@@ -10,7 +10,7 @@ import {StakingRewardsV2} from "../../../../contracts/StakingRewardsV2.sol";
 import {DefaultStakingV2Setup} from "../../utils/setup/DefaultStakingV2Setup.t.sol";
 
 contract StakingRewardsNotifierTest is DefaultStakingV2Setup {
-    event RewardAdded(uint256 reward);
+    event RewardAdded(uint256 reward, uint256 rewardUsdc);
 
     function setUp() public override {
         super.setUp();
@@ -60,7 +60,7 @@ contract StakingRewardsNotifierTest is DefaultStakingV2Setup {
         uint256 balanceBefore = kwenta.balanceOf(address(stakingRewardsV2));
         vm.warp(block.timestamp + 2 weeks);
         vm.expectEmit(true, true, true, true);
-        emit RewardAdded(mintAmount);
+        emit RewardAdded(mintAmount, 0);
         supplySchedule.mint();
         uint256 balanceAfter = kwenta.balanceOf(address(stakingRewardsV2));
         assertGt(balanceAfter, balanceBefore);
@@ -74,7 +74,7 @@ contract StakingRewardsNotifierTest is DefaultStakingV2Setup {
         uint256 balanceBefore = kwenta.balanceOf(address(stakingRewardsV2));
         assert(supplySchedule.isMintable());
         vm.expectEmit(true, true, true, true);
-        emit RewardAdded(mintAmount + 1000 ether);
+        emit RewardAdded(mintAmount + 1000 ether, 0);
         supplySchedule.mint();
         uint256 balanceAfter = kwenta.balanceOf(address(stakingRewardsV2));
         assertGt(balanceAfter, balanceBefore);
@@ -104,7 +104,7 @@ contract StakingRewardsNotifierTest is DefaultStakingV2Setup {
         kwenta.transfer(address(rewardsNotifier), retroactive3);
         uint256 balanceBefore = kwenta.balanceOf(address(stakingRewardsV2));
         vm.expectEmit(true, true, true, true);
-        emit RewardAdded(mintAmount + retroactive1 + retroactive2 + retroactive3);
+        emit RewardAdded(mintAmount + retroactive1 + retroactive2 + retroactive3, 0);
         supplySchedule.mint();
 
         uint256 balanceAfter = kwenta.balanceOf(address(stakingRewardsV2));
