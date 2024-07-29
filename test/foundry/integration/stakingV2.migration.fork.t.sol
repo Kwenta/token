@@ -33,9 +33,8 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
         // set owners address code to trick the test into allowing onlyOwner functions to be called via script
         vm.etch(owner, address(new Migrate()).code);
 
-        (rewardEscrowV2, stakingRewardsV2, escrowMigrator, rewardsNotifier) = Migrate(
-            owner
-        ).runCompleteMigrationProcess({
+        (rewardEscrowV2, stakingRewardsV2, escrowMigrator, rewardsNotifier) = Migrate(owner)
+            .runCompleteMigrationProcess({
             _owner: owner,
             _kwenta: address(kwenta),
             _supplySchedule: address(supplySchedule),
@@ -101,8 +100,11 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
         // get rewards
         getStakingRewardsV2(user1);
 
+        // assert v2 rewards have been earned
+        assertGt(kwenta.balanceOf(user1), 0);
+
         // stake the rewards
-        stakeAllUnstakedEscrowV2(user1);
+        stakeFundsV2(user1, kwenta.balanceOf(user1));
 
         // check StakingRewardsV1 balance unchanged
         assertEq(stakingRewardsV1.nonEscrowedBalanceOf(user1), 0);
@@ -115,8 +117,6 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
         uint256 user1EscrowStakedV2 = stakingRewardsV2.escrowedBalanceOf(user1);
         uint256 user1NonEscrowedStakeV2 = stakingRewardsV2.nonEscrowedBalanceOf(user1);
 
-        // assert v2 rewards have been earned
-        assertGt(rewardEscrowV2.escrowedBalanceOf(user1), 0);
         // v2 staked balance is equal to escrowed + non-escrowed balance
         assertEq(stakingRewardsV2.balanceOf(user1), user1EscrowStakedV2 + user1NonEscrowedStakeV2);
         // v2 reward escrow balance is equal to escrow staked balance

@@ -137,7 +137,8 @@ contract StakingRewardsV2 is
     /// @param _rewardEscrow The address for the RewardEscrowV2 contract
     /// @param _rewardsNotifier The address for the StakingRewardsNotifier contract
     constructor(address _kwenta, address _rewardEscrow, address _rewardsNotifier) {
-        if (_kwenta == address(0) || _rewardEscrow == address(0) || _rewardsNotifier == address(0)) {
+        if (_kwenta == address(0) || _rewardEscrow == address(0) || _rewardsNotifier == address(0))
+        {
             revert ZeroAddress();
         }
 
@@ -213,19 +214,27 @@ contract StakingRewardsV2 is
     ///////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IStakingRewardsV2
-    function stake(uint256 _amount) external whenNotPaused updateReward(msg.sender) {
-        if (_amount == 0) revert AmountZero();
-
-        // update state
-        userLastStakeTime[msg.sender] = block.timestamp;
-        _addTotalSupplyCheckpoint(totalSupply() + _amount);
-        _addBalancesCheckpoint(msg.sender, balanceOf(msg.sender) + _amount);
-
-        // emit staking event and index msg.sender
-        emit Staked(msg.sender, _amount);
+    function stake(uint256 _amount) external {
+        _stake(msg.sender, _amount);
 
         // transfer token to this contract from the caller
         kwenta.transferFrom(msg.sender, address(this), _amount);
+    }
+
+    function _stake(address _account, uint256 _amount)
+        internal
+        whenNotPaused
+        updateReward(_account)
+    {
+        if (_amount == 0) revert AmountZero();
+
+        // update state
+        userLastStakeTime[_account] = block.timestamp;
+        _addTotalSupplyCheckpoint(totalSupply() + _amount);
+        _addBalancesCheckpoint(_account, balanceOf(_account) + _amount);
+
+        // emit staking event and index _account
+        emit Staked(_account, _amount);
     }
 
     /// @inheritdoc IStakingRewardsV2
@@ -343,10 +352,27 @@ contract StakingRewardsV2 is
             // emit reward claimed event and index account
             emit RewardPaid(_account, reward);
 
-            // transfer token from this contract to the rewardEscrow
-            // and create a vesting entry at the _to address
-            kwenta.transfer(address(rewardEscrow), reward);
-            rewardEscrow.appendVestingEntry(_to, reward);
+            // transfer token from this contract to the account
+            // as newly issued rewards from inflation are now issued as non-escrowed
+            kwenta.transfer(_to, reward);
+        }
+    }
+
+    /// @notice Get the reward of the given account for compounding.
+    /// @dev Retrieves the reward without transferring it, as it will be staked immediately after.
+    function _getRewardCompounding(address _account)
+        internal
+        whenNotPaused
+        updateReward(_account)
+        returns (uint256 reward)
+    {
+        reward = rewards[_account];
+        if (reward > 0) {
+            // update state (first)
+            rewards[_account] = 0;
+
+            // emit reward claimed event and index account
+            emit RewardPaid(_account, reward);
         }
     }
 
@@ -358,8 +384,8 @@ contract StakingRewardsV2 is
     /// @dev internal helper to compound for a given account
     /// @param _account the account to compound for
     function _compound(address _account) internal {
-        _getReward(_account);
-        _stakeEscrow(_account, unstakedEscrowedBalanceOf(_account));
+        uint256 reward = _getRewardCompounding(_account);
+        _stake(_account, reward);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -502,7 +528,7 @@ contract StakingRewardsV2 is
     /// @param _timestamp: timestamp to check
     /// @dev returns 0 if no checkpoints exist, uses iterative binary search
     /// @dev if called with a timestamp that equals the current block timestamp, then the function might return inconsistent
-    /// values as further transactions changing the balances can still occur within the same block. 
+    /// values as further transactions changing the balances can still occur within the same block.
     function _checkpointBinarySearch(Checkpoint[] storage _checkpoints, uint256 _timestamp)
         internal
         view
