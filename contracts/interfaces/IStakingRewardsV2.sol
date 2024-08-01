@@ -319,6 +319,9 @@ interface IStakingRewardsV2 {
     /// @notice recovering the staking token is not allowed
     error CannotRecoverStakingToken();
 
+    /// @notice recovering the usdc reward token is not allowed
+    error CannotRecoverRewardToken();
+
     /// @notice error when user tries unstake during the cooldown period
     /// @param canUnstakeAt timestamp when user can unstake
     error MustWaitForUnlock(uint256 canUnstakeAt);

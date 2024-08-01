@@ -709,6 +709,7 @@ contract StakingRewardsV2 is
     /// @inheritdoc IStakingRewardsV2
     function recoverERC20(address _tokenAddress, uint256 _tokenAmount) external onlyOwner {
         if (_tokenAddress == address(kwenta)) revert CannotRecoverStakingToken();
+        if (_tokenAddress == address(usdc)) revert CannotRecoverRewardToken();
         emit Recovered(_tokenAddress, _tokenAmount);
         IERC20(_tokenAddress).transfer(owner(), _tokenAmount);
     }
