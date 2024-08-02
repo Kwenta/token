@@ -15,7 +15,7 @@ import "../utils/Constants.t.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 /// forge test --match-contract StakingV2UpgradeForkTests --fork-url https://rpc.ankr.com/optimism/460c581b0a71a547f3c541f6f87d3f0ac80a213f82bbd86a8ac1572fa111b46f --etherscan-api-key CT144H82XDDNPXBY19RV1CP337ZG69JTHB -vv
-contract StakingV2UpgradeForkTests is StakingTestHelpers {
+contract StakingV2MigrationForkTests is StakingTestHelpers {
     /*//////////////////////////////////////////////////////////////
                                 SETUP
     //////////////////////////////////////////////////////////////*/
