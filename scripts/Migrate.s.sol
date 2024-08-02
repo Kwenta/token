@@ -30,6 +30,7 @@ contract Migrate {
     function deploySystem(
         address _owner,
         address _kwenta,
+        address _usdc,
         address _supplySchedule,
         address _rewardEscrowV1,
         address _treasuryDAO,
@@ -52,6 +53,7 @@ contract Migrate {
         rewardsNotifier = new StakingRewardsNotifier(
             _owner,
             _kwenta,
+            _usdc,
             _supplySchedule
         );
 
@@ -85,6 +87,7 @@ contract Migrate {
         stakingRewardsV2Implementation = address(
             new StakingRewardsV2(
                 _kwenta,
+                _usdc,
                 address(rewardEscrowV2),
                 address(rewardsNotifier)
             )
@@ -257,6 +260,7 @@ contract Migrate {
     function runCompleteMigrationProcess(
         address _owner,
         address _kwenta,
+        address _usdc,
         address _supplySchedule,
         address _treasuryDAO,
         address _rewardEscrowV1,
@@ -274,6 +278,7 @@ contract Migrate {
         (rewardEscrowV2, stakingRewardsV2, escrowMigrator, rewardsNotifier,,,) = deploySystem({
             _owner: _owner,
             _kwenta: _kwenta,
+            _usdc: _usdc,
             _supplySchedule: _supplySchedule,
             _rewardEscrowV1: _rewardEscrowV1,
             _treasuryDAO: _treasuryDAO,
@@ -330,6 +335,7 @@ contract DeployAndSetupOptimism is Script, Migrate {
         ) = Migrate.deploySystem({
             _owner: deployer,
             _kwenta: OPTIMISM_KWENTA_TOKEN,
+            _usdc: OPTIMISM_USDC_TOKEN,
             _supplySchedule: OPTIMISM_SUPPLY_SCHEDULE,
             _rewardEscrowV1: OPTIMISM_REWARD_ESCROW_V1,
             _treasuryDAO: OPTIMISM_TREASURY_DAO,
@@ -380,6 +386,7 @@ contract DeployAndSetupOptimismGoerli is Script, Migrate {
         ) = Migrate.deploySystem({
             _owner: deployer,
             _kwenta: OPTIMISM_GOERLI_KWENTA_TOKEN,
+            _usdc: OPTIMISM_GOERLI_USDC_TOKEN,
             _supplySchedule: OPTIMISM_GOERLI_SUPPLY_SCHEDULE,
             _rewardEscrowV1: OPTIMISM_GOERLI_REWARD_ESCROW_V1,
             _treasuryDAO: OPTIMISM_GOERLI_TREASURY_DAO,
@@ -419,6 +426,7 @@ contract DeploySetupAndMigrateOptimismGoerli is Script, Migrate {
         Migrate.runCompleteMigrationProcess({
             _owner: deployer,
             _kwenta: OPTIMISM_GOERLI_KWENTA_TOKEN,
+            _usdc: OPTIMISM_GOERLI_USDC_TOKEN,
             _supplySchedule: OPTIMISM_GOERLI_SUPPLY_SCHEDULE,
             _treasuryDAO: OPTIMISM_GOERLI_TREASURY_DAO,
             _rewardEscrowV1: OPTIMISM_GOERLI_REWARD_ESCROW_V1,

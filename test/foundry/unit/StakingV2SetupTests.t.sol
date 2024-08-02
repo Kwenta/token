@@ -138,6 +138,20 @@ contract StakingV2SetupTests is StakingV1Setup {
         stakingRewardsV2Implementation = address(
             new StakingRewardsV2(
                 address(0),
+                address(usdc),
+                rewardEscrowV2,
+                address(supplySchedule)
+            )
+        );
+    }
+
+    function test_Cannot_Setup_StakingRewardsV2_With_Usdc_Zero_Address() public {
+        address rewardEscrowV2 = deployRewardEscrowV2(address(this));
+        vm.expectRevert(IStakingRewardsV2.ZeroAddress.selector);
+        stakingRewardsV2Implementation = address(
+            new StakingRewardsV2(
+                address(kwenta),
+                address(0),
                 rewardEscrowV2,
                 address(supplySchedule)
             )
@@ -149,6 +163,7 @@ contract StakingV2SetupTests is StakingV1Setup {
         stakingRewardsV2Implementation = address(
             new StakingRewardsV2(
                 address(kwenta),
+                address(usdc),
                 address(0),
                 address(supplySchedule)
             )
@@ -161,6 +176,7 @@ contract StakingV2SetupTests is StakingV1Setup {
         stakingRewardsV2Implementation = address(
             new StakingRewardsV2(
                 address(kwenta),
+                address(usdc),
                 rewardEscrowV2,
                 address(0)
             )
@@ -172,6 +188,7 @@ contract StakingV2SetupTests is StakingV1Setup {
         stakingRewardsV2Implementation = address(
             new StakingRewardsV2(
                 address(kwenta),
+                address(usdc),
                 rewardEscrowV2,
                 address(supplySchedule)
             )
@@ -193,6 +210,7 @@ contract StakingV2SetupTests is StakingV1Setup {
         stakingRewardsV2Implementation = address(
             new StakingRewardsV2(
                 address(kwenta),
+                address(usdc),
                 rewardEscrowV2,
                 address(supplySchedule)
             )

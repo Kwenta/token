@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.19;
 
-interface IStakingRewardsV2 {
+interface IOldStakingRewardsV2 {
     /*//////////////////////////////////////////////////////////////
                                 STRUCTS
     //////////////////////////////////////////////////////////////*/
@@ -74,11 +74,6 @@ interface IStakingRewardsV2 {
     /// @return running sum of reward per total tokens staked
     function rewardPerToken() external view returns (uint256);
 
-    /// @notice calculate running sum of USDC reward per total tokens staked
-    /// at this specific time
-    /// @return running sum of USDC reward per total tokens staked
-    function rewardPerTokenUSDC() external view returns (uint256);
-
     /// @notice get the last time a reward is applicable for a given user
     /// @return timestamp of the last time rewards are applicable
     function lastTimeRewardApplicable() external view returns (uint256);
@@ -86,10 +81,6 @@ interface IStakingRewardsV2 {
     /// @notice determine how much reward token an account has earned thus far
     /// @param _account: address of account earned amount is being calculated for
     function earned(address _account) external view returns (uint256);
-
-    /// @notice determine how much USDC reward an account has earned thus far
-    /// @param _account: address of account earned amount is being calculated for
-    function earnedUSDC(address _account) external view returns (uint256);
 
     // checkpointing
 
@@ -112,7 +103,7 @@ interface IStakingRewardsV2 {
     /// @param _timestamp: timestamp to check
     /// @return balance at given timestamp
     /// @dev if called with a timestamp that equals the current block timestamp, then the function might return inconsistent
-    /// values as further transactions changing the balances can still occur within the same block. 
+    /// values as further transactions changing the balances can still occur within the same block.
     function balanceAtTime(address _account, uint256 _timestamp) external view returns (uint256);
 
     /// @notice get a users escrowed balance at a given timestamp
@@ -120,7 +111,7 @@ interface IStakingRewardsV2 {
     /// @param _timestamp: timestamp to check
     /// @return escrowed balance at given timestamp
     /// @dev if called with a timestamp that equals the current block timestamp, then the function might return inconsistent
-    /// values as further transactions changing the balances can still occur within the same block. 
+    /// values as further transactions changing the balances can still occur within the same block.
     function escrowedBalanceAtTime(address _account, uint256 _timestamp)
         external
         view
@@ -130,7 +121,7 @@ interface IStakingRewardsV2 {
     /// @param _timestamp: timestamp to check
     /// @return total supply at given timestamp
     /// @dev if called with a timestamp that equals the current block timestamp, then the function might return inconsistent
-    /// values as further transactions changing the balances can still occur within the same block. 
+    /// values as further transactions changing the balances can still occur within the same block.
     function totalSupplyAtTime(uint256 _timestamp) external view returns (uint256);
 
     /*//////////////////////////////////////////////////////////////
@@ -203,9 +194,8 @@ interface IStakingRewardsV2 {
 
     /// @notice configure reward rate
     /// @param _reward: amount of token to be distributed over a period
-    /// @param _reward: amount of usdc to be distributed over a period
     /// @dev updateReward() called prior to function logic (with zero address)
-    function notifyRewardAmount(uint256 _reward, uint256 _rewardUsdc) external;
+    function notifyRewardAmount(uint256 _reward) external;
 
     /// @notice set rewards duration
     /// @param _rewardsDuration: denoted in seconds
@@ -236,9 +226,8 @@ interface IStakingRewardsV2 {
     ///////////////////////////////////////////////////////////////*/
 
     /// @notice update reward rate
-    /// @param reward: kwenta amount to be distributed over applicable rewards duration
-    /// @param rewardUsdc: usdc amount to be distributed over applicable rewards duration
-    event RewardAdded(uint256 reward, uint256 rewardUsdc);
+    /// @param reward: amount to be distributed over applicable rewards duration
+    event RewardAdded(uint256 reward);
 
     /// @notice emitted when user stakes tokens
     /// @param user: staker address
@@ -264,11 +253,6 @@ interface IStakingRewardsV2 {
     /// @param user: address of user claiming rewards
     /// @param reward: amount of reward token claimed
     event RewardPaid(address indexed user, uint256 reward);
-
-    /// @notice emitted when user claims USDC rewards
-    /// @param user: address of user claiming rewards
-    /// @param reward: amount of USDC token claimed
-    event RewardPaidUSDC(address indexed user, uint256 reward);
 
     /// @notice emitted when rewards duration changes
     /// @param newDuration: denoted in seconds
@@ -318,9 +302,6 @@ interface IStakingRewardsV2 {
 
     /// @notice recovering the staking token is not allowed
     error CannotRecoverStakingToken();
-
-    /// @notice recovering the usdc reward token is not allowed
-    error CannotRecoverRewardToken();
 
     /// @notice error when user tries unstake during the cooldown period
     /// @param canUnstakeAt timestamp when user can unstake
