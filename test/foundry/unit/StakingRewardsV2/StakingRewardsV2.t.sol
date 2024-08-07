@@ -388,13 +388,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
 
     function test_Can_Recover_Non_Staking_Token() public {
         // create mockToken
-        IERC20 mockToken = new Kwenta(
-            "Mock",
-            "MOCK",
-            INITIAL_SUPPLY,
-            address(this),
-            treasury
-        );
+        IERC20 mockToken = new Kwenta("Mock", "MOCK", INITIAL_SUPPLY, address(this), treasury);
 
         // transfer in non staking tokens
         vm.prank(treasury);
@@ -474,7 +468,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         vm.warp(block.timestamp + 1 weeks);
 
         // check reward per token updated
-        assertEq(stakingRewardsV2.rewardPerTokenUSDC(), 1 ether);
+        assertEq(stakingRewardsV2.rewardPerTokenUSDC(), 1 ether * PRECISION);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -722,7 +716,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
 
         // configure reward rate
         vm.prank(address(rewardsNotifier));
-        stakingRewardsV2.notifyRewardAmount(0 , TEST_VALUE);
+        stakingRewardsV2.notifyRewardAmount(0, TEST_VALUE);
 
         // fast forward 2 weeks
         vm.warp(block.timestamp + 2 weeks);
@@ -761,7 +755,9 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         assertEq(finalRewardRate / 2, initialRewardRate);
     }
 
-    function test_rewardRateUSDC_Should_Increase_If_New_Rewards_Come_Before_Duration_Ends() public {
+    function test_rewardRateUSDC_Should_Increase_If_New_Rewards_Come_Before_Duration_Ends()
+        public
+    {
         fundAndApproveAccountV2(address(this), 1 weeks);
 
         uint256 totalToDistribute = 5 ether;

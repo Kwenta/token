@@ -3,6 +3,7 @@ pragma solidity 0.8.19;
 
 uint256 constant INITIAL_SUPPLY = 313_373 ether;
 uint256 constant TEST_VALUE = 1 ether;
+uint256 constant PRECISION = 1e12;
 
 /*//////////////////////////////////////////////////////////////
                             FORK CONSTANTS
@@ -33,8 +34,8 @@ address constant OPTIMISM_STAKING_REWARDS_V2 = 0x61294940CE7cD1BDA10e349adC5B538
 address constant OPTIMISM_REWARD_ESCROW_V2 = 0xb2a20fCdc506a685122847b21E34536359E94C56;
 address constant OPTIMISM_ESCROW_MIGRATOR = 0xC9aF789Ae606F69cF8Ed073A04eC92f2354b027d;
 address constant OPTIMISM_STAKING_REWARDS_NOTIFIER = 0x03f6dC6e616AB3a367a1F2C26B8Bc146f632b451;
-uint256 constant OPTIMISM_STAKING_V2_FIRST_REWADRS_EMISSION_BLOCK = 109865536;
-uint256 constant OPTIMISM_STAKING_V2_FIRST_REWADRS_EMISSION_TIMESTAMP = 1695329849;
+uint256 constant OPTIMISM_STAKING_V2_FIRST_REWADRS_EMISSION_BLOCK = 109_865_536;
+uint256 constant OPTIMISM_STAKING_V2_FIRST_REWADRS_EMISSION_TIMESTAMP = 1_695_329_849;
 
 /*//////////////////////////////////////////////////////////////
                         GOERLI ADDRESSES
