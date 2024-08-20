@@ -14,7 +14,6 @@ import {StakingRewardsV2} from "../../../contracts/StakingRewardsV2.sol";
 import "../utils/Constants.t.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-
 contract StakingV2MigrationForkTests is StakingTestHelpers {
     /*//////////////////////////////////////////////////////////////
                                 SETUP
@@ -115,6 +114,6 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
 
         // check some stake has been earned
         assertGt(newV2Impl.earned(address(this)), earnedKwenta);
-        assertGt(newV2Impl.earnedUSDC(address(this)) , 0);
+        assertGt(newV2Impl.earnedUSDC(address(this)), 0);
     }
 }

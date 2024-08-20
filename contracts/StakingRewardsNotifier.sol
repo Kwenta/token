@@ -43,8 +43,10 @@ contract StakingRewardsNotifier is Ownable2Step, IStakingRewardsNotifier {
     /// @param _usdc: address of the USDC contract
     /// @param _supplySchedule: address of the SupplySchedule contract
     constructor(address _contractOwner, address _kwenta, address _usdc, address _supplySchedule) {
-        if (_contractOwner == address(0) || _kwenta == address(0) || _usdc == address(0) || _supplySchedule == address(0))
-        {
+        if (
+            _contractOwner == address(0) || _kwenta == address(0) || _usdc == address(0)
+                || _supplySchedule == address(0)
+        ) {
             revert ZeroAddress();
         }
         kwenta = IKwenta(_kwenta);

@@ -112,7 +112,7 @@ interface IStakingRewardsV2 {
     /// @param _timestamp: timestamp to check
     /// @return balance at given timestamp
     /// @dev if called with a timestamp that equals the current block timestamp, then the function might return inconsistent
-    /// values as further transactions changing the balances can still occur within the same block. 
+    /// values as further transactions changing the balances can still occur within the same block.
     function balanceAtTime(address _account, uint256 _timestamp) external view returns (uint256);
 
     /// @notice get a users escrowed balance at a given timestamp
@@ -120,7 +120,7 @@ interface IStakingRewardsV2 {
     /// @param _timestamp: timestamp to check
     /// @return escrowed balance at given timestamp
     /// @dev if called with a timestamp that equals the current block timestamp, then the function might return inconsistent
-    /// values as further transactions changing the balances can still occur within the same block. 
+    /// values as further transactions changing the balances can still occur within the same block.
     function escrowedBalanceAtTime(address _account, uint256 _timestamp)
         external
         view
@@ -130,7 +130,7 @@ interface IStakingRewardsV2 {
     /// @param _timestamp: timestamp to check
     /// @return total supply at given timestamp
     /// @dev if called with a timestamp that equals the current block timestamp, then the function might return inconsistent
-    /// values as further transactions changing the balances can still occur within the same block. 
+    /// values as further transactions changing the balances can still occur within the same block.
     function totalSupplyAtTime(uint256 _timestamp) external view returns (uint256);
 
     /*//////////////////////////////////////////////////////////////

@@ -20,17 +20,23 @@ contract StakingRewardsNotifierTest is DefaultStakingV2Setup {
 
     function testCannotDeployWithZeroOwnerAddress() public {
         vm.expectRevert(IStakingRewardsNotifier.ZeroAddress.selector);
-        new StakingRewardsNotifier(address(0), address(kwenta), address(usdc), address(supplySchedule));
+        new StakingRewardsNotifier(
+            address(0), address(kwenta), address(usdc), address(supplySchedule)
+        );
     }
 
     function testCannotDeployWithZeroKwentaAddress() public {
         vm.expectRevert(IStakingRewardsNotifier.ZeroAddress.selector);
-        new StakingRewardsNotifier(address(this), address(0), address(usdc), address(supplySchedule));
+        new StakingRewardsNotifier(
+            address(this), address(0), address(usdc), address(supplySchedule)
+        );
     }
 
     function testCannotDeployWithZeroUsdcAddress() public {
         vm.expectRevert(IStakingRewardsNotifier.ZeroAddress.selector);
-        new StakingRewardsNotifier(address(this), address(kwenta), address(0), address(supplySchedule));
+        new StakingRewardsNotifier(
+            address(this), address(kwenta), address(0), address(supplySchedule)
+        );
     }
 
     function testCannotDeployWithZeroSupplyScheduleAddress() public {
@@ -159,12 +165,11 @@ contract StakingRewardsNotifierTest is DefaultStakingV2Setup {
         assertEq(kwenta.balanceOf(address(rewardEscrowV2)), 0);
 
         // Mint and the RewardsNotifier should transfer amounts to the staking contract
-        uint256 mintAmount = 176268972686291953380981;
+        uint256 mintAmount = 176_268_972_686_291_953_380_981;
         uint256 balanceBefore = kwenta.balanceOf(address(stakingRewardsV2));
         supplySchedule.mint();
         uint256 balanceAfter = kwenta.balanceOf(address(stakingRewardsV2));
         assertGt(balanceAfter, balanceBefore);
         assertEq(balanceAfter - balanceBefore, 225 ether + mintAmount);
-
     }
 }
