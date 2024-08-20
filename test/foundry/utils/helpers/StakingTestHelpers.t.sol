@@ -66,6 +66,34 @@ contract StakingTestHelpers is StakingV2Setup {
         return expectedRewards;
     }
 
+    // Note - this must be run before triggering notifyRewardAmount and getReward
+    function getExpectedUsdcRewardV2(uint256 _rewardUsdc, uint256 _waitTime, address _user)
+        internal
+        view
+        returns (uint256)
+    {
+        // This defaults to 7 days
+        uint256 rewardsDuration = stakingRewardsV2.rewardsDuration();
+        uint256 previousRewardPerToken = stakingRewardsV2.rewardPerTokenUSDC();
+        uint256 rewardsPerTokenPaid = stakingRewardsV2.userRewardPerTokenPaidUSDC(_user);
+        uint256 totalSupply = stakingRewardsV2.totalSupply() + stakingRewardsV1.totalSupply();
+        uint256 balance = stakingRewardsV2.balanceOf(_user) + stakingRewardsV1.balanceOf(_user);
+
+        // general formula for rewards should be:
+        // rewardRate = reward / rewardsDuration
+        // newRewards = rewardRate * min(timePassed, rewardsDuration)
+        // rewardPerToken = previousRewards + (newRewards * 1e18 / totalSupply)
+        // rewardsPerTokenForUser = rewardPerToken - rewardPerTokenPaid
+        // rewards = (balance * rewardsPerTokenForUser) / 1e18
+        uint256 rewardRate = _rewardUsdc * 1e12 / rewardsDuration;
+        uint256 newRewards = rewardRate * min(_waitTime, rewardsDuration);
+        uint256 rewardPerToken = previousRewardPerToken + (newRewards * 1e18 / totalSupply);
+        uint256 rewardsPerTokenForUser = rewardPerToken - rewardsPerTokenPaid;
+        uint256 expectedRewards = balance * rewardsPerTokenForUser / (1e18 * 1e12);
+
+        return expectedRewards;
+    }
+
     function jumpToEndOfRewardsPeriod(uint256 _waitTime) internal {
         uint256 rewardsDuration = stakingRewardsV1.rewardsDuration();
 
