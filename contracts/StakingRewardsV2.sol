@@ -49,6 +49,9 @@ contract StakingRewardsV2 is
     /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
     IERC20 public immutable usdc;
 
+    /// @notice Used to scale USDC precision to 18 decimals
+    uint256 private constant PRECISION = 1e12;
+
     /*///////////////////////////////////////////////////////////////
                                 STATE
     ///////////////////////////////////////////////////////////////*/
@@ -156,7 +159,10 @@ contract StakingRewardsV2 is
     /// @param _rewardEscrow The address for the RewardEscrowV2 contract
     /// @param _rewardsNotifier The address for the StakingRewardsNotifier contract
     constructor(address _kwenta, address _usdc, address _rewardEscrow, address _rewardsNotifier) {
-        if (_kwenta == address(0) || _usdc == address(0) || _rewardEscrow == address(0) || _rewardsNotifier == address(0)) {
+        if (
+            _kwenta == address(0) || _usdc == address(0) || _rewardEscrow == address(0)
+                || _rewardsNotifier == address(0)
+        ) {
             revert ZeroAddress();
         }
 
@@ -369,7 +375,7 @@ contract StakingRewardsV2 is
             rewardEscrow.appendVestingEntry(_to, reward);
         }
 
-        uint256 rewardUSDC = rewardsUSDC[_account];
+        uint256 rewardUSDC = rewardsUSDC[_account] / PRECISION;
         if (rewardUSDC > 0) {
             // update state (first)
             rewardsUSDC[_account] = 0;
@@ -431,6 +437,10 @@ contract StakingRewardsV2 is
         return rewardRate * rewardsDuration;
     }
 
+    function getRewardForDurationUSDC() external view returns (uint256) {
+        return rewardRateUSDC * rewardsDuration;
+    }
+
     /// @inheritdoc IStakingRewardsV2
     function rewardPerToken() public view returns (uint256) {
         uint256 allTokensStaked = totalSupply();
@@ -452,7 +462,10 @@ contract StakingRewardsV2 is
         }
 
         return rewardPerTokenStoredUSDC
-            + (((lastTimeRewardApplicable() - lastUpdateTime) * rewardRateUSDC * 1e18) / allTokensStaked);
+            + (
+                ((lastTimeRewardApplicable() - lastUpdateTime) * rewardRateUSDC * 1e18)
+                    / allTokensStaked
+            );
     }
 
     /// @inheritdoc IStakingRewardsV2
@@ -472,8 +485,9 @@ contract StakingRewardsV2 is
     function earnedUSDC(address _account) public view returns (uint256) {
         uint256 totalBalance = balanceOf(_account);
 
-        return ((totalBalance * (rewardPerTokenUSDC() - userRewardPerTokenPaidUSDC[_account])) / 1e18)
-            + rewardsUSDC[_account];
+        return (
+            (totalBalance * (rewardPerTokenUSDC() - userRewardPerTokenPaidUSDC[_account])) / 1e18
+        ) + rewardsUSDC[_account];
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -560,7 +574,7 @@ contract StakingRewardsV2 is
     /// @param _timestamp: timestamp to check
     /// @dev returns 0 if no checkpoints exist, uses iterative binary search
     /// @dev if called with a timestamp that equals the current block timestamp, then the function might return inconsistent
-    /// values as further transactions changing the balances can still occur within the same block. 
+    /// values as further transactions changing the balances can still occur within the same block.
     function _checkpointBinarySearch(Checkpoint[] storage _checkpoints, uint256 _timestamp)
         internal
         view
@@ -649,7 +663,7 @@ contract StakingRewardsV2 is
     {
         if (block.timestamp >= periodFinish) {
             rewardRate = _reward / rewardsDuration;
-            rewardRateUSDC = _rewardUsdc / rewardsDuration;
+            rewardRateUSDC = (_rewardUsdc * PRECISION) / rewardsDuration;
         } else {
             uint256 remaining = periodFinish - block.timestamp;
 
@@ -657,7 +671,7 @@ contract StakingRewardsV2 is
             rewardRate = (_reward + leftover) / rewardsDuration;
 
             uint256 leftoverUsdc = remaining * rewardRateUSDC;
-            rewardRateUSDC = (_rewardUsdc + leftoverUsdc) / rewardsDuration;
+            rewardRateUSDC = (_rewardUsdc * PRECISION + leftoverUsdc) / rewardsDuration;
         }
 
         lastUpdateTime = block.timestamp;
