@@ -437,6 +437,10 @@ contract StakingRewardsV2 is
         return rewardRate * rewardsDuration;
     }
 
+    function getRewardForDurationUSDC() external view returns (uint256) {
+        return rewardRateUSDC * rewardsDuration;
+    }
+
     /// @inheritdoc IStakingRewardsV2
     function rewardPerToken() public view returns (uint256) {
         uint256 allTokensStaked = totalSupply();
