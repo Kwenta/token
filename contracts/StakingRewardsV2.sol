@@ -375,17 +375,17 @@ contract StakingRewardsV2 is
             rewardEscrow.appendVestingEntry(_to, reward);
         }
 
-        uint256 rewardUSDC = rewardsUSDC[_account];
-        if (rewardUSDC / PRECISION > 0) {
+        uint256 rewardUSDC = rewardsUSDC[_account] / PRECISION;
+        if (rewardUSDC > 0) {
             // update state (first)
             rewardsUSDC[_account] = 0;
 
             // emit reward claimed event and index account
-            emit RewardPaidUSDC(_account, rewardUSDC / PRECISION);
+            emit RewardPaidUSDC(_account, rewardUSDC);
 
             // transfer token from this contract to the account
             // as newly issued rewards from inflation are now issued as non-escrowed
-            usdc.transfer(_to, rewardUSDC / PRECISION);
+            usdc.transfer(_to, rewardUSDC);
         }
     }
 
