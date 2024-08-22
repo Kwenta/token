@@ -52,6 +52,7 @@ const SYMBOL = "KWENTA";
 const INITIAL_SUPPLY = hre.ethers.utils.parseUnits("313373");
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 const YEAR = 31556926;
+const USDC_ADDRESS = "0x0b2c639c533813f4aa9d7837caf62653d097ff85";
 
 const toUnit = (amount) => toBN(toWei(amount.toString(), "ether"));
 
@@ -76,6 +77,7 @@ const deployRewardEscrowV2 = async (owner, kwenta, rewardsNotifier) => {
 
 const deployStakingRewardsV2 = async (
     token,
+    usdc,
     rewardEscrow,
     supplySchedule,
     owner
@@ -88,7 +90,7 @@ const deployStakingRewardsV2 = async (
         [owner],
         {
             kind: "uups",
-            constructorArgs: [token, rewardEscrow, supplySchedule],
+            constructorArgs: [token, usdc, rewardEscrow, supplySchedule],
         }
     );
     await stakingRewardsV2.deployed();
@@ -126,7 +128,7 @@ const deployEscrowMigrator = async (
     return await EscrowMigrator.at(escrowMigrator.address);
 };
 
-const deployRewardsNotifier = async (owner, token, supplySchedule) => {
+const deployRewardsNotifier = async (owner, token, usdc, supplySchedule) => {
     const StakingRewardsNotifierFactory = await ethers.getContractFactory(
         "StakingRewardsNotifier"
     );
@@ -134,6 +136,7 @@ const deployRewardsNotifier = async (owner, token, supplySchedule) => {
     const rewardsNotifier = await StakingRewardsNotifierFactory.deploy(
         owner,
         token,
+        usdc,
         supplySchedule
     );
     await rewardsNotifier.deployed();
@@ -168,6 +171,7 @@ contract("RewardEscrowV2 KWENTA", ([owner, staker1, staker2, treasuryDAO]) => {
         rewardsNotifier = await deployRewardsNotifier(
             owner,
             stakingToken.address,
+            USDC_ADDRESS,
             supplySchedule.address
         );
 
@@ -192,6 +196,7 @@ contract("RewardEscrowV2 KWENTA", ([owner, staker1, staker2, treasuryDAO]) => {
 
         stakingRewardsV2 = await deployStakingRewardsV2(
             stakingToken.address,
+            USDC_ADDRESS,
             rewardEscrowV2.address,
             rewardsNotifier.address,
             owner

@@ -17,6 +17,7 @@ import "../utils/Constants.t.sol";
 import {EscrowMigratorTestHelpers} from "../utils/helpers/EscrowMigratorTestHelpers.t.sol";
 
 import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 // TODO: rename contract and fix ci related error
 contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
@@ -35,6 +36,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
 
         // define main contracts
         kwenta = Kwenta(OPTIMISM_KWENTA_TOKEN);
+        IERC20 usdc = IERC20(OPTIMISM_USDC_TOKEN);
         rewardEscrowV1 = RewardEscrow(OPTIMISM_REWARD_ESCROW_V1);
         supplySchedule = SupplySchedule(OPTIMISM_SUPPLY_SCHEDULE);
         stakingRewardsV1 = StakingRewards(OPTIMISM_STAKING_REWARDS_V1);
@@ -55,6 +57,7 @@ contract StakingV2MigrationForkTests is EscrowMigratorTestHelpers {
             .runCompleteMigrationProcess({
             _owner: owner,
             _kwenta: address(kwenta),
+            _usdc: address(usdc),
             _supplySchedule: address(supplySchedule),
             _treasuryDAO: treasury,
             _rewardEscrowV1: address(rewardEscrowV1),
