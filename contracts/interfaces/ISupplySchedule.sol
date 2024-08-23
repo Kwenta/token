@@ -3,7 +3,7 @@ pragma solidity >=0.4.24;
 
 interface ISupplySchedule {
     // Views
-    function mintableSupply() external view returns (uint);
+    function mintableSupply() external view returns (uint256);
 
     function isMintable() external view returns (bool);
 
@@ -11,10 +11,10 @@ interface ISupplySchedule {
 
     function mint() external;
 
-    function setTreasuryDiversion(uint _treasuryDiversion) external;
+    function setTreasuryDiversion(uint256 _treasuryDiversion) external;
 
-    function setTradingRewardsDiversion(uint _tradingRewardsDiversion) external;
-    
+    function setTradingRewardsDiversion(uint256 _tradingRewardsDiversion) external;
+
     function setStakingRewards(address _stakingRewards) external;
 
     function setTradingRewards(address _tradingRewards) external;

@@ -12,5 +12,10 @@ interface IControlL2MerkleDistributor {
     /// @param destAccount: address used for escrow entry
     /// @param amount: $KWENTA amount to be escrowed
     /// @param merkleProof: off-chain generated proof of merkle tree inclusion
-    function claimToAddress(uint256 index, address destAccount, uint256 amount, bytes32[] calldata merkleProof) external;
+    function claimToAddress(
+        uint256 index,
+        address destAccount,
+        uint256 amount,
+        bytes32[] calldata merkleProof
+    ) external;
 }

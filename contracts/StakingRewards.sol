@@ -114,19 +114,13 @@ contract StakingRewards is IStakingRewards, Owned, ReentrancyGuard, Pausable {
 
     /// @notice access control modifier for rewardEscrow
     modifier onlyRewardEscrow() {
-        require(
-            msg.sender == address(rewardEscrow),
-            "StakingRewards: Only Reward Escrow"
-        );
+        require(msg.sender == address(rewardEscrow), "StakingRewards: Only Reward Escrow");
         _;
     }
 
     /// @notice access control modifier for rewardEscrow
     modifier onlySupplySchedule() {
-        require(
-            msg.sender == address(supplySchedule),
-            "StakingRewards: Only Supply Schedule"
-        );
+        require(msg.sender == address(supplySchedule), "StakingRewards: Only Supply Schedule");
         _;
     }
 
@@ -139,11 +133,7 @@ contract StakingRewards is IStakingRewards, Owned, ReentrancyGuard, Pausable {
     /// @param _token: token used for staking and for rewards
     /// @param _rewardEscrow: escrow contract which holds (and may stake) reward tokens
     /// @param _supplySchedule: handles reward token minting logic
-    constructor(
-        address _token,
-        address _rewardEscrow,
-        address _supplySchedule
-    ) Owned(msg.sender) {
+    constructor(address _token, address _rewardEscrow, address _supplySchedule) Owned(msg.sender) {
         // define reward/staking token
         token = IERC20(_token);
 
@@ -165,24 +155,14 @@ contract StakingRewards is IStakingRewards, Owned, ReentrancyGuard, Pausable {
 
     /// @param account: address of potential staker
     /// @return amount of tokens staked by account
-    function balanceOf(address account)
-        external
-        view
-        override
-        returns (uint256)
-    {
+    function balanceOf(address account) external view override returns (uint256) {
         return balances[account];
     }
 
     /// @notice Getter function for number of staked escrow tokens
     /// @param account address to check the escrowed tokens staked
     /// @return amount of escrowed tokens staked
-    function escrowedBalanceOf(address account)
-        external
-        view
-        override
-        returns (uint256)
-    {
+    function escrowedBalanceOf(address account) external view override returns (uint256) {
         return escrowedBalances[account];
     }
 
@@ -194,12 +174,7 @@ contract StakingRewards is IStakingRewards, Owned, ReentrancyGuard, Pausable {
     /// @notice Getter function for number of staked non-escrow tokens
     /// @param account address to check the non-escrowed tokens staked
     /// @return amount of non-escrowed tokens staked
-    function nonEscrowedBalanceOf(address account)
-        public
-        view
-        override
-        returns (uint256)
-    {
+    function nonEscrowedBalanceOf(address account) public view override returns (uint256) {
         return balances[account] - escrowedBalances[account];
     }
 
@@ -233,17 +208,9 @@ contract StakingRewards is IStakingRewards, Owned, ReentrancyGuard, Pausable {
     /// @notice unstake token
     /// @param amount: amount to unstake
     /// @dev updateReward() called prior to function logic
-    function unstake(uint256 amount)
-        public
-        override
-        nonReentrant
-        updateReward(msg.sender)
-    {
+    function unstake(uint256 amount) public override nonReentrant updateReward(msg.sender) {
         require(amount > 0, "StakingRewards: Cannot Unstake 0");
-        require(
-            amount <= nonEscrowedBalanceOf(msg.sender),
-            "StakingRewards: Invalid Amount"
-        );
+        require(amount <= nonEscrowedBalanceOf(msg.sender), "StakingRewards: Invalid Amount");
 
         // update state
         _totalSupply -= amount;
@@ -295,10 +262,7 @@ contract StakingRewards is IStakingRewards, Owned, ReentrancyGuard, Pausable {
         updateReward(account)
     {
         require(amount > 0, "StakingRewards: Cannot Unstake 0");
-        require(
-            escrowedBalances[account] >= amount,
-            "StakingRewards: Invalid Amount"
-        );
+        require(escrowedBalances[account] >= amount, "StakingRewards: Invalid Amount");
 
         // update state
         balances[account] -= amount;
@@ -317,7 +281,7 @@ contract StakingRewards is IStakingRewards, Owned, ReentrancyGuard, Pausable {
     function exit() external override {
         unstake(nonEscrowedBalanceOf(msg.sender));
         getReward();
-    }    
+    }
 
     /*///////////////////////////////////////////////////////////////
                             CLAIM REWARDS
@@ -372,11 +336,8 @@ contract StakingRewards is IStakingRewards, Owned, ReentrancyGuard, Pausable {
             return rewardPerTokenStored;
         }
 
-        return
-            rewardPerTokenStored +
-            (((lastTimeRewardApplicable() - lastUpdateTime) *
-                rewardRate *
-                1e18) / (_totalSupply));
+        return rewardPerTokenStored
+            + (((lastTimeRewardApplicable() - lastUpdateTime) * rewardRate * 1e18) / (_totalSupply));
     }
 
     /// @return timestamp of the last time rewards are applicable
@@ -387,10 +348,8 @@ contract StakingRewards is IStakingRewards, Owned, ReentrancyGuard, Pausable {
     /// @notice determine how much reward token an account has earned thus far
     /// @param account: address of account earned amount is being calculated for
     function earned(address account) public view override returns (uint256) {
-        return
-            ((balances[account] *
-                (rewardPerToken() - userRewardPerTokenPaid[account])) / 1e18) +
-            rewards[account];
+        return ((balances[account] * (rewardPerToken() - userRewardPerTokenPaid[account])) / 1e18)
+            + rewards[account];
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -421,11 +380,7 @@ contract StakingRewards is IStakingRewards, Owned, ReentrancyGuard, Pausable {
 
     /// @notice set rewards duration
     /// @param _rewardsDuration: denoted in seconds
-    function setRewardsDuration(uint256 _rewardsDuration)
-        external
-        override
-        onlyOwner
-    {
+    function setRewardsDuration(uint256 _rewardsDuration) external override onlyOwner {
         require(
             block.timestamp > periodFinish,
             "StakingRewards: Previous rewards period must be complete before changing the duration for the new period"
@@ -456,15 +411,8 @@ contract StakingRewards is IStakingRewards, Owned, ReentrancyGuard, Pausable {
     /// such as BAL to be distributed to holders
     /// @param tokenAddress: address of token to be recovered
     /// @param tokenAmount: amount of token to be recovered
-    function recoverERC20(address tokenAddress, uint256 tokenAmount)
-        external
-        override
-        onlyOwner
-    {
-        require(
-            tokenAddress != address(token),
-            "StakingRewards: Cannot unstake the staking token"
-        );
+    function recoverERC20(address tokenAddress, uint256 tokenAmount) external override onlyOwner {
+        require(tokenAddress != address(token), "StakingRewards: Cannot unstake the staking token");
         IERC20(tokenAddress).safeTransfer(owner, tokenAmount);
         emit Recovered(tokenAddress, tokenAmount);
     }

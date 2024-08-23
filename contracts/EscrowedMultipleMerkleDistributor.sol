@@ -10,10 +10,7 @@ import "./interfaces/IEscrowedMultipleMerkleDistributor.sol";
 /// @title Kwenta EscrowedMultipleMerkleDistributor
 /// @author JaredBorders and JChiaramonte7
 /// @notice Facilitates trading incentives distribution over multiple periods.
-contract EscrowedMultipleMerkleDistributor is
-    IEscrowedMultipleMerkleDistributor,
-    Owned
-{
+contract EscrowedMultipleMerkleDistributor is IEscrowedMultipleMerkleDistributor, Owned {
     /// @inheritdoc IEscrowedMultipleMerkleDistributor
     address public immutable override rewardEscrow;
 
@@ -31,29 +28,19 @@ contract EscrowedMultipleMerkleDistributor is
     /// @param _owner: designated owner of this contract
     /// @param _token: address of erc20 token to be distributed
     /// @param _rewardEscrow: address of kwenta escrow for tokens claimed
-    constructor(
-        address _owner,
-        address _token,
-        address _rewardEscrow
-    ) Owned(_owner) {
+    constructor(address _owner, address _token, address _rewardEscrow) Owned(_owner) {
         token = _token;
         rewardEscrow = _rewardEscrow;
     }
 
     /// @inheritdoc IEscrowedMultipleMerkleDistributor
-    function setMerkleRootForEpoch(
-        bytes32 merkleRoot,
-        uint256 epoch
-    ) external override onlyOwner {
+    function setMerkleRootForEpoch(bytes32 merkleRoot, uint256 epoch) external override onlyOwner {
         merkleRoots[epoch] = merkleRoot;
         emit MerkleRootModified(epoch);
     }
 
     /// @inheritdoc IEscrowedMultipleMerkleDistributor
-    function isClaimed(
-        uint256 index,
-        uint256 epoch
-    ) public view override returns (bool) {
+    function isClaimed(uint256 index, uint256 epoch) public view override returns (bool) {
         uint256 claimedWordIndex = index / 256;
         uint256 claimedBitIndex = index % 256;
         uint256 claimedWord = claimedBitMaps[epoch][claimedWordIndex];
@@ -68,8 +55,7 @@ contract EscrowedMultipleMerkleDistributor is
         uint256 claimedWordIndex = index / 256;
         uint256 claimedBitIndex = index % 256;
         claimedBitMaps[epoch][claimedWordIndex] =
-            claimedBitMaps[epoch][claimedWordIndex] |
-            (1 << claimedBitIndex);
+            claimedBitMaps[epoch][claimedWordIndex] | (1 << claimedBitIndex);
     }
 
     /// @inheritdoc IEscrowedMultipleMerkleDistributor
@@ -81,8 +67,7 @@ contract EscrowedMultipleMerkleDistributor is
         uint256 epoch
     ) public override {
         require(
-            !isClaimed(index, epoch),
-            "EscrowedMultipleMerkleDistributor: Drop already claimed."
+            !isClaimed(index, epoch), "EscrowedMultipleMerkleDistributor: Drop already claimed."
         );
 
         // verify the merkle proof
@@ -108,7 +93,7 @@ contract EscrowedMultipleMerkleDistributor is
     /// @inheritdoc IEscrowedMultipleMerkleDistributor
     function claimMultiple(Claims[] calldata claims) external override {
         uint256 cacheLength = claims.length;
-        for (uint256 i = 0; i < cacheLength; ) {
+        for (uint256 i = 0; i < cacheLength;) {
             claim(
                 claims[i].index,
                 claims[i].account,

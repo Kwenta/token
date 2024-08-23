@@ -14,6 +14,7 @@ import "./interfaces/IMultipleMerkleDistributor.sol";
 contract MultipleMerkleDistributor is IMultipleMerkleDistributor, Owned {
     using SafeERC20 for IERC20;
     /// @inheritdoc IMultipleMerkleDistributor
+
     address public immutable override token;
 
     /// @inheritdoc IMultipleMerkleDistributor
@@ -31,22 +32,13 @@ contract MultipleMerkleDistributor is IMultipleMerkleDistributor, Owned {
     }
 
     /// @inheritdoc IMultipleMerkleDistributor
-    function setMerkleRootForEpoch(bytes32 merkleRoot, uint256 epoch)
-        external
-        override
-        onlyOwner
-    {
+    function setMerkleRootForEpoch(bytes32 merkleRoot, uint256 epoch) external override onlyOwner {
         merkleRoots[epoch] = merkleRoot;
         emit MerkleRootModified(epoch);
     }
 
     /// @inheritdoc IMultipleMerkleDistributor
-    function isClaimed(uint256 index, uint256 epoch)
-        public
-        view
-        override
-        returns (bool)
-    {
+    function isClaimed(uint256 index, uint256 epoch) public view override returns (bool) {
         uint256 claimedWordIndex = index / 256;
         uint256 claimedBitIndex = index % 256;
         uint256 claimedWord = claimedBitMaps[epoch][claimedWordIndex];
@@ -61,8 +53,7 @@ contract MultipleMerkleDistributor is IMultipleMerkleDistributor, Owned {
         uint256 claimedWordIndex = index / 256;
         uint256 claimedBitIndex = index % 256;
         claimedBitMaps[epoch][claimedWordIndex] =
-            claimedBitMaps[epoch][claimedWordIndex] |
-            (1 << claimedBitIndex);
+            claimedBitMaps[epoch][claimedWordIndex] | (1 << claimedBitIndex);
     }
 
     /// @inheritdoc IMultipleMerkleDistributor
@@ -73,10 +64,7 @@ contract MultipleMerkleDistributor is IMultipleMerkleDistributor, Owned {
         bytes32[] calldata merkleProof,
         uint256 epoch
     ) public override {
-        require(
-            !isClaimed(index, epoch),
-            "MultipleMerkleDistributor: Drop already claimed."
-        );
+        require(!isClaimed(index, epoch), "MultipleMerkleDistributor: Drop already claimed.");
 
         // verify the merkle proof
         bytes32 node = keccak256(abi.encodePacked(index, account, amount));
@@ -95,7 +83,7 @@ contract MultipleMerkleDistributor is IMultipleMerkleDistributor, Owned {
     /// @inheritdoc IMultipleMerkleDistributor
     function claimMultiple(Claims[] calldata claims) external override {
         uint256 cacheLength = claims.length;
-        for (uint256 i = 0; i < cacheLength; ) {
+        for (uint256 i = 0; i < cacheLength;) {
             claim(
                 claims[i].index,
                 claims[i].account,

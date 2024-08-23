@@ -34,11 +34,7 @@ contract vKwentaRedeemer is IvKwentaRedeemer {
 
         /// lock vToken in this contract
         require(
-            IERC20(vToken).transferFrom(
-                msg.sender,
-                address(this),
-                vTokenBalance
-            ),
+            IERC20(vToken).transferFrom(msg.sender, address(this), vTokenBalance),
             "vKwentaRedeemer: vToken transfer failed"
         );
 
