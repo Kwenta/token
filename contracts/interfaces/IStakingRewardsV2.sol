@@ -59,10 +59,7 @@ interface IStakingRewardsV2 {
     /// @param _account: address to check
     /// @return amount of tokens escrowed but not staked
     function unstakedEscrowedBalanceOf(address _account) external view returns (uint256);
-
-    /// @notice the period of time a user has to wait after staking to unstake
-    function cooldownPeriod() external view returns (uint256);
-
+    
     // rewards
 
     /// @notice calculate the total rewards for one duration based on the current rate
@@ -158,11 +155,11 @@ interface IStakingRewardsV2 {
     /// @dev updateReward() called prior to function logic
     function unstakeEscrow(uint256 _amount) external;
 
-    /// @notice unstake escrowed token skipping the cooldown wait period
+    /// @notice unstake escrowed token on behalf of another account
     /// @param _account: address of account to unstake from
     /// @param _amount: amount to unstake
     /// @dev this function is used to allow tokens to be vested at any time by RewardEscrowV2
-    function unstakeEscrowSkipCooldown(address _account, uint256 _amount) external;
+    function unstakeEscrowAdmin(address _account, uint256 _amount) external;
 
     /// @notice unstake all available staked non-escrowed tokens and
     /// claim any rewards
@@ -210,10 +207,6 @@ interface IStakingRewardsV2 {
     /// @notice set rewards duration
     /// @param _rewardsDuration: denoted in seconds
     function setRewardsDuration(uint256 _rewardsDuration) external;
-
-    /// @notice set unstaking cooldown period
-    /// @param _cooldownPeriod: denoted in seconds
-    function setCooldownPeriod(uint256 _cooldownPeriod) external;
 
     // pausable
 
@@ -279,10 +272,6 @@ interface IStakingRewardsV2 {
     /// @param amount: amount of token recovered
     event Recovered(address token, uint256 amount);
 
-    /// @notice emitted when the unstaking cooldown period is updated
-    /// @param cooldownPeriod: the new unstaking cooldown period
-    event CooldownPeriodUpdated(uint256 cooldownPeriod);
-
     /// @notice emitted when an operator is approved
     /// @param owner: owner of tokens
     /// @param operator: address of operator
@@ -322,20 +311,8 @@ interface IStakingRewardsV2 {
     /// @notice recovering the usdc reward token is not allowed
     error CannotRecoverRewardToken();
 
-    /// @notice error when user tries unstake during the cooldown period
-    /// @param canUnstakeAt timestamp when user can unstake
-    error MustWaitForUnlock(uint256 canUnstakeAt);
-
     /// @notice error when trying to set a rewards duration that is too short
     error RewardsDurationCannotBeZero();
-
-    /// @notice error when trying to set a cooldown period below the minimum
-    /// @param minCooldownPeriod minimum cooldown period
-    error CooldownPeriodTooLow(uint256 minCooldownPeriod);
-
-    /// @notice error when trying to set a cooldown period above the maximum
-    /// @param maxCooldownPeriod maximum cooldown period
-    error CooldownPeriodTooHigh(uint256 maxCooldownPeriod);
 
     /// @notice the caller is not approved to take this action
     error NotApproved();
