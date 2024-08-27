@@ -18,6 +18,7 @@ const SYMBOL = "KWENTA";
 const INITIAL_SUPPLY = ethers.utils.parseUnits("313373");
 const EPOCH_ZERO = 0;
 const EPOCH_ONE = 1;
+const USDC_ADDRESS = "0x0b2c639c533813f4aa9d7837caf62653d097ff85";
 
 // test accounts
 let owner: SignerWithAddress;
@@ -64,6 +65,7 @@ const loadSetup = () => {
             {
                 constructorArgs: [
                     kwenta.address,
+                    USDC_ADDRESS,
                     rewardEscrow.address,
                     TREASURY_DAO.address,
                 ],

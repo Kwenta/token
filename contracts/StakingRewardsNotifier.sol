@@ -7,7 +7,11 @@ import {IRewardEscrowV2} from "./interfaces/IRewardEscrowV2.sol";
 import {IStakingRewardsV2} from "./interfaces/IStakingRewardsV2.sol";
 import {ISupplySchedule} from "./interfaces/ISupplySchedule.sol";
 import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
+/// @title StakingRewardsNotifier
+/// @notice This contract is responsible for sending and notifying the staking rewards contract about the reward amounts.
+/// @dev The rewards notification can only be triggered by the supply schedule contract, which is called weekly.
 contract StakingRewardsNotifier is Ownable2Step, IStakingRewardsNotifier {
     /*//////////////////////////////////////////////////////////////
                                IMMUTABLES
@@ -15,6 +19,9 @@ contract StakingRewardsNotifier is Ownable2Step, IStakingRewardsNotifier {
 
     /// @notice kwenta interface
     IKwenta public immutable kwenta;
+
+    /// @notice usdc interface
+    IERC20 public immutable usdc;
 
     /// @notice supply schedule contract
     ISupplySchedule public immutable supplySchedule;
@@ -33,13 +40,17 @@ contract StakingRewardsNotifier is Ownable2Step, IStakingRewardsNotifier {
     /// @notice Constructor function for StakingRewardsNotifier contract
     /// @param _contractOwner: address of the contract owner
     /// @param _kwenta: address of the Kwenta contract
+    /// @param _usdc: address of the USDC contract
     /// @param _supplySchedule: address of the SupplySchedule contract
-    constructor(address _contractOwner, address _kwenta, address _supplySchedule) {
-        if (_contractOwner == address(0) || _kwenta == address(0) || _supplySchedule == address(0))
-        {
+    constructor(address _contractOwner, address _kwenta, address _usdc, address _supplySchedule) {
+        if (
+            _contractOwner == address(0) || _kwenta == address(0) || _usdc == address(0)
+                || _supplySchedule == address(0)
+        ) {
             revert ZeroAddress();
         }
         kwenta = IKwenta(_kwenta);
+        usdc = IERC20(_usdc);
         supplySchedule = ISupplySchedule(_supplySchedule);
 
         // transfer ownership
@@ -77,12 +88,11 @@ contract StakingRewardsNotifier is Ownable2Step, IStakingRewardsNotifier {
 
     /// @inheritdoc IStakingRewardsNotifier
     function notifyRewardAmount(uint256 mintedAmount) external onlySupplySchedule {
-        /// @dev delete mintedAmount because it is not used but cannot be removed from the function signature
-        /// as it is called by SupplySchedule which is immutable and expects to pass this value
-        /// instead currentBalance is used
-        delete mintedAmount;
         uint256 currentBalance = kwenta.balanceOf(address(this));
         kwenta.transfer(address(stakingRewardsV2), currentBalance);
-        stakingRewardsV2.notifyRewardAmount(currentBalance);
+        uint256 currentBalanceUsdc = usdc.balanceOf(address(this));
+        usdc.transfer(address(stakingRewardsV2), currentBalanceUsdc);
+
+        stakingRewardsV2.notifyRewardAmount(currentBalance, currentBalanceUsdc);
     }
 }

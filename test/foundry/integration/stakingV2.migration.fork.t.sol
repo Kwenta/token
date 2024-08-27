@@ -9,6 +9,7 @@ import {RewardEscrow} from "../../../contracts/RewardEscrow.sol";
 import {SupplySchedule} from "../../../contracts/SupplySchedule.sol";
 import {StakingRewards} from "../../../contracts/StakingRewards.sol";
 import "../utils/Constants.t.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract StakingV2MigrationForkTests is StakingTestHelpers {
     /*//////////////////////////////////////////////////////////////
@@ -20,6 +21,7 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
 
         // define main contracts
         kwenta = Kwenta(OPTIMISM_KWENTA_TOKEN);
+        IERC20 usdc = IERC20(OPTIMISM_USDC_TOKEN);
         rewardEscrowV1 = RewardEscrow(OPTIMISM_REWARD_ESCROW_V1);
         supplySchedule = SupplySchedule(OPTIMISM_SUPPLY_SCHEDULE);
         stakingRewardsV1 = StakingRewards(OPTIMISM_STAKING_REWARDS_V1);
@@ -37,6 +39,7 @@ contract StakingV2MigrationForkTests is StakingTestHelpers {
             .runCompleteMigrationProcess({
             _owner: owner,
             _kwenta: address(kwenta),
+            _usdc: address(usdc),
             _supplySchedule: address(supplySchedule),
             _treasuryDAO: treasury,
             _rewardEscrowV1: address(rewardEscrowV1),

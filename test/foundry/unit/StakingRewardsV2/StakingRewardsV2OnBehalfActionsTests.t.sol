@@ -13,7 +13,7 @@ contract StakingRewardsV2OnBehalfActionsTests is DefaultStakingV2Setup {
 
     function test_Only_Approved_Can_Call_getRewardOnBehalf() public {
         fundAccountAndStakeV2(address(this), TEST_VALUE);
-        addNewRewardsToStakingRewardsV2(1 weeks);
+        addNewRewardsToStakingRewardsV2(1 weeks, 0);
         vm.warp(block.timestamp + stakingRewardsV2.rewardsDuration());
 
         // approve user1 as operator
@@ -27,7 +27,7 @@ contract StakingRewardsV2OnBehalfActionsTests is DefaultStakingV2Setup {
 
     function test_Cannot_Get_Reward_On_Behalf_Of_Zero_Address() public {
         fundAccountAndStakeV2(address(this), TEST_VALUE);
-        addNewRewardsToStakingRewardsV2(1 weeks);
+        addNewRewardsToStakingRewardsV2(1 weeks, 0);
         vm.warp(block.timestamp + stakingRewardsV2.rewardsDuration());
 
         // approve user1 as operator
@@ -57,7 +57,7 @@ contract StakingRewardsV2OnBehalfActionsTests is DefaultStakingV2Setup {
         vm.assume(operator != stakingRewardsV2.owner());
 
         fundAccountAndStakeV2(owner, fundingAmount);
-        addNewRewardsToStakingRewardsV2(newRewards);
+        addNewRewardsToStakingRewardsV2(newRewards, 0);
         vm.warp(block.timestamp + stakingRewardsV2.rewardsDuration());
 
         // approve operator
@@ -115,7 +115,7 @@ contract StakingRewardsV2OnBehalfActionsTests is DefaultStakingV2Setup {
         fundAndApproveAccountV2(address(this), TEST_VALUE);
 
         // configure reward rate
-        addNewRewardsToStakingRewardsV2(TEST_VALUE);
+        addNewRewardsToStakingRewardsV2(TEST_VALUE, 0);
 
         // fast forward 2 weeks
         vm.warp(block.timestamp + 2 weeks);
@@ -149,7 +149,7 @@ contract StakingRewardsV2OnBehalfActionsTests is DefaultStakingV2Setup {
         fundAndApproveAccountV2(owner, TEST_VALUE);
 
         // configure reward rate
-        addNewRewardsToStakingRewardsV2(TEST_VALUE);
+        addNewRewardsToStakingRewardsV2(TEST_VALUE, 0);
 
         // fast forward 2 weeks
         vm.warp(block.timestamp + 2 weeks);
@@ -187,7 +187,7 @@ contract StakingRewardsV2OnBehalfActionsTests is DefaultStakingV2Setup {
         assertEq(rewardEscrowV2.escrowedBalanceOf(user1), 0);
 
         // send in 604800 (1 week) of rewards - (using 1 week for round numbers)
-        addNewRewardsToStakingRewardsV2(1 weeks);
+        addNewRewardsToStakingRewardsV2(1 weeks, 1 weeks);
 
         // fast forward 1 week - one complete period
         vm.warp(block.timestamp + stakingRewardsV2.rewardsDuration());
@@ -203,6 +203,8 @@ contract StakingRewardsV2OnBehalfActionsTests is DefaultStakingV2Setup {
         assertEq(kwenta.balanceOf(address(this)), 1 weeks);
         assertEq(kwenta.balanceOf(user1), 0);
         assertEq(rewardEscrowV2.escrowedBalanceOf(user1), 0);
+        assertEq(usdc.balanceOf(address(this)), 1 weeks);
+        assertEq(usdc.balanceOf(user1), 0);
     }
 
     function test_getRewardOnBehalf_Fuzz(
@@ -224,7 +226,7 @@ contract StakingRewardsV2OnBehalfActionsTests is DefaultStakingV2Setup {
         assertEq(kwenta.balanceOf(operator), 0);
 
         // send in rewards
-        addNewRewardsToStakingRewardsV2(newRewards);
+        addNewRewardsToStakingRewardsV2(newRewards, newRewards);
 
         // fast forward 1 week - one complete period
         vm.warp(block.timestamp + stakingRewardsV2.rewardsDuration());
@@ -238,8 +240,10 @@ contract StakingRewardsV2OnBehalfActionsTests is DefaultStakingV2Setup {
         stakingRewardsV2.getRewardOnBehalf(owner);
 
         // check rewards
-        assertGt(kwenta.balanceOf(owner), 0);
-        assertEq(kwenta.balanceOf(operator), 0);
+        assertGt(rewardEscrowV2.escrowedBalanceOf(owner), 0);
+        assertEq(rewardEscrowV2.escrowedBalanceOf(operator), 0);
+        assertGt(usdc.balanceOf(owner), 0);
+        assertEq(usdc.balanceOf(operator), 0);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -353,6 +357,89 @@ contract StakingRewardsV2OnBehalfActionsTests is DefaultStakingV2Setup {
     }
 
     /*//////////////////////////////////////////////////////////////
+                    Get Reward And Stake On Behalf
+    //////////////////////////////////////////////////////////////*/
+
+    function test_Get_Reward_And_Stake_On_Behalf() public {
+        fundAccountAndStakeV2(address(this), TEST_VALUE);
+
+        // assert initial rewards are 0
+        assertEq(rewardEscrowV2.escrowedBalanceOf(address(this)), 0);
+        assertEq(rewardEscrowV2.escrowedBalanceOf(user1), 0);
+
+        // send in 604800 (1 week) of rewards - (using 1 week for round numbers)
+        addNewRewardsToStakingRewardsV2(1 weeks, 0);
+
+        // fast forward 1 week - one complete period
+        vm.warp(block.timestamp + stakingRewardsV2.rewardsDuration());
+
+        // approve operator
+        stakingRewardsV2.approveOperator(user1, true);
+
+        // claim rewards on behalf
+        vm.prank(user1);
+        stakingRewardsV2.getRewardOnBehalf(address(this));
+
+        // check rewards
+        assertEq(rewardEscrowV2.escrowedBalanceOf(address(this)), 1 weeks);
+        assertEq(rewardEscrowV2.escrowedBalanceOf(user1), 0);
+
+        // stake escrow on behalf
+        vm.prank(user1);
+        stakingRewardsV2.stakeEscrowOnBehalf(address(this), 1 weeks);
+
+        // check final escrowed balances
+        assertEq(stakingRewardsV2.escrowedBalanceOf(address(this)), 1 weeks);
+        assertEq(stakingRewardsV2.escrowedBalanceOf(user1), 0);
+    }
+
+    function test_Get_Reward_And_Stake_On_Behalf_Fuzz(
+        uint32 fundingAmount,
+        uint32 newRewards,
+        address owner,
+        address operator
+    ) public {
+        vm.assume(fundingAmount > 0);
+        vm.assume(newRewards > stakingRewardsV2.rewardsDuration());
+        vm.assume(owner != address(0));
+        vm.assume(operator != address(0));
+        vm.assume(operator != owner);
+
+        fundAccountAndStakeV2(owner, fundingAmount);
+
+        // assert initial rewards are 0
+        assertEq(rewardEscrowV2.escrowedBalanceOf(owner), 0);
+        assertEq(rewardEscrowV2.escrowedBalanceOf(operator), 0);
+
+        // send in rewards
+        addNewRewardsToStakingRewardsV2(newRewards, 0);
+
+        // fast forward 1 week - one complete period
+        vm.warp(block.timestamp + stakingRewardsV2.rewardsDuration());
+
+        // approve operator
+        vm.prank(owner);
+        stakingRewardsV2.approveOperator(operator, true);
+
+        // claim rewards on behalf
+        vm.prank(operator);
+        stakingRewardsV2.getRewardOnBehalf(owner);
+
+        // check rewards
+        uint256 rewardEscrowBalance = rewardEscrowV2.escrowedBalanceOf(owner);
+        assertGt(rewardEscrowBalance, 0);
+        assertEq(rewardEscrowV2.escrowedBalanceOf(operator), 0);
+
+        // stake escrow on behalf
+        vm.prank(operator);
+        stakingRewardsV2.stakeEscrowOnBehalf(owner, rewardEscrowBalance);
+
+        // check final escrowed balances
+        assertEq(stakingRewardsV2.escrowedBalanceOf(owner), rewardEscrowBalance);
+        assertEq(stakingRewardsV2.escrowedBalanceOf(operator), 0);
+    }
+
+    /*//////////////////////////////////////////////////////////////
                             Compound On Behalf
     //////////////////////////////////////////////////////////////*/
 
@@ -365,7 +452,7 @@ contract StakingRewardsV2OnBehalfActionsTests is DefaultStakingV2Setup {
         uint256 initialBalance = kwenta.balanceOf(address(this));
 
         // configure reward rate
-        addNewRewardsToStakingRewardsV2(TEST_VALUE);
+        addNewRewardsToStakingRewardsV2(TEST_VALUE, 0);
 
         // fast forward 2 weeks
         vm.warp(block.timestamp + 2 weeks);
@@ -405,7 +492,7 @@ contract StakingRewardsV2OnBehalfActionsTests is DefaultStakingV2Setup {
         uint256 initialBalance = kwenta.balanceOf(owner);
 
         // configure reward rate
-        addNewRewardsToStakingRewardsV2(newRewards);
+        addNewRewardsToStakingRewardsV2(newRewards, 0);
 
         // fast forward 2 weeks
         vm.warp(block.timestamp + 2 weeks);
@@ -449,7 +536,7 @@ contract StakingRewardsV2OnBehalfActionsTests is DefaultStakingV2Setup {
 
     function test_getRewardOnBehalf_Emits_Event() public {
         fundAccountAndStakeV2(address(this), TEST_VALUE);
-        addNewRewardsToStakingRewardsV2(1 weeks);
+        addNewRewardsToStakingRewardsV2(1 weeks, 0);
         vm.warp(block.timestamp + stakingRewardsV2.rewardsDuration());
 
         // approve operator

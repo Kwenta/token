@@ -65,6 +65,7 @@ contract StakingV2Setup is StakingV1Setup {
                 migrate.deploySystem.selector,
                 address(this),
                 address(kwenta),
+                address(usdc),
                 address(supplySchedule),
                 address(rewardEscrowV1),
                 treasury,
