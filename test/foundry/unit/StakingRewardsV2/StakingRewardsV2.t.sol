@@ -16,8 +16,10 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
     function setUp() public override {
         super.setUp();
 
-        vm.prank(treasury);
+        vm.startPrank(treasury);
         kwenta.transfer(address(stakingRewardsV2), INITIAL_SUPPLY / 4);
+        usdc.transfer(address(stakingRewardsV2), INITIAL_SUPPLY / 4);
+        vm.stopPrank();
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -27,6 +29,11 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
     function test_Token_Set() public {
         address token = address(stakingRewardsV2.kwenta());
         assertEq(token, address(kwenta));
+    }
+
+    function test_Usdc_Set() public {
+        address usdcAddr = address(stakingRewardsV2.usdc());
+        assertEq(usdcAddr, address(usdc));
     }
 
     function test_Owner_Set() public {
@@ -50,7 +57,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
 
     function test_Only_RewardsNotifier_Can_Call_notifyRewardAmount() public {
         vm.expectRevert(IStakingRewardsV2.OnlyRewardsNotifier.selector);
-        stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
+        stakingRewardsV2.notifyRewardAmount(TEST_VALUE, 0);
     }
 
     function test_Only_Owner_Can_Call_setRewardsDuration() public {
@@ -254,7 +261,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
 
         // configure reward rate
         vm.prank(address(rewardsNotifier));
-        stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
+        stakingRewardsV2.notifyRewardAmount(TEST_VALUE, 0);
 
         // fast forward 2 weeks
         vm.warp(block.timestamp + 2 weeks);
@@ -283,7 +290,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
 
         // configure reward rate
         vm.prank(address(rewardsNotifier));
-        stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
+        stakingRewardsV2.notifyRewardAmount(TEST_VALUE, 0);
 
         // fast forward 2 weeks
         vm.warp(block.timestamp + 2 weeks);
@@ -311,7 +318,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
 
         // configure reward rate
         vm.prank(address(rewardsNotifier));
-        stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
+        stakingRewardsV2.notifyRewardAmount(TEST_VALUE, 0);
 
         // fast forward 2 weeks
         vm.warp(block.timestamp + 2 weeks);
@@ -340,7 +347,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
 
         // configure reward rate
         vm.prank(address(rewardsNotifier));
-        stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
+        stakingRewardsV2.notifyRewardAmount(TEST_VALUE, 0);
 
         // fast forward 2 weeks
         vm.warp(block.timestamp + 2 weeks);
@@ -372,13 +379,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
 
     function test_Can_Recover_Non_Staking_Token() public {
         // create mockToken
-        IERC20 mockToken = new Kwenta(
-            "Mock",
-            "MOCK",
-            INITIAL_SUPPLY,
-            address(this),
-            treasury
-        );
+        IERC20 mockToken = new Kwenta("Mock", "MOCK", INITIAL_SUPPLY, address(this), treasury);
 
         // transfer in non staking tokens
         vm.prank(treasury);
@@ -403,7 +404,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
 
         // update reward amount
         vm.prank(address(rewardsNotifier));
-        stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
+        stakingRewardsV2.notifyRewardAmount(TEST_VALUE, 0);
 
         // check last time reward applicable updated
         assertEq(stakingRewardsV2.lastTimeRewardApplicable(), block.timestamp);
@@ -428,13 +429,37 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         // set rewards
         uint256 reward = stakedAmount;
         vm.prank(address(rewardsNotifier));
-        stakingRewardsV2.notifyRewardAmount(reward);
+        stakingRewardsV2.notifyRewardAmount(reward, 0);
 
         // ff to end of period
         vm.warp(block.timestamp + 1 weeks);
 
         // check reward per token updated
         assertEq(stakingRewardsV2.rewardPerToken(), 1 ether);
+    }
+
+    function test_rewardPerTokenUSDC() public {
+        // fund so that staking can succeed
+        uint256 stakedAmount = 1 weeks;
+        fundAndApproveAccountV2(address(this), stakedAmount);
+
+        // check reward per token starts as 0
+        assertEq(stakingRewardsV2.rewardPerTokenUSDC(), 0);
+
+        // stake
+        stakingRewardsV2.stake(stakedAmount);
+        assertEq(stakingRewardsV2.totalSupply(), stakedAmount);
+
+        // set rewards
+        uint256 reward = stakedAmount;
+        vm.prank(address(rewardsNotifier));
+        stakingRewardsV2.notifyRewardAmount(0, reward);
+
+        // ff to end of period
+        vm.warp(block.timestamp + 1 weeks);
+
+        // check reward per token updated
+        assertEq(stakingRewardsV2.rewardPerTokenUSDC(), 1 ether * PRECISION);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -649,6 +674,10 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         assertEq(stakingRewardsV2.earned(address(this)), 0);
     }
 
+    function test_No_Usdc_Rewards_When_Not_Staking() public {
+        assertEq(stakingRewardsV2.earnedUSDC(address(this)), 0);
+    }
+
     function test_earned_Increases_After_Staking() public {
         fundAndApproveAccountV2(address(this), TEST_VALUE);
 
@@ -657,13 +686,30 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
 
         // configure reward rate
         vm.prank(address(rewardsNotifier));
-        stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
+        stakingRewardsV2.notifyRewardAmount(TEST_VALUE, 0);
 
         // fast forward 2 weeks
         vm.warp(block.timestamp + 2 weeks);
 
         // check some stake has been earned
         assertTrue(stakingRewardsV2.earned(address(this)) > 0);
+    }
+
+    function test_earnedUSDC_Increases_After_Staking() public {
+        fundAndApproveAccountV2(address(this), TEST_VALUE);
+
+        // stake
+        stakingRewardsV2.stake(TEST_VALUE);
+
+        // configure reward rate
+        vm.prank(address(rewardsNotifier));
+        stakingRewardsV2.notifyRewardAmount(0, TEST_VALUE);
+
+        // fast forward 2 weeks
+        vm.warp(block.timestamp + 2 weeks);
+
+        // check some stake has been earned
+        assertTrue(stakingRewardsV2.earnedUSDC(address(this)) > 0);
     }
 
     function test_rewardRate_Should_Increase_If_New_Rewards_Come_Before_Duration_Ends() public {
@@ -680,7 +726,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
 
         // configure reward rate
         vm.prank(address(rewardsNotifier));
-        stakingRewardsV2.notifyRewardAmount(totalToDistribute);
+        stakingRewardsV2.notifyRewardAmount(totalToDistribute, 0);
 
         uint256 initialRewardRate = stakingRewardsV2.rewardRate();
 
@@ -689,9 +735,41 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
 
         // increase reward rate further
         vm.prank(address(rewardsNotifier));
-        stakingRewardsV2.notifyRewardAmount(totalToDistribute);
+        stakingRewardsV2.notifyRewardAmount(totalToDistribute, 0);
 
         uint256 finalRewardRate = stakingRewardsV2.rewardRate();
+
+        assertEq(finalRewardRate / 2, initialRewardRate);
+    }
+
+    function test_rewardRateUSDC_Should_Increase_If_New_Rewards_Come_Before_Duration_Ends()
+        public
+    {
+        fundAndApproveAccountV2(address(this), 1 weeks);
+
+        uint256 totalToDistribute = 5 ether;
+
+        // stake
+        stakingRewardsV2.stake(1 weeks);
+
+        // send usdc to stakingRewardsV2 contract
+        vm.prank(treasury);
+        usdc.transfer(address(stakingRewardsV2), totalToDistribute);
+
+        // configure reward rate
+        vm.prank(address(rewardsNotifier));
+        stakingRewardsV2.notifyRewardAmount(0, totalToDistribute);
+
+        uint256 initialRewardRate = stakingRewardsV2.rewardRateUSDC();
+
+        vm.prank(treasury);
+        usdc.transfer(address(stakingRewardsV2), totalToDistribute);
+
+        // increase reward rate further
+        vm.prank(address(rewardsNotifier));
+        stakingRewardsV2.notifyRewardAmount(0, totalToDistribute);
+
+        uint256 finalRewardRate = stakingRewardsV2.rewardRateUSDC();
 
         assertEq(finalRewardRate / 2, initialRewardRate);
     }
@@ -704,7 +782,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
 
         // configure reward rate
         vm.prank(address(rewardsNotifier));
-        stakingRewardsV2.notifyRewardAmount(1 weeks);
+        stakingRewardsV2.notifyRewardAmount(1 weeks, 0);
 
         // fast forward 1 weeks
         vm.warp(block.timestamp + 1 weeks);
@@ -712,11 +790,36 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
 
         // configure same reward week for the following period
         vm.prank(address(rewardsNotifier));
-        stakingRewardsV2.notifyRewardAmount(1 weeks);
+        stakingRewardsV2.notifyRewardAmount(1 weeks, 0);
 
         vm.warp(block.timestamp + 2 weeks);
 
         uint256 finalEarnings = stakingRewardsV2.earned(address(this));
+
+        assertEq(finalEarnings, initialEarnings * 2);
+    }
+
+    function test_Reward_Usdc_Balance_Rolls_Over_After_Duration() public {
+        fundAndApproveAccountV2(address(this), 1 weeks);
+
+        // stake
+        stakingRewardsV2.stake(1 weeks);
+
+        // configure reward rate
+        vm.prank(address(rewardsNotifier));
+        stakingRewardsV2.notifyRewardAmount(0, 1 weeks);
+
+        // fast forward 1 weeks
+        vm.warp(block.timestamp + 1 weeks);
+        uint256 initialEarnings = stakingRewardsV2.earnedUSDC(address(this));
+
+        // configure same reward week for the following period
+        vm.prank(address(rewardsNotifier));
+        stakingRewardsV2.notifyRewardAmount(0, 1 weeks);
+
+        vm.warp(block.timestamp + 2 weeks);
+
+        uint256 finalEarnings = stakingRewardsV2.earnedUSDC(address(this));
 
         assertEq(finalEarnings, initialEarnings * 2);
     }
@@ -735,7 +838,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
 
         // configure reward rate
         vm.prank(address(rewardsNotifier));
-        stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
+        stakingRewardsV2.notifyRewardAmount(TEST_VALUE, 0);
 
         // fast forward 2 weeks
         vm.warp(block.timestamp + 2 weeks);
@@ -745,6 +848,28 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
 
         // check reward escrow balance increased
         assertGt(rewardEscrowV2.escrowedBalanceOf(address(this)), initialEscrowBalance);
+    }
+
+    function test_getReward_Increases_Usdc_Balance() public {
+        fundAndApproveAccountV2(address(this), TEST_VALUE);
+
+        uint256 initialUsdcBalance = usdc.balanceOf(address(this));
+
+        // stake
+        stakingRewardsV2.stake(TEST_VALUE);
+
+        // configure reward rate
+        vm.prank(address(rewardsNotifier));
+        stakingRewardsV2.notifyRewardAmount(0, TEST_VALUE);
+
+        // fast forward 2 weeks
+        vm.warp(block.timestamp + 2 weeks);
+
+        // get reward
+        stakingRewardsV2.getReward();
+
+        // check reward escrow balance increased
+        assertGt(usdc.balanceOf(address(this)), initialUsdcBalance);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -759,7 +884,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
 
         // configure reward rate
         vm.prank(address(rewardsNotifier));
-        stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
+        stakingRewardsV2.notifyRewardAmount(TEST_VALUE, 0);
 
         // fast forward 3 weeks
         vm.warp(block.timestamp + 3 weeks);
@@ -776,6 +901,31 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         assertGt(stakingRewardsV2.rewards(address(this)), 0);
     }
 
+    function test_Usdc_Rewards_Updated_stake() public {
+        fundAndApproveAccountV2(address(this), TEST_VALUE);
+
+        // stake
+        stakingRewardsV2.stake(TEST_VALUE);
+
+        // configure reward rate
+        vm.prank(address(rewardsNotifier));
+        stakingRewardsV2.notifyRewardAmount(0, TEST_VALUE);
+
+        // fast forward 3 weeks
+        vm.warp(block.timestamp + 3 weeks);
+
+        // stake
+        fundAccountAndStakeV2(address(this), TEST_VALUE);
+
+        assertEq(stakingRewardsV2.lastUpdateTime(), stakingRewardsV2.lastTimeRewardApplicable());
+        assertEq(stakingRewardsV2.rewardPerTokenStoredUSDC(), stakingRewardsV2.rewardPerTokenUSDC());
+        assertEq(
+            stakingRewardsV2.userRewardPerTokenPaidUSDC(address(this)),
+            stakingRewardsV2.rewardPerTokenStoredUSDC()
+        );
+        assertGt(stakingRewardsV2.rewardsUSDC(address(this)), 0);
+    }
+
     function test_Rewards_Updated_unstake() public {
         fundAndApproveAccountV2(address(this), TEST_VALUE);
 
@@ -784,7 +934,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
 
         // configure reward rate
         vm.prank(address(rewardsNotifier));
-        stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
+        stakingRewardsV2.notifyRewardAmount(TEST_VALUE, 0);
 
         // fast forward 3 weeks
         vm.warp(block.timestamp + 3 weeks);
@@ -801,6 +951,31 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         assertGt(stakingRewardsV2.rewards(address(this)), 0);
     }
 
+    function test_Usdc_Rewards_Updated_unstake() public {
+        fundAndApproveAccountV2(address(this), TEST_VALUE);
+
+        // stake
+        stakingRewardsV2.stake(TEST_VALUE);
+
+        // configure reward rate
+        vm.prank(address(rewardsNotifier));
+        stakingRewardsV2.notifyRewardAmount(0, TEST_VALUE);
+
+        // fast forward 3 weeks
+        vm.warp(block.timestamp + 3 weeks);
+
+        // unstake
+        unstakeFundsV2(address(this), 1);
+
+        assertEq(stakingRewardsV2.lastUpdateTime(), stakingRewardsV2.lastTimeRewardApplicable());
+        assertEq(stakingRewardsV2.rewardPerTokenStoredUSDC(), stakingRewardsV2.rewardPerTokenUSDC());
+        assertEq(
+            stakingRewardsV2.userRewardPerTokenPaidUSDC(address(this)),
+            stakingRewardsV2.rewardPerTokenStoredUSDC()
+        );
+        assertGt(stakingRewardsV2.rewardsUSDC(address(this)), 0);
+    }
+
     function test_Rewards_Updated_stakeEscrow() public {
         fundAndApproveAccountV2(address(this), TEST_VALUE);
 
@@ -809,7 +984,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
 
         // configure reward rate
         vm.prank(address(rewardsNotifier));
-        stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
+        stakingRewardsV2.notifyRewardAmount(TEST_VALUE, 0);
 
         // fast forward 3 weeks
         vm.warp(block.timestamp + 3 weeks);
@@ -826,6 +1001,31 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         assertGt(stakingRewardsV2.rewards(address(this)), 0);
     }
 
+    function test_Usdc_Rewards_Updated_stakeEscrow() public {
+        fundAndApproveAccountV2(address(this), TEST_VALUE);
+
+        // stake
+        stakingRewardsV2.stake(TEST_VALUE);
+
+        // configure reward rate
+        vm.prank(address(rewardsNotifier));
+        stakingRewardsV2.notifyRewardAmount(0, TEST_VALUE);
+
+        // fast forward 3 weeks
+        vm.warp(block.timestamp + 3 weeks);
+
+        // stake escrow
+        stakeEscrowedFundsV2(address(this), 1000);
+
+        assertEq(stakingRewardsV2.lastUpdateTime(), stakingRewardsV2.lastTimeRewardApplicable());
+        assertEq(stakingRewardsV2.rewardPerTokenStoredUSDC(), stakingRewardsV2.rewardPerTokenUSDC());
+        assertEq(
+            stakingRewardsV2.userRewardPerTokenPaidUSDC(address(this)),
+            stakingRewardsV2.rewardPerTokenStoredUSDC()
+        );
+        assertGt(stakingRewardsV2.rewardsUSDC(address(this)), 0);
+    }
+
     function test_Rewards_Updated_unstakeEscrow() public {
         fundAndApproveAccountV2(address(this), TEST_VALUE);
 
@@ -835,7 +1035,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
 
         // configure reward rate
         vm.prank(address(rewardsNotifier));
-        stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
+        stakingRewardsV2.notifyRewardAmount(TEST_VALUE, 0);
 
         // fast forward 3 weeks
         vm.warp(block.timestamp + 3 weeks);
@@ -850,6 +1050,32 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
             stakingRewardsV2.rewardPerTokenStored()
         );
         assertGt(stakingRewardsV2.rewards(address(this)), 0);
+    }
+
+    function test_Usdc_Rewards_Updated_unstakeEscrow() public {
+        fundAndApproveAccountV2(address(this), TEST_VALUE);
+
+        // stake
+        stakingRewardsV2.stake(TEST_VALUE);
+        stakeEscrowedFundsV2(address(this), 1000);
+
+        // configure reward rate
+        vm.prank(address(rewardsNotifier));
+        stakingRewardsV2.notifyRewardAmount(0, TEST_VALUE);
+
+        // fast forward 3 weeks
+        vm.warp(block.timestamp + 3 weeks);
+
+        // unstake escrow
+        unstakeEscrowedFundsV2(address(this), 1000);
+
+        assertEq(stakingRewardsV2.lastUpdateTime(), stakingRewardsV2.lastTimeRewardApplicable());
+        assertEq(stakingRewardsV2.rewardPerTokenStoredUSDC(), stakingRewardsV2.rewardPerTokenUSDC());
+        assertEq(
+            stakingRewardsV2.userRewardPerTokenPaidUSDC(address(this)),
+            stakingRewardsV2.rewardPerTokenStoredUSDC()
+        );
+        assertGt(stakingRewardsV2.rewardsUSDC(address(this)), 0);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -878,7 +1104,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
 
         // configure reward rate
         vm.prank(address(rewardsNotifier));
-        stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
+        stakingRewardsV2.notifyRewardAmount(TEST_VALUE, 0);
 
         // fast 1 day
         vm.warp(block.timestamp + 1 days);
@@ -896,7 +1122,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
 
         // configure reward rate
         vm.prank(address(rewardsNotifier));
-        stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
+        stakingRewardsV2.notifyRewardAmount(TEST_VALUE, 0);
 
         // fast forward 2 weeks
         vm.warp(block.timestamp + 2 weeks);
@@ -909,7 +1135,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         assertEq(stakingRewardsV2.rewardsDuration(), 30 days);
 
         vm.prank(address(rewardsNotifier));
-        stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
+        stakingRewardsV2.notifyRewardAmount(TEST_VALUE, 0);
     }
 
     function test_Update_Duration_After_Period_Has_Finished_And_Get_Rewards() public {
@@ -920,7 +1146,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
 
         // configure reward rate
         vm.prank(address(rewardsNotifier));
-        stakingRewardsV2.notifyRewardAmount(30 days);
+        stakingRewardsV2.notifyRewardAmount(30 days, 0);
 
         // fast forward 2 weeks
         vm.warp(block.timestamp + 1 weeks);
@@ -947,7 +1173,7 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         kwenta.transfer(address(stakingRewardsV2), TEST_VALUE);
 
         vm.prank(address(rewardsNotifier));
-        stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
+        stakingRewardsV2.notifyRewardAmount(TEST_VALUE, 0);
 
         uint256 rewardForDuration = stakingRewardsV2.getRewardForDuration();
         uint256 duration = stakingRewardsV2.rewardsDuration();
@@ -1154,23 +1380,30 @@ contract StakingRewardsV2Test is DefaultStakingV2Setup {
         stakingRewardsV2.stake(TEST_VALUE);
 
         vm.prank(address(rewardsNotifier));
-        stakingRewardsV2.notifyRewardAmount(TEST_VALUE);
+        stakingRewardsV2.notifyRewardAmount(TEST_VALUE, TEST_VALUE);
 
         vm.warp(block.timestamp + 2 weeks);
 
         // get initial values
         uint256 initialRewardBalance = kwenta.balanceOf(address(this));
+        uint256 initialUsdcBalance = usdc.balanceOf(address(this));
         uint256 intialEarnedBalance = stakingRewardsV2.earned(address(this));
+        uint256 intialEarnedUsdcBalance = stakingRewardsV2.earnedUSDC(address(this));
 
         // exit
         stakingRewardsV2.exit();
 
         // get final values
         uint256 finalRewardBalance = kwenta.balanceOf(address(this));
+        uint256 finalUsdcBalance = usdc.balanceOf(address(this));
         uint256 finalEarnedBalance = stakingRewardsV2.earned(address(this));
+        uint256 finalEarnedUsdcBalance = stakingRewardsV2.earnedUSDC(address(this));
 
         assertLt(finalEarnedBalance, intialEarnedBalance);
+        assertLt(finalEarnedUsdcBalance, intialEarnedUsdcBalance);
         assertGt(finalRewardBalance, initialRewardBalance);
+        assertGt(finalUsdcBalance, initialUsdcBalance);
         assertEq(finalEarnedBalance, 0);
+        assertEq(finalEarnedUsdcBalance, 0);
     }
 }

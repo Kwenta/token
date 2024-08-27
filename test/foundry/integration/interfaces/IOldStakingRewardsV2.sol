@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.19;
 
-interface IStakingRewardsV2 {
+interface IOldStakingRewardsV2 {
     /*//////////////////////////////////////////////////////////////
                                 STRUCTS
     //////////////////////////////////////////////////////////////*/
@@ -59,7 +59,10 @@ interface IStakingRewardsV2 {
     /// @param _account: address to check
     /// @return amount of tokens escrowed but not staked
     function unstakedEscrowedBalanceOf(address _account) external view returns (uint256);
-    
+
+    /// @notice the period of time a user has to wait after staking to unstake
+    function cooldownPeriod() external view returns (uint256);
+
     // rewards
 
     /// @notice calculate the total rewards for one duration based on the current rate
@@ -71,11 +74,6 @@ interface IStakingRewardsV2 {
     /// @return running sum of reward per total tokens staked
     function rewardPerToken() external view returns (uint256);
 
-    /// @notice calculate running sum of USDC reward per total tokens staked
-    /// at this specific time
-    /// @return running sum of USDC reward per total tokens staked
-    function rewardPerTokenUSDC() external view returns (uint256);
-
     /// @notice get the last time a reward is applicable for a given user
     /// @return timestamp of the last time rewards are applicable
     function lastTimeRewardApplicable() external view returns (uint256);
@@ -83,10 +81,6 @@ interface IStakingRewardsV2 {
     /// @notice determine how much reward token an account has earned thus far
     /// @param _account: address of account earned amount is being calculated for
     function earned(address _account) external view returns (uint256);
-
-    /// @notice determine how much USDC reward an account has earned thus far
-    /// @param _account: address of account earned amount is being calculated for
-    function earnedUSDC(address _account) external view returns (uint256);
 
     // checkpointing
 
@@ -155,11 +149,11 @@ interface IStakingRewardsV2 {
     /// @dev updateReward() called prior to function logic
     function unstakeEscrow(uint256 _amount) external;
 
-    /// @notice unstake escrowed token on behalf of another account
+    /// @notice unstake escrowed token skipping the cooldown wait period
     /// @param _account: address of account to unstake from
     /// @param _amount: amount to unstake
     /// @dev this function is used to allow tokens to be vested at any time by RewardEscrowV2
-    function unstakeEscrowAdmin(address _account, uint256 _amount) external;
+    function unstakeEscrowSkipCooldown(address _account, uint256 _amount) external;
 
     /// @notice unstake all available staked non-escrowed tokens and
     /// claim any rewards
@@ -200,13 +194,16 @@ interface IStakingRewardsV2 {
 
     /// @notice configure reward rate
     /// @param _reward: amount of token to be distributed over a period
-    /// @param _reward: amount of usdc to be distributed over a period
     /// @dev updateReward() called prior to function logic (with zero address)
-    function notifyRewardAmount(uint256 _reward, uint256 _rewardUsdc) external;
+    function notifyRewardAmount(uint256 _reward) external;
 
     /// @notice set rewards duration
     /// @param _rewardsDuration: denoted in seconds
     function setRewardsDuration(uint256 _rewardsDuration) external;
+
+    /// @notice set unstaking cooldown period
+    /// @param _cooldownPeriod: denoted in seconds
+    function setCooldownPeriod(uint256 _cooldownPeriod) external;
 
     // pausable
 
@@ -229,9 +226,8 @@ interface IStakingRewardsV2 {
     ///////////////////////////////////////////////////////////////*/
 
     /// @notice update reward rate
-    /// @param reward: kwenta amount to be distributed over applicable rewards duration
-    /// @param rewardUsdc: usdc amount to be distributed over applicable rewards duration
-    event RewardAdded(uint256 reward, uint256 rewardUsdc);
+    /// @param reward: amount to be distributed over applicable rewards duration
+    event RewardAdded(uint256 reward);
 
     /// @notice emitted when user stakes tokens
     /// @param user: staker address
@@ -258,11 +254,6 @@ interface IStakingRewardsV2 {
     /// @param reward: amount of reward token claimed
     event RewardPaid(address indexed user, uint256 reward);
 
-    /// @notice emitted when user claims USDC rewards
-    /// @param user: address of user claiming rewards
-    /// @param reward: amount of USDC token claimed
-    event RewardPaidUSDC(address indexed user, uint256 reward);
-
     /// @notice emitted when rewards duration changes
     /// @param newDuration: denoted in seconds
     event RewardsDurationUpdated(uint256 newDuration);
@@ -271,6 +262,10 @@ interface IStakingRewardsV2 {
     /// @param token: address of token recovered
     /// @param amount: amount of token recovered
     event Recovered(address token, uint256 amount);
+
+    /// @notice emitted when the unstaking cooldown period is updated
+    /// @param cooldownPeriod: the new unstaking cooldown period
+    event CooldownPeriodUpdated(uint256 cooldownPeriod);
 
     /// @notice emitted when an operator is approved
     /// @param owner: owner of tokens
@@ -308,11 +303,20 @@ interface IStakingRewardsV2 {
     /// @notice recovering the staking token is not allowed
     error CannotRecoverStakingToken();
 
-    /// @notice recovering the usdc reward token is not allowed
-    error CannotRecoverRewardToken();
+    /// @notice error when user tries unstake during the cooldown period
+    /// @param canUnstakeAt timestamp when user can unstake
+    error MustWaitForUnlock(uint256 canUnstakeAt);
 
     /// @notice error when trying to set a rewards duration that is too short
     error RewardsDurationCannotBeZero();
+
+    /// @notice error when trying to set a cooldown period below the minimum
+    /// @param minCooldownPeriod minimum cooldown period
+    error CooldownPeriodTooLow(uint256 minCooldownPeriod);
+
+    /// @notice error when trying to set a cooldown period above the maximum
+    /// @param maxCooldownPeriod maximum cooldown period
+    error CooldownPeriodTooHigh(uint256 maxCooldownPeriod);
 
     /// @notice the caller is not approved to take this action
     error NotApproved();

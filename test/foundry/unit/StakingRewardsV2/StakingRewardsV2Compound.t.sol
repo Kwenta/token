@@ -19,7 +19,7 @@ contract StakingRewardsV2CompoundTests is DefaultStakingV2Setup {
         stakingRewardsV2.stake(TEST_VALUE);
 
         // configure reward rate
-        addNewRewardsToStakingRewardsV2(TEST_VALUE);
+        addNewRewardsToStakingRewardsV2(TEST_VALUE, 0);
 
         // fast forward 2 weeks
         vm.warp(block.timestamp + 2 weeks);
@@ -51,7 +51,7 @@ contract StakingRewardsV2CompoundTests is DefaultStakingV2Setup {
         stakingRewardsV2.stake(initialStake);
 
         // configure reward rate
-        addNewRewardsToStakingRewardsV2(newRewards);
+        addNewRewardsToStakingRewardsV2(newRewards, 0);
 
         // fast forward 2 weeks
         vm.warp(block.timestamp + 2 weeks);
@@ -81,7 +81,7 @@ contract StakingRewardsV2CompoundTests is DefaultStakingV2Setup {
         stakingRewardsV2.stake(TEST_VALUE);
 
         // configure reward rate
-        addNewRewardsToStakingRewardsV2(TEST_VALUE);
+        addNewRewardsToStakingRewardsV2(TEST_VALUE, 0);
 
         // fast forward 2 weeks
         vm.warp(block.timestamp + 2 weeks);
@@ -103,7 +103,7 @@ contract StakingRewardsV2CompoundTests is DefaultStakingV2Setup {
         stakingRewardsV2.stake(TEST_VALUE);
 
         // configure reward rate
-        addNewRewardsToStakingRewardsV2(1 weeks);
+        addNewRewardsToStakingRewardsV2(1 weeks, 0);
 
         // fast forward 2 weeks
         vm.warp(block.timestamp + 2 weeks);
