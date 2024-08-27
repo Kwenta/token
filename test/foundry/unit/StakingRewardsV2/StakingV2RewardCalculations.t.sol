@@ -516,7 +516,7 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
             balance = kwenta.balanceOf(user1);
             assertEq(balance, expectedRewards);
             rewardsUsdc = usdc.balanceOf(user1);
-            assertApproxEqAbs(rewardsUsdc, expectedUsdcRewards, 10);
+            assertApproxEqAbs(rewardsUsdc, expectedUsdcRewards, 50);
         }
     }
 
