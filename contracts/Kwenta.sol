@@ -31,11 +31,7 @@ contract Kwenta is ERC20, Owned, IKwenta {
     }
 
     // Mints inflationary supply
-    function mint(address account, uint256 amount)
-        external
-        override
-        onlySupplySchedule
-    {
+    function mint(address account, uint256 amount) external override onlySupplySchedule {
         _mint(account, amount);
     }
 
@@ -43,11 +39,7 @@ contract Kwenta is ERC20, Owned, IKwenta {
         _burn(msg.sender, amount);
     }
 
-    function setSupplySchedule(address _supplySchedule)
-        external
-        override
-        onlyOwner
-    {
+    function setSupplySchedule(address _supplySchedule) external override onlyOwner {
         require(_supplySchedule != address(0), "Kwenta: Invalid Address");
         supplySchedule = ISupplySchedule(_supplySchedule);
     }

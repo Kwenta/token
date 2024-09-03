@@ -10,10 +10,10 @@ contract TokenDistributor is ITokenDistributor {
     using BitMaps for BitMaps.BitMap;
 
     /// @dev BitMap for storing claimed epochs
-    mapping(address to => BitMaps.BitMap claimedEpochs) internal _claimedEpochsBitMap;  
+    mapping(address to => BitMaps.BitMap claimedEpochs) internal _claimedEpochsBitMap;
 
     /// @inheritdoc ITokenDistributor
-    mapping(uint => uint) public tokensPerEpoch;
+    mapping(uint256 => uint256) public tokensPerEpoch;
 
     /// @notice token to distribute
     IERC20 public immutable rewardsToken;
@@ -22,37 +22,30 @@ contract TokenDistributor is ITokenDistributor {
     IStakingRewardsV2 public immutable stakingRewardsV2;
 
     /// @notice last recorded balance of rewards tokens in contract
-    uint public lastTokenBalance;
+    uint256 public lastTokenBalance;
 
     /// @notice last checkpoint time
-    uint public lastCheckpoint;
+    uint256 public lastCheckpoint;
 
     /// @notice starting week of deployment
-    uint public immutable startTime;
+    uint256 public immutable startTime;
 
     /// @notice the week offset in seconds
-    uint public immutable offset;
+    uint256 public immutable offset;
 
     /// @notice max amount of days the epoch can be offset by
-    uint public constant MAX_OFFSET_DAYS = 6;
+    uint256 public constant MAX_OFFSET_DAYS = 6;
 
     /// @notice weeks in a year
-    uint public constant WEEKS_IN_YEAR = 52;
+    uint256 public constant WEEKS_IN_YEAR = 52;
 
     /// @notice constructs the TokenDistributor contract
     /// and sets startTime
     /// @param _rewardsToken: address of the rewards token contract
     /// @param _stakingRewardsV2: address of the stakingRewardsV2 contract
     /// @param _daysToOffsetBy: the number of days to offset the epoch by
-    constructor(
-        address _rewardsToken,
-        address _stakingRewardsV2,
-        uint _daysToOffsetBy
-    ) {
-        if (
-            _rewardsToken == address(0) ||
-            _stakingRewardsV2 == address(0)
-        ) {
+    constructor(address _rewardsToken, address _stakingRewardsV2, uint256 _daysToOffsetBy) {
+        if (_rewardsToken == address(0) || _stakingRewardsV2 == address(0)) {
             revert ZeroAddress();
         }
         rewardsToken = IERC20(_rewardsToken);
@@ -63,29 +56,29 @@ contract TokenDistributor is ITokenDistributor {
             revert OffsetTooBig();
         }
         offset = _daysToOffsetBy * 1 days;
-        uint startOfThisWeek = _startOfWeek(block.timestamp);
+        uint256 startOfThisWeek = _startOfWeek(block.timestamp);
         startTime = startOfThisWeek;
         lastCheckpoint = startOfThisWeek;
     }
 
     /// @inheritdoc ITokenDistributor
     function checkpointToken() public override {
-        uint tokenBalance = rewardsToken.balanceOf(address(this));
-        uint toDistribute = tokenBalance - lastTokenBalance;
+        uint256 tokenBalance = rewardsToken.balanceOf(address(this));
+        uint256 toDistribute = tokenBalance - lastTokenBalance;
         lastTokenBalance = tokenBalance;
 
-        uint previousCheckpoint = lastCheckpoint;
-        uint sinceLast = block.timestamp - previousCheckpoint;
+        uint256 previousCheckpoint = lastCheckpoint;
+        uint256 sinceLast = block.timestamp - previousCheckpoint;
         lastCheckpoint = block.timestamp;
         /// @dev this/nextWeek is for iterating through time
-        uint thisWeek = _startOfWeek(previousCheckpoint);
-        uint nextWeek = 0;
+        uint256 thisWeek = _startOfWeek(previousCheckpoint);
+        uint256 nextWeek = 0;
 
         /// @dev Loop for potential missed weeks
         /// iterates until caught up, unlikely to go to 52 weeks
-        for (uint i = 0; i < WEEKS_IN_YEAR; ) {
+        for (uint256 i = 0; i < WEEKS_IN_YEAR;) {
             nextWeek = thisWeek + 1 weeks;
-            uint thisEpoch = _epochFromTimestamp(thisWeek);
+            uint256 thisEpoch = _epochFromTimestamp(thisWeek);
             if (block.timestamp < nextWeek) {
                 /// @dev if in the current week
                 if (sinceLast == 0) {
@@ -96,17 +89,14 @@ contract TokenDistributor is ITokenDistributor {
                     /// @dev In the event that toDistribute contains tokens
                     /// for multiple weeks we take the remaining portion
                     tokensPerEpoch[thisEpoch] +=
-                        (toDistribute *
-                            (block.timestamp - previousCheckpoint)) /
-                        sinceLast;
+                        (toDistribute * (block.timestamp - previousCheckpoint)) / sinceLast;
                 }
                 break;
             } else {
                 /// @dev If passed weeks missed
                 /// @dev Store proportion of tokens for this week in the past
                 tokensPerEpoch[thisEpoch] +=
-                    (toDistribute * (nextWeek - previousCheckpoint)) /
-                    sinceLast;
+                    (toDistribute * (nextWeek - previousCheckpoint)) / sinceLast;
             }
             previousCheckpoint = nextWeek;
             thisWeek = nextWeek;
@@ -118,7 +108,7 @@ contract TokenDistributor is ITokenDistributor {
     }
 
     /// @inheritdoc ITokenDistributor
-    function claimEpoch(address to, uint epochNumber) public override {
+    function claimEpoch(address to, uint256 epochNumber) public override {
         _checkpointWhenReady();
         uint256 proportionalFees = _claimEpoch(to, epochNumber);
 
@@ -128,7 +118,10 @@ contract TokenDistributor is ITokenDistributor {
     }
 
     /// @notice internal claimEpoch function
-    function _claimEpoch(address to, uint epochNumber) internal returns (uint256 proportionalFees) {
+    function _claimEpoch(address to, uint256 epochNumber)
+        internal
+        returns (uint256 proportionalFees)
+    {
         _isEpochReady(epochNumber);
         if (claimedEpoch(to, epochNumber)) {
             revert CannotClaimTwice();
@@ -145,12 +138,12 @@ contract TokenDistributor is ITokenDistributor {
     }
 
     /// @inheritdoc ITokenDistributor
-    function claimMany(address to, uint[] calldata epochs) public {
+    function claimMany(address to, uint256[] calldata epochs) public {
         _checkpointWhenReady();
         uint256 length = epochs.length;
         uint256 totalProportionalFees;
-        for (uint i; i < length; ) {
-            uint epochNumber = epochs[i];
+        for (uint256 i; i < length;) {
+            uint256 epochNumber = epochs[i];
             totalProportionalFees += _claimEpoch(to, epochNumber);
             unchecked {
                 ++i;
@@ -163,29 +156,30 @@ contract TokenDistributor is ITokenDistributor {
     }
 
     /// @inheritdoc ITokenDistributor
-    function calculateEpochFees(
-        address to,
-        uint epochNumber
-    ) public view override returns (uint256) {
-        uint epochStart = _startOfEpoch(epochNumber);
+    function calculateEpochFees(address to, uint256 epochNumber)
+        public
+        view
+        override
+        returns (uint256)
+    {
+        uint256 epochStart = _startOfEpoch(epochNumber);
         uint256 userStaked = stakingRewardsV2.balanceAtTime(to, epochStart);
         uint256 totalStaked = stakingRewardsV2.totalSupplyAtTime(epochStart);
         if (totalStaked == 0) {
             return 0;
         }
-        uint256 proportionalFees = (tokensPerEpoch[epochNumber] * userStaked) /
-            totalStaked;
+        uint256 proportionalFees = (tokensPerEpoch[epochNumber] * userStaked) / totalStaked;
 
         return proportionalFees;
     }
 
     /// @inheritdoc ITokenDistributor
-    function claimedEpoch(address to, uint epochNumber) public view override returns (bool) {
+    function claimedEpoch(address to, uint256 epochNumber) public view override returns (bool) {
         return _claimedEpochsBitMap[to].get(epochNumber);
     }
 
     /// @notice function for calculating the start of a week with an offset
-    function _startOfWeek(uint timestamp) internal view returns (uint) {
+    function _startOfWeek(uint256 timestamp) internal view returns (uint256) {
         /// @dev remove offset then truncate and then put offset back because
         /// you cannot truncate to an "offset" time - always truncates to the start
         /// of unix time -
@@ -197,7 +191,7 @@ contract TokenDistributor is ITokenDistributor {
     }
 
     /// @notice function for calculating the start of an epoch
-    function _startOfEpoch(uint epochNumber) internal view returns (uint) {
+    function _startOfEpoch(uint256 epochNumber) internal view returns (uint256) {
         return (epochNumber * 1 weeks) + startTime;
     }
 
@@ -208,8 +202,8 @@ contract TokenDistributor is ITokenDistributor {
         /// this condition is so that the end of a week always
         /// gets updated before its claimed (even if < 24 hrs)
         if (
-            block.timestamp - lastCheckpoint > 1 days ||
-            block.timestamp - _startOfWeek(lastCheckpoint) > 1 weeks
+            block.timestamp - lastCheckpoint > 1 days
+                || block.timestamp - _startOfWeek(lastCheckpoint) > 1 weeks
         ) {
             checkpointToken();
         }
@@ -217,7 +211,7 @@ contract TokenDistributor is ITokenDistributor {
 
     /// @notice function for determining if the epoch being claimed
     /// is the current epoch or has not happened yet
-    function _isEpochReady(uint epochNumber) internal view {
+    function _isEpochReady(uint256 epochNumber) internal view {
         /// @dev if the end of the epoch is > current time, revert
         if (_startOfEpoch(epochNumber) + 1 weeks > block.timestamp) {
             revert CannotClaimYet();
@@ -226,7 +220,7 @@ contract TokenDistributor is ITokenDistributor {
 
     /// @notice function for getting the epoch number
     /// from the timestamp start of a week
-    function _epochFromTimestamp(uint timestamp) internal view returns (uint) {
+    function _epochFromTimestamp(uint256 timestamp) internal view returns (uint256) {
         return (_startOfWeek(timestamp) - startTime) / 1 weeks;
     }
 }

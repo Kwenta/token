@@ -46,23 +46,14 @@ contract StakingV1Setup is TestHelpers {
         user3 = createUser();
         user4 = createUser();
         user5 = createUser();
-        kwenta = new Kwenta(
-            "Kwenta",
-            "KWENTA",
-            INITIAL_SUPPLY,
-            address(this),
-            treasury
-        );
+        kwenta = new Kwenta("Kwenta", "KWENTA", INITIAL_SUPPLY, address(this), treasury);
         usdc = new MockERC20("Mock USDC", "USDC", INITIAL_SUPPLY, treasury);
         rewardEscrowV1 = new RewardEscrow(address(this), address(kwenta));
         supplySchedule = new SupplySchedule(address(this), treasury);
         supplySchedule.setKwenta(kwenta);
         kwenta.setSupplySchedule(address(supplySchedule));
-        stakingRewardsV1 = new StakingRewards(
-            address(kwenta),
-            address(rewardEscrowV1),
-            address(supplySchedule)
-        );
+        stakingRewardsV1 =
+            new StakingRewards(address(kwenta), address(rewardEscrowV1), address(supplySchedule));
         tradingRewards = new MultipleMerkleDistributor(address(this), address(kwenta));
         supplySchedule.setStakingRewards(address(stakingRewardsV1));
         supplySchedule.setTradingRewards(address(tradingRewards));

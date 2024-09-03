@@ -29,17 +29,9 @@ contract TokenDistributorTest is TokenDistributorSetup {
     /// @notice constructor fail when input address == 0
     function testZeroAddress() public {
         vm.expectRevert(abi.encodeWithSelector(ITokenDistributor.ZeroAddress.selector));
-        tokenDistributor = new TokenDistributor(
-            address(0),
-            address(stakingRewardsV2),
-            0
-        );
+        tokenDistributor = new TokenDistributor(address(0), address(stakingRewardsV2), 0);
         vm.expectRevert(abi.encodeWithSelector(ITokenDistributor.ZeroAddress.selector));
-        tokenDistributor = new TokenDistributor(
-            address(kwenta),
-            address(0),
-            0
-        );
+        tokenDistributor = new TokenDistributor(address(kwenta), address(0), 0);
     }
 
     /// @notice checkpointToken happy case after 1 week
@@ -153,11 +145,8 @@ contract TokenDistributorTest is TokenDistributorSetup {
 
         goForward(1 weeks);
 
-        TokenDistributor tokenDistributorOffset = new TokenDistributor(
-            address(kwenta),
-            address(stakingRewardsV2),
-            2
-        );
+        TokenDistributor tokenDistributorOffset =
+            new TokenDistributor(address(kwenta), address(stakingRewardsV2), 2);
 
         tokenDistributorOffset.checkpointToken();
         kwenta.transfer(address(tokenDistributorOffset), 10);
@@ -190,11 +179,8 @@ contract TokenDistributorTest is TokenDistributorSetup {
         vm.stopPrank();
         goForward(1 weeks);
 
-        TokenDistributor tokenDistributorOffset = new TokenDistributor(
-            address(kwenta),
-            address(stakingRewardsV2),
-            2
-        );
+        TokenDistributor tokenDistributorOffset =
+            new TokenDistributor(address(kwenta), address(stakingRewardsV2), 2);
 
         tokenDistributorOffset.checkpointToken();
         kwenta.transfer(address(tokenDistributorOffset), 10);
@@ -599,7 +585,7 @@ contract TokenDistributorTest is TokenDistributorSetup {
         kwenta.transfer(address(tokenDistributor), 5000);
         goForward(1 weeks);
 
-        uint256[] memory epochs = new uint[](2);
+        uint256[] memory epochs = new uint256[](2);
         epochs[0] = 1;
         epochs[1] = 2;
         assertEq(kwenta.balanceOf(address(user1)), 0);
@@ -625,7 +611,7 @@ contract TokenDistributorTest is TokenDistributorSetup {
         kwenta.transfer(address(tokenDistributor), 5000);
         goForward(1 weeks);
 
-        uint256[] memory epochs = new uint[](2);
+        uint256[] memory epochs = new uint256[](2);
         epochs[0] = 1;
         epochs[1] = 2;
         epochs[2] = 3;
@@ -778,11 +764,8 @@ contract TokenDistributorTest is TokenDistributorSetup {
         vm.assume(randomStart > 0);
         vm.assume(randomStart < 1 weeks);
         goForward(randomStart);
-        TokenDistributor tokenDistributorRandom = new TokenDistributor(
-                address(kwenta),
-                address(stakingRewardsV2),
-                0
-        );
+        TokenDistributor tokenDistributorRandom =
+            new TokenDistributor(address(kwenta), address(stakingRewardsV2), 0);
 
         /// @dev make sure its less than this contract
         /// holds and greater than 10 so the result isn't
@@ -834,11 +817,8 @@ contract TokenDistributorTest is TokenDistributorSetup {
 
     /// @notice test everything with a custom offset
     function testOffset() public {
-        TokenDistributor tokenDistributorOffset = new TokenDistributor(
-            address(kwenta),
-            address(stakingRewardsV2),
-            2
-        );
+        TokenDistributor tokenDistributorOffset =
+            new TokenDistributor(address(kwenta), address(stakingRewardsV2), 2);
 
         kwenta.transfer(address(user1), 1);
         vm.startPrank(address(user1));
@@ -871,11 +851,8 @@ contract TokenDistributorTest is TokenDistributorSetup {
 
     /// @notice test fuzz fees with a custom offset
     function testFuzzFeesOffset(uint256 amount) public {
-        TokenDistributor tokenDistributorOffset = new TokenDistributor(
-            address(kwenta),
-            address(stakingRewardsV2),
-            2
-        );
+        TokenDistributor tokenDistributorOffset =
+            new TokenDistributor(address(kwenta), address(stakingRewardsV2), 2);
 
         /// @dev make sure its less than this contract
         /// holds and greater than 10 so the result isn't
@@ -910,11 +887,8 @@ contract TokenDistributorTest is TokenDistributorSetup {
         uint256 staking2,
         uint256 staking3
     ) public {
-        TokenDistributor tokenDistributorOffset = new TokenDistributor(
-            address(kwenta),
-            address(stakingRewardsV2),
-            2
-        );
+        TokenDistributor tokenDistributorOffset =
+            new TokenDistributor(address(kwenta), address(stakingRewardsV2), 2);
 
         /// @dev make sure its less than this contract
         /// holds and greater than 10 so the result isn't
@@ -986,11 +960,8 @@ contract TokenDistributorTest is TokenDistributorSetup {
         uint256 staking3,
         uint256 time
     ) public {
-        TokenDistributor tokenDistributorOffset = new TokenDistributor(
-            address(kwenta),
-            address(stakingRewardsV2),
-            2
-        );
+        TokenDistributor tokenDistributorOffset =
+            new TokenDistributor(address(kwenta), address(stakingRewardsV2), 2);
 
         /// @dev make sure its less than this contract
         /// holds and greater than 10 so the result isn't
@@ -1065,11 +1036,8 @@ contract TokenDistributorTest is TokenDistributorSetup {
 
     /// @notice test startOfWeek
     function testStartOfWeek() public {
-        TokenDistributorInternals tokenDistributorOffset = new TokenDistributorInternals(
-                address(kwenta),
-                address(stakingRewardsV2),
-                2
-            );
+        TokenDistributorInternals tokenDistributorOffset =
+            new TokenDistributorInternals(address(kwenta), address(stakingRewardsV2), 2);
 
         /// @dev normally the start of the week would be StartTime but offset of 2
         /// makes it it StartTime - 5 days (Last week + 2 days)
@@ -1097,11 +1065,8 @@ contract TokenDistributorTest is TokenDistributorSetup {
 
     /// @notice test startOfWeek exactly at the turn of the week
     function testExactlyStartOfWeek() public {
-        TokenDistributorInternals eVFDI = new TokenDistributorInternals(
-            address(kwenta),
-            address(stakingRewardsV2),
-            0
-        );
+        TokenDistributorInternals eVFDI =
+            new TokenDistributorInternals(address(kwenta), address(stakingRewardsV2), 0);
         uint256 result1 = eVFDI.startOfWeek(block.timestamp);
         assertEq(result1, startTime);
 
@@ -1118,11 +1083,8 @@ contract TokenDistributorTest is TokenDistributorSetup {
 
     /// @notice test claiming an unready epoch with an offset
     function testCannotClaimYetOffset() public {
-        TokenDistributorInternals tokenDistributorOffset = new TokenDistributorInternals(
-                address(kwenta),
-                address(stakingRewardsV2),
-                2
-            );
+        TokenDistributorInternals tokenDistributorOffset =
+            new TokenDistributorInternals(address(kwenta), address(stakingRewardsV2), 2);
 
         vm.startPrank(user1);
 
@@ -1138,11 +1100,8 @@ contract TokenDistributorTest is TokenDistributorSetup {
 
     /// @notice test _startOfEpoch so that it follows an offset like _startOfWeek
     function testStartOfEpoch() public {
-        TokenDistributorInternals eVFDI = new TokenDistributorInternals(
-            address(kwenta),
-            address(stakingRewardsV2),
-            2
-        );
+        TokenDistributorInternals eVFDI =
+            new TokenDistributorInternals(address(kwenta), address(stakingRewardsV2), 2);
 
         assertEq(eVFDI.startOfWeek(block.timestamp), eVFDI.startOfEpoch(0));
 
@@ -1155,11 +1114,8 @@ contract TokenDistributorTest is TokenDistributorSetup {
 
     /// @notice test _checkpointWhenReady for when its < 24 hrs and not a new week
     function testFailCheckpointWhenNotReady() public {
-        TokenDistributorInternals eVFDI = new TokenDistributorInternals(
-            address(kwenta),
-            address(stakingRewardsV2),
-            2
-        );
+        TokenDistributorInternals eVFDI =
+            new TokenDistributorInternals(address(kwenta), address(stakingRewardsV2), 2);
 
         eVFDI.checkpointToken();
         vm.expectEmit(false, false, false, true);
@@ -1170,11 +1126,8 @@ contract TokenDistributorTest is TokenDistributorSetup {
 
     /// @notice test _checkpointWhenReady for when its > 24 hrs and not new week
     function testCheckpointWhenReady24Hrs() public {
-        TokenDistributorInternals eVFDI = new TokenDistributorInternals(
-            address(kwenta),
-            address(stakingRewardsV2),
-            2
-        );
+        TokenDistributorInternals eVFDI =
+            new TokenDistributorInternals(address(kwenta), address(stakingRewardsV2), 2);
 
         goForward(1 days + 1);
         uint256 result = eVFDI.startOfWeek(block.timestamp);
@@ -1186,11 +1139,8 @@ contract TokenDistributorTest is TokenDistributorSetup {
 
     /// @notice test _checkpointWhenReady for when its > 24 hrs and is new week
     function testCheckpointWhen24hrsAndNewWeek() public {
-        TokenDistributorInternals eVFDI = new TokenDistributorInternals(
-            address(kwenta),
-            address(stakingRewardsV2),
-            2
-        );
+        TokenDistributorInternals eVFDI =
+            new TokenDistributorInternals(address(kwenta), address(stakingRewardsV2), 2);
 
         uint256 result = eVFDI.startOfWeek(block.timestamp);
         assertEq(result, startTime - 5 days);
@@ -1205,11 +1155,8 @@ contract TokenDistributorTest is TokenDistributorSetup {
 
     /// @notice test _checkpointWhenReady for when its < 24 hrs and is new week
     function testCheckpointWhenReadyNewWeek() public {
-        TokenDistributorInternals eVFDI = new TokenDistributorInternals(
-            address(kwenta),
-            address(stakingRewardsV2),
-            2
-        );
+        TokenDistributorInternals eVFDI =
+            new TokenDistributorInternals(address(kwenta), address(stakingRewardsV2), 2);
 
         goForward(1.5 days);
         uint256 result = eVFDI.startOfWeek(block.timestamp);
@@ -1226,11 +1173,8 @@ contract TokenDistributorTest is TokenDistributorSetup {
 
     /// @notice test fail _checkpointWhenReady for when its been exactly 24 hours
     function testFailCheckpointWhenExactly24Hrs() public {
-        TokenDistributorInternals eVFDI = new TokenDistributorInternals(
-            address(kwenta),
-            address(stakingRewardsV2),
-            2
-        );
+        TokenDistributorInternals eVFDI =
+            new TokenDistributorInternals(address(kwenta), address(stakingRewardsV2), 2);
 
         eVFDI.checkpointToken();
         goForward(1 days);
@@ -1299,11 +1243,8 @@ contract TokenDistributorTest is TokenDistributorSetup {
 
         goForward(3 weeks);
 
-        TokenDistributor tokenDistributorOffset = new TokenDistributor(
-            address(kwenta),
-            address(stakingRewardsV2),
-            2
-        );
+        TokenDistributor tokenDistributorOffset =
+            new TokenDistributor(address(kwenta), address(stakingRewardsV2), 2);
 
         /// @dev fees received at the start of the epoch (should be + 2 days)
         goForward(2 days);
@@ -1368,11 +1309,8 @@ contract TokenDistributorTest is TokenDistributorSetup {
         stakingRewardsV2.stake(staking2);
         vm.stopPrank();
 
-        TokenDistributor tokenDistributorOffset = new TokenDistributor(
-            address(kwenta),
-            address(stakingRewardsV2),
-            offset
-        );
+        TokenDistributor tokenDistributorOffset =
+            new TokenDistributor(address(kwenta), address(stakingRewardsV2), offset);
 
         /// @dev fees received at the start of the epoch
         goForward((offset * 1 days));
@@ -1396,11 +1334,8 @@ contract TokenDistributorTest is TokenDistributorSetup {
 
     /// @notice current epoch is not ready to claim yet
     function testCurrentEpochNotDoneYet() public {
-        TokenDistributorInternals eVFDI = new TokenDistributorInternals(
-            address(kwenta),
-            address(stakingRewardsV2),
-            0
-        );
+        TokenDistributorInternals eVFDI =
+            new TokenDistributorInternals(address(kwenta), address(stakingRewardsV2), 0);
         goForward(0.5 weeks);
         vm.expectRevert(abi.encodeWithSelector(ITokenDistributor.CannotClaimYet.selector));
         eVFDI.isEpochReady(0);
@@ -1408,11 +1343,8 @@ contract TokenDistributorTest is TokenDistributorSetup {
 
     /// @notice epoch is not here yet (future)
     function testNotEpochYet() public {
-        TokenDistributorInternals eVFDI = new TokenDistributorInternals(
-            address(kwenta),
-            address(stakingRewardsV2),
-            0
-        );
+        TokenDistributorInternals eVFDI =
+            new TokenDistributorInternals(address(kwenta), address(stakingRewardsV2), 0);
         goForward(0.5 weeks);
         vm.expectRevert(abi.encodeWithSelector(ITokenDistributor.CannotClaimYet.selector));
         eVFDI.isEpochReady(7);
@@ -1420,22 +1352,16 @@ contract TokenDistributorTest is TokenDistributorSetup {
 
     /// @notice no epochs yet (claim right at deployment)
     function testNoEpochsYet() public {
-        TokenDistributorInternals eVFDI = new TokenDistributorInternals(
-            address(kwenta),
-            address(stakingRewardsV2),
-            0
-        );
+        TokenDistributorInternals eVFDI =
+            new TokenDistributorInternals(address(kwenta), address(stakingRewardsV2), 0);
         vm.expectRevert(abi.encodeWithSelector(ITokenDistributor.CannotClaimYet.selector));
         eVFDI.isEpochReady(0);
     }
 
     /// @notice epoch is not ready to claim yet (with offset)
     function testCurrentEpochNotDoneYetWithOffset() public {
-        TokenDistributorInternals eVFDI = new TokenDistributorInternals(
-            address(kwenta),
-            address(stakingRewardsV2),
-            2
-        );
+        TokenDistributorInternals eVFDI =
+            new TokenDistributorInternals(address(kwenta), address(stakingRewardsV2), 2);
         goForward(2 days - 3);
         vm.expectRevert(abi.encodeWithSelector(ITokenDistributor.CannotClaimYet.selector));
         eVFDI.isEpochReady(0);
@@ -1446,11 +1372,8 @@ contract TokenDistributorTest is TokenDistributorSetup {
 
     /// @notice fuzz that future epochs are not ready
     function testFuzzEpochsArentReady(uint256 epochNumber) public {
-        TokenDistributorInternals eVFDI = new TokenDistributorInternals(
-            address(kwenta),
-            address(stakingRewardsV2),
-            0
-        );
+        TokenDistributorInternals eVFDI =
+            new TokenDistributorInternals(address(kwenta), address(stakingRewardsV2), 0);
         vm.assume(epochNumber < 1000);
         /// @dev this will forward to the exact week of the epoch
         /// which isn't claimable yet (ongoing)
@@ -1461,11 +1384,8 @@ contract TokenDistributorTest is TokenDistributorSetup {
 
     /// @notice fuzz that future epochs are ready
     function testFuzzIsEpochReady(uint8 epochNumber) public {
-        TokenDistributorInternals eVFDI = new TokenDistributorInternals(
-            address(kwenta),
-            address(stakingRewardsV2),
-            0
-        );
+        TokenDistributorInternals eVFDI =
+            new TokenDistributorInternals(address(kwenta), address(stakingRewardsV2), 0);
         /// @dev 75 epochs will already be claimable
         vm.assume(epochNumber < 76);
         goForward(76 weeks);
@@ -1474,11 +1394,8 @@ contract TokenDistributorTest is TokenDistributorSetup {
 
     /// @notice epochFromTimestamp
     function testEpochFromTimestamp() public {
-        TokenDistributorInternals eVFDI = new TokenDistributorInternals(
-            address(kwenta),
-            address(stakingRewardsV2),
-            0
-        );
+        TokenDistributorInternals eVFDI =
+            new TokenDistributorInternals(address(kwenta), address(stakingRewardsV2), 0);
 
         uint256 result1 = eVFDI.epochFromTimestamp(block.timestamp);
         assertEq(result1, 0);
@@ -1498,11 +1415,8 @@ contract TokenDistributorTest is TokenDistributorSetup {
 
     /// @notice epochFromTimestamp with offset
     function testEpochFromTimestampOffset() public {
-        TokenDistributorInternals eVFDI = new TokenDistributorInternals(
-            address(kwenta),
-            address(stakingRewardsV2),
-            2
-        );
+        TokenDistributorInternals eVFDI =
+            new TokenDistributorInternals(address(kwenta), address(stakingRewardsV2), 2);
 
         uint256 result1 = eVFDI.epochFromTimestamp(block.timestamp);
         assertEq(result1, 0);
@@ -1529,11 +1443,8 @@ contract TokenDistributorTest is TokenDistributorSetup {
 
     /// @notice make sure _startOfWeek and _startOfEpoch are always aligned
     function testFuzzStartOfTimeEpoch(uint256 time) public {
-        TokenDistributorInternals eVFDI = new TokenDistributorInternals(
-            address(kwenta),
-            address(stakingRewardsV2),
-            2
-        );
+        TokenDistributorInternals eVFDI =
+            new TokenDistributorInternals(address(kwenta), address(stakingRewardsV2), 2);
         vm.assume(time < 1000 weeks);
         goForward(time);
         assertEq(

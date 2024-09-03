@@ -13,12 +13,7 @@ interface IEscrowedMultipleMerkleDistributor {
     }
 
     /// @notice event is triggered whenever a call to `claim` succeeds
-    event Claimed(
-        uint256 index,
-        address account,
-        uint256 amount,
-        uint256 epoch
-    );
+    event Claimed(uint256 index, address account, uint256 amount, uint256 epoch);
 
     /// @notice event is triggered whenever a merkle root is set
     event MerkleRootModified(uint256 epoch);
@@ -36,10 +31,7 @@ interface IEscrowedMultipleMerkleDistributor {
     /// @param index: used for claim managment
     /// @param epoch: distribution index number
     /// @return true if indexed claim has been claimed
-    function isClaimed(uint256 index, uint256 epoch)
-        external
-        view
-        returns (bool);
+    function isClaimed(uint256 index, uint256 epoch) external view returns (bool);
 
     /// @notice attempt to claim as `account` and escrow KWENTA for `account`
     /// @param index: used for merkle tree managment and verification

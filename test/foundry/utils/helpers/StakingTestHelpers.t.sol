@@ -274,9 +274,7 @@ contract StakingTestHelpers is StakingV2Setup {
         vm.prank(treasury);
         kwenta.approve(address(rewardEscrowV2), _amount);
         vm.prank(treasury);
-        rewardEscrowV2.createEscrowEntry(
-            _account, _amount, _duration, _earlyVestingFee
-        );
+        rewardEscrowV2.createEscrowEntry(_account, _amount, _duration, _earlyVestingFee);
     }
 
     function appendRewardEscrowEntryV2(address _account, uint256 _amount) internal {

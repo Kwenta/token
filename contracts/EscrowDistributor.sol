@@ -12,11 +12,7 @@ contract EscrowDistributor {
     /// @notice kwenta token contract
     IERC20 public immutable kwenta;
 
-    event BatchEscrowed(
-        uint256 totalAccounts,
-        uint256 totalTokens,
-        uint256 durationWeeks
-    );
+    event BatchEscrowed(uint256 totalAccounts, uint256 totalTokens, uint256 durationWeeks);
 
     constructor(address kwentaAddr, address rewardEscrowAddr) {
         kwenta = IERC20(kwentaAddr);
@@ -36,8 +32,7 @@ contract EscrowDistributor {
         uint256 durationWeeks
     ) external {
         require(
-            accounts.length == amounts.length,
-            "Number of accounts does not match number of values"
+            accounts.length == amounts.length, "Number of accounts does not match number of values"
         );
 
         uint256 length = accounts.length;
@@ -60,11 +55,7 @@ contract EscrowDistributor {
             unchecked {
                 --length;
             }
-            rewardEscrow.createEscrowEntry(
-                accounts[length],
-                amounts[length],
-                duration
-            );
+            rewardEscrow.createEscrowEntry(accounts[length], amounts[length], duration);
         } while (length != 0);
 
         emit BatchEscrowed({

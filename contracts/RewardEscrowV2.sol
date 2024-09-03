@@ -228,9 +228,7 @@ contract RewardEscrowV2 is
             n = endIndex - _index;
         }
 
-        VestingEntryWithID[] memory vestingEntries = new VestingEntryWithID[](
-            n
-        );
+        VestingEntryWithID[] memory vestingEntries = new VestingEntryWithID[](n);
         for (uint256 i; i < n;) {
             uint256 entryID;
 

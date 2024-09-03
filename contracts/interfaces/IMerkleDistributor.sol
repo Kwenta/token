@@ -23,8 +23,7 @@ interface IMerkleDistributor {
     /// (2) ControlL2MerkleDistributor has been deployed (which requires this contract's
     /// deployment address as input in the constructor)
     /// @param _controlL2MerkleDistributor: address of contract that initiates claim from L1
-    function setControlL2MerkleDistributor(address _controlL2MerkleDistributor)
-        external;
+    function setControlL2MerkleDistributor(address _controlL2MerkleDistributor) external;
 
     /// @notice determine if indexed claim has been claimed
     /// @param index: used for claim managment
@@ -36,12 +35,8 @@ interface IMerkleDistributor {
     /// @param account: address used for escrow entry
     /// @param amount: $KWENTA amount to be escrowed
     /// @param merkleProof: off-chain generated proof of merkle tree inclusion
-    function claim(
-        uint256 index,
-        address account,
-        uint256 amount,
-        bytes32[] calldata merkleProof
-    ) external;
+    function claim(uint256 index, address account, uint256 amount, bytes32[] calldata merkleProof)
+        external;
 
     /// @notice attempt to claim as `account` and escrow KWENTA for `destAccount`
     /// @param index: used for merkle tree managment and verification

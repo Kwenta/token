@@ -8,12 +8,12 @@ library SafeDecimalMath {
     uint8 public constant highPrecisionDecimals = 27;
 
     /* The number representing 1.0. */
-    uint256 public constant UNIT = 10**uint256(decimals);
+    uint256 public constant UNIT = 10 ** uint256(decimals);
 
     /* The number representing 1.0 for higher fidelity numbers. */
-    uint256 public constant PRECISE_UNIT = 10**uint256(highPrecisionDecimals);
+    uint256 public constant PRECISE_UNIT = 10 ** uint256(highPrecisionDecimals);
     uint256 private constant UNIT_TO_HIGH_PRECISION_CONVERSION_FACTOR =
-        10**uint256(highPrecisionDecimals - decimals);
+        10 ** uint256(highPrecisionDecimals - decimals);
 
     /**
      * @return Provides an interface to UNIT.
@@ -38,11 +38,7 @@ library SafeDecimalMath {
      * the internal division always rounds down. This helps save on gas. Rounding
      * is more expensive on gas.
      */
-    function multiplyDecimal(uint256 x, uint256 y)
-        internal
-        pure
-        returns (uint256)
-    {
+    function multiplyDecimal(uint256 x, uint256 y) internal pure returns (uint256) {
         /* Divide by UNIT to remove the extra factor introduced by the product. */
         return (x * y) / UNIT;
     }
@@ -56,11 +52,7 @@ library SafeDecimalMath {
      * this is an integer division, the result is always rounded down.
      * This helps save on gas. Rounding is more expensive on gas.
      */
-    function divideDecimal(uint256 x, uint256 y)
-        internal
-        pure
-        returns (uint256)
-    {
+    function divideDecimal(uint256 x, uint256 y) internal pure returns (uint256) {
         /* Reintroduce the UNIT factor that will be divided out by y. */
         return (x * UNIT) / y;
     }
@@ -68,24 +60,15 @@ library SafeDecimalMath {
     /**
      * @dev Convert a standard decimal representation to a high precision one.
      */
-    function decimalToPreciseDecimal(uint256 i)
-        internal
-        pure
-        returns (uint256)
-    {
+    function decimalToPreciseDecimal(uint256 i) internal pure returns (uint256) {
         return i * UNIT_TO_HIGH_PRECISION_CONVERSION_FACTOR;
     }
 
     /**
      * @dev Convert a high precision decimal to a standard decimal representation.
      */
-    function preciseDecimalToDecimal(uint256 i)
-        internal
-        pure
-        returns (uint256)
-    {
-        uint256 quotientTimesTen = i /
-            (UNIT_TO_HIGH_PRECISION_CONVERSION_FACTOR / 10);
+    function preciseDecimalToDecimal(uint256 i) internal pure returns (uint256) {
+        uint256 quotientTimesTen = i / (UNIT_TO_HIGH_PRECISION_CONVERSION_FACTOR / 10);
 
         if (quotientTimesTen % 10 >= 5) {
             quotientTimesTen += 10;

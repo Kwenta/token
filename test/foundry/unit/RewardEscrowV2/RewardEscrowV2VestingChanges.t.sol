@@ -135,7 +135,9 @@ contract RewardEscrowV2VestingChangesTests is DefaultStakingV2Setup {
         assertEq(balanceAfter, balanceBefore + amountVestedAfterFee);
     }
 
-    function test_Fees_Are_Correctly_Distributed_At_Max_Early_Vesting_Fee_With_Distributor() public {
+    function test_Fees_Are_Correctly_Distributed_At_Max_Early_Vesting_Fee_With_Distributor()
+        public
+    {
         uint256 escrowAmount = 1 ether;
         uint256 duration = 52 weeks;
         uint8 earlyVestingFee = 100;

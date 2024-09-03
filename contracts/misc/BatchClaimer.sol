@@ -4,7 +4,6 @@ pragma solidity ^0.8.0;
 import "../interfaces/IMultipleMerkleDistributor.sol";
 
 contract BatchClaimer {
-    
     function claimMultiple(
         IMultipleMerkleDistributor[] calldata _distributors,
         IMultipleMerkleDistributor.Claims[][] calldata _claims
