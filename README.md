@@ -130,11 +130,11 @@ Note: for contracts with both an implementation and proxy, when interaction with
 | SupplySchedule                  | [`0x3e8b82326Ff5f2f10da8CEa117bD44343ccb9c26`](https://optimistic.etherscan.io/address/0x3e8b82326Ff5f2f10da8CEa117bD44343ccb9c26) |
 | StakingRewards                  | [`0x6e56A5D49F775BA08041e28030bc7826b13489e0`](https://optimistic.etherscan.io/address/0x6e56A5D49F775BA08041e28030bc7826b13489e0) |
 | RewardEscrow                    | [`0x1066A8eB3d90Af0Ad3F89839b974658577e75BE2`](https://optimistic.etherscan.io/address/0x1066A8eB3d90Af0Ad3F89839b974658577e75BE2) |
-| StakingRewardsNotifier          | [`0x03f6dC6e616AB3a367a1F2C26B8Bc146f632b451`](https://optimistic.etherscan.io/address/0x03f6dC6e616AB3a367a1F2C26B8Bc146f632b451) |
+| StakingRewardsNotifier          | [`0xb176DaD2916db0905cd2D65ed54FDC3a878aFFe4`](https://optimistic.etherscan.io/address/0xb176dad2916db0905cd2d65ed54fdc3a878affe4) |
 | StakingRewardsV2 Proxy          | [`0x61294940CE7cD1BDA10e349adC5B538B722CeB88`](https://optimistic.etherscan.io/address/0x61294940CE7cD1BDA10e349adC5B538B722CeB88) |
-| StakingRewardsV2 Implementation | [`0x626e666c95f4a31439A9cA2d5ef757EA3d72A2fd`](https://optimistic.etherscan.io/address/0x626e666c95f4a31439A9cA2d5ef757EA3d72A2fd) |
+| StakingRewardsV2 Implementation | [`0x276df8bfe424Ab1aaD1EFC138eef3099a8ac8FE1`](https://optimistic.etherscan.io/address/0x276df8bfe424ab1aad1efc138eef3099a8ac8fe1) |
 | RewardEscrowV2 Proxy            | [`0xb2a20fCdc506a685122847b21E34536359E94C56`](https://optimistic.etherscan.io/address/0xb2a20fCdc506a685122847b21E34536359E94C56) |
-| RewardEscrowV2 Implementation   | [`0x15725a8159629ca9763deC4211e309c94d9f5CB0`](https://optimistic.etherscan.io/address/0x15725a8159629ca9763deC4211e309c94d9f5CB0) |
+| RewardEscrowV2 Implementation   | [`0xFBF7D647E94780F2787f8d80DA59DCe74D40C5cc`](https://optimistic.etherscan.io/address/0xfbf7d647e94780f2787f8d80da59dce74d40c5cc) |
 | EscrowMigrator Proxy            | [`0xC9aF789Ae606F69cF8Ed073A04eC92f2354b027d`](https://optimistic.etherscan.io/address/0xC9aF789Ae606F69cF8Ed073A04eC92f2354b027d) |
 | EscrowMigrator Implementation   | [`0x10B04483d762Bd4F193F35600112ad52391004A7`](https://optimistic.etherscan.io/address/0x10B04483d762Bd4F193F35600112ad52391004A7) |
 | MultipleMerkleDistributor       | [`0xf486A72E8c8143ACd9F65A104A16990fDb38be14`](https://optimistic.etherscan.io/address/0xf486A72E8c8143ACd9F65A104A16990fDb38be14) |
