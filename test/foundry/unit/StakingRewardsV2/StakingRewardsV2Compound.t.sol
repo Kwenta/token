@@ -13,10 +13,11 @@ contract StakingRewardsV2CompoundTests is DefaultStakingV2Setup {
 
     function test_compound() public {
         fundAndApproveAccountV2(address(this), TEST_VALUE);
-        uint256 initialEscrowBalance = rewardEscrowV2.escrowedBalanceOf(address(this));
 
         // stake
         stakingRewardsV2.stake(TEST_VALUE);
+
+        uint256 initialBalance = kwenta.balanceOf(address(this));
 
         // configure reward rate
         addNewRewardsToStakingRewardsV2(TEST_VALUE, 0);
@@ -27,15 +28,10 @@ contract StakingRewardsV2CompoundTests is DefaultStakingV2Setup {
         // compound rewards
         stakingRewardsV2.compound();
 
-        // check reward escrow balance increased
-        uint256 finalEscrowBalance = rewardEscrowV2.escrowedBalanceOf(address(this));
-        assertGt(finalEscrowBalance, initialEscrowBalance);
-
-        // check all escrowed rewards were staked
-        uint256 totalRewards = finalEscrowBalance - initialEscrowBalance;
-        assertEq(totalRewards, stakingRewardsV2.escrowedBalanceOf(address(this)));
-        assertEq(totalRewards + TEST_VALUE, stakingRewardsV2.balanceOf(address(this)));
-        assertEq(rewardEscrowV2.unstakedEscrowedBalanceOf(address(this)), 0);
+        // check all rewards were staked and that staker balance increased
+        uint256 finalBalance = kwenta.balanceOf(address(this));
+        assertEq(initialBalance, finalBalance);
+        assertGt(stakingRewardsV2.balanceOf(address(this)), TEST_VALUE);
     }
 
     function test_compound_Fuzz(uint32 initialStake, uint32 newRewards) public {
@@ -45,10 +41,10 @@ contract StakingRewardsV2CompoundTests is DefaultStakingV2Setup {
 
         fundAndApproveAccountV2(address(this), initialStake);
 
-        uint256 initialEscrowBalance = rewardEscrowV2.escrowedBalanceOf(address(this));
-
         // stake
         stakingRewardsV2.stake(initialStake);
+
+        uint256 initialBalance = kwenta.balanceOf(address(this));
 
         // configure reward rate
         addNewRewardsToStakingRewardsV2(newRewards, 0);
@@ -59,15 +55,10 @@ contract StakingRewardsV2CompoundTests is DefaultStakingV2Setup {
         // compound rewards
         stakingRewardsV2.compound();
 
-        // check reward escrow balance increased
-        uint256 finalEscrowBalance = rewardEscrowV2.escrowedBalanceOf(address(this));
-        assertGt(finalEscrowBalance, initialEscrowBalance);
-
-        // check all escrowed rewards were staked
-        uint256 totalRewards = finalEscrowBalance - initialEscrowBalance;
-        assertEq(totalRewards, stakingRewardsV2.escrowedBalanceOf(address(this)));
-        assertEq(totalRewards + initialStake, stakingRewardsV2.balanceOf(address(this)));
-        assertEq(rewardEscrowV2.unstakedEscrowedBalanceOf(address(this)), 0);
+        // check all rewards were staked and that staker balance increased
+        uint256 finalBalance = kwenta.balanceOf(address(this));
+        assertEq(initialBalance, finalBalance);
+        assertGt(stakingRewardsV2.balanceOf(address(this)), initialStake);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -112,7 +103,7 @@ contract StakingRewardsV2CompoundTests is DefaultStakingV2Setup {
         vm.expectEmit(true, true, false, true);
         emit RewardPaid(address(this), 1 weeks);
         vm.expectEmit(true, true, false, true);
-        emit EscrowStaked(address(this), 1 weeks);
+        emit Staked(address(this), 1 weeks);
 
         // compound rewards
         stakingRewardsV2.compound();

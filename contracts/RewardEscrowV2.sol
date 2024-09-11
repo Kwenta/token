@@ -19,7 +19,7 @@ import {IEscrowMigrator} from "./interfaces/IEscrowMigrator.sol";
 /// @title KWENTA Reward Escrow V2
 /// @author Originally inspired by SYNTHETIX RewardEscrow
 /// @author Kwenta's RewardEscrow V1 by JaredBorders (jaredborders@proton.me), JChiaramonte7 (jeremy@bytecode.llc)
-/// @author RewardEscrowV2 by tommyrharper (tom@zkconsulting.xyz)
+/// @author RewardEscrowV2 by tommyrharper (tom@zkconsulting.xyz), Flocqst (florian@kwenta.io)
 /// @notice Updated version of Synthetix's RewardEscrow with new features specific to Kwenta
 contract RewardEscrowV2 is
     IRewardEscrowV2,
@@ -377,7 +377,7 @@ contract RewardEscrowV2 is
                 unchecked {
                     amountToUnstake = totalWithFee - unstakedEscrow;
                 }
-                stakingRewards.unstakeEscrowSkipCooldown(msg.sender, amountToUnstake);
+                stakingRewards.unstakeEscrowAdmin(msg.sender, amountToUnstake);
             }
 
             // update balances
@@ -430,8 +430,7 @@ contract RewardEscrowV2 is
         if (_earlyVestingFee > MAXIMUM_EARLY_VESTING_FEE) revert EarlyVestingFeeTooHigh();
         if (_earlyVestingFee < MINIMUM_EARLY_VESTING_FEE) revert EarlyVestingFeeTooLow();
         if (_deposit == 0) revert ZeroAmount();
-        uint256 minimumDuration = stakingRewards.cooldownPeriod();
-        if (_duration < minimumDuration || _duration > MAX_DURATION) revert InvalidDuration();
+        if (_duration == 0 || _duration > MAX_DURATION) revert InvalidDuration();
 
         /// @dev this will revert if the kwenta token transfer fails
         kwenta.transferFrom(msg.sender, address(this), _deposit);

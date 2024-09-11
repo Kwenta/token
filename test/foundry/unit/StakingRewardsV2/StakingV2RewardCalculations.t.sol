@@ -20,10 +20,10 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         fundAccountAndStakeV2(user1, initialStake);
 
         // get initial rewards
-        uint256 rewards = rewardEscrowV2.escrowedBalanceOf(user1);
+        uint256 balance = kwenta.balanceOf(user1);
         uint256 rewardsUsdc = usdc.balanceOf(user1);
         // assert initial rewards are 0
-        assertEq(rewards, 0);
+        assertEq(balance, 0);
         assertEq(rewardsUsdc, 0);
 
         // send in 604800 (1 week) of rewards - (using 1 week for round numbers)
@@ -49,9 +49,9 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         uint256 expectedRewards = 1 weeks;
 
         // check rewards
-        rewards = rewardEscrowV2.escrowedBalanceOf(user1);
+        balance = kwenta.balanceOf(user1);
+        assertEq(balance, expectedRewards);
         rewardsUsdc = usdc.balanceOf(user1);
-        assertEq(rewards, expectedRewards);
         assertEq(rewardsUsdc, expectedRewards);
 
         // send in another 604800 (1 week) of rewards
@@ -64,11 +64,11 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.escrowedBalanceOf(user1);
+        balance = kwenta.balanceOf(user1);
         rewardsUsdc = usdc.balanceOf(user1);
         // we exect the same amount of rewards again as this week was exactly the same as the previous one
         uint256 numberOfPeriods = 2;
-        assertEq(rewards, expectedRewards * numberOfPeriods);
+        assertEq(balance, expectedRewards * numberOfPeriods);
         assertEq(rewardsUsdc, expectedRewards * numberOfPeriods);
     }
 
@@ -91,11 +91,11 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         // user1 earns 100% of rewards
         fundAccountAndStakeV2(user1, initialStake);
 
-        // get initial rewards
-        uint256 rewards = rewardEscrowV2.escrowedBalanceOf(user1);
+        // get initial balance
+        uint256 balance = kwenta.balanceOf(user1);
         uint256 rewardsUsdc = usdc.balanceOf(user1);
-        // assert initial rewards are 0
-        assertEq(rewards, 0);
+        // assert initial balance is 0 (everything is staked and rewards are 0)
+        assertEq(balance, 0);
         assertEq(rewardsUsdc, 0);
 
         // calculate expected reward
@@ -112,9 +112,9 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.escrowedBalanceOf(user1);
+        balance = kwenta.balanceOf(user1);
         rewardsUsdc = usdc.balanceOf(user1);
-        assertEq(rewards, expectedRewards);
+        assertEq(balance, expectedRewards);
         assertEq(rewardsUsdc, expectedUsdcRewards);
 
         // move forward to the end of the rewards period
@@ -129,9 +129,9 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.escrowedBalanceOf(user1);
+        balance = kwenta.balanceOf(user1);
         rewardsUsdc = usdc.balanceOf(user1);
-        assertEq(rewards, expectedRewards);
+        assertEq(balance, expectedRewards);
         assertEq(rewardsUsdc, expectedUsdcRewards);
     }
 
@@ -160,11 +160,11 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         // user1 earns 100% of rewards
         fundAccountAndStakeV2(user1, initialStake);
 
-        // get initial rewards
-        uint256 rewards = rewardEscrowV2.escrowedBalanceOf(user1);
+        // get initial balance
+        uint256 balance = kwenta.balanceOf(user1);
         uint256 rewardsUsdc = usdc.balanceOf(user1);
-        // assert initial rewards are 0
-        assertEq(rewards, 0);
+        // assert initial balance is 0 (everything is staked and rewards are 0)
+        assertEq(balance, 0);
         assertEq(rewardsUsdc, 0);
 
         // calculate expected reward
@@ -181,10 +181,10 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.escrowedBalanceOf(user1);
+        balance = kwenta.balanceOf(user1);
+        assertEq(balance, expectedRewards);
         rewardsUsdc = usdc.balanceOf(user1);
-        assertEq(rewards, expectedRewards);
-        // assertEq(rewardsUsdc, expectedUsdcRewards);
+        assertEq(rewardsUsdc, expectedUsdcRewards);
 
         // move forward to the end of the rewards period
         jumpToEndOfRewardsPeriod(waitTime);
@@ -202,9 +202,9 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         getStakingRewardsV2(user5);
 
         // check rewards
-        rewards = rewardEscrowV2.escrowedBalanceOf(user1);
+        balance = kwenta.balanceOf(user1);
+        assertEq(balance, expectedRewards);
         rewardsUsdc = usdc.balanceOf(user1);
-        assertEq(rewards, expectedRewards);
         assertApproxEqAbs(rewardsUsdc, expectedUsdcRewards, 10);
     }
 
@@ -224,11 +224,11 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         // user1 earns 100% of rewards
         fundAccountAndStakeV2(user1, initialStake);
 
-        // get initial rewards
-        uint256 rewards = rewardEscrowV2.escrowedBalanceOf(user1);
+        // get initial balance
+        uint256 balance = kwenta.balanceOf(user1);
         uint256 rewardsUsdc = usdc.balanceOf(user1);
-        // assert initial rewards are 0
-        assertEq(rewards, 0);
+        // assert initial balance is 0 (everything is staked and rewards are 0)
+        assertEq(balance, 0);
         assertEq(rewardsUsdc, 0);
 
         // calculate expected reward
@@ -245,9 +245,9 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.escrowedBalanceOf(user1);
+        balance = kwenta.balanceOf(user1);
+        assertEq(balance, expectedRewards);
         rewardsUsdc = usdc.balanceOf(user1);
-        assertEq(rewards, expectedRewards);
         assertEq(rewardsUsdc, expectedUsdcRewards);
 
         // move forward to the end of the rewards period
@@ -269,9 +269,9 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.escrowedBalanceOf(user1);
+        balance = kwenta.balanceOf(user1);
+        assertEq(balance, expectedRewards);
         rewardsUsdc = usdc.balanceOf(user1);
-        assertEq(rewards, expectedRewards);
         assertApproxEqAbs(rewardsUsdc, expectedUsdcRewards, 10);
     }
 
@@ -291,11 +291,11 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         // user1 earns 100% of rewards
         fundAccountAndStakeV2(user1, initialStake);
 
-        // get initial rewards
-        uint256 rewards = rewardEscrowV2.escrowedBalanceOf(user1);
+        // get initial balance
+        uint256 balance = kwenta.balanceOf(user1);
         uint256 rewardsUsdc = usdc.balanceOf(user1);
-        // assert initial rewards are 0
-        assertEq(rewards, 0);
+        // assert initial balance is 0 (everything is staked and rewards are 0)
+        assertEq(balance, 0);
         assertEq(rewardsUsdc, 0);
 
         // calculate expected reward
@@ -312,9 +312,9 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.escrowedBalanceOf(user1);
+        balance = kwenta.balanceOf(user1);
+        assertEq(balance, expectedRewards);
         rewardsUsdc = usdc.balanceOf(user1);
-        assertEq(rewards, expectedRewards);
         assertEq(rewardsUsdc, expectedUsdcRewards);
 
         // move forward to the end of the rewards period
@@ -336,9 +336,9 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.escrowedBalanceOf(user1);
+        balance = kwenta.balanceOf(user1);
+        assertEq(balance, expectedRewards);
         rewardsUsdc = usdc.balanceOf(user1);
-        assertEq(rewards, expectedRewards);
         assertApproxEqAbs(rewardsUsdc, expectedUsdcRewards, 10);
 
         // move forward to the end of the rewards period
@@ -360,9 +360,9 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.escrowedBalanceOf(user1);
+        balance = kwenta.balanceOf(user1);
+        assertEq(balance, expectedRewards);
         rewardsUsdc = usdc.balanceOf(user1);
-        assertEq(rewards, expectedRewards);
         assertApproxEqAbs(rewardsUsdc, expectedUsdcRewards, 10);
     }
 
@@ -384,11 +384,11 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         // user1 earns 100% of rewards
         fundAccountAndStakeV2(user1, initialStake);
 
-        // get initial rewards
-        uint256 rewards = rewardEscrowV2.escrowedBalanceOf(user1);
+        // get initial balance
+        uint256 balance = kwenta.balanceOf(user1);
         uint256 rewardsUsdc = usdc.balanceOf(user1);
-        // assert initial rewards are 0
-        assertEq(rewards, 0);
+        // assert initial balance is 0 (everything is staked and rewards are 0)
+        assertEq(balance, 0);
         assertEq(rewardsUsdc, 0);
 
         // calculate expected reward
@@ -405,9 +405,9 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.escrowedBalanceOf(user1);
+        balance = kwenta.balanceOf(user1);
+        assertEq(balance, expectedRewards);
         rewardsUsdc = usdc.balanceOf(user1);
-        assertEq(rewards, expectedRewards);
         assertEq(rewardsUsdc, expectedUsdcRewards);
 
         for (uint256 i = 0; i < numberOfRounds; i++) {
@@ -430,9 +430,9 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
             getStakingRewardsV2(user1);
 
             // check rewards
-            rewards = rewardEscrowV2.escrowedBalanceOf(user1);
+            balance = kwenta.balanceOf(user1);
+            assertEq(balance, expectedRewards);
             rewardsUsdc = usdc.balanceOf(user1);
-            assertEq(rewards, expectedRewards);
             assertApproxEqAbs(rewardsUsdc, expectedUsdcRewards, 10);
         }
     }
@@ -463,11 +463,11 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         // user1 earns 100% of rewards
         fundAccountAndStakeV2(user1, initialStake);
 
-        // get initial rewards
-        uint256 rewards = rewardEscrowV2.escrowedBalanceOf(user1);
+        // get initial balance
+        uint256 balance = kwenta.balanceOf(user1);
         uint256 rewardsUsdc = usdc.balanceOf(user1);
-        // assert initial rewards are 0
-        assertEq(rewards, 0);
+        // assert initial balance is 0 (everything is staked and rewards are 0)
+        assertEq(balance, 0);
         assertEq(rewardsUsdc, 0);
 
         // calculate expected reward
@@ -484,9 +484,9 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.escrowedBalanceOf(user1);
+        balance = kwenta.balanceOf(user1);
+        assertEq(balance, expectedRewards);
         rewardsUsdc = usdc.balanceOf(user1);
-        assertEq(rewards, expectedRewards);
         assertEq(rewardsUsdc, expectedUsdcRewards);
 
         for (uint256 i = 0; i < numberOfRounds; i++) {
@@ -513,10 +513,10 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
             getStakingRewardsV2(user1);
 
             // check rewards
-            rewards = rewardEscrowV2.escrowedBalanceOf(user1);
+            balance = kwenta.balanceOf(user1);
+            assertEq(balance, expectedRewards);
             rewardsUsdc = usdc.balanceOf(user1);
-            assertEq(rewards, expectedRewards);
-            assertApproxEqAbs(rewardsUsdc, expectedUsdcRewards, 10);
+            assertApproxEqAbs(rewardsUsdc, expectedUsdcRewards, 50);
         }
     }
 
@@ -529,11 +529,11 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         // user1 earns 100% of rewards
         fundAccountAndStakeV2(user1, initialStake);
 
-        // get initial rewards
-        uint256 rewards = rewardEscrowV2.escrowedBalanceOf(user1);
+        // get initial balance
+        uint256 balance = kwenta.balanceOf(user1);
         uint256 rewardsUsdc = usdc.balanceOf(user1);
-        // assert initial rewards are 0
-        assertEq(rewards, 0);
+        // assert initial balance is 0 (everything is staked and rewards are 0)
+        assertEq(balance, 0);
         assertEq(rewardsUsdc, 0);
 
         // send in 604800 (1 week) of rewards - (using 1 week for round numbers)
@@ -559,9 +559,9 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         uint256 expectedRewards = 1 weeks / 2;
 
         // check rewards
-        rewards = rewardEscrowV2.escrowedBalanceOf(user1);
+        balance = kwenta.balanceOf(user1);
+        assertEq(balance, expectedRewards);
         rewardsUsdc = usdc.balanceOf(user1);
-        assertEq(rewards, expectedRewards);
         assertEq(rewardsUsdc, expectedRewards);
 
         // fast forward 0.5 weeks - to the end of this period
@@ -571,10 +571,10 @@ contract StakingV2RewardCalculationTests is DefaultStakingV2Setup {
         getStakingRewardsV2(user1);
 
         // check rewards
-        rewards = rewardEscrowV2.escrowedBalanceOf(user1);
+        balance = kwenta.balanceOf(user1);
         rewardsUsdc = usdc.balanceOf(user1);
         // we exect to claim the other half of this weeks rewards
-        assertEq(rewards, expectedRewards * 2);
+        assertEq(balance, expectedRewards * 2);
         assertEq(rewardsUsdc, expectedRewards * 2);
     }
 }

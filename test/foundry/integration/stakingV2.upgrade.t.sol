@@ -232,14 +232,16 @@ contract StakingV2UpgradeTests is DefaultStakingV2Setup {
         // claim the rewards
         getStakingRewardsV2(user1);
         assertEq(1 ether, stakingRewardsV2.balanceOf(user1));
-        assertEq(2, rewardEscrowV2.balanceOf(user1));
-        assertEq(1 ether + 1 weeks, rewardEscrowV2.escrowedBalanceOf(user1));
-        assertEq(1 ether + 1 weeks, rewardEscrowV2.unstakedEscrowedBalanceOf(user1));
+        assertEq(1 weeks, kwenta.balanceOf(user1));
+        assertEq(1, rewardEscrowV2.balanceOf(user1));
+        assertEq(1 ether, rewardEscrowV2.escrowedBalanceOf(user1));
+        assertEq(1 ether, rewardEscrowV2.unstakedEscrowedBalanceOf(user1));
 
         // stake the rewards
         stakeAllUnstakedEscrowV2(user1);
+        stakeFundsV2(user1, 1 weeks);
         assertEq(2 ether + 1 weeks, stakingRewardsV2.balanceOf(user1));
-        assertEq(1 ether + 1 weeks, stakingRewardsV2.escrowedBalanceOf(user1));
+        assertEq(1 ether, stakingRewardsV2.escrowedBalanceOf(user1));
         assertEq(0, rewardEscrowV2.unstakedEscrowedBalanceOf(user1));
     }
 

@@ -98,15 +98,25 @@ contract StakingV2MigrationTests is StakingTestHelpers {
         warpAndMint(2 weeks);
         warpAndMint(2 weeks);
 
+        // checks everything is staked
+        assertEq(kwenta.balanceOf(user1), 0);
+        assertEq(kwenta.balanceOf(user2), 0);
+        assertEq(kwenta.balanceOf(user3), 0);
+
         // get rewards
         getStakingRewardsV2(user1);
         getStakingRewardsV2(user2);
         getStakingRewardsV2(user3);
 
+        // assert v2 rewards have been earned
+        assertGt(kwenta.balanceOf(user1), 0);
+        assertGt(kwenta.balanceOf(user2), 0);
+        assertGt(kwenta.balanceOf(user3), 0);
+
         // stake the rewards
-        stakeAllUnstakedEscrowV2(user1);
-        stakeAllUnstakedEscrowV2(user2);
-        stakeAllUnstakedEscrowV2(user3);
+        stakeFundsV2(user1, kwenta.balanceOf(user1));
+        stakeFundsV2(user2, kwenta.balanceOf(user2));
+        stakeFundsV2(user3, kwenta.balanceOf(user3));
 
         // check StakingRewardsV1 balance unchanged
         assertEq(stakingRewardsV1.nonEscrowedBalanceOf(user1), 0);
@@ -134,11 +144,6 @@ contract StakingV2MigrationTests is StakingTestHelpers {
         user1NonEscrowedStakeV2 = stakingRewardsV2.nonEscrowedBalanceOf(user1);
         user2NonEscrowedStakeV2 = stakingRewardsV2.nonEscrowedBalanceOf(user2);
         user3NonEscrowedStakeV2 = stakingRewardsV2.nonEscrowedBalanceOf(user3);
-
-        // assert v2 rewards have been earned
-        assertGt(rewardEscrowV2.escrowedBalanceOf(user1), 0);
-        assertGt(rewardEscrowV2.escrowedBalanceOf(user2), 0);
-        assertGt(rewardEscrowV2.escrowedBalanceOf(user3), 0);
 
         // v2 staked balance is equal to escrowed + non-escrowed balance
         assertEq(stakingRewardsV2.balanceOf(user1), user1EscrowStakedV2 + user1NonEscrowedStakeV2);
@@ -243,8 +248,11 @@ contract StakingV2MigrationTests is StakingTestHelpers {
             // get rewards
             getStakingRewardsV2(stakers[i]);
 
+            // assert v2 rewards have been earned
+            assertGt(kwenta.balanceOf(stakers[i]), 0);
+
             // stake the rewards
-            stakeAllUnstakedEscrowV2(stakers[i]);
+            stakeFundsV2(stakers[i], kwenta.balanceOf(stakers[i]));
         }
 
         // check StakingRewardsV1 balance unchanged
@@ -263,9 +271,6 @@ contract StakingV2MigrationTests is StakingTestHelpers {
         for (uint8 i = 0; i < numberOfStakers; i++) {
             uint256 userEscrowStakedV2 = stakingRewardsV2.escrowedBalanceOf(stakers[i]);
             uint256 userNonEscrowedStakeV2 = stakingRewardsV2.nonEscrowedBalanceOf(stakers[i]);
-
-            // assert v2 rewards have been earned
-            assertGt(rewardEscrowV2.escrowedBalanceOf(stakers[i]), 0);
 
             // v2 staked balance is equal to escrowed + non-escrowed balance
             assertEq(

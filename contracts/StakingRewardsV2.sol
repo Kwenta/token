@@ -15,7 +15,7 @@ import {IRewardEscrowV2} from "./interfaces/IRewardEscrowV2.sol";
 /// @title KWENTA Staking Rewards V2
 /// @author Originally inspired by SYNTHETIX StakingRewards
 /// @author Kwenta's StakingRewards V1 by JaredBorders (jaredborders@proton.me), JChiaramonte7 (jeremy@bytecode.llc)
-/// @author StakingRewardsV2 (this) by tommyrharper (tom@zkconsulting.xyz)
+/// @author StakingRewardsV2 (this) by tommyrharper (tom@zkconsulting.xyz), Flocqst (florian@kwenta.io)
 /// @notice Updated version of Synthetix's StakingRewards with new features specific to Kwenta
 contract StakingRewardsV2 is
     IStakingRewardsV2,
@@ -26,12 +26,6 @@ contract StakingRewardsV2 is
     /*///////////////////////////////////////////////////////////////
                         CONSTANTS/IMMUTABLES
     ///////////////////////////////////////////////////////////////*/
-
-    /// @notice minimum time length of the unstaking cooldown period
-    uint256 public constant MIN_COOLDOWN_PERIOD = 1 weeks;
-
-    /// @notice maximum time length of the unstaking cooldown period
-    uint256 public constant MAX_COOLDOWN_PERIOD = 52 weeks;
 
     /// @notice Contract for KWENTA ERC20 token - used for BOTH staking and rewards
     /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
@@ -80,9 +74,6 @@ contract StakingRewardsV2 is
 
     /// @notice summation of rewardRate divided by total staked tokens
     uint256 public rewardPerTokenStored;
-
-    /// @inheritdoc IStakingRewardsV2
-    uint256 public cooldownPeriod;
 
     /// @notice represents the rewardPerToken
     /// value the last time the staker calculated earned() rewards
@@ -136,17 +127,6 @@ contract StakingRewardsV2 is
         if (msg.sender != address(rewardsNotifier)) revert OnlyRewardsNotifier();
     }
 
-    /// @notice only allow execution after the unstaking cooldown period has elapsed
-    modifier afterCooldown(address _account) {
-        _afterCooldown(_account);
-        _;
-    }
-
-    function _afterCooldown(address _account) internal view {
-        uint256 canUnstakeAt = userLastStakeTime[_account] + cooldownPeriod;
-        if (canUnstakeAt > block.timestamp) revert MustWaitForUnlock(canUnstakeAt);
-    }
-
     /*///////////////////////////////////////////////////////////////
                         CONSTRUCTOR / INITIALIZER
     ///////////////////////////////////////////////////////////////*/
@@ -191,7 +171,6 @@ contract StakingRewardsV2 is
 
         // define values
         rewardsDuration = 1 weeks;
-        cooldownPeriod = 2 weeks;
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -239,28 +218,30 @@ contract StakingRewardsV2 is
     ///////////////////////////////////////////////////////////////*/
 
     /// @inheritdoc IStakingRewardsV2
-    function stake(uint256 _amount) external whenNotPaused updateReward(msg.sender) {
-        if (_amount == 0) revert AmountZero();
-
-        // update state
-        userLastStakeTime[msg.sender] = block.timestamp;
-        _addTotalSupplyCheckpoint(totalSupply() + _amount);
-        _addBalancesCheckpoint(msg.sender, balanceOf(msg.sender) + _amount);
-
-        // emit staking event and index msg.sender
-        emit Staked(msg.sender, _amount);
+    function stake(uint256 _amount) external {
+        _stake(msg.sender, _amount);
 
         // transfer token to this contract from the caller
         kwenta.transferFrom(msg.sender, address(this), _amount);
     }
 
-    /// @inheritdoc IStakingRewardsV2
-    function unstake(uint256 _amount)
-        public
+    function _stake(address _account, uint256 _amount)
+        internal
         whenNotPaused
-        updateReward(msg.sender)
-        afterCooldown(msg.sender)
+        updateReward(_account)
     {
+        if (_amount == 0) revert AmountZero();
+
+        // update state
+        _addTotalSupplyCheckpoint(totalSupply() + _amount);
+        _addBalancesCheckpoint(_account, balanceOf(_account) + _amount);
+
+        // emit staking event and index _account
+        emit Staked(_account, _amount);
+    }
+
+    /// @inheritdoc IStakingRewardsV2
+    function unstake(uint256 _amount) public whenNotPaused updateReward(msg.sender) {
         if (_amount == 0) revert AmountZero();
         uint256 nonEscrowedBalance = nonEscrowedBalanceOf(msg.sender);
         if (_amount > nonEscrowedBalance) revert InsufficientBalance(nonEscrowedBalance);
@@ -291,7 +272,6 @@ contract StakingRewardsV2 is
         if (_amount > unstakedEscrow) revert InsufficientUnstakedEscrow(unstakedEscrow);
 
         // update state
-        userLastStakeTime[_account] = block.timestamp;
         _addBalancesCheckpoint(_account, balanceOf(_account) + _amount);
         _addEscrowedBalancesCheckpoint(_account, escrowedBalanceOf(_account) + _amount);
 
@@ -304,15 +284,12 @@ contract StakingRewardsV2 is
     }
 
     /// @inheritdoc IStakingRewardsV2
-    function unstakeEscrow(uint256 _amount) external afterCooldown(msg.sender) {
+    function unstakeEscrow(uint256 _amount) external {
         _unstakeEscrow(msg.sender, _amount);
     }
 
     /// @inheritdoc IStakingRewardsV2
-    function unstakeEscrowSkipCooldown(address _account, uint256 _amount)
-        external
-        onlyRewardEscrow
-    {
+    function unstakeEscrowAdmin(address _account, uint256 _amount) external onlyRewardEscrow {
         _unstakeEscrow(_account, _amount);
     }
 
@@ -361,31 +338,43 @@ contract StakingRewardsV2 is
         whenNotPaused
         updateReward(_account)
     {
-        uint256 reward = rewards[_account];
-        if (reward > 0) {
+        _processReward(_account, _to, true);
+    }
+
+    /// @notice Process KWENTA and USDC rewards
+    /// @dev transferKwenta is set to false when compounding KWENTA rewards
+    /// @param _account The address of the account to process rewards for
+    /// @param _to The address to transfer rewards to
+    /// @param transferKwenta Boolean flag to determine if Kwenta should be transferred
+    /// @return kwentaReward The amount of Kwenta reward processed
+    function _processReward(address _account, address _to, bool transferKwenta)
+        internal
+        returns (uint256 kwentaReward)
+    {
+        // Process Kwenta reward
+        kwentaReward = rewards[_account];
+        if (kwentaReward > 0) {
             // update state (first)
             rewards[_account] = 0;
 
             // emit reward claimed event and index account
-            emit RewardPaid(_account, reward);
+            emit RewardPaid(_account, kwentaReward);
 
-            // transfer token from this contract to the rewardEscrow
-            // and create a vesting entry at the _to address
-            kwenta.transfer(address(rewardEscrow), reward);
-            rewardEscrow.appendVestingEntry(_to, reward);
+            if (transferKwenta) {
+                kwenta.transfer(_to, kwentaReward);
+            }
         }
 
-        uint256 rewardUSDC = rewardsUSDC[_account] / PRECISION;
-        if (rewardUSDC > 0) {
+        // Process USDC reward
+        uint256 usdcReward = rewardsUSDC[_account] / PRECISION;
+        if (usdcReward > 0) {
             // update state (first)
             rewardsUSDC[_account] = 0;
 
             // emit reward claimed event and index account
-            emit RewardPaidUSDC(_account, rewardUSDC);
+            emit RewardPaidUSDC(_account, usdcReward);
 
-            // transfer token from this contract to the account
-            // as newly issued rewards from inflation are now issued as non-escrowed
-            usdc.transfer(_to, rewardUSDC);
+            usdc.transfer(_to, usdcReward);
         }
     }
 
@@ -397,8 +386,8 @@ contract StakingRewardsV2 is
     /// @dev internal helper to compound for a given account
     /// @param _account the account to compound for
     function _compound(address _account) internal {
-        _getReward(_account);
-        _stakeEscrow(_account, unstakedEscrowedBalanceOf(_account));
+        uint256 reward = _processReward(_account, _account, false);
+        _stake(_account, reward);
     }
 
     /*///////////////////////////////////////////////////////////////
@@ -686,17 +675,6 @@ contract StakingRewardsV2 is
 
         rewardsDuration = _rewardsDuration;
         emit RewardsDurationUpdated(rewardsDuration);
-    }
-
-    /// @inheritdoc IStakingRewardsV2
-    function setCooldownPeriod(uint256 _cooldownPeriod) external onlyOwner {
-        if (_cooldownPeriod < MIN_COOLDOWN_PERIOD) revert CooldownPeriodTooLow(MIN_COOLDOWN_PERIOD);
-        if (_cooldownPeriod > MAX_COOLDOWN_PERIOD) {
-            revert CooldownPeriodTooHigh(MAX_COOLDOWN_PERIOD);
-        }
-
-        cooldownPeriod = _cooldownPeriod;
-        emit CooldownPeriodUpdated(cooldownPeriod);
     }
 
     /*///////////////////////////////////////////////////////////////

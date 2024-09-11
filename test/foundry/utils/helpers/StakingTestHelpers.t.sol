@@ -230,14 +230,14 @@ contract StakingTestHelpers is StakingV2Setup {
         stakingRewardsV2.stakeEscrow(_amount);
     }
 
+    function unstakeEscrowedFundsAdminV2(address _account, uint256 _amount) internal {
+        vm.prank(address(rewardEscrowV2));
+        stakingRewardsV2.unstakeEscrowAdmin(_account, _amount);
+    }
+
     function unstakeEscrowedFundsV2(address _account, uint256 _amount) internal {
         vm.prank(_account);
         stakingRewardsV2.unstakeEscrow(_amount);
-    }
-
-    function unstakeEscrowSkipCooldownFundsV2(address _account, uint256 _amount) internal {
-        vm.prank(address(rewardEscrowV2));
-        stakingRewardsV2.unstakeEscrowSkipCooldown(_account, _amount);
     }
 
     function bulkCreateV1EscrowEntries(address _account, uint256 _amount, uint256 num) internal {

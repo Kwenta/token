@@ -33,6 +33,7 @@ import {IStakingRewardsIntegrator} from "./interfaces/IStakingRewardsIntegrator.
 /// @title KWENTA Escrow Migrator
 /// Used to migrate escrow entries from RewardEscrowV1 to RewardEscrowV2
 /// @author tommyrharper (tom@zkconsulting.xyz)
+/// @author Flocqst (florian@kwenta.io)
 contract EscrowMigrator is
     IEscrowMigrator,
     Ownable2StepUpgradeable,
@@ -410,7 +411,6 @@ contract EscrowMigrator is
         _payForMigration(_account);
 
         uint256 migratedEscrow;
-        uint256 cooldown = stakingRewardsV2.cooldownPeriod();
         mapping(uint256 => VestingEntry) storage userEntries = registeredVestingSchedules[_account];
 
         for (uint256 i = 0; i < _entryIDs.length; i++) {
@@ -431,15 +431,6 @@ contract EscrowMigrator is
             // update state
             registeredEntry.migrated = true;
             migratedEscrow += originalEscrowAmount;
-
-            /// @dev it essential for security that the duration is not less than the cooldown period,
-            /// otherwise the user could do a governance attack by bypassing the unstaking cooldown lock
-            /// by migrating their escrow then staking, voting, and vesting immediately
-            if (duration < cooldown) {
-                uint256 timeCreated = endTime - duration;
-                duration = cooldown;
-                endTime = timeCreated + cooldown;
-            }
 
             IRewardEscrowV2.VestingEntry memory entry = IRewardEscrowV2.VestingEntry({
                 escrowAmount: originalEscrowAmount,
