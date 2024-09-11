@@ -241,11 +241,7 @@ contract StakingRewardsV2 is
     }
 
     /// @inheritdoc IStakingRewardsV2
-    function unstake(uint256 _amount)
-        public
-        whenNotPaused
-        updateReward(msg.sender)
-    {
+    function unstake(uint256 _amount) public whenNotPaused updateReward(msg.sender) {
         if (_amount == 0) revert AmountZero();
         uint256 nonEscrowedBalance = nonEscrowedBalanceOf(msg.sender);
         if (_amount > nonEscrowedBalance) revert InsufficientBalance(nonEscrowedBalance);
@@ -293,10 +289,7 @@ contract StakingRewardsV2 is
     }
 
     /// @inheritdoc IStakingRewardsV2
-    function unstakeEscrowAdmin(address _account, uint256 _amount)
-        external
-        onlyRewardEscrow
-    {
+    function unstakeEscrowAdmin(address _account, uint256 _amount) external onlyRewardEscrow {
         _unstakeEscrow(_account, _amount);
     }
 
@@ -345,61 +338,43 @@ contract StakingRewardsV2 is
         whenNotPaused
         updateReward(_account)
     {
-        uint256 reward = rewards[_account];
-        if (reward > 0) {
-            // update state (first)
-            rewards[_account] = 0;
-
-            // emit reward claimed event and index account
-            emit RewardPaid(_account, reward);
-
-            // transfer token from this contract to the account
-            // as newly issued rewards from inflation are now issued as non-escrowed
-            kwenta.transfer(_to, reward);
-        }
-
-        uint256 rewardUSDC = rewardsUSDC[_account] / PRECISION;
-        if (rewardUSDC > 0) {
-            // update state (first)
-            rewardsUSDC[_account] = 0;
-
-            // emit reward claimed event and index account
-            emit RewardPaidUSDC(_account, rewardUSDC);
-
-            // transfer token from this contract to the account
-            // as newly issued rewards from inflation are now issued as non-escrowed
-            usdc.transfer(_to, rewardUSDC);
-        }
+        _processReward(_account, _to, true);
     }
 
-    /// @notice Get the reward of the given account for compounding.
-    /// @dev Retrieves the Kwenta reward without transferring it, as it will be staked immediately after.
-    function _getRewardCompounding(address _account)
+    /// @notice Process KWENTA and USDC rewards
+    /// @dev transferKwenta is set to false when compounding KWENTA rewards
+    /// @param _account The address of the account to process rewards for
+    /// @param _to The address to transfer rewards to
+    /// @param transferKwenta Boolean flag to determine if Kwenta should be transferred
+    /// @return kwentaReward The amount of Kwenta reward processed
+    function _processReward(address _account, address _to, bool transferKwenta)
         internal
-        whenNotPaused
-        updateReward(_account)
-        returns (uint256 reward)
+        returns (uint256 kwentaReward)
     {
-        reward = rewards[_account];
-        if (reward > 0) {
+        // Process Kwenta reward
+        kwentaReward = rewards[_account];
+        if (kwentaReward > 0) {
             // update state (first)
             rewards[_account] = 0;
 
             // emit reward claimed event and index account
-            emit RewardPaid(_account, reward);
+            emit RewardPaid(_account, kwentaReward);
+
+            if (transferKwenta) {
+                kwenta.transfer(_to, kwentaReward);
+            }
         }
 
-        uint256 rewardUSDC = rewardsUSDC[_account] / PRECISION;
-        if (rewardUSDC > 0) {
+        // Process USDC reward
+        uint256 usdcReward = rewardsUSDC[_account] / PRECISION;
+        if (usdcReward > 0) {
             // update state (first)
             rewardsUSDC[_account] = 0;
 
             // emit reward claimed event and index account
-            emit RewardPaidUSDC(_account, rewardUSDC);
+            emit RewardPaidUSDC(_account, usdcReward);
 
-            // transfer token from this contract to the account
-            // as newly issued rewards from inflation are now issued as non-escrowed
-            usdc.transfer(_account, rewardUSDC);
+            usdc.transfer(_to, usdcReward);
         }
     }
 
@@ -411,7 +386,7 @@ contract StakingRewardsV2 is
     /// @dev internal helper to compound for a given account
     /// @param _account the account to compound for
     function _compound(address _account) internal {
-        uint256 reward = _getRewardCompounding(_account);
+        uint256 reward = _processReward(_account, _account, false);
         _stake(_account, reward);
     }
 
