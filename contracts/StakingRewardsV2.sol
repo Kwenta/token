@@ -233,7 +233,6 @@ contract StakingRewardsV2 is
         if (_amount == 0) revert AmountZero();
 
         // update state
-        userLastStakeTime[_account] = block.timestamp;
         _addTotalSupplyCheckpoint(totalSupply() + _amount);
         _addBalancesCheckpoint(_account, balanceOf(_account) + _amount);
 
@@ -277,7 +276,6 @@ contract StakingRewardsV2 is
         if (_amount > unstakedEscrow) revert InsufficientUnstakedEscrow(unstakedEscrow);
 
         // update state
-        userLastStakeTime[_account] = block.timestamp;
         _addBalancesCheckpoint(_account, balanceOf(_account) + _amount);
         _addEscrowedBalancesCheckpoint(_account, escrowedBalanceOf(_account) + _amount);
 
